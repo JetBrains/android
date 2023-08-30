@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.handlers.constraint.targets
+package com.android.tools.idea.uibuilder.handlers.motion.editor.targets
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
-import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDragTarget
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
 class MotionLayoutDragTargetTest : SceneTest() {
@@ -27,7 +26,7 @@ class MotionLayoutDragTargetTest : SceneTest() {
   fun testUpdateAttribute() {
     val button = myScreen.get("@id/button").sceneComponent!!
 
-    val dropHandler = MotionLayoutDragTarget.DropHandler(button)
+    val dropHandler = MotionLayoutDropHandler(button)
     val modification = ComponentModification(button.getNlComponent(), "move")
 
     dropHandler.updateAttributes(modification, button, 14, 10)

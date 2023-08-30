@@ -22,7 +22,6 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.common.util.XmlTagUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
@@ -149,24 +148,19 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
   }
 
   fun testRemovingComponentWillRemoveAnchorAttribute() {
-    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
-    try {
-      // Move linear layout to frame layout. Button2 should remove anchor attributes.
-      myInteraction.select("linear", true)
-      myInteraction.mouseDown("linear")
-      myInteraction.mouseRelease("frame", 30f, 30f)
-      val p = myScreen.get("@id/button2").component.parent
-      myScreen
-        .get("@id/button2")
-        .expectXml(
-          "<Button\n" +
-            "    android:id=\"@id/button2\"\n" +
-            "    android:layout_width=\"100dp\"\n" +
-            "    android:layout_height=\"100dp\" />"
-        )
-    } finally {
-      StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
-    }
+    // Move linear layout to frame layout. Button2 should remove anchor attributes.
+    myInteraction.select("linear", true)
+    myInteraction.mouseDown("linear")
+    myInteraction.mouseRelease("frame", 30f, 30f)
+    val p = myScreen.get("@id/button2").component.parent
+    myScreen
+      .get("@id/button2")
+      .expectXml(
+        "<Button\n" +
+          "    android:id=\"@id/button2\"\n" +
+          "    android:layout_width=\"100dp\"\n" +
+          "    android:layout_height=\"100dp\" />"
+      )
   }
 
   override fun createModel(): ModelBuilder {

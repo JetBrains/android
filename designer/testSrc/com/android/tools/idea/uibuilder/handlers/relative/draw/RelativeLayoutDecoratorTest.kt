@@ -134,10 +134,10 @@ DrawNlComponentFrame,225,225,50,50,1,100,100
 DrawComponentBackground,225,245,50,10,1
 DrawButton,225,245,50,10,0,8,1.0,28,"Button"
 DrawNlComponentFrame,225,245,50,10,1,20,20
-VerticalZigZagLineCommand - (250, 0, 225)
-VerticalZigZagLineCommand - (250, 275, 500)
 HorizontalZigZagLineCommand - (0, 225, 250)
 HorizontalZigZagLineCommand - (275, 500, 250)
+VerticalZigZagLineCommand - (250, 0, 225)
+VerticalZigZagLineCommand - (250, 275, 500)
 VerticalZigZagLineCommand - (250, 0, 245)
 VerticalZigZagLineCommand - (250, 255, 500)
 HorizontalZigZagLineCommand - (0, 225, 250)
@@ -270,10 +270,10 @@ DrawNlComponentFrame,275,215,30,10,1,20,20
 DrawComponentBackground,195,275,30,10,1
 DrawUnknownDecorator,195,275,30,10,28,1.0,"h"
 DrawNlComponentFrame,195,275,30,10,1,20,20
-VerticalZigZagLineCommand - (250, 0, 225)
-VerticalZigZagLineCommand - (250, 275, 500)
 HorizontalZigZagLineCommand - (0, 225, 250)
 HorizontalZigZagLineCommand - (275, 500, 250)
+VerticalZigZagLineCommand - (250, 0, 225)
+VerticalZigZagLineCommand - (250, 275, 500)
 DrawVerticalArrowCommand - (240, 275, 275)
 DrawHorizontalDashedLineCommand: (225, 275) - (275, 275)
 DrawHorizontalArrowCommand - (225, 270, 270)

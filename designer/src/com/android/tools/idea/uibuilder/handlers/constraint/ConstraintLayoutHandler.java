@@ -102,13 +102,13 @@ import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
@@ -422,7 +422,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     childComponent.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
 
     listBuilder.add(
-      new ConstraintDragTarget(),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
       new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
@@ -443,6 +442,11 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     }
 
     return listBuilder.build();
+  }
+
+  @Override
+  public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return true;
   }
 
   @Override
@@ -472,14 +476,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * @param layout     the layout being dragged over/into
    * @param components the components being dragged
    * @param type       the <b>initial</b> type of drag, which can change along the way
-   * @return instance of a ConstraintDragHandler
+   * @return instance of a CommonDragHandler
    */
   @Override
   public DragHandler createDragHandler(@NotNull ViewEditor editor,
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    return new ConstraintDragHandler(editor, this, layout, components, type);
+    return new CommonDragHandler(editor, this, layout, components, type);
   }
 
   @Override

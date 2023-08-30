@@ -22,7 +22,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
@@ -70,10 +69,8 @@ public class RecyclerViewHandlerTest extends LayoutTestCase {
                  "    android:layout_width=\"980dp\"\n" +
                  "    android:layout_height=\"980dp\"/>");
 
-    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-      // Should not able to drag into RecyclerView
-      assertEmpty(screen.get("@id/myView").getSceneComponent().getChildren());
-    }
+    // Should not able to drag into RecyclerView
+    assertEmpty(screen.get("@id/myView").getSceneComponent().getChildren());
   }
 
   @NotNull

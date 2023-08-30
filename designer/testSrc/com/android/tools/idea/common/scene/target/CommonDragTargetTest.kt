@@ -23,7 +23,6 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.getLayoutHandler
@@ -32,16 +31,6 @@ import java.awt.Cursor
 import java.awt.event.InputEvent
 
 class CommonDragTargetTest : SceneTest() {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
-    super.tearDown()
-  }
 
   fun testDragComponent() {
     val textView = myScreen.get("@id/textView").sceneComponent!!

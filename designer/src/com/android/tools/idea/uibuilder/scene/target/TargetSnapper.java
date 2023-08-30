@@ -225,22 +225,6 @@ public class TargetSnapper {
     }
   }
 
-  /**
-   * @return The {@link Target} which provided the horizontal snapped {@link Notch} if exist
-   */
-  @Nullable
-  public Target getSnappedHorizontalTarget() {
-    return myHorizontalNotch == null ? null : myHorizontalNotch.myTarget;
-  }
-
-  /**
-   * @return The {@link Target} which provided the vertical snapped {@link Notch} if exist
-   */
-  @Nullable
-  public Target getSnappedVerticalTarget() {
-    return myVerticalNotch == null ? null : myVerticalNotch.myTarget;
-  }
-
   public void clearSnappedNotches() {
     myHorizontalNotch = null;
     myVerticalNotch = null;

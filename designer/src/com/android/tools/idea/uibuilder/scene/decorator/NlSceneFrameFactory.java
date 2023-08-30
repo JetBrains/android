@@ -23,7 +23,6 @@ import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawNlComponentFrame;
 import com.android.tools.idea.common.scene.decorator.SceneFrameFactory;
 import com.android.tools.idea.common.scene.draw.DrawNlDraggingComponentFrame;
-import com.android.tools.idea.flags.StudioFlags;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -45,8 +44,7 @@ public class NlSceneFrameFactory implements SceneFrameFactory {
     boolean paint = !sceneContext.showOnlySelection() || mode == SceneComponent.DrawState.SELECTED || mode == SceneComponent.DrawState.DRAG;
     if (paint) {
       // This allow the dragged components could be rendered outside its parent.
-      boolean ignoreClipping = component.isDragging() && StudioFlags.NELE_DRAG_PLACEHOLDER.get();
-      if (ignoreClipping) {
+      if (component.isDragging()) {
         DrawNlDraggingComponentFrame.add(list, sceneContext, rect, mode, layoutWidth, layoutHeight);
       }
       else {

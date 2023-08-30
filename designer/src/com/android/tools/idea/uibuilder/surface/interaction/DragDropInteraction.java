@@ -35,7 +35,6 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.DragHandler;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -391,12 +390,7 @@ public class DragDropInteraction extends Interaction {
         }
         if (error == null) {
           ViewEditorImpl editorImpl = new ViewEditorImpl(mySceneView);
-          if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && CommonDragHandler.isSupportCommonDragHandler(myCurrentHandler)) {
-            myDragHandler = new CommonDragHandler(editorImpl, myCurrentHandler, myDragReceiver, myDraggedComponents, myType);
-          }
-          else {
-            myDragHandler = myCurrentHandler.createDragHandler(editorImpl, myDragReceiver, myDraggedComponents, myType);
-          }
+          myDragHandler = myCurrentHandler.createDragHandler(editorImpl, myDragReceiver, myDraggedComponents, myType);
           if (myDragHandler != null) {
             myDragHandler
               .start(Coordinates.getAndroidXDip(mySceneView, myStartX), Coordinates.getAndroidYDip(mySceneView, myStartY), myStartMask);

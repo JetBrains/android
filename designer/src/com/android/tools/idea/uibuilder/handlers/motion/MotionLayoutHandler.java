@@ -56,7 +56,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPa
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutAnchorTarget;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDragTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeBaseTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeTarget;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -140,7 +139,6 @@ public class MotionLayoutHandler extends ViewGroupHandler {
     childComponent.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
 
     listBuilder.add(
-      new MotionLayoutDragTarget(),
       new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.LEFT_TOP),
       new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.LEFT_BOTTOM),
       new MotionLayoutResizeTarget(MotionLayoutResizeBaseTarget.Type.RIGHT_TOP),
@@ -161,6 +159,11 @@ public class MotionLayoutHandler extends ViewGroupHandler {
     }
 
     return listBuilder.build();
+  }
+
+  @Override
+  public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return true;
   }
 
   @Override

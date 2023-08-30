@@ -47,7 +47,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneInteraction;
@@ -59,14 +58,13 @@ import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler;
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.BaselineAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.ClearWeightsAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.DistributeWeightsAction;
 import com.android.tools.idea.uibuilder.handlers.linear.actions.ToggleOrientationAction;
-import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearDragTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearResizeTarget;
-import com.android.tools.idea.uibuilder.handlers.linear.targets.LinearSeparatorTarget;
 import com.android.tools.idea.uibuilder.model.FillPolicy;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
@@ -134,10 +132,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
                                        @NotNull SceneComponent layout,
                                        @NotNull List<NlComponent> components,
                                        @NotNull DragType type) {
-    if (layout.getDrawWidth() == 0 || layout.getDrawHeight() == 0) {
-      return null;
-    }
-    return new LinearDragHandler(editor, this, layout, components, type);
+    return new CommonDragHandler(editor, this, layout, components, type);
   }
 
   @Override
@@ -351,8 +346,7 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   }
 
   /**
-   * Creates the {@link LinearDragTarget}, {@link LinearSeparatorTarget}s, and {@link LinearResizeTarget}s
-   * for the children.
+   * Creates the {@link LinearResizeTarget}s for the children.
    *
    * @param parentComponent The parent LinearLayout
    * @param childComponent The component we'll add the targets on
@@ -362,27 +356,13 @@ public class LinearLayoutHandler extends ViewGroupHandler {
   @Override
   public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
     ImmutableList.Builder<Target> listBuilder = ImmutableList.builder();
-    listBuilder.add(new LinearDragTarget(this));
     createResizeTarget(parentComponent, childComponent, listBuilder);
-    createSeparatorTargets(parentComponent, childComponent, listBuilder);
     return listBuilder.build();
   }
 
-  private void createSeparatorTargets(@NotNull SceneComponent parentComponent,
-                                      @NotNull SceneComponent childComponent,
-                                      @NotNull ImmutableList.Builder<Target> listBuilder) {
-    SceneComponent draggingComponent = myDraggingComponents.get(parentComponent);
-    if (draggingComponent != null && draggingComponent != childComponent) {
-
-      boolean isLayoutOrientationVertical = isVertical(parentComponent.getNlComponent());
-      if (canReceiveBefore(parentComponent, childComponent, draggingComponent)) {
-        listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, false));
-      }
-
-      if (isLastChild(parentComponent, childComponent)) {
-        listBuilder.add(new LinearSeparatorTarget(isLayoutOrientationVertical, true));
-      }
-    }
+  @Override
+  public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return true;
   }
 
   private static void createResizeTarget(@NotNull SceneComponent parentComponent,
@@ -460,63 +440,6 @@ public class LinearLayoutHandler extends ViewGroupHandler {
     }
     if (showRight && showBottom) {
       listBuilder.add(new LinearResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM));
-    }
-  }
-
-  /**
-   * Check if the draggingComponent can be inserted before nextSibling
-   *
-   * @param parent            The common parent of nextSibling and draggingComponent
-   * @param nextSibling       The potential future next sibling of draggingComponent
-   * @param draggingComponent The component beingDragged
-   * @return tire if draggingComponent can be inserted before nextSibling
-   */
-  private static boolean canReceiveBefore(@NotNull SceneComponent parent,
-                                          @NotNull SceneComponent nextSibling,
-                                          @NotNull SceneComponent draggingComponent) {
-    List<NlComponent> children = parent.getNlComponent().getChildren();
-    int i = children.indexOf(nextSibling.getNlComponent());
-    return i > -1 && (i == 0 || children.get(i - 1) != draggingComponent.getNlComponent());
-  }
-
-  /**
-   * Check if the child is the last one of the LinearLayout
-   *
-   * @param linearLayoutComponent The parent of the child to check
-   * @param child                 The child to check
-   * @return True child is the last children of the provided parent
-   */
-  private static boolean isLastChild(@NotNull SceneComponent linearLayoutComponent, @NotNull SceneComponent child) {
-    NlComponent nlComponent = linearLayoutComponent.getNlComponent();
-    return nlComponent.getChild(nlComponent.getChildCount() - 1) == child.getNlComponent();
-  }
-
-  /**
-   * Insert the component at the position of the target
-   *
-   * @param component       The component to insert
-   * @param separatorTarget The separator where the component will be inserted
-   * @return true if the component was inserted, false otherwise.
-   */
-  public static boolean insertComponentAtTarget(@NotNull SceneComponent component,
-                                                @NotNull LinearSeparatorTarget separatorTarget) {
-    SceneComponent sceneParent = component.getParent();
-    if (sceneParent == null) {
-      return false;
-    }
-    NlComponent parent = sceneParent.getNlComponent();
-    NlComponent before = !separatorTarget.isAtEnd() ? separatorTarget.getComponent().getNlComponent() : null;
-    NlModel model = parent.getModel();
-    model.addComponents(ImmutableList.of(component.getNlComponent()), parent, before, InsertType.MOVE, null);
-    return true;
-  }
-
-  public void setDragging(@NotNull SceneComponent draggedComponent, boolean isDragging) {
-    if (isDragging && !myDraggingComponents.containsKey(draggedComponent.getParent())) {
-      myDraggingComponents.put(draggedComponent.getParent(), draggedComponent);
-    }
-    else if (!isDragging && myDraggingComponents.containsKey(draggedComponent.getParent())) {
-      myDraggingComponents.remove(draggedComponent.getParent());
     }
   }
 

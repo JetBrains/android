@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.GuiInputHandler;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.google.common.collect.ImmutableList;
@@ -29,18 +28,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 
 public class CommonDragHandlerTest extends LayoutTestCase {
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride();
-    super.tearDown();
-  }
 
   public void testDragFromTree() {
     SyncNlModel model = model("model.xml",

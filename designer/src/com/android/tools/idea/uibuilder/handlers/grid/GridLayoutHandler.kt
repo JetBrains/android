@@ -27,7 +27,7 @@ import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.DragHandler
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
-import com.android.tools.idea.uibuilder.handlers.grid.targets.GridDragTarget
+import com.android.tools.idea.uibuilder.handlers.common.CommonDragHandler
 import com.android.tools.idea.uibuilder.handlers.grid.targets.GridResizeTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -42,7 +42,7 @@ open class GridLayoutHandler : ViewGroupHandler() {
     layout: SceneComponent,
     components: List<NlComponent>,
     type: DragType
-  ): DragHandler = GridDragHandler(editor, this, layout, components, type)
+  ): DragHandler = CommonDragHandler(editor, this, layout, components, type)
 
   override fun onChildRemoved(layout: NlComponent, newChild: NlComponent, insertType: InsertType) {
     newChild.removeAttribute(namespace, SdkConstants.ATTR_LAYOUT_ROW)
@@ -61,14 +61,11 @@ open class GridLayoutHandler : ViewGroupHandler() {
     childComponent: SceneComponent
   ): List<Target> {
     val listBuilder = ImmutableList.builder<Target>()
-    createDragTarget(listBuilder)
     createResizeTarget(listBuilder)
     return listBuilder.build()
   }
 
-  protected open fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) {
-    listBuilder.add(GridDragTarget(isSupportLibrary = false))
-  }
+  override fun shouldAddCommonDragTarget(component: SceneComponent) = true
 
   private fun createResizeTarget(listBuilder: ImmutableList.Builder<Target>) {
     ResizeBaseTarget.Type.values().map { listBuilder.add(GridResizeTarget(it)) }

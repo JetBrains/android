@@ -17,91 +17,15 @@ package com.android.tools.idea.uibuilder.handlers.relative.targets
 
 import com.android.SdkConstants
 import com.android.sdklib.AndroidDpCoordinate
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AttributesTransaction
 import com.android.tools.idea.common.model.NlAttributesHolder
-import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.target.DragBaseTarget
-import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
-import com.intellij.openapi.util.text.StringUtil
-
-/** Target to handle the drag of RelativeLayout's children */
-class RelativeDragTarget : DragBaseTarget() {
-
-  private lateinit var dropHandler: RelativeDropHandler
-
-  override fun setComponent(component: SceneComponent) {
-    super.setComponent(component)
-    dropHandler = RelativeDropHandler(myComponent)
-  }
-
-  override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
-    if (myComponent.parent == null) {
-      return
-    }
-    super.mouseDown(x, y)
-  }
-
-  override fun mouseDrag(
-    @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int,
-    closestTargets: List<Target>,
-    ignored: SceneContext
-  ) {
-    myComponent.isDragging = true
-
-    val attributes = myComponent.authoritativeNlComponent.startAttributeTransaction()
-    updateAttributes(attributes, x, y)
-    attributes.apply()
-
-    myChangedComponent = true
-  }
-
-  override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
-    dropHandler.updateAttributes(attributes, x - myOffsetX, y - myOffsetY)
-  }
-
-  override fun mouseRelease(
-    @AndroidDpCoordinate x: Int,
-    @AndroidDpCoordinate y: Int,
-    closestTarget: List<Target>
-  ) {
-    if (!myComponent.isDragging) return
-    myComponent.isDragging = false
-
-    if (myComponent.parent != null) {
-      val component = myComponent.authoritativeNlComponent
-
-      val attributes = component.startAttributeTransaction()
-      updateAttributes(attributes, x, y)
-      dropHandler.hideHighlightTargets()
-      attributes.apply()
-
-      if (Math.abs(x - myFirstMouseX) > 1 || Math.abs(y - myFirstMouseY) > 1) {
-        NlWriteCommandActionUtil.run(
-          component,
-          "Dragged " + StringUtil.getShortName(component.tagName),
-          { attributes.commit() }
-        )
-      }
-    }
-
-    if (myChangedComponent) {
-      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
-    }
-  }
-}
 
 class RelativeDropHandler(val myComponent: SceneComponent) {
 
   private val targetSnapper = TargetSnapper()
-
-  private var targetX: BaseRelativeTarget? = null
-  private var targetY: BaseRelativeTarget? = null
 
   private var hasHorizontalConstraint = hasHorizontalConstraint(myComponent)
   private var hasVerticalConstraint = hasVerticalConstraint(myComponent)
@@ -149,12 +73,6 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     myComponent.setPosition(newX, newY)
   }
 
-  // TODO: remove this function if possible
-  fun hideHighlightTargets() {
-    targetX?.myIsHighlight = false
-    targetY?.myIsHighlight = false
-  }
-
   /** Update the horizontal constraints and return the position of component on X-axis. */
   @AndroidDpCoordinate
   private fun processHorizontalAttributes(
@@ -162,7 +80,6 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     @AndroidDpCoordinate x: Int
   ): Int {
     val parent = myComponent.parent!!
-    targetX?.myIsHighlight = false
 
     // Calculate horizontal constraint(s)
     if (hasHorizontalConstraint) {
@@ -180,8 +97,6 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     val snappedX = targetSnapper.trySnapHorizontal(dx)
     if (snappedX.isPresent) {
       targetSnapper.applyNotches(attributes)
-      targetX = targetSnapper.snappedHorizontalTarget as BaseRelativeTarget?
-      targetX?.myIsHighlight = true
 
       targetSnapper.clearSnappedNotches()
       return snappedX.asInt
@@ -257,7 +172,6 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     @AndroidDpCoordinate y: Int
   ): Int {
     val parent = myComponent.parent!!
-    targetY?.myIsHighlight = false
 
     // Calculate vertical constraint(s)
     if (hasVerticalConstraint) {
@@ -275,8 +189,6 @@ class RelativeDropHandler(val myComponent: SceneComponent) {
     val snappedY = targetSnapper.trySnapVertical(dy)
     if (snappedY.isPresent) {
       targetSnapper.applyNotches(attributes)
-      targetY = targetSnapper.snappedVerticalTarget as BaseRelativeTarget?
-      targetY?.myIsHighlight = true
 
       targetSnapper.clearSnappedNotches()
 

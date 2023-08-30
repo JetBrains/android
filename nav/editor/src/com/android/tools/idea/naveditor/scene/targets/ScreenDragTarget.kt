@@ -20,7 +20,6 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.target.DragBaseTarget
-import com.android.tools.idea.common.scene.target.LegacyDragTarget
 import com.android.tools.idea.common.scene.target.MultiComponentTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.naveditor.model.NavCoordinate
@@ -33,7 +32,7 @@ import kotlin.math.absoluteValue
 /**
  * Implements a target allowing dragging a nav editor screen
  */
-class ScreenDragTarget(component: SceneComponent) : DragBaseTarget(), MultiComponentTarget, LegacyDragTarget {
+class ScreenDragTarget(component: SceneComponent) : DragBaseTarget(), MultiComponentTarget {
   private val childOffsets: Array<Point?>
 
   init {

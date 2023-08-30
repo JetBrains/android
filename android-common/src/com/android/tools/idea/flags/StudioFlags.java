@@ -227,11 +227,6 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_DRAG_PLACEHOLDER = Flag.create(
-    NELE, "drag.placeholder", "Dragging widgets with Placeholders",
-    "New architecture for dragging widgets in Layout Editor",
-    true);
-
   public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
     NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
     "Use a shared issue panel to display the issue for all design tools",

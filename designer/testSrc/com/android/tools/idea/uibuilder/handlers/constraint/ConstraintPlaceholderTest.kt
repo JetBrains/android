@@ -21,23 +21,12 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.TemporarySceneComponent
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scout.Scout
 import java.awt.Point
 
 class ConstraintPlaceholderTest : SceneTest() {
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
-    super.tearDown()
-  }
 
   fun testRegion() {
     val constraint = myScene.getSceneComponent("constraint")!!
