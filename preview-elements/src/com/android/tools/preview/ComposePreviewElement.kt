@@ -143,7 +143,7 @@ private fun PreviewConfiguration.applyTo(
     // If there is no application theme set, we might need to change the theme when changing the
     // device, because different devices might
     // have different default themes.
-    renderConfiguration.setTheme(renderConfiguration.computePreferredTheme())
+    renderConfiguration.setTheme(renderConfiguration.getPreferredTheme())
   }
 
   customSize?.let {

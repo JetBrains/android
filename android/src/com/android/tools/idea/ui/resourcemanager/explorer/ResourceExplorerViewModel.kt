@@ -24,7 +24,7 @@ import com.android.resources.ResourceType
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.getAppThemeName
-import com.android.tools.idea.configurations.getDefaultTheme
+import com.android.tools.idea.configurations.getDeviceDefaultTheme
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.MANAGER_SUPPORTED_RESOURCES
@@ -492,5 +492,5 @@ private fun getApplicationTheme(facet: AndroidFacet): String {
     return appTheme
   }
 
-  return module.getDefaultTheme(null, null, null)
+  return module.getDeviceDefaultTheme(null, null, null)
 }

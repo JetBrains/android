@@ -303,7 +303,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
         themeUrl.isFramework() ? ResourceNamespace.ANDROID : ResourceNamespace.RES_AUTO,
         themeUrl.name);
       if (resolver.getStyle(themeReference) == null) {
-        String theme = myConfiguration.computePreferredTheme();
+        String theme = myConfiguration.getPreferredTheme();
         if (myThemeUpdateComputation.get() != computationToken) {
           return; // A new update has already been scheduled.
         }

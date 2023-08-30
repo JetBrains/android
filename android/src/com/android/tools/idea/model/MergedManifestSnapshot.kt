@@ -25,7 +25,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.dom.ActivityAttributesSnapshot
-import com.android.tools.idea.configurations.getDefaultTheme
+import com.android.tools.idea.configurations.getDeviceDefaultTheme
 import com.android.tools.idea.run.activity.ActivityLocatorUtils
 import com.android.xml.AndroidManifest
 import com.google.common.collect.ImmutableList
@@ -79,7 +79,7 @@ class MergedManifestSnapshot internal constructor(
   }
 
   fun getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
-    manifestTheme ?: module.getDefaultTheme(renderingTarget, screenSize, device)
+    manifestTheme ?: module.getDeviceDefaultTheme(renderingTarget, screenSize, device)
 
   fun findUsedFeature(name: String): Element? =
     generateSequence(document?.documentElement?.firstChild, Node::getNextSibling)

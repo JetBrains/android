@@ -26,6 +26,8 @@ import com.android.ide.common.resources.ResourceResolver.THEME_NAME
 import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
+import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.DefaultThemeProvider.computeDefaultThemeForConfiguration
 import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
@@ -33,6 +35,7 @@ import com.android.tools.dom.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
@@ -44,7 +47,11 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.SlowOperations
 import org.jetbrains.android.facet.AndroidFacet
 import kotlin.math.max
@@ -56,6 +63,9 @@ private const val PROJECT_THEME = "Theme"
 
 private const val RECENTLY_USED_THEMES_PROPERTY = "android.recentlyUsedThemes"
 private const val MAX_RECENTLY_USED_THEMES = 5
+
+/** [Key] for caching the default theme for a [Module]. */
+private val DEFAULT_THEME_KEY: Key<CachedValue<String>> = Key.create("DefaultThemeProviderThemeKey")
 
 typealias ThemeStyleFilter = (ConfiguredThemeEditorStyle) -> Boolean
 
@@ -232,11 +242,11 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
 /**
  * Returns a default theme
  */
-fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
+fun Module.getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
   // Facet being null should not happen, but has been observed to happen in rare scenarios (such as 73332530), probably
   // related to race condition between Gradle sync and layout rendering
   val moduleInfo = AndroidFacet.getInstance(this)?.let { StudioAndroidModuleInfo.getInstance(it) }
-  return getDefaultTheme(moduleInfo, renderingTarget, screenSize, device)
+  return getDeviceDefaultTheme(moduleInfo, renderingTarget, screenSize, device)
 }
 
 /** Studio-specific implementation of [ThemeInfoProvider]. */
@@ -250,11 +260,25 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
   @Slow
   override fun getThemeNameForActivity(activityFqcn: String): String? = module.getThemeNameForActivity(activityFqcn)
 
-  override fun getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
-    module.getDefaultTheme(renderingTarget, screenSize, device)
+  override fun getDeviceDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
+    module.getDeviceDefaultTheme(renderingTarget, screenSize, device)
+
+  override fun getDefaultTheme(configuration: Configuration): String {
+    val module = configuration.module
+
+    val modificationTracker = MergedManifestModificationTracker.getInstance(module)
+    val provider = CachedValueProvider {
+      CachedValueProvider.Result.create(computeDefaultThemeForConfiguration(configuration), configuration, modificationTracker)
+    }
+    val manager = CachedValuesManager.getManager(module.project)
+    return manager.getCachedValue(configuration,
+                                  DEFAULT_THEME_KEY,
+                                  provider,
+                                  false)
+  }
 }
 
-fun getDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
+fun getDeviceDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
   // For Android Wear and Android TV, the defaults differ
   if (device != null) {
     if (HardwareConfigHelper.isWear(device)) {

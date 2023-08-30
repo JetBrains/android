@@ -32,9 +32,6 @@ import static com.android.tools.configurations.ConfigurationListener.MASK_FOLDER
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
@@ -51,7 +48,6 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.Density;
 import com.android.resources.LayoutDirection;
 import com.android.resources.NightMode;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenSize;
 import com.android.resources.UiMode;
@@ -68,9 +64,9 @@ import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
@@ -82,7 +78,7 @@ import org.jetbrains.annotations.Nullable;
  * A {@linkplain Configuration} is a selection of device, orientation, theme,
  * etc for use when rendering a layout.
  */
-public class Configuration implements Disposable, ModificationTracker {
+public class Configuration extends UserDataHolderBase implements Disposable, ModificationTracker {
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
@@ -452,7 +448,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public String getTheme() {
     if (myTheme == null) {
-      myTheme = computePreferredTheme();
+      return getPreferredTheme();
     }
 
     return myTheme;
@@ -1018,7 +1014,7 @@ public class Configuration implements Disposable, ModificationTracker {
   private void checkThemePrefix() {
     if (myTheme != null && !myTheme.startsWith(PREFIX_RESOURCE_REF)) {
       if (myTheme.isEmpty()) {
-        myTheme = computePreferredTheme();
+        myTheme = getPreferredTheme();
         return;
       }
 
@@ -1251,83 +1247,12 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   /**
-   * Try to get activity theme from manifest. If no theme is found, We fall back to the app theme. If that isn't found,
-   * we use the default system theme.
+   * Returns a default theme name for this configuration.
+   * This method takes into account the activity name and the device settings. It will also consider the manifest and the post splash
+   * theme, if defined.
    */
   @NotNull
-  public String computePreferredTheme() {
-    // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
-    String activityName = getActivity();
-    ThemeInfoProvider themeInfo = mySettings.getConfigModule().getThemeInfoProvider();
-    if (activityName != null) {
-      String activityFqcn = activityName;
-      if (activityName.startsWith(".")) {
-        String packageName = mySettings.getConfigModule().getResourcePackage();
-        activityFqcn = packageName + activityName;
-      }
-
-      String theme = themeInfo.getThemeNameForActivity(activityFqcn);
-      if (theme != null) {
-        return findPostSplashTheme(theme);
-      }
-    }
-
-    // Returns an app theme if possible
-    return findPostSplashTheme(java.util.Objects.requireNonNullElseGet(
-      themeInfo.getAppThemeName(),
-      () ->
-        // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
-        // theme is specified in the manifest).
-        themeInfo.getDefaultTheme(getTarget(), getScreenSize(), getCachedDevice())
-    ));
-  }
-
-  /**
-   * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared.
-   * When a splash screen theme is used in the manifest, the tools should probably not use that one unless the user has explicely selected
-   * it. For "preferred theme" computation purposes, we try to find the post splash screen theme.
-   * See <a href="https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen">splash screen documentation.</a>
-   * @param themeStyle the default theme found in the manifest.
-   * @return the post activity splash screen if any or {@code themeStyle} otherwise.
-   */
-  @NotNull
-  private String findPostSplashTheme(@NotNull String themeStyle) {
-    Logger log = Logger.getInstance(Configuration.class);
-    ResourceUrl themeUrl = ResourceUrl.parseStyleParentReference(themeStyle);
-    if (themeUrl == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeStyle));
-      return themeStyle;
-    }
-
-    ResourceNamespace namespace = ResourceNamespace.fromNamespacePrefix(
-      themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    ResourceReference reference = themeUrl.resolve(
-      namespace != null ? namespace : ResourceNamespace.RES_AUTO,
-      ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    if (reference == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve reference for theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    ResourceResolverCache resolverCache = mySettings.getResolverCache();
-    ResourceResolver resourceResolver = resolverCache.getResourceResolver(getTarget(), themeUrl.toString(), getFullConfig());
-
-    StyleResourceValue theme = resourceResolver.getStyle(reference);
-    if (theme == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    StyleItemResourceValue value = resourceResolver.findItemInStyle(theme, postSplashAttrReference);
-    ResourceValue resolvedValue = resourceResolver.resolveResValue(value);
-
-    String postSplashTheme = resolvedValue != null ? resolvedValue.getResourceUrl().toString() : null;
-    String resolveTheme = java.util.Objects.requireNonNullElse(postSplashTheme, themeStyle);
-
-    if (log.isDebugEnabled()) log.debug(String.format("Post splash resolved=%s, original theme=%s", postSplashTheme, themeUrl));
-
-    return resolveTheme;
+  public String getPreferredTheme() {
+    return mySettings.getConfigModule().getThemeInfoProvider().getDefaultTheme(this);
   }
 }

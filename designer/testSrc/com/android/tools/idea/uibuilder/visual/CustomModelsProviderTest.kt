@@ -86,7 +86,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         ScreenOrientation.PORTRAIT,
         Locale.ANY.toString(),
-        defaultConfig.computePreferredTheme(),
+        defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
         NightMode.NOTNIGHT
       )
@@ -125,7 +125,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         ScreenOrientation.PORTRAIT,
         Locale.create("en").toString(),
-        defaultConfig.computePreferredTheme(),
+        defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
         NightMode.NOTNIGHT
       )
@@ -157,7 +157,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,
         ScreenOrientation.LANDSCAPE,
         Locale.ANY.toString(),
-        defaultConfig.computePreferredTheme(),
+        defaultConfig.getPreferredTheme(),
         UiMode.NORMAL,
         NightMode.NOTNIGHT
       )
