@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.toSlowResource
 import com.google.common.collect.ImmutableSet
@@ -93,7 +92,7 @@ class AssetPreviewManagerImpl(
     when(slowResource) {
       SlowResource.IMAGE -> drawablePreviewProvider
       SlowResource.LAYOUT -> layoutPreviewProvider
-      SlowResource.NAVIGATION -> if(StudioFlags.NAVIGATION_PREVIEW.get()) navGraphPreviewProvider else DefaultIconProvider.INSTANCE
+      SlowResource.NAVIGATION -> navGraphPreviewProvider
     }
 
   /**

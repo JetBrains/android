@@ -306,21 +306,6 @@ public final class StudioFlags {
     true);
   //endregion
 
-  //region Resource Manager
-  private static final FlagGroup RES_MANAGER = new FlagGroup(FLAGS, "res.manager", "Resource Manager");
-  public static final Flag<Boolean> EXTENDED_TYPE_FILTERS = Flag.create(
-    RES_MANAGER, "extended.filters", "Enable extended filters for resources",
-    "Adds more filter options for resources based on the selected ResourceType. Includes options to filter by resource XML tag or "
-    + "File extension.",
-    true);
-
-  public static final Flag<Boolean> NAVIGATION_PREVIEW = Flag.create(
-    RES_MANAGER, "nav.preview", "Enable previews for Navigation resources",
-    "Adds a visual preview to the Navigation resources in the Resource Manager. The preview corresponds to the start destination " +
-    "of the graph.",
-    true);
-  //endregion
-
   //region Resource Repository
   private static final FlagGroup RESOURCE_REPOSITORY = new FlagGroup(FLAGS, "resource.repository", "Resource Repository");
   public static final Flag<Integer> RESOURCE_REPOSITORY_TRACE_SIZE = Flag.create(

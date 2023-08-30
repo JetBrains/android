@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
 import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
@@ -317,7 +316,7 @@ private fun fixFilterDisplayNameForActionText(displayName: String): String {
 private fun DefaultActionGroup.addRelatedTypeFilterActions(viewModel: ResourceExplorerToolbarViewModel) {
   // Group the supported filters by their display name. So that one menu-item applies to the related filters.
   val supportedFilters = viewModel.typeFiltersModel.getSupportedFilters(viewModel.resourceType).groupBy { it.displayName }
-  if (StudioFlags.EXTENDED_TYPE_FILTERS.get() && supportedFilters.isNotEmpty()) {
+  if (supportedFilters.isNotEmpty()) {
     addSeparator()
     val header = "By ${viewModel.resourceType.displayName} Type"
     add(HeaderAction(header, header))
