@@ -16,7 +16,11 @@
 package com.android.tools.idea
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.ide.plugins.IdeaPluginDescriptor
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.util.BuildNumber
 import com.intellij.testFramework.ApplicationRule
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePlugin
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePluginVersion
@@ -52,4 +56,18 @@ class KotlinPluginTest {
     assertThat(idePluginVersion.isAndroidStudio).isTrue()
     assertThat(idePluginVersion.kotlinCompilerVersion.kotlinVersion).isEqualTo(standaloneCompilerVersion.kotlinVersion)
   }
+
+  @Test
+  fun testPluginCompatibilityRange() {
+    val plugin: IdeaPluginDescriptor? = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.kotlin"))
+    assertThat(plugin).isNotNull()
+    assertThat(plugin!!.untilBuild).endsWith(".*")
+    // test build numbers such as AI-232.9559.62.2321.SNAPSHOT
+    val buildNumber = PluginManagerCore.getBuildNumber()
+    assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, buildNumber)).isNull()
+    // test build numbers such as AI-232.9559.62
+    val shortenedBuildNumber = BuildNumber.fromString(buildNumber.toString().split(".").take(3).joinToString("."))
+    assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, shortenedBuildNumber!!)).isNull()
+  }
+
 }
