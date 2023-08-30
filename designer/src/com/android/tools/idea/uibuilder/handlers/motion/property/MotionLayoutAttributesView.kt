@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.AdtSecondaryPanel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
@@ -273,9 +272,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
             true,
             showConstraintWidget
           )
-          if (
-            MotionSceneAttrs.Tags.ON_SWIPE == subTagName && StudioFlags.NELE_ON_SWIPE_PANEL.get()
-          ) {
+          if (MotionSceneAttrs.Tags.ON_SWIPE == subTagName) {
             val titleModel = inspector.addExpandableTitle("OnSwipe Behaviour", true, emptyList())
             val springModel: SpringWidgetModel = MotionLayoutSpringModel(model)
             val springPanel = SpringWidget.panelWithUI(springModel)

@@ -216,14 +216,6 @@ public final class StudioFlags {
 
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
-  public static final Flag<Boolean> NELE_MOTION_AREA_GRAPH = Flag.create(
-    NELE, "motion.area.graph", "Show area graph in Timeline panel",
-    "Show area graph in Timeline panel for Motion Editor.",
-    true);
-  public static final Flag<Boolean> NELE_MOTION_SAVE_GIF = Flag.create(
-    NELE, "motion.save.gif", "Enable save GIF feature",
-    "Enable save a selected transition as a GIF file in Motion Editor.",
-    true);
 
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
@@ -253,11 +245,6 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = Flag.create(
     NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
     "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
-    true);
-
-  public static final Flag<Boolean> NELE_ON_SWIPE_PANEL = Flag.create(
-    NELE, "toggle.layout.editor.on.swipe.panel", "Toggle on swipe panel in motion editor.",
-    "Enable the new on swipe panel in the motion editor",
     true);
 
   public static final Flag<Boolean> NELE_OVERLAY_PROVIDER = Flag.create(

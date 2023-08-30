@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScenePicker.HitElementListener;
@@ -27,7 +26,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionGroup;
@@ -115,7 +113,6 @@ class OverviewPanel extends JPanel {
   private final ActionGroup myActionGroup;
   private boolean mTransitionHovered = false;
   private JPopupMenu mPopupMenu = new JPopupMenu();
-  private boolean mShowSaveGif = StudioFlags.NELE_MOTION_SAVE_GIF.get();
 
   /**
    * Defines the progress along the selected Transition
@@ -157,7 +154,7 @@ class OverviewPanel extends JPanel {
     addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
-        if (SwingUtilities.isRightMouseButton(e) && e.getClickCount() == 1 && mTransitionHovered && mShowSaveGif){
+        if (SwingUtilities.isRightMouseButton(e) && e.getClickCount() == 1 && mTransitionHovered){
           showPopupMenu(e);
           return;
         }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.timeline;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
@@ -50,7 +49,6 @@ public class TimeLineRow extends JPanel {
   private boolean mHasGraph = true;
   private boolean mGraphOpen = false;
   GraphRender mGraph = new GraphRender();
-  private boolean mShowNewGraph = StudioFlags.NELE_MOTION_AREA_GRAPH.get();
 
   @Override
   public void updateUI() {
@@ -189,10 +187,6 @@ public class TimeLineRow extends JPanel {
     if (mHasGraph && mGraphOpen) {
       int gy = myRowHeight + ((mShowTitle) ? myTitleHeight : 0);
       mGraph.draw(g, mTimelineStructure, MEUI.ourLeftColumnWidth, gy, w - MEUI.ourLeftColumnWidth, myGraphHeight);
-    }
-    if (!mShowNewGraph) {
-      g.setColor(MEUI.myGridColor);
-      TimeLineRow.drawTicks(g, mTimelineStructure, h);
     }
   }
 
