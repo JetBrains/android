@@ -16,15 +16,22 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.compileIr
+import com.android.tools.idea.run.deployment.liveedit.analysis.diff
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
+import com.android.tools.idea.run.deployment.liveedit.analysis.onlyComposeDebugConstantChanges
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.utils.editor.commitToPsi
 import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.objectweb.asm.Opcodes
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ComposableCompileTest {
@@ -384,6 +391,55 @@ class ComposableCompileTest {
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
     assertEquals(42, invokeStatic("bar", klass))
+  }
+
+  @Test
+  fun testIgnoreTraceEventStart() {
+    val compiler = Precompiler(projectRule.project, SourceInlineCandidateCache())
+    val file = projectRule.fixture.configureByText("File.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() : String {
+        var str = "hi"
+        return str
+      }
+    """.trimIndent())
+
+    val firstClass = compiler.compile(file.virtualFile).map { IrClass(it) }.single { it.name == "FileKt" }
+    val firstMethod = firstClass.methods.first { it.name == "composableFun" }
+
+    // Ensure we actually generated a traceEventStart() call
+    assertNotNull(firstMethod.instructions.singleOrNull {
+      it.opcode == Opcodes.INVOKESTATIC && it.params[0] == "androidx/compose/runtime/ComposerKt" && it.params[1] == "traceEventStart"
+    })
+
+    // Modifying the line numbers causes the traceEventStart() calls to change; unfortunately, it doesn't change the sourceInformation()
+    // calls from within our test context. Not sure why.
+    val content = """  
+    import androidx.compose.runtime.Composable
+     
+      // Change the line offset of the @Composable to cause the argument to traceEventStart() to change
+      @Composable fun composableFun() : String {
+        var str = "hi"
+        return str
+      }
+    """.trimIndent()
+
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      val document = projectRule.fixture.editor.document
+      document.replaceString(0, document.textLength, content)
+      document.commitToPsi(projectRule.project)
+    }
+
+    val secondClass = compiler.compile(file.virtualFile).map { IrClass(it) }.single { it.name == "FileKt" }
+    val secondMethod = secondClass.methods.first { it.name == "composableFun" }
+
+    // Ensure we actually generated a traceEventStart() call
+    assertNotNull(secondMethod.instructions.singleOrNull {
+      it.opcode == Opcodes.INVOKESTATIC && it.params[0] == "androidx/compose/runtime/ComposerKt" && it.params[1] == "traceEventStart"
+    })
+
+    assertNotNull(diff(firstClass, secondClass))
+    assertTrue(onlyComposeDebugConstantChanges(firstMethod.instructions, secondMethod.instructions))
   }
 
   private fun initialCache(files: Map<String, String>): MutableIrClassCache {

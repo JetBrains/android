@@ -16,10 +16,8 @@
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
-import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.FieldDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodVisitor
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrInstructionList
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
 
@@ -46,6 +44,6 @@ private class SupportMethodVisitor : MethodVisitor {
 
   override fun visitInstructions(old: IrInstructionList, new: IrInstructionList) {
     // Filter out the debugging info that compose modifies on every change
-    hasNonSourceInfoChanges = !onlyHasSourceInfoChanges(old, new)
+    hasNonSourceInfoChanges = !onlyComposeDebugConstantChanges(old, new)
   }
 }

@@ -121,7 +121,7 @@ private class RegularMethodVisitor(val className: String, val methodName: String
 
   override fun visitInstructions(old: IrInstructionList, new: IrInstructionList) {
     // Filter out the debugging info that compose modifies on every change
-    hasNonSourceInfoChanges = !onlyHasSourceInfoChanges(old, new)
+    hasNonSourceInfoChanges = !onlyComposeDebugConstantChanges(old, new)
   }
 
   override fun visitAccess(added: Set<IrAccessFlag>, removed: Set<IrAccessFlag>) {
