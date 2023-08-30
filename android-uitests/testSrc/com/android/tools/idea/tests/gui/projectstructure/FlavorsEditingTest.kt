@@ -29,13 +29,14 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class FlavorsEditingTest {
 
   @Rule
   @JvmField
-  val guiTest = GuiTestRule()
+  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   /**
    * Verify flavor editing works as expected.

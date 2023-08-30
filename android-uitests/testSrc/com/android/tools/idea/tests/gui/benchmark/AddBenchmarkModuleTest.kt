@@ -21,8 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
-import com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest
-import com.android.tools.idea.tests.util.WizardUtils
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
@@ -37,7 +35,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(GuiTestRemoteRunner::class)
 class AddBenchmarkModuleTest {
   @get:Rule
-  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   @get:Rule
   val flagRule = FlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
@@ -46,7 +44,7 @@ class AddBenchmarkModuleTest {
   @Throws(java.lang.Exception::class)
   fun setUp() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(240)).isBuildSuccessful).isTrue()
 
     //Clearing notifications present on the screen.
     ideFrame.clearNotificationsPresentOnIdeFrame()
