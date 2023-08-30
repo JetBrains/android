@@ -55,11 +55,8 @@ class AndroidGradleTaskManager : GradleTaskManagerExtension {
       rootProjectPath = File(projectPath),
       gradleTasks = taskNames,
       taskId = id,
-      jvmArguments = effectiveSettings.jvmArguments,
-      commandLineArguments = effectiveSettings.arguments,
-      env = effectiveSettings.env,
-      isPassParentEnvs = effectiveSettings.isPassParentEnvs,
       listener = listener,
+      executionSettings = effectiveSettings,
       isWaitForCompletion = true,
       doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure
     )

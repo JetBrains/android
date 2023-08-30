@@ -24,6 +24,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
 import java.util.concurrent.Executor
 
@@ -67,7 +68,7 @@ interface GradleBuildInvoker {
   fun stopBuild(id: ExternalSystemTaskId): Boolean
   val project: Project
 
-  data class Request constructor(
+  data class Request(
     val project: Project,
     val taskId: ExternalSystemTaskId,
     val data: RequestData,
@@ -86,6 +87,29 @@ interface GradleBuildInvoker {
     val commandLineArguments: List<String> get() = data.commandLineArguments
     val env: Map<String, String> get() = data.env
     val isPassParentEnvs: Boolean get() = data.isPassParentEnvs
+
+    constructor(
+      mode: BuildMode?,
+      project: Project,
+      rootProjectPath: File,
+      gradleTasks: List<String>,
+      taskId: ExternalSystemTaskId,
+      executionSettings: GradleExecutionSettings,
+      isWaitForCompletion: Boolean = false,
+
+      /**
+       * If true, the build output window will not automatically be shown on failure.
+       */
+      doNotShowBuildOutputOnFailure: Boolean = false,
+      listener: ExternalSystemTaskNotificationListener? = null
+    ) : this(
+      project = project,
+      taskId = taskId,
+      data = RequestData(mode, rootProjectPath, gradleTasks, executionSettings),
+      isWaitForCompletion = isWaitForCompletion,
+      doNotShowBuildOutputOnFailure = doNotShowBuildOutputOnFailure,
+      listener = listener
+    )
 
     constructor(
       mode: BuildMode?,
@@ -141,7 +165,26 @@ interface GradleBuildInvoker {
       val commandLineArguments: List<String> = emptyList(),
       val env: Map<String, String> = emptyMap(),
       val isPassParentEnvs: Boolean = true,
-    )
+      val executionSettings: GradleExecutionSettings? = null
+    ) {
+      constructor(
+        mode: BuildMode?,
+        rootProjectPath: File,
+        gradleTasks: List<String>,
+        executionSettings: GradleExecutionSettings
+      ) :
+        this(
+          mode,
+          rootProjectPath,
+          gradleTasks,
+          executionSettings.jvmArguments,
+          executionSettings.arguments,
+          executionSettings.env,
+          executionSettings.isPassParentEnvs,
+          executionSettings
+        )
+
+    }
 
     class Builder constructor(
       project: Project,

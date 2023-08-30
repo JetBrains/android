@@ -213,7 +213,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     private fun invokeGradleTasks(buildAction: BuildAction<*>?): GradleInvocationResult {
       val project = myRequest.project
-      val executionSettings = GradleUtil.getOrCreateGradleExecutionSettings(project)
+      val executionSettings = myRequest.data.executionSettings ?:
+      GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
+          this.withVmOptions(myRequest.jvmArguments)
+            .withArguments(myRequest.commandLineArguments)
+            .withEnvironmentVariables(myRequest.env)
+            .passParentEnvs(myRequest.isPassParentEnvs)
+      }
       val model = AtomicReference<Any?>(null)
       val gradleRootProjectPath = myRequest.rootProjectPath.path
       val executeTasksFunction = Function { connection: ProjectConnection ->
@@ -252,7 +258,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               )
             )
           }
-          commandLineArguments.addAll(myRequest.commandLineArguments)
 
           // Inject embedded repository if it's enabled by user.
           if (!GuiTestingService.isInTestingMode()) {
@@ -276,14 +281,12 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             logMessage = replaced.toString()
           }
           logger.info(logMessage)
-          val jvmArguments: List<String> = ArrayList(myRequest.jvmArguments)
+          val jvmArguments: List<String> = emptyList()
           // Add trace arguments to jvmArguments.
           Trace.addVmArgs(jvmArguments)
           executionSettings
             .withVmOptions(jvmArguments)
             .withArguments(commandLineArguments)
-            .withEnvironmentVariables(myRequest.env)
-            .passParentEnvs(myRequest.isPassParentEnvs)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
           val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
             override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
