@@ -113,10 +113,7 @@ public class TimeLineRow extends JPanel {
     g.setColor(MEUI.ourBorder);
     g.fillRect(MEUI.ourLeftColumnWidth, 0, 1, h);
 
-    // g.drawString(mRow.mKey, 2, g.getFontMetrics().getAscent());
     FontMetrics metrics = g.getFontMetrics();
-
-    int refWidth = Math.max(metrics.stringWidth("Id:"), metrics.stringWidth("Tg:"));
     int sx = MEUI.scale(2);
     int fontAscent = metrics.getAscent();
     int sy = 0;
@@ -153,8 +150,6 @@ public class TimeLineRow extends JPanel {
       }
     }
     sy -= metrics.getAscent();
-    int rad = 4;
-    int diameter = rad * 2;
 
     for (MTag keyFrame : mRow.mKeyFrames) {
       String posString = keyFrame.getAttributeValue("framePosition");

@@ -326,22 +326,6 @@ public class GraphRender {
       return true;
     }
 
-    // plot the attribute
-    public void plot(Graphics g, int x, int y, int w, int h) {
-
-      if (spline != null) {
-        double steps = 1.0 / w;
-        int count = 0;
-        for (double i = 0; i <= 1; i += steps) {
-          double yp = spline.getPos(i, 0);
-          xPoints[count] = (int)(x + i * w);
-          yPoints[count] = (int)(y + h - (yp - mMin) * h / (mMax - mMin));
-          count++;
-        }
-        g.drawPolyline(xPoints, yPoints, count);
-      }
-    }
-
     // plot the attribute with an Area Graph
     public void plotAreaGraph(Graphics g, int x, int y, int w, int h) {
 
@@ -455,18 +439,6 @@ public class GraphRender {
       mMinY -= 0.06 * (mMaxY - mMinY);
     }
 
-    void plot(Graphics g, int x, int y, int w, int h) {
-      g.setColor(MEUI.Graph.ourG_line);
-
-      for (int i = 0; i < xpos.length; i++) {
-        int xp = (int)(w * xpos[i] + x);
-        int yp = y + (int)(h - h * (ypos[i] - mMinY) / (mMaxY - mMinY));
-        xPoints[i] = xp;
-        yPoints[i] = yp;
-      }
-      g.drawPolyline(xPoints, yPoints, xPoints.length);
-    }
-
     void plotAreaGraph(Graphics g, int x, int y, int w, int h) {
 
       ((Graphics2D) g)
@@ -511,15 +483,6 @@ public class GraphRender {
       ((Graphics2D) g).setStroke(dashed);
       g.setColor(MEUI.ourDashedLineColor);
       g.drawPolyline(Arrays.copyOfRange(xPoints, 1, xPoints.length - 1), offsetYPoints, count - 1);
-    }
-
-    float getComputedValue(float v) {
-      if (mMonotoneSpline == null) {
-        return 0;
-      }
-      double amp = mMonotoneSpline.getPos(v, 0);
-      double off = mMonotoneSpline.getPos(v, 1);
-      return (float)(mOscillator.getValue(v) * amp + off);
     }
   }
 }
