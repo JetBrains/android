@@ -486,7 +486,7 @@ private class ComponentTreePanel(
     override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (item !is NlComponent) return
       val currentSurface = surface ?: return
-      IssuePanelService.getInstance(project).showIssueForComponent(currentSurface, true, item, true)
+      IssuePanelService.getInstance(project).showIssueForComponent(currentSurface, item)
     }
 
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {}

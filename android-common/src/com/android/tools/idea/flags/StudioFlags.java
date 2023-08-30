@@ -227,11 +227,6 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
-    NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
-    "Use a shared issue panel to display the issue for all design tools",
-    true);
-
   public static final Flag<Boolean> NELE_VISUAL_LINT_ALWAYS_RUN = Flag.create(
     NELE, "visual.lint.always.run", "Run visual lint in the background when the layout editor is opened",
     "Enable so that visual lint always runs in the background of the layout editor for select configurations. This is also known as the background linting",

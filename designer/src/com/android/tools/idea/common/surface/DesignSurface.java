@@ -1880,6 +1880,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
   }
 
+  // TODO(b/298229332): Revisit usages in NlScanner and remove the myIssuePanel field.
   @NotNull
   public IssuePanel getIssuePanel() {
     return myIssuePanel;

@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
@@ -36,7 +35,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -54,8 +52,6 @@ class IssuePanelServiceTest {
 
   @Before
   fun setup() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-
     rule.projectRule.replaceProjectService(
       ToolWindowManager::class.java,
       TestToolWindowManager(rule.project)
@@ -76,11 +72,6 @@ class IssuePanelServiceTest {
     }
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
-  }
-
   @Test
   fun testInitWithOtherFile() {
     val file = rule.fixture.addFileToProject("/src/file.kt", "")
@@ -95,10 +86,10 @@ class IssuePanelServiceTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
 
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
   }
 
   @Test
@@ -113,12 +104,12 @@ class IssuePanelServiceTest {
     }
     // Force select "current file" tab.
     contentManager.setSelectedContent(contentManager.contents[0])
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
 
     // Switching to layout file. The selected tab should still be "current file" tab.
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     assertEquals(contentManager.selectedContent, contentManager.contents[0])
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
   }
 
   @Test
@@ -344,10 +335,10 @@ class IssuePanelServiceTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
 
     service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
   }
 }
 

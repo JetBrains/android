@@ -47,7 +47,7 @@ class PreviewStatusIcon(private val sceneView: SceneView) : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {
+    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true) {
       if (sceneView == null) {
         return@setIssuePanelVisibility
       }

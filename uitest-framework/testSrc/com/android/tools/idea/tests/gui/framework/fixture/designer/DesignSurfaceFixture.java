@@ -43,6 +43,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
                               @NotNull Surface designSurface) {
     super(myClass, robot, designSurface);
     myProgressPanel = robot.finder().findByName(target(), "Layout Editor Progress Panel", JPanel.class, false);
+    // TODO(b/298229332): Check if we need to pass designSurface.getIssuePanel() here
     myIssuePanelFixture = new IssuePanelFixture(robot, designSurface.getIssuePanel());
   }
 

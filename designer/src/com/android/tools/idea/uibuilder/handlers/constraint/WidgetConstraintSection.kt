@@ -372,8 +372,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
         override fun mouseClicked(e: MouseEvent?) {
           val component = widgetModel.component ?: return
           val surface = widgetModel.surface ?: return
-          IssuePanelService.getInstance(surface.project)
-            .showIssueForComponent(surface, true, component, true)
+          IssuePanelService.getInstance(surface.project).showIssueForComponent(surface, component)
         }
       }
 

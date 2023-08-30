@@ -453,7 +453,7 @@ class NlComponentTreeDefinitionTest {
     assertThat(table.getToolTipText(rect.midX, rect.midY))
       .isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
     ui.mouse.click(rect.midX, rect.midY)
-    verify(issueService).showIssueForComponent(surface, true, textView, true)
+    verify(issueService).showIssueForComponent(surface, textView)
   }
 
   @RunsInEdt

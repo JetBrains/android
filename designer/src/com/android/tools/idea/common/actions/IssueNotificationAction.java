@@ -23,7 +23,6 @@ import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.error.IssuePanelServiceKt;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
@@ -125,7 +124,7 @@ public class IssueNotificationAction extends ToggleAction {
     if (surface == null) {
       return false;
     }
-    return IssuePanelService.getInstance(surface.getProject()).isIssuePanelVisible(surface);
+    return IssuePanelService.getInstance(surface.getProject()).isIssuePanelVisible();
   }
 
   @Override
@@ -134,12 +133,10 @@ public class IssueNotificationAction extends ToggleAction {
     if (surface == null) {
       return;
     }
-    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, true, () -> {
-      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-        Project project = e.getData(PlatformDataKeys.PROJECT);
-        if (project != null) {
-          IssuePanelService.getInstance(project).focusIssuePanelIfVisible();
-        }
+    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, () -> {
+      Project project = e.getData(PlatformDataKeys.PROJECT);
+      if (project != null) {
+        IssuePanelService.getInstance(project).focusIssuePanelIfVisible();
       }
     });
 

@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder
 
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.bleak.UseBleak
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
+import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture
 import com.google.common.truth.Truth.assertThat
-import org.junit.After
-import org.junit.Before
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 /**
@@ -46,16 +42,6 @@ class SharedIssuePanelTest {
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
   private val title = "Layout and Qualifiers"
-
-  @Before
-  fun setup() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
-  }
 
   @Test
   @UseBleak

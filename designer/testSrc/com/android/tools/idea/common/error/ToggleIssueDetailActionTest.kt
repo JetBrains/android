@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -40,14 +39,14 @@ class ToggleIssueDetailActionTest {
 
   @Before
   fun setup() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-
     rule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
     val content =
-      contentManager.factory.createContent(mock(), "Current File", true).apply { isCloseable = false }
+      contentManager.factory.createContent(mock(), "Current File", true).apply {
+        isCloseable = false
+      }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
 

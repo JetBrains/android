@@ -61,7 +61,7 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
       project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {
+    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true) {
       if (sceneView == null) {
         return@setIssuePanelVisibility
       }

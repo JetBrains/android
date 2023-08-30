@@ -20,7 +20,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
@@ -230,11 +229,7 @@ internal fun visualizationProvider(
           add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
           add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
           add(
-            WarningLayer(it) {
-              if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
-                IssuePanelService.getInstance(surface.project).getSelectedIssues()
-              else listOfNotNull(surface.issuePanel.selectedIssue)
-            }
+            WarningLayer(it) { IssuePanelService.getInstance(surface.project).getSelectedIssues() }
           )
         }
         .build()

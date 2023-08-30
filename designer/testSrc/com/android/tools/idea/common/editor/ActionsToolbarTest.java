@@ -68,10 +68,8 @@ public class ActionsToolbarTest extends LayoutTestCase {
     NlDesignSurface surface = (NlDesignSurface)model.getSurface();
     NlActionManager actionManager = new NlActionManager(surface);
     IssueModel issueModel = new IssueModel(myFixture.getTestRootDisposable(), myFixture.getProject());
-    IssuePanel issuePanel = new IssuePanel(issueModel, new DesignSurfaceIssueListenerImpl(surface));
     doReturn(actionManager).when(surface).getActionManager();
     doReturn(LayoutFileType.INSTANCE).when(surface).getLayoutType();
-    when(surface.getIssuePanel()).thenReturn(issuePanel);
     when(surface.getIssueModel()).thenReturn(issueModel);
     return new ActionsToolbar(getTestRootDisposable(), surface);
   }

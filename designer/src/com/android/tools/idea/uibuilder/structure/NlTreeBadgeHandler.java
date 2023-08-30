@@ -217,7 +217,7 @@ public class NlTreeBadgeHandler {
       }
       NlComponent component = (NlComponent)last;
       if (event.getX() > myBadgeX) {
-        IssuePanelService.getInstance(component.getModel().getProject()).showIssueForComponent(mySurface, true, component, true);
+        IssuePanelService.getInstance(component.getModel().getProject()).showIssueForComponent(mySurface, component);
       }
       else {
         if (SUPPORTS_LOCKING) {

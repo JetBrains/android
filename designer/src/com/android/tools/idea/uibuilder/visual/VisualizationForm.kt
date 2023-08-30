@@ -25,8 +25,6 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
-import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -43,7 +41,6 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.ConfigurationSetProvider.getConfigurationSets
-import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.analytics.trackOpenConfigSet
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
@@ -195,18 +192,6 @@ class VisualizationForm(
     myRoot.add(mainComponent, BorderLayout.CENTER)
     myRoot.isFocusCycleRoot = true
     myRoot.focusTraversalPolicy = VisualizationTraversalPolicy(surface)
-    surface.issuePanel.addEventListener(
-      object : IssuePanel.EventListener {
-        override fun onPanelExpanded(isExpanded: Boolean) {}
-
-        override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
-          if (isExpanded && issue != null) {
-            val facet = surface.models.first().facet
-            VisualLintUsageTracker.getInstance().trackIssueExpanded(issue, facet)
-          }
-        }
-      }
-    )
     myUpdateQueue =
       MergingUpdateQueue(
         "visualization.form.update",
