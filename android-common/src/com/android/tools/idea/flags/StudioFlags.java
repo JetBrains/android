@@ -267,11 +267,6 @@ public final class StudioFlags {
     "Enable so that visual lint runs on previews in the Compose Preview.",
     false);
 
-  public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
-    NELE, "preview.warn.new.threads", "Enable new threads warning",
-    "Display a warning if user code creates new threads in the preview",
-    true);
-
   public static final Flag<Boolean> NELE_CLASS_PRELOADING_DIAGNOSTICS = Flag.create(
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",
     "If enabled, the surface displays background class preloading progress",
