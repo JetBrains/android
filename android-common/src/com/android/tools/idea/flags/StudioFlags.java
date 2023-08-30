@@ -1478,6 +1478,15 @@ public final class StudioFlags {
       "Set Crashlytics to be in integration test mode.",
       false);
 
+  public static final Flag<Boolean> CRASHLYTICS_2023H2_UI =
+    Flag.create(
+      APP_INSIGHTS,
+      "crashlytics.2023h2.ui",
+      "Crashlytics UI changes for 2023H2",
+      "Enabled Variants, Logs & Keys, Multi-event",
+      false
+    );
+
   public static final Flag<Boolean> PLAY_VITALS_ENABLED =
     Flag.create(
       APP_INSIGHTS,
