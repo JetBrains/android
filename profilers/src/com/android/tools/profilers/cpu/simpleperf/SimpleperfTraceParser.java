@@ -295,6 +295,9 @@ public class SimpleperfTraceParser implements TraceParser {
           myAppPackageName = info.getAppPackageName();
           myAppDataFolderPrefix = String.format("%s/%s", DATA_APP_DIR, myAppPackageName);
           break;
+        case CONTEXT_SWITCH:
+          // Not using this type of data in profiler yet.
+          break;
         default:
           getLog().warn("Unexpected record data type " + record.getRecordDataCase());
       }
