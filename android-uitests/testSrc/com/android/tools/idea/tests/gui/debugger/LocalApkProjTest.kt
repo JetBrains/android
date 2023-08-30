@@ -97,6 +97,8 @@ class LocalApkProjTest {
       useExistFolder.click()
     }
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
     val ideFrame = guiTest.ideFrame()
     val editor = ideFrame.editor
     attachJavaSources(ideFrame, File(projectRoot, "app/src/main/java"))
@@ -119,11 +121,11 @@ class LocalApkProjTest {
   private fun buildApkLocally(apkProjectToImport: String): File {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(180))
 
-    guiTest.waitForBackgroundTasks()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     ideFrame.invokeAndWaitForBuildAction("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
-    guiTest.waitForBackgroundTasks()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
@@ -147,6 +149,8 @@ class LocalApkProjTest {
     welcomeFrame.profileOrDebugApk(apk)
       .select(apkFile)
       .clickOkAndWaitToClose()
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
   }
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {
@@ -154,8 +158,10 @@ class LocalApkProjTest {
     val sourceDirVirtualFile = VfsUtil.findFileByIoFile(sourceDir, true) ?: throw IllegalArgumentException("Nonexistent $sourceDir")
 
     ideFrame.clearNotificationsPresentOnIdeFrame()
+    ideFrame.focus()
     val editorFixture = ideFrame.editor
-      .open(smaliFile)
+    editorFixture.open(smaliFile)
+    editorFixture.waitForFileToActivate()
     Wait.seconds(5)
       .expecting("notification bar with Attach Kotlin/Java sources..")
       .until{
