@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
@@ -96,7 +97,7 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     }
 
     @Override
-    public void showBalloon(@NotNull String title, @NotNull String text, @NotNull NotificationType type) {
+    public void showBalloon(@NotNull String title, @NotNull String text, @NotNull NotificationType type, @NotNull NotificationHyperlink... hyperlinks) {
       displayedTitle = title;
       displayedText = text;
       displayedType = type;
