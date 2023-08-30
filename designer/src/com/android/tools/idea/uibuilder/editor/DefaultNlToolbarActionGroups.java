@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.SetColorBlindModeAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
+import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.common.actions.ToggleDeviceNightModeAction;
 import com.android.tools.idea.common.actions.ToggleDeviceOrientationAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
@@ -28,12 +29,11 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.NightModeMenuAction;
-import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
+import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
@@ -101,8 +101,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
 
-    if (StudioFlags.NELE_OVERLAY_PROVIDER.get()
-        && OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
+    if (OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       group.addSeparator();
       OverlayMenuAction overlayAction = new OverlayMenuAction(mySurface.getOverlayConfiguration(), mySurface::repaint);
       group.add(overlayAction);

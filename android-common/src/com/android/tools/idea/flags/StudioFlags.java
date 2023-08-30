@@ -247,11 +247,6 @@ public final class StudioFlags {
     "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
     true);
 
-  public static final Flag<Boolean> NELE_OVERLAY_PROVIDER = Flag.create(
-    NELE, "toggle.overlay.provider.extension.point", "Toggle overlay provider extension point.",
-    "Enable the overlay provider extension point",
-    true);
-
   public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = Flag.create(
     NELE, "asset.repository.include.aars.through.project.system", "Include AARs through project system",
     "Include resource directories from AARs found through project system.",
