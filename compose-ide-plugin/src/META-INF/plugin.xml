@@ -25,10 +25,6 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <!-- TODO(b/293653361): Move these to plugin.k1.xml and register the K2 versions in plugin.k2.xml -->
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
-    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
     <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
   </extensions>
 

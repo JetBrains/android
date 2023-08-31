@@ -18,7 +18,13 @@
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
     <quickFixContributor implementation="com.android.tools.compose.intentions.AddComposableToFunctionQuickFix$Contributor"/>
+
+    <!-- Compose compiler plugin -->
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
+    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
   </extensions>
+
   <extensions defaultExtensionNs="com.intellij">
     <!-- b/266912797: KDockLinkResolutionService extension point not implemented in K2 -->
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"

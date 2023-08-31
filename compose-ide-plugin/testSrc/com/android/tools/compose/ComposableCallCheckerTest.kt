@@ -15,6 +15,8 @@
  */
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.k2.ComposableFunctionCallChecker
+import androidx.compose.compiler.plugins.kotlin.k2.ComposablePropertyAccessExpressionChecker
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -23,12 +25,13 @@ import com.intellij.openapi.util.text.StringUtil
 import junit.framework.Assert.assertEquals
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 /**
- * Tests for [ComposableCallChecker]
+ * Tests for [ComposableFunctionCallChecker] and [ComposablePropertyAccessExpressionChecker].
  */
 class ComposableCallCheckerTest {
   @get:Rule
@@ -177,7 +180,7 @@ class ComposableCallCheckerTest {
     @Composable fun B() {}
 
     @Composable fun C() {
-        A { <error descr="[CAPTURED_COMPOSABLE_INVOCATION] Composable calls are not allowed inside the lambda parameter of inline fun A(lambda: () -> Unit): Unit">B</error>() }
+        A { <error descr="[CAPTURED_COMPOSABLE_INVOCATION] Composable calls are not allowed inside the lambda parameter of ${if(isK2Plugin()) "A" else "inline fun A(lambda: () -> Unit): Unit"}">B</error>() }
     }
     """
   )
@@ -313,6 +316,11 @@ class ComposableCallCheckerTest {
 
   @Test
   fun testComposableReporting018() {
+    val errorDescription = if (!isK2Plugin()) {
+      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
+    } else {
+      "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
+    }
     doTest(
       """
           import androidx.compose.runtime.*;
@@ -321,7 +329,7 @@ class ComposableCallCheckerTest {
           fun Leaf() {}
 
           fun foo() {
-              val myVariable: ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected">@Composable { Leaf() }</error>
+              val myVariable: ()->Unit = <error descr="$errorDescription">@Composable { Leaf() }</error>
               print(myVariable)
           }
           """
@@ -473,12 +481,17 @@ class ComposableCallCheckerTest {
 
   @Test
   fun testComposableReporting028() {
+    val errorDescription = if (!isK2Plugin()) {
+      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
+    } else {
+      "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
+    }
     doTest(
       """
           import androidx.compose.runtime.*;
 
           fun foo(v: @Composable ()->Unit) {
-              val myVariable: ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected">v</error>
+              val myVariable: ()->Unit = <error descr="$errorDescription">v</error>
               myVariable()
           }
           """
@@ -542,18 +555,30 @@ class ComposableCallCheckerTest {
 
   @Test
   fun testComposableReporting034() {
+    val initializerTypeMismatchMessage = if (!isK2Plugin()) {
+      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected"
+    }
+    else {
+      "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>, actual kotlin/Function0<kotlin/Unit>"
+    }
+    val argumentTypeMismatchMessage = if (!isK2Plugin()) {
+      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
+    }
+    else {
+      "[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but kotlin/Function0<kotlin/Unit> was expected"
+    }
     doTest(
       """
-          import androidx.compose.runtime.*;
+        import androidx.compose.runtime.*;
 
-          fun identity(f: ()->Unit): ()->Unit { return f; }
+        fun identity(f: ()->Unit): ()->Unit { return f; }
 
-          @Composable
-          fun test(f: @Composable ()->Unit) {
-              val f2: @Composable ()->Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected">identity (<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected">f</error>)</error>;
-              f2()
-          }
-          """
+        @Composable
+        fun test(f: @Composable ()->Unit) {
+            val f2: @Composable ()->Unit = <error descr="$initializerTypeMismatchMessage">identity (<error descr="$argumentTypeMismatchMessage">f</error>)</error>;
+            f2()
+        }
+        """
     )
   }
 
@@ -721,27 +746,39 @@ class ComposableCallCheckerTest {
 
   @Test
   fun testComposableReporting051() {
-    doTest(
+    val expressionToCheckReferenceResolution = if (!isK2Plugin()) {
       """
-          import androidx.compose.runtime.*;
-
-          class A {
-              <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'member property without backing field or delegate'">@Composable</error> val bar get() = 123
-          }
-
-          <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'top level property without backing field or delegate'">@Composable</error> val A.bam get() = 123
-
-          @Composable
-          fun App() {
-              val a = A()
-              a.bar
-              a.bam
               <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: with">with</error>(a) {
                   <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bar">bar</error>
                   <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bam">bam</error>
               }
-          }
-          """
+      """
+    } else {
+      """
+              with(a) {
+                  bar
+                  bam
+              }
+      """
+    }
+    doTest(
+      """
+        import androidx.compose.runtime.*;
+
+        class A {
+            <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'member property without backing field or delegate'">@Composable</error> val bar get() = 123
+        }
+
+        <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'top level property without backing field or delegate'">@Composable</error> val A.bam get() = 123
+
+        @Composable
+        fun App() {
+            val a = A()
+            a.bar
+            a.bam
+            $expressionToCheckReferenceResolution
+        }
+        """
     )
   }
 
@@ -1118,5 +1155,7 @@ class ComposableCallCheckerTest {
   @Before
   fun setUp() {
     (androidProject.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
+
+    setUpCompilerArgumentsForComposeCompilerPlugin(androidProject.fixture.project)
   }
 }

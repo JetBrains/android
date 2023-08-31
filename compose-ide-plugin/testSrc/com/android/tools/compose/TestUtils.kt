@@ -15,8 +15,13 @@
  */
 package com.android.tools.compose
 
+import androidx.compose.compiler.plugins.kotlin.ComposeCommandLineProcessor
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ex.PathManagerEx
+import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 import java.nio.file.Files
 
 fun getComposePluginTestDataPath():String {
@@ -32,3 +37,25 @@ private val SUPPRESSION = listOf("UNUSED_PARAMETER", "UNUSED_VARIABLE")
 
 internal val suppressAnnotation: String
   get() = SUPPRESSION.joinToString(prefix = "@file:Suppress(", postfix = ")") { "\"$it\"" }
+
+private val composeCompilerPluginPath by lazy {
+  resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/lib/compiler-hosted.jar")
+}
+
+private val suppressKotlinVersionCheckOption = "plugin:${
+  ComposeCommandLineProcessor.PLUGIN_ID
+}:${
+  ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName
+}=true"
+
+/**
+ * TODO(298705216): When we have APIs to add compiler options via [AndroidProjectRule], replace this function with the APIs.
+ */
+internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
+  if (isK2Plugin()) {
+    KotlinCommonCompilerArgumentsHolder.getInstance(project).update {
+      this.pluginClasspaths = arrayOf(composeCompilerPluginPath.toString())
+      this.pluginOptions = arrayOf(suppressKotlinVersionCheckOption)
+    }
+  }
+}
