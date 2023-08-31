@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.annotations.concurrency.UiThread
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -179,13 +180,35 @@ private const val MAX_PROCESS_NAMES = 1000
 private val handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 private val textCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 
-// To avoid exposing LogcatMainPanel, we needed to make a factory that will return a JComponent. We
-// initially tried making LogcatMainPanel public, but that caused a chain-reaction of "package
-// protection level" issues.
+/**
+ * To make the logcat window accessible to Game Tools while not changing the protection level of the logcat window, we use this factory
+ * that'll return a JComponent. Game Tools just needs a UI component, so a JComponent is enough. If we were to change LogcatMainPanel
+ * to public, a lot more classes would need to become public - and it's not worth it.
+ */
 class LogcatMainPanelFactory {
   companion object {
+    /**
+     * This HyperlinkDetector detector is to work around a null-pointer exception that will break the logcat when running in game tools.
+     * Right now Game Tools can't do anything with hyperlinks, so there is no need to detect them. The failure was coming from resolving
+     * PSI links, which is not something Game Tools needs to handle since AGDE doesn't focus on Java development.
+     */
+    class NoopHyperlinkDetector : HyperlinkDetector {
+      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) { }
+    }
+
     fun create(project: Project): JComponent {
-      return LogcatMainPanel(project, DefaultActionGroup(), LogcatColors(), null)
+      if (!IdeInfo.isGameTool()) {
+        throw IllegalAccessException("LogcatMainPanelFactory can only be used by GameTools. Please use LogcatMainPanel directly.");
+      }
+
+      return LogcatMainPanel(project = project,
+                             splitterPopupActionGroup = DefaultActionGroup(),
+                             logcatColors = LogcatColors(),
+                             state = null,
+                             AndroidLogcatSettings.getInstance(),
+                             AndroidProjectDetectorImpl(),
+                             hyperlinkDetector = NoopHyperlinkDetector(),
+                             foldingDetector = null)
     }
   }
 }
