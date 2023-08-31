@@ -21,7 +21,7 @@ package com.android.tools.idea.appinspection.inspector.api.launch
  * It always contains a reference to the [ArtifactCoordinate] and [status]. [errorMessage] is
  * populated if the check resulted in failure.
  */
-data class LibraryCompatbilityInfo(
+data class LibraryCompatibilityInfo(
   val libraryCoordinate: ArtifactCoordinate,
   val status: Status,
   /**

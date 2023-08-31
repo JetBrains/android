@@ -30,8 +30,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMi
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.manager.StreamEventQuery
@@ -177,7 +177,7 @@ internal class DefaultAppInspectionTarget(
   @WorkerThread
   override suspend fun getLibraryVersions(
     libraryCoordinates: List<LibraryCompatibility>
-  ): List<LibraryCompatbilityInfo> {
+  ): List<LibraryCompatibilityInfo> {
     val libraryVersions = libraryCoordinates.map { it.toLibraryCompatibilityProto() }
     val getLibraryVersionsCommand =
       AppInspection.GetLibraryCompatibilityInfoCommand.newBuilder()
@@ -241,20 +241,20 @@ private fun AppInspection.AppInspectionResponse.getException(
 @VisibleForTesting
 internal fun AppInspection.LibraryCompatibilityInfo.toLibraryCompatibilityInfo(
   artifactCoordinate: ArtifactCoordinate
-): LibraryCompatbilityInfo {
+): LibraryCompatibilityInfo {
   val responseStatus =
     when (status) {
       AppInspection.LibraryCompatibilityInfo.Status.COMPATIBLE ->
-        LibraryCompatbilityInfo.Status.COMPATIBLE
+        LibraryCompatibilityInfo.Status.COMPATIBLE
       AppInspection.LibraryCompatibilityInfo.Status.INCOMPATIBLE ->
-        LibraryCompatbilityInfo.Status.INCOMPATIBLE
+        LibraryCompatibilityInfo.Status.INCOMPATIBLE
       AppInspection.LibraryCompatibilityInfo.Status.VERSION_MISSING ->
-        LibraryCompatbilityInfo.Status.VERSION_MISSING
+        LibraryCompatibilityInfo.Status.VERSION_MISSING
       AppInspection.LibraryCompatibilityInfo.Status.LIBRARY_MISSING ->
-        LibraryCompatbilityInfo.Status.LIBRARY_MISSING
+        LibraryCompatibilityInfo.Status.LIBRARY_MISSING
       AppInspection.LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
-        LibraryCompatbilityInfo.Status.APP_PROGUARDED
-      else -> LibraryCompatbilityInfo.Status.ERROR
+        LibraryCompatibilityInfo.Status.APP_PROGUARDED
+      else -> LibraryCompatibilityInfo.Status.ERROR
     }
-  return LibraryCompatbilityInfo(artifactCoordinate, responseStatus, version, errorMessage)
+  return LibraryCompatibilityInfo(artifactCoordinate, responseStatus, version, errorMessage)
 }

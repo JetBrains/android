@@ -22,8 +22,8 @@ import com.android.tools.idea.appinspection.ide.InspectorArtifactService
 import com.android.tools.idea.appinspection.ide.getOrResolveInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.logDiagnostics
@@ -59,7 +59,7 @@ class GetComposeLayoutInspectorJarGradleToken :
     }
     val version =
       compatibility?.version?.takeIf {
-        compatibility.status == LibraryCompatbilityInfo.Status.COMPATIBLE && it.isNotBlank()
+        compatibility.status == LibraryCompatibilityInfo.Status.COMPATIBLE && it.isNotBlank()
       }
         ?: return ComposeLayoutInspectorClient.handleError(
           notificationModel,

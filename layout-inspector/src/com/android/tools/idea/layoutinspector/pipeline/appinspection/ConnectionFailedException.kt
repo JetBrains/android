@@ -23,7 +23,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_ANDROID_COORDINATE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
@@ -79,19 +79,20 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
 }
 
 /**
- * Convert a [LibraryCompatbilityInfo.Status] to [AttachErrorInfo].
+ * Convert a [LibraryCompatibilityInfo.Status] to [AttachErrorInfo].
  *
  * An unexpected status will be logged to the crash db.
  */
-fun LibraryCompatbilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
+fun LibraryCompatibilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
   val errorCode =
     when (this) {
-      LibraryCompatbilityInfo.Status.INCOMPATIBLE ->
+      LibraryCompatibilityInfo.Status.INCOMPATIBLE ->
         AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
-      LibraryCompatbilityInfo.Status.APP_PROGUARDED -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
-      LibraryCompatbilityInfo.Status.VERSION_MISSING ->
+      LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
+        AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+      LibraryCompatibilityInfo.Status.VERSION_MISSING ->
         AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
-      LibraryCompatbilityInfo.Status.LIBRARY_MISSING ->
+      LibraryCompatibilityInfo.Status.LIBRARY_MISSING ->
         AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
       else -> {
         logUnexpectedError(InspectorConnectionError("Unexpected status $this"))

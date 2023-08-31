@@ -22,8 +22,8 @@ import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorLaunchConfig
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorTabProvider
@@ -107,9 +107,9 @@ class AppInspectorTabLaunchSupport(
     return mapIndexed { i, config ->
         config.id to
           when (compatibilityResponse[i].status) {
-            LibraryCompatbilityInfo.Status.COMPATIBLE ->
+            LibraryCompatibilityInfo.Status.COMPATIBLE ->
               getInspectorJarTarget(artifactCoordinates[i])
-            LibraryCompatbilityInfo.Status.APP_PROGUARDED ->
+            LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
               InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE, artifactCoordinates[i])
             else -> {
               if (currentIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
