@@ -229,6 +229,7 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
         "@maven//:androidx.test.ext.junit_1.1.3",
         "@maven//:androidx.test.ext.junit_1.1.5",
+        "@maven//:androidx.test.monitor_1.6.1",
         "@maven//:androidx.tv.tv-foundation_1.0.0-alpha07",
         "@maven//:androidx.tv.tv-material_1.0.0-alpha07",
         "@maven//:androidx.wear.compose.compose-material_1.1.2",
