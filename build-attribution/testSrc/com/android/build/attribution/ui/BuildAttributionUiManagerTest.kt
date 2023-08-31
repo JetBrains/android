@@ -82,8 +82,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     buildSessionId = UUID.randomUUID().toString()
-
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
   }
 
   override fun tearDown() {
@@ -110,24 +108,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionEvents).containsExactly(
       buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED
     ).inOrder()
-  }
-
-  fun testShowBuildAnalysisReportById() {
-    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-
-    val buildFinishedTimestamp = System.currentTimeMillis()
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(emptyList(), emptyList(), 0, buildFinishedTimestamp)
-    )
-    Mockito.`when`(buildAnalyzerStorageMock.getHistoricBuildResultByID(MockitoKt.eq(buildSessionId))).thenReturn(
-      CompletableFuture.completedFuture(result))
-
-    buildAttributionUiManager.showBuildAnalysisReportById(buildSessionId)
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-
-    val selectedEditor = FileEditorManager.getInstance(project).selectedEditor!!
-    val vf = selectedEditor.file
-    Truth.assertThat(vf.name).isEqualTo("Build report: ${DateFormatUtil.formatDateTime(buildFinishedTimestamp)}")
   }
 
   fun testOnBuildFailureWhenTabClosed() {

@@ -132,10 +132,8 @@ class BuildAttributionUiManagerImpl(
   override fun showBuildAnalysisReportById(buildID: String) {
     // Should not be called if the flag is off, but guard just in case anyway.
     if (!StudioFlags.BUILD_ANALYZER_HISTORY.get()) return
-    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID).get() // TODO
-    val reportFile = BuildReportFile(buildResults, project)
-    val fileDescriptor = OpenFileDescriptor(project, reportFile)
-    FileEditorManager.getInstance(project).openEditor(fileDescriptor, true)
+    val buildResults = BuildAnalyzerStorageManager.getInstance(project).getHistoricBuildResultByID(buildID).get()
+    // TODO (mlazeba): historical UI is not implemented now
   }
 
   override fun showNewReport() {
