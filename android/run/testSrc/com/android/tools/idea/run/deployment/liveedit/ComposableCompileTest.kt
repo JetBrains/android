@@ -23,6 +23,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ComposableCompileTest {
   private var files = HashMap<String, PsiFile>()
@@ -143,9 +145,9 @@ class ComposableCompileTest {
       LiveEditCompilerInput(file1, file1),
       LiveEditCompilerInput(file2, file2 as KtFile)), cache)
 
-    Assert.assertEquals(3, output.classes.size)
+    Assert.assertEquals(4, output.classes.size)
     Assert.assertEquals(2, output.classesMap.size)
-    Assert.assertEquals(1, output.supportClassesMap.size)
+    Assert.assertEquals(2, output.supportClassesMap.size)
     Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
     Assert.assertTrue(output.classesMap.get("ComposeNestedKt")!!.isNotEmpty())
 
@@ -197,6 +199,68 @@ class ComposableCompileTest {
     val getLambda = cl.methods.find { it.name.contains("getLambda") }
     // Make sure we have getLambda$<MODULE_NAME>
     Assert.assertTrue(getLambda!!.name.contains(projectRule.module.name))
+  }
+
+  @Test
+  fun sendAllThenOnlyChanges() {
+    val cache = initialCache(mapOf(
+      "ComposeSimple.kt" to """
+        import androidx.compose.runtime.Composable
+        @Composable fun composableFun() {
+          val a = { }
+        }
+        @Composable fun composableFun2() {
+          val a = { }
+        }
+        @Composable fun composableFun3() {
+          val a = { }
+        }
+        @Composable fun composableFun4() {
+          val a = { }
+        }"""))
+    val compiler = LiveEditCompiler(projectRule.project, cache)
+    val file1 = projectRule.fixture.configureByText("ComposeSimple.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() {
+        val a = { "hello "}
+      }
+      @Composable fun composableFun2() {
+        val a = { }
+      }
+      @Composable fun composableFun3() {
+        val a = { }
+      }
+      @Composable fun composableFun4() {
+        val a = { }
+      }""")
+
+    val file2 = projectRule.fixture.configureByText("ComposeSimple.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() {
+        val a = { "hello "}
+      }
+      @Composable fun composableFun2() {
+        val a = { "hello" }
+      }
+      @Composable fun composableFun3() {
+        val a = { }
+      }
+      @Composable fun composableFun4() {
+        val a = { }
+      }""")
+
+    // First LE should send all classes, regardless of what has changed.
+    val output = compile(listOf(LiveEditCompilerInput(file1, file1 as KtFile)), compiler)
+    assertEquals(9, output.classes.size)
+    assertEquals(1, output.classesMap.size)
+    assertEquals(8, output.supportClassesMap.size)
+    assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
+
+    // Subsequent LE operations should resume sending only changed classes.
+    val output2 = compile(listOf(LiveEditCompilerInput(file2, file2 as KtFile)), compiler)
+    assertEquals(2, output2.classes.size)
+    assertEquals(0, output2.classesMap.size)
+    assertEquals(2, output2.supportClassesMap.size)
   }
 
   private fun initialCache(files: Map<String, String>): MutableIrClassCache {

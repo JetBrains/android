@@ -40,6 +40,7 @@ internal object LiveEditOutputBuilder {
                                 compiledFiles: List<OutputFile>,
                                 irCache: IrClassCache,
                                 inlineCandidateCache: SourceInlineCandidateCache,
+                                classesSentToDevice: Set<String>,
                                 outputs: LiveEditCompilerOutput.Builder) {
     val startTimeNs = System.nanoTime()
     val outputFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
@@ -61,7 +62,7 @@ internal object LiveEditOutputBuilder {
       if (isKeyMeta(classFile)) {
         continue
       }
-      val newClass = handleClassFile(classFile, sourceFile, groupTree, irCache, inlineCandidateCache, outputs)
+      val newClass = handleClassFile(classFile, sourceFile, groupTree, irCache, inlineCandidateCache, classesSentToDevice, outputs)
       outputs.addIrClass(newClass)
     }
 
@@ -74,6 +75,7 @@ internal object LiveEditOutputBuilder {
                               groupTree: ComposeGroupTree?,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
+                              classesSentToDevice: Set<String>,
                               output: LiveEditCompilerOutput.Builder): IrClass {
     val classBytes = classFile.asByteArray()
     val newClass = IrClass(classBytes)
@@ -101,7 +103,13 @@ internal object LiveEditOutputBuilder {
       return newClass
     }
 
-    val diff = Differ.diff(oldClass!!, newClass) ?: return newClass
+    val diff = Differ.diff(oldClass!!, newClass)
+
+    // If we have no changes, and we've seen this class before, don't send it to the device. The first time we see a class, we need to send
+    // it to the device in case it or one of its dependencies has a different name than the version in the APK.
+    if (diff == null && newClass.name in classesSentToDevice) {
+      return newClass
+    }
 
     // Update the inline cache for all classes, both normal and support.
     inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
@@ -113,6 +121,10 @@ internal object LiveEditOutputBuilder {
     }
 
     output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
+
+    if (diff == null) {
+      return newClass
+    }
 
     // Run validation on the class and get a list of method diffs containing all modified methods
     val modifiedMethods = if (isSynthetic) {

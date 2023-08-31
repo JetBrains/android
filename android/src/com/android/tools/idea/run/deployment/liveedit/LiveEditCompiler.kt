@@ -66,6 +66,10 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
   var inlineCandidateCache = SourceInlineCandidateCache()
 
+  // Not the same information as the IR cache; the IR cache may be populated with classes that have not been sent to device, due to the need
+  // to precompile files before Live Editing them.
+  private val classesSentToDevice = mutableSetOf<String>()
+
   private var desugarer = LiveEditDesugar()
 
   private val logger = LiveEditLogger("LE Compiler")
@@ -203,7 +207,9 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
       }
 
       if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-        LiveEditOutputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache, output)
+        LiveEditOutputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache,
+                                               classesSentToDevice, output)
+        output.classes.forEach { classesSentToDevice.add(it.name) }
         return@runWithCompileLock
       }
 
@@ -424,6 +430,7 @@ class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCa
 
   fun resetState() {
     inlineCandidateCache.clear()
+    classesSentToDevice.clear()
 
     try {
       // Desugarer caches jar indexes and entries. It MUST be closed and recreated.

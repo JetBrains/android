@@ -33,14 +33,18 @@ internal fun compile(file: PsiFile?, functionName: String, irClassCache: Mutable
 internal fun compile(file: PsiFile, function: KtNamedFunction, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
   compile(listOf(LiveEditCompilerInput(file, function)), irClassCache)
 
-internal fun compile(inputs: List<LiveEditCompilerInput>,
-                     irClassCache: MutableIrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
+internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
+  val compiler = LiveEditCompiler(inputs.first().file.project, irClassCache)
+  return compile(inputs, compiler)
+}
+
+internal fun compile(inputs: List<LiveEditCompilerInput>, compiler: LiveEditCompiler): LiveEditCompilerOutput {
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.
   var output: LiveEditCompilerOutput? = null
   while (output == null) {
-    output = LiveEditCompiler(inputs.first().file.project, irClassCache).compile(inputs).get().compilerOutput
+    output = compiler.compile(inputs).get().compilerOutput
   }
   return output
 }
