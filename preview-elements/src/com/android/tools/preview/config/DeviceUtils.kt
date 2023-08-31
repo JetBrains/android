@@ -19,6 +19,7 @@ import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
+import com.android.sdklib.devices.ButtonType
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
@@ -133,6 +134,7 @@ fun DeviceConfig.createDeviceInstance(): Device {
             size = ScreenSize.getScreenSize(diagonalLength)
             ratio = ScreenRatio.create(xDimension, yDimension)
           }
+        buttonType = ButtonType.SOFT  // needed for displaying nav bar when showing device decorations
       }
   }
   return customDevice
