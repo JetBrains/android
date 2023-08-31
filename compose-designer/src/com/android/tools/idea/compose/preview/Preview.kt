@@ -1641,8 +1641,9 @@ class ComposePreviewRepresentation(
               val config = baseConfig.copy(deviceSpec = device)
               val displaySettings =
                 baseDisplaySettings.copy(
-                  name = "${baseDisplaySettings.name} - ${referenceDeviceIds[device]}",
-                  group = message("ui.check.mode.screen.size.group")
+                  name = "${baseDisplaySettings.name} - ${effectiveDeviceIds[device]}",
+                  group = message("ui.check.mode.screen.size.group"),
+                  showDecoration = true
                 )
 
               val singleInstance =

@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.runWriteActionAndWait
@@ -56,7 +57,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -282,7 +282,8 @@ class ComposePreviewRepresentationTest {
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Screen sizes").inOrder()
+        .containsExactly("Screen sizes")
+        .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         5.seconds
@@ -293,23 +294,28 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
+          PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:shape=Normal,width=673,height=841,unit=dp,dpi=480
+          PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420
+          PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420
+          PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
+          PreviewDisplaySettings(name=Preview1 - _device_class_phone-landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
         preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
-          "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
+          "${it.methodFqn}\n${it.configuration.deviceSpec}\n${it.displaySettings}\n"
         }
       )
 
