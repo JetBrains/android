@@ -17,6 +17,7 @@ package com.android.build.attribution.proto.converters
 
 import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalysisResultsMessage
+import com.android.build.attribution.HistoricBuildAnalysisResults
 import com.android.build.attribution.analyzers.NoDataFromSavedResult
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.TaskData
@@ -65,7 +66,7 @@ class BuildResultsProtoMessageConverter {
       return analyzersDataBuilder.build()
     }
 
-    fun convertBuildAnalysisResultsFromBytesToObject(buildResultsMsg: BuildAnalysisResultsMessage): BuildAnalysisResults {
+    fun convertBuildAnalysisResultsFromBytesToObject(buildResultsMsg: BuildAnalysisResultsMessage): HistoricBuildAnalysisResults {
       val requestData = GradleBuildInvokerRequestRequestDataMessageConverter.construct(buildResultsMsg.requestData)
       val tasks = mutableMapOf<String, TaskData>()
       val plugins = mutableMapOf<String, PluginData>()
@@ -90,11 +91,14 @@ class BuildResultsProtoMessageConverter {
         buildResultsMsg.tasksConfigurationAnalyzerResult, tasks)
       val configurationCachingCompatibilityAnalyzerResult = NoDataFromSavedResult
       val jetifierUsageAnalyzerResult = JetifierUsageAnalyzerResultMessageConverter.construct(buildResultsMsg.jetifierUsageAnalyzerResult)
-      val downloadAnalyzerResult = DownloadsAnalyzerResultMessageConverter.construct(buildResultsMsg.downloadsAnalyzerResult)
+      val downloadsAnalyzerResult = DownloadsAnalyzerResultMessageConverter.construct(buildResultsMsg.downloadsAnalyzerResult)
       val taskCategoryWarningsAnalyzerResult = TaskCategoryWarningsAnalyzerResultConverter.construct(buildResultsMsg.taskCategoryWarningsAnalyzerResult)
       val buildSessionID: String = buildResultsMsg.buildSessionID
-      return BuildAnalysisResults(
+      return HistoricBuildAnalysisResults(
+        buildSessionID = buildSessionID,
         buildRequestData = requestData,
+        taskMap = tasks,
+        pluginMap = plugins,
         annotationProcessorAnalyzerResult = annotationProcessorsAnalyzerResult,
         alwaysRunTasksAnalyzerResult = alwaysRunTaskAnalyzerResult,
         criticalPathAnalyzerResult = criticalPathAnalyzerResult,
@@ -104,11 +108,8 @@ class BuildResultsProtoMessageConverter {
         tasksConfigurationIssuesAnalyzerResult = tasksConfigurationIssuesAnalyzerResult,
         configurationCachingCompatibilityAnalyzerResult = configurationCachingCompatibilityAnalyzerResult,
         jetifierUsageAnalyzerResult = jetifierUsageAnalyzerResult,
-        downloadsAnalyzerResult = downloadAnalyzerResult,
+        downloadsAnalyzerResult = downloadsAnalyzerResult,
         taskCategoryWarningsAnalyzerResult = taskCategoryWarningsAnalyzerResult,
-        buildSessionID = buildSessionID,
-        taskMap = tasks,
-        pluginMap = plugins
       )
     }
   }

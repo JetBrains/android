@@ -153,16 +153,14 @@ class BuildAnalyzerStorageManagerImpl(
    * @return BuildAnalysisResults
    * @exception java.io.IOException
    */
-  override fun getHistoricBuildResultByID(buildID: String): Future<BuildAnalysisResults> {
+  override fun getHistoricBuildResultByID(buildID: String): Future<HistoricBuildAnalysisResults> {
     inMemoryResults[buildID]?.let {
-      return CompletableFuture.completedFuture(it)
+      return CompletableFuture.completedFuture(it.toHistoricalResults())
     }
-    val onBackground: () -> BuildAnalysisResults = {
-      val result: BuildAnalysisResults
+    val onBackground: () -> HistoricBuildAnalysisResults = {
       workingWithDiskLock.withLock {
-        result = fileManager.getHistoricBuildResultByID(buildID)
+        fileManager.getHistoricBuildResultByID(buildID)
       }
-      result
     }
     return ApplicationManager.getApplication().executeOnPooledThread(onBackground)
   }

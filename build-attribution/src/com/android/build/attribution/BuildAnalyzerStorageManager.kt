@@ -44,7 +44,7 @@ interface BuildAnalyzerStorageManager {
    * @return BuildAnalysisResults
    * @exception NoSuchElementException
    */
-  fun getHistoricBuildResultByID(buildID: String): Future<BuildAnalysisResults>
+  fun getHistoricBuildResultByID(buildID: String): Future<HistoricBuildAnalysisResults>
 
   fun getListOfHistoricBuildDescriptors(): Set<BuildDescriptor>
   fun clearBuildResultsStored(): Future<*>
