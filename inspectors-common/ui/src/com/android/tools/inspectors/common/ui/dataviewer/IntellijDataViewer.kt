@@ -18,29 +18,41 @@ package com.android.tools.inspectors.common.ui.dataviewer
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style.PRETTY
 import com.android.tools.inspectors.common.ui.dataviewer.DataViewer.Style.RAW
-import com.intellij.codeInsight.actions.ReformatCodeProcessor
-import com.intellij.codeInsight.folding.CodeFoldingManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.editor.Document
-import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory
+import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider
 import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.fileTypes.LanguageFileType
-import com.intellij.openapi.fileTypes.PlainTextLanguage
+import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.testFramework.LightVirtualFile
+import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBFont
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner.WARNING_BACKGROUND
+import javax.swing.BorderFactory
+import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JTextArea
 import javax.swing.SwingConstants
 import kotlin.math.min
 
 private const val RAW_VIEWER_MAX_STRING_LENGTH = 500
-private val editorFactory = EditorFactory.getInstance()
+private const val MAX_SIZE_TO_FORMAT = 100_000
+private val logger = Logger.getInstance(IntellijDataViewer::class.java)
 
 class IntellijDataViewer private constructor(private val component: JComponent, private val style: Style) : DataViewer {
   override fun getComponent(): JComponent {
@@ -54,12 +66,6 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
   companion object {
     /**
      * Create a data viewer that renders its content as is, without any attempt to clean it up.
-     *
-     *
-     * Note: to prevent UI from being frozen by large text, the content will be truncated.
-     */
-    /**
-     * Create an editable data viewer that renders its content as is, without any attempt to clean it up.
      *
      *
      * Note: to prevent UI from being frozen by large text, the content will be truncated.
@@ -85,39 +91,33 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
      */
     fun createPrettyViewerIfPossible(
       project: Project,
-      content: ByteArray,
+      bytes: ByteArray,
       fileType: FileType?,
       formatted: Boolean,
-      parentDisposable: Disposable
+      parentDisposable: Disposable,
+      maxSizeToFormat: Int = MAX_SIZE_TO_FORMAT,
     ): IntellijDataViewer {
       return try {
+        val content = bytes.toContent()
+        var showNotification = false
+        var style = PRETTY
 
-        // We need to support documents with \r newlines in them (since network payloads can contain
-        // data from any OS); however, Document will assert if it finds a \r as a line ending in its
-        // content and the user will see a mysterious "NO PREVIEW" message without any information
-        // on why. The Document class allows you to change a setting to allow \r, but this breaks
-        // soft wrapping in the editor.
-        val (document, style) = createDocument(project, content.decodeToString().replace("\r\n", "\n"), fileType, formatted)
-
-        val editor = editorFactory.createViewer(document) as EditorEx
-        editor.setCaretVisible(false)
-        val settings = editor.settings
-        settings.isLineNumbersShown = false
-        settings.isLineMarkerAreaShown = false
-        settings.isUseSoftWraps = true
-        settings.setSoftMargins(emptyList())
-        settings.isRightMarginShown = false
-        settings.isFoldingOutlineShown = true
-        CodeFoldingManager.getInstance(project).updateFoldRegions(editor)
-        if (fileType != null) {
-          editor.highlighter = EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType)
+        val virtualFile = when {
+          !formatted || fileType == null || fileType == PlainTextFileType.INSTANCE -> createFile(fileType, content).also { style = RAW }
+          content.length > maxSizeToFormat -> createFile(fileType, content).also { showNotification = true }
+          else -> createFormattedFile(project, fileType, content)
         }
-        Disposer.register(parentDisposable) { editorFactory.releaseEditor(editor) }
-        IntellijDataViewer(editor.component, style)
-      } catch (e: Exception) {
+
+        val textEditor = PsiAwareTextEditorProvider().createEditor(project, virtualFile) as TextEditor
+        configureEditor(textEditor.editor as EditorEx)
+        Disposer.register(parentDisposable, textEditor)
+
+        val component = if (showNotification) getComponentWithNotification(textEditor.editor) else textEditor.editor.component
+        IntellijDataViewer(component, style)
+
+      } catch (e: Throwable) {
         // Exceptions and AssertionErrors can be thrown by editorFactory.createDocument and editorFactory.createViewer
-        createInvalidViewer()
-      } catch (e: AssertionError) {
+        logger.warn("Failed to create pretty viewer", e)
         createInvalidViewer()
       }
     }
@@ -127,23 +127,75 @@ class IntellijDataViewer private constructor(private val component: JComponent, 
       component.setFont(JBFont.label().asPlain())
       return IntellijDataViewer(component, Style.INVALID)
     }
+  }
+}
 
-    private fun createDocument(project: Project, content: String, fileType: FileType?, formatted: Boolean): Pair<Document, Style> {
-      fun createRawDocument() = editorFactory.createDocument(content) to RAW
-
-      val language = (fileType as? LanguageFileType)?.language ?: return createRawDocument()
-      if (language === PlainTextLanguage.INSTANCE) {
-        return createRawDocument()
-      }
-
-      val psiFile = PsiFileFactory.getInstance(project).createFileFromText(language, content) ?: return createRawDocument()
-
-      if (formatted) {
-        val processor = ReformatCodeProcessor(psiFile, false)
-        processor.run()
-      }
-      val psiDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: return createRawDocument()
-      return psiDocument to PRETTY
+/** Wrap the `Editor.component` with a panel that adds a notification banner above it */
+private fun getComponentWithNotification(editor: Editor): JComponent {
+  val banner = EditorNotificationPanel(WARNING_BACKGROUND).apply {
+    border = BorderFactory.createCompoundBorder(JBUI.Borders.customLine(JBColor.border(), 1, 1, 0, 1), border)
+    text = "Response was not auto-formatted because it was too large."
+    createActionLabel("Reformat now") {
+      val project = editor.project ?: return@createActionLabel logger.warn("Editor with no project")
+      val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(editor.document)
+        ?: return@createActionLabel logger.warn("Missing PsiFile")
+      reformatPsiFile(project, psiFile)
+      isVisible = false
     }
   }
+
+  return JPanel(null).apply {
+    layout = GroupLayout(this).apply {
+      setVerticalGroup(
+        createSequentialGroup()
+          .addComponent(banner)
+          .addComponent(editor.component)
+      )
+      setHorizontalGroup(
+        createParallelGroup(GroupLayout.Alignment.CENTER)
+          .addComponent(banner)
+          .addComponent(editor.component)
+      )
+    }
+  }
+}
+
+private fun createFile(fileType: FileType?, text: String) = LightVirtualFile("tmp-file", fileType, text)
+
+private fun createFormattedFile(project: Project, fileType: FileType, content: String): VirtualFile {
+  val psiFileFactory = PsiFileFactory.getInstance(project)
+  val psiFile = psiFileFactory.createFileFromText("file", fileType, content)
+  reformatPsiFile(project, psiFile)
+  return psiFile.virtualFile ?: createFile(fileType, psiFile.text)
+}
+
+private fun reformatPsiFile(project: Project, psiFile: PsiFile) {
+  val runnable = Runnable { CodeStyleManager.getInstance(project).reformat(psiFile) }
+  val application = ApplicationManager.getApplication()
+  if (application.isWriteAccessAllowed) {
+    runnable.run()
+  } else {
+    WriteCommandAction.runWriteCommandAction(project, runnable)
+  }
+}
+
+/**
+ * We need to support documents with \r newlines in them (since network payloads can contain
+ * data from any OS); however, Document will assert if it finds a \r as a line ending in its
+ * content and the user will see a mysterious "NO PREVIEW" message without any information
+ * on why. The Document class allows you to change a setting to allow \r, but this breaks
+ * soft wrapping in the editor.
+ */
+private fun ByteArray.toContent() = decodeToString().replace("\r\n", "\n")
+
+private fun configureEditor(editor: EditorEx) {
+  editor.setCaretVisible(false)
+  val settings = editor.settings
+  editor.isViewer = true
+  settings.isLineNumbersShown = false
+  settings.isLineMarkerAreaShown = false
+  settings.isUseSoftWraps = true
+  settings.setSoftMargins(emptyList())
+  settings.isRightMarginShown = false
+  settings.isFoldingOutlineShown = true
 }
