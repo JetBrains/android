@@ -435,7 +435,7 @@ internal class DeviceClient(
     val bitRate2 = StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()
     return when {
       bitRate1 == 0 -> bitRate2
-      bitRate2 == 0 -> bitRate2
+      bitRate2 == 0 -> bitRate1
       else -> min(bitRate1, bitRate2)
     }
   }
