@@ -70,6 +70,10 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
    * For a single artifact task handler, starting the task functionally is equivalent to starting the capture of the artifact.
    */
   override fun startTask() {
+    if (stage == null) {
+      handleError("Cannot start the task as the InterimStage was null")
+      return
+    }
     TaskHandlerUtils.executeTaskAction(action = { startCapture(stage!!) }, errorHandler = ::handleError)
   }
 
@@ -77,6 +81,10 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
    * For a single artifact task handler, stopping the task functionally is equivalent to stopping the capture of the artifact.
    */
   override fun stopTask() {
+    if (stage == null) {
+      handleError("Cannot stop the task as the InterimStage was null")
+      return
+    }
     TaskHandlerUtils.executeTaskAction(action = { stopCapture(stage!!) }, errorHandler = ::handleError)
   }
 
@@ -86,8 +94,8 @@ abstract class SingleArtifactTaskHandler<T : InterimStage>(sessionsManager: Sess
    * only pre-requisite is being in the correct InterimStage, which is why we invoke setupStage before entering the task for single
    * artifact task handlers.
    */
-  protected fun loadCapture(artifact: SessionArtifact<*>?) {
-    TaskHandlerUtils.executeTaskAction(action = { artifact!!.doSelect() }, errorHandler = ::handleError)
+  protected fun loadCapture(artifact: SessionArtifact<*>) {
+    TaskHandlerUtils.executeTaskAction(action = { artifact.doSelect() }, errorHandler = ::handleError)
   }
 
   /**

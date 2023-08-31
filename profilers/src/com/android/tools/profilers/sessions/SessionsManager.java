@@ -168,6 +168,11 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   @NotNull
+  public StudioProfilers getStudioProfilers() {
+    return myProfilers;
+  }
+
+  @NotNull
   public Common.Session getSelectedSession() {
     return mySelectedSession;
   }

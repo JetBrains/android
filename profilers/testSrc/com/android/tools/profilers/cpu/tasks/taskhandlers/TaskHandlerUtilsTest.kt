@@ -19,13 +19,11 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.sessions.SessionArtifact
-import com.android.tools.profilers.sessions.SessionItem
+import com.android.tools.profilers.cpu.tasks.taskhandlers.TaskHandlerTestUtils.createCpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.tasks.taskhandlers.TaskHandlerTestUtils.createSessionItem
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
 import com.google.common.truth.Truth.assertThat
@@ -79,7 +77,7 @@ class TaskHandlerUtilsTest {
   fun `test findTaskArtifact where supportsTask is false`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(selectedSession, 1, listOf(createSessionArtifact(selectedSession, 1, 3))),
+      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3))),
     )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { false }
     assertThat(artifact).isNull()
@@ -89,7 +87,7 @@ class TaskHandlerUtilsTest {
   fun `test findTaskArtifact where valid artifact is present`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(selectedSession, 1, listOf(createSessionArtifact(selectedSession, 1, 3))),
+      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 3))),
     )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { true }
     assertThat(artifact).isNotNull()
@@ -100,8 +98,8 @@ class TaskHandlerUtilsTest {
   fun `test findTaskArtifact where selected session is not in session id to SessionItem mapping`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      2L to createSessionItem(selectedSession, 2, listOf(
-        createSessionArtifact(selectedSession, 2, 1), createSessionArtifact(selectedSession, 2, 2)))
+      2L to createSessionItem(myProfilers, selectedSession, 2, listOf(
+        createCpuCaptureSessionArtifact(myProfilers, selectedSession, 2, 1), createCpuCaptureSessionArtifact(myProfilers, selectedSession, 2, 2)))
     )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { true }
     assertThat(artifact).isNull()
@@ -111,23 +109,10 @@ class TaskHandlerUtilsTest {
   fun `test findTaskArtifact where session item has more than one child artifact`() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to createSessionItem(selectedSession, 1, listOf(
-        createSessionArtifact(selectedSession, 1, 1), createSessionArtifact(selectedSession, 1, 2)))
+      1L to createSessionItem(myProfilers, selectedSession, 1, listOf(
+        createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 1), createCpuCaptureSessionArtifact(myProfilers, selectedSession, 1, 2)))
     )
     val artifact = TaskHandlerUtils.findTaskArtifact(selectedSession, sessionIdToSessionItems) { true }
     assertThat(artifact).isNull()
-  }
-
-  private fun createSessionArtifact(session: Common.Session, sessionId: Long, traceId: Long): SessionArtifact<*> {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
-    val info = Trace.TraceInfo.newBuilder().setTraceId(traceId).build()
-    return CpuCaptureSessionArtifact(myProfilers, session, sessionMetadata, info)
-  }
-
-  private fun createSessionItem(initialSession: Common.Session, sessionId: Long, childArtifacts: List<SessionArtifact<*>>): SessionItem {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
-    return SessionItem(myProfilers, initialSession, sessionMetadata).apply {
-      setChildArtifacts(childArtifacts)
-    }
   }
 }
