@@ -122,7 +122,7 @@ class BasicAndroidMonitorTest {
   }
 
   @Test
-  fun gradeTimeSyncTest(){
+  fun gradleTimeSyncTest(){
     connection.clientChanged(client, Client.CHANGE_NAME)
 
     val editEvent = MockitoKt.mock<EditEvent>()
@@ -130,6 +130,7 @@ class BasicAndroidMonitorTest {
 
 
     monitor.onPsiChanged(editEvent)
+    monitor.doOnManualLETrigger()
 
     val status = service.editStatus(device)
 
