@@ -91,9 +91,8 @@ abstract class SyncedProjectTest(
   @Test
   fun testAppWithBuildSrcAndSettingsPlugin() = testProject(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN)
 
-  // TODO(b/279759255)
-  // @Test
-  // fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
+  @Test
+  fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
 
   @Test
   fun testCompatibilityAs36NoIml() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML)
