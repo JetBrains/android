@@ -227,11 +227,6 @@ public final class StudioFlags {
     "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
     false);
 
-  public static final Flag<Boolean> NELE_VISUAL_LINT_ALWAYS_RUN = Flag.create(
-    NELE, "visual.lint.always.run", "Run visual lint in the background when the layout editor is opened",
-    "Enable so that visual lint always runs in the background of the layout editor for select configurations. This is also known as the background linting",
-    true);
-
   public static final Flag<Boolean> NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES = Flag.create(
     NELE, "use.custom.traffic.lights.for.resources", "Base traffic lights on the errors from the shared issue panel",
     "Use errors from the current file and qualifiers tab in the traffic light rendering for resource files.",
