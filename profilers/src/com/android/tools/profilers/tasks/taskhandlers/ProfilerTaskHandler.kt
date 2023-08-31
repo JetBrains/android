@@ -57,6 +57,12 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
   }
 
   /**
+   * Before entering a new task handler, we can call this exit method to perform any cleanup work the task necessitates. This is needed to
+   * prevent memory leaks as task handlers are created at inception of the toolwindow and live throughout the duration of the program.
+   */
+  open fun exit() {}
+
+  /**
    * Task behavior on start.
    */
   abstract fun startTask()
@@ -90,17 +96,19 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
   abstract fun createArgs(sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs?
 
   /**
-   * Returns whether the task is done or not. This termination condition is arbitrary and thus left to the task to implement/define.
+   * Returns whether the task has transitioned from an ongoing to terminated state. This termination condition is arbitrary and thus left
+   * to the task to implement/define. This method is repeatedly called on a timer to detect the aforementioned state transition. This state
+   * transitions determines whether to end the task's corresponding session.
    */
-  abstract fun isTaskDone(taskType: ProfilerTaskType,
-                          artifacts: List<SessionArtifact<*>>,
-                          sessionIdToProfilerTaskType: Map<Long, ProfilerTaskType>): Boolean
+  abstract fun isTaskNewlyFinished(taskType: ProfilerTaskType,
+                                   artifacts: List<SessionArtifact<*>>,
+                                   sessionIdToProfilerTaskType: Map<Long, ProfilerTaskType>): Boolean
 
   /**
    * Unified error handler for all task handlers.
    */
   fun handleError(errorMessage: String) {
     // TODO(b/298246786): Improve/refine the error handling
-    getLogger().error("There was an error with the ${getTaskName()} task. Error message: $errorMessage")
+    getLogger().error("There was an error with the ${getTaskName()} task. Error message: $errorMessage.")
   }
 }
