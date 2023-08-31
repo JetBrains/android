@@ -124,6 +124,7 @@ class AppInsightsProjectLevelControllerRule(
           DEFAULT_FETCHED_PERMISSIONS
         )
       ),
+    issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     isTransitionToOnlineMode: Boolean = false
@@ -135,8 +136,10 @@ class AppInsightsProjectLevelControllerRule(
     var resultState = consumeNext()
     if (state.value.issues.isNotEmpty()) {
       if (resultState.mode == ConnectionMode.ONLINE) {
+        client.completeIssueVariantsCallWith(issueVariantsState)
         client.completeDetailsCallWith(detailsState)
       }
+      consumeNext()
       consumeNext()
       client.completeListNotesCallWith(notesState)
       resultState = consumeNext()
@@ -155,6 +158,7 @@ class AppInsightsProjectLevelControllerRule(
           DEFAULT_FETCHED_PERMISSIONS
         )
       ),
+    issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)
@@ -164,9 +168,10 @@ class AppInsightsProjectLevelControllerRule(
     assertThat(loadingState.connections)
       .isEqualTo(Selection(connectionsState.firstOrNull(), connectionsState))
     assertThat(loadingState.issues).isInstanceOf(LoadingState.Loading::class.java)
+    assertThat(loadingState.currentIssueVariants).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentNotes).isEqualTo(LoadingState.Ready(null))
-    return consumeFetchState(state, detailsState, notesState)
+    return consumeFetchState(state, issueVariantsState, detailsState, notesState)
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
@@ -218,6 +223,7 @@ class CallInProgress<T> {
 class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsClient {
   private val listConnections = CallInProgress<LoadingState.Done<List<AppConnection>>>()
   private val topIssuesCall = CallInProgress<LoadingState.Done<IssueResponse>>()
+  private val issueVariantsCall = CallInProgress<LoadingState.Done<List<IssueVariant>>>()
   private val detailsCall = CallInProgress<LoadingState.Done<DetailedIssueStats?>>()
   private val setIssueStateCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listNotesCall = CallInProgress<LoadingState.Done<List<Note>>>()
@@ -243,6 +249,13 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
 
   suspend fun completeIssuesCallWith(value: LoadingState.Done<IssueResponse>) {
     topIssuesCall.completeWith(value)
+  }
+
+  override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
+    issueVariantsCall.initiateCall()
+
+  suspend fun completeIssueVariantsCallWith(value: LoadingState.Done<List<IssueVariant>>) {
+    issueVariantsCall.completeWith(value)
   }
 
   override suspend fun getIssueDetails(

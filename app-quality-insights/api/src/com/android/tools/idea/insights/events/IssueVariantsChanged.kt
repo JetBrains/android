@@ -16,31 +16,22 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.VisibilityType
+import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
-/** Visibility changed. */
-data class VisibilityChanged(val visibilityType: VisibilityType) : ChangeEvent {
-  override fun transition(
-    state: AppInsightsState,
-    tracker: AppInsightsTracker
-  ): StateTransition<Action> {
-    val newState = state.selectVisibilityType(visibilityType)
-    if (newState == state) {
-      return StateTransition(newState, Action.NONE)
-    }
-    return StateTransition(
-      newState.copy(
-        issues = LoadingState.Loading,
-        currentIssueVariants = LoadingState.Ready(null),
-        currentIssueDetails = LoadingState.Ready(null),
-        currentNotes = LoadingState.Ready(null)
+data class IssueVariantsChanged(val variants: LoadingState.Done<List<IssueVariant>>) : ChangeEvent {
+  override fun transition(state: AppInsightsState, tracker: AppInsightsTracker) =
+    StateTransition(
+      state.copy(
+        currentIssueVariants =
+          if (variants is LoadingState.Failure) variants
+          else {
+            variants.map { Selection(null, it) }
+          }
       ),
-      action =
-        Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER)
+      Action.NONE
     )
-  }
 }

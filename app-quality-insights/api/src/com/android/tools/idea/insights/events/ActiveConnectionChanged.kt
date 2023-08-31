@@ -37,6 +37,7 @@ data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
     return StateTransition(
       newState.copy(
         issues = LoadingState.Loading,
+        currentIssueVariants = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
         // reset the version, device and OS filters upon connection change.

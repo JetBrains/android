@@ -41,6 +41,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
               "Currently selected app is not configured with the current insights tool.",
               UnconfiguredAppException
             ),
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
           filters =
@@ -58,6 +59,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoTypesSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),
@@ -72,6 +74,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoVersionsSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),
@@ -86,6 +89,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoDevicesSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),
@@ -100,6 +104,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoOperatingSystemsSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),

@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
+import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
@@ -50,6 +51,11 @@ interface AppInsightsClient {
     mode: ConnectionMode = ConnectionMode.ONLINE,
     permission: Permission = Permission.NONE
   ): LoadingState.Done<IssueResponse>
+
+  suspend fun getIssueVariants(
+    request: IssueRequest,
+    issueId: IssueId
+  ): LoadingState.Done<List<IssueVariant>>
 
   suspend fun getIssueDetails(
     issueId: IssueId,

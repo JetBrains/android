@@ -34,7 +34,12 @@ data class FatalityToggleChanged(val fatality: FailureType) : ChangeEvent {
       return StateTransition(newState, Action.NONE)
     }
     return StateTransition(
-      newState.copy(issues = LoadingState.Loading),
+      newState.copy(
+        issues = LoadingState.Loading,
+        currentIssueVariants = LoadingState.Ready(null),
+        currentIssueDetails = LoadingState.Ready(null),
+        currentNotes = LoadingState.Ready(null)
+      ),
       action =
         Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER)
     )

@@ -42,6 +42,7 @@ data class ConnectionsChanged(
         state.copy(
           connections = Selection(activeConnection, connections),
           issues = LoadingState.Loading,
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
           filters = defaultFilters

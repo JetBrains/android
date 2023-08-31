@@ -23,6 +23,7 @@ import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
+import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MINIMUM_PERCENTAGE_TO_SHOW
 import com.android.tools.idea.insights.MINIMUM_SUMMARY_GROUP_SIZE_TO_SHOW
@@ -141,6 +142,9 @@ class VitalsClient(
       )
     }
   }
+
+  override suspend fun getIssueVariants(request: IssueRequest, issueId: IssueId) =
+    LoadingState.Ready(emptyList<IssueVariant>())
 
   override suspend fun getIssueDetails(
     issueId: IssueId,

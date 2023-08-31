@@ -46,6 +46,7 @@ data class IssuesChanged(
       return StateTransition(
         state.copy(
           issues = issues,
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null)
         ),
@@ -119,6 +120,9 @@ data class IssuesChanged(
                 }
               } else state.filters.operatingSystems
           ),
+        currentIssueVariants =
+          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
+          else LoadingState.Ready(null),
         currentIssueDetails =
           if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
           else LoadingState.Ready(null),
@@ -129,7 +133,9 @@ data class IssuesChanged(
       ),
       action =
         if (issues is LoadingState.Ready && newSelectedIssue != null)
-          newSelectedIssue.id.let { Action.FetchDetails(it) and Action.FetchNotes(it) }
+          newSelectedIssue.id.let {
+            Action.FetchIssueVariants(it) and Action.FetchDetails(it) and Action.FetchNotes(it)
+          }
         else Action.NONE
     )
   }

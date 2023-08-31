@@ -35,6 +35,7 @@ data class DevicesChanged(val devices: Set<Device>) : ChangeEvent {
     return StateTransition(
       newState.copy(
         issues = LoadingState.Loading,
+        currentIssueVariants = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null)
       ),

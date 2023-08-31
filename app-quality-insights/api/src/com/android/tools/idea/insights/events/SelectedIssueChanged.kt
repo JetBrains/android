@@ -50,6 +50,12 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
     return StateTransition(
       state.copy(
         issues = state.issues.map { Timed(value = it.value.select(issue), time = it.time) },
+        currentIssueVariants =
+          if (issue != null && state.issues is LoadingState.Ready) {
+            LoadingState.Loading
+          } else {
+            LoadingState.Ready(null)
+          },
         currentIssueDetails =
           if (issue != null && state.issues is LoadingState.Ready) {
             LoadingState.Loading
@@ -65,7 +71,9 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
       ),
       action =
         if (issue != null && state.issues is LoadingState.Ready)
-          Action.FetchDetails(issue.id) and Action.FetchNotes(issue.id)
+          Action.FetchIssueVariants(issue.id) and
+            Action.FetchDetails(issue.id) and
+            Action.FetchNotes(issue.id)
         else Action.NONE
     )
   }

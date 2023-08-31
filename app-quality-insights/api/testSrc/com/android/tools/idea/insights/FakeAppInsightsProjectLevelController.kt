@@ -64,4 +64,5 @@ class FakeAppInsightsProjectLevelController(
 
   override fun deleteNote(note: Note) {}
   override fun selectVisibilityType(value: VisibilityType) {}
+  override fun selectIssueVariant(variant: IssueVariant?) {}
 }

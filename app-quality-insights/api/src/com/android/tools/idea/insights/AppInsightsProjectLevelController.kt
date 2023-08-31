@@ -76,4 +76,5 @@ interface AppInsightsProjectLevelController {
   fun addNote(issue: AppInsightsIssue, message: String)
   fun deleteNote(note: Note)
   fun selectVisibilityType(value: VisibilityType)
+  fun selectIssueVariant(variant: IssueVariant?)
 }

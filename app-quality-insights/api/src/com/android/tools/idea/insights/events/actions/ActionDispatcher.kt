@@ -35,6 +35,7 @@ import com.android.tools.idea.insights.events.EnterOnlineMode
 import com.android.tools.idea.insights.events.ErrorThrown
 import com.android.tools.idea.insights.events.IssueDetailsChanged
 import com.android.tools.idea.insights.events.IssueToggled
+import com.android.tools.idea.insights.events.IssueVariantsChanged
 import com.android.tools.idea.insights.events.IssuesChanged
 import com.android.tools.idea.insights.events.NoteAdded
 import com.android.tools.idea.insights.events.NoteDeleted
@@ -70,6 +71,7 @@ data class ActionContext(
           Selection.emptySelection(),
           defaultFilters,
           LoadingState.Loading,
+          LoadingState.Ready(null),
           LoadingState.Ready(null)
         ),
         null
@@ -127,6 +129,7 @@ class ActionDispatcher(
       is Action.AddNote -> addNote(connection, action, currentState.mode)
       is Action.DeleteNote -> deleteNote(connection, action, currentState.mode)
       is Action.RetryPendingActions -> retryPendingActions(action, ctx)
+      is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
     }
   }
 
@@ -329,6 +332,27 @@ class ActionDispatcher(
           dispatch(ctx.copy(action = pending))
           pending = queue.poll()
         }
+      }
+      .toToken(action)
+  }
+
+  private fun fetchIssueVariants(
+    state: AppInsightsState,
+    action: Action.FetchIssueVariants
+  ): CancellationToken {
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
+    return scope
+      .launch {
+        eventEmitter(
+          IssueVariantsChanged(
+            // TODO(b/294097863): support cache variants
+            if (state.mode == ConnectionMode.OFFLINE) {
+              LoadingState.NetworkFailure("Variants data is not available")
+            } else {
+              appInsightsClient.getIssueVariants(issueRequest, action.id)
+            }
+          )
+        )
       }
       .toToken(action)
   }

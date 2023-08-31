@@ -60,6 +60,9 @@ data class AppInsightsState(
    */
   val issues: LoadingState<Timed<Selection<AppInsightsIssue>>>,
 
+  /** Issue variants associated with the currently selected issue. */
+  val currentIssueVariants: LoadingState<Selection<IssueVariant>?> = LoadingState.Ready(null),
+
   /**
    * Issue details whose state depends on the above selection and is loaded asynchronously over the
    * network.

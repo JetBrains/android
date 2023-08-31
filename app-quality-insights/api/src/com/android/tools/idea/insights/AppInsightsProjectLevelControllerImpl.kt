@@ -41,6 +41,7 @@ import com.android.tools.idea.insights.events.ResetSnapshot
 import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
 import com.android.tools.idea.insights.events.SelectedIssueChanged
+import com.android.tools.idea.insights.events.SelectedIssueVariantChanged
 import com.android.tools.idea.insights.events.SignalChanged
 import com.android.tools.idea.insights.events.VersionsChanged
 import com.android.tools.idea.insights.events.VisibilityChanged
@@ -161,6 +162,7 @@ class AppInsightsProjectLevelControllerImpl(
           LoadingState.Loading,
           LoadingState.Ready(null),
           LoadingState.Ready(null),
+          LoadingState.Ready(null),
           Permission.NONE,
           ConnectionMode.ONLINE
         ),
@@ -258,6 +260,10 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun selectVisibilityType(value: VisibilityType) {
     emit(VisibilityChanged(value))
+  }
+
+  override fun selectIssueVariant(variant: IssueVariant?) {
+    emit(SelectedIssueVariantChanged(variant))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {

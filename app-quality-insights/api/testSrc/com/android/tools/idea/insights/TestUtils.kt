@@ -318,6 +318,16 @@ val NOTE2 =
     state = NoteState.CREATED
   )
 
+val ISSUE_VARIANT =
+  IssueVariant(
+    id = "variant1",
+    sampleEvent = "sample_event_1",
+    uri = "firebase.google.com",
+    impactedDevicesCount = 1,
+    eventsCount = 1,
+    event = ISSUE1.sampleEvent
+  )
+
 // Used for testing cached issues because their counts are zeroed out.
 fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)
 // Used for testing cached issues because their counts are zeroed out.

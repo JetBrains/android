@@ -45,12 +45,18 @@ class SelectedIssueChangedTest {
     with(transition) {
       assertThat((transition.newState.issues as LoadingState.Ready).value.value)
         .isEqualTo(Selection(ISSUE2, listOf(ISSUE1, ISSUE2)))
+      assertThat(transition.newState.currentIssueVariants)
+        .isInstanceOf(LoadingState.Loading::class.java)
       assertThat(transition.newState.currentIssueDetails)
         .isInstanceOf(LoadingState.Loading::class.java)
       assertThat(transition.newState.currentNotes).isInstanceOf(LoadingState.Loading::class.java)
 
       assertThat((action as Action.Multiple).actions)
-        .containsExactly(Action.FetchDetails(ISSUE2.id), Action.FetchNotes(ISSUE2.id))
+        .containsExactly(
+          Action.FetchIssueVariants(ISSUE2.id),
+          Action.FetchDetails(ISSUE2.id),
+          Action.FetchNotes(ISSUE2.id)
+        )
     }
   }
 

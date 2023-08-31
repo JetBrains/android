@@ -123,9 +123,15 @@ class IssuesChangedTest {
 
     with(event.transition(currentState, TestAppInsightsTracker)) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE1)
+      assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentNotes).isEqualTo(LoadingState.Loading)
-      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE1.id) and Action.FetchNotes(ISSUE1.id))
+      assertThat(action)
+        .isEqualTo(
+          Action.FetchIssueVariants(ISSUE1.id) and
+            Action.FetchDetails(ISSUE1.id) and
+            Action.FetchNotes(ISSUE1.id)
+        )
     }
   }
 
@@ -156,9 +162,15 @@ class IssuesChangedTest {
 
     with(event.transition(currentState, TestAppInsightsTracker)) {
       assertThat((newState.issues as LoadingState.Ready).value.value.selected).isEqualTo(ISSUE2)
+      assertThat(newState.currentIssueVariants).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentIssueDetails).isEqualTo(LoadingState.Loading)
       assertThat(newState.currentNotes).isEqualTo(LoadingState.Loading)
-      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE2.id) and Action.FetchNotes(ISSUE2.id))
+      assertThat(action)
+        .isEqualTo(
+          Action.FetchIssueVariants(ISSUE2.id) and
+            Action.FetchDetails(ISSUE2.id) and
+            Action.FetchNotes(ISSUE2.id)
+        )
     }
   }
 

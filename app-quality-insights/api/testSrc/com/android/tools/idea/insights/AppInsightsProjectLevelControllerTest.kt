@@ -645,7 +645,9 @@ class AppInsightsProjectLevelControllerTest {
       )
 
     controllerRule.selectIssue(ISSUE1, IssueSelectionSource.LIST)
+    controllerRule.consumeNext()
 
+    client.completeIssueVariantsCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
     client.completeDetailsCallWith(LoadingState.Ready(null))
@@ -778,6 +780,8 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
     assertThat((model.issues as LoadingState.Ready).value.value)
       .isEqualTo(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)))
+    assertThat(model.currentIssueVariants)
+      .isEqualTo(LoadingState.Ready(Selection(null, emptyList())))
     assertThat(model.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentNotes).isEqualTo(LoadingState.Ready(emptyList<Note>()))
 
@@ -787,12 +791,16 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
+          currentIssueVariants = LoadingState.Loading,
           currentIssueDetails = LoadingState.Loading,
           currentNotes = LoadingState.Loading
         )
       )
 
-    client.completeDetailsCallWith(LoadingState.Ready(null))
+    client.completeIssueVariantsCallWith(LoadingState.Ready(listOf(ISSUE_VARIANT)))
+    controllerRule.consumeNext()
+
+    client.completeDetailsCallWith(LoadingState.Ready(ISSUE1_DETAILS))
     controllerRule.consumeNext()
 
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
@@ -800,7 +808,8 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
-          currentIssueDetails = LoadingState.Ready(null),
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT))),
+          currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList())
         )
       )
@@ -931,6 +940,7 @@ class AppInsightsProjectLevelControllerTest {
         .isEqualTo(
           newModel.copy(
             issues = LoadingState.UnknownFailure(null),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           )
@@ -968,12 +978,14 @@ class AppInsightsProjectLevelControllerTest {
               DEFAULT_FETCHED_PERMISSIONS
             )
           ),
+        issueVariantsState = LoadingState.Ready(emptyList()),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS)
       )
     assertThat(newModel)
       .isEqualTo(
         startingState.copy(
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
+          currentIssueVariants = LoadingState.Ready(Selection(null, emptyList())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList())
         )
@@ -985,6 +997,7 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         newModel.copy(
           issues = LoadingState.UnknownFailure(null),
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null)
         )
@@ -1077,6 +1090,7 @@ class AppInsightsProjectLevelControllerTest {
               LoadingState.Ready(
                 Timed(Selection(selected = ISSUE1, listOf(ISSUE1)), clock.instant())
               ),
+            currentIssueVariants = LoadingState.Loading,
             currentIssueDetails = LoadingState.Loading,
             currentNotes = LoadingState.Loading
           )

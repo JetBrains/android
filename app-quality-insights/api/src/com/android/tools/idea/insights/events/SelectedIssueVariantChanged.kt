@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,14 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 
-/** Sent when an update is requested by the user. */
-object ExplicitRefresh : ChangeEvent {
-  override fun toString() = "ChangeEvent.ExplicitRefresh"
-
-  override fun transition(
-    state: AppInsightsState,
-    tracker: AppInsightsTracker
-  ): StateTransition<Action> =
+data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : ChangeEvent {
+  override fun transition(state: AppInsightsState, tracker: AppInsightsTracker) =
     StateTransition(
-      state.copy(
-        issues = LoadingState.Loading,
-        currentIssueVariants = LoadingState.Ready(null),
-        currentIssueDetails = LoadingState.Ready(null),
-        currentNotes = LoadingState.Ready(null)
-      ),
-      action = Action.Refresh
+      state.copy(currentIssueVariants = state.currentIssueVariants.map { it?.select(variant) }),
+      Action.NONE
     )
 }
