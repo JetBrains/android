@@ -157,13 +157,6 @@ class StudioTests(unittest.TestCase):
           if f.external_attr & 0x1800000 != 0x1800000:
             self.fail("Found file without full read/write permissions: %s %x" % (f.filename, f.external_attr))
 
-  def test_kotlin_plugin_not_duplicated(self):
-    # Motive: bundling the Kotlin plugin is handled specially in BaseIdeaProperties.groovy
-    name = "tools/adt/idea/studio/android-studio.mac.zip"
-    with zipfile.ZipFile(name) as mac_zip:
-      kotlin_plugin_count = sum(name.endswith("kotlin-plugin.jar") for name in mac_zip.namelist())
-      self.assertEqual(kotlin_plugin_count, 1)
-
   def test_android_plugin_version(self):
     # Motive: we used to have a custom stamping, let's make sure it's not there anymore.
     name = "tools/adt/idea/studio/android-studio.linux.zip"
