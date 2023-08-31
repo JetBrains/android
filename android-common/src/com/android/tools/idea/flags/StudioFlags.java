@@ -257,11 +257,6 @@ public final class StudioFlags {
     "If enabled, the surface displays background class preloading progress",
     false);
 
-  public static final Flag<Boolean> NELE_DYNAMIC_THEMING_ACTION = Flag.create(
-    NELE, "dynamic.theming.action", "Enable previewing dynamic themes in Design Tools",
-    "If enabled, Design Tools have an action to use various backgrounds to preview dynamic themes.",
-    true);
-
   public static final Flag<Boolean> NELE_NEW_COMPONENT_TREE = Flag.create(
     NELE, "use.component.tree.builder", "Use the Component Tree builder",
     "If enabled, use the Component Tree builder for the Nele component tree",

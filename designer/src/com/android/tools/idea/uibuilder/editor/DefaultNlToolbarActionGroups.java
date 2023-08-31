@@ -28,12 +28,10 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
 import com.android.tools.idea.configurations.LocaleMenuAction;
-import com.android.tools.idea.configurations.NightModeMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.SystemUiModeAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
@@ -108,16 +106,9 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     group.addSeparator();
-    if (StudioFlags.NELE_DYNAMIC_THEMING_ACTION.get()) {
-      SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration);
-      appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
-      group.add(systemUiModeAction);
-    }
-    else {
-      NightModeMenuAction nightModeAction = new NightModeMenuAction(mySurface::getConfiguration);
-      appendShortcutText(nightModeAction, ToggleDeviceNightModeAction.getInstance());
-      group.add(nightModeAction);
-    }
+    SystemUiModeAction systemUiModeAction = new SystemUiModeAction(mySurface::getConfiguration);
+    appendShortcutText(systemUiModeAction, ToggleDeviceNightModeAction.getInstance());
+    group.add(systemUiModeAction);
 
     group.addSeparator();
     DeviceMenuAction menuAction = new DeviceMenuAction(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),

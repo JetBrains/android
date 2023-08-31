@@ -309,3 +309,15 @@ private fun getNullWallpaperIcon(scaledIconSize: Int) = LayeredIcon(2).apply {
   val icon = StudioIcons.Common.CLEAR
   setIcon(icon, 1, (scaledIconSize - icon.iconWidth) / 2, (scaledIconSize - icon.iconHeight) / 2)
 }
+
+private class SetNightModeAction(renderContext: ConfigurationHolder, title: String, private val nightMode: NightMode, checked: Boolean)
+  : ConfigurationAction(renderContext, title) {
+
+  init {
+    templatePresentation.putClientProperty(SELECTED_PROPERTY, checked)
+  }
+
+  override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
+    configuration.nightMode = nightMode
+  }
+}
