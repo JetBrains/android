@@ -113,3 +113,18 @@ data class IssueAnnotation(
 ) {
   companion object
 }
+
+data class IssueVariant(
+  // Distinct identifier for the variant.
+  val id: String,
+  // The resource name for a sample event in this variant.
+  val sampleEvent: String,
+  // A link to the variants on the firebase console.
+  val uri: String,
+  // Number of unique devices.
+  val impactedDevicesCount: Long,
+  // number of unique events that occur for this issue
+  val eventsCount: Long,
+  // Event
+  val event: Event
+)
