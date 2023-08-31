@@ -668,6 +668,9 @@ internal class DeviceViewTest {
       "\\s*version: \".*\"\n" +
       "}\n" +
       "device_info \\{\n" +
+      "\\s*anonymized_serial_number: \"\\w+\"\n" +
+      "\\s*build_tags: \"\"\n" +
+      "\\s*build_type: \"\"\n" +
       "\\s*build_version_release: \"Sweet dessert\"\n" +
       "\\s*cpu_abi: ARM64_V8A_ABI\n" +
       "\\s*manufacturer: \"Google\"\n" +
@@ -675,6 +678,7 @@ internal class DeviceViewTest {
       "\\s*device_type: LOCAL_PHYSICAL\n" +
       "\\s*build_api_level_full: \"30\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
+      "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
       "}\n" +
       "ide_brand: ANDROID_STUDIO\n" +
       "idea_is_internal: \\w+\n" +

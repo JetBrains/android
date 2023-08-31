@@ -182,8 +182,22 @@ class FakeScreenSharingAgentRule : TestRule {
     val agent: FakeScreenSharingAgent =
       FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
     var hostPort: Int? = null
-    val configuration: DeviceConfiguration = createDeviceConfiguration(deviceState.properties)
+    val configuration: DeviceConfiguration = DeviceConfiguration(createDeviceProperties())
     val handle: DeviceHandle = FakeDeviceHandle(this)
+
+    private fun createDeviceProperties(): DeviceProperties {
+      return DeviceProperties.build {
+        readCommonProperties(deviceState.properties)
+        populateDeviceInfoProto("FakeDevicePlugin", serialNumber, deviceState.properties)
+        readAdbSerialNumber(serialNumber)
+        icon = when (deviceType) {
+          DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
+          DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
+          DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
+          else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
+      }
+    }
   }
 
   private class FakeDeviceHandle(private val device: FakeDevice) : DeviceHandle {
@@ -192,15 +206,7 @@ class FakeScreenSharingAgentRule : TestRule {
     override val stateFlow = MutableStateFlow(createConnectedDeviceState())
 
     fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
-      val deviceProperties = DeviceProperties.buildForTest {
-        readCommonProperties(device.deviceState.properties)
-        icon = when(deviceType) {
-          DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
-          DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
-          DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
-          else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-        }
-      }
+      val deviceProperties = device.configuration.deviceProperties
       val connectedDevice = mock<ConnectedDevice>().apply {
         whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
       }

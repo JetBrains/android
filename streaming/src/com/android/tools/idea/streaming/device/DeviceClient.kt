@@ -33,7 +33,6 @@ import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PluginPathManager
@@ -449,11 +448,7 @@ internal class DeviceClient(
           .setExitCode(exitCode)
           .setRunDurationMillis(runDurationMillis)
       )
-      .setDeviceInfo(
-        DeviceInfo.newBuilder()
-          .fillFrom(deviceConfig)
-          .fillMdnsConnectionType(deviceSerialNumber)
-      )
+      .setDeviceInfo(deviceConfig.deviceProperties.deviceInfoProto)
 
     UsageTracker.log(studioEvent)
 

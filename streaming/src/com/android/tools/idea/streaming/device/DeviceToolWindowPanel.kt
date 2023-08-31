@@ -103,12 +103,8 @@ internal class DeviceToolWindowPanel(
     // Showing device frame is not supported for physical devices.
   }
 
-  override fun getDeviceInfo(): DeviceInfo {
-    return DeviceInfo.newBuilder()
-        .fillFrom(deviceConfig)
-        .fillMdnsConnectionType(deviceSerialNumber)
-        .build()
-  }
+  override fun getDeviceInfo(): DeviceInfo =
+      deviceConfig.deviceProperties.deviceInfoProto
 
   /**
    * Populates the device panel with content.
