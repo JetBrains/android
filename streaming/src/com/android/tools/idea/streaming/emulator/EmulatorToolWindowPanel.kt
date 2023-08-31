@@ -409,7 +409,7 @@ internal class EmulatorToolWindowPanel(
             DisplayDescriptor(PRIMARY_DISPLAY_ID, emulatorView.displaySizeWithFrame)
           }
           else {
-            DisplayDescriptor(it)
+            it.toDisplayDescriptor()
           }
         }
         .sorted()
@@ -506,3 +506,6 @@ internal class EmulatorToolWindowPanel(
     }
   }
 }
+
+private fun DisplayConfiguration.toDisplayDescriptor(): DisplayDescriptor =
+    DisplayDescriptor(display, width, height)

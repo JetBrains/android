@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.emulator.control.DisplayConfiguration
 import java.awt.Dimension
 
+/** XML-serializable descriptor of a device display. */
 internal data class DisplayDescriptor(
   var displayId: Int,
   var width: Int,
@@ -26,9 +26,8 @@ internal data class DisplayDescriptor(
   var type: Type = Type.UNKNOWN
 ) : Comparable<DisplayDescriptor> {
 
-  constructor(displayConfig: DisplayConfiguration) : this(displayConfig.display, displayConfig.width, displayConfig.height)
-
-  constructor(displayId: Int, size: Dimension) : this(displayId, size.width, size.height)
+  constructor(displayId: Int, size: Dimension, orientation: Int = 0, type: Type = Type.UNKNOWN) :
+      this(displayId, size.width, size.height, orientation, type)
 
   @Suppress("unused") // Used by XML deserializer.
   constructor() : this(0, 0, 0)
