@@ -18,6 +18,12 @@ package com.android.tools.profilers
 import com.android.tools.adtui.model.ViewBinder
 import com.android.tools.adtui.stdui.ContextMenuItem
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.profilers.cpu.CpuCaptureStage
+import com.android.tools.profilers.cpu.CpuCaptureStageView
+import com.android.tools.profilers.memory.AllocationStage
+import com.android.tools.profilers.memory.AllocationStageView
+import com.android.tools.profilers.memory.MemoryCaptureStage
+import com.android.tools.profilers.memory.MemoryCaptureStageView
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -45,6 +51,9 @@ class TaskProfilersView(override val studioProfilers: StudioProfilers,
 
   init {
     binder.bind(NullMonitorStage::class.java, ::NullMonitorStageView)
+    binder.bind(CpuCaptureStage::class.java, ::CpuCaptureStageView)
+    binder.bind(MemoryCaptureStage::class.java, ::MemoryCaptureStageView)
+    binder.bind(AllocationStage::class.java, ::AllocationStageView)
 
     stageWithToolbarView = StageWithToolbarView(studioProfilers,
                                                 stageComponent,
