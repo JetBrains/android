@@ -17,6 +17,7 @@ package com.android.tools.idea.wear.preview
 
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
+import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.preview.FilePreviewElementFinder
@@ -29,12 +30,14 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
+import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
+import org.jetbrains.uast.toUElementOfType
 
 private const val TILE_PREVIEW_ANNOTATION_NAME = "TilePreview"
-private const val TILE_PREVIEW_ANNOTATION_FQ_NAME =
-  "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
+private const val TILE_PREVIEW_ANNOTATION_FQ_NAME = "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
+private const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
 /** Object that can detect wear tile preview elements in a file. */
 internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTilePreviewElement> {
@@ -43,7 +46,11 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
       project = project,
       vFile = vFile,
       annotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
-      shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME
+      shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME,
+      filter = {
+        val uMethod = it.psiOrParent.toUElementOfType<UAnnotation>()?.getContainingUMethodAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)
+        uMethod.isTilePreview()
+      }
     )
   }
 
@@ -108,4 +115,10 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
   }
 }
 
-private fun UMethod?.isTilePreview() = this.isAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)
+private fun UMethod?.isTilePreview(): Boolean {
+  if (this == null) return false
+  if (!this.isAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)) return false
+  if (this.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
+
+  return uastParameters.isEmpty()
+}
