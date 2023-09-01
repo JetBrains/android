@@ -259,7 +259,6 @@ public final class TransportFileManager implements TransportFileCopier {
 
     if (!hostFile.isExecutable()) {
       Path path = dirPath.resolve(hostFile.getFileName());
-      removeWritePermissions(path);
       paths.add(pushFileToDevice(path, hostFile.getFileName(), hostFile.isExecutable()));
       return paths;
     }
@@ -278,19 +277,6 @@ public final class TransportFileManager implements TransportFileCopier {
       }
     }
     return paths;
-  }
-
-  /**
-   * The dalvik system DexFile.cc will not allow opening a writable dex file Android (API 34).
-   */
-  private void removeWritePermissions(@NotNull Path path) {
-    try {
-      if (path.getFileName().toString().endsWith(".jar") && Files.isWritable(path)) {
-        path.toFile().setWritable(false);
-      }
-    } catch (Throwable t) {
-      getLogger().warn(t);
-    }
   }
 
   private String pushFileToDevice(Path localPath, String fileName, boolean executable)
@@ -327,6 +313,15 @@ public final class TransportFileManager implements TransportFileCopier {
          */
         String cmd = "chmod 755 " + deviceFilePath;
         myDevice.executeShellCommand(cmd, new NullOutputReceiver());
+      }
+      else {
+        /*
+         * Starting with API 34 there is an additional check that a dex cannot be writable (see dalvik_system_DexFile.cc).
+         */
+        if (fileName.endsWith(".jar")) {
+          String cmd = "chmod 555 " + deviceFilePath;
+          myDevice.executeShellCommand(cmd, new NullOutputReceiver());
+        }
       }
       getLogger().info(String.format("Successfully pushed %s to %s.", fileName, DEVICE_DIR));
     }
