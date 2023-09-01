@@ -319,7 +319,7 @@ public final class TransportFileManager implements TransportFileCopier {
          * Starting with API 34 there is an additional check that a dex cannot be writable (see dalvik_system_DexFile.cc).
          */
         if (fileName.endsWith(".jar")) {
-          String cmd = "chmod 555 " + deviceFilePath;
+          String cmd = "chmod 444 " + deviceFilePath;
           myDevice.executeShellCommand(cmd, new NullOutputReceiver());
         }
       }

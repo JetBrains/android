@@ -76,7 +76,7 @@ class TransportFileManagerTest {
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
-    verify(mockDevice, times(1)).executeShellCommand(eq("chmod 555 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chmod 444 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
 
     val expectedPaths = listOf(
       Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
