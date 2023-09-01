@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.execution.common.stats;
 
+import static com.android.tools.idea.execution.common.stats.RunStatsUtilsKt.getDeviceInfo;
+
 import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.UsageTrackerUtils;
@@ -117,7 +119,7 @@ public class RunStats {
     if (device == null) {
       return;
     }
-    myEvent.setDeviceInfo(UsageTrackerUtils.deviceToDeviceInfo(device));
+    myEvent.setDeviceInfo(getDeviceInfo(device, myProject));
     myEvent.getRunEventBuilder().setDeviceCount(myEvent.getRunEventBuilder().getDeviceCount() + 1);
   }
 

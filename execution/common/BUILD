@@ -23,6 +23,9 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/analytics[module]",
         "//tools/base/tracer:studio.android.sdktools.tracer[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module]",
     ],
 )
 
@@ -61,5 +64,8 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
     ],
 )
