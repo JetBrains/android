@@ -136,12 +136,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       val previousTab = field
       if (previousTab != null) {
-        previousTab.layoutInspector.deviceModel?.selectedDevice = null
-
-        // Remove Layout Inspector UI from Running Devices.
-        previousTab.disableLayoutInspector()
         // Dispose to trigger clean up.
         Disposer.dispose(previousTab.tabComponents)
+
+        previousTab.layoutInspector.deviceModel?.selectedDevice = null
       }
 
       field = value
@@ -343,13 +341,17 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         },
         { layoutInspector.currentClient.stats },
       )
-  ) {
+  ) : Disposable {
 
     /**
      * Disposable created each time the UI is injected, and disposed each time the UI is removed.
      * It's used to keep track of the lifecycle of the UI.
      */
     private var uiDisposable: Disposable? = null
+
+    init {
+      Disposer.register(tabComponents, this)
+    }
 
     fun enableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
@@ -402,7 +404,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       )
     }
 
-    fun disableLayoutInspector() {
+    override fun dispose() {
+      disableLayoutInspector()
+    }
+
+    private fun disableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
       uiDisposable?.let { Disposer.dispose(it) }
@@ -424,8 +430,12 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       }
 
     private val selectedProcessListener = {
-      layoutInspector.inspectorClientSettings.isCapturingModeOn = true
-      layoutInspectorRenderer.interceptClicks = false
+      // Sometimes on project close "SelectedTabContent#dispose" can be called after the listeners
+      // are invoked.
+      if (!project.isDisposed) {
+        layoutInspector.inspectorClientSettings.isCapturingModeOn = true
+        layoutInspectorRenderer.interceptClicks = false
+      }
     }
   }
 

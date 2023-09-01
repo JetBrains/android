@@ -279,13 +279,26 @@ class LayoutInspectorManagerTest {
     fakeToolWindowManager.setSelectedContent(tab1)
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
+    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(3)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
+
     fakeToolWindowManager.setSelectedContent(tab2)
+
+    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(0)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(1)
+
     layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
+
+    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(3)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     assertDoesNotHaveWorkbench(tab1)
     assertHasWorkbench(tab2)
 
     fakeToolWindowManager.setSelectedContent(tab1)
+
+    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(3)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
 
     assertHasWorkbench(tab1)
     assertDoesNotHaveWorkbench(tab2)
@@ -295,7 +308,15 @@ class LayoutInspectorManagerTest {
     assertDoesNotHaveWorkbench(tab1)
     assertThat(layoutInspector.deviceModel?.selectedDevice).isNull()
 
+    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(3)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(3)
+
     assertHasWorkbench(tab2)
+
+    fakeToolWindowManager.removeContent(tab2)
+
+    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(0)
+    assertThat(layoutInspector.processModel?.selectedProcessListeners).hasSize(1)
   }
 
   @Test
