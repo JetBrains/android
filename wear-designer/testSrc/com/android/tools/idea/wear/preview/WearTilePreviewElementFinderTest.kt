@@ -42,6 +42,15 @@ class WearTilePreviewElementFinderTest {
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
+      "android/content/Context.kt",
+      // language=kotlin
+      """
+        package android.content
+
+        class Context
+      """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
       "androidx/wear/tiles/tooling/preview/TilePreview.kt",
       // language=kotlin
       """
@@ -79,6 +88,7 @@ class WearTilePreviewElementFinderTest {
         """
         package com.android.test
 
+        import android.content.Context
         import androidx.wear.tiles.TileService
         import androidx.wear.tiles.tooling.preview.TilePreview
         import androidx.wear.tiles.tooling.preview.TilePreviewData
@@ -148,6 +158,16 @@ class WearTilePreviewElementFinderTest {
         @TilePreview
         fun tilePreviewWithNoReturnType() {
         }
+
+        @TilePreview
+        fun tilePreviewWithContextParameter(context: Context): TilePreviewData {
+          return TilePreviewData()
+        }
+
+        @TilePreview
+        fun tilePreviewWithTooManyParameters(context: Context, x: Int): TilePreviewData {
+          return TilePreviewData()
+        }
         """
           .trimIndent()
       )
@@ -199,7 +219,7 @@ class WearTilePreviewElementFinderTest {
     runBlocking {
       val previewElements =
         WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
-      assertThat(previewElements).hasSize(6)
+      assertThat(previewElements).hasSize(7)
 
       previewElements.elementAt(0).let {
         assertThat(it.displaySettings.name).isEqualTo("tilePreview")
@@ -339,6 +359,23 @@ class WearTilePreviewElementFinderTest {
          """
                 .trimIndent()
             )
+        }
+      }
+      previewElements.elementAt(6).let {
+        assertThat(it.displaySettings.name).isEqualTo("tilePreviewWithContextParameter")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("tilePreviewWithContextParameter"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text)
+            .isEqualTo("@TilePreview")
         }
       }
     }

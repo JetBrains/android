@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.SdkConstants
 import com.android.ide.common.resources.Locale
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
@@ -120,5 +121,7 @@ private fun UMethod?.isTilePreview(): Boolean {
   if (!this.isAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)) return false
   if (this.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
 
-  return uastParameters.isEmpty()
+  val hasNoParameters = uastParameters.isEmpty()
+  val hasContextParameter = uastParameters.size == 1 && uastParameters.first().typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
+  return hasNoParameters || hasContextParameter
 }
