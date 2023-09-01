@@ -19,6 +19,7 @@ import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
@@ -45,6 +46,8 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.model.DnDTransferComponent
+import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
@@ -53,16 +56,20 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
+import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.collect.ImmutableCollection
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.ui.UiInterceptors
+import com.intellij.ui.UiInterceptors.UiInterceptor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
@@ -77,6 +84,7 @@ import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.SwingUtilities
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -106,6 +114,11 @@ class NlComponentTreeDefinitionTest {
   @Before
   fun before() {
     testDataPath = TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH)
+  }
+
+  @After
+  fun after() {
+    UiInterceptors.clear()
   }
 
   @RunsInEdt
@@ -427,6 +440,69 @@ class NlComponentTreeDefinitionTest {
     """
           .trimIndent()
       )
+  }
+
+  @RunsInEdt
+  @Test
+  fun testMoveFromPalette() {
+    val content = createToolContent()
+    val model = createFlowModel()
+    val table = attach(content, model)
+    val tableModel = table.tableModel
+    val textA = model.find("a")!!
+    val button = model.find("b")!!
+    val linear = model.find("linear")!!
+    val imageViewXml =
+      """
+      <ImageView
+        android:src="@tools:sample/avatars"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+      """
+        .trimIndent()
+    val data =
+      ItemTransferable(DnDTransferItem(DnDTransferComponent(IMAGE_VIEW, imageViewXml, 300, 300)))
+    assertThat(data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue()
+    assertThat(tableModel.canInsert(linear, data)).isTrue()
+    assertThat(tableModel.canInsert(button, data)).isFalse()
+
+    UiInterceptors.register(
+      object : UiInterceptor<ResourcePickerDialog>(ResourcePickerDialog::class.java) {
+        override fun doIntercept(component: ResourcePickerDialog) {
+          component.setPickedResourceNameInTests("@drawable/my_icon")
+          component.close(DialogWrapper.OK_EXIT_CODE)
+        }
+      }
+    )
+
+    // Move the new ImageView to the linear layout
+    tableModel.insert(linear, data, before = null, isMove = true, listOf())
+    UIUtil.dispatchAllInvocationEvents()
+
+    TreeUtil.expandAll(table.tree)
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
+    <android.support.constraint.ConstraintLayout>
+      <TextView>
+      <Button>
+      <Switch>
+      <android.support.constraint.helper.Flow>
+        @id/a
+        @id/b
+        @id/c
+        @id/include
+        @id/linear
+      <include>
+      <LinearLayout>
+        <CheckBox>
+        <ImageView>
+    """
+          .trimIndent()
+      )
+
+    val inserted = model.find { it.tagName == IMAGE_VIEW }
+    assertThat(inserted?.getAttribute(ANDROID_URI, "src")).isEqualTo("@drawable/my_icon")
   }
 
   @RunsInEdt

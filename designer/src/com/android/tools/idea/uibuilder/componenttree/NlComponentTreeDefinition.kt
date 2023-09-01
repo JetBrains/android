@@ -385,7 +385,11 @@ private class ComponentTreePanel(
       if (!data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) return false
       val item = DnDTransferItem.getTransferItem(data, true) ?: return false
       val insertType =
-        if (isMove && draggedFromTree.isNotEmpty()) InsertType.MOVE else InsertType.COPY
+        when {
+          isMove && draggedFromTree.isNotEmpty() -> InsertType.MOVE
+          item.isFromPalette -> InsertType.CREATE
+          else -> InsertType.COPY
+        }
       val components =
         if (insertType == InsertType.MOVE) draggedFromTree.filterIsInstance<NlComponent>()
         else model.createComponents(item, insertType)

@@ -113,6 +113,11 @@ class ResourcePickerDialog(
   val resourceName: String?
     get() = pickedResourceName
 
+  @TestOnly
+  fun setPickedResourceNameInTests(resource: String?) {
+    pickedResourceName = resource
+  }
+
   private fun updateSelectedResource(resource: ResourceItem) {
     pickedResourceName = resource.getReferenceString()
 
