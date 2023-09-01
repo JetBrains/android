@@ -483,11 +483,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
 
-  @NotNull
-  public IssuePanelFixture getIssuePanel() {
-    return myDesignSurfaceFixture.getIssuePanelFixture();
-  }
-
   public void enlargeBottomComponentSplitter() {
     target().setIssuePanelProportion(0.2f);
   }

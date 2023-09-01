@@ -43,46 +43,9 @@ public class IssuePanelFixture extends JPanelFixture {
     myIssuePanel = panel;
   }
 
-  @NotNull
-  public JLabelFixture findIssueWithTitle(String issueTitle) throws NullPointerException {
-    return label(Matchers.byText(JLabel.class, issueTitle));
-  }
-
-  @NotNull
-  public JTextComponentWithHtmlFixture findIssueWithContent(@NotNull String content) {
-    return JTextComponentWithHtmlFixture.create(robot(), robot().finder().findByType(target(), JTextPane.class));
-  }
-
-  @NotNull
-  public IssuePanelFixture clickOnLink(@NotNull String content) throws BadLocationException {
-    findIssueWithContent(content).clickOnLink(content);
-    return this;
-  }
-
-  @NotNull
-  public IssuePanelFixture clickFixButton() {
-    button(Matchers.byText(JButton.class, "Fix")).click();
-    return this;
-  }
-
-  public boolean hasRenderError() {
-    return myIssuePanel.getIssueModel().getIssues()
-             .stream()
-             .anyMatch(issue -> issue instanceof RenderIssueProvider.NlRenderIssueWrapper && issue.getSeverity() == HighlightSeverity.ERROR)
-           && myIssuePanel.getTitleText().matches(".*[Ee]rror.*");
-  }
-
-  public boolean containsText(@NotNull String text) {
-    return myIssuePanel.containsErrorWithText(text);
-  }
 
   public String getFullIssueText() {
     return myIssuePanel.getFullIssueText();
-  }
-
-  @Nullable
-  public IssueView getSelectedIssueView() {
-    return myIssuePanel.getSelectedIssueView();
   }
 
   @NotNull

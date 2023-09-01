@@ -71,8 +71,7 @@ class CustomViewPreviewTest {
     multiRepresentationFixture.waitForRenderToFinish()
     guiTest.robot().waitForIdle()
 
-    assertFalse(multiRepresentationFixture.designSurface.issuePanelFixture.fullIssueText,
-                multiRepresentationFixture.hasRenderErrors())
+    assertFalse(multiRepresentationFixture.hasRenderErrors())
 
     editor.closeFile(file)
   }
