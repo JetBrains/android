@@ -34,6 +34,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
+import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,17 +82,22 @@ public class QuickDefinitionTest {
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editor.moveBetween("setSupport", "ActionBar(binding.toolbar)");
-    getQuickDefinition();
+    editor.moveBetween("setSupport", "ActionBar(binding.toolbar)")
+      .pressAndReleaseKey(quickDefinitionKeyPressInfo());
+    waitForQuickDefinitionDialog();
     String javaMethodDocumentationContent = DefinitionWindowFixture.getDefinitionContent(guiTest.ideFrame());
     assertThat(javaMethodDocumentationContent.contains("public void setSupportActionBar(")).isTrue();
-
-    editor.open("app/src/main/res/layout/fragment_first.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30));
-
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editor.moveBetween("<Text", "View");
-    getQuickDefinition();
+    editor = guiTest.ideFrame()
+      .getEditor()
+      .open("app/src/main/res/layout/fragment_first.xml", EditorFixture.Tab.EDITOR, Wait.seconds(30))
+      .moveBetween("<Text", "View")
+      .pressAndReleaseKey(quickDefinitionKeyPressInfo());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.moveBetween("<Text", "View")
+      .pressAndReleaseKey(quickDefinitionKeyPressInfo());
+    waitForQuickDefinitionDialog();
     String xmlDocumentationContent = DefinitionWindowFixture.getDefinitionContent(guiTest.ideFrame());
     assertThat(xmlDocumentationContent.contains("public class TextView extends")).isTrue();
   }
@@ -106,8 +112,9 @@ public class QuickDefinitionTest {
 
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    editor.moveBetween("setSupport", "ActionBar(binding.toolbar)");
-    getQuickDefinition();
+    editor.moveBetween("setSupport", "ActionBar(binding.toolbar)")
+      .pressAndReleaseKey(quickDefinitionKeyPressInfo());
+    waitForQuickDefinitionDialog();
     String javaMethodDocumentationContent = DefinitionWindowFixture.getDefinitionContent(guiTest.ideFrame());
     assertThat(javaMethodDocumentationContent.contains("public void setSupportActionBar(")).isTrue();
   }
@@ -122,15 +129,18 @@ public class QuickDefinitionTest {
     ideFrame.clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
-  private void getQuickDefinition() throws InterruptedException {
 
-    if (SystemInfo.isMac) {
-      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_SPACE, ALT_MASK); // Quick definition (Option + Space)
-    }
-    else {
-      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_I, CTRL_MASK, SHIFT_MASK); // Quick definition (Ctrl + Shift + I)
-    }
+  private void waitForQuickDefinitionDialog(){
     GuiTests.waitUntilShowing(guiTest.robot(), Matchers.byType(ImplementationViewComponent.class));
     guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
+
+  private KeyPressInfo quickDefinitionKeyPressInfo(){
+    if (SystemInfo.isMac) {
+      return KeyPressInfo.keyCode(KeyEvent.VK_SPACE).modifiers(ALT_MASK); //(Option + Space)
+    }
+    else {
+      return (KeyPressInfo.keyCode(KeyEvent.VK_I)).modifiers(CTRL_MASK,SHIFT_MASK); //(Ctrl + Shift + I)
+    }
   }
 }
