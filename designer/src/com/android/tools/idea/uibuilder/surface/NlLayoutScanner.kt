@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerControl
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -28,7 +26,6 @@ import com.android.tools.rendering.RenderResult
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Validator for [NlDesignSurface]. It retrieves validation results from the [RenderResult] and
@@ -55,33 +52,12 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
     get() = lintIntegrator.issues
 
   /** Render specific metrics data */
-  var renderMetric = RenderResultMetricData()
+  private var renderMetric = RenderResultMetricData()
 
   @VisibleForTesting val listeners = HashSet<Listener>()
 
   /** Tracks metric related to atf */
-  @VisibleForTesting private val metricTracker = NlLayoutScannerMetricTracker(surface)
-
-  /**
-   * Listener for issue panel open/close
-   *
-   * TODO(b/298229332): Remove this listener and revisit metric tracker methods.
-   */
-  @TestOnly
-  val issuePanelListener =
-    object : IssuePanel.EventListener {
-      override fun onPanelExpanded(isExpanded: Boolean) {
-        if (isExpanded) {
-          metricTracker.trackIssues(issues, renderMetric)
-        }
-      }
-
-      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {
-        if (isExpanded && issue != null) {
-          metricTracker.trackFirstExpanded(issue)
-        }
-      }
-    }
+  private val metricTracker = NlLayoutScannerMetricTracker(surface)
 
   private val atfIssueEventListener =
     object : NlAtfIssue.EventListener {

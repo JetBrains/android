@@ -33,7 +33,11 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
   /** Track expanded issues so we don't log them multiple times */
   @VisibleForTesting val expanded = HashSet<Issue>()
 
-  /** Tracks all issues created by atf. */
+  /**
+   * Tracks all issues created by atf.
+   *
+   * TODO(b/298229332): Remove this, or call it somewhere other than tests.
+   */
   fun trackIssues(issues: Set<Issue>, renderMetric: RenderResultMetricData) {
     val atfIssues =
       issues.filterIsInstance<NlAtfIssue>().filter {
@@ -57,7 +61,11 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
     }
   }
 
-  /** Track the first time the issue is expanded by user. */
+  /**
+   * Track the first time the issue is expanded by user.
+   *
+   * TODO(b/298229332): Remove this, or call it somewhere other than tests.
+   */
   fun trackFirstExpanded(issue: Issue) {
     if (issue !is NlAtfIssue || expanded.contains(issue)) {
       return
