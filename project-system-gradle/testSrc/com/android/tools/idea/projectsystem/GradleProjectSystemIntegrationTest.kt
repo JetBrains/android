@@ -64,8 +64,9 @@ abstract class GradleProjectSystemIntegrationTestCase {
   companion object {
     val tests =
       listOf(
-        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT),
-        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true))
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = false),
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true)
+      )
   }
 
   data class TestDefinition(

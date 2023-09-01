@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.testutils.junit4.OldAgpTest
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.applySelectedAgpVersions
 import org.jetbrains.annotations.Contract
 import org.junit.runner.RunWith
@@ -35,6 +35,10 @@ class GradleProjectSystemOldAgpIntegrationTest : GradleProjectSystemIntegrationT
       return tests
         .applySelectedAgpVersions()
         .filter { it.agpVersion >= AGP_35 }
+        .filter {
+          it.agpVersion.modelVersion == ModelVersion.V2 && (it as TestDefinition).modelsV2 ||
+          it.agpVersion.modelVersion == ModelVersion.V1 && (it as TestDefinition).modelsV2.not()
+        }
         .map { listOf(it).toTypedArray() }
     }
   }

@@ -1,6 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_7_4", "AGP_8_0", "AGP_8_1", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_7_1", "GRADLE_7_0_2", "GRADLE_7_2", "GRADLE_7_3_3", "GRADLE_7_4", "GRADLE_7_5", "GRADLE_8_0", "GRADLE_LATEST", "local_old_agp_test")
+load(":agp_versions.bzl", "AGP_3_1_4", "AGP_3_3_2", "AGP_3_5", "AGP_4_0", "AGP_4_1", "AGP_4_2", "AGP_7_0", "AGP_7_1", "AGP_7_2", "AGP_7_3", "AGP_7_4", "AGP_8_0", "AGP_8_1", "AGP_8_2", "GRADLE_5_3_1", "GRADLE_5_5", "GRADLE_6_7_1", "GRADLE_7_0_2", "GRADLE_7_2", "GRADLE_7_3_3", "GRADLE_7_4", "GRADLE_7_5", "GRADLE_8_0", "GRADLE_8_2", "GRADLE_LATEST", "local_old_agp_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -44,6 +44,7 @@ iml_module(
         "//tools/base/build-system:gradle-distrib-7.3.3",
         "//tools/base/build-system:gradle-distrib-7.5",
         "//tools/base/build-system:gradle-distrib-8.0",
+        "//tools/base/build-system:gradle-distrib-8.1",
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
         "//tools/base/build-system/previous-versions:3.3.2",
         "//tools/base/build-system/previous-versions:3.5.0",
@@ -57,6 +58,7 @@ iml_module(
         "//tools/base/build-system/previous-versions:7.4.1",
         "//tools/base/build-system/previous-versions:8.0.0",
         "//tools/base/build-system/previous-versions:8.1.0",
+        "//tools/base/build-system/previous-versions:8.2.0",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/external/gradle:gradle-distrib-2.6",
         "//tools/external/gradle:gradle-distrib-3.5",
@@ -328,6 +330,17 @@ local_old_agp_test(
 local_old_agp_test(
     agp_version = AGP_8_1,
     gradle_version = GRADLE_8_0,
+    shard_count = 5,
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+)
+
+local_old_agp_test(
+    agp_version = AGP_8_2,
+    gradle_version = GRADLE_8_2,
     shard_count = 5,
     tags = [
         "block-network",

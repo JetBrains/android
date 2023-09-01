@@ -39,6 +39,7 @@ AGP_7_3 = "7.3.0"
 AGP_7_4 = "7.4.1"
 AGP_8_0 = "8.0.2"
 AGP_8_1 = "8.1.0"
+AGP_8_2 = "8.2.0-beta01"
 
 AGP_MAVEN_REPOS = {
     AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
@@ -54,6 +55,7 @@ AGP_MAVEN_REPOS = {
     AGP_7_4: ["//tools/base/build-system/previous-versions:7.4.1"],
     AGP_8_0: ["//tools/base/build-system/previous-versions:8.0.2"],
     AGP_8_1: ["//tools/base/build-system/previous-versions:8.1.0"],
+    AGP_8_2: ["//tools/base/build-system/previous-versions:8.2.0"],
 }
 
 AGP_DATA = {
@@ -110,9 +112,14 @@ AGP_DATA = {
         "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:platforms/latest",
     ],
+    AGP_8_2: [
+        "//prebuilts/studio/sdk:build-tools/34.0.0",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
 }
 
 GRADLE_LATEST = "LATEST"
+GRADLE_8_2 = "8.2"
 GRADLE_8_0 = "8.0"
 GRADLE_7_5 = "7.5"
 GRADLE_7_4 = "7.4"
@@ -126,6 +133,7 @@ GRADLE_5_3_1 = "5.3.1"
 
 GRADLE_DISTRIBUTIONS = {
     GRADLE_LATEST: ["//tools/base/build-system:gradle-distrib"],
+    GRADLE_8_2: ["//tools/base/build-system:gradle-distrib-8.2"],
     GRADLE_8_0: ["//tools/base/build-system:gradle-distrib-8.0"],
     GRADLE_7_5: ["//tools/base/build-system:gradle-distrib-7.5"],
     GRADLE_7_4: ["//tools/base/build-system:gradle-distrib-7.4"],
