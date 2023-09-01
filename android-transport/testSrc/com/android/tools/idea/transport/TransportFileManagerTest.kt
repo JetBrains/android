@@ -272,9 +272,8 @@ class TransportFileManagerTest {
 
     // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
     testNumberOfFilesToCopy(true, 29, 5)
-    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
-    // TRACED, TRACED_PROBE
-    testNumberOfFilesToCopy(false, 29, 9)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 29, 5)
   }
 
   private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {

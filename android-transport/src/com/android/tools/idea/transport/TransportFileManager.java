@@ -150,7 +150,8 @@ public final class TransportFileManager implements TransportFileCopier {
         copyFileToDevice(HostFiles.TRACEBOX);
       }
     }
-    else if (isAtLeastP(myDevice)) {
+    else if (myDevice.getVersion().getFeatureLevel() == AndroidVersion.VersionCodes.P) {
+      // Profiler is side-loading Perfetto on P. On Q+, the system image's Perfetto is used.
       copyFileToDevice(HostFiles.PERFETTO);
       copyFileToDevice(HostFiles.PERFETTO_SO);
       copyFileToDevice(HostFiles.TRACED);
@@ -189,10 +190,6 @@ public final class TransportFileManager implements TransportFileCopier {
    */
   private static boolean isAtLeastO(IDevice device) {
     return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
-  }
-
-  private static boolean isAtLeastP(IDevice device) {
-    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.P;
   }
 
   /**
