@@ -15,14 +15,20 @@
  */
 package com.android.tools.compose
 
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
+import org.junit.Rule
+import org.junit.Test
 
 /**
- * Tests for [ComposeSampleResolutionService]
+ * Tests for [ComposableDeclarationChecker]
  */
-class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
+class ComposableDeclarationCheckerTest {
+  @get:Rule
+  val androidProject = AndroidProjectRule.inMemory()
+
+  @Test
   fun testPropertyWithInitializer() {
     doTest(
       """
@@ -34,6 +40,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableFunctionReferences() {
     doTest(
       """
@@ -53,6 +60,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testNonComposableFunctionReferences() {
     doTest(
       """
@@ -72,6 +80,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testPropertyWithJustGetter() {
     doTest(
       """
@@ -83,6 +92,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testPropertyWithGetterAndSetter() {
     doTest(
       """
@@ -103,6 +113,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testPropertyGetterAllForms() {
     doTest(
       """
@@ -119,6 +130,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testSuspendComposable() {
     doTest(
       """
@@ -142,6 +154,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testMissingComposableOnOverride() {
     doTest(
       """
@@ -179,6 +192,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableMainFun1() {
     doTest(
       """
@@ -189,6 +203,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableMainFun2() {
     doTest(
       """
@@ -203,6 +218,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testComposableMainFun3() {
     doTest(
       """
@@ -219,6 +235,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testInferenceOverComplexConstruct1() {
     doTest(
       """
@@ -228,6 +245,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
+  @Test
   fun testInferenceOverComplexConstruct2() {
     doTest(
       """
@@ -238,7 +256,7 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
     )
   }
 
-  private fun doTest(expectedText: String): Unit = myFixture.run {
+  private fun doTest(expectedText: String): Unit = androidProject.fixture.run {
     stubComposeRuntime()
     stubKotlinStdlib()
 

@@ -19,7 +19,6 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.text.StringUtil
 import junit.framework.Assert.assertEquals
 import org.jetbrains.android.compose.stubComposeRuntime
@@ -29,7 +28,7 @@ import org.junit.Rule
 import org.junit.Test
 
 /**
- * Tests for [ComposeSampleResolutionService]
+ * Tests for [ComposableCallChecker]
  */
 class ComposableCallCheckerTest {
   @get:Rule
