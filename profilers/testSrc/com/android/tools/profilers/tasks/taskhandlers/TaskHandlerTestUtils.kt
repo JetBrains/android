@@ -35,14 +35,37 @@ import com.google.common.truth.Truth
 
 object TaskHandlerTestUtils {
 
+  fun createCpuCaptureSessionArtifactWithConfig(profilers: StudioProfilers,
+                                                session: Common.Session,
+                                                sessionId: Long,
+                                                traceId: Long,
+                                                config: Trace.TraceConfiguration) = createCpuCaptureSessionArtifactWithConfig(profilers,
+                                                                                                                              session,
+                                                                                                                              sessionId,
+                                                                                                                              traceId, 0, 0,
+                                                                                                                              config)
+
+  /**
+   * Overload of createCpuCaptureSessionArtifactWithConfig that takes in from and end timestamps.
+   */
+  fun createCpuCaptureSessionArtifactWithConfig(profilers: StudioProfilers,
+                                                session: Common.Session,
+                                                sessionId: Long,
+                                                traceId: Long,
+                                                fromTimestamp: Long,
+                                                toTimestamp: Long,
+                                                config: Trace.TraceConfiguration): CpuCaptureSessionArtifact {
+    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
+    val info = Trace.TraceInfo.newBuilder().setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).setTraceId(
+      traceId).setConfiguration(config.toBuilder()).build()
+    return CpuCaptureSessionArtifact(profilers, session, sessionMetadata, info)
+  }
+
   fun createCpuCaptureSessionArtifact(profilers: StudioProfilers,
                                       session: Common.Session,
                                       sessionId: Long,
-                                      traceId: Long): CpuCaptureSessionArtifact {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
-    val info = Trace.TraceInfo.newBuilder().setTraceId(traceId).build()
-    return CpuCaptureSessionArtifact(profilers, session, sessionMetadata, info)
-  }
+                                      traceId: Long) = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId,
+                                                                                                 Trace.TraceConfiguration.getDefaultInstance())
 
   fun createHprofSessionArtifact(profilers: StudioProfilers, session: Common.Session,
                                  startTimestamp: Long,
