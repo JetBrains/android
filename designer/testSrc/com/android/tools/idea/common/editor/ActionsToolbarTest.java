@@ -23,9 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;

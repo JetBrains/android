@@ -109,7 +109,7 @@ interface IssueSource {
   }
 }
 
-/** Represent an Error that can be displayed in the [IssuePanel]. */
+/** Represent an Error that can be displayed in the shared issues panel. */
 abstract class Issue {
   /** A short summary of the error description */
   abstract val summary: String

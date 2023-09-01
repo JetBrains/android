@@ -35,7 +35,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelF
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlRhsConfigToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlViewActionToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.HostPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
@@ -267,13 +266,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
       myPropertiesFixture = PropertiesPanelFixture.Companion.findPropertiesPanelInContainer(target(), robot());
     }
     return myPropertiesFixture;
-  }
-
-  @NotNull
-  public NlRhsConfigToolbarFixture getRhsConfigToolbar() {
-    ActionToolbarImpl toolbar =
-      GuiTests.waitUntilShowing(robot(), target(), Matchers.byName(ActionToolbarImpl.class, "NlRhsConfigToolbar"));
-    return new NlRhsConfigToolbarFixture(this, toolbar);
   }
 
   @NotNull

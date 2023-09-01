@@ -22,7 +22,7 @@ import com.intellij.ui.OnePixelSplitter
 import javax.swing.JComponent
 
 /**
- * A [com.intellij.ui.JBSplitter] that display the [IssuePanel] from the provided [surface] on
+ * A [com.intellij.ui.JBSplitter] that display the `IssuePanel` from the provided [surface] on
  * bottom and the provided [JComponent] on top.
  *
  * TODO(b/298229332): Replace this splitter, as the second component is never used.
