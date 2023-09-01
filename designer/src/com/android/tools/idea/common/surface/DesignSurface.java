@@ -30,7 +30,6 @@ import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueListener;
 import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.sdklib.AndroidCoordinate;
@@ -252,7 +251,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
   protected final IssueModel myIssueModel;
-  private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
   private MergingUpdateQueue myErrorQueue;
   private boolean myIsActive = false;
@@ -413,7 +411,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
 
     myIssueListener = new DesignSurfaceIssueListenerImpl(this);
-    myIssuePanel = new IssuePanel(myIssueModel, myIssueListener);
 
     add(myLayeredPane);
 
@@ -1878,12 +1875,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       myLintIssueProvider = new LintIssueProvider(model);
       getIssueModel().addIssueProvider(myLintIssueProvider);
     }
-  }
-
-  // TODO(b/298229332): Revisit usages in NlScanner and remove the myIssuePanel field.
-  @NotNull
-  public IssuePanel getIssuePanel() {
-    return myIssuePanel;
   }
 
   @NotNull

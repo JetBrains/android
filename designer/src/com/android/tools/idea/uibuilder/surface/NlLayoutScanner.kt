@@ -28,6 +28,7 @@ import com.android.tools.rendering.RenderResult
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Validator for [NlDesignSurface]. It retrieves validation results from the [RenderResult] and
@@ -61,8 +62,12 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
   /** Tracks metric related to atf */
   @VisibleForTesting private val metricTracker = NlLayoutScannerMetricTracker(surface)
 
-  /** Listener for issue panel open/close */
-  @VisibleForTesting
+  /**
+   * Listener for issue panel open/close
+   *
+   * TODO(b/298229332): Remove this listener and revisit metric tracker methods.
+   */
+  @TestOnly
   val issuePanelListener =
     object : IssuePanel.EventListener {
       override fun onPanelExpanded(isExpanded: Boolean) {
@@ -91,7 +96,6 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
 
   init {
     Disposer.register(parent, this)
-    surface.issuePanel.addEventListener(issuePanelListener)
 
     // Enabling this will retrieve text character locations from TextView to improve the
     // accuracy of TextContrastCheck in ATF
