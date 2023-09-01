@@ -28,26 +28,13 @@ import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
-import com.android.tools.preview.AnnotatedMethod
-import com.android.tools.preview.AnnotationAttributesProvider
 import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewNode
-import com.android.tools.preview.PreviewParameter
-import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.preview.attributesToConfiguration
-import com.android.tools.preview.config.PARAMETER_BACKGROUND_COLOR
-import com.android.tools.preview.config.PARAMETER_GROUP
-import com.android.tools.preview.config.PARAMETER_NAME
-import com.android.tools.preview.config.PARAMETER_SHOW_BACKGROUND
-import com.android.tools.preview.config.PARAMETER_SHOW_DECORATION
-import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.containers.sequenceOfNotNull
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
@@ -298,6 +285,7 @@ internal fun UAnnotation.toPreviewElement(
         attributesProvider,
         UastAnnotatedMethod(it),
         previewElementDefinitionPsi,
+        ::StudioParametrizedComposePreviewElementTemplate,
         overrideGroupName,
         parentAnnotationInfo
       )
@@ -314,83 +302,3 @@ internal fun UAnnotation.getContainingComposableUMethod() =
 
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
-
-/**
- * Converts the given preview annotation represented by the [attributesProvider] to a
- * [ComposePreviewElement].
- */
-private fun previewAnnotationToPreviewElement(
-  attributesProvider: AnnotationAttributesProvider,
-  annotatedMethod: AnnotatedMethod,
-  previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
-  overrideGroupName: String? = null,
-  parentAnnotationInfo: String? = null
-): ComposePreviewElement? {
-  fun getPreviewName(nameParameter: String?) =
-    when {
-      nameParameter != null -> "${annotatedMethod.name} - $nameParameter"
-      parentAnnotationInfo != null -> "${annotatedMethod.name} - $parentAnnotationInfo"
-      else -> annotatedMethod.name
-    }
-
-  val composableMethod = annotatedMethod.qualifiedName
-  val previewName = getPreviewName(attributesProvider.getDeclaredAttributeValue(PARAMETER_NAME))
-
-  val groupName = overrideGroupName ?: attributesProvider.getDeclaredAttributeValue(PARAMETER_GROUP)
-  val showDecorations =
-    attributesProvider.getBooleanAttribute(PARAMETER_SHOW_DECORATION)
-      ?: (attributesProvider.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI)) ?: false
-  val showBackground = attributesProvider.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
-  // We don't use the library's default value for BackgroundColor and instead use a value defined
-  // here, see PreviewElement#toPreviewXml.
-  val backgroundColor =
-    attributesProvider.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
-  val backgroundColorString =
-    when (backgroundColor) {
-      is Int -> backgroundColor.toString(16)
-      is Long -> backgroundColor.toString(16)
-      else -> null
-    }?.let { "#$it" }
-
-  // If the same composable functions is found multiple times, only keep the first one. This usually
-  // will happen during
-  // copy & paste and both the compiler and Studio will flag it as an error.
-  val displaySettings =
-    PreviewDisplaySettings(
-      previewName,
-      groupName,
-      showDecorations,
-      showBackground,
-      backgroundColorString
-    )
-
-  val parameters = getPreviewParameters(annotatedMethod.parameterAnnotations)
-  val basePreviewElement =
-    SingleComposePreviewElementInstance(
-      composableMethod,
-      displaySettings,
-      previewElementDefinitionPsi,
-      annotatedMethod.psiPointer,
-      attributesToConfiguration(attributesProvider)
-    )
-  return if (!parameters.isEmpty()) {
-    StudioParametrizedComposePreviewElementTemplate(basePreviewElement, parameters)
-  } else {
-    basePreviewElement
-  }
-}
-
-/**
- * Returns a list of [PreviewParameter] for the given [Collection] of parameters annotated with
- * `PreviewParameter`, where each parameter is represented by a [Pair] of its name and
- * [AnnotationAttributesProvider] for the annotation.
- */
-private fun getPreviewParameters(
-  attributesProviders: Collection<Pair<String, AnnotationAttributesProvider>>
-): Collection<PreviewParameter> =
-  attributesProviders.mapIndexedNotNull { index, (name, attributesProvider) ->
-    val providerClassFqn =
-      (attributesProvider.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
-    val limit = attributesProvider.getAttributeValue("limit") ?: Int.MAX_VALUE
-    PreviewParameter(name, index, providerClassFqn, limit)
-  }
