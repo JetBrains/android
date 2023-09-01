@@ -63,14 +63,20 @@ private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActio
 private const val POPUP_HANDLER_ACTION_ID = "Android.Designer.IssuePanel.TreePopup"
 private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_detail_visibility"
 
-/** The issue panel to load the issues from Layout Editor and Layout Validation Tool. */
+/**
+ * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
+ *
+ * @param additionalDataProvider A [DataProvider] used to pass information from the creator of this
+ *   panel, that will allow to link the panel with the previews from which it displays the errors.
+ */
 class DesignerCommonIssuePanel(
   parentDisposable: Disposable,
   private val project: Project,
   private val treeModel: DesignerCommonIssueModel,
   nodeFactoryProvider: () -> NodeFactory,
   val issueProvider: DesignerCommonIssueProvider<Any>,
-  private val emptyMessageProvider: () -> String
+  private val emptyMessageProvider: () -> String,
+  private val additionalDataProvider: DataProvider? = null
 ) : Disposable {
 
   var sidePanelVisible =
@@ -90,7 +96,7 @@ class DesignerCommonIssuePanel(
         }
 
       override fun getData(dataId: String): Any? {
-        val node = getSelectedNode() ?: return null
+        val node = getSelectedNode() ?: return additionalDataProvider?.getData(dataId)
         if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
           return DataProvider { getDataInBackground(it, node) }
         }
@@ -109,7 +115,7 @@ class DesignerCommonIssuePanel(
             else -> emptyList()
           }
         }
-        return null
+        return additionalDataProvider?.getData(dataId)
       }
     }
 

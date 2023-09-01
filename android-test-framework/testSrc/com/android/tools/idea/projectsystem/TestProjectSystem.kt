@@ -88,6 +88,7 @@ class TestProjectSystem @JvmOverloads constructor(
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
   var useAndroidX: Boolean = false
+  var usesCompose: Boolean = false
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
@@ -250,6 +251,9 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override val moduleDependencies: ModuleDependencies
         get() = StudioModuleDependencies(module)
+
+      override val usesCompose: Boolean
+        get() = this@TestProjectSystem.usesCompose
     }
 
     return TestAndroidModuleSystemImpl()

@@ -590,13 +590,20 @@ class ComposePreviewRepresentation(
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
     surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     withContext(uiThread) {
-      IssuePanelService.getInstance(project)
-        .startUiCheck(
-          this@ComposePreviewRepresentation,
-          instance.instanceId,
-          instance.displaySettings.name,
-          surface
-        )
+      IssuePanelService.getInstance(project).startUiCheck(
+        this@ComposePreviewRepresentation,
+        instance.instanceId,
+        instance.displaySettings.name,
+        surface
+      ) {
+        // Pass preview manager and instance to the tab created for this UI Check preview.
+        // This enables restarting the UI Check mode from an action inside the tab.
+        when (it) {
+          COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
+          COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> instance
+          else -> null
+        }
+      }
     }
     forceRefresh().join()
   }

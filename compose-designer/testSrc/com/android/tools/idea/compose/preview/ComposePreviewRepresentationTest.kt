@@ -20,8 +20,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
-import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -47,6 +48,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.UUID
@@ -55,6 +57,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.After
@@ -104,7 +107,7 @@ class ComposePreviewRepresentationTest {
     Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
     logger.info("setup")
-    val testProjectSystem = TestProjectSystem(project)
+    val testProjectSystem = TestProjectSystem(project).apply { usesCompose = true }
     runInEdtAndWait { testProjectSystem.useInTests() }
     logger.info("setup complete")
     ToolWindowManager.getInstance(project)
@@ -222,7 +225,6 @@ class ComposePreviewRepresentationTest {
         )
       }
 
-      val navigationHandler = ComposePreviewNavigationHandler()
       val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
       val modelRenderedLatch = CountDownLatch(2)
 
@@ -317,6 +319,13 @@ class ComposePreviewRepresentationTest {
       // Check that the UI Check tab has been created
       assertEquals(2, contentManager.contents.size)
       assertNotNull(contentManager.findContent(uiCheckElement.displaySettings.name))
+      val rerunAction = ReRunUiCheckModeAction()
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        rerunAction.update(actionEvent)
+        assertTrue(actionEvent.presentation.isVisible)
+        assertFalse(actionEvent.presentation.isEnabled)
+      }
 
       // Stop UI Check mode
       preview.setMode(PreviewMode.Default)
@@ -349,6 +358,53 @@ class ComposePreviewRepresentationTest {
       // Check that the UI Check tab is still present
       assertEquals(2, contentManager.contents.size)
       assertNotNull(contentManager.findContent(uiCheckElement.displaySettings.name))
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        rerunAction.update(actionEvent)
+        assertTrue(actionEvent.presentation.isEnabledAndVisible)
+      }
+
+      // Re-run UI check with the problems panel action
+      launch(uiThread) { rerunAction.actionPerformed(TestActionEvent.createTestEvent()) }
+      delayUntilCondition(250) { preview.isUiCheckPreview }
+      preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
+        "Failed set uiCheckMode",
+        5.seconds
+      ) {
+        it.size > 2
+      }
+      assertEquals(
+        """
+          TestKt.Preview1
+          spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
+          PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          spec:shape=Normal,width=673,height=841,unit=dp,dpi=480
+          PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420
+          PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420
+          PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          spec:parent=_device_class_phone,orientation=landscape
+          PreviewDisplaySettings(name=Preview1 - _device_class_phone-landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+        """
+          .trimIndent(),
+        preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
+          "${it.methodFqn}\n${it.configuration.deviceSpec}\n${it.displaySettings}\n"
+        }
+      )
+
+      // Stop UI Check mode
+      preview.setMode(PreviewMode.Default)
+      delayUntilCondition(250) { preview.isInNormalMode }
 
       // Restart UI Check mode on the same preview
       preview.setMode(PreviewMode.UiCheck(uiCheckElement))

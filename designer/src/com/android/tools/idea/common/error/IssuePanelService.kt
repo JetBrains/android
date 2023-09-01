@@ -35,6 +35,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.Service
@@ -547,7 +548,8 @@ class IssuePanelService(private val project: Project) {
     parentDisposable: Disposable,
     name: String,
     displayName: String,
-    surface: NlDesignSurface
+    surface: NlDesignSurface,
+    additionalDataProvider: DataProvider
   ) {
     val contentManager =
       ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)?.contentManager
@@ -561,10 +563,10 @@ class IssuePanelService(private val project: Project) {
           project,
           DesignerCommonIssuePanelModelProvider.getInstance(project).createModel(),
           { UICheckNodeFactory },
-          DesignToolsIssueProvider(parentDisposable, project, NotSuppressedFilter, name)
-        ) {
-          "UI Check did not find any issues to report"
-        }
+          DesignToolsIssueProvider(parentDisposable, project, NotSuppressedFilter, name),
+          { "UI Check did not find any issues to report" },
+          additionalDataProvider
+        )
 
       val tab =
         contentManager.factory

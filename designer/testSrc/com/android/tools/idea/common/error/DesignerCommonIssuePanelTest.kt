@@ -63,10 +63,9 @@ class DesignerCommonIssuePanelTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -132,10 +131,9 @@ class DesignerCommonIssuePanelTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -198,10 +196,9 @@ class DesignerCommonIssuePanelTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!

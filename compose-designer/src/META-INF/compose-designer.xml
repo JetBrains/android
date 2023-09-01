@@ -231,6 +231,12 @@
             use-shortcut-of="ForceRefresh" >
       <add-to-group group-id="Android.Designer.CommonActions" />
     </action>
+
+    <action id="Android.Designer.ReRunUiCheckModeAction"
+            icon="AllIcons.Actions.Refresh"
+            class="com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction">
+      <add-to-group group-id="Android.Designer.IssuePanel.ToolbarActions" anchor="first"/>
+    </action>
   </actions>
 
 </idea-plugin>
