@@ -730,6 +730,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.VerifyJavaKotlinXmlCodeStylesTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -832,6 +833,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.webp.ConvertFromAndToWebpTest"],
     tags = COMMON_TAGS + [
+        "no_mac",  # Cannot be automated in MAC
         "no_windows",
         "qa_smoke",
     ],
@@ -866,6 +868,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.build.analyzer.BuildAnalyzerTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1103,6 +1106,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddNewBuildTypeTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1144,6 +1148,7 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.newpsd.StudioDefaultJDKTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1197,6 +1202,7 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.RunAppEnableTest",
     ],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1266,6 +1272,7 @@ java_test(
     flaky = True,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.BasicLayoutEditTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
         "ui_test",
@@ -1286,6 +1293,7 @@ java_test(
     ] + glob(["testData/SimpleApplication/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.ComponentSelectionSplitViewTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "ui_test",
         "very_flaky",
@@ -1369,6 +1377,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.AddDebugAndReleaseSourceSetToProjectTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1432,6 +1441,7 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateBasicKotlinProjectTest",
     ],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",  # fails 1 out of 3000 runs
     ],
@@ -1545,6 +1555,7 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1612,6 +1623,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.LocalApkProjTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
         "requires-fakeroot",
@@ -1786,6 +1798,7 @@ java_test(
     ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.NavGraphSanityTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1838,6 +1851,7 @@ java_test(
     ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.AddOrRemoveAttributesTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1885,6 +1899,7 @@ java_test(
     ]) + glob(["testData/LayoutTest/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.CreateNavNIGraphTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1925,6 +1940,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.RefactoringFlowTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2098,6 +2114,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.QuickFixForJniTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2111,6 +2128,7 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenExistingProjectTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2126,6 +2144,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.CodeGenerationTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2423,6 +2442,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.resourceexplorer.ResourceExplorerTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2793,6 +2813,7 @@ java_test(
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.AddCppToModuleActionTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -3241,6 +3262,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
