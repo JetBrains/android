@@ -23,6 +23,7 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.hint.HintUtil
+import com.intellij.java.library.JavaLibraryUtil
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -30,7 +31,6 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer.Alignment
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.SmartPointerManager
@@ -57,13 +57,9 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     val first = elements.firstOrNull() ?: return
     val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
 
-    // TODO(b/287298598): Use JavaLibraryUtil.hasLibraryClass once it's available in the studio
-    // codebase.
-    val javaPsiFacade = JavaPsiFacade.getInstance(module.project)
-    val scope = module.moduleWithLibrariesScope
     if (
-      javaPsiFacade.findClass(ROOM_ENTITY_ANDROIDX, scope) == null &&
-        javaPsiFacade.findClass(ROOM_ENTITY_ARCH, scope) == null
+      !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ANDROIDX) &&
+        !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ARCH)
     ) {
       return
     }
