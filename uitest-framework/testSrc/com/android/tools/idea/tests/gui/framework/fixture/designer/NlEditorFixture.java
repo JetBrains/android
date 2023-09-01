@@ -32,7 +32,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WorkBenchLoadingPanelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.IssuePanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.MorphDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlConfigurationToolbarFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.layout.NlDesignSurfaceFixture;
