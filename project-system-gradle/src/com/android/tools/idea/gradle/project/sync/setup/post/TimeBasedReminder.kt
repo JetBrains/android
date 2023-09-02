@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationsConfiguration
 import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeUnit.DAYS
 
@@ -24,19 +26,44 @@ import java.util.concurrent.TimeUnit.DAYS
  * 1 - Monitors the passing of a specific [timePeriod]
  * 2 - Tracks whether the reminder has been ignored for this project
  * 3 - Tracks whether the reminder has been ignored for every project (for the Application)
+ * 4 - If a NotificationGroup is passed, the reminder can be controlled for the application using that group
  *
  * The settings are persisted across instances of this object, as long as two instances were created with the same
- * [settingsPropertyRoot] they will reuse the same information. This reminder is backed by intellijs [PropertiesComponent].
+ * [settingsPropertyRoot] they will reuse the same information. This reminder is backed by intellij's [PropertiesComponent].
  */
 open class TimeBasedReminder(
   protected val project: Project,
   protected val settingsPropertyRoot: String,
-  private val timePeriod: Long = DAYS.toMillis(1)
+  private val timePeriod: Long = DAYS.toMillis(1),
+  private val notificationGroupId: String? = null,
+  private val defaultNotificationType: NotificationDisplayType = NotificationDisplayType.STICKY_BALLOON,
+  private val defaultShouldLog: Boolean = true,
+  private val defaultShouldRead: Boolean = true
 ) {
-  val doNotAskForProjectPropertyString = "$settingsPropertyRoot.do.not.ask.for.project"
+  private val doNotAskForProjectPropertyString = "$settingsPropertyRoot.do.not.ask.for.project"
   var doNotAskForApplication: Boolean
-    get() =  PropertiesComponent.getInstance().getBoolean("$settingsPropertyRoot.do.not.show.again", false)
-    set(value) = PropertiesComponent.getInstance().setValue("$settingsPropertyRoot.do.not.show.again", value)
+    get() =
+      if (notificationGroupId != null) {
+        NotificationsConfiguration.getNotificationsConfiguration().getDisplayType(notificationGroupId) == NotificationDisplayType.NONE
+      }
+      else {
+        PropertiesComponent.getInstance().getBoolean("$settingsPropertyRoot.do.not.show.again", false)
+      }
+    set(value) {
+      if (notificationGroupId != null) {
+        if (value) {
+          NotificationsConfiguration.getNotificationsConfiguration().changeSettings(notificationGroupId, NotificationDisplayType.NONE,
+                                                                                    /* do not log */ false, /* silence */ false)
+        }
+        else {
+          NotificationsConfiguration.getNotificationsConfiguration().changeSettings(notificationGroupId, defaultNotificationType,
+                                                                                    defaultShouldLog, defaultShouldRead)
+        }
+      }
+      else {
+        PropertiesComponent.getInstance().setValue("$settingsPropertyRoot.do.not.show.again", value)
+      }
+    }
   var doNotAskForProject: Boolean
     get() =  PropertiesComponent.getInstance(project).getBoolean(doNotAskForProjectPropertyString, false)
     set(value) = PropertiesComponent.getInstance(project).setValue(doNotAskForProjectPropertyString, value)
