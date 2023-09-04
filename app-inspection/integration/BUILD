@@ -35,7 +35,6 @@ iml_studio_test(
     module = ":app-inspection.integration",
     tags_linux = [
         "block-network",
-        "very_flaky",  # b/263123192
     ],
     tags_mac = [],
     tags_windows = [

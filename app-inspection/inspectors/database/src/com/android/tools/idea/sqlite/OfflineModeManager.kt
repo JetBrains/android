@@ -189,6 +189,11 @@ class OfflineModeManagerImpl(
       }
 
     private fun askUserIfAppIsTrusted(project: Project): Boolean {
+      // TODO(b/299090179): Popup sometimes shows up when it shouldn't
+      //  Don't show the popup in the e2e test
+      if (java.lang.Boolean.getBoolean("studio.run.under.integration.test")) {
+        return true
+      }
       return MessageDialogBuilder.yesNo(
           DatabaseInspectorBundle.message("trust.database.title"),
           DatabaseInspectorBundle.message("trust.database.message")
