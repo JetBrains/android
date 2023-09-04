@@ -27,13 +27,17 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import junit.framework.TestCase
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import kotlin.concurrent.thread
 
 class ComplicationTypeUtilsTest {
   @get:Rule
@@ -94,21 +98,73 @@ class ComplicationTypeUtilsTest {
     }
   }
 
-  @Throws(Exception::class)
-  private fun getMergedManifest(manifestContents: String): MergedManifestSnapshot? {
-    val path = "app/src/main/AndroidManifest.xml"
-    val manifest: VirtualFile = projectRule.fixture.findFileInTempDir(path)
-    ApplicationManager.getApplication().runWriteAction(object : Runnable {
-      override fun run() {
-        try {
-          manifest.delete(this)
-        }
-        catch (e: IOException) {
-          TestCase.fail("Could not delete manifest")
+  @Test
+  fun tesGetComplicationTypesFromManifestWhileHoldingReadLockReturnsNullIfNotReady() {
+    val module = projectRule.projectRule.project.findAppModule()
+    addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
+
+    val readLockIsReady = CountDownLatch(1)
+    val testIsComplete = CountDownLatch(1)
+
+    try {
+      // Ensure the read lock is blocked to the manifest merger does not have the chance to run
+      thread {
+        ApplicationManager.getApplication().runReadAction {
+          readLockIsReady.countDown()
+          testIsComplete.await()
         }
       }
-    })
+
+      // Wait for the read lock to be ready
+      readLockIsReady.await()
+      val complicationTypes = ApplicationManager.getApplication().runReadAction(Computable<List<String>?> {
+        getComplicationTypesFromManifest(
+          module,
+          "google.simpleapplication.provider.IncrementingNumberComplicationProviderService"
+        )
+      })
+      assertNull(complicationTypes)
+    } finally {
+      testIsComplete.countDown()
+    }
+  }
+
+  @Test
+  fun tesGetComplicationTypesFromManifest() {
+    val module = projectRule.projectRule.project.findAppModule()
+    addMergedManifest(manifestString.format("RANGED_VALUE, LONG_TEXT, SHORT_TEXT"))
+    val complicationTypes = getComplicationTypesFromManifest(module,
+      "google.simpleapplication.provider.IncrementingNumberComplicationProviderService")
+    assertEquals(
+      """
+        RANGED_VALUE
+        LONG_TEXT
+        SHORT_TEXT
+      """.trimIndent(),
+      complicationTypes?.joinToString("\n") ?: ""
+    )
+  }
+
+  private fun addMergedManifest(manifestContents: String) {
+    val path = "app/src/main/AndroidManifest.xml"
+    val manifest: VirtualFile = projectRule.fixture.findFileInTempDir(path)
+    ApplicationManager.getApplication().invokeAndWait {
+      ApplicationManager.getApplication().runWriteAction(object : Runnable {
+        override fun run() {
+          try {
+            manifest.delete(this)
+          } catch (e: IOException) {
+            TestCase.fail("Could not delete manifest")
+          }
+        }
+      })
+    }
     projectRule.fixture.addFileToProject(path, manifestContents)
+  }
+
+  @Throws(Exception::class)
+  private fun getMergedManifest(manifestContents: String): MergedManifestSnapshot? {
+    addMergedManifest(manifestContents)
 
     return MergedManifestManager.getMergedManifest(projectRule.projectRule.project.findAppModule()).get()
   }

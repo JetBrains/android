@@ -105,6 +105,6 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
     if (componentName == null || module == null) {
       return emptyList()
     }
-    return parseRawComplicationTypes(getComplicationTypesFromManifest(module, componentName))
+    return parseRawComplicationTypes(getComplicationTypesFromManifest(module, componentName) ?: emptyList())
   }
 }

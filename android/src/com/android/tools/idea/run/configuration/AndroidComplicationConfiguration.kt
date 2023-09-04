@@ -29,6 +29,7 @@ import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOpti
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
+import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -70,6 +71,7 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     super.checkConfiguration()
     // super.checkConfiguration() has already checked that module and componentName are not null.
     val rawTypes = getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
+      ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (componentLaunchOptions.chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
