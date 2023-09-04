@@ -32,6 +32,7 @@ import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.build.GenericBuiltArtifact;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
@@ -225,13 +226,10 @@ public final class GradleApkProvider implements ApkProvider {
               // the base APK.
               apkFileList.addAll(
                 getApksFromLegacyPrivacySandboxSdks(
-                  variant.getName(),
                   androidModel.getModuleName(),
                   variant.getMainArtifact()
                     .getPrivacySandboxSdkInfo()
-                    .getOutputListingLegacyFile(),
-                  variant.getMainArtifact().getAbiFilters(),
-                  deviceAbis));
+                    .getOutputListingLegacyFile()));
             }
           }
           apkList.add(new ApkInfo(apkFileList, pkgName));
@@ -457,22 +455,19 @@ public final class GradleApkProvider implements ApkProvider {
 
   @NotNull
   static List<ApkFileUnit> getApksFromLegacyPrivacySandboxSdks(
-    @NotNull String variantName,
     @NotNull String moduleName,
-    @NotNull File outputListingForLegacyPrivacySandboxFile,
-    @NotNull Set<String> abiFilters,
-    @NotNull List<String> deviceAbis)
-    throws ApkProvisionException {
+    @NotNull File outputListingForLegacyPrivacySandboxFile
+  ) {
     List<GenericBuiltArtifacts> builtArtifacts =
       GenericBuiltArtifactsLoader.loadListFromFile(
         outputListingForLegacyPrivacySandboxFile, new LogWrapper(getLogger()));
 
     List<ApkFileUnit> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      list.add(
-        new ApkFileUnit(
-          moduleName,
-          findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact)));
+      for (GenericBuiltArtifact element : builtArtifact.getElements()) {
+        list.add(
+          new ApkFileUnit(moduleName, new File(element.getOutputFile())));
+      }
     }
     return list;
   }
@@ -700,15 +695,12 @@ public final class GradleApkProvider implements ApkProvider {
     if (!supportPrivacySandboxCompat && androidModel.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
       apkFiles.addAll(
         getApksFromLegacyPrivacySandboxSdks(
-          androidModel.getSelectedVariantName(),
           androidModel.getModuleName(),
           androidModel
             .getMainArtifact()
             .getPrivacySandboxSdkInfo()
             .getOutputListingLegacyFile()
-            .getAbsoluteFile(),
-          androidModel.getMainArtifact().getAbiFilters(),
-          deviceAbis
+            .getAbsoluteFile()
         ).stream().map(ApkFileUnit::getApkFile).toList());
     }
 
