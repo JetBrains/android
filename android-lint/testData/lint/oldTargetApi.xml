@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="test.pkg" >
-    <uses-sdk <error descr="Google Play requires that apps target API level 31 or higher.">android:targetSdkVersion="18"</error> />
+  <uses-sdk <error descr="Google Play requires that apps target API level 33 or higher." textAttributesKey="ERRORS_ATTRIBUTES">android:targetSdkVersion="18"</error> />
 
     <application/>
 
