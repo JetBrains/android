@@ -281,11 +281,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             logMessage = replaced.toString()
           }
           logger.info(logMessage)
-          val jvmArguments: List<String> = emptyList()
+          val traceJvmArgs: List<String> = emptyList()
           // Add trace arguments to jvmArguments.
-          Trace.addVmArgs(jvmArguments)
+          Trace.addVmArgs(traceJvmArgs)
           executionSettings
-            .withVmOptions(jvmArguments)
+            .withVmOptions(traceJvmArgs)
             .withArguments(commandLineArguments)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
           val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
