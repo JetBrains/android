@@ -47,7 +47,7 @@ class ResourceExplorerView(
   preselectedResourceName: String? = null,
   private val resourceImportDragTarget: ResourceImportDragTarget,
   private val withMultiModuleSearch: Boolean = true,
-  private val withSummaryView: Boolean = false,
+  withSummaryView: Boolean = false,
   private val withDetailView: Boolean = true, // TODO: Refactor detailView to follow a closer pattern with summaryView
   private val multiSelection: Boolean = true
 ) : JPanel(BorderLayout()), Disposable {
@@ -186,11 +186,13 @@ class ResourceExplorerView(
   }
 
   private fun createResourcesListView(viewModel: ResourceExplorerListViewModel): ResourceExplorerListView {
-    return ResourceExplorerListView(viewModel,
-                                    resourceImportDragTarget,
-                                    withMultiModuleSearch = withMultiModuleSearch,
-                                    summaryView = summaryView,
-                                    withDetailView = withDetailView,
-                                    multiSelection = multiSelection)
+    return ResourceExplorerListView(
+      viewModel,
+      resourceImportDragTarget,
+      withMultiModuleSearch = withMultiModuleSearch,
+      summaryView = summaryView,
+      withDetailView = withDetailView,
+      multiSelection = multiSelection
+    )
   }
 }
