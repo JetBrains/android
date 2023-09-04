@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.tasks.taskhandlers
+package com.android.tools.profilers.tasks.taskhandlers
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any

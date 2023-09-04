@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.tasks.taskhandlers
+package com.android.tools.profilers.tasks.taskhandlers
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -22,8 +22,8 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.tasks.taskhandlers.TaskHandlerTestUtils.createCpuCaptureSessionArtifact
-import com.android.tools.profilers.cpu.tasks.taskhandlers.TaskHandlerTestUtils.createSessionItem
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createCpuCaptureSessionArtifact
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createSessionItem
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
 import com.google.common.truth.Truth.assertThat
