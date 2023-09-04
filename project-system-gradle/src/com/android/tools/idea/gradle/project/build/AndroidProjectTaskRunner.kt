@@ -10,6 +10,7 @@ import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.isAndroidProject
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
+import com.intellij.execution.scratch.JavaScratchModuleBuildTask
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -33,6 +34,9 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
   }
 
   override fun canRun(projectTask: ProjectTask): Boolean {
+    if (projectTask is JavaScratchModuleBuildTask) {
+      return false
+    }
     if (Registry.`is`("android.task.runner.restricted")) {
       assert(!IdeInfo.getInstance().isAndroidStudio) { "This code is not expected to be executed in Android Studio" }
       return projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
