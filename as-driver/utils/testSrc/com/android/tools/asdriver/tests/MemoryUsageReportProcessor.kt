@@ -47,7 +47,7 @@ class MemoryUsageReportProcessor {
       .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
       .setRunInfoQueryLimit(50)
       .addMedianTolerance(WindowDeviationAnalyzer.MedianToleranceParams.Builder()
-                            .setConstTerm(5000000.0).build()) // const_term is 5mb
+                            .setConstTerm(1000000.0).build()) // const_term is 1mb
       .build();
 
     /**
