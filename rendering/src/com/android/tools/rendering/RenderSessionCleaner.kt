@@ -21,6 +21,7 @@ import com.android.AndroidXConstants
 import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
@@ -62,13 +63,13 @@ private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.C
  *
  * Returns a [CompletableFuture] that completes when the custom disposal process finishes.
  */
-fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture<Void> {
+fun RenderSession.dispose(classLoader: ModuleClassLoader): CompletableFuture<Void> {
   var disposeMethod = Optional.empty<Method>()
   val applyObserversRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
   val toRunTrampolinedRef = AtomicReference<WeakReference<MutableCollection<*>?>?>(null)
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     try {
-      val composeViewAdapter: Class<*> = classLoader.findClass(CLASS_COMPOSE_VIEW_ADAPTER)
+      val composeViewAdapter: Class<*> = classLoader.loadClass(CLASS_COMPOSE_VIEW_ADAPTER)
       // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we
       // have to perform this filtering
       disposeMethod =
@@ -82,7 +83,7 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
       LOG.warn("Unable to find dispose method in ComposeViewAdapter")
     }
     try {
-      val windowRecomposer: Class<*> = classLoader.findClass(WINDOW_RECOMPOSER_ANDROID_KT_FQN)
+      val windowRecomposer: Class<*> = classLoader.loadClass(WINDOW_RECOMPOSER_ANDROID_KT_FQN)
       val animationScaleField = windowRecomposer.getDeclaredField("animationScale")
       animationScaleField.isAccessible = true
       val animationScale = animationScaleField[windowRecomposer]
@@ -148,16 +149,16 @@ private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
   }
 }
 
-private fun findToRunTrampolined(classLoader: LayoutlibCallbackImpl): MutableCollection<*>? {
+private fun findToRunTrampolined(classLoader: ModuleClassLoader): MutableCollection<*>? {
   try {
-    val uiDispatcher = classLoader.findClass(ANDROID_UI_DISPATCHER_FQN)
-    val uiDispatcherCompanion = classLoader.findClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
+    val uiDispatcher = classLoader.loadClass(ANDROID_UI_DISPATCHER_FQN)
+    val uiDispatcherCompanion = classLoader.loadClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
     val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
     val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
     val getMainMethod =
       uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
     val mainObj = getMainMethod.invoke(uiDispatcherCompanionObj)
-    val combinedContext = classLoader.findClass(COMBINED_CONTEXT_FQN)
+    val combinedContext = classLoader.loadClass(COMBINED_CONTEXT_FQN)
     val elementField = combinedContext.getDeclaredField("element").apply { isAccessible = true }
     val uiDispatcherObj = elementField[mainObj]
 
@@ -174,9 +175,9 @@ private fun findToRunTrampolined(classLoader: LayoutlibCallbackImpl): MutableCol
   return null
 }
 
-private fun findApplyObservers(classLoader: LayoutlibCallbackImpl): MutableCollection<*>? {
+private fun findApplyObservers(classLoader: ModuleClassLoader): MutableCollection<*>? {
   try {
-    val snapshotKt = classLoader.findClass(SNAPSHOT_KT_FQN)
+    val snapshotKt = classLoader.loadClass(SNAPSHOT_KT_FQN)
     val applyObserversField = snapshotKt.getDeclaredField("applyObservers")
     applyObserversField.isAccessible = true
     val applyObservers = applyObserversField[null]
@@ -190,9 +191,9 @@ private fun findApplyObservers(classLoader: LayoutlibCallbackImpl): MutableColle
   return null
 }
 
-private fun findLocalBroadcastManagerInstance(classLoader: LayoutlibCallbackImpl): Field? {
+private fun findLocalBroadcastManagerInstance(classLoader: ModuleClassLoader): Field? {
   return try {
-    val broadcastManagerClass = classLoader.findClass(LOCAL_BROADCAST_MANAGER_FQN)
+    val broadcastManagerClass = classLoader.loadClass(LOCAL_BROADCAST_MANAGER_FQN)
     broadcastManagerClass.getDeclaredField("mInstance").apply { this.isAccessible = true }
   } catch (ex: ReflectiveOperationException) {
     LOG.debug("Unable to find $LOCAL_BROADCAST_MANAGER_FQN.mInstance", ex)
@@ -200,11 +201,11 @@ private fun findLocalBroadcastManagerInstance(classLoader: LayoutlibCallbackImpl
   }
 }
 
-fun clearFontRequestWorker(classLoader: LayoutlibCallbackImpl) {
+fun clearFontRequestWorker(classLoader: ModuleClassLoader) {
   if (!classLoader.hasLoadedClass(FONT_REQUEST_WORKER_FQN)) return
 
   try {
-    val fontRequestWorker: Class<*> = classLoader.findClass(FONT_REQUEST_WORKER_FQN)
+    val fontRequestWorker: Class<*> = classLoader.loadClass(FONT_REQUEST_WORKER_FQN)
     val pendingRepliesField = fontRequestWorker.getDeclaredField("PENDING_REPLIES")
     pendingRepliesField.isAccessible = true
     val pendingReplies = pendingRepliesField[fontRequestWorker]
@@ -218,7 +219,7 @@ fun clearFontRequestWorker(classLoader: LayoutlibCallbackImpl) {
 }
 
 /** Clear static gap worker variable used by Recycler View. */
-fun clearGapWorkerCache(classLoader: LayoutlibCallbackImpl) {
+fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
   if (
     !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
       !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())
@@ -228,7 +229,7 @@ fun clearGapWorkerCache(classLoader: LayoutlibCallbackImpl) {
   }
 
   try {
-    val gapWorkerClass = classLoader.findClass(GAP_WORKER_CLASS_NAME)
+    val gapWorkerClass = classLoader.loadClass(GAP_WORKER_CLASS_NAME)
     val gapWorkerField = gapWorkerClass.getDeclaredField("sGapWorker")
     gapWorkerField.isAccessible = true
 

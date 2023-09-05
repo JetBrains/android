@@ -1084,10 +1084,10 @@ public class RenderTask {
           }
           return result;
         }).handle((result, ex) -> {
-          // After render clean-up. Dispose the GapWorker cache.
-          RenderSessionCleaner.clearGapWorkerCache(myLayoutlibCallback);
-          RenderSessionCleaner.clearFontRequestWorker(myLayoutlibCallback);
           ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+          // After render clean-up. Dispose the GapWorker cache.
+          RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
+          RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
           return result.createWithStats(new RenderResultStats(
             inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
             System.currentTimeMillis() - startRenderTimeMs,
@@ -1414,6 +1414,6 @@ public class RenderTask {
    */
   @NotNull
   private CompletableFuture<Void> disposeRenderSession(@NotNull RenderSession renderSession) {
-    return RenderSessionCleaner.dispose(renderSession, myLayoutlibCallback);
+    return RenderSessionCleaner.dispose(renderSession, myModuleClassLoaderReference.getClassLoader());
   }
 }

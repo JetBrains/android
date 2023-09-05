@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.rendering.classloading.ModuleClassLoader
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
 import java.nio.file.Paths
@@ -115,7 +116,22 @@ class SingleComposePreviewElementRendererTest {
       )
     val renderTask = renderTaskFuture.get()!!
     val result = renderTask.render().get()
-    val classLoader = result!!.rootViews.first().viewObject.javaClass.classLoader
+    val classLoader =
+      result!!.rootViews.first().viewObject.javaClass.classLoader as ModuleClassLoader
+
+    // Ensure that the classes we will check were loaded by the test first. If not, it could be the
+    // class has been renamed
+    // or the test is not triggering the leak again.
+    val leakCheckClasses =
+      listOf(
+        "androidx.compose.ui.platform.WindowRecomposer_androidKt",
+        "androidx.compose.runtime.snapshots.SnapshotKt",
+        "androidx.compose.ui.platform.AndroidUiDispatcher",
+        "androidx.compose.ui.platform.AndroidUiDispatcher\$Companion",
+        "_layoutlib_._internal_.kotlin.coroutines.CombinedContext",
+      )
+    leakCheckClasses.forEach { assertTrue("Test did not load $it", classLoader.hasLoadedClass(it)) }
+
     // Check the WindowRecomposer animationScale is empty
     val windowRecomposer =
       classLoader.loadClass("androidx.compose.ui.platform.WindowRecomposer_androidKt")

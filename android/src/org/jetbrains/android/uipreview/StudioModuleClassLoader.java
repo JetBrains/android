@@ -212,6 +212,11 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     myDiagnostics = diagnostics;
   }
 
+  @Override
+  public boolean hasLoadedClass(@NotNull String fqcn) {
+    return getProjectLoadedClasses().contains(fqcn) || getNonProjectLoadedClasses().contains(fqcn);
+  }
+
   @NotNull
   private static ProjectSystemClassLoader createDefaultProjectSystemClassLoader(
     @NotNull Module theModule, @NotNull Supplier<PsiFile> psiFileProvider

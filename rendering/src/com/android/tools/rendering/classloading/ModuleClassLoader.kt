@@ -36,4 +36,7 @@ abstract class ModuleClassLoader(parent: ClassLoader?, loader: Loader) :
    * this class loader. Always returns false if there has not been any PSI changes.
    */
   abstract val isUserCodeUpToDate: Boolean
+
+  /** Returns if the given [fqcn] has been loaded by this [ModuleClassLoader]. */
+  abstract fun hasLoadedClass(fqcn: String): Boolean
 }

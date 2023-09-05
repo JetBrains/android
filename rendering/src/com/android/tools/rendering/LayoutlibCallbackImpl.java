@@ -63,9 +63,9 @@ import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.module.AndroidModuleInfo;
-import com.android.tools.rendering.LayoutMetadata;
 import com.android.tools.rendering.api.NavGraphResolver;
 import com.android.tools.rendering.api.RenderModelModule;
+import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
@@ -142,8 +142,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
   private final ResourceNamespacing myNamespacing;
+  private final ModuleClassLoader myClassLoader;
   @NotNull private IRenderLogger myLogger;
-  @NotNull private final ViewLoader myClassLoader;
+  @NotNull private final ViewLoader myViewLoader;
   @Nullable private String myLayoutName;
   @Nullable private ILayoutPullParser myLayoutEmbeddedParser;
   @Nullable private final ActionBarHandler myActionBarHandler;
@@ -186,13 +187,14 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
                                @Nullable Object credential,
                                @Nullable ActionBarHandler actionBarHandler,
                                @Nullable ILayoutPullParserFactory parserFactory,
-                               @NotNull ClassLoader moduleClassLoader) {
+                               @NotNull ModuleClassLoader moduleClassLoader) {
     myRenderTask = renderTask;
     myLayoutLib = layoutLib;
     myRenderModule = renderModule;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
+    myClassLoader = moduleClassLoader;
+    myViewLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
     myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7);
@@ -246,7 +248,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    */
   public void setLogger(@NotNull IRenderLogger logger) {
     myLogger = logger;
-    myClassLoader.setLogger(logger);
+    myViewLoader.setLogger(logger);
   }
 
   /**
@@ -271,16 +273,16 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       throws ClassNotFoundException {
     myUsed = true;
     if (NOT_VIEW.contains(className)) {
-      return myClassLoader.loadClass(className, constructorSignature, constructorParameters);
+      return myViewLoader.loadClass(className, constructorSignature, constructorParameters);
     }
-    return myClassLoader.loadView(className, constructorSignature, constructorParameters);
+    return myViewLoader.loadView(className, constructorSignature, constructorParameters);
   }
 
   @Override
   public Object loadClass(@NotNull String name, @Nullable Class[] constructorSignature, @Nullable Object[] constructorArgs)
       throws ClassNotFoundException {
     myUsed = true;
-    return myClassLoader.loadClass(name, constructorSignature, constructorArgs);
+    return myViewLoader.loadClass(name, constructorSignature, constructorArgs);
   }
 
   @Override
@@ -780,7 +782,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
    * the source of truth for mapping resources to numeric ids.
    */
   public void loadAndParseRClass() {
-    myClassLoader.loadAndParseRClassSilently();
+    myViewLoader.loadAndParseRClassSilently();
   }
 
   @Override
@@ -812,7 +814,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull
   @Override
   public Class<?> findClass(@NotNull String name) throws ClassNotFoundException {
-    Class<?> aClass = myClassLoader.loadClass(name, false);
+    Class<?> aClass = myViewLoader.loadClass(name, false);
     if (aClass != null) {
       return aClass;
     }
@@ -821,7 +823,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Override
   public boolean isClassLoaded(@NonNull String name) {
-    return myClassLoader.isClassLoaded(name);
+    return myViewLoader.isClassLoaded(name);
   }
 
   @NotNull
@@ -858,13 +860,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public void error(@NotNull Throwable t) {
     LOG.error(t);
-  }
-
-  /**
-   * Returns true if the given class has been loaded by the class loader.
-   */
-  boolean hasLoadedClass(@NotNull String classFqn) {
-    return myClassLoader.hasLoadedClass(classFqn);
   }
 
   private static class NamedXmlParser extends KXmlParser {
