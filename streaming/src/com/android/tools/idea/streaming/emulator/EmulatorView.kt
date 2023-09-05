@@ -133,6 +133,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
@@ -761,14 +762,14 @@ class EmulatorView(
   }
 
   override val hardwareInput: HardwareInput = object : HardwareInput() {
-    override fun sendToDevice(id: Int, keyCode: Int, modifierEx: Int) {
+    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
       if (!isConnected) {
         return
       }
       val keyName = VK_TO_DOM_KEY_NAME[keyCode] ?: return
       val eventType = when (id) {
-        KeyEvent.KEY_PRESSED -> KeyEventType.keydown
-        KeyEvent.KEY_RELEASED -> KeyEventType.keyup
+        KEY_PRESSED -> KeyEventType.keydown
+        KEY_RELEASED -> KeyEventType.keyup
         else -> return
       }
       val grpcEvent = KeyboardEvent.newBuilder()
