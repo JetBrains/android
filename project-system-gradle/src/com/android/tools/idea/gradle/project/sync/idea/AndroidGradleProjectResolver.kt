@@ -23,7 +23,15 @@ import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
-import com.android.tools.idea.gradle.model.*
+import com.android.tools.idea.gradle.model.IdeAndroidProject
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
+import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
+import com.android.tools.idea.gradle.model.IdeDebugInfo
+import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -35,7 +43,15 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl.Co
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
-import com.android.tools.idea.gradle.project.sync.*
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.GradleSyncEventLogger
+import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
+import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
+import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
+import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
+import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
+import com.android.tools.idea.gradle.project.sync.SdkSync
+import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs
 import com.android.tools.idea.gradle.project.sync.errors.COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
@@ -48,6 +64,8 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.issues.validateProjectGradleJdk
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.stackTraceAsMultiLineMessage
+import com.android.tools.idea.gradle.project.sync.toException
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -63,11 +81,18 @@ import com.android.utils.appendCapitalized
 import com.android.utils.findGradleSettingsFile
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.*
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.execution.configurations.SimpleJavaParameters
 import com.intellij.externalSystem.JavaModuleData
-import com.intellij.notification.*
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.notification.NotificationsConfiguration
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -75,7 +100,14 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
-import com.intellij.openapi.externalSystem.model.project.*
+import com.intellij.openapi.externalSystem.model.project.LibraryData
+import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData
+import com.intellij.openapi.externalSystem.model.project.LibraryLevel
+import com.intellij.openapi.externalSystem.model.project.LibraryPathType
+import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.model.project.ProjectData
+import com.intellij.openapi.externalSystem.model.project.ProjectSdkData
+import com.intellij.openapi.externalSystem.model.project.TestData
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
@@ -98,10 +130,14 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.*
+import org.jetbrains.plugins.gradle.model.Build
+import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel
+import org.jetbrains.plugins.gradle.model.DefaultExternalProject
+import org.jetbrains.plugins.gradle.model.ExternalProject
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
-import org.jetbrains.plugins.gradle.service.project.ArtifactMappingService
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -514,7 +550,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       kmpArtifactToModuleIdMap = ideProject
         .getUserData(KotlinMPPGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
         .orEmpty(),
-      platformArtifactToModuleIdMap = resolverCtx.artifactsMap,
+      platformArtifactToModuleIdMap = ideProject
+        .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
+        .orEmpty(),
       project = project,
       rootProjectPath = ideProject.data.linkedExternalProjectPath
     )
@@ -1048,14 +1086,14 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
 @VisibleForTesting
 fun mergeProjectResolvedArtifacts(
   kmpArtifactToModuleIdMap: Map<String, List<String>>,
-  platformArtifactToModuleIdMap: ArtifactMappingService,
+  platformArtifactToModuleIdMap: Map<String, String>,
   project: Project?,
   rootProjectPath: @SystemIndependent String
 ): Map<String, Set<String>> =
   (kmpArtifactToModuleIdMap.keys + platformArtifactToModuleIdMap.keys)
     .associateBy({ it }, {
       val kmpModuleIds = kmpArtifactToModuleIdMap[it]?.toSet()
-      val platformModuleId = platformArtifactToModuleIdMap.getModuleMapping(it)?.moduleIds?.firstOrNull()
+      val platformModuleId = platformArtifactToModuleIdMap[it]
       when {
         kmpModuleIds != null && platformModuleId != null -> {
           if (platformModuleId !in kmpModuleIds) {
