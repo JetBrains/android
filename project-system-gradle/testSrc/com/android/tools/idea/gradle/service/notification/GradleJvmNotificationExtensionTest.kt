@@ -50,6 +50,7 @@ class GradleJvmNotificationExtensionTest {
   val gradleProjectRule = AndroidGradleProjectRule()
 
   private val gradleJvmExtension = GradleJvmNotificationExtension()
+  private val externalProjectPath = gradleProjectRule.project.basePath.orEmpty()
 
   @Before
   fun setUp() {
@@ -70,7 +71,7 @@ class GradleJvmNotificationExtensionTest {
                           "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
     assertThat(notificationData.registeredListenerIds).isEmpty()
 
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
     assertThat(notificationData.message).isEqualTo(expectedMessage)
     val newListeners = notificationData.registeredListenerIds
     assertThat(newListeners).contains("${baseId()}.embedded")
@@ -90,7 +91,7 @@ class GradleJvmNotificationExtensionTest {
                           "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
     assertThat(notificationData.registeredListenerIds).isEmpty()
 
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
     assertThat(notificationData.message).isEqualTo(expectedMessage)
     val newListeners = notificationData.registeredListenerIds
     assertThat(newListeners).contains("${baseId()}.embedded")
@@ -113,7 +114,7 @@ class GradleJvmNotificationExtensionTest {
     assertThat(notificationData.registeredListenerIds).hasSize(3)
     val spyData = spy(notificationData)
 
-    gradleJvmExtension.customize(spyData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(spyData, gradleProjectRule.project, externalProjectPath, null)
     // Should not add new quickfixes nor modify the message if they are already there
     verify(spyData, never()).setListener(Mockito.any(), Mockito.any())
     assertThat(notificationData.message).isEqualTo(originalMessage)
@@ -127,7 +128,7 @@ class GradleJvmNotificationExtensionTest {
     assertThat(notificationData.registeredListenerIds).hasSize(0)
     val spyData = spy(notificationData)
 
-    gradleJvmExtension.customize(spyData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(spyData, gradleProjectRule.project, externalProjectPath, null)
     // Should not add new quickfixes nor modify the message if the error message does not start with "Invalid Gradle JDK..."
     verify(spyData, never()).setListener(Mockito.any(), Mockito.any())
     assertThat(notificationData.message).isEqualTo(originalMessage)
@@ -148,7 +149,7 @@ class GradleJvmNotificationExtensionTest {
     val spyIdeSdks = spy(IdeSdks.getInstance())
     Mockito.doReturn(invalidReason).whenever(spyIdeSdks).generateInvalidJdkReason(Mockito.any())
     ApplicationManager.getApplication().replaceService(IdeSdks::class.java, spyIdeSdks, gradleProjectRule.fixture.projectDisposable)
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
     assertThat(notificationData.message).isEqualTo(expectedMessage)
     val newListeners = notificationData.registeredListenerIds
     assertThat(newListeners).contains("${baseId()}.embedded")

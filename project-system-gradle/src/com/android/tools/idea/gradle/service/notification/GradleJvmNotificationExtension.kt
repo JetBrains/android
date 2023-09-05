@@ -161,8 +161,8 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
     }
   }
 
-  override fun customize(notificationData: NotificationData, project: Project, error: Throwable?) {
-    super.customize(notificationData, project, error)
+  override fun customize(notificationData: NotificationData, project: Project, externalProjectPath: String, error: Throwable?) {
+    super.customize(notificationData, project, externalProjectPath, error)
     val expectedPrefix = GradleBundle.message("gradle.jvm.is.invalid")
     if (notificationData.message.startsWith(expectedPrefix)) {
       val ideSdks = IdeSdks.getInstance()
