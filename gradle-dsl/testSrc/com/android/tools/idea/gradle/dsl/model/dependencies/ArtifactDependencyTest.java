@@ -312,7 +312,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_EXPECTED);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
@@ -401,7 +401,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
 
@@ -424,7 +424,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
 
@@ -541,7 +541,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertFalse(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.RESET);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
 
@@ -565,7 +565,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.REMOVE_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
@@ -594,7 +594,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
@@ -623,7 +623,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.REMOVE_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
@@ -650,7 +650,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
@@ -682,7 +682,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-
+    dependenciesModel = buildModel.dependencies(); // reread dependencies
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(2);
 
