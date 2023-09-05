@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -62,6 +63,7 @@ class ComposePreviewFakeUiGradleRule(
   testDataPath: String = TEST_DATA_PATH,
   kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule(),
+  enableRenderQuality: Boolean = true
 ) : ComposeGradleProjectRule(projectPath, testDataPath, kotlinVersion, projectRule) {
 
   // The logger must be initialized later since at this point the logger framework is not ready yet
@@ -82,10 +84,12 @@ class ComposePreviewFakeUiGradleRule(
     super.delegate.around(
       object : NamedExternalResource() {
         override fun before(description: Description) {
+          StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(enableRenderQuality)
           setUpPreview()
         }
 
         override fun after(description: Description) {
+          StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
           FastPreviewConfiguration.getInstance().resetDefault()
         }
       }
@@ -146,7 +150,7 @@ class ComposePreviewFakeUiGradleRule(
   }
 
   /** Wait for any refresh to start running. */
-  suspend fun waitForAnyRefreshToStart(timeout: Duration = DEFAULT_REFRESH_TIMEOUT) {
+  private suspend fun waitForAnyRefreshToStart(timeout: Duration = 5.seconds) {
     refreshManager.isRefreshingFlow.awaitStatus("Timeout waiting for refresh to start", timeout) {
       isRefreshing ->
       isRefreshing
@@ -154,7 +158,15 @@ class ComposePreviewFakeUiGradleRule(
   }
 
   /** Wait for all running refreshes to complete. */
-  suspend fun waitForAllRefreshesToFinish(timeout: Duration = DEFAULT_REFRESH_TIMEOUT) {
+  suspend fun waitForAllRefreshesToFinish(
+    timeout: Duration = DEFAULT_REFRESH_TIMEOUT,
+    aRefreshMustStart: Boolean = false
+  ) {
+    try {
+      waitForAnyRefreshToStart()
+    } catch (t: Throwable) {
+      if (aRefreshMustStart) throw t
+    }
     refreshManager.isRefreshingFlow.awaitStatus("Timeout waiting for refresh to finish", timeout) {
       isRefreshing ->
       !isRefreshing
@@ -172,8 +184,7 @@ class ComposePreviewFakeUiGradleRule(
   ) {
     waitForAllRefreshesToFinish()
     runnable()
-    waitForAnyRefreshToStart()
-    waitForAllRefreshesToFinish(timeout)
+    waitForAllRefreshesToFinish(timeout, aRefreshMustStart = true)
   }
 
   /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */
@@ -184,7 +195,7 @@ class ComposePreviewFakeUiGradleRule(
   }
 
   /** Validates the UI to ensure is up to date. */
-  suspend fun validate(zoomToFit: Boolean = true) =
+  suspend fun validate(zoomToFit: Boolean = true) {
     withContext(AndroidDispatchers.uiThread) {
       fakeUi.root.validate()
       if (zoomToFit) {
@@ -193,6 +204,9 @@ class ComposePreviewFakeUiGradleRule(
       }
       fakeUi.layoutAndDispatchEvents()
     }
+    // zoom to fit might trigger a render quality change
+    waitForAllRefreshesToFinish(aRefreshMustStart = false)
+  }
 
   fun createComposePreviewRepresentation(
     psiFile: PsiFile,

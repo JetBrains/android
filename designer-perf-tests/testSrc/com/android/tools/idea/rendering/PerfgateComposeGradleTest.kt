@@ -51,7 +51,8 @@ class PerfgateComposeGradleTest {
     projectPath = SIMPLE_COMPOSE_PROJECT_PATH,
     previewFilePath = "app/src/main/java/google/simpleapplication/MainActivity.kt",
     testDataPath = "tools/adt/idea/designer-perf-tests/testData",
-    kotlinVersion = DEFAULT_KOTLIN_VERSION)
+    kotlinVersion = DEFAULT_KOTLIN_VERSION,
+    enableRenderQuality = false)
 
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture

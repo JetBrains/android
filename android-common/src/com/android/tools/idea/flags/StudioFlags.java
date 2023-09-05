@@ -1299,7 +1299,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY = Flag.create(
     COMPOSE, "compose.preview.render.quality", "Enable the usage of a render quality management mechanism for Compose Preview",
     "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position",
-    false);
+    true);
 
   public static final Flag<Long> COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = Flag.create(
     COMPOSE, "compose.preview.render.quality.debounce.time", "Render quality debounce time",
