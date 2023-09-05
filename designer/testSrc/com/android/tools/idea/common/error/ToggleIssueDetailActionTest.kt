@@ -106,13 +106,19 @@ class ToggleIssueDetailActionTest {
     val action = ToggleIssueDetailAction()
     val event =
       TestActionEvent.createTestEvent {
-        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
+        when (it) {
+          PlatformDataKeys.PROJECT.name -> rule.project
+          // Ensure that an element is "selected" to enable the action
+          PlatformDataKeys.SELECTED_ITEM.name -> TestIssueNode(TestIssue())
+          else -> null
+        }
       }
 
     service.setSharedIssuePanelVisibility(false)
     assertFalse(action.isSelected(event))
 
     service.setSharedIssuePanelVisibility(true)
+    // Still not selected because of a the side panel not visible
     assertTrue(action.isSelected(event))
   }
 

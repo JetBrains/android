@@ -15,27 +15,35 @@
  */
 package com.android.tools.idea.common.error
 
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 
 class ToggleIssueDetailAction : ToggleAction() {
+  // This action uses ActionUpdateThread.EDT as it checks a panel visibility. The check needs to
+  // happen in EDT.
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+  private fun isEnabled(e: AnActionEvent): Boolean =
+    e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() } != null &&
+      e.dataContext.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode != null
 
   override fun update(e: AnActionEvent) {
-    e.presentation.text = "Show Issue Detail"
-    e.presentation.isVisible = true
-    val issuePanel =
-      e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
-    if (issuePanel == null) {
-      e.presentation.isEnabled = false
-      return
-    }
-    val node = e.dataContext.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode
-    e.presentation.isEnabled = node != null
     super.update(e)
+
+    with(e.presentation) {
+      text = "Show Issue Detail"
+      isVisible = true
+      icon = AllIcons.Actions.PreviewDetails
+      isEnabled = isEnabled(e)
+    }
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
+    if (!isEnabled(e)) return false
+
     val issuePanel =
       e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
     return issuePanel?.sidePanelVisible ?: false
