@@ -32,10 +32,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
+import com.android.tools.idea.npw.model.ProjectModelData
 import com.android.tools.idea.npw.model.hasKtsUsage
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.sdkManagerLocalPath
-import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.npw.project.determineVersionCatalogUse
 import com.android.tools.idea.npw.template.components.BuildConfigurationLanguageComboProvider
 import com.android.tools.idea.npw.template.components.LanguageComboProvider
@@ -46,6 +46,7 @@ import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.expressions.Expression
@@ -90,7 +91,6 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
 ) : SkippableWizardStep<ModuleModelKind>(model, title, formFactor.icon) {
   protected val bindings = BindingsManager()
   protected val listeners = ListenerManager()
-  protected val agpVersion: OptionalValueProperty<AgpVersion> = OptionalValueProperty()
   // Indicates if the existing project uses Version Catalogs
   private val versionCatalogUse: OptionalValueProperty<Boolean> = OptionalValueProperty()
   // Indicates if the new dependencies for the new module will be managed by Version Catalogs
@@ -116,15 +116,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       registerValidator(model.moduleName, moduleValidator)
       registerValidator(model.packageName, PackageNameValidator())
       registerValidator(model.androidSdkInfo, ApiVersionValidator(model.project.isAndroidx(), formFactor))
-
-      val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
-      registerValidator(agpVersion, createValidator { version ->
-        if (model.useGradleKts.get() && version.isPresent && version.get().compareIgnoringQualifiers(minKtsAgpVersion) < 0)
-          Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
-        else
-          OK
-      }, model.useGradleKts)
-
+      registerKtsAgpVersionValidation(model)
       registerValidator(versionCatalogUse, createValidator {
         if (!StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get()) return@createValidator Validator.Result(INFO, message(
           "android.wizard.module.will.not.use.version.catalog"))
@@ -135,13 +127,11 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       })
 
       AndroidCoroutineScope(disposable).launch(Dispatchers.IO) {
-        val agpVersionValue = determineAgpVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
         val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
 
         // ValueProperty's need to be set on the UI thread.
         withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
-          agpVersion.value = agpVersionValue
           versionCatalogUse.value = versionCatalogUseValue
           versionCatalogUseForNewModule.value = versionCatalogUseForNewModuleValue
         }
@@ -215,4 +205,14 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
     bindings.releaseAll()
     listeners.releaseAll()
   }
+}
+
+fun ValidatorPanel.registerKtsAgpVersionValidation(model: ProjectModelData) {
+  val minKtsAgpVersion = AgpVersion.parse(KTS_AGP_MIN_VERSION)
+  registerValidator(model.agpVersion, createValidator { version ->
+    if (model.useGradleKts.get() && version.compareIgnoringQualifiers(minKtsAgpVersion) < 0)
+      Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.kts", KTS_AGP_MIN_VERSION))
+    else
+      Validator.Result.OK
+  }, model.useGradleKts)
 }

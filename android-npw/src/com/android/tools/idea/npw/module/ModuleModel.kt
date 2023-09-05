@@ -107,6 +107,7 @@ abstract class ModuleModel(
         projectTemplateDataBuilder.apply {
           setProjectDefaults(project)
           language = this@ModuleModel.language.value
+          agpVersion = this@ModuleModel.agpVersion.get()
         }
         formFactor = this@ModuleModel.formFactor.get()
         category = this@ModuleModel.category.get()

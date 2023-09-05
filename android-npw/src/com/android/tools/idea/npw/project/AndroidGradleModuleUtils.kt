@@ -76,23 +76,6 @@ fun setGradleWrapperExecutable(projectRoot: File) {
   FileUtil.setExecutable(gradlewFile)
 }
 
-/** Find the most appropriate Gradle Plugin version for the specified project. */
-@Slow
-fun determineAgpVersion(project: Project, isNewProject: Boolean): AgpVersion {
-  if (isNewProject) {
-    return AgpVersions.newProject
-  }
-
-  val versionInUse =
-    GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
-  if (versionInUse != null) {
-    return versionInUse
-  }
-  // Use slow method
-  val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
-  return androidPluginInfo?.pluginVersion ?: AgpVersions.newProject
-}
-
 /** Find the most appropriate Kotlin plugin version for the specified project. */
 @Slow
 fun determineKotlinVersion(project: Project, isNewProject: Boolean): String {

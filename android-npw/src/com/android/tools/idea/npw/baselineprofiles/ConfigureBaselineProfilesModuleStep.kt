@@ -81,7 +81,6 @@ class ConfigureBaselineProfilesModuleStep(
     validateMinAgpVersion()
 
     bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
-    bindings.bind(model.agpVersion, agpVersion)
   }
 
   private fun bindTargetModule() {
@@ -135,8 +134,8 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   private fun validateMinAgpVersion() {
-    validatorPanel.registerValidator(agpVersion, createValidator { version ->
-      if (version.isPresent && version.get().compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
+    validatorPanel.registerValidator(model.agpVersion, createValidator { version ->
+      if (version.compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
         Validator.Result.fromNullableMessage(
           AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BP_PLUGIN_MIN_SUPPORTED.toString())
         )

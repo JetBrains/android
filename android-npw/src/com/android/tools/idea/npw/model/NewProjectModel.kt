@@ -17,10 +17,14 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.ide.common.repository.AgpVersion
 import com.android.io.CancellableFileIo
+import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.android.tools.idea.gradle.plugin.AgpVersions.newProject
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.project.DomainToPackageExpression
@@ -28,6 +32,7 @@ import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringProperty
@@ -88,6 +93,7 @@ interface ProjectModelData {
   var project: Project
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
+  val agpVersion: ObjectValueProperty<AgpVersion>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
 }
@@ -104,6 +110,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override lateinit var project: Project
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()
+  override val agpVersion = ObjectValueProperty<AgpVersion>(AgpVersions.newProject)
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(null, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
@@ -196,6 +203,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
         setProjectDefaults(project)
         language = this@NewProjectModel.language.value
+        agpVersion = this@NewProjectModel.agpVersion.get()
       }
     }
 
@@ -248,7 +256,9 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         val rootLocation = File(projectLocation.get())
         val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
         try {
-          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GradleWrapper.getGradleVersionToUse())
+          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(
+             getCompatibleGradleVersion(agpVersion.get()).version
+          )
         }
         catch (e: IOException) {
           // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".

@@ -151,6 +151,7 @@ class RenderTemplateModel private constructor(
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
+        projectTemplateDataBuilder.agpVersion = agpVersion.get()
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 

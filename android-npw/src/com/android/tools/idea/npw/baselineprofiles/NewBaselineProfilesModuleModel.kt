@@ -24,6 +24,7 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -50,7 +51,6 @@ class NewBaselineProfilesModuleModel(
 
   val targetModule = OptionalValueProperty<Module>()
   val useGmd = BoolValueProperty(true)
-  val agpVersion = OptionalValueProperty<AgpVersion>()
 
   override val renderer: MultiTemplateRenderer.TemplateRenderer
     get() = object : ModuleTemplateRenderer() {
@@ -62,7 +62,7 @@ class NewBaselineProfilesModuleModel(
             useGmd = useGmd.get(),
             targetModule = targetModule.value,
             useVersionCatalog = useVersionCatalog.get(),
-            agpVersion = agpVersion.value
+            agpVersion = agpVersion.get()
           )
         }
     }

@@ -21,6 +21,7 @@ package com.android.tools.idea.templates
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
@@ -65,6 +66,7 @@ internal fun getDefaultModuleState(
   // TODO(qumeric): is always new?
   val projectStateBuilder =
     ProjectTemplateDataBuilder(true).apply {
+      agpVersion = AgpVersions.newProject
       androidXSupport = true
       setProjectDefaults(project)
       language = Language.Java
