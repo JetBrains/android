@@ -302,16 +302,16 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """15: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |16: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |20: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |21: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |35: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |36: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |51: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |53: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |68: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |70: Preview must be a top level declarations or in a top level class with a default constructor."""
+      """15: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |16: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |20: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |21: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |35: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |36: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |51: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |53: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |68: Preview must be a top level declaration or in a top level class with a default constructor.
+                    |70: Preview must be a top level declaration or in a top level class with a default constructor."""
         .trimMargin(),
       inspections
     )
