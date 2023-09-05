@@ -27,15 +27,12 @@ import org.jetbrains.android.util.AndroidUtils
 /**
  * Deletes unused resources, if any.
  *
- *
  * Possible improvements:
- *
- *  *  If resource declarations are preceded by comments, remove those too?
- *  *  Do textual scans of source sets for other variants to make sure this doesn't
- * remove unused resources referenced in other variants
- *  *  Unused resources corresponding to Gradle model resValues don't have corresponding
- * source locations, so these are currently not removed.
- *
+ * * If resource declarations are preceded by comments, remove those too?
+ * * Do textual scans of source sets for other variants to make sure this doesn't remove unused
+ *   resources referenced in other variants
+ * * Unused resources corresponding to Gradle model resValues don't have corresponding source
+ *   locations, so these are currently not removed.
  */
 class UnusedResourcesAction : BaseRefactoringAction() {
   override fun update(e: AnActionEvent) {
@@ -43,23 +40,14 @@ class UnusedResourcesAction : BaseRefactoringAction() {
     e.presentation.setEnabledAndVisible(project != null && AndroidUtils.hasAndroidFacets(project))
   }
 
-  override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
-    return true
-  }
+  override fun isEnabledOnDataContext(dataContext: DataContext) = true
 
-  public override fun isAvailableInEditorOnly(): Boolean {
-    return false
-  }
+  public override fun isAvailableInEditorOnly() = false
 
-  override fun isAvailableForLanguage(language: Language): Boolean {
-    return true
-  }
+  override fun isAvailableForLanguage(language: Language) = true
 
-  public override fun isEnabledOnElements(elements: Array<PsiElement>): Boolean {
-    return true
-  }
+  public override fun isEnabledOnElements(elements: Array<PsiElement>) = true
 
-  public override fun getHandler(dataContext: DataContext): RefactoringActionHandler? {
-    return UnusedResourcesHandler()
-  }
+  public override fun getHandler(dataContext: DataContext): RefactoringActionHandler =
+    UnusedResourcesHandler()
 }

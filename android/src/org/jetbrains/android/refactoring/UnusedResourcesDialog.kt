@@ -22,32 +22,34 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-internal class UnusedResourcesDialog(project: Project?, private val myProcessor: UnusedResourcesProcessor) : RefactoringDialog(
-  project!!, true
-) {
-  private var myCbIncludeIds: StateRestoringCheckBox? = null
+internal class UnusedResourcesDialog(
+  project: Project,
+  private val processor: UnusedResourcesProcessor
+) : RefactoringDialog(project, true) {
+
+  private lateinit var checkBoxIncludeIds: StateRestoringCheckBox
 
   init {
     title = "Remove Unused Resources"
     init()
   }
 
-  override fun createNorthPanel(): JComponent? {
+  override fun createNorthPanel(): JComponent {
     val panel = JPanel(BorderLayout())
-    myCbIncludeIds = StateRestoringCheckBox()
-    myCbIncludeIds!!.setText("Delete unused @id declarations too")
-    panel.add(myCbIncludeIds, BorderLayout.CENTER)
+
+    checkBoxIncludeIds = StateRestoringCheckBox()
+    checkBoxIncludeIds.setText("Delete unused @id declarations too")
+    panel.add(checkBoxIncludeIds, BorderLayout.CENTER)
+
     return panel
   }
 
-  override fun createCenterPanel(): JComponent? {
-    return null
-  }
+  override fun createCenterPanel(): JComponent? = null
 
   override fun doAction() {
-    myProcessor.setIncludeIds(myCbIncludeIds!!.isSelected)
-    myProcessor.setPreviewUsages(isPreviewUsages)
+    processor.setIncludeIds(checkBoxIncludeIds.isSelected)
+    processor.setPreviewUsages(isPreviewUsages)
     close(OK_EXIT_CODE)
-    myProcessor.run()
+    processor.run()
   }
 }
