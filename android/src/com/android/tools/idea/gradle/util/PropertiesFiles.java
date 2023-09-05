@@ -30,15 +30,13 @@ public final class PropertiesFiles {
   private PropertiesFiles() {
   }
 
-  @NotNull
-  public static Properties getProperties(@NotNull File filePath) throws IOException {
-    VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, true); // Must set refreshIfNeeded=true, see bug 176220349
+  public static Properties getProperties(@Nullable VirtualFile virtualFile) throws IOException {
     return ReadAction.compute(() -> {
       if (virtualFile == null) {
         return new Properties();
       }
       if (virtualFile.isDirectory()) {
-        throw new IllegalArgumentException(String.format("The path '%1$s' belongs to a directory!", filePath.getPath()));
+        throw new IllegalArgumentException(String.format("The path '%1$s' belongs to a directory!", virtualFile.getPath()));
       }
       Properties properties = new Properties();
       try (Reader reader = new InputStreamReader(virtualFile.getInputStream(), StandardCharsets.UTF_8)) {
@@ -46,6 +44,12 @@ public final class PropertiesFiles {
       }
       return properties;
     });
+  }
+
+  @NotNull
+  public static Properties getProperties(@NotNull File filePath) throws IOException {
+    VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, true); // Must set refreshIfNeeded=true, see bug 176220349
+    return getProperties(virtualFile);
   }
 
   public static void savePropertiesToFile(@NotNull Properties properties, @NotNull File filePath, @Nullable String comments)
