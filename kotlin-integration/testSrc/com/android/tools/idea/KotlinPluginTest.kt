@@ -18,9 +18,8 @@ package com.android.tools.idea
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.extensions.PluginId
-import com.intellij.openapi.util.BuildNumber
 import com.intellij.testFramework.ApplicationRule
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePlugin
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePluginVersion
@@ -66,8 +65,8 @@ class KotlinPluginTest {
     val buildNumber = PluginManagerCore.getBuildNumber()
     assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, buildNumber)).isNull()
     // test build numbers such as AI-232.9559.62
-    val shortenedBuildNumber = BuildNumber.fromString(buildNumber.toString().split(".").take(3).joinToString("."))
-    assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, shortenedBuildNumber!!)).isNull()
+    val apiVersion = ApplicationInfoEx.getInstanceEx().apiVersionAsNumber
+    assertThat(apiVersion.asStringWithoutProductCode()).matches("\\d+\\.\\d+\\.\\d+")
+    assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, apiVersion)).isNull()
   }
-
 }
