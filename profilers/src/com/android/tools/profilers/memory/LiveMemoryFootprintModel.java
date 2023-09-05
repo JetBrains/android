@@ -27,13 +27,13 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class LiveMemoryAllocationModel extends LiveDataModel {
+public class LiveMemoryFootprintModel extends LiveDataModel {
   private final List<Updatable> myUpdatables;
   private final StudioProfilers myProfilers;
   private final MemoryUsageTooltip myMemoryUsageTooltip;
   private final MemoryDataProvider myMemoryDataProvider;
 
-  public LiveMemoryAllocationModel(@NotNull StudioProfilers profilers) {
+  public LiveMemoryFootprintModel(@NotNull StudioProfilers profilers) {
     super(profilers);
     myProfilers = profilers;
     myMemoryDataProvider = new MemoryDataProvider(profilers, profilers.getTimeline());
@@ -43,8 +43,8 @@ public class LiveMemoryAllocationModel extends LiveDataModel {
   }
 
   @VisibleForTesting
-  LiveMemoryAllocationModel(@NotNull StudioProfilers profilers,
-                            @NotNull MemoryDataProvider memoryDataProvider) {
+  LiveMemoryFootprintModel(@NotNull StudioProfilers profilers,
+                           @NotNull MemoryDataProvider memoryDataProvider) {
     super(profilers);
     myProfilers = profilers;
     myMemoryDataProvider = memoryDataProvider;

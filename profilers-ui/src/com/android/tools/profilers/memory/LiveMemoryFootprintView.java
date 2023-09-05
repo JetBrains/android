@@ -42,48 +42,48 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationModel> {
+public class LiveMemoryFootprintView extends LiveDataView<LiveMemoryFootprintModel> {
   public final DetailedMemoryChart myDetailedMemoryChart;
   public final JComponent myComponent;
   private final TooltipModel myMemoryUsageTooltip;
-  private final LiveMemoryAllocationModel myAllocationModel;
+  private final LiveMemoryFootprintModel myMemoryFootprintModel;
   private final StudioProfilersView myProfilersView;
   private final JButton myForceGarbageCollectionButton;
   private final DefaultContextMenuItem myForceGarbageCollectionAction;
   private final DurationDataRenderer<GcDurationData> gcDurationDataRenderer;
   private final GarbageCollectionComponent myGarbageCollectionComponent;
 
-  public LiveMemoryAllocationView(@NotNull StudioProfilersView profilersView,
-                                  @NotNull LiveMemoryAllocationModel allocationModel) {
+  public LiveMemoryFootprintView(@NotNull StudioProfilersView profilersView,
+                                 @NotNull LiveMemoryFootprintModel memoryFootprintModel) {
 
-    super(allocationModel);
-    myAllocationModel = allocationModel;
+    super(memoryFootprintModel);
+    myMemoryFootprintModel = memoryFootprintModel;
     myProfilersView = profilersView;
-    myDetailedMemoryChart = new DetailedMemoryChart(myAllocationModel.getDetailedMemoryUsage(),
-                                                    myAllocationModel.getLegends(),
-                                                    myAllocationModel.getTimeline(),
-                                                    myAllocationModel.getMemoryAxis(),
-                                                    myAllocationModel.getObjectAxis(),
-                                                    myAllocationModel.getRangeSelectionModel(),
+    myDetailedMemoryChart = new DetailedMemoryChart(myMemoryFootprintModel.getDetailedMemoryUsage(),
+                                                    myMemoryFootprintModel.getLegends(),
+                                                    myMemoryFootprintModel.getTimeline(),
+                                                    myMemoryFootprintModel.getMemoryAxis(),
+                                                    myMemoryFootprintModel.getObjectAxis(),
+                                                    myMemoryFootprintModel.getRangeSelectionModel(),
                                                     new JPanel(),
                                                     profilersView.getComponent(),
-                                                    myAllocationModel.isLiveAllocationTrackingReady(),
+                                                    myMemoryFootprintModel.isLiveAllocationTrackingReady(),
                                                     this::shouldShowTooltip);
     myGarbageCollectionComponent = new GarbageCollectionComponent();
     TabularLayout topPanelLayout = new TabularLayout("*", "*,Fit-");
     myComponent = new JPanel(topPanelLayout);
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    myMemoryUsageTooltip = myAllocationModel.getTooltip();
+    myMemoryUsageTooltip = myMemoryFootprintModel.getTooltip();
 
     myForceGarbageCollectionButton = myGarbageCollectionComponent.makeGarbageCollectionButton(
-      allocationModel.getMemoryDataProvider(), profilersView.getStudioProfilers());
+      memoryFootprintModel.getMemoryDataProvider(), profilersView.getStudioProfilers());
 
     myForceGarbageCollectionAction = myGarbageCollectionComponent.makeGarbageCollectionAction(
-      myAllocationModel.getStudioProfilers(), myForceGarbageCollectionButton, getComponent());
+      myMemoryFootprintModel.getStudioProfilers(), myForceGarbageCollectionButton, getComponent());
     myForceGarbageCollectionButton.setToolTipText(myForceGarbageCollectionAction.getDefaultToolTipText());
 
     gcDurationDataRenderer = myGarbageCollectionComponent.makeGcDurationDataRenderer(
-      allocationModel.getDetailedMemoryUsage(), allocationModel.getTooltipLegends());
+      memoryFootprintModel.getDetailedMemoryUsage(), memoryFootprintModel.getTooltipLegends());
 
     // Register the render, so that when the garbage collection icon is clicked,
     // the icon get displayed in overlay panel above timeline
@@ -145,10 +145,10 @@ public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationM
                     new TabularLayout.Constraint(0, 0));
     buildContextMenu();
 
-    Runnable onSessionChanged = () -> myGarbageCollectionComponent.updateGcButton(myAllocationModel.getStudioProfilers(),
+    Runnable onSessionChanged = () -> myGarbageCollectionComponent.updateGcButton(myMemoryFootprintModel.getStudioProfilers(),
                                                                                   myForceGarbageCollectionButton);
     // On session change, update gc button
-    myAllocationModel.getStudioProfilers().getSessionsManager().addDependency(this)
+    myMemoryFootprintModel.getStudioProfilers().getSessionsManager().addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION, onSessionChanged);
   }
 
@@ -171,7 +171,7 @@ public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationM
     panel.add(toolbar, BorderLayout.WEST);
     toolbar.removeAll();
     toolbar.add(myForceGarbageCollectionButton);
-    myGarbageCollectionComponent.updateGcButton(myAllocationModel.getStudioProfilers(),
+    myGarbageCollectionComponent.updateGcButton(myMemoryFootprintModel.getStudioProfilers(),
                                                 myForceGarbageCollectionButton);
     return panel;
   }

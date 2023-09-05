@@ -17,7 +17,7 @@ package com.android.tools.profilers;
 
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.event.EventMonitor
-import com.android.tools.profilers.memory.LiveMemoryAllocationModel
+import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.jetbrains.annotations.NotNull
 import java.util.Optional
@@ -39,7 +39,7 @@ class LiveStage(@NotNull private val profilers : StudioProfilers) :StreamingStag
 
     eventMonitor = Optional.ofNullable(getEventMonitorInstance())
     liveModels.add(LiveCpuUsageModel(profilers, this))
-    liveModels.add(LiveMemoryAllocationModel(profilers))
+    liveModels.add(LiveMemoryFootprintModel(profilers))
     profilers.ideServices.featureTracker.trackEnterStage(stageType)
   }
 

@@ -42,8 +42,8 @@ import com.android.tools.profilers.StreamingStage
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.LiveMemoryAllocationModel
-import com.android.tools.profilers.memory.LiveMemoryAllocationView
+import com.android.tools.profilers.memory.LiveMemoryFootprintModel
+import com.android.tools.profilers.memory.LiveMemoryFootprintView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.components.JBPanel
@@ -58,7 +58,7 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-open class LiveMemoryAllocationViewTest {
+open class LiveMemoryFootprintViewTest {
   protected var myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
   private val myIdeServices = FakeIdeProfilerServices()
@@ -72,7 +72,7 @@ open class LiveMemoryAllocationViewTest {
   val disposableRule = DisposableRule()
 
   private lateinit var myProfilersView: StudioProfilersView
-  private lateinit var myModel: LiveMemoryAllocationModel
+  private lateinit var myModel: LiveMemoryFootprintModel
   private lateinit var profilers: StudioProfilers
 
   @Before
@@ -83,51 +83,51 @@ open class LiveMemoryAllocationViewTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    myModel = LiveMemoryAllocationModel(profilers)
+    myModel = LiveMemoryFootprintModel(profilers)
     myModel.enter()
     myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
   }
 
   @Test
   fun testTooltipComponentAsFirstElement() {
-    val memoryProfilerLiveView = LiveMemoryAllocationView(myProfilersView, myModel)
+    val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryProfilerLiveView.populateUi(rangeTooltipComponent);
-    val treeWalker = TreeWalker(memoryProfilerLiveView.component)
+    memoryFootprintView.populateUi(rangeTooltipComponent);
+    val treeWalker = TreeWalker(memoryFootprintView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
     // Check for tooltip presence in live view component
     assertThat(tooltipComponent.size).isEqualTo(1)
-    val usageView = getMainComponent(memoryProfilerLiveView)
+    val usageView = getMainComponent(memoryFootprintView)
     // Check for tooltip to be first element of usage view
     assertThat(usageView.getComponent(0)).isInstanceOf(RangeTooltipComponent::class.java)
   }
 
   @Test
   fun testJPanelComponentAsSecondElementOfMainComponent() {
-    val memoryProfilerLiveView = LiveMemoryAllocationView(myProfilersView, myModel)
+    val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryProfilerLiveView.populateUi(rangeTooltipComponent);
-    val treeWalker = TreeWalker(memoryProfilerLiveView.component)
+    memoryFootprintView.populateUi(rangeTooltipComponent);
+    val treeWalker = TreeWalker(memoryFootprintView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
     // Check for tooltip presence in live view component
     assertThat(tooltipComponent.size).isEqualTo(1)
-    val usageView = getMainComponent(memoryProfilerLiveView)
+    val usageView = getMainComponent(memoryFootprintView)
     // Check for tooltip to be first element of usage view
     assertThat(usageView.getComponent(1)).isInstanceOf(JBPanel::class.java)
   }
 
   @Test
   fun testWithoutPopulateUiCalledComponentIsEmpty() {
-    val memoryProfilerLiveView = LiveMemoryAllocationView(myProfilersView, myModel)
-    val treeWalker = TreeWalker(memoryProfilerLiveView.component)
+    val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
+    val treeWalker = TreeWalker(memoryFootprintView.component)
     val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
     // Check for tooltip presence in live view component
     assertThat(tooltipComponent.size).isEqualTo(0)
-    val usageView = getMainComponent(memoryProfilerLiveView)
+    val usageView = getMainComponent(memoryFootprintView)
     assertThat(usageView.size.height).isEqualTo(0)
     assertThat(usageView.size.width).isEqualTo(0)
   }
@@ -135,11 +135,11 @@ open class LiveMemoryAllocationViewTest {
   @Test
   fun testHasContextMenuItems() {
     myComponents.clearContextMenuItems()
-    val memoryProfilerLiveView = LiveMemoryAllocationView(myProfilersView, myModel)
+    val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val tooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryProfilerLiveView.populateUi(tooltipComponent);
+    memoryFootprintView.populateUi(tooltipComponent);
     val items = myComponents.allContextMenuItems
     // 4 items and 1 separator, garbage collection and seperator
     // Attach, Detach, Separator, Zoom in, Zoom out
@@ -156,30 +156,31 @@ open class LiveMemoryAllocationViewTest {
 
   @Test
   fun testToolbarHasGcButton() {
-    val liveMemoryView = LiveMemoryAllocationView(myProfilersView, myModel)
-    val toolbar = liveMemoryView.toolbar.getComponent(0) as JPanel
+    val memoryFootprintView = LiveMemoryFootprintView(myProfilersView, myModel)
+    val toolbar = memoryFootprintView.toolbar.getComponent(0) as JPanel
     assertThat(toolbar.components).asList().containsExactly(
-      liveMemoryView.garbageCollectionButton,
+      memoryFootprintView.garbageCollectionButton,
     )
   }
 
   @Test
   fun testShowTooltipComponentAfterRegisterToolTip() {
-    val memoryProfilerLiveView = spy(LiveMemoryAllocationView(myProfilersView, myModel))
+    val memoryFootprintView = spy(
+      LiveMemoryFootprintView(myProfilersView, myModel))
     val tooltipComponent = mock<JComponent>()
-    Mockito.doReturn(tooltipComponent).whenever(memoryProfilerLiveView).tooltipComponent
+    Mockito.doReturn(tooltipComponent).whenever(memoryFootprintView).tooltipComponent
     val myTimeline: Timeline = DefaultTimeline()
     val myContent = JPanel(BorderLayout())
     val rangeTooltipComponent = RangeTooltipComponent(myTimeline, myContent)
-    memoryProfilerLiveView.populateUi(rangeTooltipComponent);
+    memoryFootprintView.populateUi(rangeTooltipComponent);
     val binder = ViewBinder<StageView<*>, TooltipModel, TooltipView>()
     val stage = mock<StreamingStage>()
-    memoryProfilerLiveView.registerTooltip(binder, rangeTooltipComponent, stage)
+    memoryFootprintView.registerTooltip(binder, rangeTooltipComponent, stage)
     verify(stage, times(1)).tooltip = MockitoKt.any(TooltipModel::class.java)
     verify(tooltipComponent, times(1)).addMouseListener(MockitoKt.any(ProfilerTooltipMouseAdapter::class.java))
   }
 
-  private fun getMainComponent(stageView: LiveMemoryAllocationView) = TreeWalker(stageView.component)
+  private fun getMainComponent(stageView: LiveMemoryFootprintView) = TreeWalker(stageView.component)
     .descendants()
     .filterIsInstance<JPanel>()
     .first()

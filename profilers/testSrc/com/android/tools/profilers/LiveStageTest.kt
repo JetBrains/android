@@ -17,13 +17,12 @@ package com.android.tools.profilers
 
 import com.android.tools.profilers.cpu.LiveCpuUsageModel
 import com.android.tools.profilers.event.EventMonitor
-import com.android.tools.profilers.memory.LiveMemoryAllocationModel
+import com.android.tools.profilers.memory.LiveMemoryFootprintModel
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
-
 
 class LiveStageTest {
   private lateinit var myProfilers: StudioProfilers
@@ -44,7 +43,7 @@ class LiveStageTest {
     // 1st component is Cpu
     assertThat(result[0]).isInstanceOf(LiveCpuUsageModel::class.java)
     // 2nd component is Memory
-    assertThat(result[1]).isInstanceOf(LiveMemoryAllocationModel::class.java)
+    assertThat(result[1]).isInstanceOf(LiveMemoryFootprintModel::class.java)
   }
 
   @Test

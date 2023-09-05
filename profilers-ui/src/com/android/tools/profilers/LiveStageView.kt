@@ -25,8 +25,8 @@ import com.android.tools.profilers.event.LifecycleTooltip
 import com.android.tools.profilers.event.LifecycleTooltipView
 import com.android.tools.profilers.event.UserEventTooltip
 import com.android.tools.profilers.event.UserEventTooltipView
-import com.android.tools.profilers.memory.LiveMemoryAllocationModel
-import com.android.tools.profilers.memory.LiveMemoryAllocationView
+import com.android.tools.profilers.memory.LiveMemoryFootprintModel
+import com.android.tools.profilers.memory.LiveMemoryFootprintView
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import javax.swing.JComponent
@@ -35,12 +35,12 @@ import javax.swing.JPanel
 class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
   StageView<LiveStage>(profilersView, liveStage) {
 
-
   val binder: ViewBinder<StudioProfilersView, LiveDataModel, LiveDataView<out LiveDataModel>> = ViewBinder()
 
   init {
-    binder.bind(LiveMemoryAllocationModel::class.java) { view: StudioProfilersView, model
-      -> LiveMemoryAllocationView(view, model)
+    binder.bind(
+      LiveMemoryFootprintModel::class.java) { view: StudioProfilersView, model
+      -> LiveMemoryFootprintView(view, model)
     }
     binder.bind(LiveCpuUsageModel::class.java) { view: StudioProfilersView, model
       -> LiveCpuUsageView(view, model)
