@@ -70,8 +70,13 @@ class ResourceNamespaceReference(
 
   override fun calculateDefaultRangeInElement(): TextRange {
     val wholeReferenceRange = super.calculateDefaultRangeInElement()
-    val startOffset = wholeReferenceRange.startOffset + if (resourceValue.prefix == 0.toChar()) 0 else 1
-    return TextRange(startOffset, startOffset + resourceValue.`package`!!.length)
+
+    val packageName = resourceValue.`package`!!
+    val startOfPackage = wholeReferenceRange.substring(element.text).indexOf("$packageName:")
+    assert(startOfPackage != -1)
+
+    val startOffset = wholeReferenceRange.startOffset + startOfPackage
+    return TextRange(startOffset, startOffset + packageName.length)
   }
 }
 

@@ -287,6 +287,32 @@ class AndroidNamespacedValueResourcesDomTest : AndroidTestCase() {
     )
   }
 
+  fun testNamespacePrefixReferences_packageNameAfterResourceType() {
+    // Regression test for b/296217029
+    // The format `?<resource_type>/<package_name>:<resource_name> is allowed (even if it's not preferred), so it should resolve correctly.
+    val values = myFixture.addFileToProject(
+      "res/values/values.xml",
+      """
+        <resources>
+          <string name="some_string">Some string</string>
+          <string name="app_string">@string/${caret}com.example.lib:hello</string>
+        </resources>
+      """.trimIndent()
+    )
+    myFixture.configureFromExistingVirtualFile(values.virtualFile)
+    myFixture.checkHighlighting()
+
+    myFixture.goToElementAtCaret()
+    myFixture.checkResult(
+      """
+        <resources>
+          <string name="some_string">Some string</string>
+          <string name="app_string">@string/${caret}com.example.lib:hello</string>
+        </resources>
+      """.trimIndent()
+    )
+  }
+
   fun testAttributeNames() {
     myFixture.addFileToProject(
       "$libRes/values/styles.xml",
