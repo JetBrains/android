@@ -16,6 +16,9 @@
 <!-- This configuration file is only loaded in IntelliJ IDEA, not in Android Studio. -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <actions>
+    <group id="AndroidToolsGroup" icon="StudioIcons.Common.ANDROID_HEAD" keep-content="true" popup="true" overrides="true">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </group>
     <group id="Android.SyncProject.ActionGroup">
       <reference id="Android.SyncProject"/>
       <add-to-group group-id="AndroidToolsGroup" anchor="first"/>
