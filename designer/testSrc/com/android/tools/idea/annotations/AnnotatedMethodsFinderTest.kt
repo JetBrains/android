@@ -22,7 +22,6 @@ import com.intellij.testFramework.DumbModeTestUtils
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -321,10 +320,7 @@ class AnnotatedMethodsFinderTest {
         "MyAnnotationA",
       ) {
         ReadAction.compute<Boolean, Throwable> {
-          it.psiOrParent
-            .toUElementOfType<UAnnotation>()
-            ?.findAttributeValue("param1")
-            ?.evaluate() == "foo"
+          it.findAttributeValue("param1")?.evaluate() == "foo"
         }
       }
 
@@ -408,5 +404,65 @@ class AnnotatedMethodsFinderTest {
     )
     // Check that call with the same args combination does not create new keys and reuses the cache:
     assertEquals(cacheKeys, CacheKeysManager.getInstance(project).map().size)
+  }
+
+  @Test
+  fun `test hasAnnotations supports java files`() {
+    fixture.addFileToProjectAndInvalidate(
+      "com/android/annotations/MyAnnotation.kt",
+      // language=kotlin
+      """
+        package com.android.annotations
+
+        annotation class MyAnnotation
+        """
+        .trimIndent(),
+    )
+    val sourceFile =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/SourceFile.java",
+        // language=java
+        """
+        package com.android.test;
+
+        import com.android.annotations.MyAnnotation;
+
+        class SourceFile {
+          @MyAnnotation
+          private void foo1() {}
+
+          private void foo2() {}
+        }
+        """
+          .trimIndent(),
+      )
+
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      assertFalse(
+        hasAnnotation(
+          project,
+          sourceFile.virtualFile,
+          "com.android.annotations.MyAnnotation",
+          "MyAnnotation",
+        )
+      )
+    }
+
+    assertTrue(
+      hasAnnotation(
+        project,
+        sourceFile.virtualFile,
+        "com.android.annotations.MyAnnotation",
+        "MyAnnotation",
+      )
+    )
+    assertFalse(
+      hasAnnotation(
+        project,
+        sourceFile.virtualFile,
+        "com.android.annotations.IDoNotExist",
+        "IDoNotExist",
+      )
+    )
   }
 }

@@ -18,7 +18,6 @@ package com.android.tools.idea.annotations
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.getPsiFileSafely
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
@@ -31,9 +30,12 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.text.StringUtilRt
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiImportStatement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -68,30 +70,46 @@ private fun hasAnnotationsUncached(
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  filter: (KtAnnotationEntry) -> Boolean,
+  filter: (UAnnotation) -> Boolean,
 ): Boolean = runReadAction {
   if (DumbService.isDumb(project)) {
     return@runReadAction false
   }
   // This method can not call any methods that require smart mode.
-  fun isFullNameAnnotation(annotation: KtAnnotationEntry) =
+  fun isFullNameAnnotation(annotation: PsiElement) =
     // We use text() to avoid obtaining the FQN as that requires smart mode
     // In brackets annotations don't start with '@', but typical annotations do. Normalize them by
     // removing it
     annotation.text.removePrefix("@").startsWith(annotationFqn)
 
-  val psiFile = PsiManager.getInstance(project).findFile(vFile)
+  val psiFile = PsiManager.getInstance(project).findFile(vFile) ?: return@runReadAction false
+  val isKotlinFile = psiFile.language == KotlinLanguage.INSTANCE
+
   // Look into the imports first to avoid resolving the class name into all methods.
   val hasAnnotationImport =
-    PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java).any {
-      annotationFqn == it.importedFqName?.asString()
+    if (isKotlinFile) {
+      PsiTreeUtil.findChildrenOfType(psiFile, KtImportDirective::class.java).any {
+        annotationFqn == it.importedFqName?.asString()
+      }
+    } else {
+      PsiTreeUtil.findChildrenOfType(psiFile, PsiImportStatement::class.java).any {
+        annotationFqn == it.qualifiedName
+      }
     }
 
-  return@runReadAction PsiTreeUtil.findChildrenOfType(psiFile, KtAnnotationEntry::class.java).any {
-    val shortName =
-      it.getQualifiedName()?.let { qualifiedName -> StringUtilRt.getShortName(qualifiedName) }
-    ((shortName == shortAnnotationName && hasAnnotationImport) || isFullNameAnnotation(it)) &&
-      filter(it)
+  val annotationPsiElements =
+    PsiTreeUtil.findChildrenOfType(
+      psiFile,
+      if (isKotlinFile) KtAnnotationEntry::class.java else PsiAnnotation::class.java,
+    )
+
+  return@runReadAction annotationPsiElements.any { psiElement ->
+    val uAnnotation = psiElement.toUElementOfType<UAnnotation>() ?: return@any false
+    val qualifiedName = uAnnotation.qualifiedName ?: return@any false
+    val shortName = StringUtilRt.getShortName(qualifiedName)
+
+    ((shortName == shortAnnotationName && hasAnnotationImport) ||
+      isFullNameAnnotation(psiElement)) && filter(uAnnotation)
   }
 }
 
@@ -118,12 +136,10 @@ class CacheKeysManager {
   @VisibleForTesting fun map() = annotationCacheKeys
 }
 
-private val ANY_KT_ANNOTATION: (KtAnnotationEntry) -> Boolean = { true }
-
 private data class HasFilteredAnnotationsKey(
   val annotationFqn: String,
   val shortAnnotationName: String,
-  val filter: (KtAnnotationEntry) -> Boolean,
+  val filter: (UAnnotation) -> Boolean,
 )
 
 fun <T> CachedValuesManager.getCachedValue(
@@ -142,7 +158,7 @@ fun hasAnnotation(
   vFile: VirtualFile,
   annotationFqn: String,
   shortAnnotationName: String,
-  filter: (KtAnnotationEntry) -> Boolean = ANY_KT_ANNOTATION,
+  filter: (UAnnotation) -> Boolean = ANY_U_ANNOTATION,
 ): Boolean {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(project, vFile) ?: return false
   return CachedValuesManager.getManager(project).getCachedValue(
@@ -158,12 +174,12 @@ fun hasAnnotation(
   }
 }
 
-/** Finds all the [KtAnnotationEntry] in [vFile] in [project] with [shortAnnotationName] as name. */
+/** Finds all the [UAnnotation]s in [vFile] in [project] with [shortAnnotationName] as name. */
 fun findAnnotations(
   project: Project,
   vFile: VirtualFile,
   shortAnnotationName: String,
-): Collection<KtAnnotationEntry> {
+): Collection<UAnnotation> {
   if (DumbService.isDumb(project)) {
     Logger.getInstance(AnnotatedMethodsFinder::class.java)
       .debug(
@@ -177,15 +193,26 @@ fun findAnnotations(
     psiFile,
     CacheKeysManager.getInstance(project).getKey(shortAnnotationName),
   ) {
-    val kotlinAnnotations: Sequence<PsiElement> =
-      ReadAction.compute<Sequence<PsiElement>, Throwable> {
-        val scope = GlobalSearchScope.fileScope(project, vFile)
-        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence()
+    val scope = GlobalSearchScope.fileScope(project, vFile)
+    val annotations =
+      if (psiFile.language == KotlinLanguage.INSTANCE) {
+        ReadAction.compute<Sequence<PsiElement>, Throwable> {
+            KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence()
+          }
+          .filterIsInstance<KtAnnotationEntry>()
+          .map { it.psiOrParent }
+      } else {
+        ReadAction.compute<Sequence<PsiElement>, Throwable> {
+          JavaAnnotationIndex.getInstance()
+            .getAnnotations(shortAnnotationName, project, scope)
+            .asSequence()
+        }
       }
 
-    val annotations = kotlinAnnotations.filterIsInstance<KtAnnotationEntry>().toList()
-
-    CachedValueProvider.Result.create(annotations.distinct(), psiFile)
+    CachedValueProvider.Result.create(
+      annotations.toList().mapNotNull { it.toUElementOfType<UAnnotation>() }.distinct(),
+      psiFile,
+    )
   }
 }
 
@@ -248,7 +275,6 @@ private fun <T> findAnnotatedMethodsCachedValues(
         Callable<Collection<T>> {
           val uMethods =
             findAnnotations(project, vFile, shortAnnotationName)
-              .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
               .filter(annotationFilter)
               .mapNotNull { it.getContainingUMethodAnnotatedWith(annotationFqn) }
               .distinct() // avoid looking more than once per method

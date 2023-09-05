@@ -25,11 +25,9 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
 
 private const val GLANCE_PREVIEW_ANNOTATION_NAME = "Preview"
 private const val GLANCE_PREVIEW_ANNOTATION_FQN =
@@ -88,12 +86,6 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
     surfaceFilter(it, surfaceName)
   }
 
-  private val glanceSurfaceKtAnnotationFilter: (KtAnnotationEntry) -> Boolean = {
-    ReadAction.compute<Boolean, Throwable> {
-      glanceSurfaceUAnnotationFilter(it.psiOrParent.toUElementOfType())
-    }
-  }
-
   private val methodsToElements: (List<UMethod>) -> Sequence<GlancePreviewElement> = {
     toGlancePreviewElements(it, surfaceName)
   }
@@ -121,7 +113,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       vFile,
       GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
-      glanceSurfaceKtAnnotationFilter,
+      glanceSurfaceUAnnotationFilter,
     )
   }
 }

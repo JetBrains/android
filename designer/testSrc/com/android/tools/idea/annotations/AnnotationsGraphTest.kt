@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -152,10 +151,9 @@ class AnnotationsGraphTest {
 
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
     val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0")
-        .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single()
-        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
+      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+      }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -194,10 +192,9 @@ class AnnotationsGraphTest {
 
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
     val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0")
-        .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single()
-        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
+      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+      }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -239,10 +236,9 @@ class AnnotationsGraphTest {
 
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
     val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0")
-        .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single()
-        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
+      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+      }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -284,10 +280,9 @@ class AnnotationsGraphTest {
   fun testTraverse_allEdges() {
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
     val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0")
-        .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single()
-        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
+      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+      }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
@@ -303,10 +298,9 @@ class AnnotationsGraphTest {
   fun testIsLeafAnnotation() {
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
     val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0")
-        .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single()
-        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
+      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+      }!!
     }
     val traverseResult =
       annotationsGraph
@@ -337,10 +331,9 @@ class AnnotationsGraphTest {
   fun testAnnotationFilter() {
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContentWithAllEdgeTypes)
     val rootMethod = runReadAction {
-      findAnnotations(project, psiFile.virtualFile, "node0")
-        .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single()
-        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
+      findAnnotations(project, psiFile.virtualFile, "node0").single().let {
+        it.getContainingUMethodAnnotatedWith(it.qualifiedName!!)
+      }!!
     }
     val traverseResult =
       annotationsGraph

@@ -31,10 +31,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.nullize
-import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.evaluateString
-import org.jetbrains.uast.toUElementOfType
 
 private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
 private const val TILE_PREVIEW_ANNOTATION_FQ_NAME = "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
@@ -49,7 +47,7 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
       annotationFqn = TILE_PREVIEW_ANNOTATION_FQ_NAME,
       shortAnnotationName = TILE_PREVIEW_ANNOTATION_NAME,
       filter = {
-        val uMethod = it.psiOrParent.toUElementOfType<UAnnotation>()?.getContainingUMethodAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)
+        val uMethod = it.getContainingUMethodAnnotatedWith(TILE_PREVIEW_ANNOTATION_FQ_NAME)
         uMethod.isTilePreview()
       }
     )

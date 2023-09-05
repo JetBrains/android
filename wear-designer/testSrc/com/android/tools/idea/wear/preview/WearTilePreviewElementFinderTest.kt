@@ -363,6 +363,45 @@ class WearTilePreviewElementFinderTest {
       }
     }
   }
+
+  @Test
+  fun testWearTileElementsFinderFindsJavaPreviews() = runBlocking {
+    val previewsTest =
+      fixture.addFileToProjectAndInvalidate(
+        "com/android/test/JavaPreview.java",
+        // language=java
+        """
+        package com.android.test;
+
+        import androidx.wear.tiles.tooling.preview.Preview;
+        import androidx.wear.tiles.tooling.preview.TilePreviewData;
+
+        class JavaPreview {
+          @Preview
+          private TilePreviewData tilePreviewInJavaFile() {
+            return new TilePreviewData();
+          }
+        }
+        """
+          .trimIndent()
+      )
+
+    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
+      .isTrue()
+
+    runBlocking {
+      val previewElements =
+        WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+      assertThat(previewElements).hasSize(1)
+
+      previewElements.elementAt(0).let {
+        assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreviewInJavaFile"))
+        assertThat(it).hasPreviewConfiguration(defaultConfiguration())
+        assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreviewInJavaFile"))
+        assertThat(it).hasAnnotationDefinition("@Preview")
+      }
+    }
+  }
 }
 
 private fun PsiFile.textRange(methodName: String): TextRange {
