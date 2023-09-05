@@ -65,20 +65,21 @@ def _overwrite_plugin_version(build_txt, content):
 
   build_number = utils.read_file(build_txt)
   build = build_number[3:] # removes the AI- prefix
+  api_version = ".".join(build.split(".")[:3]) # first 3 components form the IntelliJ API version
 
   content = re.sub("<version>.*</version>", "<version>%s</version>" % build, content, 1)
   content = re.sub("<idea-version\\s+since-build=\"\\d+\\.\\d+\"\\s+until-build=\"\\d+\\.\\d+\"",
-                   "<idea-version since-build=\"%s\" until-build=\"%s\"" % (build, build),
+                   "<idea-version since-build=\"%s\" until-build=\"%s\"" % (api_version, api_version),
                    content, 1)
   content = re.sub("<idea-version\\s+since-build=\"\\d+\\.\\d+\"",
-                   "<idea-version since-build=\"%s\"" % build,
+                   "<idea-version since-build=\"%s\"" % api_version,
                    content, 1)
 
   anchor = "</id>" if "</id>" in content else "</name>"
   if "<version>" not in content:
     content = re.sub(anchor, "%s\n  <version>%s</version>" %(anchor, build), content)
   if "<idea-version since-build" not in content:
-    content = re.sub(anchor, "%s\n  <idea-version since-build=\"%s\" until-build=\"%s\"/>" % (anchor, build, build), content)
+    content = re.sub(anchor, "%s\n  <idea-version since-build=\"%s\" until-build=\"%s\"/>" % (anchor, api_version, api_version), content)
 
   return content
 
