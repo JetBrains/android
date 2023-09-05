@@ -13,63 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package org.jetbrains.android.refactoring
 
-import com.intellij.lang.Language;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.refactoring.RefactoringActionHandler;
-import com.intellij.refactoring.actions.BaseRefactoringAction;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.Language
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.psi.PsiElement
+import com.intellij.refactoring.RefactoringActionHandler
+import com.intellij.refactoring.actions.BaseRefactoringAction
+import org.jetbrains.android.util.AndroidUtils
 
 /**
  * Deletes unused resources, if any.
- * <p>
+ *
+ *
  * Possible improvements:
- * <ul>
- * <li> If resource declarations are preceded by comments, remove those too? </li>
- * <li> Do textual scans of source sets for other variants to make sure this doesn't
- * remove unused resources referenced in other variants</li>
- * <li> Unused resources corresponding to Gradle model resValues don't have corresponding
- * source locations, so these are currently not removed.</li>
- * </ul>
+ *
+ *  *  If resource declarations are preceded by comments, remove those too?
+ *  *  Do textual scans of source sets for other variants to make sure this doesn't
+ * remove unused resources referenced in other variants
+ *  *  Unused resources corresponding to Gradle model resValues don't have corresponding
+ * source locations, so these are currently not removed.
+ *
  */
-public class UnusedResourcesAction extends BaseRefactoringAction {
-  public UnusedResourcesAction() {
+class UnusedResourcesAction : BaseRefactoringAction() {
+  override fun update(e: AnActionEvent) {
+    val project = e.getData(CommonDataKeys.PROJECT)
+    e.presentation.setEnabledAndVisible(project != null && AndroidUtils.hasAndroidFacets(project))
   }
 
-  @Override
-  public void update(@NotNull AnActionEvent e) {
-    final Project project = e.getData(CommonDataKeys.PROJECT);
-    e.getPresentation().setEnabledAndVisible(project != null && AndroidUtils.hasAndroidFacets(project));
+  override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
+    return true
   }
 
-  @Override
-  protected boolean isEnabledOnDataContext(@NotNull DataContext dataContext) {
-    return true;
+  public override fun isAvailableInEditorOnly(): Boolean {
+    return false
   }
 
-  @Override
-  public boolean isAvailableInEditorOnly() {
-    return false;
+  override fun isAvailableForLanguage(language: Language): Boolean {
+    return true
   }
 
-  @Override
-  protected boolean isAvailableForLanguage(Language language) {
-    return true;
+  public override fun isEnabledOnElements(elements: Array<PsiElement>): Boolean {
+    return true
   }
 
-  @Override
-  public boolean isEnabledOnElements(@NotNull PsiElement[] elements) {
-    return true;
-  }
-
-  @Override
-  public RefactoringActionHandler getHandler(@NotNull DataContext dataContext) {
-    return new UnusedResourcesHandler();
+  public override fun getHandler(dataContext: DataContext): RefactoringActionHandler? {
+    return UnusedResourcesHandler()
   }
 }

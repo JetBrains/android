@@ -13,87 +13,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package org.jetbrains.android.refactoring
 
-import com.android.annotations.concurrency.UiThread;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.refactoring.RefactoringActionHandler;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.annotations.concurrency.UiThread
+import com.google.common.collect.Sets
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager.modules
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.refactoring.RefactoringActionHandler
+import org.jetbrains.android.facet.AndroidFacet
+import java.util.Collections
 
-import java.util.Collections;
-import java.util.Set;
-
-public class UnusedResourcesHandler implements RefactoringActionHandler {
-  public static void invoke(final Project project,
-                            @Nullable Module[] modules,
-                            @Nullable final String filter,
-                            boolean skipDialog,
-                            boolean skipIds) {
-    if (modules == null || modules.length == 0) {
-      modules = ModuleManager.getInstance(project).getModules();
-    }
-
-    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, modules, filter);
-    if (skipIds) {
-      processor.setIncludeIds(true);
-    }
-
-    if (skipDialog || ApplicationManager.getApplication().isUnitTestMode()) {
-      processor.run();
-    }
-    else {
-      UnusedResourcesDialog dialog = new UnusedResourcesDialog(project, processor);
-      dialog.show();
-    }
+class UnusedResourcesHandler : RefactoringActionHandler {
+  @UiThread
+  override fun invoke(project: Project, editor: Editor, file: PsiFile, dataContext: DataContext) {
+    invoke(project, arrayOf(file), dataContext)
   }
 
-  @Override
   @UiThread
-  public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext dataContext) {
-    invoke(project, new PsiElement[]{file}, dataContext);
-  }
-
-  @Override
-  @UiThread
-  public void invoke(@NotNull final Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
-    Set<Module> moduleSet = Sets.newHashSet();
-    Module[] modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext);
+  override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext) {
+    val moduleSet: MutableSet<Module> = Sets.newHashSet()
+    val modules = LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext)
     if (modules != null) {
-      Collections.addAll(moduleSet, modules);
-    }
-    else {
-      Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
+      Collections.addAll(moduleSet, *modules)
+    } else {
+      val module = PlatformCoreDataKeys.MODULE.getData(dataContext)
       if (module != null) {
-        moduleSet.add(module);
+        moduleSet.add(module)
       }
     }
-    for (PsiElement element : elements) {
-      Module module = ModuleUtilCore.findModuleForPsiElement(element);
+    for (element in elements) {
+      val module = ModuleUtilCore.findModuleForPsiElement(element)
       if (module != null) {
-        moduleSet.add(module);
+        moduleSet.add(module)
       }
     }
 
     // If you've only selected the root project, which isn't an Android module,
     // analyze the whole project.
-    if (moduleSet.size() == 1 &&
-           AndroidFacet.getInstance(moduleSet.iterator().next()) == null) {
-      moduleSet.clear();
+    if (moduleSet.size == 1 &&
+      AndroidFacet.getInstance(moduleSet.iterator().next()) == null
+    ) {
+      moduleSet.clear()
     }
+    invoke(project, moduleSet.toArray(Module.EMPTY_ARRAY), null, false, false)
+  }
 
-    invoke(project, moduleSet.toArray(Module.EMPTY_ARRAY), null, false, false);
+  companion object {
+    @JvmStatic
+    operator fun invoke(
+      project: Project?,
+      modules: Array<Module?>?,
+      filter: String?,
+      skipDialog: Boolean,
+      skipIds: Boolean
+    ) {
+      var modules = modules
+      if (modules == null || modules.size == 0) {
+        modules = getInstance.getInstance(project).modules
+      }
+      val processor = UnusedResourcesProcessor(project!!, modules, filter)
+      if (skipIds) {
+        processor.setIncludeIds(true)
+      }
+      if (skipDialog || ApplicationManager.getApplication().isUnitTestMode) {
+        processor.run()
+      } else {
+        val dialog = UnusedResourcesDialog(project, processor)
+        dialog.show()
+      }
+    }
   }
 }

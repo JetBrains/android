@@ -13,46 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.refactoring;
+package org.jetbrains.android.refactoring
 
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.refactoring.ui.RefactoringDialog;
-import com.intellij.ui.StateRestoringCheckBox;
+import com.intellij.openapi.project.Project
+import com.intellij.refactoring.ui.RefactoringDialog
+import com.intellij.ui.StateRestoringCheckBox
+import java.awt.BorderLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
 
-import javax.swing.*;
-import java.awt.*;
+internal class UnusedResourcesDialog(project: Project?, private val myProcessor: UnusedResourcesProcessor) : RefactoringDialog(
+  project!!, true
+) {
+  private var myCbIncludeIds: StateRestoringCheckBox? = null
 
-class UnusedResourcesDialog extends RefactoringDialog {
-  private final UnusedResourcesProcessor myProcessor;
-  private StateRestoringCheckBox myCbIncludeIds;
-
-  public UnusedResourcesDialog(Project project, UnusedResourcesProcessor processor) {
-    super(project, true);
-    myProcessor = processor;
-    setTitle("Remove Unused Resources");
-    init();
+  init {
+    title = "Remove Unused Resources"
+    init()
   }
 
-  @Override
-  protected JComponent createNorthPanel() {
-    final JPanel panel = new JPanel(new BorderLayout());
-    myCbIncludeIds = new StateRestoringCheckBox();
-    myCbIncludeIds.setText("Delete unused @id declarations too");
-    panel.add(myCbIncludeIds, BorderLayout.CENTER);
-    return panel;
+  override fun createNorthPanel(): JComponent? {
+    val panel = JPanel(BorderLayout())
+    myCbIncludeIds = StateRestoringCheckBox()
+    myCbIncludeIds!!.setText("Delete unused @id declarations too")
+    panel.add(myCbIncludeIds, BorderLayout.CENTER)
+    return panel
   }
 
-  @Override
-  protected JComponent createCenterPanel() {
-    return null;
+  override fun createCenterPanel(): JComponent? {
+    return null
   }
 
-  @Override
-  protected void doAction() {
-    myProcessor.setIncludeIds(myCbIncludeIds.isSelected());
-    myProcessor.setPreviewUsages(isPreviewUsages());
-    close(DialogWrapper.OK_EXIT_CODE);
-    myProcessor.run();
+  override fun doAction() {
+    myProcessor.setIncludeIds(myCbIncludeIds!!.isSelected)
+    myProcessor.setPreviewUsages(isPreviewUsages)
+    close(OK_EXIT_CODE)
+    myProcessor.run()
   }
 }
