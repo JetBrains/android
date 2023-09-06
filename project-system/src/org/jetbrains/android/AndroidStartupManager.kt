@@ -2,7 +2,6 @@
 package org.jetbrains.android
 
 import com.android.tools.idea.AndroidStartupActivity
-import com.intellij.ProjectTopics
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetManagerListener
@@ -63,7 +62,7 @@ class AndroidStartupManager : ProjectActivity {
     })
 
     // [facetAdded] is not invoked for a facet if it is added together with a new module that holds it.
-    connection.subscribe(ProjectTopics.MODULES, object : ModuleListener {
+    connection.subscribe(ModuleListener.TOPIC, object : ModuleListener {
       override fun modulesAdded(project: Project, modules: List<Module>) {
         for (module in modules) {
           if (AndroidFacet.getInstance(module) != null) {

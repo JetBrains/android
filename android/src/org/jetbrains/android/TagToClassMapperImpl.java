@@ -26,7 +26,6 @@ import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -64,7 +63,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
     myModule = module;
     MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
 
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    connection.subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         // Clear the class inheritance map to make sure new dependencies from libraries are picked up

@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.projectsystem.isLinkedAndroidModule
-import com.intellij.ProjectTopics
 import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
@@ -37,7 +36,7 @@ class GradleModuleHierarchyProvider(private val project: Project) {
   init {
     // Project systems are not currently disposable and live until their project is disposed. Thus we subscribe to events for the
     // project lifetime.
-    project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
+    project.messageBus.connect().subscribe(ModuleRootListener.TOPIC, object : ModuleRootListener {
       // Typically should not take time, but may be slower if another thread is building the map (unlikely to occur unless project roots are
       // changed frequently which itself is a bigger problem).
       override fun rootsChanged(event: ModuleRootEvent) = reset()

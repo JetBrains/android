@@ -18,7 +18,6 @@ package org.jetbrains.android.resourceManagers;
 import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootEvent;
@@ -49,7 +48,7 @@ public class ModuleResourceManagers {
     myModule = module;
 
     MessageBusConnection connection = module.getProject().getMessageBus().connect(module);
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    connection.subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       private Sdk myPrevSdk = null;
 
       @Override

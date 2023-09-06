@@ -24,7 +24,6 @@ import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
-import com.intellij.AppTopics
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -186,7 +185,7 @@ class MergedManifestModificationListener(
         EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
 
         // To receive notifications when any Documents are saved or reloaded from disk
-        project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+        project.messageBus.connect().subscribe(FileDocumentManagerListener.TOPIC, listener)
       }
     }
 

@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.projectsystem
 
-import com.intellij.ProjectTopics
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.impl.ModuleRootEventImpl
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicReference
@@ -65,14 +65,14 @@ class ProjectSystemService(val project: Project) {
   }
 
   /**
-   * Replaces the project system of the current [project] and re-initializes it by sending [ProjectTopics.PROJECT_ROOTS] notifications.
+   * Replaces the project system of the current [project] and re-initializes it by sending [ModuleRootListener.TOPIC] notifications.
    */
   @TestOnly
   fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
     val old = cachedProjectSystem.getAndUpdate { projectSystem }
     if (old != null) {
       runWriteAction {
-        val publisher = project.messageBus.syncPublisher(ProjectTopics.PROJECT_ROOTS)
+        val publisher = project.messageBus.syncPublisher(ModuleRootListener.TOPIC)
         val rootChangedEvent = ModuleRootEventImpl(project, false)
         publisher.beforeRootsChange(rootChangedEvent)
         publisher.rootsChanged(rootChangedEvent)

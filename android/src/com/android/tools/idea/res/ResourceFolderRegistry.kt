@@ -26,7 +26,6 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Sets
-import com.intellij.ProjectTopics
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -38,14 +37,14 @@ import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiTreeChangeListener
 import com.intellij.util.Consumer
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executor
 import java.util.concurrent.Future
 import java.util.function.BiConsumer
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A project service that manages [ResourceFolderRepository] instances, creating them as necessary
@@ -61,7 +60,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     project.messageBus
       .connect(this)
       .subscribe(
-        ProjectTopics.PROJECT_ROOTS,
+        ModuleRootListener.TOPIC,
         object : ModuleRootListener {
           override fun rootsChanged(event: ModuleRootEvent) {
             removeStaleEntries()

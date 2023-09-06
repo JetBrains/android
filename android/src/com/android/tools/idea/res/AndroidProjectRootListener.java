@@ -16,10 +16,9 @@
 package com.android.tools.idea.res;
 
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -41,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidProjectRootListener implements Disposable.Default {
   /**
-   * Makes AndroidProjectRootListener listen to the {@link ProjectTopics#PROJECT_ROOTS} events if it has not been listening already.
+   * Makes AndroidProjectRootListener listen to the {@link ModuleRootListener#TOPIC} events if it has not been listening already.
    *
    * @param project the project to listen on
    */
@@ -52,7 +51,7 @@ public class AndroidProjectRootListener implements Disposable.Default {
   private AndroidProjectRootListener(@NotNull Project project) {
     MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
 
-    messageBusConnection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    messageBusConnection.subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         moduleRootsOrDependenciesChanged(project);

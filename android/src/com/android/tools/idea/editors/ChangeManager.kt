@@ -2,7 +2,6 @@ package com.android.tools.idea.editors
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.disposableCallbackFlow
-import com.intellij.AppTopics
 import com.intellij.codeInsight.lookup.LookupEvent
 import com.intellij.codeInsight.lookup.LookupListener
 import com.intellij.codeInsight.lookup.LookupManager
@@ -178,7 +177,7 @@ fun setupOnSaveListener(
                                                       null,
                                                       false).setRestartTimerOnAdd(true)) {
   val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
-  project.messageBus.connect(parentDisposable).subscribe(AppTopics.FILE_DOCUMENT_SYNC, object : FileDocumentManagerListener {
+  project.messageBus.connect(parentDisposable).subscribe(FileDocumentManagerListener.TOPIC, object : FileDocumentManagerListener {
     override fun beforeDocumentSaving(document: Document) {
       val psiFile = psiFilePointer.element ?: return
       val fileDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile)
