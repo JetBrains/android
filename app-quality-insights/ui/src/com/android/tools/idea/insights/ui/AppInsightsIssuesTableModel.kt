@@ -40,23 +40,25 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
 
           override fun getRenderer(item: AppInsightsIssue) = renderer
         },
-        FormattedNumberColumnInfo("Events"),
-        FormattedNumberColumnInfo("Users")
+        FormattedNumberColumnInfo("Events") { it.issueDetails.eventsCount },
+        FormattedNumberColumnInfo("Users") { it.issueDetails.impactedDevicesCount }
       )
     isSortable = true
   }
 
-  private inner class FormattedNumberColumnInfo(name: String) :
-    ColumnInfo<AppInsightsIssue, String>(name) {
+  private inner class FormattedNumberColumnInfo(
+    name: String,
+    private val selector: (AppInsightsIssue) -> Long
+  ) : ColumnInfo<AppInsightsIssue, String>(name) {
     override fun valueOf(item: AppInsightsIssue): String =
-      item.issueDetails.eventsCount.formatNumberToPrettyString()
+      selector(item).formatNumberToPrettyString()
 
     override fun getComparator(): Comparator<AppInsightsIssue> {
-      return Comparator.comparingInt { it.issueDetails.eventsCount.toInt() }
+      return Comparator.comparingInt { selector(it).toInt() }
     }
 
     override fun getMaxStringValue() =
-      items.maxOfOrNull { it.issueDetails.eventsCount }?.formatNumberToPrettyString()
+      items.maxOfOrNull { selector(it) }?.formatNumberToPrettyString()
 
     override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer = NumberColumnRenderer
   }
