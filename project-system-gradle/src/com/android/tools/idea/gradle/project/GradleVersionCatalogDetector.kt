@@ -125,15 +125,16 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
   private val gradleVersion: GradleVersion
     get() {
       _gradleVersion?.let { return it }
-      return runReadAction {
+      val gradleWrapper = runReadAction {
         if (project.isDisposed) throw ProcessCanceledException()
         val gradleWrapper = GradleWrapper.find(project)
         ProgressManager.checkCanceled()
-        val gradleVersion = gradleWrapper?.gradleVersion
-                              ?.let { runCatching { GradleVersion.version(it) }.getOrNull() }
-                            ?: MISSING_GRADLE_VERSION
-        return@runReadAction gradleVersion.also { _gradleVersion = gradleVersion }
+        gradleWrapper
       }
+      val gradleVersion = gradleWrapper?.gradleVersion
+                            ?.let { runCatching { GradleVersion.version(it) }.getOrNull() }
+                          ?: MISSING_GRADLE_VERSION
+      return gradleVersion.also { _gradleVersion = gradleVersion }
     }
 
   private val settingsVisitorResults: SettingsVisitorResults

@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
@@ -118,6 +117,10 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     }
     syncStats.updateAdditionalData()
 
+    val gradleVersion = when(kind) {
+      AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED -> GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
+      else -> null
+    }
     runReadAction {
       val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
       if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
@@ -128,8 +131,8 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
       event.kind = kind
 
+      gradleVersion?.let { event.gradleVersion = it }
       if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
-        event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
         event.setKotlinSupport(generateKotlinSupport())
       }
       event.withProjectId(project)

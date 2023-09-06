@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -48,6 +50,12 @@ public final class PropertiesFiles {
 
   @NotNull
   public static Properties getProperties(@NotNull File filePath) throws IOException {
+    // VfsUtil.findFileByIoFile with refreshIsNeeded = true must either be on the EDT or must not hold the read lock: see
+    // the documentation of VirtualFileSystem.refreshAndFindFileByPath().
+    Application application = ApplicationManager.getApplication();
+    if (!application.isDispatchThread()) {
+      application.assertReadAccessNotAllowed();
+    }
     VirtualFile virtualFile = VfsUtil.findFileByIoFile(filePath, true); // Must set refreshIfNeeded=true, see bug 176220349
     return getProperties(virtualFile);
   }

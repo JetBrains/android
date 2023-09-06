@@ -58,18 +58,22 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
       val projectRootFolders = listOf(File(FileUtils.toSystemDependentPath(it))) + BuildFileProcessor.getCompositeBuildFolderPaths(project)
       projectRootFolders.filterNotNull().forEach { ioRoot ->
         val ioFile = GradleWrapper.getDefaultPropertiesFilePath(ioRoot)
-        val gradleWrapper = GradleWrapper.get(ioFile, project)
-        val currentGradleVersion = gradleWrapper.gradleVersion ?: return@forEach
+        // this is called from within a read action (via BaseRefactoringProcessor.doRun()); we must not trigger Vfs refreshes here.
+        // (which is also why we cannot simply call GradleWrapper.getGradleVersion() as implicitly that might trigger a Vfs
+        // refresh).
+        val virtualFile = VfsUtil.findFileByIoFile(ioFile, false) ?: return@forEach
+        if (!virtualFile.isValid) return@forEach
+        val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
+        // TODO(b/262527341): This line looks like it should use propertiesFile.findPropertyByKey().  However, that is implemented by
+        //  looking in indexes, which for some reason under some circumstances doesn't actually contain the keys in
+        //  gradle-wrapper.properties.  Filtering all the properties of the file ourselves is a workaround for this unexplained
+        //  behavior.
+        val property = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
+        val currentUrl = property.value?.removeEscapingBackslashes() ?: return@forEach
+        val currentGradleVersion = GradleWrapper.getGradleVersion(currentUrl) ?: return@forEach
         val parsedCurrentGradleVersion = runCatching { GradleVersion.version(currentGradleVersion) }.getOrNull() ?: return@forEach
         if (compatibleGradleVersion.version > parsedCurrentGradleVersion) {
-          val updatedUrl = gradleWrapper.getUpdatedDistributionUrl(compatibleGradleVersion.version, true)
-          val virtualFile = VfsUtil.findFileByIoFile(ioFile, true) ?: return@forEach
-          val propertiesFile = PsiManager.getInstance(project).findFile(virtualFile) as? PropertiesFile ?: return@forEach
-          // TODO(b/262527341): This line looks like it should use propertiesFile.findPropertyByKey().  However, that is implemented by
-          //  looking in indexes, which for some reason under some circumstances doesn't actually contain the keys in
-          //  gradle-wrapper.properties.  Filtering all the properties of the file ourselves is a workaround for this unexplained
-          //  behavior.
-          val property = propertiesFile.properties.firstOrNull { SdkConstants.GRADLE_DISTRIBUTION_URL_PROPERTY == it.key } ?: return@forEach
+          val updatedUrl = GradleWrapper.getUpdatedDistributionUrl(currentUrl, compatibleGradleVersion.version, true)
           val wrappedPsiElement = WrappedPsiElement(property.psiElement, this, GRADLE_URL_USAGE_TYPE)
           usages.add(GradleVersionUsageInfo(wrappedPsiElement, compatibleGradleVersion.version, updatedUrl))
         }
@@ -107,6 +111,20 @@ class GradleVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
   companion object {
     val GRADLE_URL_USAGE_TYPE =
       UsageType(AndroidBundle.messagePointer("project.upgrade.gradleVersionRefactoringProcessor.gradleUrlUsageType"))
+  }
+
+  // Handle an apparent annoyance in the Psi PropertiesFile implementation which apparently gives us escaping backslashes
+  // in values read, but then escapes them (again) when writing.  This implementation is generic but in practice should only
+  // be used to remove backslashes in strings of the form "file\://..." and "https\://..."
+  private fun String.removeEscapingBackslashes(): String {
+    var escape = false
+    return this.filter { c ->
+      when {
+        escape -> true.also { escape = false }
+        c == '\\' -> false.also { escape = true }
+        else -> true
+      }
+    }
   }
 }
 
