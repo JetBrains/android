@@ -19,8 +19,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.testFramework.TestLoggerFactory
 import com.intellij.testFramework.UsefulTestCase
-import com.intellij.util.io.readText
 import org.junit.Test
+import kotlin.io.path.readText
 
 class TestLoggerTest : UsefulTestCase() {
 

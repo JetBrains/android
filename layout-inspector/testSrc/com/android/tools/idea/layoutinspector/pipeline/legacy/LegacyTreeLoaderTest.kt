@@ -49,7 +49,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
-import com.intellij.util.io.readBytes
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
@@ -65,6 +64,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 import javax.imageio.ImageIO
+import kotlin.io.path.readBytes
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
@@ -231,7 +231,7 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
     whenever(device.density).thenReturn(560)
     whenever(client.device).thenReturn(device)
     whenever(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
-                                    any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
+                                      any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
       verify(legacyClient.launchMonitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
       invocation
         .getArgument<DebugViewDumpHandler>(4)

@@ -29,7 +29,6 @@ import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
-import com.intellij.util.io.readText
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +37,7 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 

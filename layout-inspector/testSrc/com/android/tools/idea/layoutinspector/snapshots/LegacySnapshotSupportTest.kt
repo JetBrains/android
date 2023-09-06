@@ -43,7 +43,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
-import com.intellij.util.io.readBytes
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -51,6 +50,7 @@ import java.awt.image.BufferedImage
 import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.readBytes
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
