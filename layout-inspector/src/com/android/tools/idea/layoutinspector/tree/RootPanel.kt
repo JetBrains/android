@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -49,7 +50,9 @@ class RootPanel(
 
   private var layoutInspectorLoadingObserver: LayoutInspectorLoadingObserver? = null
   private val connectionListener: (InspectorClient?) -> Unit = { inspectorClient ->
-    if (inspectorClient?.isConnected == true) {
+    if (inspectorClient == null || inspectorClient == DisconnectedClient) {
+      updateUiState(UiState.WAITING_TO_CONNECT)
+    } else if (inspectorClient.isConnected) {
       // We are connected, show the component tree
       updateUiState(UiState.SHOW_TREE)
     }

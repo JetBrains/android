@@ -125,6 +125,11 @@ class RootPanelTest {
     layoutInspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
+
+    layoutInspectorRule.disconnect()
+
+    // Check that ui state is restored to default after disconnecting.
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
   }
 
   @Test

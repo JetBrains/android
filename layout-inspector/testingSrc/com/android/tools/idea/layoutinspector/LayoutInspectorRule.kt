@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetr
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.ClientFactory
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -336,6 +337,8 @@ class LayoutInspectorRule(
         it.join()
       }
     }
+
+    inspectorModel.updateConnection(DisconnectedClient)
   }
 
   private fun after() {
