@@ -247,7 +247,7 @@ public final class GradleWrapper {
   }
 
   @NotNull
-  public Properties getProperties() throws IOException {
+  private Properties getProperties() throws IOException {
     return PropertiesFiles.getProperties(myPropertiesFilePath);
   }
 
