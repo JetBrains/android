@@ -2,10 +2,9 @@
 package org.jetbrains.android;
 
 import com.android.tools.idea.project.AndroidRunConfigurations;
-import com.intellij.ExtensionPoints;
+import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.testFramework.LightPlatformTestCase;
 import java.util.List;
@@ -23,7 +22,7 @@ public class ExtensionsTest extends LightPlatformTestCase {
   }
 
   public void testErrorReportSubmitterNotInstalled() {
-    List<ErrorReportSubmitter> androidEPs = ExtensionPoints.ERROR_HANDLER_EP.getExtensionList().stream()
+    List<ErrorReportSubmitter> androidEPs = IdeErrorsDialog.ERROR_HANDLER_EP.getExtensionList().stream()
       .filter(e -> e.toString().contains("android"))
       .collect(Collectors.toList());
 
