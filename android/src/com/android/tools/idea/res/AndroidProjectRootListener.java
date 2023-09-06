@@ -16,7 +16,6 @@
 package com.android.tools.idea.res;
 
 import com.android.tools.idea.model.AndroidModel;
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidProjectRootListener {
   /**
-   * Makes AndroidProjectRootListener listen to the {@link ProjectTopics#PROJECT_ROOTS} events if it has not been listening already.
+   * Makes AndroidProjectRootListener listen to the {@link ModuleRootListener#TOPIC} events if it has not been listening already.
    *
    * @param project the project to listen on
    */
@@ -44,7 +43,7 @@ public class AndroidProjectRootListener {
   }
 
   private AndroidProjectRootListener(@NotNull Project project) {
-    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    project.getMessageBus().connect().subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         moduleRootsOrDependenciesChanged(project);

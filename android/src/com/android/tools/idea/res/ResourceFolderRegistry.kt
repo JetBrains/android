@@ -26,7 +26,6 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Sets
-import com.intellij.ProjectTopics
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -60,7 +59,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private val myCaches = ImmutableList.of(myNamespacedCache, myNonNamespacedCache)
 
   init {
-    project.messageBus.connect(this).subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
+    project.messageBus.connect(this).subscribe(ModuleRootListener.TOPIC, object : ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent) {
         removeStaleEntries()
       }
