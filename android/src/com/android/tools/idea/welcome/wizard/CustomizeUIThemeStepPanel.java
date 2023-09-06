@@ -6,6 +6,7 @@ import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.IntelliJLaf;
 import com.intellij.ide.ui.laf.LafManagerImpl;
 import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfo;
+import com.intellij.ide.ui.laf.UiThemeProviderListManager;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -233,14 +234,7 @@ public class CustomizeUIThemeStepPanel extends JPanel {
   }
 
   private void applyLaf(ThemeInfo theme, Component component) {
-    UIThemeLookAndFeelInfo info = null;
-    for (UIManager.LookAndFeelInfo lookAndFeelInfo : LafManager.getInstance().getInstalledLookAndFeels()) {
-      if (lookAndFeelInfo instanceof UIThemeLookAndFeelInfo) {
-        if (((UIThemeLookAndFeelInfo)lookAndFeelInfo).getTheme().getName().equals(theme.name)) {
-          info = (UIThemeLookAndFeelInfo)lookAndFeelInfo;
-        }
-      }
-    }
+    UIThemeLookAndFeelInfo info = UiThemeProviderListManager.Companion.getInstance().findThemeByName(theme.name);
     if (info == null) {
       Logger.getInstance("CustomizeUIThemeStepPanel").error("Theme with name: " + theme.name + " not found");
       return;
