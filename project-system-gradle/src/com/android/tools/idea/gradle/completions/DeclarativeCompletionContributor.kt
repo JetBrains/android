@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.completions
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.completions.ElementType.*
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
@@ -275,16 +275,16 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
     path.forEach { element ->
       currentNode = currentNode?.getChild(element)
-      val blockElement = currentModel.getBlockElementDescription(TOML, element) ?: return listOf()
+      val blockElement = currentModel.getBlockElementDescription(DECLARATIVE_TOML, element) ?: return listOf()
       currentModel = blockElement.schemaConstructor.construct()
     }
     val result = mutableListOf<Suggestion>()
-    result += currentModel.getBlockElementDescriptions(TOML).map {
+    result += currentModel.getBlockElementDescriptions(DECLARATIVE_TOML).map {
       Suggestion(it.key,
                  if(isArrayBlock(it.value)) ARRAY_TABLE else BLOCK
       )
     }
-    result += currentModel.getPropertiesInfo(TOML).entrySet
+    result += currentModel.getPropertiesInfo(DECLARATIVE_TOML).entrySet
       .filterNot { currentNode?.children?.contains(it.surfaceSyntaxDescription.name) ?: false }
       .map {
         val propertyDescription = it.modelEffectDescription.property

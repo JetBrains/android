@@ -31,7 +31,7 @@ public class PropertiesElementDescription<T extends GradlePropertiesDslElement> 
   @NotNull public final GradlePropertiesDslElementSchemaConstructor schemaConstructor;
   @NotNull public final Predicate<Kind> isValidForKind;
 
-  public static final Predicate<Kind> NOT_FOR_DECLARATIVE = (kind) -> !kind.equals(Kind.TOML);
+  public static final Predicate<Kind> NOT_FOR_DECLARATIVE = (kind) -> !kind.equals(Kind.DECLARATIVE_TOML);
 
   public static final Predicate<Kind> FOR_ALL = (kind) -> true;
 

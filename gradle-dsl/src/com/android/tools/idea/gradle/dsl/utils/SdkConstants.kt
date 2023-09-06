@@ -30,5 +30,6 @@ const val FN_DECLARATIVE_BUILD_GRADLE = "build.gradle.toml"
 const val FN_DECLARATIVE_SETTINGS_GRADLE = "settings.gradle.toml"
 
 const val EXT_VERSIONS_TOML = "versions.toml"
+const val EXT_DECLARATIVE_TOML = "gradle.toml"
 
 const val GRADLE_PATH_SEPARATOR = ":"

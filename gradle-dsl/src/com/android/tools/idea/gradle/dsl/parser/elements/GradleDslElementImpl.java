@@ -56,9 +56,6 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followEle
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTLIN;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.*;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
@@ -628,7 +625,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       case KOTLIN -> {
         return kts;
       }
-      case TOML -> {
+      case DECLARATIVE_TOML -> {
         return declarative;
       }
     }

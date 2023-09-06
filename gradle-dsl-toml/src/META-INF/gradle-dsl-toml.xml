@@ -15,6 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
-    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.toml.TomlDslTransformerFactory"/>
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.catalog.parser.toml.CatalogTomlDslTransformerFactory"/>
+    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.declarative.parser.toml.DeclarativeTomlDslTransformerFactory"/>
   </extensions>
 </idea-plugin>

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.navigation
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.util.generateExistingPath
@@ -26,7 +26,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import org.apache.commons.lang.StringUtils
-import org.jetbrains.kotlin.asJava.elements.KtLightElementBase
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
@@ -71,12 +70,12 @@ private fun findDslElementClassName(path: List<String>, propertyName: String): S
   var currentModel: GradlePropertiesDslElementSchema = GradleBuildFile.BuildGradlePropertiesDslElementSchema()
   if (path.isEmpty()) {
     // for first element (i.e. android or plugins) need to return android agp class
-    val blockElement = currentModel.getBlockElementDescription(TOML, propertyName) ?: return null
+    val blockElement = currentModel.getBlockElementDescription(DECLARATIVE_TOML, propertyName) ?: return null
     currentModel = blockElement.schemaConstructor.construct()
   }
   else {
     path.forEach { element ->
-      val blockElement = currentModel.getBlockElementDescription(TOML, element) ?: return null
+      val blockElement = currentModel.getBlockElementDescription(DECLARATIVE_TOML, element) ?: return null
       currentModel = blockElement.schemaConstructor.construct()
     }
   }

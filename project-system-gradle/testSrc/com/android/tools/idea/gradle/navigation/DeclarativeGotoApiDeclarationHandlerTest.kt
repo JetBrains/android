@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.gradle.navigation
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -30,6 +32,11 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   val projectRule = AndroidGradleProjectRule().onEdt()
 
   private val myFixture by lazy { projectRule.fixture }
+
+  @Before
+  fun onBefore(){
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+  }
 
   @Test
   fun testGoToAaptOptionsInToml() {
