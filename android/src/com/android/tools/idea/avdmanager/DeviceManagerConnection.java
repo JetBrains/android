@@ -185,8 +185,8 @@ public class DeviceManagerConnection {
       // Find a unique ID for this new device
       String deviceIdBase = device.getId();
       String deviceNameBase = device.getDisplayName();
-      int i = 2;
-      while (isUserDevice(device)) {
+
+      for (int i = 2; isUserDevice(device); i++) {
         String id = String.format(Locale.getDefault(), "%1$s_%2$d", deviceIdBase, i);
         String name = String.format(Locale.getDefault(), "%1$s_%2$d", deviceNameBase, i);
         device = cloneDeviceWithNewIdAndName(device, id, name);
