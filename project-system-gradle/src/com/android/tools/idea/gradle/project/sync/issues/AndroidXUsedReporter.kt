@@ -17,11 +17,9 @@ package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
-import com.android.tools.idea.gradle.util.GradleProperties
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -38,12 +36,12 @@ class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
   // All issues of this type should be grouped together
   override fun getDeduplicationKey(issue: IdeSyncIssue): Any = supportedIssueType
 
-  override fun getCustomLinks(project: Project,
-                              syncIssues: MutableList<IdeSyncIssue>,
-                              affectedModules: MutableList<Module>,
-                              buildFileMap: MutableMap<Module, VirtualFile>): List<SyncIssueNotificationHyperlink> {
-    return createQuickFixes(GradleProperties(project).path)
-  }
+  override fun getCustomLinks(
+    project: Project,
+    syncIssues: MutableList<IdeSyncIssue>,
+    affectedModules: MutableList<Module>,
+    buildFileMap: MutableMap<Module, VirtualFile>
+  ): List<SyncIssueNotificationHyperlink> = createQuickFixes(GradleUtil.getUserGradlePropertiesFile(project))
 
   @VisibleForTesting
   fun createQuickFixes(propertiesPath: File): List<SyncIssueNotificationHyperlink> {
