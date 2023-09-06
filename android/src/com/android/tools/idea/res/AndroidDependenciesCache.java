@@ -19,7 +19,6 @@ import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.ProjectTopics;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
@@ -82,7 +81,7 @@ public class AndroidDependenciesCache implements Disposable {
       }
     });
 
-    busConnection.subscribe(ProjectTopics.MODULES, new ModuleListener() {
+    busConnection.subscribe(ModuleListener.TOPIC, new ModuleListener() {
       @Override
       public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
         dropCache();

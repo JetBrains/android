@@ -45,7 +45,6 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewProvider;
 import com.android.tools.idea.uibuilder.type.FileTypeUtilsKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.intellij.CommonBundle;
-import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -362,7 +361,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     Module modelModule = AndroidPsiUtils.getModuleSafely(myProject, myFile);
     // Dispose the surface if we remove the module from the project, and show some text warning the user.
-    myProject.getMessageBus().connect(mySurface).subscribe(ProjectTopics.MODULES, new ModuleListener() {
+    myProject.getMessageBus().connect(mySurface).subscribe(ModuleListener.TOPIC, new ModuleListener() {
       @Override
       public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
         if (module.equals(modelModule)) {
