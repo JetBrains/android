@@ -149,9 +149,8 @@ public class AndroidStudioInstallation {
     // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
     vmOptions.append(String.format("-Dstudio.run.under.integration.test=true%n"));
     vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
-    if (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
-      vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
-    }
+    // Always collect histograms
+    vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
     if (Boolean.getBoolean(DUMP_HPROF_SNAPSHOT)) {
       vmOptions.append(String.format("-D%s=true%n", DUMP_HPROF_SNAPSHOT));
     }
