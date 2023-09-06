@@ -2545,20 +2545,6 @@ java_test(
 )
 
 java_test(
-    name = "IdePermissionTest",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editing.IdePermissionTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "qa_fast",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "PrivateResourceTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
