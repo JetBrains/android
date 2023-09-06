@@ -42,12 +42,16 @@ class FakeTableLineModel(
   override fun requestFocusInBestMatch() {}
 
   override fun stopEditing() {
+    pendingEditingAction()
     selectedItem = null
+    pendingEditingAction = {}
   }
 
   override fun refresh() {
     tableModel.refresh()
   }
+
+  var pendingEditingAction: () -> Unit = {}
 
   fun checkItemCount(rows: Int) {
     Truth.assertThat(rows).isEqualTo(tableModel.items.size)

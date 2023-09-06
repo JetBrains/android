@@ -39,6 +39,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
@@ -49,6 +50,7 @@ import com.android.tools.property.ptable.PTableModel
 import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.application.invokeLater
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -217,6 +219,34 @@ class DeclaredAttributesInspectorBuilderTest {
     val model = tableLine.tableModel
     tableLine.selectedItem = model.items[2] // select ATTR_TEXT
     util.performAction(0, 1, AllIcons.General.Remove)
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    // Check that there are only 2 declared attributes left
+    assertThat(model.items.map { it.name })
+      .containsExactly(ATTR_LAYOUT_WIDTH, ATTR_LAYOUT_HEIGHT)
+      .inOrder()
+
+    assertThat(util.components[0].getAttribute(ANDROID_URI, ATTR_TEXT)).isNull()
+  }
+
+  @Test
+  fun testDeletePropertyItemThatIsBeingEdited() {
+    val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = LINEAR_LAYOUT)
+    addProperties(util)
+    val builder = createBuilder(util.model)
+    builder.attachToInspector(util.inspector, util.properties)
+    val tableLine = util.checkTable(1)
+    val model = tableLine.tableModel
+    val textItem = model.items[2] as NlPropertyItem // ATTR_TEXT
+    tableLine.selectedItem = textItem
+
+    // Start editing the item:
+    model.editedItem = textItem
+    tableLine.pendingEditingAction = { invokeLater { textItem.value = "123" } }
+
+    // Remove the item:
+    util.performAction(0, 1, AllIcons.General.Remove)
+    tableLine.stopEditing()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     // Check that there are only 2 declared attributes left

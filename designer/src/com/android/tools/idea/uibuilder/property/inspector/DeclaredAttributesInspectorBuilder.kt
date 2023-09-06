@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_DELETE
+import com.intellij.openapi.application.invokeLater
 import org.jetbrains.android.formatter.AttributeComparator
 
 private const val ADD_PROPERTY_ACTION_TITLE = "Add attribute"
@@ -141,7 +142,13 @@ class DeclaredAttributesInspectorBuilder(
       titleModel?.expanded = true
       val model = lineModel ?: return
       val selected = (model.selectedItem ?: model.tableModel.items.firstOrNull()) ?: return
-      model.removeItem(selected)
+      // Stop editing the table before removing the selected item.
+      // This will give the cell editor a chance to commit any pending changes before we delete
+      // the value. If we don't the cell editor will commit after we delete the value.
+      model.stopEditing()
+      // The cell editor may commit the changes late (as a result of a focus loss).
+      // Wait for it by posting the action on the event queue after the focus loss.
+      invokeLater { model.removeItem(selected) }
     }
   }
 }
