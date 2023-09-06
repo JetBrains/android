@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.FakeAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ISSUE1
+import com.android.tools.idea.insights.ISSUE_VARIANT
+import com.android.tools.idea.insights.LoadingState
+import com.android.tools.idea.insights.Selection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.Editor
 import com.intellij.testFramework.ApplicationRule
+import java.awt.Dimension
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
@@ -27,9 +34,15 @@ class DetailsPanelHeaderTest {
 
   @get:Rule val applicationRule = ApplicationRule()
 
+  @get:Rule val flagRule = FlagRule(StudioFlags.CRASHLYTICS_2023H2_UI, true)
+
   @Test
   fun `header updates with issue`() {
-    val detailsPanelHeader = DetailsPanelHeader(mock(Editor::class.java))
+    val detailsPanelHeader =
+      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController())
+
+    detailsPanelHeader.size = Dimension(500, 200)
+    detailsPanelHeader.toolbar.component.size = Dimension(50, 50)
 
     detailsPanelHeader.updateWithIssue(ISSUE1)
 
@@ -45,8 +58,37 @@ class DetailsPanelHeaderTest {
 
   @Test
   fun `header is shown with bottom border`() {
-    val detailsPanelHeader = DetailsPanelHeader(mock(Editor::class.java))
+    val detailsPanelHeader =
+      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController())
 
     assertThat(detailsPanelHeader.border.getBorderInsets(detailsPanelHeader).bottom).isEqualTo(1)
+  }
+
+  @Test
+  fun `header passes issue updates to combobox state flow`() {
+    val detailsPanelHeader =
+      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController())
+    assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
+
+    detailsPanelHeader.updateWithIssue(ISSUE1)
+    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
+    assertThat(detailsPanelHeader.comboBoxStateFlow.value).isEqualTo(DisabledComboBoxState.loading)
+
+    detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.Ready(Selection.emptySelection()))
+    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
+    assertThat(detailsPanelHeader.comboBoxStateFlow.value).isEqualTo(DisabledComboBoxState.empty)
+
+    val selection = Selection(null, listOf(ISSUE_VARIANT))
+    detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.Ready(selection))
+    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
+    assertThat(detailsPanelHeader.comboBoxStateFlow.value)
+      .isEqualTo(PopulatedComboBoxState(ISSUE1, selection))
+
+    detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.NetworkFailure("failed"))
+    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
+    assertThat(detailsPanelHeader.comboBoxStateFlow.value).isEqualTo(DisabledComboBoxState.failure)
+
+    detailsPanelHeader.updateWithIssue(null)
+    assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
   }
 }

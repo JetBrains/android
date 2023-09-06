@@ -164,7 +164,7 @@ class VitalsIssueDetailsPanel(
   @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
 
   // Title
-  private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor)
+  private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor, controller)
 
   // TODO(b/290647605): add back device label
   // Events, users, affected api levels
