@@ -172,12 +172,6 @@ public final class PsiResourceItem implements ResourceItem {
 
   @Override
   @NotNull
-  public ResourceReference getReferenceToSelf() {
-    return new ResourceReference(getNamespace(), myType, myName);
-  }
-
-  @Override
-  @NotNull
   public FolderConfiguration getConfiguration() {
     PsiResourceFile source = getSourceFile();
     assert source != null : "getConfiguration called on a PsiResourceItem with no source";
