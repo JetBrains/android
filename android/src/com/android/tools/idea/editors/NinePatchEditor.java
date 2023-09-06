@@ -19,7 +19,6 @@ package com.android.tools.idea.editors;
 import com.android.draw9patch.graphics.GraphicsUtilities;
 import com.android.draw9patch.ui.ImageEditorPanel;
 import com.android.draw9patch.ui.ImageViewer;
-import com.intellij.AppTopics;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -71,7 +70,7 @@ public class NinePatchEditor implements FileEditor, ImageViewer.PatchUpdateListe
         saveFile();
       }
     };
-    project.getMessageBus().connect(this).subscribe(AppTopics.FILE_DOCUMENT_SYNC, saveListener);
+    project.getMessageBus().connect(this).subscribe(FileDocumentManagerListener.TOPIC, saveListener);
 
     myFile = file;
     try {

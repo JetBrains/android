@@ -30,7 +30,6 @@ import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
-import com.intellij.AppTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
@@ -142,7 +141,7 @@ class NavigationResourcesModificationListener(
       EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, this)
 
       // To receive notifications when any Documents are saved or reloaded from disk
-      project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+      project.messageBus.connect().subscribe(FileDocumentManagerListener.TOPIC, listener)
     }
 
     override fun dispose() {

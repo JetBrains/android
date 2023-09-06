@@ -30,7 +30,6 @@ import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.util.FileExtensions;
-import com.intellij.AppTopics;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -136,7 +135,7 @@ public class AndroidFileChangeListener implements Disposable {
 
     MessageBusConnection connection = myProject.getMessageBus().connect(this);
     connection.subscribe(VirtualFileManager.VFS_CHANGES, new MyVfsListener(myRegistry));
-    connection.subscribe(AppTopics.FILE_DOCUMENT_SYNC, new MyFileDocumentManagerListener(myRegistry));
+    connection.subscribe(FileDocumentManagerListener.TOPIC, new MyFileDocumentManagerListener(myRegistry));
   }
 
   @Override
