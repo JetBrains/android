@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getDefaultPhysicalPathFromGradlePath;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getDefaultPhysicalPathFromGradlePath;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.contains;
@@ -42,9 +42,7 @@ import com.intellij.openapi.project.impl.ProjectManagerImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
-import com.intellij.testFramework.ProjectRule;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;

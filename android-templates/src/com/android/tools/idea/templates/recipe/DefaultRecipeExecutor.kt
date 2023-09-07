@@ -51,9 +51,8 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
@@ -61,7 +60,6 @@ import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMi
 import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
-import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -302,7 +300,11 @@ class DefaultRecipeExecutor(
    */
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
     // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
+    val newConfiguration = GradleProjectSystemUtil.mapConfigurationName(
+      configuration,
+      projectTemplateData.agpVersion,
+      false
+    )
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
@@ -319,7 +321,11 @@ class DefaultRecipeExecutor(
       }
     } ?: return
 
-    var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
+    var resolvedConfiguration = GradleProjectSystemUtil.mapConfigurationName(
+      configuration,
+      projectTemplateData.agpVersion,
+      false
+    )
 
     val resolvedMavenCoordinate =
       when {
@@ -349,7 +355,11 @@ class DefaultRecipeExecutor(
 
   override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
     // TODO: Delete this once we no longer support ancient Gradle plugins
-    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
+    val newConfiguration = GradleProjectSystemUtil.mapConfigurationName(
+      configuration,
+      projectTemplateData.agpVersion,
+      false
+    )
     require(configuration == newConfiguration) { "Platform dependencies are not supported in Gradle plugin < 3.0" }
 
     referencesExecutor.addPlatformDependency(configuration, mavenCoordinate, enforced)
@@ -374,7 +384,11 @@ class DefaultRecipeExecutor(
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
-    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
+    val resolvedConfiguration = GradleProjectSystemUtil.mapConfigurationName(
+      configuration,
+      projectTemplateData.agpVersion,
+      false
+    )
 
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
     buildModel.dependencies().addModule(resolvedConfiguration, ":$moduleName")

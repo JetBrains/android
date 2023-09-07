@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -297,7 +296,7 @@ public class GradleDependencyManager {
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, namedDependency.getSecond());
         }
-        name = GradleUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
+        name = GradleProjectSystemUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         String alias = namedDependency.getFirst();
         ReferenceTo reference = new ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel);
         dependenciesModel.addArtifact(name, reference);
@@ -373,7 +372,7 @@ public class GradleDependencyManager {
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, dependency);
         }
-        name = GradleUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
+        name = GradleProjectSystemUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         String identifier = dependency.toIdentifier();
         if (identifier != null) {
           dependenciesModel.addArtifact(name, identifier);

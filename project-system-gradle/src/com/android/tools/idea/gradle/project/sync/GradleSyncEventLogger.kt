@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.collect.Ordering
@@ -93,7 +94,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
 
     val event = AndroidStudioEvent.newBuilder()
     val syncStats = GradleSyncStats.newBuilder()
-    val buildFileTypes = GradleUtil.projectBuildFilesTypes(project)
+    val buildFileTypes = GradleProjectSystemUtil.projectBuildFilesTypes(project)
 
     // Setup the sync stats
     syncStats.totalTimeMs = when {

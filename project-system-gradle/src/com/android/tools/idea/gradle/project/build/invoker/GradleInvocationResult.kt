@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import org.gradle.tooling.BuildCancelledException
 import org.jetbrains.annotations.TestOnly
 import java.io.File
@@ -39,7 +39,8 @@ class GradleInvocationResult @JvmOverloads constructor(
   val model: Any? = null
 ) : GradleBuildResult {
 
-  override val isBuildCancelled: Boolean get() = buildError != null && GradleUtil.hasCause(buildError, BuildCancelledException::class.java)
+  override val isBuildCancelled: Boolean get() = buildError != null && GradleProjectSystemUtil.hasCause(
+    buildError, BuildCancelledException::class.java)
   override val isBuildSuccessful: Boolean get() = buildError == null
 }
 

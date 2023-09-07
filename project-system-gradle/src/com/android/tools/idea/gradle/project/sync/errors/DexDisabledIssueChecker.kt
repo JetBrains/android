@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
-import com.android.tools.idea.gradle.util.GradleUtil.getParentModulePath
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getParentModulePath
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue

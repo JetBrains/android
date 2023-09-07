@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.showDefaultWizard
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
@@ -247,7 +247,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
               // If gradle root is among modules add it to the tree root node
               hasRootGradleModule -> module.gradlePath == ":"
               // otherwise flatten the Gradle root project and add its children directly under the tree root.
-              else -> GradleUtil.isDirectChild(module.gradlePath, ":")
+              else -> GradleProjectSystemUtil.isDirectChild(module.gradlePath, ":")
             }
           }
         }.also { Disposer.register(this, it) })

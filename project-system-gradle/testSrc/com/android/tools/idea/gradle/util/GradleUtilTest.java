@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +47,13 @@ public class GradleUtilTest {
 
   @Test
   public void getPathSegments() {
-    List<String> pathSegments = GradleUtil.getPathSegments("foo:bar:baz");
+    List<String> pathSegments = GradleProjectSystemUtil.getPathSegments("foo:bar:baz");
     assertEquals(Lists.newArrayList("foo", "bar", "baz"), pathSegments);
   }
 
   @Test
   public void getPathSegmentsWithEmptyString() {
-    List<String> pathSegments = GradleUtil.getPathSegments("");
+    List<String> pathSegments = GradleProjectSystemUtil.getPathSegments("");
     assertEquals(0, pathSegments.size());
   }
 
@@ -61,78 +61,78 @@ public class GradleUtilTest {
   public void getGradleWrapperVersionWithUrl() {
     // Tries both http and https, bin and all. Also versions 2.2.1, 2.2 and 1.12
     String url = "https://services.gradle.org/distributions/gradle-2.2.1-all.zip";
-    String version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    String version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2.1", version);
 
     url = "https://services.gradle.org/distributions/gradle-2.2.1-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2.1", version);
 
     url = "http://services.gradle.org/distributions/gradle-2.2.1-all.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2.1", version);
 
     url = "http://services.gradle.org/distributions/gradle-2.2.1-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2.1", version);
 
     url = "https://services.gradle.org/distributions/gradle-2.2-all.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2", version);
 
     url = "https://services.gradle.org/distributions/gradle-2.2-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2", version);
 
     url = "http://services.gradle.org/distributions/gradle-2.2-all.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2", version);
 
     url = "http://services.gradle.org/distributions/gradle-2.2-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("2.2", version);
 
     url = "https://services.gradle.org/distributions/gradle-1.12-all.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("1.12", version);
 
     url = "https://services.gradle.org/distributions/gradle-1.12-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("1.12", version);
 
     url = "http://services.gradle.org/distributions/gradle-1.12-all.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("1.12", version);
 
     url = "http://services.gradle.org/distributions/gradle-1.12-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertEquals("1.12", version);
 
     // Use custom URL.
     url = "http://myown.com/gradle-2.2.1-bin.zip";
-    version = GradleUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
+    version = GradleProjectSystemUtil.getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
     assertNull(version);
   }
 
   @Test
   public void mapConfigurationName() {
-    assertEquals("compile", GradleUtil.mapConfigurationName("compile", "2.3.2", false));
-    assertEquals("testCompile", GradleUtil.mapConfigurationName("testCompile", "2.3.2", false));
-    assertEquals("androidTestCompile", GradleUtil.mapConfigurationName("androidTestCompile", "2.3.2", false));
-    assertEquals("provided", GradleUtil.mapConfigurationName("provided", "2.3.2", false));
-    assertEquals("testProvided", GradleUtil.mapConfigurationName("testProvided", "2.3.2", false));
+    assertEquals("compile", GradleProjectSystemUtil.mapConfigurationName("compile", "2.3.2", false));
+    assertEquals("testCompile", GradleProjectSystemUtil.mapConfigurationName("testCompile", "2.3.2", false));
+    assertEquals("androidTestCompile", GradleProjectSystemUtil.mapConfigurationName("androidTestCompile", "2.3.2", false));
+    assertEquals("provided", GradleProjectSystemUtil.mapConfigurationName("provided", "2.3.2", false));
+    assertEquals("testProvided", GradleProjectSystemUtil.mapConfigurationName("testProvided", "2.3.2", false));
 
-    assertEquals("implementation", GradleUtil.mapConfigurationName("compile", "3.0.0-alpha1", false));
-    assertEquals("testImplementation", GradleUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", false));
-    assertEquals("androidTestImplementation", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", false));
-    assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1, false", false));
-    assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", false));
+    assertEquals("implementation", GradleProjectSystemUtil.mapConfigurationName("compile", "3.0.0-alpha1", false));
+    assertEquals("testImplementation", GradleProjectSystemUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", false));
+    assertEquals("androidTestImplementation", GradleProjectSystemUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", false));
+    assertEquals("compileOnly", GradleProjectSystemUtil.mapConfigurationName("provided", "3.0.0-alpha1, false", false));
+    assertEquals("testCompileOnly", GradleProjectSystemUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", false));
 
-    assertEquals("api", GradleUtil.mapConfigurationName("compile", "3.0.0-alpha1", true));
-    assertEquals("testApi", GradleUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", true));
-    assertEquals("androidTestApi", GradleUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
-    assertEquals("compileOnly", GradleUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
-    assertEquals("testCompileOnly", GradleUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
+    assertEquals("api", GradleProjectSystemUtil.mapConfigurationName("compile", "3.0.0-alpha1", true));
+    assertEquals("testApi", GradleProjectSystemUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", true));
+    assertEquals("androidTestApi", GradleProjectSystemUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
+    assertEquals("compileOnly", GradleProjectSystemUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
+    assertEquals("testCompileOnly", GradleProjectSystemUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
   }
 
   @Test
@@ -190,32 +190,32 @@ public class GradleUtilTest {
 
   @Test
   public void isDirectChild() {
-    assertTrue(GradleUtil.isDirectChild(":app", ":"));
-    assertTrue(GradleUtil.isDirectChild(":libs:lib1", ":libs"));
-    assertTrue(GradleUtil.isDirectChild(":libs:java:lib2", ":libs:java"));
+    assertTrue(GradleProjectSystemUtil.isDirectChild(":app", ":"));
+    assertTrue(GradleProjectSystemUtil.isDirectChild(":libs:lib1", ":libs"));
+    assertTrue(GradleProjectSystemUtil.isDirectChild(":libs:java:lib2", ":libs:java"));
 
-    assertFalse(GradleUtil.isDirectChild(":", ":"));
-    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":"));
-    assertFalse(GradleUtil.isDirectChild(":libs", ":app"));
-    assertFalse(GradleUtil.isDirectChild(":libs:lib1", ":app"));
-    assertFalse(GradleUtil.isDirectChild(":libs:java:lib2", ":libs"));
-    assertFalse(GradleUtil.isDirectChild(":libs:android:lib3", ":libs:java"));
-    assertFalse(GradleUtil.isDirectChild(":app", ":app"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":", ":"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":libs:lib1", ":"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":libs", ":app"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":libs:lib1", ":app"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":libs:java:lib2", ":libs"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":libs:android:lib3", ":libs:java"));
+    assertFalse(GradleProjectSystemUtil.isDirectChild(":app", ":app"));
   }
 
   @Test
   public void getAllParentModulesPaths() {
-    assertThat(GradleUtil.getAllParentModulesPaths(":foo:buz")).containsExactly(":foo");
-    assertThat(GradleUtil.getAllParentModulesPaths(":foo")).isEmpty();
-    assertThat(GradleUtil.getAllParentModulesPaths(":")).isEmpty();
-    assertThat(GradleUtil.getAllParentModulesPaths(":foo:bar:buz:lib")).containsExactly(":foo", ":foo:bar", ":foo:bar:buz");
+    assertThat(GradleProjectSystemUtil.getAllParentModulesPaths(":foo:buz")).containsExactly(":foo");
+    assertThat(GradleProjectSystemUtil.getAllParentModulesPaths(":foo")).isEmpty();
+    assertThat(GradleProjectSystemUtil.getAllParentModulesPaths(":")).isEmpty();
+    assertThat(GradleProjectSystemUtil.getAllParentModulesPaths(":foo:bar:buz:lib")).containsExactly(":foo", ":foo:bar", ":foo:bar:buz");
   }
 
   @Test
   public void getParentModulePath() {
-    assertEquals(":foo", GradleUtil.getParentModulePath(":foo:buz"));
-    assertEquals(":foo:bar", GradleUtil.getParentModulePath(":foo:bar:buz"));
-    assertEquals("", GradleUtil.getParentModulePath(":"));
+    assertEquals(":foo", GradleProjectSystemUtil.getParentModulePath(":foo:buz"));
+    assertEquals(":foo:bar", GradleProjectSystemUtil.getParentModulePath(":foo:bar:buz"));
+    assertEquals("", GradleProjectSystemUtil.getParentModulePath(":"));
 
   }
 

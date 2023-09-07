@@ -30,8 +30,8 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -273,7 +273,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     GradleSettingsModel gradleSettingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
-      File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
+      File targetFile = GradleProjectSystemUtil.getModuleDefaultPath(projectRoot, name);
       VirtualFile moduleSource = module.getValue();
       if (moduleSource != null) {
         if (!isAncestor(projectRoot, moduleSource, true)) {
@@ -292,7 +292,7 @@ public final class GradleModuleImporter extends ModuleImporter {
       }
       if (gradleSettingsModel != null) {
         gradleSettingsModel.addModulePath(name);
-        if (!FileUtil.filesEqual(GradleUtil.getModuleDefaultPath(projectRoot, name), targetFile)) {
+        if (!FileUtil.filesEqual(GradleProjectSystemUtil.getModuleDefaultPath(projectRoot, name), targetFile)) {
           gradleSettingsModel.setModuleDirectory(name, targetFile);
         }
       }

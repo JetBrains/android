@@ -76,7 +76,8 @@ class GradleUtilAndroidGradleTest {
       )
     }
     ) { project ->
-      assertTrue(GradleUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
+      assertTrue(
+        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
     }
   }
 
@@ -84,7 +85,8 @@ class GradleUtilAndroidGradleTest {
   fun testHasKtsBuildFilesGroovyBasedProject() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     preparedProject.open { project ->
-      assertFalse(GradleUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
+      assertFalse(
+        GradleProjectSystemUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS))
     }
   }
 

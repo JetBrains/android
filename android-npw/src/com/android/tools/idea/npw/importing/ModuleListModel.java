@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDefaultPath;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getModuleDefaultPath;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleIdentityPath;
 
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.util.FormatUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
@@ -92,7 +92,7 @@ public final class ModuleListModel {
       return segmentStart == 0; // Only allowed at string start to allow for absolute paths
     }
     String segment = string.substring(segmentStart, segmentEnd);
-    return !StringUtil.isEmpty(segment) && GradleUtil.isValidGradlePath(segment) < 0;
+    return !StringUtil.isEmpty(segment) && GradleProjectSystemUtil.isValidGradlePath(segment) < 0;
   }
 
   private static String getNameErrorMessage(String moduleName) {

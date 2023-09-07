@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurab
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
@@ -78,7 +78,12 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
     return if (currentModuleGradlePath == null) emptyList()
     else context.project.modules
       .filter { it.gradlePath != null }
-      .filter { GradleUtil.isDirectChild(it.gradlePath, currentModuleGradlePath) }
+      .filter {
+        GradleProjectSystemUtil.isDirectChild(
+          it.gradlePath,
+          currentModuleGradlePath
+        )
+      }
   }
 
   override fun createChildConfigurable(model: PsModule): NamedConfigurable<out PsModule> =

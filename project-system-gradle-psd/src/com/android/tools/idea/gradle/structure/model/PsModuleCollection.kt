@@ -18,13 +18,11 @@ package com.android.tools.idea.gradle.structure.model
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
@@ -32,7 +30,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.containers.mapSmartSet
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import java.io.File
 
 enum class ModuleKind { ANDROID, JAVA, FAKE, EMPTY }
@@ -77,7 +74,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     //Add non-existing mid-hierarchy modules as empty modules.
     val declaredPaths = result.mapSmartSet { it.gradlePath }
     declaredPaths
-      .flatMap { GradleUtil.getAllParentModulesPaths(it) }
+      .flatMap { GradleProjectSystemUtil.getAllParentModulesPaths(it) }
       .filterNot { declaredPaths.contains(it) }
       .distinct()
       .forEach { result.add(ModuleKey(ModuleKind.EMPTY, it)) }

@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtra
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
 import com.android.tools.idea.sdk.IdeSdks
@@ -262,7 +263,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           // Inject embedded repository if it's enabled by user.
           if (!GuiTestingService.isInTestingMode()) {
             GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments)
-            GradleUtil.attemptToUseEmbeddedGradle(project)
+            GradleProjectSystemUtil.attemptToUseEmbeddedGradle(project)
           }
 
           // Don't include passwords in the log
@@ -574,7 +575,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
       private const val GRADLE_RUNNING_MSG_TITLE = "Gradle Running"
       private const val PASSWORD_KEY_SUFFIX = ".password="
       private fun wasBuildCanceled(buildError: Throwable): Boolean {
-        return GradleUtil.hasCause(buildError, BuildCancelledException::class.java) || GradleUtil.hasCause(
+        return GradleProjectSystemUtil.hasCause(buildError,
+                                                                                                      BuildCancelledException::class.java) || GradleProjectSystemUtil.hasCause(
           buildError,
           ProcessCanceledException::class.java
         )

@@ -20,7 +20,6 @@ import com.android.ide.common.repository.AgpVersion;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -59,7 +58,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertFalse(ref.get().isAndroidxLibrary());
 
     AgpVersion version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(getProject());
-    String configName = GradleUtil.mapConfigurationName("implementation", version, false);
+    String configName = GradleProjectSystemUtil.mapConfigurationName("implementation", version, false);
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
