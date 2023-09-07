@@ -55,7 +55,7 @@ interface Interaction2 {
    *
    * @return A list of overlays to buildDisplayList for this interaction, if applicable.
    */
-  fun createOverlays(): List<Layer>
+  fun createOverlays(): List<Layer> = emptyList()
 
   /**
    * Called when the interaction is started.

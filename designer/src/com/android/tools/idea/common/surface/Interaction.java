@@ -76,12 +76,6 @@ public abstract class Interaction implements Interaction2 {
   /** Initial AWT mask when the interaction started. */
   @InputEventMask protected int myStartMask;
 
-  @Override
-  @NotNull
-  public List<Layer> createOverlays() {
-    return Collections.emptyList();
-  }
-
   /**
    * Handles initialization of this interaction. Called when the interaction is
    * starting.
