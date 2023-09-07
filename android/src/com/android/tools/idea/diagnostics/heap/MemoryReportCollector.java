@@ -555,7 +555,7 @@ public final class MemoryReportCollector implements Disposable {
                                                         @NotNull final Computable<WeakList<Object>> rootsComputable) {
     HeapSnapshotStatistics extendedReportStats =
       new HeapSnapshotStatistics(
-        new HeapTraverseConfig(componentsSet, /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/true, /*collectObjectTreesData=*/
+        new HeapTraverseConfig(componentsSet, /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/true, 10, /*collectObjectTreesData=*/
                                true, exceededClusters));
     new MemoryReportCollector(extendedReportStats).walkObjects(rootsComputable);
 

@@ -58,8 +58,11 @@ public class ExtendedReportStatistics {
   private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = Maps.newHashMap();
   @NotNull
   final RootPathTree rootPathTree = new RootPathTree(this);
+  @NotNull
+  final HeapTraverseConfig myConfig;
 
   public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
+    myConfig = config;
     this.componentHistograms = Lists.newArrayList();
     this.categoryHistograms = Lists.newArrayList();
     this.sharedClustersHistograms = new Long2ObjectOpenHashMap<>();
@@ -199,6 +202,12 @@ public class ExtendedReportStatistics {
       .sorted(Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
       .map(e -> new Pair<>(e.getKey(), e.getValue())).toList();
 
+    ObjectsStatistics totalDisposedButReferencedObjectsStatistics = new ObjectsStatistics();
+    for (ObjectsStatistics value : componentHistograms.get(component.getId()).disposedButReferencedObjects.values()) {
+      totalDisposedButReferencedObjectsStatistics.addStats(value);
+    }
+    rootPathTree.printPathTreeForComponentDisposedReferencedObjects(writer, statistics, totalDisposedButReferencedObjectsStatistics);
+
     writer.accept("======== INSTANCES OF EACH NOMINATED CLASS ========");
     writer.accept("Nominated classes:");
     for (Pair<String, ObjectsStatistics> pair : nominatedClassesInOrder) {
@@ -213,29 +222,22 @@ public class ExtendedReportStatistics {
                                                              pair.second);
     }
 
-    ObjectsStatistics totalDisposedButReferencedObjectsStatistics = new ObjectsStatistics();
-    for (ObjectsStatistics value : componentHistograms.get(component.getId()).disposedButReferencedObjects.values()) {
-      totalDisposedButReferencedObjectsStatistics.addStats(value);
-    }
-    rootPathTree.printPathTreeForComponentDisposedReferencedObjects(writer, statistics, totalDisposedButReferencedObjectsStatistics);
     rootPathTree.printPathTreeForComponentObjectsReferringNominatedLoaders(writer, statistics, component);
   }
 
-  static class CategoryHistogram extends ClusterHistogram {
+  class CategoryHistogram extends ClusterHistogram {
     public CategoryHistogram() {
       super(ClusterType.CATEGORY);
     }
   }
 
-  static class ClusterHistogram {
+  class ClusterHistogram {
 
     enum ClusterType {
       COMPONENT,
       CATEGORY,
       SHARED_CLUSTER
     }
-
-    private final static int HISTOGRAM_PRINT_LIMIT = 50;
 
     @NotNull final Map<String, ObjectsStatistics> disposedButReferencedObjects = Maps.newHashMap();
 
@@ -273,7 +275,7 @@ public class ExtendedReportStatistics {
       writer.accept("      Histogram:");
       histogram.entrySet().stream()
         .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
-        .limit(HISTOGRAM_PRINT_LIMIT)
+        .limit(myConfig.histogramPrintLimit)
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                   e.getKey())));
@@ -281,7 +283,7 @@ public class ExtendedReportStatistics {
       writer.accept("      Studio objects histogram:");
       histogram.entrySet().stream().filter(e -> classNameIsStudioSource(e.getKey()))
         .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
-        .limit(HISTOGRAM_PRINT_LIMIT)
+        .limit(myConfig.histogramPrintLimit)
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                   e.getKey())));
@@ -295,7 +297,7 @@ public class ExtendedReportStatistics {
         .sorted(
           Comparator.comparingInt(
             (Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getObjectsCount()).reversed())
-        .limit(HISTOGRAM_PRINT_LIMIT)
+        .limit(myConfig.histogramPrintLimit)
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                   e.getKey())));

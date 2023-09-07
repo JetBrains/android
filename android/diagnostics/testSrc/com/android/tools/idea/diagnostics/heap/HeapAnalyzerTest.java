@@ -598,6 +598,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       Number of instances of tracked classes:
             com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D:4
       Platform object: 0B/0 objects[0B/0 objects]
+      ================= DISPOSED OBJECTS ================
+      Root 1:
+      [    1/ 50%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
+      [    1/ 50%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      Root 2:
+      [    1/ 50%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      [    1/ 50%/   16B]       24B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
       ======== INSTANCES OF EACH NOMINATED CLASS ========
       Nominated classes:
        --> [96B/4 objects] [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
@@ -633,15 +641,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       [    2/ 66%/   32B]       32B/2 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
       Root 2:
       [    1/ 33%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
-      [    1/ 33%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-      ================= DISPOSED OBJECTS ================
-      Root 1:
-      [    1/ 50%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
-      [    1/ 50%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-      Root 2:
-      [    1/ 50%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/ 50%/   16B]       24B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
+      [    1/ 33%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
   }
 
   @Test

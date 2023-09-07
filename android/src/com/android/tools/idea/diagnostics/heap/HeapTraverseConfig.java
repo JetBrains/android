@@ -21,10 +21,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class HeapTraverseConfig {
 
+  private final static int DEFAULT_HISTOGRAM_PRINT_LIMIT = 50;
+
   @NotNull
   private final ComponentsSet componentsSet;
   final boolean collectHistograms;
   final boolean collectDisposerTreeInfo;
+  final int histogramPrintLimit;
   final boolean collectObjectTreesData;
   @NotNull
   final List<ComponentsSet.Component> exceededComponents;
@@ -32,14 +35,16 @@ public class HeapTraverseConfig {
   public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
                             boolean collectHistograms,
                             boolean collectDisposerTreeInfo) {
-    this(componentsSet, collectHistograms, collectDisposerTreeInfo, false, Collections.emptyList());
+    this(componentsSet, collectHistograms, collectDisposerTreeInfo, DEFAULT_HISTOGRAM_PRINT_LIMIT, false, Collections.emptyList());
   }
 
   public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
                             boolean collectHistograms,
                             boolean collectDisposerTreeInfo,
+                            int histogramPrintLimit,
                             boolean collectObjectTreesData,
                             @NotNull final List<ComponentsSet.Component> exceededComponents) {
+    this.histogramPrintLimit = histogramPrintLimit;
     this.componentsSet = componentsSet;
     this.collectHistograms = collectHistograms;
     this.collectDisposerTreeInfo = collectDisposerTreeInfo;
