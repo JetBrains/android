@@ -199,7 +199,7 @@ def move_project_kotlinc_opts_into_modules(project: JpsProject):
     kotlin_facet = create_kotlin_facet_from_project_settings(project)
     for module in project.modules:
         facet_manager = get_or_create_child(module.xml.getroot(), "component", name="FacetManager")
-        if not facet_manager.find(f"./facet[@type='kotlin-language']"):
+        if facet_manager.find(f"./facet[@type='kotlin-language']") is None:
             facet_manager.append(copy.deepcopy(kotlin_facet))
 
 
