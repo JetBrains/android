@@ -174,7 +174,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
         data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
         data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
       }.build()
-    }.withProjectId(data))
+    }.withProjectId(data, "project_path"))
   }
 
   private fun Map<String, Any>.getBoolean(metric: BooleanMetrics): Boolean? {
@@ -325,8 +325,8 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
    */
-  private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>): AndroidStudioEvent.Builder {
-    val id = data["project"] as? String? ?: return this
+  private fun AndroidStudioEvent.Builder.withProjectId(data: Map<String, Any>, key: String = "project"): AndroidStudioEvent.Builder {
+    val id = data[key] as? String? ?: return this
     val eventLogConfiguration = EventLogConfiguration.getInstance().getOrCreate("FUS")
     val project = ProjectManager.getInstance().openProjects
       .firstOrNull { eventLogConfiguration.anonymize(it.getProjectCacheFileName()) == id }
