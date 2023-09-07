@@ -83,14 +83,6 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   override fun cancel(
     event: InteractionEvent
   ) { //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.info.x, event.info.y, event.info.modifiersEx)
-  }
-
-  override fun cancel(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
-  ) {
     sceneView.selectionModel.clear()
   }
 

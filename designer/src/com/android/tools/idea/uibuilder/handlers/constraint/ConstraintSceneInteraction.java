@@ -48,8 +48,4 @@ public class ConstraintSceneInteraction extends SceneInteraction {
     }
   }
 
-  @Override
-  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    super.cancel(x, y, modifiersEx);
-  }
 }

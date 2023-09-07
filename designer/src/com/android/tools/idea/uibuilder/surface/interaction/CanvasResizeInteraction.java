@@ -305,11 +305,6 @@ public class CanvasResizeInteraction extends Interaction {
   @Override
   public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
-  }
-
-  @Override
-  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
   }
 

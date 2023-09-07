@@ -98,9 +98,7 @@ class PanInteraction(private val pannable: Pannable) : Interaction() {
     end(event.info.x, event.info.y, event.info.modifiersEx)
   }
 
-  override fun cancel(event: InteractionEvent) {
-    cancel(event.info.x, event.info.y, event.info.modifiersEx)
-  }
+  override fun cancel(event: InteractionEvent) {}
 
   override fun getCursor(): Cursor? =
     AdtUiCursorsProvider.getInstance()

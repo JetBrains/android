@@ -279,21 +279,16 @@ public class DragDropInteraction extends Interaction {
   @Override
   public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
-    if (event instanceof DropEvent) {
-      NlDropEvent nlDropEvent = new NlDropEvent(((DropEvent)event).getEventObject());
-      nlDropEvent.reject();
-    }
-  }
-
-  @Override
-  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    moveTo(x, y, modifiersEx, false);
-    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
+    moveTo(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx(), false);
+    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(event.getInfo().getX(), event.getInfo().getY());
     if (myDragHandler != null) {
       myDragHandler.cancel();
     }
     stopDragDropInteraction();
+    if (event instanceof DropEvent) {
+      NlDropEvent nlDropEvent = new NlDropEvent(((DropEvent)event).getEventObject());
+      nlDropEvent.reject();
+    }
   }
 
   @Nullable

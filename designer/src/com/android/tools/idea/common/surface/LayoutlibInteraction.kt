@@ -65,10 +65,6 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   }
 
   override fun cancel(event: InteractionEvent) {
-    cancel(event.info.x, event.info.y, event.info.modifiersEx)
-  }
-
-  override fun cancel(x: Int, y: Int, modifiersEx: Int) {
     sceneView.scene.mouseCancel()
     sceneView.surface.repaint()
   }
