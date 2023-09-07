@@ -246,7 +246,22 @@ public class DragDropInteraction extends Interaction {
     InsertType insertType = finishDropInteraction(location.x, location.y, dropEvent.getDropAction(), dropEvent.getTransferable());
     if (insertType != null) {
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      end(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx());
+      moveTo(dropEvent.getLocation().x, dropEvent.getLocation().y, event.getInfo().getModifiersEx(), true);
+      boolean hasDragHandler = myDragHandler != null;
+      mySceneView = myDesignSurface.getSceneViewAtOrPrimary(dropEvent.getLocation().x, dropEvent.getLocation().y);
+      if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
+        mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
+
+        // We need to clear the selection otherwise the targets for the newly component are not added until
+        // another component is selected and then this one reselected
+        mySceneView.getSelectionModel().clear();
+        // Update the scene hierarchy to add the new targets
+        mySceneView.getSceneManager().update();
+        myDragReceiver.updateTargets();
+        // Do not select the dragged components here
+        // These components are either already selected, or they are being created will be selected later
+      }
+      stopDragDropInteraction();
       nlDropEvent.accept(insertType);
       nlDropEvent.complete();
     }
@@ -254,26 +269,6 @@ public class DragDropInteraction extends Interaction {
       cancel(event);
       nlDropEvent.reject();
     }
-  }
-
-  @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    moveTo(x, y, modifiersEx, true);
-    boolean hasDragHandler = myDragHandler != null;
-    mySceneView = myDesignSurface.getSceneViewAtOrPrimary(x, y);
-    if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
-      mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
-
-      // We need to clear the selection otherwise the targets for the newly component are not added until
-      // another component is selected and then this one reselected
-      mySceneView.getSelectionModel().clear();
-      // Update the scene hierarchy to add the new targets
-      mySceneView.getSceneManager().update();
-      myDragReceiver.updateTargets();
-      // Do not select the dragged components here
-      // These components are either already selected, or they are being created will be selected later
-    }
-    stopDragDropInteraction();
   }
 
   @Override

@@ -274,18 +274,12 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    end(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
-  }
-
-  @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
+    // Set the surface in resize mode, so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
     myDesignSurface.setScrollableViewMinSize(new Dimension(0, 0));
 
-    int androidX = Coordinates.getAndroidX(myScreenView, x);
-    int androidY = Coordinates.getAndroidY(myScreenView, y);
+    int androidX = Coordinates.getAndroidX(myScreenView, event.getInfo().getX());
+    int androidY = Coordinates.getAndroidY(myScreenView, event.getInfo().getY());
 
     if (androidX < 0 || androidY < 0) {
       myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);

@@ -94,9 +94,7 @@ class PanInteraction(private val pannable: Pannable) : Interaction() {
     }
   }
 
-  override fun commit(event: InteractionEvent) {
-    end(event.info.x, event.info.y, event.info.modifiersEx)
-  }
+  override fun commit(event: InteractionEvent) {}
 
   override fun cancel(event: InteractionEvent) {}
 
