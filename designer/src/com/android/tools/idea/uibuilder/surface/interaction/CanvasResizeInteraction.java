@@ -220,41 +220,38 @@ public class CanvasResizeInteraction extends Interaction {
   public void update(@NotNull InteractionEvent event) {
     if (event instanceof MouseDraggedEvent) {
       MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
-      update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
-    }
-  }
-
-  @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    if (myOriginalDevice.isScreenRound()) {
-      // Force aspect preservation
-      int deltaX = x - myStartX;
-      int deltaY = y - myStartY;
-      if (deltaX > deltaY) {
-        y = myStartY + deltaX;
+      int x = mouseEvent.getX();
+      int y = mouseEvent.getY();
+      if (myOriginalDevice.isScreenRound()) {
+        // Force aspect preservation
+        int deltaX = x - myStartX;
+        int deltaY = y - myStartY;
+        if (deltaX > deltaY) {
+          y = myStartY + deltaX;
+        }
+        else {
+          x = myStartX + deltaY;
+        }
       }
-      else {
-        x = myStartX + deltaY;
+
+      snapToDevice(x, y);
+
+      Dimension viewSize = myDesignSurface.getViewSize();
+      int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
+      int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+      if (myCurrentX < maxX &&
+          myCurrentY < maxY &&
+          (myCurrentX + myResizeTriggerThreshold * 2 > viewSize.getWidth() ||
+           myCurrentY + myResizeTriggerThreshold * 2 > viewSize.getHeight())) {
+        // Extend the scrollable area of the surface to accommodate for the resize
+        myDesignSurface.setScrollableViewMinSize(
+          new Dimension(myCurrentX + myResizeTriggerThreshold, myCurrentY + myResizeTriggerThreshold));
+        myDesignSurface.validateScrollArea();
+        myUpdateQueue.queue(myLayerUpdate);
       }
+
+      myUpdateQueue.queue(myPositionUpdate);
     }
-
-    snapToDevice(x, y);
-    super.update(myCurrentX, myCurrentY, modifiersEx);
-
-    Dimension viewSize = myDesignSurface.getViewSize();
-    int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
-    int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-    if (myCurrentX < maxX &&
-        myCurrentY < maxY &&
-        (myCurrentX + myResizeTriggerThreshold * 2 > viewSize.getWidth() ||
-         myCurrentY + myResizeTriggerThreshold * 2 > viewSize.getHeight())) {
-      // Extend the scrollable area of the surface to accommodate for the resize
-      myDesignSurface.setScrollableViewMinSize(new Dimension(myCurrentX + myResizeTriggerThreshold, myCurrentY + myResizeTriggerThreshold));
-      myDesignSurface.validateScrollArea();
-      myUpdateQueue.queue(myLayerUpdate);
-    }
-
-    myUpdateQueue.queue(myPositionUpdate);
   }
 
   private void snapToDevice(int x, int y) {

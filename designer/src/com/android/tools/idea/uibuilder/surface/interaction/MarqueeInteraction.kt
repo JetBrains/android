@@ -29,7 +29,6 @@ import com.android.tools.idea.common.surface.SceneView
 import com.intellij.util.containers.ContainerUtil
 import java.awt.Cursor
 import java.awt.Graphics2D
-import org.intellij.lang.annotations.JdkConstants
 
 /**
  * A [MarqueeInteraction] is an interaction for swiping out a selection rectangle. With a modifier
@@ -50,31 +49,26 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   override fun update(event: InteractionEvent) {
     if (event is MouseDraggedEvent) {
       val mouseEvent = event.eventObject
-      update(mouseEvent.x, mouseEvent.y, mouseEvent.modifiersEx)
+      if (overlay == null) {
+        return
+      }
+      val x = mouseEvent.x
+      val y = mouseEvent.y
+      val xp = Math.min(x, myStartX)
+      val yp = Math.min(y, myStartY)
+      val w = Math.abs(x - myStartX)
+      val h =
+        Math.abs(y - myStartY) // Convert to Android coordinates and compute selection overlaps
+      val ax = Coordinates.getAndroidXDip(sceneView, xp)
+      val ay = Coordinates.getAndroidYDip(sceneView, yp)
+      val aw = Coordinates.getAndroidDimensionDip(sceneView, w)
+      val ah = Coordinates.getAndroidDimensionDip(sceneView, h)
+      overlay!!.updateValues(xp, yp, w, h, x, y, aw, ah)
+      val within: Collection<SceneComponent> = sceneView.scene.findWithin(ax, ay, aw, ah)
+      val result = ContainerUtil.map(within) { it.nlComponent }
+      sceneView.selectionModel.setSelection(result)
+      repaint()
     }
-  }
-
-  override fun update(
-    @SwingCoordinate x: Int,
-    @SwingCoordinate y: Int,
-    @JdkConstants.InputEventMask modifiersEx: Int
-  ) {
-    if (overlay == null) {
-      return
-    }
-    val xp = Math.min(x, myStartX)
-    val yp = Math.min(y, myStartY)
-    val w = Math.abs(x - myStartX)
-    val h = Math.abs(y - myStartY) // Convert to Android coordinates and compute selection overlaps
-    val ax = Coordinates.getAndroidXDip(sceneView, xp)
-    val ay = Coordinates.getAndroidYDip(sceneView, yp)
-    val aw = Coordinates.getAndroidDimensionDip(sceneView, w)
-    val ah = Coordinates.getAndroidDimensionDip(sceneView, h)
-    overlay!!.updateValues(xp, yp, w, h, x, y, aw, ah)
-    val within: Collection<SceneComponent> = sceneView.scene.findWithin(ax, ay, aw, ah)
-    val result = ContainerUtil.map(within) { it.nlComponent }
-    sceneView.selectionModel.setSelection(result)
-    repaint()
   }
 
   override fun commit(event: InteractionEvent) { // Do nothing

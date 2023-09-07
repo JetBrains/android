@@ -197,7 +197,7 @@ public class DragDropInteraction extends Interaction {
       }
 
       //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-      update(location.x, location.y, event.getInfo().getModifiersEx());
+      moveTo(location.x, location.y, event.getInfo().getModifiersEx(), false);
 
       if (acceptsDrop()) {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
@@ -214,11 +214,6 @@ public class DragDropInteraction extends Interaction {
         nlDropEvent.reject();
       }
     }
-  }
-
-  @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-    moveTo(x, y, modifiersEx, false);
   }
 
   /**
