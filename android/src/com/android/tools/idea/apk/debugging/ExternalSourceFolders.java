@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.debugging;
 
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.apk.ContentEntryUtil.findParentContentEntry;
 import static com.intellij.ide.util.projectWizard.importSources.JavaSourceRootDetectionUtil.suggestRoots;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.apk;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -33,9 +33,9 @@ import java.util.List;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 /**
- * Tests for {@link ContentEntries}.
+ * Tests for {@link ContentEntryUtil}.
  */
-public class ContentEntriesTest extends PlatformTestCase {
+public class ContentEntryUtilTest extends PlatformTestCase {
   public void testFindContentEntryWithFileInContentEntry() {
     List<ContentEntry> contentEntries = new ArrayList<>();
     ContentEntry contentEntry = createContentEntry(getModule());
@@ -45,7 +45,7 @@ public class ContentEntriesTest extends PlatformTestCase {
     contentEntries.add(createContentEntry(module2));
 
     File fakeLibraryPath = createFakeLibraryIn(contentEntry);
-    ContentEntry found = ContentEntries.findParentContentEntry(fakeLibraryPath, contentEntries.stream());
+    ContentEntry found = ContentEntryUtil.findParentContentEntry(fakeLibraryPath, contentEntries.stream());
     assertSame(contentEntry, found);
   }
 
@@ -59,14 +59,14 @@ public class ContentEntriesTest extends PlatformTestCase {
     // This file exists outside the project. Should be in any content roots.
     File fakeLibraryPath = createFakeLibraryOutsideProject();
 
-    ContentEntry found = ContentEntries.findParentContentEntry(fakeLibraryPath, contentEntries.stream());
+    ContentEntry found = ContentEntryUtil.findParentContentEntry(fakeLibraryPath, contentEntries.stream());
     assertNull(found);
   }
 
   public void testIsPathInContentEntryWithFileInContentEntry() {
     ContentEntry contentEntry = createContentEntry(getModule());
     File fakeLibraryPath = createFakeLibraryIn(contentEntry);
-    assertTrue(ContentEntries.isPathInContentEntry(fakeLibraryPath, contentEntry));
+    assertTrue(ContentEntryUtil.isPathInContentEntry(fakeLibraryPath, contentEntry));
   }
 
   @NotNull
@@ -80,7 +80,7 @@ public class ContentEntriesTest extends PlatformTestCase {
   public void testIsPathInContentEntryWithFileNotInContentEntry() throws IOException {
     ContentEntry contentEntry = createContentEntry(getModule());
     File fakeLibraryPath = createFakeLibraryOutsideProject();
-    assertFalse(ContentEntries.isPathInContentEntry(fakeLibraryPath, contentEntry));
+    assertFalse(ContentEntryUtil.isPathInContentEntry(fakeLibraryPath, contentEntry));
   }
 
   @NotNull

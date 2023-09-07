@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.util;
+package com.android.tools.idea.apk;
 
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.urlToPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
-public final class ContentEntries {
-  private ContentEntries() {
+public final class ContentEntryUtil {
+  private ContentEntryUtil() {
   }
 
   @Nullable
@@ -40,17 +39,9 @@ public final class ContentEntries {
     return optional.isPresent() ? optional.get() : null;
   }
 
-  @NotNull
-  public static Collection<ContentEntry> findChildContentEntries(@NotNull File path, @NotNull Stream<ContentEntry> contentEntries) {
-    return contentEntries.filter(contentEntry -> isContentEntryUnderPath(path, contentEntry)).collect(Collectors.toList());
-  }
-
+  @VisibleForTesting
   public static boolean isPathInContentEntry(@NotNull File path, @NotNull ContentEntry contentEntry) {
     return isAncestor(findContentEntryPath(contentEntry), path, false);
-  }
-
-  private static boolean isContentEntryUnderPath(@NotNull File path, @NotNull ContentEntry contentEntry) {
-    return isAncestor(path, findContentEntryPath(contentEntry), false);
   }
 
   @NotNull
