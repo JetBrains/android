@@ -27,12 +27,21 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.descendants
 import com.intellij.psi.util.parentOfType
 import icons.StudioIcons
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KtType
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveMainReference
 import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
@@ -40,6 +49,8 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 
 const val FQNAME = "androidx.compose.runtime.State"
+
+private val CLASS_ID_OF_STATE = ClassId.topLevel(FqName(FQNAME))
 
 /**
  * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside `@Composable` functions.
@@ -78,7 +89,7 @@ class ComposeStateReadAnnotator : Annotator {
     return (parent as? KtDotQualifiedExpression)
       ?.takeIf { it.selectorExpression == this }
       ?.receiverExpression
-      ?.takeIf { it.resolveExprType()?.isStateType() == true }
+      ?.takeIf { it.isStateType() }
       ?.let {
         when (it) {
           is KtDotQualifiedExpression -> it.selectorExpression
@@ -96,13 +107,29 @@ class ComposeStateReadAnnotator : Annotator {
    * `val foo by stateOf(...)`
    */
   private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean {
-    return analyze(this) {
-      (resolveMainReference() as? KtProperty)?.delegateExpression?.resolveExprType()?.isStateType() ?: false
-    }
+    return (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType() ?: false
   }
 
   private fun KotlinType.isStateType() =
     (fqName?.asString() == FQNAME || supertypes().any { it.fqName?.asString() == FQNAME })
+
+  private fun KtAnalysisSession.isStateType(type: KtType): Boolean = if (type is KtNonErrorClassType) {
+    type.classId == CLASS_ID_OF_STATE || type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == CLASS_ID_OF_STATE }
+  } else {
+    false
+  }
+
+  @OptIn(KtAllowAnalysisOnEdt::class)
+  private fun KtExpression.isStateType(): Boolean =
+    if (isK2Plugin()) {
+      allowAnalysisOnEdt {
+        analyze(this) {
+          getKtType()?.let { isStateType(it) } ?: false
+        }
+      }
+    } else {
+      resolveExprType()?.isStateType() ?: false
+    }
 
   private fun KtNameReferenceExpression.isAssignee(): Boolean {
     return parentOfType<KtBinaryExpression>()
