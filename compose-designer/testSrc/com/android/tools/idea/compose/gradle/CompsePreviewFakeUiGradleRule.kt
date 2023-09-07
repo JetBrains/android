@@ -40,12 +40,17 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.image.BufferedImage
+import java.util.concurrent.CountDownLatch
 import javax.swing.JPanel
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Assert
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.rules.RuleChain
 import org.junit.runner.Description
 
@@ -149,24 +154,30 @@ class ComposePreviewFakeUiGradleRule(
     setUpPreview()
   }
 
-  /** Wait for any refresh to start running. */
-  private suspend fun waitForAnyRefreshToStart(timeout: Duration = 5.seconds) {
-    refreshManager.isRefreshingFlow.awaitStatus("Timeout waiting for refresh to start", timeout) {
-      isRefreshing ->
-      isRefreshing
+  /** Executes [runnable], expecting it to cause a refresh to start running. */
+  private suspend fun waitForAnyRefreshToStart(
+    timeout: Duration = DEFAULT_REFRESH_TIMEOUT,
+    runnable: suspend () -> Unit
+  ) = coroutineScope {
+    val countDownLatch = CountDownLatch(1)
+    // Make sure to start waiting for the change before triggering it
+    val awaitingJob = launch {
+      refreshManager.isRefreshingFlow.awaitStatus(
+        "Timeout waiting for refresh to start",
+        timeout
+      ) { isRefreshing ->
+        isRefreshing
+      }
     }
+    runnable()
+    awaitingJob.join()
+    assertTrue(awaitingJob.isCompleted)
+    // Make sure that the job hasn't failed, i.e. that a refresh started
+    assertFalse(awaitingJob.isCancelled)
   }
 
   /** Wait for all running refreshes to complete. */
-  suspend fun waitForAllRefreshesToFinish(
-    timeout: Duration = DEFAULT_REFRESH_TIMEOUT,
-    aRefreshMustStart: Boolean = false
-  ) {
-    try {
-      waitForAnyRefreshToStart()
-    } catch (t: Throwable) {
-      if (aRefreshMustStart) throw t
-    }
+  suspend fun waitForAllRefreshesToFinish(timeout: Duration = DEFAULT_REFRESH_TIMEOUT) {
     refreshManager.isRefreshingFlow.awaitStatus("Timeout waiting for refresh to finish", timeout) {
       isRefreshing ->
       !isRefreshing
@@ -180,11 +191,16 @@ class ComposePreviewFakeUiGradleRule(
    */
   suspend fun runAndWaitForRefresh(
     timeout: Duration = DEFAULT_BUILD_AND_REFRESH_TIMEOUT,
+    aRefreshMustStart: Boolean = true,
     runnable: suspend () -> Unit
   ) {
     waitForAllRefreshesToFinish()
-    runnable()
-    waitForAllRefreshesToFinish(timeout, aRefreshMustStart = true)
+    try {
+      waitForAnyRefreshToStart(runnable = runnable)
+    } catch (t: Throwable) {
+      if (aRefreshMustStart) throw t
+    }
+    waitForAllRefreshesToFinish(timeout)
   }
 
   /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */
@@ -199,13 +215,14 @@ class ComposePreviewFakeUiGradleRule(
     withContext(AndroidDispatchers.uiThread) {
       fakeUi.root.validate()
       if (zoomToFit) {
-        previewView.mainSurface.zoomToFit()
-        fakeUi.root.validate()
+        // zoom to fit might (but not always) trigger a render quality change
+        runAndWaitForRefresh(aRefreshMustStart = false) {
+          previewView.mainSurface.zoomToFit()
+          fakeUi.root.validate()
+        }
       }
       fakeUi.layoutAndDispatchEvents()
     }
-    // zoom to fit might trigger a render quality change
-    waitForAllRefreshesToFinish(aRefreshMustStart = false)
   }
 
   fun createComposePreviewRepresentation(
