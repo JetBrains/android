@@ -60,15 +60,18 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 import java.io.File
 import java.util.Arrays
 import java.util.Collections
 import java.util.stream.Collectors
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 
-class UnusedResourcesProcessor(project: Project, private val myModules: Array<Module>, private val myFilter: String?) :
-  BaseRefactoringProcessor(project, null) {
+class UnusedResourcesProcessor(
+  project: Project,
+  private val myModules: Array<Module>,
+  private val myFilter: String?
+) : BaseRefactoringProcessor(project, null) {
   var elements = PsiElement.EMPTY_ARRAY
     private set
   private var myIncludeIds = false
@@ -97,7 +100,9 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
     return UsageViewUtil.removeDuplicatedUsages(result)
   }
 
-  private fun computeUnusedDeclarationElements(map: MutableMap<Issue, Map<File, List<LintProblemData>>>): List<PsiElement?> {
+  private fun computeUnusedDeclarationElements(
+    map: MutableMap<Issue, Map<File, List<LintProblemData>>>
+  ): List<PsiElement?> {
     val elements: MutableList<PsiElement?> = ArrayList()
 
     // Make sure lint didn't put extra issues into the map
@@ -115,7 +120,9 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
         if (!files.containsKey(file)) {
           val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file)
           if (virtualFile != null) {
-            if (!virtualFile.isDirectory) { // Gradle model errors currently don't have source positions
+            if (
+              !virtualFile.isDirectory
+            ) { // Gradle model errors currently don't have source positions
               val psiFile = manager.findFile(virtualFile)
               if (psiFile != null) {
                 files[file] = psiFile
@@ -166,10 +173,11 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
       if (fileListMap != null && !fileListMap.isEmpty()) {
         if (!files.isEmpty()) {
           for (file in files.keys) {
-            val psiFile = files[file]
-              ?: // Ignore for now; currently this happens for build.gradle resValue definitions
-              // where we only had the project directory as the location from the Gradle model
-              continue
+            val psiFile =
+              files[file]
+                ?: // Ignore for now; currently this happens for build.gradle resValue definitions
+                // where we only had the project directory as the location from the Gradle model
+                continue
             if (excludedFiles.contains(psiFile)) {
               continue
             }
@@ -191,29 +199,44 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
                 // Attempt to find the resource in the build file. If we can't,
                 // we'll ignore this resource (it would be dangerous to just delete the
                 // file; see for example http://b.android.com/220069.)
-                if ((psiFile is GroovyFile || psiFile is KtFile) &&
-                  (psiFile.name.endsWith(SdkConstants.EXT_GRADLE) || psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS))
+                if (
+                  (psiFile is GroovyFile || psiFile is KtFile) &&
+                    (psiFile.name.endsWith(SdkConstants.EXT_GRADLE) ||
+                      psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS))
                 ) {
-                  val gradleBuildModel = GradleModelProvider.getInstance().parseBuildFile(psiFile.virtualFile, myProject)
+                  val gradleBuildModel =
+                    GradleModelProvider.getInstance().parseBuildFile(psiFile.virtualFile, myProject)
 
                   // Get all the resValue declared within the android block.
                   val androidElement = gradleBuildModel.android()
                   val resValues = androidElement.defaultConfig().resValues()
                   resValues.addAll(
-                    androidElement.productFlavors().stream().flatMap { e: ProductFlavorModel -> e.resValues().stream() }
-                      .collect(Collectors.toList()))
+                    androidElement
+                      .productFlavors()
+                      .stream()
+                      .flatMap { e: ProductFlavorModel -> e.resValues().stream() }
+                      .collect(Collectors.toList())
+                  )
                   resValues.addAll(
-                    androidElement.buildTypes().stream().flatMap { e: BuildTypeModel -> e.resValues().stream() }
-                      .collect(Collectors.toList()))
+                    androidElement
+                      .buildTypes()
+                      .stream()
+                      .flatMap { e: BuildTypeModel -> e.resValues().stream() }
+                      .collect(Collectors.toList())
+                  )
                   for (resValue in resValues) {
                     val typeString: Any = resValue.type()
                     val nameString: Any = resValue.name()
                     // See if this is one of the unused resources
-                    val lintProblems = fileListMap[VfsUtilCore.virtualToIoFile(psiFile.virtualFile)]!!
+                    val lintProblems =
+                      fileListMap[VfsUtilCore.virtualToIoFile(psiFile.virtualFile)]!!
                     if (problems != null) {
                       for (problem in lintProblems) {
                         val unusedResource = getResource(problem)
-                        if (unusedResource != null && unusedResource == SdkConstants.R_PREFIX + typeString + '.' + nameString) {
+                        if (
+                          unusedResource != null &&
+                            unusedResource == SdkConstants.R_PREFIX + typeString + '.' + nameString
+                        ) {
                           if (resValue.getModel().getPsiElement() != null) {
                             elements.add(resValue.getModel().getPsiElement())
                             // Keep track of the current buildModel to apply refactoring later on.
@@ -276,12 +299,15 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
       starts.sort(Collections.reverseOrder())
       for (offset in starts) {
         if (psiFile.isValid()) {
-          val attribute = PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute::class.java, false)
+          val attribute =
+            PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute::class.java, false)
           var remove: PsiElement? = attribute
           if (attribute == null) {
-            remove = PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlTag::class.java, false)
+            remove =
+              PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlTag::class.java, false)
           } else if (SdkConstants.ATTR_ID != attribute.localName) {
-            // If deleting a resource, delete the whole resource element, except for attribute android:id="" declarations
+            // If deleting a resource, delete the whole resource element, except for attribute
+            // android:id="" declarations
             // where we remove the attribute, not the tag
             remove = PsiTreeUtil.getParentOfType(attribute, XmlTag::class.java)
           }
@@ -296,14 +322,12 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
   private fun computeUnusedMap(): MutableMap<Issue, Map<File, List<LintProblemData>>> {
     val map: MutableMap<Issue, Map<File, List<LintProblemData>>> = Maps.newHashMap()
     val issues: Set<Issue>
-    issues = if (myIncludeIds) {
-      ImmutableSet.of(
-        UnusedResourceDetector.ISSUE,
-        UnusedResourceDetector.ISSUE_IDS
-      )
-    } else {
-      ImmutableSet.of(UnusedResourceDetector.ISSUE)
-    }
+    issues =
+      if (myIncludeIds) {
+        ImmutableSet.of(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
+      } else {
+        ImmutableSet.of(UnusedResourceDetector.ISSUE)
+      }
     val scope = AnalysisScope(myProject)
     val unusedWasEnabled = UnusedResourceDetector.ISSUE.isEnabledByDefault()
     val unusedIdsWasEnabled = UnusedResourceDetector.ISSUE_IDS.isEnabledByDefault()
@@ -377,8 +401,7 @@ class UnusedResourcesProcessor(project: Project, private val myModules: Array<Mo
         if (element != null && element.isValid) {
           if (myBuildModelMap[element] != null && myBuildModelMap[element]!!.isModified()) {
             WriteCommandAction.runWriteCommandAction(myProject) {
-              myBuildModelMap[element]!!
-                .applyChanges()
+              myBuildModelMap[element]!!.applyChanges()
             }
           } else {
             element.delete()
