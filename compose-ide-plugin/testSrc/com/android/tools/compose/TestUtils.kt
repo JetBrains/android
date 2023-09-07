@@ -48,9 +48,6 @@ private val suppressKotlinVersionCheckOption = "plugin:${
   ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName
 }=true"
 
-/**
- * TODO(298705216): When we have APIs to add compiler options via [AndroidProjectRule], replace this function with the APIs.
- */
 internal fun setUpCompilerArgumentsForComposeCompilerPlugin(project: Project) {
   if (isK2Plugin()) {
     KotlinCommonCompilerArgumentsHolder.getInstance(project).update {

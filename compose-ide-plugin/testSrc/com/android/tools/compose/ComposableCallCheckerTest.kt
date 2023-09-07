@@ -15,8 +15,6 @@
  */
 package com.android.tools.compose
 
-import androidx.compose.compiler.plugins.kotlin.k2.ComposableFunctionCallChecker
-import androidx.compose.compiler.plugins.kotlin.k2.ComposablePropertyAccessExpressionChecker
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
