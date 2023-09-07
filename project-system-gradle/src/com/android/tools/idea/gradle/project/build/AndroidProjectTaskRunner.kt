@@ -33,6 +33,16 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
     return executeTasks(project, tasks.filterIsInstance<ModuleBuildTask>())
   }
 
+  override fun canRun(project: Project, projectTask: ProjectTask, context: ProjectTaskContext?): Boolean {
+    val configuration = context?.runConfiguration
+    return if (configuration is JavaScratchConfiguration) {
+      false
+    }
+    else {
+      canRun(projectTask)
+    }
+  }
+
   override fun canRun(projectTask: ProjectTask): Boolean {
     if (Registry.`is`("android.task.runner.restricted")) {
       assert(!IdeInfo.getInstance().isAndroidStudio) { "This code is not expected to be executed in Android Studio" }
