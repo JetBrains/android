@@ -37,6 +37,5 @@ Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thi
 
   Agent::Run(args);
   Log::I("Screen sharing agent stopped");
-  // Exit explicitly to bypass the final JVM cleanup that for some unclear reason sometimes crashes with SIGSEGV.
-  exit(EXIT_SUCCESS);
+  Jvm::Exit(EXIT_SUCCESS);
 }

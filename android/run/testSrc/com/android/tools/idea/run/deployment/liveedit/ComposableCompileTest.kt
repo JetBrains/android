@@ -21,6 +21,7 @@ import com.intellij.psi.PsiFile
 import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -46,6 +47,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore // CLASS DIFFER ONLY
   fun simpleComposeChange() {
     val cache = initialCache(mapOf("ComposeSimple.kt" to """
       import androidx.compose.runtime.Composable
@@ -86,6 +88,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore // CLASS DIFFER ONLY
   fun simpleComposeNested() {
     val cache = initialCache(mapOf("ComposeNested.kt" to """
       import androidx.compose.runtime.Composable
@@ -105,6 +108,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore // Bug 298237095
   fun multipleEditsInOneUpdate() {
     val cache = initialCache(mapOf(
       "ComposeSimple.kt" to """
@@ -202,6 +206,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore // CLASS DIFFER ONLY
   fun sendAllThenOnlyChanges() {
     val cache = initialCache(mapOf(
       "ComposeSimple.kt" to """

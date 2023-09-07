@@ -325,6 +325,9 @@ public:
     return jni_env;
   }
 
+  // Calls the System.exit method.
+  [[noreturn]] static void Exit(int exitCode);
+
 private:
   friend class JClass;
 

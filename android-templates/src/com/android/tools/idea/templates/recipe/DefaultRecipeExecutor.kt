@@ -73,6 +73,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -88,14 +89,14 @@ import com.intellij.psi.XmlElementFactory
 import java.io.File
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 
+private val LOG = Logger.getInstance(DefaultRecipeExecutor::class.java)
+
 /**
  * Executor support for recipe instructions.
  *
  * Note: it tries to use [GradleBuildModel] for merging of Gradle files, but falls back on simple merging if it is unavailable.
  */
-class DefaultRecipeExecutor(
-  private val context: RenderingContext,
-  private val useVersionCatalog: Boolean = true) : RecipeExecutor {
+class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
   private val project: Project get() = context.project
   private val referencesExecutor: FindReferencesRecipeExecutor = FindReferencesRecipeExecutor(context)
   private val io: RecipeIO = if (context.dryRun) DryRunRecipeIO() else RecipeIO()
@@ -248,7 +249,7 @@ class DefaultRecipeExecutor(
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
     val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
-    if (useVersionCatalog) {
+    if (versionCatalogModel != null) {
       val referenceToPlugin = getOrAddPluginToVersionCatalog(versionCatalogModel, plugin, resolvedVersion)
       if (targetPluginModel == null && referenceToPlugin != null) {
         pluginsBlockToModify.applyPlugin(referenceToPlugin, applyFlag)
@@ -333,7 +334,7 @@ class DefaultRecipeExecutor(
         resolvedConfiguration = GRADLE_API_CONFIGURATION
     }
 
-    if (useVersionCatalog) {
+    if (versionCatalogModel != null) {
       val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
       if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null && referenceToDepToAdd != null) {
         buildModel.dependencies().addArtifact(resolvedConfiguration, referenceToDepToAdd)
@@ -358,7 +359,7 @@ class DefaultRecipeExecutor(
     // Note that unlike in addDependency, we allow adding a dependency to multiple configurations,
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
-    if (useVersionCatalog) {
+    if (versionCatalogModel != null) {
       val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
       if (referenceToDepToAdd != null) {
         buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
@@ -648,10 +649,14 @@ class DefaultRecipeExecutor(
 
     val defaultName = defaultPluginName(plugin)
     if (plugins().none { defaultPluginName(it.name().forceString()) == defaultName }) {
-      if (useVersionCatalog && referenceTo != null) {
+      if (versionCatalogModel != null && referenceTo != null) {
         applyPlugin(referenceTo, null)
       } else {
         applyPlugin(plugin)
+      }
+
+      if (versionCatalogModel == null && referenceTo != null) {
+        LOG.error("No Version Catalog model found, but we're trying to add a reference to a plugin: $referenceTo")
       }
     }
   }
