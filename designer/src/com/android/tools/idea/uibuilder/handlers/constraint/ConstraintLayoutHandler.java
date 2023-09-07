@@ -66,6 +66,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
@@ -1250,7 +1251,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         XmlTag tag = myComponent.getBackend().getTag();
         assert tag != null;
         ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();
-        ResourceValue unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
+        ResourceValueImpl unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
         unresolved.setValue(resourceRef);
         ResourceValue resolvedValue = resolver.resolveResValue(unresolved);
         String marginDp = getMarginInDp(resolvedValue);

@@ -600,7 +600,7 @@ public class AndroidJavaDocRenderer {
         if (value != null) {
           ResourceUrl parsed = ResourceUrl.parse(value);
           if (parsed != null) {
-            ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
+            ResourceValueImpl v = new ResourceValueImpl(urlToReference(url), null);
             v.setValue(url.toString());
             ResourceValue resourceValue = resolver.resolveResValue(v);
             if (resourceValue.getValue() != null) {
@@ -609,7 +609,7 @@ public class AndroidJavaDocRenderer {
           }
           return value;
         } else {
-          ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
+          ResourceValueImpl v = new ResourceValueImpl(urlToReference(url), null);
           v.setValue(url.toString());
           ResourceValue resourceValue = resolver.resolveResValue(v);
           if (resourceValue.getValue() != null) {
@@ -676,7 +676,7 @@ public class AndroidJavaDocRenderer {
                     ResourceValueRenderer renderer = create(resourceUrl.type, myModule, myConfiguration);
                     if (renderer != null && renderer.getClass() != this.getClass()) {
                       found = true;
-                      ResourceValue resolved = new ResourceValueImpl(urlToReference(resourceUrl), null);
+                      ResourceValueImpl resolved = new ResourceValueImpl(urlToReference(resourceUrl), null);
                       resolved.setValue(value);
                       renderer.renderToHtml(builder, item, resourceUrl, false, resolved);
                       builder.newline();
