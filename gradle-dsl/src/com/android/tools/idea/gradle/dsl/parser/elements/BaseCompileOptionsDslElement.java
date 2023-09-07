@@ -46,9 +46,14 @@ public abstract class BaseCompileOptionsDslElement extends GradleDslBlockElement
     {"targetCompatibility", exactly(1), TARGET_COMPATIBILITY, SET}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"sourceCompatibility", property, SOURCE_COMPATIBILITY, VAR},
+    {"targetCompatibility", property, TARGET_COMPATIBILITY, VAR},
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   protected BaseCompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

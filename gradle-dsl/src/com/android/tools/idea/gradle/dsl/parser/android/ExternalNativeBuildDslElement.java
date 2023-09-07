@@ -17,19 +17,26 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ExternalNativeBuildDslElement> EXTERNAL_NATIVE_BUILD =
-    new PropertiesElementDescription<>("externalNativeBuild", ExternalNativeBuildDslElement.class, ExternalNativeBuildDslElement::new);
+    new PropertiesElementDescription<>("externalNativeBuild",
+                                       ExternalNativeBuildDslElement.class,
+                                       ExternalNativeBuildDslElement::new,
+                                       ExternalNativeBuildDslElementSchema::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"cmake", CMakeDslElement.CMAKE},
@@ -44,5 +51,25 @@ public final class ExternalNativeBuildDslElement extends GradleDslBlockElement {
 
   public ExternalNativeBuildDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  static final class ExternalNativeBuildDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, ExternalToModelMap.empty, ExternalToModelMap.empty, ExternalToModelMap.empty);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.ExternalNativeBuild";
+    }
   }
 }

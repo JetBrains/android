@@ -37,7 +37,9 @@ public abstract class GradlePropertiesDslElementSchema {
    * Method supposed to be override in children and returns all block element description for particular Dsl Element
    */
   @NotNull
-  protected abstract ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions();
+  protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+    return ImmutableMap.of();
+  }
 
   /**
    * Returns descriptions filtered by file type (Kts, Groovy, Toml). It is currently used for editor code suggestions
@@ -59,7 +61,9 @@ public abstract class GradlePropertiesDslElementSchema {
    * @return
    */
   @NotNull
-  public abstract ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind);
+  public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind){
+    return ExternalToModelMap.empty;
+  }
 
   /**
    * Returns full qualified class name for AGP DSL element.

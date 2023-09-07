@@ -210,6 +210,106 @@ class DeclarativeCompletionContributorTest {
     }
 
   @Test
+  fun testSuggestionsForAaptOptions() =
+    doTest("android.aaptOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "additionalParameters",
+        "cruncherEnabled",
+        "cruncherProcesses",
+      )
+    }
+
+  @Test
+  fun testSuggestionsForAdbOptions() =
+    doTest("android.adbOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "installOptions",
+        "timeOutInMs",
+      )
+    }
+
+  @Test
+  fun testSuggestionsForAndroidResources() =
+    doTest("android.androidResources.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "additionalParameters",
+        "cruncherEnabled"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForBuildFeatures() =
+    doTest("android.buildFeatures.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "compose",
+        "dataBinding"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForCompileOptions() =
+    doTest("android.compileOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "encoding",
+        "incremental"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForComposeOptions() =
+    doTest("android.composeOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).contains(
+        "kotlinCompilerExtensionVersion"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForLint() =
+    doTest("android.lint.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "abortOnError",
+        "absolutePaths"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForProductFlavor() =
+    doTest("android.productFlavors.main.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "applicationId",
+        "isDefault"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForCmakeBuild() =
+    doTest("android.externalNativeBuild.cmake.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "path",
+        "version"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForFlavoredNdkBuild() =
+    doTest("android.productFlavors.main.externalNativeBuild.ndkBuild.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "abiFilters",
+        "arguments"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForSourceSets() =
+    doTest("android.sourceSets.main.java.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "srcDirs",
+        "includes",
+        "excludes"
+      )
+    }
+
+  @Test
   fun testCompletionTableArray() =
     doCompletionTest(
       "plugi$caret",
@@ -259,6 +359,7 @@ class DeclarativeCompletionContributorTest {
       " [   plugin$caret]   ",
       " [[   plugins]]   \n$caret")
 
+  @Test
   fun testCompletionTableArray6() =
     doCompletionTest(
       """[[plu$caret # This is a [[comment]]""",

@@ -28,7 +28,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
   public static final PropertiesElementDescription<DefaultConfigDslElement> DEFAULT_CONFIG =
-    new PropertiesElementDescription<>("defaultConfig", DefaultConfigDslElement.class, DefaultConfigDslElement::new, DefaultConfigDslElementSchema::new);
+    new PropertiesElementDescription<>("defaultConfig",
+                                       DefaultConfigDslElement.class,
+                                       DefaultConfigDslElement::new,
+                                       DefaultConfigDslElementSchema::new);
 
   public DefaultConfigDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
@@ -49,8 +52,8 @@ public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
 
     @Nullable
     @Override
-    public  String getAgpDocClass(){
-      return null;
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.DefaultConfig";
     }
   }
 }

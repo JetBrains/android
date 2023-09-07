@@ -183,7 +183,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
 
     @NotNull
     @Override
-    public  String getAgpDocClass(){
+    public String getAgpDocClass() {
       return "com.android.build.api.dsl.ApplicationDefaultConfig";
     }
   }

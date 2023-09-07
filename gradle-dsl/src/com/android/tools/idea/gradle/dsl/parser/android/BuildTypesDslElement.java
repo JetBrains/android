@@ -67,27 +67,9 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
 
   public static final class BuildTypesDslElementSchema extends GradlePropertiesDslElementSchema {
     @Override
-    @NotNull
-    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
-      return ImmutableMap.of();
-    }
-
-    @Override
     @Nullable
     public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
       return BuildTypeDslElement.BUILD_TYPE;
-    }
-
-    @Override
-    @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
-      return ExternalToModelMap.empty;
-    }
-
-    @Nullable
-    @Override
-    public  String getAgpDocClass(){
-      return null;
     }
   }
 }

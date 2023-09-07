@@ -27,15 +27,20 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SigningConfigDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<SigningConfigDslElement> SIGNING_CONFIG =
-    new PropertiesElementDescription<>(null, SigningConfigDslElement.class, SigningConfigDslElement::new);
+    new PropertiesElementDescription<>(null,
+                                       SigningConfigDslElement.class,
+                                       SigningConfigDslElement::new,
+                                       SigningConfigDslElementSchema::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"keyAlias", property, KEY_ALIAS, VAR},
@@ -63,9 +68,17 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
     {"storeType", exactly(1), STORE_TYPE, SET},
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"keyAlias", property, KEY_ALIAS, VAR},
+    {"keyPassword", property, KEY_PASSWORD, VAR},
+    {"storeFile", property, STORE_FILE, VAR},
+    {"storePassword", property, STORE_PASSWORD, VAR},
+    {"storeType", property, STORE_TYPE, VAR},
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   @Nullable
@@ -90,5 +103,19 @@ public final class SigningConfigDslElement extends GradleDslBlockElement impleme
   public boolean isInsignificantIfEmpty() {
     // the debug signingConfig is automatically created
     return getName().equals("debug");
+  }
+
+  public static final class SigningConfigDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.com.android.build.api.dsl";
+    }
   }
 }

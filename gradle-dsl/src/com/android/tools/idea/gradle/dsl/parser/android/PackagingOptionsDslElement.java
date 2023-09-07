@@ -29,17 +29,25 @@ import com.android.tools.idea.gradle.dsl.parser.android.packagingOptions.Resourc
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class PackagingOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING_OPTIONS =
-    new PropertiesElementDescription<>("packagingOptions", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
+    new PropertiesElementDescription<>("packagingOptions",
+                                       PackagingOptionsDslElement.class,
+                                       PackagingOptionsDslElement::new,
+                                       PackagingOptionsDslElementSchema::new);
   public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING =
-    new PropertiesElementDescription<>("packaging", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
+    new PropertiesElementDescription<>("packaging",
+                                       PackagingOptionsDslElement.class,
+                                       PackagingOptionsDslElement::new,
+                                       PackagingOptionsDslElementSchema::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"doNotStrip", property, DO_NOT_STRIP, VAR},
@@ -63,6 +71,13 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
     {"pickFirst", exactly(1), PICK_FIRSTS, AUGMENT_LIST}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"doNotStrip", property, DO_NOT_STRIP, VAR},
+    {"excludes", property, EXCLUDES, VAR},
+    {"merges", property, MERGES, VAR},
+    {"pickFirsts", property, PICK_FIRSTS, VAR},
+  }).collect(toModelMap());
+
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"dex", DexDslElement.DEX},
     {"jniLibs", JniLibsDslElement.JNI_LIBS},
@@ -71,7 +86,7 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   @Override
@@ -81,5 +96,26 @@ public class PackagingOptionsDslElement extends GradleDslBlockElement {
 
   public PackagingOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class PackagingOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
+
+    @Override
+    @NotNull
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.Packaging";
+    }
   }
 }

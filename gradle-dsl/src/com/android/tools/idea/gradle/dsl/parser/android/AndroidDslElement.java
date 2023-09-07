@@ -172,8 +172,8 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
     @NotNull
     @Override
-    public  String getAgpDocClass(){
-        return "com.android.build.api.dsl.ApplicationExtension";
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.ApplicationExtension";
     }
   }
 

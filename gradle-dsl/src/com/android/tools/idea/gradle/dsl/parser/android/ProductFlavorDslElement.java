@@ -39,7 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class ProductFlavorDslElement extends AbstractProductFlavorDslElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<ProductFlavorDslElement> PRODUCT_FLAVOR =
-    new PropertiesElementDescription<>(null, ProductFlavorDslElement.class, ProductFlavorDslElement::new);
+    new PropertiesElementDescription<>(null,
+                                       ProductFlavorDslElement.class,
+                                       ProductFlavorDslElement::new,
+                                       ProductFlavorDslElementSchema::new);
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"initWith", exactly(1), INIT_WITH, OTHER},
@@ -87,5 +90,26 @@ public class ProductFlavorDslElement extends AbstractProductFlavorDslElement imp
   @Override
   public String getMethodName() {
     return methodName;
+  }
+
+
+  public static final class ProductFlavorDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.ProductFlavor";
+    }
   }
 }

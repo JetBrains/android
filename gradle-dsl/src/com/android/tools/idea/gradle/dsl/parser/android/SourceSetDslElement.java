@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -40,7 +41,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class SourceSetDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<SourceSetDslElement> SOURCE_SET =
-    new PropertiesElementDescription<>(null, SourceSetDslElement.class, SourceSetDslElement::new);
+    new PropertiesElementDescription<>(null,
+                                       SourceSetDslElement.class,
+                                       SourceSetDslElement::new,
+                                       SourceSetDslElementSchema::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aidl", SourceDirectoryDslElement.AIDL},
@@ -102,5 +106,25 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
   @Override
   public void setMethodName(@Nullable String value) {
     methodName = value;
+  }
+
+  public static final class SourceSetDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.AndroidSourceSet";
+    }
   }
 }
