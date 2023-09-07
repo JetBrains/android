@@ -164,18 +164,6 @@
     <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferAnnotationsAction">
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
     </action>
-    <action
-        id="SendFeedback"
-        class="com.android.tools.idea.actions.SendFeedbackAction"
-        overrides="true"
-        text="Submit _Feedback"
-        description="Submit feedback to the Android Studio team"/>
-    <action
-        id="CollectZippedLogs"
-        class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
-        overrides="true"
-        text="Collect Logs and Diagnostic Data"
-        description="Collect logs and diagnostic data"/>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>

@@ -139,6 +139,18 @@
             class="com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction"
             icon="AllIcons.ToolbarDecorator.Import"
             overrides="true"/>
+    <action
+        id="SendFeedback"
+        class="com.android.tools.idea.actions.SendFeedbackAction"
+        overrides="true"
+        text="Submit _Feedback"
+        description="Submit feedback to the Android Studio team"/>
+    <action
+        id="CollectZippedLogs"
+        class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
+        overrides="true"
+        text="Collect Logs and Diagnostic Data"
+        description="Collect logs and diagnostic data"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
