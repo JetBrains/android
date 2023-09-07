@@ -28,7 +28,6 @@ import com.android.tools.lint.checks.UnusedResourceDetector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Scope
-import com.google.common.collect.Lists
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -39,6 +38,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -55,6 +55,7 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
 import java.io.File
+import org.jetbrains.kotlin.ir.types.impl.IrErrorClassImpl.startOffset
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 
@@ -66,52 +67,44 @@ class UnusedResourcesProcessor(
 
   private var elements = PsiElement.EMPTY_ARRAY
   private var includeIds = false
-  private var cachedCommandName: String? = null
-  private val buildModelMap: MutableMap<PsiElement?, GradleBuildModel?> = mutableMapOf()
+  private val buildModelMap: MutableMap<PsiElement, GradleBuildModel> = mutableMapOf()
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
     UnusedResourcesUsageViewDescriptor(elements)
 
   public override fun findUsages(): Array<UsageInfo> {
-    val map = computeUnusedMap()
-    elements = computeUnusedDeclarationElements(map).toTypedArray()
+    elements = computeUnusedDeclarationElements()
     val result = elements.map { UsageInfo(it) }.toTypedArray()
     return UsageViewUtil.removeDuplicatedUsages(result)
   }
 
-  private fun computeUnusedDeclarationElements(
-    unusedMap: MutableMap<Issue, Map<File, List<LintProblemData>>>
-  ): List<PsiElement> {
-    val elements: MutableList<PsiElement> = mutableListOf()
-
-    // Make sure lint didn't put extra issues into the map
-    for (issue in Lists.newArrayList(unusedMap.keys)) {
-      if (issue !== UnusedResourceDetector.ISSUE && issue !== UnusedResourceDetector.ISSUE_IDS) {
-        unusedMap.remove(issue)
-      }
-    }
+  private fun computeUnusedDeclarationElements(): Array<PsiElement> {
+    val unusedMap = computeUnusedMap()
+    val unusedElements: MutableList<PsiElement> = mutableListOf()
 
     ApplicationManager.getApplication().assertReadAccessAllowed()
+
     val psiManager = PsiManager.getInstance(myProject)
-    val files: MutableMap<File, PsiFile> = mutableMapOf()
-    val excludedFiles: MutableSet<PsiFile?> = mutableSetOf()
-    for (file in unusedMap.values.flatMap { it.keys }) {
-      if (files.containsKey(file)) continue
 
-      val virtualFile = LocalFileSystem.getInstance().findFileByIoFile(file) ?: continue
+    val localFileSystem = LocalFileSystem.getInstance()
+    val files =
+      unusedMap.values
+        .flatMap { value -> value.keys }
+        .distinct()
+        .associateWith { javaFile ->
+          localFileSystem
+            .findFileByIoFile(javaFile)
+            ?.takeUnless(VirtualFile::isDirectory)
+            ?.let(psiManager::findFile)
+        }
+        .mapNotNull { (javaFile, psiFile) -> psiFile?.let { javaFile to it } }
+        .toMap()
 
-      // Gradle model errors currently don't have source positions
-      if (virtualFile.isDirectory) continue
-
-      val psiFile = psiManager.findFile(virtualFile) ?: continue
-      files[file] = psiFile
-
-      // See whether the file with the warnings is in module that is not included
-      // in this scope. If so, record it into the list of excluded files such that
-      // we can skip removing these references later on.
-      val module = ModuleUtilCore.findModuleForFile(psiFile) ?: continue
-      if (!modules.contains(module)) excludedFiles.add(psiFile)
-    }
+    val excludedFiles =
+      files.values.filter {
+        val module = ModuleUtilCore.findModuleForFile(it)
+        module != null && module !in modules
+      }
 
     // We cannot just skip removing references in modules outside of the scope.
     // If an unused resource is referenced from outside the included scope,
@@ -119,21 +112,15 @@ class UnusedResourcesProcessor(
     // track which references appear in excluded files, which we'll then later
     // use to also skip removing references in included scopes that are referenced
     // from excluded files.
-    val excludedResources: MutableSet<String> = mutableSetOf()
-    if (excludedFiles.isNotEmpty()) {
-      for ((file, problems) in unusedMap.values.flatMap { fileMap -> fileMap.entries }) {
-        val psiFile = files[file]
-        if (!excludedFiles.contains(psiFile)) continue
+    val excludedResources =
+      unusedMap.values
+        .flatMap { fileMap -> fileMap.entries }
+        .filter { (file, _) -> excludedFiles.contains(files[file]) }
+        .flatMap { (_, problems) -> problems.mapNotNull { problem -> getResource(problem) } }
+        .toSet()
 
-        for (problem in problems) {
-          getResource(problem)?.let { excludedResources.add(it) }
-        }
-      }
-    }
-
-    val allowedIssues = setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
     for ((issue, fileListMap) in unusedMap) {
-      if (issue !in allowedIssues || fileListMap.isEmpty() || files.isEmpty()) continue
+      if (fileListMap.isEmpty() || files.isEmpty()) continue
 
       for ((file, psiFile) in files) {
         if (
@@ -148,7 +135,7 @@ class UnusedResourcesProcessor(
         if (psiFile.fileType.isBinary) {
           // Delete the whole file
           if (matchesFilter(problems)) {
-            elements.add(psiFile)
+            unusedElements.add(psiFile)
           }
         } else {
           when (getFolderType(psiFile)) {
@@ -169,52 +156,54 @@ class UnusedResourcesProcessor(
 
                 // Get all the resValue declared within the android block.
                 val androidElement = gradleBuildModel.android()
-                val resValues = androidElement.defaultConfig().resValues()
-                resValues.addAll(androidElement.productFlavors().flatMap { it.resValues() })
-                resValues.addAll(androidElement.buildTypes().flatMap { it.resValues() })
+                val resValues = buildList {
+                  addAll(androidElement.defaultConfig().resValues())
+                  addAll(androidElement.productFlavors().flatMap { it.resValues() })
+                  addAll(androidElement.buildTypes().flatMap { it.resValues() })
+                }
 
                 for (resValue in resValues) {
-                  val typeString = resValue.type()
-                  val nameString = resValue.name()
+                  val psiElement = resValue.getModel().getPsiElement() ?: continue
+
                   // See if this is one of the unused resources
-                  for (problem in fileListMap[VfsUtilCore.virtualToIoFile(psiFile.virtualFile)]!!) {
-                    val unusedResource = getResource(problem)
-                    if (
-                      unusedResource != null &&
-                        unusedResource == "${SdkConstants.R_PREFIX}$typeString.$nameString"
-                    ) {
-                      resValue.getModel().getPsiElement()?.let { psiElement ->
-                        elements.add(psiElement)
-                        // Keep track of the current buildModel to apply refactoring later on.
-                        buildModelMap[psiElement] = gradleBuildModel
-                        resValue.remove()
-                      }
+                  val expectedResourceName =
+                    "${SdkConstants.R_PREFIX}${resValue.type()}.${resValue.name()}"
+                  val problemList =
+                    requireNotNull(fileListMap[VfsUtilCore.virtualToIoFile(psiFile.virtualFile)])
+                  for (problem in problemList) {
+                    if (getResource(problem) == expectedResourceName) {
+                      unusedElements.add(psiElement)
+                      // Keep track of the current buildModel to apply refactoring later on.
+                      buildModelMap[psiElement] = gradleBuildModel
+                      resValue.remove()
                     }
                   }
                 }
               }
             }
             ResourceFolderType.VALUES -> {
-              addElementsInFile(elements, psiFile, problems, excludedResources)
+              unusedElements.addAll(getElementsInFile(psiFile, problems, excludedResources))
             }
             else -> {
-              // Make sure it's not an unused id declaration in a layout/menu/etc file that's
-              // also being deleted as unused
-              if (issue === UnusedResourceDetector.ISSUE_IDS) {
-                // The current `fileListMap` contains those identified as having unused ids. Get the
-                // other list containing resources, which could contain the layout/menu/etc file
-                // containing this id.
-                val issueMap = unusedMap[UnusedResourceDetector.ISSUE]
-                if (issueMap?.containsKey(file) == true) {
-                  // Skip the current id since it's containing file will be deleted.
-                  continue
-                }
+              when (issue) {
+                UnusedResourceDetector.ISSUE_IDS -> {
+                  // Make sure it's not an unused id declaration in a layout/menu/etc file that's
+                  // also being deleted as unused.
+                  // The current `fileListMap` contains those identified as having unused ids. Get
+                  // the other list containing resources, which could contain the layout/menu/etc
+                  // file containing this id.
+                  if (unusedMap[UnusedResourceDetector.ISSUE]?.containsKey(file) == true) {
+                    // Skip the current id since it's containing file will be deleted.
+                    continue
+                  }
 
-                // Delete ranges within the file
-                addElementsInFile(elements, psiFile, problems, excludedResources)
-              } else {
-                // Unused non-value resource file: Delete the whole file
-                if (matchesFilter(problems)) elements.add(psiFile)
+                  // Delete ranges within the file
+                  unusedElements.addAll(getElementsInFile(psiFile, problems, excludedResources))
+                }
+                UnusedResourceDetector.ISSUE -> {
+                  // Unused non-value resource file: Delete the whole file
+                  if (matchesFilter(problems)) unusedElements.add(psiFile)
+                }
               }
             }
           }
@@ -222,32 +211,36 @@ class UnusedResourcesProcessor(
       }
     }
 
-    return elements
+    return unusedElements.toTypedArray()
   }
 
-  private fun addElementsInFile(
-    elements: MutableList<PsiElement>,
+  private fun getElementsInFile(
     psiFile: PsiFile,
     problems: List<LintProblemData>,
     excludedResources: Set<String>
-  ) {
+  ): Sequence<PsiElement> {
     // Delete all the resources in the given file
-    if (psiFile !is XmlFile || !psiFile.isValid()) return
+    if (psiFile !is XmlFile || !psiFile.isValid()) return emptySequence()
 
-    val starts =
-      problems
-        .filter { p -> !excludedResources.contains(getResource(p)) && matchesFilter(p) }
-        .map { p -> p.textRange.startOffset }
-        .sortedDescending()
-
-    for (offset in starts) {
-      val attribute =
-        PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlAttribute::class.java, false)
-
-      val remove =
+    return problems
+      .asSequence()
+      .filter { problem ->
+        !excludedResources.contains(getResource(problem)) && matchesFilter(problem)
+      }
+      .map { problem -> problem.textRange.startOffset }
+      .sortedDescending()
+      .map { startOffset ->
+        PsiTreeUtil.findElementOfClassAtOffset(
+          psiFile,
+          startOffset,
+          XmlAttribute::class.java,
+          false
+        )
+      }
+      .mapNotNull { attribute ->
         when {
           attribute == null ->
-            PsiTreeUtil.findElementOfClassAtOffset(psiFile, offset, XmlTag::class.java, false)
+            PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlTag::class.java, false)
           SdkConstants.ATTR_ID != attribute.localName ->
             // If deleting a resource, delete the whole resource element, except for attribute
             // android:id="" declarations
@@ -255,12 +248,10 @@ class UnusedResourcesProcessor(
             PsiTreeUtil.getParentOfType(attribute, XmlTag::class.java)
           else -> attribute
         }
-
-      remove?.let { elements.add(it) }
-    }
+      }
   }
 
-  private fun computeUnusedMap(): MutableMap<Issue, Map<File, List<LintProblemData>>> {
+  private fun computeUnusedMap(): Map<Issue, Map<File, List<LintProblemData>>> {
     val map: MutableMap<Issue, Map<File, List<LintProblemData>>> = mutableMapOf()
     val issues =
       if (includeIds) setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
@@ -298,7 +289,9 @@ class UnusedResourcesProcessor(
       UnusedResourceDetector.ISSUE_IDS.setEnabledByDefault(unusedIdsWasEnabled)
     }
 
-    return map
+    // Make sure lint didn't put extra issues into the map
+    val allowedIssues = setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
+    return map.filterKeys(allowedIssues::contains)
   }
 
   private fun matchesFilter(problems: List<LintProblemData>): Boolean {
@@ -334,15 +327,12 @@ class UnusedResourcesProcessor(
     }
   }
 
-  private fun calcCommandName() =
-    "Deleting " + RefactoringUIUtil.calculatePsiElementDescriptionList(elements)
-
-  override fun getCommandName(): String {
-    if (cachedCommandName == null) {
-      cachedCommandName = calcCommandName()
+  private val lazyCommandName by
+    lazy(LazyThreadSafetyMode.NONE) {
+      "Deleting " + RefactoringUIUtil.calculatePsiElementDescriptionList(elements)
     }
-    return requireNotNull(cachedCommandName)
-  }
+
+  override fun getCommandName() = lazyCommandName
 
   override fun skipNonCodeUsages() = true
 
