@@ -178,17 +178,6 @@ public final class PsiResourceItem implements ResourceItem {
     return source.getFolderConfiguration();
   }
 
-  @Override
-  @NotNull
-  public String getKey() {
-    String qualifiers = getConfiguration().getQualifierString();
-    if (!qualifiers.isEmpty()) {
-      return myType.getName() + '-' + qualifiers + '/' + myName;
-    }
-
-    return myType.getName() + '/' + myName;
-  }
-
   @Nullable
   public PsiResourceFile getSourceFile() {
     if (mySourceFile != null) {

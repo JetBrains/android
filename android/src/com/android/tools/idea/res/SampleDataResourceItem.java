@@ -373,12 +373,6 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
   @Override
   @NotNull
-  public String getKey() {
-    return getType() + "/" + getName();
-  }
-
-  @Override
-  @NotNull
   public ResourceValue getResourceValue() {
     byte[] content = getContent(() -> myResourceValue = null);
     if (myResourceValue == null) {

@@ -152,7 +152,6 @@ class RemoveKeysActionTest {
         override fun getType(): ResourceType = ResourceType.STRING
         override fun getNamespace(): ResourceNamespace = ResourceNamespace.RES_AUTO
         override fun getLibraryName(): String? = null
-        override fun getKey(): String = name
         override fun getResourceValue(): ResourceValue? = null
         override fun getSource(): PathString? = null
         override fun isFileBased(): Boolean = false
