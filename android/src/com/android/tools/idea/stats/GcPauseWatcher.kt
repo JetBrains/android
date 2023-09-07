@@ -16,45 +16,29 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
-import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
-import java.lang.management.GarbageCollectorMXBean
+import com.sun.management.GcInfo
 import java.lang.management.ManagementFactory
-import java.util.concurrent.TimeUnit
+import javax.management.NotificationEmitter
+import javax.management.openmbean.CompositeData
 
 @Service
 private class GcPauseWatcher {
-  private class SingleCollectorWatcher(val bean: GarbageCollectorMXBean) {
-    private var count = bean.collectionCount
-    private var cumulativePauseTime = bean.collectionTime
-
-    fun update() {
-      val newCount = bean.collectionCount
-      val newPauseTime = bean.collectionTime
-      val currPauseDuration = newPauseTime - cumulativePauseTime
-      if (newCount - count > 0 && currPauseDuration > 0) {
-        AndroidStudioSystemHealthMonitor.recordGcPauseTime(bean.name, currPauseDuration)
-      }
-      count = newCount
-      cumulativePauseTime = newPauseTime
+  init {
+    ManagementFactory.getGarbageCollectorMXBeans().forEach { bean ->
+      (bean as NotificationEmitter).addNotificationListener(
+        { notification, _ ->
+          val data = notification.userData as CompositeData
+          val duration = GcInfo.from(data.get("gcInfo") as CompositeData).duration
+          AndroidStudioSystemHealthMonitor.recordGcPauseTime(bean.name, duration)
+         }, null, null)
     }
   }
 
-  fun setupWatcher() {
-    JobScheduler.getScheduler().scheduleWithFixedDelay(::checkForPauses, 0, SAMPLING_RATE_MS, TimeUnit.MILLISECONDS)
-  }
-
-  private fun checkForPauses() {
-    watchers.forEach{it.update()}
-  }
-
   companion object {
-    private val watchers = ManagementFactory.getGarbageCollectorMXBeans().map(::SingleCollectorWatcher)
-    private const val SAMPLING_RATE_MS = 50L  // ms. Should be set low enough that getting two pauses between samples is rare
-
     fun getInstance() : GcPauseWatcher {
       return ApplicationManager.getApplication().getService(GcPauseWatcher::class.java)
     }
