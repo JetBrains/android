@@ -22,8 +22,8 @@ class ColorConverterTest : LayoutTestCase() {
 
   fun testGeneralConvert() {
     val converter = ColorConverter(ColorBlindMode.NONE)
-    val startImg = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
-    val endImg = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
+    val startImg = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE)
+    val endImg = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE)
 
     assertTrue(converter.convert(startImg, endImg))
   }
