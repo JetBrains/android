@@ -29,7 +29,8 @@ val accessibilityBasedHierarchyParser = { view: Any ->
   } else {
     val nodeInfo: AccessibilityNodeInfo = view.createAccessibilityNodeInfo()
     nodeInfo.setQueryFromAppProcessEnabled(view, true)
-    parseChildren(view, nodeInfo, 0, 0)
+    val bounds = nodeInfo.boundsInScreen
+    parseChildren(view, nodeInfo, bounds.left, bounds.top)
   }
 }
 

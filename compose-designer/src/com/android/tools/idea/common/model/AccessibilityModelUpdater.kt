@@ -64,7 +64,7 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
           rootViewInfo = viewInfo,
           logger = Logger.getInstance(AccessibilityModelUpdater::class.java)
         )
-      createTree(it, composeViewInfos, viewInfo.children, model, 0, 0)
+      createTree(it, composeViewInfos, viewInfo.children, model, viewInfo.left, viewInfo.top)
     }
   }
 
