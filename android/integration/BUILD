@@ -108,6 +108,7 @@ iml_studio_test(
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
+    tags = ["manual"],  # Disabled due to b/287677785
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
