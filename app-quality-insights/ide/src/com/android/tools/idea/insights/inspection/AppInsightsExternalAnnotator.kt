@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.inspection
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
+import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.InitialInfo
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
@@ -28,6 +29,7 @@ import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
@@ -190,9 +192,15 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val newLineNumber = getUpToDateLineNumber(oldLineNumber, vcsDocument, document)
 
     val endTime = System.currentTimeMillis()
-    logger.debug(
-      "It takes ${endTime - startTime}ms to map line number from $oldLineNumber to $newLineNumber in $vFile."
-    )
+    val latency = endTime - startTime
+
+    service<AppInsightsPerformanceTracker>()
+      .recordVersionControlBasedLineNumberMappingLatency(latency)
+      .also {
+        logger.debug(
+          "It takes $latency ms to map line number from $oldLineNumber to $newLineNumber in $vFile."
+        )
+      }
 
     newLineNumber ?: return null
 

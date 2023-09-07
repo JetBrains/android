@@ -47,5 +47,8 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
