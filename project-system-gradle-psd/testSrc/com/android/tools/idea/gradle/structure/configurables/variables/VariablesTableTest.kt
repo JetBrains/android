@@ -64,7 +64,6 @@ import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
-
 @RunsInEdt
 class VariablesTableTest {
 
@@ -914,12 +913,13 @@ class VariablesTableTest {
       emulateInputAndAssertWarning(variablesTable, " ", "Variable name cannot have whitespaces.")
       variablesTable.editCellAt(variablesTable.getRowByNode(appNode) + 14, 0)
       emulateInputAndAssertWarning(variablesTable, "", "Variable name cannot be empty.")
-
+      variablesTable.editCellAt(variablesTable.getRowByNode(appNode) + 14, 0)
+      emulateInputAndAssertWarning(variablesTable, "abc.def", "Variable name cannot have dot.")
       variablesTable.editCellAt(variablesTable.getRowByNode(appNode) + 14, 0)
       emulateInputAndAssertWarning(variablesTable, "valVersion", "Duplicate variable name: 'valVersion'")
       // At the end we have two failed validation after stop editing.
       // We cannot handle duplicate variable name after editing because of existing PSD issue
-      verify(validationResults, times(2)).updateValidationResult(true)
+      verify(validationResults, times(3)).updateValidationResult(true)
     }
   }
 
@@ -937,7 +937,7 @@ class VariablesTableTest {
       } as VersionCatalogNode
       assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVersion")))
 
-      val message = """Variable name must match the following regular expression: [a-z]([a-zA-Z0-9_.-])+"""
+      val message = """Variable name must match the following regular expression: [a-z]([a-zA-Z0-9_-])+"""
 
       //create variable
       variablesTable.selectNode(versionCatalogNode)
@@ -948,14 +948,13 @@ class VariablesTableTest {
       variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
       emulateInputAndAssertWarning(variablesTable, "guava_core", null)
       variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
-      // TODO uncomment when b/298842082 is fixed
-      //emulateInputAndAssertWarning(variablesTable, "guava.core", null)
-      //variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
 
       // invalid names
       emulateInputAndAssertWarning(variablesTable, " ", message)
       variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
       emulateInputAndAssertWarning(variablesTable, "", message)
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      emulateInputAndAssertWarning(variablesTable, "guava.core", message)
       variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
       emulateInputAndAssertWarning(variablesTable, "guava/core", message) // backslash
       variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
@@ -967,7 +966,7 @@ class VariablesTableTest {
 
       // At the end we have 4 failed validation after stop editing.
       // We cannot handle duplicate variable name after editing because of existing PSD issue
-      verify(validationResults, times(4)).updateValidationResult(true)
+      verify(validationResults, times(5)).updateValidationResult(true)
     }
   }
 

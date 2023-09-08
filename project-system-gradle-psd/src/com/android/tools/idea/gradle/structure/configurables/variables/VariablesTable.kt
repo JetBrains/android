@@ -763,6 +763,7 @@ abstract class VariablesBaseNode(
     when {
       name.isEmpty() -> "Variable name cannot be empty."
       name.indexOf(" ") != -1 -> "Variable name cannot have whitespaces."
+      name.indexOf(".") != -1 -> "Variable name cannot have dot."
       DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
       else -> null
     }
@@ -892,7 +893,7 @@ class CatalogEmptyVariableNode(
 }
 
 fun validateCatalogNameFunction(): (String) -> String? = { name ->
-  val catalogNamePattern = "[a-z]([a-zA-Z0-9_.-])+"
+  val catalogNamePattern = "[a-z]([a-zA-Z0-9_-])+"
   if (!name.matches(catalogNamePattern.toRegex()))
     "Variable name must match the following regular expression: $catalogNamePattern"
   else
