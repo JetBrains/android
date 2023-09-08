@@ -836,6 +836,28 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testVersionCatalogCreateVersionPropertyWithComplexNames() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("")
+
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    val versions = vcModel.versions("libs")!!
+    versions.findProperty("foo.require").setValue("1.2.3")
+    versions.findProperty("foo-bar").setValue("3.4.5")
+    versions.findProperty("foo_bar").setValue("6.7.8")
+    applyChanges(pbm)
+
+    verifyFileContents(myBuildFile, "")
+    verifyVersionCatalogFileContents(myVersionCatalogFile, """
+      [versions]
+      "foo.require" = "1.2.3"
+      foo-bar = "3.4.5"
+      foo_bar = "6.7.8"
+    """.trimIndent())
+  }
+
+  @Test
   fun testVersionPropertyWithGetVersionCatalogModel() {
     writeToBuildFile("")
     writeToVersionCatalogFile("""

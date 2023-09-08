@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.TomlDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
@@ -44,12 +45,12 @@ class CatalogTomlDslWriter(context: BuildModelContext): TomlDslWriter(context), 
     val factory = TomlPsiFactory(project)
     val comma = factory.createInlineTable("a = \"b\", c = \"d\"").children[2]
 
-    val externalNameInfo = maybeTrimForParent(element, this)
+    val name = normalizeName(element.fullName)
 
     val psi = when (element.parent) {
       is GradleDslFile -> when (element) {
-        is GradleDslExpressionMap -> factory.createTable(externalNameInfo.externalNameParts[0])
-        else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
+        is GradleDslExpressionMap -> factory.createTable(name)
+        else -> factory.createKeyValue(name, "\"placeholder\"")
       }
       is GradleDslExpressionList -> when (element) {
         is GradleDslExpressionList -> factory.createArray("")
@@ -57,9 +58,9 @@ class CatalogTomlDslWriter(context: BuildModelContext): TomlDslWriter(context), 
         else -> factory.createLiteral("\"placeholder\"")
       }
       else -> when (element) {
-        is GradleDslExpressionMap -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "{ }")
-        is GradleDslExpressionList -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "[]")
-        else -> factory.createKeyValue(externalNameInfo.externalNameParts[0], "\"placeholder\"")
+        is GradleDslExpressionMap -> factory.createKeyValue(name, "{ }")
+        is GradleDslExpressionList -> factory.createKeyValue(name, "[]")
+        else -> factory.createKeyValue(name, "\"placeholder\"")
       }
     }
 
@@ -115,6 +116,15 @@ class CatalogTomlDslWriter(context: BuildModelContext): TomlDslWriter(context), 
       anchor = anchor.parent
     }
     return anchor ?: parent
+  }
+
+  private fun normalizeName(name: String): String {
+    val unescaped = GradleNameElement.unescape(name)
+    return when {
+      unescaped == "version.ref" -> unescaped // TODO need to fix GradleDslVersionLiteral eventually - b/300075092
+      "[A-Za-z0-9_-]+".toRegex().matches(unescaped) -> unescaped
+      else -> "\"$unescaped\""
+    }
   }
 
 }

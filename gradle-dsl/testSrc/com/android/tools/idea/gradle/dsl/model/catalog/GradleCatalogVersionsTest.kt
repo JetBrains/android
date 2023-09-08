@@ -168,6 +168,27 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddVersionAsLiteralWithComplexName() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("")
+    val buildModel = projectBuildModel
+    val catalogModel = buildModel.versionCatalogsModel
+
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.versionDeclarations()
+    declarations.addDeclaration("api.core", "1.0.0")
+    declarations.addDeclaration("test_test", "2.0.0")
+    declarations.addDeclaration("ui-composition", "3.0.0")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myVersionCatalogFile, """
+      [versions]
+      "api.core" = "1.0.0"
+      test_test = "2.0.0"
+      ui-composition = "3.0.0"
+    """.trimIndent())
+  }
+
+  @Test
   fun testUpdateVersionAsLiteral() {
     writeToBuildFile("")
     writeToVersionCatalogFile("""

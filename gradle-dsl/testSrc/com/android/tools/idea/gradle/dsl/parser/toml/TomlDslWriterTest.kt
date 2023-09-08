@@ -23,12 +23,15 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.utils.EXT_DECLARATIVE_TOML
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
+import org.jetbrains.kotlin.tools.projectWizard.core.ignore
+import org.junit.Assume
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -53,6 +56,18 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
     val contents = mapOf("foo" to "bar")
     val expected = """
       foo = "bar"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  @Test
+  fun testSingleLiteralDottedName() {
+    Assume.assumeTrue("Notation is specified only for catalog", !isDeclarative())
+    if(isDeclarative()) ignore()
+    val contents = mapOf("foo.bar" to "val")
+    val expected = """
+      "foo.bar" = "val"
     """.trimIndent()
 
     doTest(contents, expected)
@@ -269,4 +284,7 @@ class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() 
     }
     map.forEach { (k, v) -> populate(k, v, dslFile) }
   }
+
+  private fun isDeclarative() = fileName.endsWith(EXT_DECLARATIVE_TOML)
+
 }

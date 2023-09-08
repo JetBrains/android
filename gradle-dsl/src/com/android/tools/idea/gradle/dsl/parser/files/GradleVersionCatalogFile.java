@@ -145,6 +145,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     public @Nullable PsiElement create() {
       GradleNameElement name = getNameElement();
       if (ref && getPsiElement() == null) {
+        // TODO need to fix this as in fact dot notation means a map with property - b/300075092
         setNameElement(GradleNameElement.create("version.ref"));
       }
       PsiElement psiElement = super.create();
