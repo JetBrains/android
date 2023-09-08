@@ -21,6 +21,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.getTextFor
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.common.collect.ImmutableSet;
@@ -89,6 +90,38 @@ public class UnusedResourcesGradleTest {
       assertThat(app).isNotNull();
 
       UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(app), null);
+
+      assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"app_name\">Hello World</string>\n" +
+        "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+        "</resources>\n");
+
+      // Make sure it *didn't* delete resources from the library since it's not included in the module list!
+      assertThat(getTextForFile(project, "app/mylibrary/src/main/res/values/values.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"unusedlib\">Unused string in library</string>\n" +
+        "    <string name=\"usedlib\">String used from app</string>\n" +
+        "</resources>\n");
+    });
+  }
+
+  @Test
+  public void testSpecificHolderModule() {
+    // Same as testSpecificModule, except that the test runs against the linked holder module.
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
+    openPreparedTestProject(preparedProject, project -> {
+
+      ModuleManager moduleManager = ModuleManager.getInstance(project);
+      Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
+      assertThat(app).isNotNull();
+      Module holderModule = ModuleSystemUtil.getHolderModule(app);
+      assertThat(holderModule).isNotNull();
+      assertThat(holderModule).isNotSameAs(app);
+
+      UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(holderModule), null);
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

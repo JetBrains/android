@@ -16,6 +16,9 @@
 package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.projectsystem.getAllLinkedModules
+import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -53,7 +56,7 @@ class UnusedResourcesHandler : RefactoringActionHandler {
   }
 
   companion object {
-    fun invokeWithDialog(project: Project, modules: Set<Module>) {
+    fun invokeWithDialog(project: Project, modules: Collection<Module>) {
       val processor = UnusedResourcesProcessor(project, getFilter(modules))
 
       if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -64,7 +67,7 @@ class UnusedResourcesHandler : RefactoringActionHandler {
     }
 
     @JvmStatic
-    fun invokeSilent(project: Project, modules: Set<Module>?, filter: String?) {
+    fun invokeSilent(project: Project, modules: Collection<Module>?, filter: String?) {
       val processor = UnusedResourcesProcessor(project, getFilter(modules, filter))
       processor.includeIds = true
 
@@ -72,10 +75,25 @@ class UnusedResourcesHandler : RefactoringActionHandler {
     }
 
     private fun getFilter(
-      modules: Set<Module>?,
+      modules: Collection<Module>?,
       filter: String? = null
-    ): UnusedResourcesProcessor.Filter? =
-      if (modules.isNullOrEmpty()) null else ResourcesProcessorFilter(modules, filter)
+    ): UnusedResourcesProcessor.Filter? {
+      if (modules.isNullOrEmpty()) {
+        return null
+      }
+
+      // Some of the given modules may be holder modules for the linked module group. In that
+      // case, all the linked modules should be listed so that resources can be removed from all
+      // of them.
+      val modulesWithLinked =
+        modules
+          .flatMap { m ->
+            if (m.isLinkedAndroidModule() && m.isHolderModule()) m.getAllLinkedModules()
+            else listOf(m)
+          }
+          .toSet()
+      return ResourcesProcessorFilter(modulesWithLinked, filter)
+    }
   }
 
   private class ResourcesProcessorFilter(
