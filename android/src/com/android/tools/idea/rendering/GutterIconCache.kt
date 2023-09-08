@@ -13,82 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering
 
-import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.rendering.api.RenderResources;
-import com.google.common.collect.Maps;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
-import icons.StudioIcons;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ide.common.rendering.api.RenderResources
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.Maps
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
+import javax.swing.Icon
 
-import javax.swing.*;
-import java.util.Map;
-
-public class GutterIconCache {
-  private static final Icon NONE = StudioIcons.Common.ANDROID_HEAD; // placeholder
-
-  private static final int MAX_WIDTH = JBUI.scale(16);
-  private static final int MAX_HEIGHT = JBUI.scale(16);
-
-  private static final GutterIconCache ourInstance = new GutterIconCache();
-
-  private Map<String, Icon> myThumbnailCache = Maps.newHashMap();
+class GutterIconCache {
+  private val myThumbnailCache: MutableMap<String, Icon?> = Maps.newHashMap()
 
   /**
    * Stores timestamps for the last modification time of image files using the
    * path as a key.
    */
-  private Map<String, Long> myModificationStampCache = Maps.newHashMap();
-  private boolean myRetina;
-
-  public GutterIconCache() {
-  }
-
-  @NotNull
-  public static GutterIconCache getInstance() {
-    return ourInstance;
-  }
-
+  private val myModificationStampCache: MutableMap<String, Long> = Maps.newHashMap()
+  private var myRetina = false
   @VisibleForTesting
-  boolean isIconUpToDate(@NotNull VirtualFile file) {
-    String path = file.getPath();
-    if (myModificationStampCache.containsKey(path)) {
+  fun isIconUpToDate(file: VirtualFile): Boolean {
+    val path = file.path
+    return if (myModificationStampCache.containsKey(path)) {
       // Entry is valid if image resource has not been modified since the entry was cached
-      return myModificationStampCache.get(path) == file.getModificationStamp() && !FileDocumentManager.getInstance().isFileModified(file);
-    }
-
-    return false;
+      myModificationStampCache[path] == file.modificationStamp && !FileDocumentManager.getInstance()
+        .isFileModified(file)
+    } else false
   }
 
-  @Nullable
-  public Icon getIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, @NotNull AndroidFacet facet) {
-    boolean isRetina = UIUtil.isRetina();
+  fun getIcon(file: VirtualFile, resolver: RenderResources?, facet: AndroidFacet): Icon? {
+    val isRetina = UIUtil.isRetina()
     if (myRetina != isRetina) {
-      myRetina = isRetina;
-      myThumbnailCache.clear();
+      myRetina = isRetina
+      myThumbnailCache.clear()
     }
-    String path = file.getPath();
-    Icon myIcon = myThumbnailCache.get(path);
+    val path = file.path
+    var myIcon = myThumbnailCache[path]
     if (myIcon == null || !isIconUpToDate(file)) {
-      myIcon = GutterIconFactory.createIcon(file, resolver, MAX_WIDTH, MAX_HEIGHT, facet);
-
+      myIcon = GutterIconFactory.createIcon(file, resolver, MAX_WIDTH, MAX_HEIGHT, facet)
       if (myIcon == null) {
-        myIcon = NONE;
+        myIcon = NONE
       }
-
-      myThumbnailCache.put(path, myIcon);
+      myThumbnailCache[path] = myIcon
 
       // Record timestamp of image resource at the time of caching
-      myModificationStampCache.put(path, file.getModificationStamp());
+      myModificationStampCache[path] = file.modificationStamp
     }
-
-    return myIcon != NONE ? myIcon : null;
+    return if (myIcon !== NONE) myIcon else null
   }
 
+  companion object {
+    private val NONE = StudioIcons.Common.ANDROID_HEAD // placeholder
+    private val MAX_WIDTH = JBUI.scale(16)
+    private val MAX_HEIGHT = JBUI.scale(16)
+    val instance = GutterIconCache()
+  }
 }
