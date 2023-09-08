@@ -18,9 +18,7 @@ package com.android.tools.idea.rendering;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -33,11 +31,10 @@ import javax.swing.*;
 import java.util.Map;
 
 public class GutterIconCache {
-  private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
   private static final Icon NONE = StudioIcons.Common.ANDROID_HEAD; // placeholder
 
-  @VisibleForTesting static final int MAX_WIDTH = JBUI.scale(16);
-  @VisibleForTesting static final int MAX_HEIGHT = JBUI.scale(16);
+  private static final int MAX_WIDTH = JBUI.scale(16);
+  private static final int MAX_HEIGHT = JBUI.scale(16);
 
   private static final GutterIconCache ourInstance = new GutterIconCache();
 
