@@ -129,7 +129,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     myValidatorPanel = new ValidatorPanel(this, myPanel);
 
     SelectedItemProperty<NamedModuleTemplate> selectedFavor = new SelectedItemProperty<>(myFlavorBox);
-    myValidatorPanel.registerValidator(ObjectProperty.wrap(selectedFavor), value -> checkFlavor(value));
 
     Expression<File> locationFile = model.sourceLocation.transform(File::new);
     myValidatorPanel.registerValidator(locationFile, value -> checkPath(value), selectedFavor);
@@ -263,15 +262,6 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
     }
 
     return true;
-  }
-
-  @NotNull
-  private static Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
-    if (flavor.getPaths().getMlModelsDirectories().isEmpty()) {
-      return new Validator.Result(Validator.Severity.ERROR, "No valid ml directory in checkFlavor.");
-    }
-
-    return Validator.Result.OK;
   }
 
   @NotNull
