@@ -150,7 +150,7 @@ public class VisualTestsDialog extends JDialog {
   private void setDarculaMode(boolean isDarcula) {
     try {
       if (isDarcula) {
-        UIManager.setLookAndFeel(new DarculaLaf());
+        UIManager.setLookAndFeel(new DarculaLaf(false));
       } else {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }

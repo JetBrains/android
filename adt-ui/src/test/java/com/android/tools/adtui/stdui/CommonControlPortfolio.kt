@@ -26,12 +26,12 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.intellij.icons.AllIcons
-import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Component
@@ -64,7 +64,7 @@ object CommonControlPortfolio {
   }
 
   private fun createAndShowGUI() {
-    setLAF(IntelliJLaf())
+    setLAF(DarculaLaf())
 
     //Create and set up the window.
     val frame = JFrame("Common Controls")
@@ -128,7 +128,7 @@ object CommonControlPortfolio {
   private fun makeLAFControl(): JComponent {
     val control = JCheckBox("Darcula")
     control.addItemListener { _ ->
-      val laf = if (control.isSelected) DarculaLaf() else IntelliJLaf()
+      val laf = DarculaLaf()
       if (laf !== UIManager.getLookAndFeel()) {
         setLAF(laf)
         updateFonts(SwingUtilities.getWindowAncestor(control))
@@ -141,7 +141,7 @@ object CommonControlPortfolio {
   private fun setLAF(laf: LookAndFeel) {
     try {
       UIManager.setLookAndFeel(laf)
-      JBColor.setDark(UIUtil.isUnderDarcula())
+      JBColor.setDark(StartupUiUtil.isDarkTheme)
     }
     catch (ex: Exception) {
       ex.printStackTrace()
