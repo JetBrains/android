@@ -61,6 +61,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -289,11 +290,14 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
 
     Module[] modules = ModuleManager.getInstance(project).getModules();
 
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      // TODO: [VD] a dirty hack to reindex created android project
-      DumbService dumbService = DumbService.getInstance(project);
-      new UnindexedFilesUpdater(project, "AndroidGradleTestCase.prepareProjectForTest").queue();
-      dumbService.completeJustSubmittedTasks();
+    ApplicationManager.getApplication().invokeAndWait(new Runnable() {
+      @Override
+      public void run() {
+        // TODO: [VD] a dirty hack to reindex created android project
+        DumbService dumbService = DumbService.getInstance(project);
+        new UnindexedFilesUpdater(project).queue();
+        dumbService.completeJustSubmittedTasks();
+      }
     });
 
     myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(project, modules, chosenModuleName);
@@ -370,13 +374,13 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     refreshProjectFiles();
   }
 
-  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks) {
+  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @NotNull String... tasks)
+    throws InterruptedException {
     return invokeGradleTasks(project, null, tasks);
   }
 
-  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project,
-                                                            @Nullable Long timeoutMillis,
-                                                            @NotNull String... tasks) {
+  protected static GradleInvocationResult invokeGradleTasks(@NotNull Project project, @Nullable Long timeoutMillis, @NotNull String... tasks)
+    throws InterruptedException {
     assertThat(tasks).named("Gradle tasks").isNotEmpty();
     File projectDir = getBaseDirPath(project);
     // Tests should not need to access the network
