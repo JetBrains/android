@@ -150,7 +150,6 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     assertFalse(versionsToCheck.getAll().contains("literalVersion"))
   }
 
-
   @Test
   fun testAddVersionAsLiteral() {
     writeToBuildFile("")
@@ -158,13 +157,13 @@ class GradleCatalogVersionsTest : GradleFileModelTestCase() {
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
-    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
-    declarations.addDeclaration("core", "core-ktx:androidx.core:1.8.0")
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.versionDeclarations()
+    declarations.addDeclaration("core", "1.0.0")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myVersionCatalogFile, """
-      [libraries]
-      core = "core-ktx:androidx.core:1.8.0"
+      [versions]
+      core = "1.0.0"
     """.trimIndent())
   }
 
