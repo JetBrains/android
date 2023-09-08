@@ -500,7 +500,10 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
   vector<pair<int32_t, DisplayInfo>> displays;
   displays.reserve(display_ids.size());
   for (auto display_id : display_ids) {
-    displays.emplace_back(display_id, DisplayManager::GetDisplayInfo(jni_, display_id));
+    DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
+    if ((display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
+      displays.emplace_back(display_id, display_info);
+    }
   }
   DisplayConfigurationResponse response(request.request_id(), std::move(displays));
   response.Serialize(output_stream_);

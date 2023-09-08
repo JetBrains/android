@@ -50,7 +50,9 @@ struct DisplayInfo {
   int32_t state;
 
   // From frameworks/base/core/java/android/view/Display.java
+  static constexpr int32_t FLAG_PRIVATE = 1 << 2;
   static constexpr int32_t FLAG_ROUND = 1 << 4;
+
   static constexpr int32_t TYPE_INTERNAL = 1;
   enum State { STATE_UNKNOWN = 0, STATE_OFF = 1, STATE_ON = 2, STATE_DOZE = 3, STATE_DOZE_SUSPEND = 4, STATE_VR = 5, STATE_ON_SUSPEND = 6 };
 };
