@@ -61,7 +61,6 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -73,6 +72,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
+import com.intellij.util.indexing.IndexingFlag;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import java.io.File;
 import java.io.IOException;
@@ -294,6 +294,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       @Override
       public void run() {
         // TODO: [VD] a dirty hack to reindex created android project
+        IndexingFlag.cleanupProcessedFlag();
         DumbService dumbService = DumbService.getInstance(project);
         new UnindexedFilesUpdater(project).queue();
         dumbService.completeJustSubmittedTasks();
