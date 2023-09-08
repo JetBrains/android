@@ -241,9 +241,8 @@ public class CustomizeUIThemeStepPanel extends JPanel {
     }
 
     try {
-      UIManager.setLookAndFeel(info.getClassName());
+      UIManager.setLookAndFeel("com.intellij.ide.ui.laf.darcula.DarculaLaf");
       AppUIUtil.updateForDarcula(StartupUiUtil.isUnderDarcula());
-      String className = info.getClassName();
       Window window = SwingUtilities.getWindowAncestor(component);
       if (window != null) {
         if (SystemInfo.isMac) {

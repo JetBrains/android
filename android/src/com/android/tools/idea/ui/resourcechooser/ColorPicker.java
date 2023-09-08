@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.tools.adtui.ui.ClickableLabel;
@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.LafManager;
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfo;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -144,7 +145,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     @Override
     public Dimension getPreferredSize() {
       Dimension size = super.getPreferredSize();
-      UIManager.LookAndFeelInfo info = LafManager.getInstance().getCurrentUIThemeLookAndFeel();
+      UIThemeLookAndFeelInfo info = LafManager.getInstance().getCurrentUIThemeLookAndFeel();
       if (info != null && info.getName().contains("Windows"))
         size.width += 10;
       return size;
@@ -1037,7 +1038,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     private int getRowCount() {
-      return myRecommendedColors.isEmpty() ? 0 : (int)Math.ceil(myRecommendedColors.size() / new Double(COLUMN_COUNT));
+      return myRecommendedColors.isEmpty() ? 0 : (int)Math.ceil(myRecommendedColors.size() / Double.valueOf(COLUMN_COUNT));
     }
 
     @Override
@@ -1072,8 +1073,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
   }
 
-  static class ColorPickerDialog extends DialogWrapper {
-
+  static final class ColorPickerDialog extends DialogWrapper {
     private final Color myPreselectedColor;
     private final ColorPickerListener[] myListeners;
     private ColorPicker myColorPicker;
@@ -1081,12 +1081,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private ColorPipette myPicker;
     private final boolean myOpacityInPercent;
 
-    public ColorPickerDialog(Component parent,
-                             @NlsContexts.DialogTitle String caption,
-                             @Nullable Color preselectedColor,
-                             boolean enableOpacity,
-                             @Nullable ColorPickerListener[] listeners,
-                             boolean opacityInPercent) {
+    ColorPickerDialog(Component parent,
+                      @NlsContexts.DialogTitle String caption,
+                      @Nullable Color preselectedColor,
+                      boolean enableOpacity,
+                      @Nullable ColorPickerListener[] listeners,
+                      boolean opacityInPercent) {
       super(parent, true);
       myListeners = listeners;
       setTitle(caption);
