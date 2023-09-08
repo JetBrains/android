@@ -47,8 +47,6 @@ import com.android.tools.idea.streaming.emulator.actions.showExtendedControls
 import com.android.tools.idea.streaming.emulator.actions.showManageSnapshotsDialog
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.PersistentStateComponent
@@ -153,9 +151,6 @@ internal class EmulatorToolWindowPanel(
     primaryDisplayView?.deviceFrameVisible = visible
   }
 
-  override fun getDeviceInfo(): DeviceInfo =
-    DeviceInfo.newBuilder().setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR).build()
-
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
       displayConfigurator.refreshDisplayConfiguration()
@@ -171,8 +166,6 @@ internal class EmulatorToolWindowPanel(
    * Populates the emulator panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
-    mirroringStarted()
-
     lastUiState = null
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
@@ -241,8 +234,6 @@ internal class EmulatorToolWindowPanel(
    * Destroys content of the emulator panel and returns its state for later recreation.
    */
   override fun destroyContent(): EmulatorUiState {
-    mirroringEnded(DeviceMirroringSession.DeviceKind.VIRTUAL)
-
     multiDisplayStateUpdater.run()
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 

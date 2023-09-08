@@ -259,6 +259,7 @@ class EmulatorView(
     get() = emulator.connectionState == ConnectionState.CONNECTED
   private val emulatorConfig
     get() = emulator.emulatorConfig
+  private val streamingSessionTracker = EmulatorStreamingSessionTracker()
 
   /**
    * The size of the device including frame in device pixels.
@@ -374,6 +375,7 @@ class EmulatorView(
     addKeyListener(MyKeyListener())
 
     if (displayId == PRIMARY_DISPLAY_ID) {
+      streamingSessionTracker.streamingStarted()
       showLongRunningOperationIndicator("Connecting to the Emulator")
 
       addFocusListener(object : FocusListener {
@@ -404,6 +406,7 @@ class EmulatorView(
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
     virtualSceneCameraOperating = false
+    streamingSessionTracker.streamingEnded()
     stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
   }
 
@@ -1167,6 +1170,7 @@ class EmulatorView(
         return
       }
 
+      streamingSessionTracker.firstFrameArrived()
       // It is possible that the snapshot feed was requested assuming an out of date device rotation.
       // If the received rotation is different from the assumed one, ignore this screenshot and request
       // a fresh feed for the accurate rotation.

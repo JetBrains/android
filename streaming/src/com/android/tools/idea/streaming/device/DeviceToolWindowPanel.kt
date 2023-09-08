@@ -28,8 +28,6 @@ import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListene
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -103,15 +101,10 @@ internal class DeviceToolWindowPanel(
     // Showing device frame is not supported for physical devices.
   }
 
-  override fun getDeviceInfo(): DeviceInfo =
-      deviceConfig.deviceProperties.deviceInfoProto
-
   /**
    * Populates the device panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
-    mirroringStarted()
-
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
 
@@ -148,8 +141,6 @@ internal class DeviceToolWindowPanel(
    * Destroys content of the device panel and returns its state for later recreation.
    */
   override fun destroyContent(): DeviceUiState {
-    mirroringEnded(DeviceMirroringSession.DeviceKind.PHYSICAL)
-
     val uiState = DeviceUiState()
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState

@@ -48,7 +48,9 @@ import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.override
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
@@ -659,9 +661,41 @@ internal class DeviceViewTest {
     val errorMessage = fakeUi.getComponent<JEditorPane>()
     waitForCondition(2, SECONDS) { fakeUi.isShowing(errorMessage) }
     assertThat(extractText(errorMessage.text)).isEqualTo("Lost connection to the device. See the error log.")
-    var events = usageTrackerRule.agentTerminationEventsAsStrings()
-    assertThat(events.size).isEqualTo(1)
-    val eventPattern = Regex(
+    var mirroringSessions = usageTrackerRule.deviceMirroringSessions()
+    assertThat(mirroringSessions.size).isEqualTo(1)
+    var mirroringSessionPattern = Regex(
+      "kind: DEVICE_MIRRORING_SESSION\n" +
+      "studio_session_id: \".+\"\n" +
+      "product_details \\{\n" +
+      "\\s*version: \".*\"\n" +
+      "}\n" +
+      "device_info \\{\n" +
+      "\\s*anonymized_serial_number: \"\\w+\"\n" +
+      "\\s*build_tags: \"\"\n" +
+      "\\s*build_type: \"\"\n" +
+      "\\s*build_version_release: \"Sweet dessert\"\n" +
+      "\\s*cpu_abi: ARM64_V8A_ABI\n" +
+      "\\s*manufacturer: \"Google\"\n" +
+      "\\s*model: \"Pixel 5\"\n" +
+      "\\s*device_type: LOCAL_PHYSICAL\n" +
+      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*mdns_connection_type: MDNS_NONE\n" +
+      "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "}\n" +
+      "ide_brand: ANDROID_STUDIO\n" +
+      "idea_is_internal: \\w+\n" +
+      "device_mirroring_session \\{\n" +
+      "\\s*device_kind: PHYSICAL\n" +
+      "\\s*duration_sec: \\d+\n" +
+      "\\s*agent_push_time_millis: \\d+\n" +
+      "\\s*first_frame_delay_millis: \\d+\n" +
+      "}\n"
+    )
+    assertThat(mirroringSessionPattern.matches(mirroringSessions[0].toString())).isTrue()
+
+    var agentTerminations = usageTrackerRule.agentTerminationEvents()
+    assertThat(agentTerminations.size).isEqualTo(1)
+    val agentTerminationPattern = Regex(
       "kind: DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION\n" +
       "studio_session_id: \".+\"\n" +
       "product_details \\{\n" +
@@ -687,7 +721,7 @@ internal class DeviceViewTest {
       "\\s*run_duration_millis: \\d+\n" +
       "}\n"
     )
-    assertThat(eventPattern.matches(events[0])).isTrue()
+    assertThat(agentTerminationPattern.matches(agentTerminations[0].toString())).isTrue()
     var crashReports = crashReporterRule.reports
     assertThat(crashReports.size).isEqualTo(1)
     val crashReportPattern1 =
@@ -714,9 +748,40 @@ internal class DeviceViewTest {
     assertThat(button.text).isEqualTo("Retry")
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
 
-    events = usageTrackerRule.agentTerminationEventsAsStrings()
-    assertThat(events.size).isEqualTo(2)
-    assertThat(eventPattern.matches(events[1])).isTrue()
+    mirroringSessions = usageTrackerRule.deviceMirroringSessions()
+    assertThat(mirroringSessions.size).isEqualTo(2)
+    mirroringSessionPattern = Regex(
+      "kind: DEVICE_MIRRORING_SESSION\n" +
+      "studio_session_id: \".+\"\n" +
+      "product_details \\{\n" +
+      "\\s*version: \".*\"\n" +
+      "}\n" +
+      "device_info \\{\n" +
+      "\\s*anonymized_serial_number: \"\\w+\"\n" +
+      "\\s*build_tags: \"\"\n" +
+      "\\s*build_type: \"\"\n" +
+      "\\s*build_version_release: \"Sweet dessert\"\n" +
+      "\\s*cpu_abi: ARM64_V8A_ABI\n" +
+      "\\s*manufacturer: \"Google\"\n" +
+      "\\s*model: \"Pixel 5\"\n" +
+      "\\s*device_type: LOCAL_PHYSICAL\n" +
+      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*mdns_connection_type: MDNS_NONE\n" +
+      "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "}\n" +
+      "ide_brand: ANDROID_STUDIO\n" +
+      "idea_is_internal: \\w+\n" +
+      "device_mirroring_session \\{\n" +
+      "\\s*device_kind: PHYSICAL\n" +
+      "\\s*duration_sec: \\d+\n" +
+      "\\s*agent_push_time_millis: \\d+\n" +
+      "}\n"
+    )
+    assertThat(mirroringSessionPattern.matches(mirroringSessions[1].toString())).isTrue()
+
+    agentTerminations = usageTrackerRule.agentTerminationEvents()
+    assertThat(agentTerminations.size).isEqualTo(2)
+    assertThat(agentTerminationPattern.matches(agentTerminations[1].toString())).isTrue()
 
     crashReports = crashReporterRule.reports
     assertThat(crashReports.size).isEqualTo(2)
@@ -729,6 +794,44 @@ internal class DeviceViewTest {
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+  }
+
+  @Test
+  fun testMetricsCollection() {
+    createDeviceView(200, 300, 2.0)
+    waitForFrame()
+    Disposer.dispose(view)
+    val mirroringSessions = usageTrackerRule.deviceMirroringSessions()
+    assertThat(mirroringSessions.size).isEqualTo(1)
+    val mirroringSessionPattern = Regex(
+      "kind: DEVICE_MIRRORING_SESSION\n" +
+      "studio_session_id: \".+\"\n" +
+      "product_details \\{\n" +
+      "\\s*version: \".*\"\n" +
+      "}\n" +
+      "device_info \\{\n" +
+      "\\s*anonymized_serial_number: \"\\w+\"\n" +
+      "\\s*build_tags: \"\"\n" +
+      "\\s*build_type: \"\"\n" +
+      "\\s*build_version_release: \"Sweet dessert\"\n" +
+      "\\s*cpu_abi: ARM64_V8A_ABI\n" +
+      "\\s*manufacturer: \"Google\"\n" +
+      "\\s*model: \"Pixel 5\"\n" +
+      "\\s*device_type: LOCAL_PHYSICAL\n" +
+      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*mdns_connection_type: MDNS_NONE\n" +
+      "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "}\n" +
+      "ide_brand: ANDROID_STUDIO\n" +
+      "idea_is_internal: \\w+\n" +
+      "device_mirroring_session \\{\n" +
+      "\\s*device_kind: PHYSICAL\n" +
+      "\\s*duration_sec: \\d+\n" +
+      "\\s*agent_push_time_millis: \\d+\n" +
+      "\\s*first_frame_delay_millis: \\d+\n" +
+      "}\n"
+    )
+    assertThat(mirroringSessionPattern.matches(mirroringSessions[0].toString())).isTrue()
   }
 
   @Test
@@ -1004,8 +1107,12 @@ internal class DeviceViewTest {
 private fun getKeyStroke(action: String) =
   KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
 
-private fun UsageTrackerRule.agentTerminationEventsAsStrings(): List<String> {
-  return usages.filter { it.studioEvent.kind == DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION }.map { it.studioEvent.toString() }
+private fun UsageTrackerRule.agentTerminationEvents(): List<AndroidStudioEvent> {
+  return usages.filter { it.studioEvent.kind == DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION }.map { it.studioEvent }
+}
+
+private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent> {
+  return usages.filter { it.studioEvent.kind == DEVICE_MIRRORING_SESSION }.map { it.studioEvent }
 }
 
 private fun CrashReport.toPartMap(): Map<String, String> {

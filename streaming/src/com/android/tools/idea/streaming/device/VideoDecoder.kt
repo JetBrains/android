@@ -90,6 +90,7 @@ internal class VideoDecoder(
   private val decoderScope: CoroutineScope,
   @Volatile var maxOutputSize: Dimension,
   private val deviceProperties: DeviceProperties,
+  private val streamingSessionTracker: DeviceStreamingSessionTracker,
 ) {
 
   private val imageLock = Any()
@@ -118,7 +119,6 @@ internal class VideoDecoder(
    * is disconnected or [decoderScope] is cancelled.
    */
   fun start() {
-    firstPacketArrival = 0L
     decoderScope.launch {
       val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
       videoChannel.readFully(header)
@@ -203,9 +203,6 @@ internal class VideoDecoder(
     suspend fun readAndProcessPacket() {
       // Each video packet contains a 40-byte header followed by the packet data.
       videoChannel.readFully(headerBuffer)
-      if (firstPacketArrival == 0L) {
-        firstPacketArrival = System.currentTimeMillis()
-      }
       headerBuffer.rewind()
       val header = PacketHeader.deserialize(headerBuffer)
       headerBuffer.clear()
@@ -245,6 +242,9 @@ internal class VideoDecoder(
 
     private fun processPacket(packet: AVPacket, header: PacketHeader) { // stream_push_packet
       val isConfig = packet.pts() == AV_NOPTS_VALUE
+      if (!isConfig) {
+        streamingSessionTracker.videoFrameArrived()
+      }
 
       var packetToProcess = packet
       // A config packet must not be decoded immediately (it contains no frame).
@@ -478,5 +478,3 @@ private const val ALPHA_MASK = 0xFF shl 24
 private val SAMPLE_MODEL_BIT_MASKS = intArrayOf(0xFF0000, 0xFF00, 0xFF, ALPHA_MASK)
 private val COLOR_MODEL = DirectColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
                                            32, 0xFF0000, 0xFF00, 0xFF, ALPHA_MASK, false, DataBuffer.TYPE_INT)
-
-internal var firstPacketArrival = 0L

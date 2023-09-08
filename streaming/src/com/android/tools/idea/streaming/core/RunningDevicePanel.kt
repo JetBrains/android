@@ -19,11 +19,7 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -66,9 +62,6 @@ abstract class RunningDevicePanel(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
-
-  // Start time of the current device mirroring session in milliseconds since epoch.
-  private var mirroringStartTime: Long = 0
 
   init {
     background = primaryPanelBackground
@@ -114,37 +107,6 @@ abstract class RunningDevicePanel(
   internal abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
   internal abstract fun destroyContent(): UiState
   internal abstract fun setDeviceFrameVisible(visible: Boolean)
-  /** Returns device information for metrics collection. */
-  protected abstract fun getDeviceInfo(): DeviceInfo
-
-  /**
-   * Records the start of a device mirroring session.
-   */
-  protected fun mirroringStarted() {
-    mirroringStartTime = System.currentTimeMillis()
-  }
-
-  /**
-   * Records the end of a device mirroring session.
-   */
-  protected fun mirroringEnded(deviceKind: DeviceMirroringSession.DeviceKind) {
-    if (mirroringStartTime == 0L) {
-      return
-    }
-    val durationSec = (System.currentTimeMillis() - mirroringStartTime) / 1000
-    mirroringStartTime = 0
-
-    val studioEvent = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION)
-      .setDeviceMirroringSession(
-        DeviceMirroringSession.newBuilder()
-          .setDeviceKind(deviceKind)
-          .setDurationSec(durationSec)
-      )
-      .setDeviceInfo(getDeviceInfo())
-
-    UsageTracker.log(studioEvent)
-  }
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {

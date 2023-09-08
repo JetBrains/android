@@ -130,10 +130,7 @@ internal class DeviceClient(
   @Volatile
   var deviceController: DeviceController? = null
     private set
-  internal var startTime = 0L // Time when startAgentAndConnect was called.
-  internal var pushEndTime = 0L // Time when the agent push completed.
-  internal var startAgentTime = 0L // Time when the command to start the agent was issued.
-  internal var channelConnectedTime = 0L // Time when the channels were connected.
+  val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
   private val clientScope = AndroidCoroutineScope(this)
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
@@ -158,6 +155,7 @@ internal class DeviceClient(
    * has already been started, waits for it to complete.
    */
   suspend fun establishAgentConnection(maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
+    streamingSessionTracker.streamingStarted()
     val completion = CompletableDeferred<Unit>()
     val connection = connectionState.compareAndExchange(null, completion) ?: completion
     if (connection === completion) {
@@ -181,7 +179,6 @@ internal class DeviceClient(
    * Starts the screen sharing agent and connects to it.
    */
   private suspend fun startAgentAndConnect(maxVideoSize: Dimension, initialDisplayOrientation: Int, startVideoStream: Boolean) {
-    startTime = System.currentTimeMillis()
     val adb = AdbLibService.getSession(project).deviceServices
     val deviceSelector = DeviceSelector.fromSerialNumber(deviceSerialNumber)
     val agentPushed = coroutineScope {
@@ -210,7 +207,7 @@ internal class DeviceClient(
     catch (e: IncorrectOperationException) {
       return // Already disposed.
     }
-    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize, deviceConfig.deviceProperties).apply { start() }
+    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize, deviceConfig.deviceProperties, streamingSessionTracker).apply { start() }
     videoStreamActive.set(startVideoStream)
   }
 
@@ -277,7 +274,6 @@ internal class DeviceClient(
       else {
         throw RuntimeException("Unexpected channel markers: $m1, $m2")
       }
-      channelConnectedTime = System.currentTimeMillis()
       controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
     }
   }
@@ -308,6 +304,8 @@ internal class DeviceClient(
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
+    streamingSessionTracker.agentPushStarted()
+
     val soFile: Path
     val jarFile: Path
     if (StudioPathManager.isRunningFromSources()) {
@@ -353,7 +351,7 @@ internal class DeviceClient(
       adb.syncSend(deviceSelector, jarFile, "$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME", permissions)
       nativeLibraryPushed.await()
     }
-    pushEndTime = System.currentTimeMillis()
+    streamingSessionTracker.agentPushEnded()
   }
 
   private val isEmulator = deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true
@@ -365,7 +363,6 @@ internal class DeviceClient(
       maxVideoSize: Dimension,
       initialDisplayOrientation: Int,
       startVideoStream: Boolean) {
-    startAgentTime = System.currentTimeMillis()
     val maxSizeArg =
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"

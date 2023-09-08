@@ -30,6 +30,7 @@ import com.android.tools.adtui.swing.HeadlessRootPaneContainer
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.adtui.ui.NotificationHolderPanel
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
@@ -38,6 +39,7 @@ import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -64,6 +66,7 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
@@ -131,6 +134,8 @@ class EmulatorViewTest {
   private val emulatorViewRule = EmulatorViewRule()
   @get:Rule
   val ruleChain = RuleChain(emulatorViewRule, EdtRule())
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
 
   private val testRootDisposable
     get() = emulatorViewRule.disposable
@@ -981,6 +986,40 @@ class EmulatorViewTest {
     }
   }
 
+  @Test
+  fun testMetricsCollection() {
+    val view = emulatorViewRule.newEmulatorView()
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 2.0)
+
+    var frameNumber = view.frameNumber
+    container.size = Dimension(200, 300)
+    ui.layoutAndDispatchEvents()
+    getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
+
+    Disposer.dispose(view)
+    val mirroringSessions = usageTrackerRule.deviceMirroringSessions()
+    assertThat(mirroringSessions.size).isEqualTo(1)
+    val mirroringSessionPattern = Regex(
+      "kind: DEVICE_MIRRORING_SESSION\n" +
+      "studio_session_id: \".+\"\n" +
+      "product_details \\{\n" +
+      "\\s*version: \".*\"\n" +
+      "}\n" +
+      "device_info \\{\n" +
+      "\\s*device_type: LOCAL_EMULATOR\n" +
+      "}\n" +
+      "ide_brand: ANDROID_STUDIO\n" +
+      "idea_is_internal: \\w+\n" +
+      "device_mirroring_session \\{\n" +
+      "\\s*device_kind: VIRTUAL\n" +
+      "\\s*duration_sec: \\d+\n" +
+      "\\s*first_frame_delay_millis: \\d+\n" +
+      "}\n"
+    )
+    assertThat(mirroringSessionPattern.matches(mirroringSessions[0].toString())).isTrue()
+  }
+
   private fun createScrollPane(view: Component): JScrollPane {
     return JScrollPane(view).apply {
       border = null
@@ -1013,6 +1052,10 @@ class EmulatorViewTest {
 
   private fun getGoldenFile(name: String): Path =
       TestUtils.resolveWorkspacePathUnchecked("${GOLDEN_FILE_PATH}/${name}.png")
+}
+
+private fun UsageTrackerRule.deviceMirroringSessions(): List<AndroidStudioEvent> {
+  return usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DEVICE_MIRRORING_SESSION }.map { it.studioEvent }
 }
 
 private fun getKeyStroke(action: String) =

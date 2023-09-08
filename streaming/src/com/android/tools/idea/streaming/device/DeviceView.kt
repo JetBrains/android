@@ -280,6 +280,7 @@ internal class DeviceView(
   }
 
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
+    deviceClient.streamingSessionTracker.streamingEnded()
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     UIUtil.invokeLaterIfNeeded {
       if (disposed || connectionState == ConnectionState.DISCONNECTED) {
@@ -327,6 +328,7 @@ internal class DeviceView(
   }
 
   override fun dispose() {
+    deviceClient.streamingSessionTracker.streamingEnded()
     deviceClient.stopVideoStream(PRIMARY_DISPLAY_ID)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     disposed = true
@@ -386,19 +388,6 @@ internal class DeviceView(
       displayOrientationCorrectionQuadrants = displayFrame.orientationCorrection
       frameNumber = displayFrame.frameNumber
       notifyFrameListeners(displayRect, displayFrame.image)
-
-      with (deviceClient) {
-        if (startTime != 0L) {
-          val delay = System.currentTimeMillis() - startTime
-          val pushDelay = pushEndTime - startTime
-          val agentStartDelay = startAgentTime - startTime
-          val connectionDelay = channelConnectedTime - startTime
-          val firstPacketDelay = firstPacketArrival - startTime
-          println("Initialization took $delay ms, push took $pushDelay ms, agent was started after $agentStartDelay ms," +
-                  " connected after $connectionDelay ms, first video packet arrived after $firstPacketDelay ms")
-          startTime = 0L
-        }
-      }
 
       if (multiTouchMode) {
         // Render multi-touch visual feedback.
