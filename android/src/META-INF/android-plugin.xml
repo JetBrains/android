@@ -205,11 +205,6 @@
     </action>
   </actions>
 
-  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
-    <importCustomizer implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleImportCustomizer"/>
-    <settingsControlProvider implementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettingsControlProvider"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
