@@ -53,6 +53,8 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -60,6 +62,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -133,6 +136,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final IdeProfilerServices myIdeServices;
 
+  @Nullable
+  private Project myProject;
+
   /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
    */
@@ -144,6 +150,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private Map<Common.Device, Long> myDeviceToStreamIds;
 
   private Map<Long, Common.Stream> myStreamIdToStreams;
+
+  private final Map<ProfilerTaskType, ProfilerTaskHandler> myTaskHandlers;
 
   @NotNull private final SessionsManager mySessionsManager;
 
@@ -195,19 +203,44 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private TransportEventPoller myTransportPoller;
 
+  @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
 
+  /**
+   * Under the Task-Based UX, this constructor serves as the primary constructor to create the StudioProfilers instance for the Profiler
+   * tool window. What differentiates it from other StudioProfilers constructors is the addition of the project and taskHandlers parameters.
+   * The project is utilized to interface to the tool window code, allowing us to create and open tabs from StudioProfilers. The
+   * taskHandlers is just a map of task types to their respective handlers. These task handlers and their functionality can now be utilized
+   * in profiler-level code, not just toolwindow code where they are created.
+   */
+  public StudioProfilers(@NotNull ProfilerClient client,
+                         @NotNull IdeProfilerServices ideServices,
+                         @Nullable Project project,
+                         @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), project, taskHandlers);
+  }
+
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
+    this(client, ideServices, timer, null, new HashMap<>());
+  }
+
+  private StudioProfilers(@NotNull ProfilerClient client,
+                         @NotNull IdeProfilerServices ideServices,
+                         @NotNull StopwatchTimer timer,
+                         @Nullable Project project,
+                         @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers) {
     myClient = client;
     myIdeServices = ideServices;
+    myProject = project;
     myStage = createDefaultStage();
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
+    myTaskHandlers = taskHandlers;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -818,6 +851,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public Common.Session getSession() {
     return mySelectedSession;
+  }
+
+  /**
+   * @return map of task types to their respective task handlers.
+   */
+  public Map<ProfilerTaskType, ProfilerTaskHandler> getTaskHandlers() {
+    return myTaskHandlers;
   }
 
   /**
