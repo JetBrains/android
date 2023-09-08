@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -151,7 +150,8 @@ final class DeviceSkinUpdater {
   }
 
   @VisibleForTesting
-  @NotNull Path updateSkinsImpl(@NotNull Path device) {
+  @NotNull
+  Path updateSkinsImpl(@NotNull Path device) {
     assert !device.toString().isEmpty() && !device.isAbsolute() &&
            !device.equals(device.getFileSystem().getPath(SkinUtils.NO_SKIN)) : device;
 
@@ -273,10 +273,10 @@ final class DeviceSkinUpdater {
                                  @NotNull List<String> stringsToReplace,
                                  @NotNull List<String> stringsToReplaceThemWith,
                                  @NotNull Path target) throws IOException {
-    String sourceString = new String(Files.readAllBytes(source), StandardCharsets.UTF_8);
-    String targetString = StringUtil.replace(sourceString, stringsToReplace, stringsToReplaceThemWith);
+    var sourceString = Files.readString(source);
+    var targetString = StringUtil.replace(sourceString, stringsToReplace, stringsToReplaceThemWith);
 
-    Files.write(target, targetString.getBytes(StandardCharsets.UTF_8));
+    Files.writeString(target, targetString);
   }
 
   @VisibleForTesting

@@ -24,8 +24,8 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Hardware;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Streams;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -62,29 +62,33 @@ public final class DeviceSkinUpdaterService {
     return ApplicationManager.getApplication().getService(DeviceSkinUpdaterService.class);
   }
 
-  @NotNull Executor getExecutor() {
+  @NotNull
+  Executor getExecutor() {
     return myExecutorService;
   }
 
   @AnyThread
+  @NotNull
   @SuppressWarnings("unused")
-  @NotNull ListenableFuture<Path> updateSkins(@NotNull Path device) {
+  ListenableFuture<Path> updateSkins(@NotNull Path device) {
     return updateSkins(device, null);
   }
 
   @AnyThread
   public @NotNull ListenableFuture<Path> updateSkins(@NotNull Path device,
-                                                              @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
+                                                     @Nullable @SuppressWarnings("SameParameterValue") SystemImageDescription image) {
     return myExecutorService.submit(() -> DeviceSkinUpdater.updateSkins(device, image));
   }
 
   @AnyThread
-  @NotNull ListenableFuture<Collection<Path>> updateSkinsIncludingSdkHandlerOnes() {
+  @NotNull
+  ListenableFuture<Collection<Path>> updateSkinsIncludingSdkHandlerOnes() {
     return myExecutorService.submit(() -> updateSkins(DeviceSkinUpdater::updateSkins));
   }
 
   @AnyThread
-  @NotNull ListenableFuture<Collection<Path>> updateSkinsExcludingSdkHandlerOnes() {
+  @NotNull
+  ListenableFuture<Collection<Path>> updateSkinsExcludingSdkHandlerOnes() {
     return myExecutorService.submit(() -> updateSkins(Path::getFileName));
   }
 
@@ -112,8 +116,8 @@ public final class DeviceSkinUpdaterService {
 
   @WorkerThread
   private static @NotNull Stream<Path> targetSkinStream(@NotNull AndroidSdkHandler handler,
-                                                                 @NotNull ProgressIndicator indicator,
-                                                                 @NotNull Function<Path, Path> updateSkins) {
+                                                        @NotNull ProgressIndicator indicator,
+                                                        @NotNull Function<Path, Path> updateSkins) {
     return handler.getAndroidTargetManager(indicator).getTargets(indicator).stream()
       .map(IAndroidTarget::getSkins)
       .flatMap(Arrays::stream)
@@ -123,8 +127,8 @@ public final class DeviceSkinUpdaterService {
 
   @WorkerThread
   private static @NotNull Stream<Path> imageSkinStream(@NotNull AndroidSdkHandler handler,
-                                                                @NotNull ProgressIndicator indicator,
-                                                                @NotNull Function<Path, Path> updateSkins) {
+                                                       @NotNull ProgressIndicator indicator,
+                                                       @NotNull Function<Path, Path> updateSkins) {
     return handler.getSystemImageManager(indicator).getImages().stream()
       .map(SystemImage::getSkins)
       .flatMap(Arrays::stream)
