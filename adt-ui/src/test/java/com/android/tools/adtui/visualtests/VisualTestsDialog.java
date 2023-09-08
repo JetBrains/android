@@ -144,7 +144,8 @@ public class VisualTestsDialog extends JDialog {
     try {
       if (isDarcula) {
         UIManager.setLookAndFeel(new DarculaLaf());
-      } else {
+      }
+      else {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
       }
       JBColor.setDark(isDarcula);

@@ -29,7 +29,7 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.ide.ui.IdeUiService
-import com.intellij.ide.ui.laf.IntelliJLaf
+import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
@@ -123,7 +123,7 @@ private class ComponentTreeTest {
   private val popup: JPopupMenu
 
   init {
-    setLAF(IntelliJLaf())
+    setLAF(DarculaLaf())
     frame = JFrame("Demo")
     popup = createPopup("tree")
 
