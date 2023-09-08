@@ -50,31 +50,37 @@ class UnusedResourcesHandler : RefactoringActionHandler {
       moduleSet.clear()
     }
 
-    invoke(project, moduleSet.toTypedArray(), null, false, false)
+    invokeWithDialog(project, moduleSet.toTypedArray())
   }
 
   companion object {
+    fun invokeWithDialog(
+      project: Project,
+      modules: Array<Module>
+    ) {
+      val modulesForProcessor =
+        if (modules.isEmpty()) ModuleManager.getInstance(project).modules else modules
+
+      val processor = UnusedResourcesProcessor(project, modulesForProcessor, filter = null)
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        processor.run()
+      } else {
+        UnusedResourcesDialog(project, processor).show()
+      }
+    }
+
     @JvmStatic
-    operator fun invoke(
+    fun invokeSilent(
       project: Project,
       modules: Array<Module>?,
-      filter: String?,
-      skipDialog: Boolean,
-      skipIds: Boolean
+      filter: String?
     ) {
       val modulesForProcessor =
         if (modules.isNullOrEmpty()) ModuleManager.getInstance(project).modules else modules
 
       val processor = UnusedResourcesProcessor(project, modulesForProcessor, filter)
-      if (skipIds) {
-        processor.setIncludeIds(true)
-      }
-
-      if (skipDialog || ApplicationManager.getApplication().isUnitTestMode) {
-        processor.run()
-      } else {
-        UnusedResourcesDialog(project, processor).show()
-      }
+      processor.includeIds = true
+      processor.run()
     }
   }
 }

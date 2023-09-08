@@ -47,7 +47,7 @@ internal class UnusedResourcesDialog(
   override fun createCenterPanel(): JComponent? = null
 
   override fun doAction() {
-    processor.setIncludeIds(checkBoxIncludeIds.isSelected)
+    processor.includeIds = checkBoxIncludeIds.isSelected
     processor.setPreviewUsages(isPreviewUsages)
     close(OK_EXIT_CODE)
     processor.run()

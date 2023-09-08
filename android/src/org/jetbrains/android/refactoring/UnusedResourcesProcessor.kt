@@ -66,7 +66,7 @@ class UnusedResourcesProcessor(
 ) : BaseRefactoringProcessor(project, null) {
 
   private var elements = PsiElement.EMPTY_ARRAY
-  private var includeIds = false
+  var includeIds = false
   private val buildModelMap: MutableMap<PsiElement, GradleBuildModel> = mutableMapOf()
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
@@ -335,10 +335,6 @@ class UnusedResourcesProcessor(
   override fun getCommandName() = lazyCommandName
 
   override fun skipNonCodeUsages() = true
-
-  fun setIncludeIds(includeIds: Boolean) {
-    this.includeIds = includeIds
-  }
 
   override fun isToBeChanged(usageInfo: UsageInfo): Boolean {
     if (

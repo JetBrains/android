@@ -47,7 +47,7 @@ public class UnusedResourcesGradleTest {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_GROOVY);
     openPreparedTestProject(preparedProject, project -> {
       assertTrue(getTextForFile(project, "app/build.gradle").contains("resValue"));
-      UnusedResourcesHandler.invoke(project, null, null, true, true);
+      UnusedResourcesHandler.invokeSilent(project, null, null);
 
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                    "<resources>\n" +
@@ -65,7 +65,7 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertTrue(getTextForFile(project, "app/build.gradle").contains("resValue"));
 
-      UnusedResourcesHandler.invoke(project, null, null, true, true);
+      UnusedResourcesHandler.invokeSilent(project, null, null);
 
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                    "<resources>\n" +
@@ -90,7 +90,7 @@ public class UnusedResourcesGradleTest {
       Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
       assertNotNull(app);
 
-      UnusedResourcesHandler.invoke(project, new Module[]{app}, null, true, true);
+      UnusedResourcesHandler.invokeSilent(project, new Module[]{app}, null);
 
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                    "<resources>\n" +
@@ -121,7 +121,7 @@ public class UnusedResourcesGradleTest {
         moduleManager.findModuleByName("project.app.mylibrary.main"); // module name derived from test name + gradle name
       assertNotNull(app);
 
-      UnusedResourcesHandler.invoke(project, new Module[]{app}, null, true, true);
+      UnusedResourcesHandler.invokeSilent(project, new Module[]{app}, null);
 
       // Make sure we have NOT deleted the unused resources in app
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -150,7 +150,7 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertTrue(getTextForFile(project, "app/build.gradle.kts").contains("resValue"));
 
-      UnusedResourcesHandler.invoke(project, null, null, true, true);
+      UnusedResourcesHandler.invokeSilent(project, null, null);
 
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                    "<resources>\n" +

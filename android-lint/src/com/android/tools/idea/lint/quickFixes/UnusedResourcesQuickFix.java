@@ -34,7 +34,7 @@ public class UnusedResourcesQuickFix extends DefaultLintQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     Project project = startElement.getProject();
-    UnusedResourcesHandler.invoke(project, null, myResource, true, true);
+    UnusedResourcesHandler.invokeSilent(project, null, myResource);
   }
 
   @Override
