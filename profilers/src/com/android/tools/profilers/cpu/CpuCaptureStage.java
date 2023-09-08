@@ -81,6 +81,7 @@ import com.android.tools.profilers.event.UserEventDataSeries;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
@@ -427,7 +428,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
         }
       }
     }
-    if (getStudioProfilers().getSession().getPid() == 0 &&
+    if (SessionsManager.isSessionImported(getStudioProfilers().getSession()) &&
         !getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
       // correct trace type associated with the imported file. In the Task Based UX, however, a CPU_TRACE event is inserted at import-time,

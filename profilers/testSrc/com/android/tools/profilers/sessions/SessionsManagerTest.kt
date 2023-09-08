@@ -597,6 +597,38 @@ class SessionsManagerTest {
   }
 
   @Test
+  fun testImportedSessionAutoSelectedWithTaskBasedUXDisabled() {
+    (myProfilers.ideServices as FakeIdeProfilerServices).enableTaskBasedUx(false)
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       1).build())
+    myManager.update()
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
+    myManager.update()
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+    // The imported session's id is 1, so we expect that to be the selected session's id.
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(1)
+  }
+
+  @Test
+  fun testImportedSessionNotAutoSelectedWithTaskBasedUXEnabled() {
+    (myProfilers.ideServices as FakeIdeProfilerServices).enableTaskBasedUx(true)
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionStartEvent(1, 1, 1,
+                                                                                       Common.SessionData.SessionStarted.SessionType.MEMORY_CAPTURE,
+                                                                                       1).build())
+    myManager.update()
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(0)
+
+    myTransportService.addEventToStream(1, ProfilersTestData.generateSessionEndEvent(1, 1, 2).build())
+    myManager.update()
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+    // The imported session's id is 1, so we do not expect that to be the selected session's id.
+    assertThat(myManager.selectedSession.sessionId).isEqualTo(0)
+  }
+
+  @Test
   fun testSessionsAspectOnlyTriggeredWithChanges() {
     val device = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build()
     val process1 = Common.Process.newBuilder().setPid(10).setState(Common.Process.State.ALIVE).build()
