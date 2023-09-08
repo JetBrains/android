@@ -16,56 +16,46 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderResources
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Maps
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 import kotlin.properties.Delegates.observable
 
 class GutterIconCache {
-  private val thumbnailCache: MutableMap<String, Icon?> = Maps.newHashMap()
-
-  /**
-   * Stores timestamps for the last modification time of image files using the
-   * path as a key.
-   */
-  private val modificationStampCache: MutableMap<String, Long> = Maps.newHashMap()
+  private val thumbnailCache: MutableMap<String, TimestampedIcon> = Maps.newConcurrentMap()
   private var highDpiDisplay by observable(false) { _, oldValue, newValue ->
     if (oldValue != newValue) thumbnailCache.clear()
   }
-  @VisibleForTesting
-  fun isIconUpToDate(file: VirtualFile) =
-    // Entry is valid if image resource has not been modified since the entry was cached
-    modificationStampCache[file.path] == file.modificationStamp
-    && !FileDocumentManager.getInstance().isFileModified(file)
 
+  @TestOnly
+  fun isIconUpToDate(file: VirtualFile) = thumbnailCache[file.path]?.isAsNewAs(file) ?: false
 
   fun getIcon(file: VirtualFile, resolver: RenderResources?, facet: AndroidFacet): Icon? {
     highDpiDisplay = UIUtil.isRetina()
     val path = file.path
-    thumbnailCache[path]?.takeIf { isIconUpToDate(file) }?.let { return it.noneToNull() }
+    thumbnailCache[path]?.takeIf { it.isAsNewAs(file) }?.let { return it.icon }
 
-    val renderedIcon = GutterIconFactory.createIcon(file, resolver, MAX_WIDTH, MAX_HEIGHT, facet) ?: NONE
-    thumbnailCache[path] = renderedIcon
-    // Record timestamp of image resource at the time of caching
-    modificationStampCache[path] = file.modificationStamp
-    return renderedIcon.noneToNull()
+    return GutterIconFactory.createIcon(file, resolver, MAX_WIDTH, MAX_HEIGHT, facet).also {
+      thumbnailCache[path] = TimestampedIcon(it, file.modificationStamp)
+    }
+  }
+
+  data class TimestampedIcon(val icon: Icon?, val timestamp: Long) {
+    fun isAsNewAs(file: VirtualFile) =
+      // Entry is valid if image resource has not been modified since the entry was cached
+      timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
+
   }
 
   companion object {
-    private val NONE = StudioIcons.Common.ANDROID_HEAD // placeholder
     private val MAX_WIDTH = JBUI.scale(16)
     private val MAX_HEIGHT = JBUI.scale(16)
-    private val instance = GutterIconCache()
-
-    private fun Icon.noneToNull() : Icon? = takeUnless { this == NONE }
-
-    @JvmStatic
-    fun getInstance() = instance
+    @JvmField
+    val INSTANCE = GutterIconCache()
   }
 }
