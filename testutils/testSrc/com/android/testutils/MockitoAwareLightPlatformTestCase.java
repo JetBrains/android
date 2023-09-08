@@ -3,7 +3,7 @@ package com.android.testutils;
 
 import com.intellij.testFramework.LightPlatformTestCase;
 
-public class MockitoAwareLightPlatformTestCase extends LightPlatformTestCase {
+public abstract class MockitoAwareLightPlatformTestCase extends LightPlatformTestCase {
   private final MockitoThreadLocalsCleaner cleaner = new MockitoThreadLocalsCleaner();
 
   @Override

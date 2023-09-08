@@ -26,8 +26,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
-
-open class ComposeRenderTestBase {
+abstract class ComposeRenderTestBase {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
