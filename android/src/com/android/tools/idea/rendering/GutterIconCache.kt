@@ -26,11 +26,16 @@ import org.jetbrains.annotations.TestOnly
 import javax.swing.Icon
 import kotlin.properties.Delegates.observable
 
-class GutterIconCache {
+private fun defaultRenderIcon(file: VirtualFile, renderResources: RenderResources?, facet: AndroidFacet) =
+  GutterIconFactory.createIcon(file, renderResources, facet, JBUI.scale(16), JBUI.scale(16))
+
+class GutterIconCache @TestOnly constructor(private val renderIcon: (VirtualFile, RenderResources?, AndroidFacet) -> Icon?) {
   private val thumbnailCache: MutableMap<String, TimestampedIcon> = Maps.newConcurrentMap()
   private var highDpiDisplay by observable(false) { _, oldValue, newValue ->
     if (oldValue != newValue) thumbnailCache.clear()
   }
+
+  constructor() : this(::defaultRenderIcon)
 
   @TestOnly
   fun isIconUpToDate(file: VirtualFile) = thumbnailCache[file.path]?.isAsNewAs(file) ?: false
@@ -40,21 +45,15 @@ class GutterIconCache {
     val path = file.path
     thumbnailCache[path]?.takeIf { it.isAsNewAs(file) }?.let { return it.icon }
 
-    return GutterIconFactory.createIcon(file, resolver, facet, MAX_WIDTH, MAX_HEIGHT).also {
-      thumbnailCache[path] = TimestampedIcon(it, file.modificationStamp)
-    }
+    return renderIcon(file, resolver, facet).also { thumbnailCache[path] = TimestampedIcon(it, file.modificationStamp) }
   }
 
   data class TimestampedIcon(val icon: Icon?, val timestamp: Long) {
     fun isAsNewAs(file: VirtualFile) =
-      // Entry is valid if image resource has not been modified since the entry was cached
       timestamp == file.modificationStamp && !FileDocumentManager.getInstance().isFileModified(file)
-
   }
 
   companion object {
-    private val MAX_WIDTH = JBUI.scale(16)
-    private val MAX_HEIGHT = JBUI.scale(16)
     @JvmField
     val INSTANCE = GutterIconCache()
   }

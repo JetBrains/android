@@ -25,50 +25,47 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
+import javax.swing.Icon
 
 class GutterIconCacheTest : AndroidTestCase() {
   private lateinit var sampleSvgPath: Path
   private lateinit var sampleSvgFile: VirtualFile
+  private var icon: Icon? = null
+  private val cache = GutterIconCache {_, _, _, -> icon }
+
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    sampleSvgPath = FileSystems.getDefault().getPath(
-      myModule.project.basePath,
-      "app", "src", "main", "res", "drawable", "GutterIconCacheTest_sample.xml"
-    )
-    val contents = "<svg viewBox=\"0 0 50 50\"><rect width=\"50\" height=\"50\" fill=\"blue\"/></svg>"
-    sampleSvgFile = TestFileUtils.writeFileAndRefreshVfs(sampleSvgPath, contents)
+    sampleSvgPath = FileSystems.getDefault().getPath(myModule.project.basePath, "HeyImAFile.xml")
+    sampleSvgFile = TestFileUtils.writeFileAndRefreshVfs(sampleSvgPath, "whose contents are immaterial")
   }
 
   fun testIsIconUpToDate_entryInvalidNotCached() {
-    // Use constructor instead of statically-loaded instance to ensure fresh cache
-    val cache = GutterIconCache()
-
     // If we've never requested an Icon for the path, there should be no valid cache entry.
     assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
   }
 
   fun testIsIconUpToDate_entryValid() {
-    GutterIconCache.INSTANCE.getIcon(sampleSvgFile, null, myFacet)
+    cache.getIcon(sampleSvgFile, null, myFacet)
 
     // If we haven't modified the image since creating an Icon, the cache entry is still valid
-    assertThat(GutterIconCache.INSTANCE.isIconUpToDate(sampleSvgFile)).isTrue()
+    assertThat(cache.isIconUpToDate(sampleSvgFile)).isTrue()
   }
 
   fun testIsIconUpToDate_entryInvalidUnsavedChanges() {
-    GutterIconCache.INSTANCE.getIcon(sampleSvgFile, null, myFacet)
+    cache.getIcon(sampleSvgFile, null, myFacet)
 
     // "Modify" Document by rewriting its contents
     val document = checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))
     ApplicationManager.getApplication().runWriteAction { document.setText(document.text) }
 
     // Modifying the image should have invalidated the cache entry.
-    assertThat(GutterIconCache.INSTANCE.isIconUpToDate(sampleSvgFile)).isFalse()
+    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
   }
 
   @Throws(Exception::class)
   fun testIconUpToDate_entryInvalidSavedChanges() {
-    GutterIconCache.INSTANCE.getIcon(sampleSvgFile, null, myFacet)
+    cache.getIcon(sampleSvgFile, null, myFacet)
 
     // Modify image resource by adding an empty comment and then save
     val document = checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))
@@ -78,12 +75,12 @@ class GutterIconCacheTest : AndroidTestCase() {
     }
 
     // Modifying the image should have invalidated the cache entry.
-    assertThat(GutterIconCache.INSTANCE.isIconUpToDate(sampleSvgFile)).isFalse()
+    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
   }
 
   @Throws(Exception::class)
   fun testIconUpToDate_entryInvalidDiskChanges() {
-    GutterIconCache.INSTANCE.getIcon(sampleSvgFile, null, myFacet)
+    cache.getIcon(sampleSvgFile, null, myFacet)
     val previousTimestamp = Files.getLastModifiedTime(sampleSvgPath)
 
     // "Modify" file by changing its lastModified field
@@ -94,6 +91,6 @@ class GutterIconCacheTest : AndroidTestCase() {
     assertThat(previousTimestamp).isLessThan(Files.getLastModifiedTime(sampleSvgPath))
 
     // Modifying the image should have invalidated the cache entry.
-    assertThat(GutterIconCache.INSTANCE.isIconUpToDate(sampleSvgFile)).isFalse()
+    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
   }
 }
