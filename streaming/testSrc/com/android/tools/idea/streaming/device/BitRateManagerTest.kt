@@ -32,7 +32,7 @@ class BitRateManagerTest {
     manufacturer = "Google"
     model = "Pixel 3a"
     androidVersion = AndroidVersion(30)
-    abi = ARM64_V8A
+    abiList = listOf(ARM64_V8A)
     icon = EmptyIcon.ICON_16
   }
 

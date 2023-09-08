@@ -828,7 +828,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val disposable = physicalDeviceWatcher
     var deviceClient = deviceClients[serialNumber]
     if (deviceClient == null) {
-      deviceClient = DeviceClient(disposable, serialNumber, deviceHandle, config, config.deviceProperties.abi.toString(), project)
+      deviceClient = DeviceClient(disposable, serialNumber, deviceHandle, config, config.deviceProperties.primaryAbi.toString(), project)
       deviceClients[serialNumber] = deviceClient
       updateMirroringHandlesFlow()
     }
@@ -1160,7 +1160,7 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
 
   val apiLevel = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
   // Mirroring is supported for API >= 26. Wear OS devices with API < 30 don't support VP8/VP9 video encoders.
-  return apiLevel >= 26 && (properties.deviceType != DeviceType.WEAR || apiLevel >= 30) && properties.abi != null
+  return apiLevel >= 26 && (properties.deviceType != DeviceType.WEAR || apiLevel >= 30) && properties.primaryAbi != null
 }
 
 private val DeviceState.Connected.serialNumber: String

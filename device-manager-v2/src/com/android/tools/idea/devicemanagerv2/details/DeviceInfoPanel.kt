@@ -228,7 +228,7 @@ class LabeledValue(label: String) {
 
 internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   apiLevel = properties.androidVersion?.apiStringWithExtension ?: "Unknown"
-  abiList = properties.abi?.toString() ?: "Unknown"
+  abiList = properties.primaryAbi?.toString() ?: "Unknown"
   resolution = properties.resolution?.toString() ?: "Unknown"
   val resolutionDp = properties.resolutionDp
   this.resolutionDp = resolutionDp?.toString() ?: "Unknown"

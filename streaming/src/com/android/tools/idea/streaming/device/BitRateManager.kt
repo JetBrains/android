@@ -131,7 +131,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
   }
 
   private fun DeviceProperties.key(): String =
-      "${this.manufacturer ?: ""}|${this.model ?: ""}|${this.abi ?: ""}|${androidVersion?.featureLevel ?: 0}"
+      "${this.manufacturer ?: ""}|${this.model ?: ""}|${this.primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
 
   companion object {
     fun getInstance(): BitRateManager = ApplicationManager.getApplication().service<BitRateManager>()

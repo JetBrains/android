@@ -128,7 +128,7 @@ class DeviceInfoPanelTest {
         model = "Pixel 6"
         androidVersion = AndroidVersion(30, null, 0, true)
         androidRelease = "11"
-        this.abi = abi
+        abiList = listOfNotNull(abi)
         isVirtual = false
         resolution = Resolution(1080, 2280)
         density = 440
