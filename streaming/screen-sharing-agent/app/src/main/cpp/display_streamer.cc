@@ -330,10 +330,10 @@ void DisplayStreamer::Run() {
     JObject display_token;
     if (DisplayManager::CanCreateVirtualDisplay(jni)) {
       virtual_display = DisplayManager::CreateVirtualDisplay(
-          jni, "screen-sharing-agent", display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
+          jni, "studio.screen.sharing", display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
     } else {
       bool secure = Agent::api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
-      display_token = SurfaceControl::CreateDisplay(jni, "screen-sharing-agent", secure);
+      display_token = SurfaceControl::CreateDisplay(jni, "studio.screen.sharing", secure);
       if (display_token.IsNull()) {
         Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Unable to create a virtual display");
       }
