@@ -73,7 +73,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
         VirtualFile file =
           TestFileUtils.writeFileAndRefreshVfs(mySampleXmlPath, String.format(XML_CONTENTS_FORMAT, width, height));
 
-        Icon icon = GutterIconFactory.createIcon(file, null, XML_MAX_WIDTH, XML_MAX_HEIGHT, myFacet);
+        Icon icon = GutterIconFactory.createIcon(file, null, myFacet, XML_MAX_WIDTH, XML_MAX_HEIGHT);
 
         assertThat(icon).isNotNull();
         assertThat(icon.getIconWidth()).isAtMost(XML_MAX_WIDTH);
@@ -90,7 +90,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     assertThat(input.getWidth()).isGreaterThan(MAX_WIDTH);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    Icon icon = GutterIconFactory.createIcon(file, null, MAX_WIDTH, MAX_HEIGHT, myFacet);
+    Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     assertThat(icon.getIconWidth()).isAtMost(MAX_WIDTH);
     assertThat(icon.getIconHeight()).isAtMost(MAX_HEIGHT);
@@ -104,7 +104,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     assertThat(input.getWidth()).isAtMost(MAX_WIDTH);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    Icon icon = GutterIconFactory.createIcon(file, null, MAX_WIDTH, MAX_HEIGHT, myFacet);
+    Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     BufferedImage output = TestRenderingUtils.getImageFromIcon(icon);
 
@@ -120,7 +120,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     assertThat(input.getWidth()).isGreaterThan(MAX_WIDTH);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    Icon icon = GutterIconFactory.createIcon(file, null, MAX_WIDTH, MAX_HEIGHT, myFacet);
+    Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     assertThat(icon.getIconWidth()).isAtMost(MAX_WIDTH);
     assertThat(icon.getIconHeight()).isAtMost(MAX_HEIGHT);

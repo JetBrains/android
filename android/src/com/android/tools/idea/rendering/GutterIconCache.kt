@@ -40,7 +40,7 @@ class GutterIconCache {
     val path = file.path
     thumbnailCache[path]?.takeIf { it.isAsNewAs(file) }?.let { return it.icon }
 
-    return GutterIconFactory.createIcon(file, resolver, MAX_WIDTH, MAX_HEIGHT, facet).also {
+    return GutterIconFactory.createIcon(file, resolver, facet, MAX_WIDTH, MAX_HEIGHT).also {
       thumbnailCache[path] = TimestampedIcon(it, file.modificationStamp)
     }
   }
