@@ -105,7 +105,8 @@ public final class DeviceSkinUpdaterService {
   }
 
   @WorkerThread
-  private static @NotNull Stream<Path> deviceSkinStream() {
+  @NotNull
+  public static Stream<Path> deviceSkinStream() {
     return DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices().stream()
       .map(Device::getDefaultHardware)
       .map(Hardware::getSkinFile)

@@ -47,7 +47,7 @@ import javax.imageio.ImageIO;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DeviceSkinUpdater {
+public final class DeviceSkinUpdater {
   @VisibleForTesting
   static class Converter {
     @VisibleForTesting
@@ -98,7 +98,8 @@ final class DeviceSkinUpdater {
    * @see DeviceSkinUpdaterService
    */
   @Slow
-  static @NotNull Path updateSkins(@NotNull Path device) {
+  @NotNull
+  public static Path updateSkins(@NotNull Path device) {
     return updateSkins(device, null);
   }
 
