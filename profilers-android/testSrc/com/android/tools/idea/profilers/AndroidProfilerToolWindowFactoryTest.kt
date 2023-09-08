@@ -3,11 +3,23 @@ package com.android.tools.idea.profilers
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidOrApkFacetChecker
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.memory.HeapProfdSessionArtifact
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
+import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import org.jetbrains.uast.util.isInstanceOf
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -23,6 +35,17 @@ class AndroidProfilerToolWindowFactoryTest {
 
   private val project get() = projectRule.project
 
+  @Before
+  fun setup() {
+    // This test suite assumes the Task-Based UX is enabled unless otherwise specified.
+    StudioFlags.PROFILER_TASK_BASED_UX.override(true)
+  }
+
+  @After
+  fun cleanup() {
+    StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
+  }
+
   @Test
   fun isLibraryToolWindow() {
     val toolWindow =
@@ -35,8 +58,6 @@ class AndroidProfilerToolWindowFactoryTest {
 
   @Test
   fun `createToolWindowContent implicitly opens the home tab`() {
-    StudioFlags.PROFILER_TASK_BASED_UX.override(true);
-
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
     val toolWindowFactory = AndroidProfilerToolWindowFactory()
     toolWindowFactory.init(toolWindow)
@@ -52,14 +73,10 @@ class AndroidProfilerToolWindowFactoryTest {
     assertThat(homeTabContent.tabName).isEqualTo("Home")
     assertThat(homeTabContent.displayName).isEqualTo("Home")
     assertThat(homeTabContent.toolwindowTitle).isEqualTo("Home")
-
-    StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
   }
 
   @Test
   fun `explicitly opening the home tab reselects existing home tab`() {
-    StudioFlags.PROFILER_TASK_BASED_UX.override(true);
-
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
     val toolWindowFactory = AndroidProfilerToolWindowFactory()
     toolWindowFactory.init(toolWindow)
@@ -91,7 +108,71 @@ class AndroidProfilerToolWindowFactoryTest {
     waitForCondition(5L, TimeUnit.SECONDS) {
       toolWindow.contentManager.contentCount == 2 && toolWindow.contentManager.selectedContent == homeTabContent
     }
+  }
 
-    StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
+  @Test
+  fun `opening the task tab with CPU task creates second tab with CPU stage`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    // Wait for the home tab to be auto-selected via the call to openHomeTab() in AndroidProfilerToolWindow.createToolWindowContent.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "Home"
+    }
+
+    // At this point, there is a home tab implicitly opened by the call to `createToolWindowContent`.
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
+    assertThat(profilerToolWindow).isNotNull()
+
+    profilerToolWindow!!.openTaskTab(ProfilerTaskType.SYSTEM_TRACE,
+                                     CpuTaskArgs(CpuCaptureSessionArtifact
+                                                 (profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                                  Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+
+    // Opening the task tab with a SYSTEM_TRACE task (a CPU task) should open up a second tab with non-null content, a tab name
+    // of "System Trace" and the current stage should be set to the CpuProfilerStage.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contentCount == 2 &&
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "System Trace"
+      profilerToolWindow.profilers.stage is CpuProfilerStage
+    }
+  }
+
+  @Test
+  fun `opening the task tab with memory task creates second tab with memory stage`() {
+    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+    val toolWindowFactory = AndroidProfilerToolWindowFactory()
+    toolWindowFactory.init(toolWindow)
+    toolWindowFactory.createToolWindowContent(project, toolWindow)
+
+    // Wait for the home tab to be auto-selected via the call to openHomeTab() in AndroidProfilerToolWindow.createToolWindowContent.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "Home"
+    }
+
+    // At this point, there is a home tab implicitly opened by the call to `createToolWindowContent`.
+
+    val profilerToolWindow = AndroidProfilerToolWindowFactory.PROJECT_PROFILER_MAP[project]
+    assertThat(profilerToolWindow).isNotNull()
+
+    profilerToolWindow!!.openTaskTab(ProfilerTaskType.NATIVE_ALLOCATIONS,
+                                     NativeAllocationsTaskArgs(HeapProfdSessionArtifact(
+                                     profilerToolWindow.profilers, Common.Session.getDefaultInstance(),
+                                                  Common.SessionMetaData.getDefaultInstance(), Trace.TraceInfo.getDefaultInstance())))
+
+    // Opening the task tab with a NATIVE_ALLOCATIONS task (a memory task) should open up a second tab with non-null content, a tab name
+    // of "Native Allocations" and the current stage should be set to the MainMemoryProfilerStage.
+    waitForCondition(5L, TimeUnit.SECONDS) {
+      toolWindow.contentManager.contentCount == 2 &&
+      toolWindow.contentManager.selectedContent != null &&
+      toolWindow.contentManager.selectedContent!!.displayName == "Native Allocations"
+      profilerToolWindow.profilers.stage is MainMemoryProfilerStage
+    }
   }
 }

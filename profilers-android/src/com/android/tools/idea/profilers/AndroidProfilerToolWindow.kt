@@ -61,6 +61,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   private val ideProfilerServices: IntellijProfilerServices
   private val ideProfilerComponents: IdeProfilerComponents
   val profilers: StudioProfilers
+  private var currentTaskHandler: ProfilerTaskHandler? = null
   private val taskHandlers = HashMap<ProfilerTaskType, ProfilerTaskHandler>()
 
   private lateinit var homeTab: StudioProfilersHomeTab
@@ -129,10 +130,6 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     taskHandlers[ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS] = JavaKotlinAllocationsTaskHandler(sessionsManager)
   }
 
-  private fun createTaskTab() {
-    createNewTab(profilersPanel, "<Task Name>", true)
-  }
-
   @VisibleForTesting
   fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean) {
     val contentManager = window.getContentManager()
@@ -168,11 +165,6 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     profilersPanel.add(profilersTab.view.component)
     profilersPanel.revalidate()
     profilersPanel.repaint()
-
-    // TODO(b/277797528) Remove once the task tab supports an L2 or L3 stage.
-    if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
-      profilers.setDefaultStage()
-    }
   }
 
   fun openHomeTab() {
@@ -186,13 +178,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   fun openTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
-    // The taskType and taskArgs will be utilized in the (to-be-added) task handlers.
-    val content = findTaskTab()
-    if (content != null) {
-      window.getContentManager().setSelectedContent(content)
+    val taskTab = findTaskTab()
+    val taskName = taskHandlers[taskType]?.getTaskName() ?: "Task Not Supported Yet"
+    if (taskTab != null) {
+      taskTab.displayName = taskName
+      window.getContentManager().setSelectedContent(taskTab)
     }
     else {
-      createTaskTab()
+      createNewTab(profilersPanel, taskName, true)
+    }
+    currentTaskHandler?.exit()
+    currentTaskHandler = taskHandlers[taskType]
+    currentTaskHandler?.let { taskHandler ->
+      val enterSuccessful = taskHandler.enter(taskArgs)
     }
   }
 
