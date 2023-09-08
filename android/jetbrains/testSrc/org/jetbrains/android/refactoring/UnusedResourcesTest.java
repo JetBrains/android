@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.VfsTestUtil;
@@ -51,9 +50,7 @@ public class UnusedResourcesTest extends AndroidTestCase {
 
     VfsTestUtil.createFile(ProjectUtil.guessProjectDir(myFixture.getProject()), "res/raw/foo.bin", new byte[]{0,1,2});
 
-    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(),
-                                                                      ModuleManager.getInstance(getProject()).getModules(),
-                                                                      null);
+    UnusedResourcesProcessor processor = new UnusedResourcesProcessor(getProject(), null);
 
     assertThat(myFixture.getUsageViewTreeTextRepresentation(Arrays.asList(processor.findUsages())))
       .isEqualTo("<root> (2)\n" +

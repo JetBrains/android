@@ -31,9 +31,7 @@ import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -59,15 +57,23 @@ import org.jetbrains.kotlin.ir.types.impl.IrErrorClassImpl.startOffset
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 
-class UnusedResourcesProcessor(
-  project: Project,
-  private val modules: Array<Module>,
-  private val filter: String?
-) : BaseRefactoringProcessor(project, null) {
+class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
+  BaseRefactoringProcessor(project, null) {
+
+  interface Filter {
+    fun shouldProcessFile(psiFile: PsiFile): Boolean
+    fun shouldProcessResource(resource: String?): Boolean
+  }
+
+  private object AllFilter : Filter {
+    override fun shouldProcessFile(psiFile: PsiFile) = true
+    override fun shouldProcessResource(resource: String?) = true
+  }
 
   private var elements = PsiElement.EMPTY_ARRAY
   var includeIds = false
   private val buildModelMap: MutableMap<PsiElement, GradleBuildModel> = mutableMapOf()
+  private val filter = filter ?: AllFilter
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
     UnusedResourcesUsageViewDescriptor(elements)
@@ -100,11 +106,7 @@ class UnusedResourcesProcessor(
         .mapNotNull { (javaFile, psiFile) -> psiFile?.let { javaFile to it } }
         .toMap()
 
-    val excludedFiles =
-      files.values.filter {
-        val module = ModuleUtilCore.findModuleForFile(it)
-        module != null && module !in modules
-      }
+    val excludedFiles = files.values.filter { !filter.shouldProcessFile(it) }
 
     // We cannot just skip removing references in modules outside of the scope.
     // If an unused resource is referenced from outside the included scope,
@@ -134,7 +136,7 @@ class UnusedResourcesProcessor(
 
         if (psiFile.fileType.isBinary) {
           // Delete the whole file
-          if (matchesFilter(problems)) {
+          if (problems.any { filter.shouldProcessResource(getResource(it)) }) {
             unusedElements.add(psiFile)
           }
         } else {
@@ -202,7 +204,9 @@ class UnusedResourcesProcessor(
                 }
                 UnusedResourceDetector.ISSUE -> {
                   // Unused non-value resource file: Delete the whole file
-                  if (matchesFilter(problems)) unusedElements.add(psiFile)
+                  if (problems.any { filter.shouldProcessResource(getResource(it)) }) {
+                    unusedElements.add(psiFile)
+                  }
                 }
               }
             }
@@ -225,7 +229,8 @@ class UnusedResourcesProcessor(
     return problems
       .asSequence()
       .filter { problem ->
-        !excludedResources.contains(getResource(problem)) && matchesFilter(problem)
+        val resource = getResource(problem)
+        !excludedResources.contains(resource) && filter.shouldProcessResource(resource)
       }
       .map { problem -> problem.textRange.startOffset }
       .sortedDescending()
@@ -293,14 +298,6 @@ class UnusedResourcesProcessor(
     val allowedIssues = setOf(UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS)
     return map.filterKeys(allowedIssues::contains)
   }
-
-  private fun matchesFilter(problems: List<LintProblemData>): Boolean {
-    if (filter == null) return true
-    return problems.any { filter == getResource(it) }
-  }
-
-  private fun matchesFilter(problem: LintProblemData) =
-    filter == null || filter == getResource(problem)
 
   override fun preprocessUsages(refUsages: Ref<Array<UsageInfo>>) = true
 

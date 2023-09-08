@@ -26,6 +26,7 @@ import static junit.framework.Assert.assertTrue;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.testFramework.RunsInEdt;
@@ -90,7 +91,7 @@ public class UnusedResourcesGradleTest {
       Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
       assertNotNull(app);
 
-      UnusedResourcesHandler.invokeSilent(project, new Module[]{app}, null);
+      UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(app), null);
 
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                    "<resources>\n" +
@@ -121,7 +122,7 @@ public class UnusedResourcesGradleTest {
         moduleManager.findModuleByName("project.app.mylibrary.main"); // module name derived from test name + gradle name
       assertNotNull(app);
 
-      UnusedResourcesHandler.invokeSilent(project, new Module[]{app}, null);
+      UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(app), null);
 
       // Make sure we have NOT deleted the unused resources in app
       assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

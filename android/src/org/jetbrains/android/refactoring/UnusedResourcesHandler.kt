@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -50,18 +49,13 @@ class UnusedResourcesHandler : RefactoringActionHandler {
       moduleSet.clear()
     }
 
-    invokeWithDialog(project, moduleSet.toTypedArray())
+    invokeWithDialog(project, moduleSet)
   }
 
   companion object {
-    fun invokeWithDialog(
-      project: Project,
-      modules: Array<Module>
-    ) {
-      val modulesForProcessor =
-        if (modules.isEmpty()) ModuleManager.getInstance(project).modules else modules
+    fun invokeWithDialog(project: Project, modules: Set<Module>) {
+      val processor = UnusedResourcesProcessor(project, getFilter(modules))
 
-      val processor = UnusedResourcesProcessor(project, modulesForProcessor, filter = null)
       if (ApplicationManager.getApplication().isUnitTestMode) {
         processor.run()
       } else {
@@ -70,17 +64,29 @@ class UnusedResourcesHandler : RefactoringActionHandler {
     }
 
     @JvmStatic
-    fun invokeSilent(
-      project: Project,
-      modules: Array<Module>?,
-      filter: String?
-    ) {
-      val modulesForProcessor =
-        if (modules.isNullOrEmpty()) ModuleManager.getInstance(project).modules else modules
-
-      val processor = UnusedResourcesProcessor(project, modulesForProcessor, filter)
+    fun invokeSilent(project: Project, modules: Set<Module>?, filter: String?) {
+      val processor = UnusedResourcesProcessor(project, getFilter(modules, filter))
       processor.includeIds = true
+
       processor.run()
     }
+
+    private fun getFilter(
+      modules: Set<Module>?,
+      filter: String? = null
+    ): UnusedResourcesProcessor.Filter? =
+      if (modules.isNullOrEmpty()) null else ResourcesProcessorFilter(modules, filter)
+  }
+
+  private class ResourcesProcessorFilter(
+    private val modules: Set<Module>,
+    private val filter: String?
+  ) : UnusedResourcesProcessor.Filter {
+    override fun shouldProcessFile(psiFile: PsiFile): Boolean {
+      val module = ModuleUtilCore.findModuleForFile(psiFile)
+      return module == null || module in modules
+    }
+
+    override fun shouldProcessResource(resource: String?) = filter == null || filter == resource
   }
 }
