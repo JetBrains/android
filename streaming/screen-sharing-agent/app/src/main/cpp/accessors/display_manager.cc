@@ -151,6 +151,7 @@ void DisplayManager::UnregisterDisplayListener(Jni jni, DisplayManager::DisplayL
 
 void DisplayManager::OnDisplayAdded(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
+  Log::D("DisplayManager::OnDisplayAdded %d", display_id);
   for (auto listener : *display_listeners_.load()) {
     listener->OnDisplayAdded(display_id);
   }
@@ -158,6 +159,7 @@ void DisplayManager::OnDisplayAdded(Jni jni, int32_t display_id) {
 
 void DisplayManager::OnDisplayRemoved(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
+  Log::D("DisplayManager::OnDisplayRemoved %d", display_id);
   for (auto listener : *display_listeners_.load()) {
     listener->OnDisplayRemoved(display_id);
   }
