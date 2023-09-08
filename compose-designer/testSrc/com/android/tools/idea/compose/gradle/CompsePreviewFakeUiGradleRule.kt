@@ -155,7 +155,7 @@ class ComposePreviewFakeUiGradleRule(
   }
 
   /** Executes [runnable], expecting it to cause a refresh to start running. */
-  private suspend fun waitForAnyRefreshToStart(
+  suspend fun waitForAnyRefreshToStart(
     timeout: Duration = DEFAULT_REFRESH_TIMEOUT,
     runnable: suspend () -> Unit
   ) = coroutineScope {

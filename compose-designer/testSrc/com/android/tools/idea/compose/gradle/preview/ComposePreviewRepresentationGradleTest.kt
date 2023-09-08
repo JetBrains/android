@@ -66,7 +66,6 @@ import java.awt.Rectangle
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertFails
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
@@ -478,58 +477,31 @@ class ComposePreviewRepresentationGradleTest {
     )
   }
 
-  @Ignore("b/289888238")
   @Test
-  fun `fast preview cancellation`() {
-    val requestCompleted = CompletableDeferred<Unit>()
-    val completedRequestsCount = AtomicInteger(0)
-    val testTracker = TestFastPreviewTrackerManager {
-      if (completedRequestsCount.incrementAndGet() == 2) requestCompleted.complete(Unit)
-    }
-
-    project.replaceService(
-      FastPreviewTrackerManager::class.java,
-      testTracker,
-      fixture.testRootDisposable
-    )
-
-    runAndWaitForFastRefresh {
-      WriteCommandAction.runWriteCommandAction(project) {
+  fun `refresh cancellation`() = runBlocking {
+    // Wait for an "infinte" refresh to start
+    projectRule.waitForAnyRefreshToStart(30.seconds) {
+      runWriteActionAndWait {
         projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-        projectRule.fixture.moveCaret("Text(\"Hello 2\")|")
-        projectRule.fixture.editor.insertText(
-          "\nkotlinx.coroutines.runBlocking { kotlinx.coroutines.delay(5000L) }"
-        )
+        projectRule.fixture.moveCaret("|Text(\"Hello 2\")")
+        projectRule.fixture.editor.executeAndSave { insertText("while(true) { }\n") }
         PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+        FileDocumentManager.getInstance().saveAllDocuments()
       }
     }
 
-    runAndWaitForFastRefresh {
-      WriteCommandAction.runWriteCommandAction(project) {
-        projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-        projectRule.fixture.moveCaret(
-          "kotlinx.coroutines.runBlocking { kotlinx.coroutines.delay(5000L) }|"
-        )
-        fixture.editor.executeAndSave { fixture.editor.deleteLine() }
-        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-      }
+    assertFails { projectRule.waitForAllRefreshesToFinish() }
+
+    // Delete the infinite loop, triggering a new refresh
+    runWriteActionAndWait {
+      projectRule.fixture.moveCaret("while(true) { }|")
+      fixture.editor.executeAndSave { fixture.editor.deleteLine() }
+      PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+      FileDocumentManager.getInstance().saveAllDocuments()
     }
 
-    runBlocking {
-      withTimeout(TimeUnit.SECONDS.toMillis(30)) {
-        // Wait for the 2 tracking request to be submitted
-        requestCompleted.await()
-      }
-    }
-
-    assertEquals(
-      """
-        refreshCancelled (compilationCompleted=true)
-        compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)
-      """
-        .trimIndent(),
-      testTracker.logOutput()
-    )
+    // First refresh should get cancelled and then second one should complete
+    projectRule.waitForAllRefreshesToFinish(30.seconds)
   }
 
   @Test
