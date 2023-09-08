@@ -46,7 +46,7 @@ class SingleArtifactTaskHandlerTest {
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SessionItemTestChannel", myTransportService)
+  var myGrpcChannel = FakeGrpcChannel("SingleArtifactTaskHandlerTestChannel", myTransportService)
 
   private val myIdeServices = FakeIdeProfilerServices()
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
