@@ -361,4 +361,154 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
     )
   }
 
+  @Test
+  fun testInterfaceComposablesWithDefaultParameters() {
+    doTest(
+      """
+            import androidx.compose.runtime.Composable
+            interface A {
+                @Composable fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Abstract Composable functions cannot have parameters with default values">0</error>)
+            }
+        """
+    )
+  }
+
+  @Test
+  fun testAbstractComposablesWithDefaultParameters() {
+    doTest(
+      """
+            import androidx.compose.runtime.Composable
+            abstract class A {
+                @Composable abstract fun foo(x: Int = <error descr="[ABSTRACT_COMPOSABLE_DEFAULT_PARAMETER_VALUE] Abstract Composable functions cannot have parameters with default values">0</error>)
+            }
+        """
+    )
+  }
+
+  @Test
+  fun testInterfaceComposablesWithoutDefaultParameters() {
+    doTest(
+      """
+            import androidx.compose.runtime.Composable
+            interface A {
+                @Composable fun foo(x: Int)
+            }
+        """
+    )
+  }
+
+  @Test
+  fun testAbstractComposablesWithoutDefaultParameters() {
+    doTest(
+      """
+            import androidx.compose.runtime.Composable
+            abstract class A {
+                @Composable abstract fun foo(x: Int)
+            }
+        """
+    )
+  }
+
+  @Test
+  fun testOverrideWithoutComposeAnnotation() {
+    if (!isK2Plugin()) {
+      doTest(
+        """
+                import androidx.compose.runtime.Composable
+                interface Base {
+                    fun compose(content: () -> Unit)
+                }
+
+                class Impl : Base {
+                    <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: value-parameter content: @Composable () -> Unit defined in com.example.Impl.compose, value-parameter content: () -> Unit defined in com.example.Base.compose">override fun compose(content: @Composable () -> Unit)</error> {}
+                }
+            """
+      )
+    } else {
+      // In K2, the `@Composable` type is part of the function signature, so the `override`
+      // does not match the `compose` function in `Base`.
+      doTest(
+        """
+                import androidx.compose.runtime.Composable
+                interface Base {
+                    fun compose(content: () -> Unit)
+                }
+
+                <error descr="[ABSTRACT_MEMBER_NOT_IMPLEMENTED]">class Impl</error> : Base {
+                    <error descr="[NOTHING_TO_OVERRIDE]">override</error> fun compose(content: @Composable () -> Unit) {}
+                }
+            """
+      )
+    }
+  }
+
+  @Test
+  fun testOverrideComposableLambda() {
+    doTest(
+      """
+                import androidx.compose.runtime.Composable
+
+                class Impl : @Composable () -> Unit {
+                    @Composable
+                    override fun invoke() {}
+                }
+            """
+    )
+  }
+
+  @Test
+  fun testTransitiveOverrideComposableLambda() {
+    doTest(
+      """
+                import androidx.compose.runtime.Composable
+
+                interface ComposableFunction : @Composable () -> Unit
+
+                class Impl : ComposableFunction {
+                    @Composable
+                    override fun invoke() {}
+                }
+            """
+    )
+  }
+
+  @Test
+  fun testMissingOverrideComposableLambda() {
+    doTest(
+      """
+                import androidx.compose.runtime.Composable
+
+                class Impl : @Composable () -> Unit {
+                    <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0">override fun invoke()</error> {}
+                }
+            """
+    )
+  }
+
+  @Test
+  fun testWrongOverrideLambda() {
+    doTest(
+      """
+                import androidx.compose.runtime.Composable
+
+                class Impl : () -> Unit {
+                    <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0">@Composable override fun invoke()</error> {}
+                }
+            """
+    )
+  }
+
+  @Test
+  fun testMultipleOverrideLambda() {
+    doTest(
+      """
+                import androidx.compose.runtime.Composable
+
+                class Impl : () -> Unit, @Composable (Int) -> Unit {
+                    <error descr="[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0">@Composable override fun invoke()</error> {}
+                    @Composable override fun invoke(p0: Int) {}
+                }
+            """
+    )
+  }
 }
