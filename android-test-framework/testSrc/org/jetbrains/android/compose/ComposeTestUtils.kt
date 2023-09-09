@@ -142,6 +142,7 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
     """
     package kotlin.io
     fun print(message: Any?) {}
+    fun println(message: Any?) {}
     """.trimIndent()
   )
   addFileToProject(
@@ -195,6 +196,18 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
           return _value
         }
     }
+    """.trimIndent()
+  )
+
+  addFileToProject(
+    "src/kotlin/util/Standard.kt",
+    // language=kotlin
+    """
+    package kotlin
+
+    import java.lang.Exception
+
+    inline fun TODO(): Nothing = throw Exception()
     """.trimIndent()
   )
 }

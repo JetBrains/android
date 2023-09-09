@@ -20,6 +20,7 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -87,6 +88,53 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
             C()
         }
     }
+    """
+    )
+
+  @Test
+  fun testCinNoinlineNCLambdaArg() =
+    doTest(
+      """
+        import androidx.compose.runtime.*
+        @Composable fun C() { }
+        <warning descr="[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of functional types">inline</warning> fun NoinlineNC(noinline lambda: () -> Unit) { lambda() }
+        @Composable fun C3() {
+            NoinlineNC {
+                <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
+            }
+        }
+    """
+    )
+
+  @Test
+  fun testCinCrossinlineNCLambdaArg() =
+    doTest(
+      """
+        import androidx.compose.runtime.*
+        @Composable fun C() { }
+        inline fun CrossinlineNC(crossinline lambda: () -> Unit) { lambda() }
+        @Composable fun C3() {
+            CrossinlineNC {
+                <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
+            }
+        }
+    """
+    )
+
+  @Test
+  fun testCinNestedInlinedNCLambdaArg() =
+    doTest(
+      """
+        import androidx.compose.runtime.*
+        @Composable fun C() { }
+        inline fun InlineNC(lambda: () -> Unit) { lambda() }
+        @Composable fun C3() {
+            InlineNC {
+                InlineNC {
+                    C()
+                }
+            }
+        }
     """
     )
 
@@ -164,6 +212,168 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
         C2 { C() }
         C2 { inner() }
     }
+    """
+    )
+
+  @Test
+  fun testCfromComposableFunInterface() =
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun interface A { @Composable fun f() }
+        @Composable fun B() { A { B() } }
+    """
+    )
+
+  @Test
+  fun testGenericComposableInference1() {
+    assumeTrue(isK2Plugin())
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun <T> identity(value: T): T = value
+
+        // We should infer `ComposableFunction0<Unit>` for `T`
+        val cl = identity(@Composable {})
+        val l: () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH]">cl</error>
+        """
+    )
+  }
+
+  @Test
+  fun testGenericComposableInference2() {
+    assumeTrue(isK2Plugin())
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        @Composable fun A() {}
+        fun <T> identity(value: T): T = value
+
+        // Explicitly instantiate `T` with `ComposableFunction0<Unit>`
+        val cl = identity<@Composable () -> Unit> { A() }
+        val l: () -> Unit = <error descr="[INITIALIZER_TYPE_MISMATCH]">cl</error>
+        """
+    )
+  }
+
+  @Test
+  fun testGenericComposableInference3() {
+    assumeTrue(isK2Plugin())
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        @Composable fun A() {}
+        fun <T> identity(value: T): T = value
+
+        // We should infer `T` as `ComposableFunction0<Unit>` from the context and then
+        // infer that the argument to `identity` is a composable lambda.
+        val cl: @Composable () -> Unit = identity { A() }
+        """
+    )
+  }
+
+  @Test
+  fun testGenericComposableInference4() {
+    assumeTrue(isK2Plugin())
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun <T> identity(value: T): T = value
+
+        // We should infer `T` as `Function0<Unit>` from the context and
+        // reject the lambda which is explicitly typed as `ComposableFunction...`.
+        val cl: () -> Unit = identity(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH]">{}</error>)
+        """
+    )
+  }
+
+  @Test
+  fun testGenericComposableInference5() {
+    assumeTrue(isK2Plugin())
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun <T> identity(value: T): T = value
+
+        // We should infer `Function0<Unit>` for `T`
+        val lambda = identity<() -> Unit>(@Composable <error descr="[ARGUMENT_TYPE_MISMATCH]">{}</error>)
+        """
+    )
+  }
+
+  @Test
+  fun testCfromAnnotatedComposableFunInterface() =
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun interface A { @Composable fun f() }
+        @Composable fun B() {
+          val f = @Composable { B() }
+          A(f)
+        }
+    """
+    )
+
+  @Test
+  fun testCfromComposableFunInterfaceArgument() =
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun interface A { @Composable fun f() }
+
+        @Composable fun B(a: (A) -> Unit) { a { B(a) } }
+    """
+    )
+
+  @Test
+  fun testCfromComposableTypeAliasFunInterface() =
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun interface A { @Composable fun f() }
+        typealias B = A
+
+        @Composable fun C() { A { C() } }
+    """
+    )
+
+  @Test
+  fun testCfromNonComposableFunInterface() =
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun interface A { fun f() }
+        @Composable fun B() {
+          A {
+            <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">B</error>()
+          }
+        }
+    """
+    )
+
+  @Test
+  fun testCfromNonComposableFunInterfaceArgument() =
+    doTest(
+      """
+        import androidx.compose.runtime.Composable
+
+        fun interface A { fun f() }
+
+        @Composable fun B(a: (A) -> Unit) {
+          a {
+            <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">B</error>(a)
+          }
+        }
     """
     )
 
@@ -926,6 +1136,41 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
     )
 
   @Test
+  fun testDisallowComposableCallPropagationWithInvoke() {
+    // The frontend distinguishes between implicit and explicit invokes, which is why this test
+    // fails in K1.
+    assumeTrue(isK2Plugin())
+    doTest(
+      """
+            import androidx.compose.runtime.*
+            class Foo
+            @Composable inline fun a(block1: @DisallowComposableCalls () -> Foo): Foo {
+                return block1()
+            }
+            @Composable inline fun b(<error descr="[MISSING_DISALLOW_COMPOSABLE_CALLS_ANNOTATION]">block2: () -> Foo</error>): Foo {
+              return a { block2.invoke() }
+            }
+            @Composable inline fun c(block2: @DisallowComposableCalls () -> Foo): Foo {
+              return a { block2.invoke() }
+            }
+        """
+    )
+  }
+
+  @Test
+  fun testComposableLambdaToAll() =
+    doTest(
+      """
+        import androidx.compose.runtime.*
+
+        fun foo() {
+            val lambda = @Composable { }
+            println(lambda)  // println accepts Any, verify no type mismatach.
+        }
+    """
+    )
+
+  @Test
   fun testReadOnlyComposablePropagation() =
     doTest(
       """
@@ -1006,6 +1251,109 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
             }
     """
     )
+
+  @Test
+  fun testNothingAsAValidComposableFunctionBody() =
+    doTest(
+      """
+        import androidx.compose.runtime.*
+
+        val test1: @Composable () -> Unit = TODO()
+
+        @Composable
+        fun Test2(): Unit = TODO()
+
+        @Composable
+        fun Wrapper(content: @Composable () -> Unit) = content()
+
+        @Composable
+        fun Test3() {
+            Wrapper {
+                TODO()
+            }
+        }
+    """
+    )
+
+  @Test
+  fun testComposableValueOperator() {
+    doTest(
+      """
+            import androidx.compose.runtime.Composable
+            import kotlin.reflect.KProperty
+
+            class Foo
+            class FooDelegate {
+                @Composable
+                operator fun getValue(thisObj: Any?, property: KProperty<*>) {}
+                @Composable
+                operator fun <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported.">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
+            }
+            @Composable operator fun Foo.getValue(thisObj: Any?, property: KProperty<*>) {}
+            @Composable operator fun Foo.<error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported.">setValue</error>(thisObj: Any?, property: KProperty<*>, value: Any) {}
+
+            fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">nonComposable</error>() {
+                val fooValue = Foo()
+                val foo by fooValue
+                val fooDelegate by FooDelegate()
+                var mutableFoo by <error descr="[COMPOSE_INVALID_DELEGATE] Composable setValue operator is not currently supported.">fooValue</error>
+                val bar = Bar()
+
+                println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">foo</error>)
+                println(<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">fooDelegate</error>)
+                println(bar.<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">foo</error>)
+
+                <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">mutableFoo</error> = Unit
+            }
+
+            @Composable
+            fun TestComposable() {
+                val fooValue = Foo()
+                val foo by fooValue
+                val fooDelegate by FooDelegate()
+                val bar = Bar()
+
+                println(foo)
+                println(fooDelegate)
+                println(bar.foo)
+            }
+
+            class Bar {
+                val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">foo</error> by Foo()
+
+                @get:Composable
+                val foo2 by Foo()
+            }
+            """
+    )
+  }
+
+  @Test
+  fun testComposableFunInterfaceInNonComposableFunction() {
+    doTest(
+      """
+                import androidx.compose.runtime.Composable
+
+                fun interface FunInterfaceWithComposable {
+                    @Composable fun content()
+                }
+
+                fun Test1() {
+                    val funInterfaceWithComposable = FunInterfaceWithComposable {
+                        TODO()
+                    }
+                    println(funInterfaceWithComposable) // use it to avoid UNUSED warning
+                }
+
+                fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">Test2</error>() {
+                    val funInterfaceWithComposable = FunInterfaceWithComposable {
+                        TODO()
+                    }
+                    funInterfaceWithComposable.<error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">content</error>()
+                }
+            """
+    )
+  }
 
   @Test
   fun testComposableCallHighlighting() =
