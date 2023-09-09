@@ -22,12 +22,9 @@ import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [ComposableDeclarationChecker]
- */
+/** Tests for [ComposableDeclarationChecker] */
 class ComposableDeclarationCheckerTests {
-  @get:Rule
-  val androidProject = AndroidProjectRule.inMemory()
+  @get:Rule val androidProject = AndroidProjectRule.inMemory()
 
   @Test
   fun testPropertyWithInitializer() {
@@ -369,23 +366,25 @@ class ComposableDeclarationCheckerTests {
     )
   }
 
-  private fun doTest(expectedText: String): Unit = androidProject.fixture.run {
-    setUpCompilerArgumentsForComposeCompilerPlugin(project)
+  private fun doTest(expectedText: String): Unit =
+    androidProject.fixture.run {
+      setUpCompilerArgumentsForComposeCompilerPlugin(project)
 
-    stubComposeRuntime()
-    stubKotlinStdlib()
+      stubComposeRuntime()
+      stubKotlinStdlib()
 
-    val file = addFileToProject(
-      "src/com/example/test.kt",
-      """
+      val file =
+        addFileToProject(
+          "src/com/example/test.kt",
+          """
       $suppressAnnotation
       package com.example
       $expectedText
-      """.trimIndent()
-    )
+      """
+            .trimIndent()
+        )
 
-    configureFromExistingVirtualFile(file.virtualFile)
-    checkHighlighting()
-  }
-
+      configureFromExistingVirtualFile(file.virtualFile)
+      checkHighlighting()
+    }
 }

@@ -33,7 +33,8 @@ private val composeCompilerPluginPath by lazy {
   TestUtils.resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/lib/compiler-hosted.jar")
 }
 
-private val suppressKotlinVersionCheckOption = "plugin:${
+private val suppressKotlinVersionCheckOption =
+  "plugin:${
   ComposeCommandLineProcessor.PLUGIN_ID
 }:${
   ComposeCommandLineProcessor.SUPPRESS_KOTLIN_VERSION_CHECK_ENABLED_OPTION.optionName

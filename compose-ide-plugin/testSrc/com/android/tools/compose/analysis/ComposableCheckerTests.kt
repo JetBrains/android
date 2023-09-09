@@ -29,47 +29,48 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [ComposableFunctionCallChecker] and [ComposablePropertyAccessExpressionChecker].
- */
+/** Tests for [ComposableFunctionCallChecker] and [ComposablePropertyAccessExpressionChecker]. */
 class ComposableCheckerTests {
-  @get:Rule
-  val androidProject = AndroidProjectRule.inMemory()
+  @get:Rule val androidProject = AndroidProjectRule.inMemory()
 
   @Test
-  fun testCfromNC() = doTest(
-    """
+  fun testCfromNC() =
+    doTest(
+      """
     import androidx.compose.runtime.*
 
     @Composable fun C() {}
     fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">NC</error>() { <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>() }
 
     """
-  )
+    )
 
   @Test
-  fun testNCfromC() = doTest(
-    """
+  fun testNCfromC() =
+    doTest(
+      """
     import androidx.compose.runtime.*
 
     fun NC() {}
     @Composable fun C() { NC() }
     """
-  )
+    )
 
   @Test
-  fun testCfromC() = doTest(
-    """
+  fun testCfromC() =
+    doTest(
+      """
         import androidx.compose.runtime.*
 
         @Composable fun C() {}
         @Composable fun C2() { C() }
     """
-  )
+    )
 
   @Test
-  fun testCinCLambdaArg() = doTest(
-    """
+  fun testCinCLambdaArg() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     @Composable fun C() { }
     @Composable fun C2(lambda: @Composable () -> Unit) { lambda() }
@@ -79,11 +80,12 @@ class ComposableCheckerTests {
         }
     }
     """
-  )
+    )
 
   @Test
-  fun testCinInlinedNCLambdaArg() = doTest(
-    """
+  fun testCinInlinedNCLambdaArg() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     @Composable fun C() { }
     inline fun InlineNC(lambda: () -> Unit) { lambda() }
@@ -93,11 +95,12 @@ class ComposableCheckerTests {
         }
     }
     """
-  )
+    )
 
   @Test
-  fun testCinLambdaArgOfNC() = doTest(
-    """
+  fun testCinLambdaArgOfNC() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     @Composable fun C() { }
     fun NC(lambda: () -> Unit) { lambda() }
@@ -107,11 +110,12 @@ class ComposableCheckerTests {
         }
     }
     """
-  )
+    )
 
   @Test
-  fun testCinLambdaArgOfC() = doTest(
-    """
+  fun testCinLambdaArgOfC() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     @Composable fun C() { }
     @Composable fun C2(lambda: () -> Unit) { lambda() }
@@ -121,39 +125,43 @@ class ComposableCheckerTests {
         }
     }
     """
-  )
+    )
 
   @Test
-  fun testCinCPropGetter() = doTest(
-    """
+  fun testCinCPropGetter() =
+    doTest(
+      """
         import androidx.compose.runtime.*
         @Composable fun C(): Int { return 123 }
         val cProp: Int @Composable get() = C()
     """
-  )
+    )
 
   @Test
-  fun testCinNCPropGetter() = doTest(
-    """
+  fun testCinNCPropGetter() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     @Composable fun C(): Int { return 123 }
     val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">ncProp</error>: Int get() = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
     """
-  )
+    )
 
   @Test
-  fun testCinTopLevelInitializer() = doTest(
-    """
+  fun testCinTopLevelInitializer() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     @Composable fun C(): Int { return 123 }
     val ncProp: Int = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
     <error descr="[WRONG_ANNOTATION_TARGET] This annotation is not applicable to target 'top level property with backing field'">@Composable</error> val cProp: Int = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">C</error>()
     """
-  )
+    )
 
   @Test
-  fun testCTypeAlias() = doTest(
-    """
+  fun testCTypeAlias() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     typealias Content = @Composable () -> Unit
     @Composable fun C() {}
@@ -164,11 +172,12 @@ class ComposableCheckerTests {
         C2 { inner() }
     }
     """
-  )
+    )
 
   @Test
-  fun testPreventedCaptureOnInlineLambda() = doTest(
-    """
+  fun testPreventedCaptureOnInlineLambda() =
+    doTest(
+      """
     import androidx.compose.runtime.*
 
     fun cond(): Boolean = true
@@ -182,7 +191,7 @@ class ComposableCheckerTests {
         A { <error descr="[CAPTURED_COMPOSABLE_INVOCATION] Composable calls are not allowed inside the lambda parameter of ${if(isK2Plugin()) "A" else "inline fun A(lambda: () -> Unit): Unit"}">B</error>() }
     }
     """
-  )
+    )
 
   @Test
   fun testComposableReporting001() {
@@ -315,11 +324,12 @@ class ComposableCheckerTests {
 
   @Test
   fun testComposableReporting018() {
-    val errorDescription = if (!isK2Plugin()) {
-      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
-    } else {
-      "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
-    }
+    val errorDescription =
+      if (!isK2Plugin()) {
+        "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
+      } else {
+        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
+      }
     doTest(
       """
           import androidx.compose.runtime.*;
@@ -480,11 +490,12 @@ class ComposableCheckerTests {
 
   @Test
   fun testComposableReporting028() {
-    val errorDescription = if (!isK2Plugin()) {
-      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
-    } else {
-      "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
-    }
+    val errorDescription =
+      if (!isK2Plugin()) {
+        "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
+      } else {
+        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected kotlin/Function0<kotlin/Unit>, actual @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>"
+      }
     doTest(
       """
           import androidx.compose.runtime.*;
@@ -554,18 +565,18 @@ class ComposableCheckerTests {
 
   @Test
   fun testComposableReporting034() {
-    val initializerTypeMismatchMessage = if (!isK2Plugin()) {
-      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected"
-    }
-    else {
-      "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>, actual kotlin/Function0<kotlin/Unit>"
-    }
-    val argumentTypeMismatchMessage = if (!isK2Plugin()) {
-      "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
-    }
-    else {
-      "[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but kotlin/Function0<kotlin/Unit> was expected"
-    }
+    val initializerTypeMismatchMessage =
+      if (!isK2Plugin()) {
+        "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is () -> Unit but @Composable () -> Unit was expected"
+      } else {
+        "[INITIALIZER_TYPE_MISMATCH] Initializer type mismatch: expected @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit>, actual kotlin/Function0<kotlin/Unit>"
+      }
+    val argumentTypeMismatchMessage =
+      if (!isK2Plugin()) {
+        "[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but () -> Unit was expected"
+      } else {
+        "[ARGUMENT_TYPE_MISMATCH] Argument type mismatch: actual type is @R|androidx/compose/runtime/Composable|()  androidx/compose/runtime/internal/ComposableFunction0<kotlin/Unit> but kotlin/Function0<kotlin/Unit> was expected"
+      }
     doTest(
       """
         import androidx.compose.runtime.*;
@@ -745,21 +756,22 @@ class ComposableCheckerTests {
 
   @Test
   fun testComposableReporting051() {
-    val expressionToCheckReferenceResolution = if (!isK2Plugin()) {
-      """
+    val expressionToCheckReferenceResolution =
+      if (!isK2Plugin()) {
+        """
               <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: with">with</error>(a) {
                   <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bar">bar</error>
                   <error descr="[UNRESOLVED_REFERENCE] Unresolved reference: bam">bam</error>
               }
       """
-    } else {
-      """
+      } else {
+        """
               with(a) {
                   bar
                   bam
               }
       """
-    }
+      }
     doTest(
       """
         import androidx.compose.runtime.*;
@@ -983,10 +995,10 @@ class ComposableCheckerTests {
     )
   }
 
-
   @Test
-  fun testDisallowComposableCallPropagation() = doTest(
-    """
+  fun testDisallowComposableCallPropagation() =
+    doTest(
+      """
         import androidx.compose.runtime.*
         class Foo
         @Composable inline fun a(block1: @DisallowComposableCalls () -> Foo): Foo {
@@ -999,11 +1011,12 @@ class ComposableCheckerTests {
           return a { block2() }
         }
     """
-  )
+    )
 
   @Test
-  fun testReadOnlyComposablePropagation() = doTest(
-    """
+  fun testReadOnlyComposablePropagation() =
+    doTest(
+      """
         import androidx.compose.runtime.*
 
         @Composable @ReadOnlyComposable
@@ -1080,11 +1093,12 @@ class ComposableCheckerTests {
                 return 10
             }
     """
-  )
+    )
 
   @Test
-  fun testComposableCallHighlighting() = doTest(
-    """
+  fun testComposableCallHighlighting() =
+    doTest(
+      """
     import androidx.compose.runtime.*
     fun notC() { }
     @Composable fun C() { }
@@ -1112,9 +1126,9 @@ class ComposableCheckerTests {
         }
     }
     """
-  ) { highlights ->
-    assertEquals(
-      """
+    ) { highlights ->
+      assertEquals(
+        """
         lambdaC@8
         C@15
         C1@16
@@ -1122,34 +1136,45 @@ class ComposableCheckerTests {
         C1@22
         C2@24
         InlineC@26
-      """.trimIndent(),
-      highlights
-        .filter { (highlight, _) -> highlight.type == ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE }
-        .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" })
-  }
+      """
+          .trimIndent(),
+        highlights
+          .filter { (highlight, _) ->
+            highlight.type == ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE
+          }
+          .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" }
+      )
+    }
 
   private fun doTest(
     expectedText: String,
     verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null
-  ): Unit = androidProject.fixture.run {
-    stubComposeRuntime()
-    stubKotlinStdlib()
+  ): Unit =
+    androidProject.fixture.run {
+      stubComposeRuntime()
+      stubKotlinStdlib()
 
-    val file = addFileToProject(
-      "src/com/example/test.kt",
-      """
+      val file =
+        addFileToProject(
+          "src/com/example/test.kt",
+          """
       $suppressAnnotation
       package com.example
       $expectedText
-      """.trimIndent()
-    )
+      """
+            .trimIndent()
+        )
 
-    configureFromExistingVirtualFile(file.virtualFile)
-    checkHighlighting()
-    verifyHighlights?.let {
-      it(doHighlighting().map { it to StringUtil.offsetToLineNumber(file.text, it.actualStartOffset) })
+      configureFromExistingVirtualFile(file.virtualFile)
+      checkHighlighting()
+      verifyHighlights?.let {
+        it(
+          doHighlighting().map {
+            it to StringUtil.offsetToLineNumber(file.text, it.actualStartOffset)
+          }
+        )
+      }
     }
-  }
 
   @Before
   fun setUp() {
