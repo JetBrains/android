@@ -170,6 +170,33 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
     }
     """.trimIndent()
   )
+
+  addFileToProject(
+    "src/kotlin/util/Lazy.kt",
+    // language=kotlin
+    """
+    package kotlin
+
+    interface Lazy<out T> {
+      val value: T
+    }
+
+    inline operator fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
+
+    fun <T> lazy(init: () -> T): Lazy<T> = SynchronizedLazyImpl(init)
+
+    private class SynchronizedLazyImpl<out T>(init: () -> T) : Lazy<T> {
+      private var _value: Any? = null
+      override val value: T
+        get() {
+          if (_value == null) {
+            _value = init()
+          }
+          return _value
+        }
+    }
+    """.trimIndent()
+  )
 }
 
 fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
