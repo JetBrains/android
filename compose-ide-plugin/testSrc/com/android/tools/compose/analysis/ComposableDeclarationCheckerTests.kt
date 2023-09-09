@@ -15,16 +15,11 @@
  */
 package com.android.tools.compose.analysis
 
-import com.android.tools.idea.testing.AndroidProjectRule
-import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.junit.Rule
 import org.junit.Test
 
 /** Tests for [ComposableDeclarationChecker] */
-class ComposableDeclarationCheckerTests {
-  @get:Rule val androidProject = AndroidProjectRule.inMemory()
+class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testPropertyWithInitializer() {
@@ -366,25 +361,4 @@ class ComposableDeclarationCheckerTests {
     )
   }
 
-  private fun doTest(expectedText: String): Unit =
-    androidProject.fixture.run {
-      setUpCompilerArgumentsForComposeCompilerPlugin(project)
-
-      stubComposeRuntime()
-      stubKotlinStdlib()
-
-      val file =
-        addFileToProject(
-          "src/com/example/test.kt",
-          """
-      $suppressAnnotation
-      package com.example
-      $expectedText
-      """
-            .trimIndent()
-        )
-
-      configureFromExistingVirtualFile(file.virtualFile)
-      checkHighlighting()
-    }
 }

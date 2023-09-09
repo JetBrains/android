@@ -18,20 +18,13 @@ package com.android.tools.compose.analysis
 import com.android.tools.compose.ComposableHighlighterExtension
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.openapi.util.text.StringUtil
 import junit.framework.Assert.assertEquals
-import org.jetbrains.android.compose.stubComposeRuntime
-import org.jetbrains.android.compose.stubKotlinStdlib
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 
 /** Tests for [ComposableFunctionCallChecker] and [ComposablePropertyAccessExpressionChecker]. */
-class ComposableCheckerTests {
-  @get:Rule val androidProject = AndroidProjectRule.inMemory()
+class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testCfromNC() =
@@ -1146,40 +1139,8 @@ class ComposableCheckerTests {
       )
     }
 
-  private fun doTest(
-    expectedText: String,
-    verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null
-  ): Unit =
-    androidProject.fixture.run {
-      stubComposeRuntime()
-      stubKotlinStdlib()
-
-      val file =
-        addFileToProject(
-          "src/com/example/test.kt",
-          """
-      $suppressAnnotation
-      package com.example
-      $expectedText
-      """
-            .trimIndent()
-        )
-
-      configureFromExistingVirtualFile(file.virtualFile)
-      checkHighlighting()
-      verifyHighlights?.let {
-        it(
-          doHighlighting().map {
-            it to StringUtil.offsetToLineNumber(file.text, it.actualStartOffset)
-          }
-        )
-      }
-    }
-
   @Before
   fun setUp() {
     (androidProject.fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-
-    setUpCompilerArgumentsForComposeCompilerPlugin(androidProject.fixture.project)
   }
 }
