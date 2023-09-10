@@ -36,18 +36,17 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
-import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.ui.ColorUtil
@@ -59,11 +58,11 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
-import org.intellij.lang.annotations.Language
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.intellij.lang.annotations.Language
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -92,27 +91,22 @@ class IssuePanelService(private val project: Project) {
   private val fileToTabName = mutableMapOf<VirtualFile, String>()
 
   init {
-    val manager = ToolWindowManager.getInstance(project)
-    val problemsView = manager.getToolWindow(ProblemsView.ID)
-    if (problemsView != null) {
-      // ProblemsView has registered, init the tab.
-      UIUtil.invokeLaterIfNeeded { initIssueTabs(problemsView) }
-    }
-    else {
-      val connection = project.messageBus.connect()
-      val listener = object : ToolWindowManagerListener {
-        override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
-          if (ProblemsView.ID in ids) {
-            val problemsViewToolWindow = ProblemsView.getToolWindow(project)
-            if (problemsViewToolWindow != null) {
-              UIUtil.invokeLaterIfNeeded { initIssueTabs(problemsViewToolWindow) }
-              connection.disconnect()
-            }
-          }
+    val connection = project.messageBus.connect()
+    connection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+      override fun toolWindowShown(toolWindow: ToolWindow) {
+        // do not init anything eagerly, wait for first opening
+        if (toolWindow.id == ProblemsView.ID) {
+          connection.disconnect()
+
+          ApplicationManager.getApplication().invokeLater(
+            Runnable {
+              initIssueTabs(toolWindow)
+            },
+            ModalityState.nonModal()
+          )
         }
       }
-      connection.subscribe(ToolWindowManagerListener.TOPIC, listener)
-    }
+    })
   }
 
   @UiThread
@@ -263,7 +257,7 @@ class IssuePanelService(private val project: Project) {
   fun removeSharedIssueTabFromProblemsPanel(): Boolean {
     val tab = sharedIssueTab ?: return false
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
-    val contentManager = toolWindow.contentManager
+    val contentManager = toolWindow.contentManagerIfCreated ?: return false
     contentManager.removeContent(tab, false)
     return true
   }
@@ -275,7 +269,7 @@ class IssuePanelService(private val project: Project) {
   private fun addSharedIssueTabToProblemsPanel(): Boolean {
     val tab = sharedIssueTab ?: return false
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
-    val contentManager = toolWindow.contentManager
+    val contentManager = toolWindow.contentManagerIfCreated ?: return false
     if (contentManager.contents.contains(tab)) {
       return false
     }
