@@ -183,6 +183,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   /**
+   * Return the mySessionItems mapping which maps session ids to their respective SessionItem
+   */
+  public Map<Long, SessionItem> getSessionIdToSessionItems() {
+    return mySessionItems;
+  }
+
+  /**
    * Return the currently selected artifact's proto
    */
   @VisibleForTesting

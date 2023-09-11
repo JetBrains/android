@@ -31,6 +31,7 @@ import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth
 
 object TaskHandlerTestUtils {
@@ -112,7 +113,8 @@ object TaskHandlerTestUtils {
   fun startSession(exposureLevel: Common.Process.ExposureLevel,
                    profilers: StudioProfilers,
                    transportService: FakeTransportService,
-                   timer: FakeTimer) {
+                   timer: FakeTimer,
+                   taskType: Common.ProfilerTaskType) {
     // The following creates and starts a fake debuggable session so that features that requires a debuggable process are supported such as
     // heap dump and java/kotlin allocations.
     profilers.setPreferredProcess(null, FakeTransportService.FAKE_PROCESS.name, null)
@@ -125,7 +127,7 @@ object TaskHandlerTestUtils {
       .build()
     transportService.addProcess(device, debuggableEvent)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for the session to auto start and select.
-    profilers.setProcess(device, null) // Will start a new session on the preferred process
+    profilers.setProcess(device, null, taskType) // Will start a new session on the preferred process
     timer.tick(FakeTimer.ONE_SECOND_IN_NS) // Wait for the session to auto start and select.
     Truth.assertThat(profilers.session.pid).isEqualTo(FakeTransportService.FAKE_PROCESS.pid)
     Truth.assertThat(
@@ -148,8 +150,9 @@ object TaskHandlerTestUtils {
                           profilers: StudioProfilers,
                           sessionsManager: SessionsManager,
                           transportService: FakeTransportService,
-                          timer: FakeTimer) {
-    startSession(exposureLevel, profilers, transportService, timer)
+                          timer: FakeTimer,
+                          taskType: Common.ProfilerTaskType) {
+    startSession(exposureLevel, profilers, transportService, timer, taskType)
     Truth.assertThat(sessionsManager.isSessionAlive)
     stopSession(sessionsManager, timer)
     Truth.assertThat(!sessionsManager.isSessionAlive)

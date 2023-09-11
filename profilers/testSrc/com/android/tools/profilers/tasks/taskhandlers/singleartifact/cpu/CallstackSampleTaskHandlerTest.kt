@@ -31,6 +31,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
@@ -64,6 +65,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     )
     myManager = myProfilers.sessionsManager
     myCallstackSampleTaskHandler = CallstackSampleTaskHandler(myManager)
+    myProfilers.addTaskHandler(ProfilerTaskType.CALLSTACK_SAMPLE, myCallstackSampleTaskHandler)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -89,7 +91,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.CALLSTACK_SAMPLE)
     val callstackSampleSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                         Common.Session.getDefaultInstance(),
                                                                                                         1L,
@@ -103,7 +105,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testStartTaskWithSetStage() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.CALLSTACK_SAMPLE)
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myCallstackSampleTaskHandler.setupStage()
@@ -125,7 +127,7 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testStopTaskSuccessfullyTerminatesRecording() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.CALLSTACK_SAMPLE)
     // First start the task successfully.
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
       .startStatus = Trace.TraceStartStatus.newBuilder()
@@ -150,7 +152,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.CALLSTACK_SAMPLE)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -172,7 +175,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.CALLSTACK_SAMPLE)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -192,7 +196,8 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
 
   @Test
   fun testLoadTaskWithNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.CALLSTACK_SAMPLE)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)

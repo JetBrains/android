@@ -31,6 +31,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
 import com.google.common.truth.Truth.assertThat
@@ -61,6 +62,7 @@ class HeapDumpTaskHandlerTest {
     )
     myManager = myProfilers.sessionsManager
     myHeapDumpTaskHandler = HeapDumpTaskHandler(myManager)
+    myProfilers.addTaskHandler(ProfilerTaskType.HEAP_DUMP, myHeapDumpTaskHandler)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -95,7 +97,7 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.HEAP_DUMP)
     val hprofSessionArtifact = createHprofSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val heapDumpArgs = HeapDumpTaskArgs(hprofSessionArtifact)
     myHeapDumpTaskHandler.enter(heapDumpArgs)
@@ -105,7 +107,7 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testStartTaskWithSetStage() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.HEAP_DUMP)
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myHeapDumpTaskHandler.setupStage()
@@ -127,7 +129,8 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.HEAP_DUMP)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -145,7 +148,8 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.HEAP_DUMP)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -161,7 +165,8 @@ class HeapDumpTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.HEAP_DUMP)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)

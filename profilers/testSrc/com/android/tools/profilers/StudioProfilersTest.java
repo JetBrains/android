@@ -39,6 +39,8 @@ import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import java.util.List;
@@ -1619,6 +1621,7 @@ public final class StudioProfilersTest {
   @Test
   public void testSetProcessWithNoProcessChangeWithTaskBasedUxEnabled() {
     myIdeProfilerServices.enableTaskBasedUx(true);
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager()));
     assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
 
     // Adds a device without processes. Session should be null.
@@ -1631,7 +1634,7 @@ public final class StudioProfilersTest {
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
     myTransportService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.setProcess(device, process);
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Common.Session firstSession = myProfilers.getSession();
@@ -1641,7 +1644,7 @@ public final class StudioProfilersTest {
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     // Create second session by calling setProcess again (even with same process) with Task-Based UX enabled.
-    myProfilers.setProcess(device, process);
+    myProfilers.setProcess(device, process, Common.ProfilerTaskType.SYSTEM_TRACE);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Two sessions should be created by now.

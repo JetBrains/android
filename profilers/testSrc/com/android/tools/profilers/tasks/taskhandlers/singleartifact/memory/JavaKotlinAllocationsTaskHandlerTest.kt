@@ -33,6 +33,7 @@ import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.LegacyJavaKotlinAllocationsTaskArgs
 import com.google.common.truth.Truth.assertThat
@@ -63,6 +64,7 @@ class JavaKotlinAllocationsTaskHandlerTest {
     )
     myManager = myProfilers.sessionsManager
     myJavaKotlinAllocationsTaskHandler = JavaKotlinAllocationsTaskHandler(myManager)
+    myProfilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS, myJavaKotlinAllocationsTaskHandler)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -117,7 +119,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
     val allocationsSessionArtifact = createAllocationSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val allocationsTaskArgs = JavaKotlinAllocationsTaskArgs(allocationsSessionArtifact)
     myJavaKotlinAllocationsTaskHandler.enter(allocationsTaskArgs)
@@ -127,7 +130,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testStartTaskWithSetStage() {
-    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myJavaKotlinAllocationsTaskHandler.setupStage()
@@ -149,7 +153,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -167,7 +172,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSessionAndLegacyArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -186,7 +192,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -202,7 +209,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNonNullLegacyTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -219,7 +227,8 @@ class JavaKotlinAllocationsTaskHandlerTest {
 
   @Test
   fun testLoadTaskWithNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(ExposureLevel.DEBUGGABLE, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)

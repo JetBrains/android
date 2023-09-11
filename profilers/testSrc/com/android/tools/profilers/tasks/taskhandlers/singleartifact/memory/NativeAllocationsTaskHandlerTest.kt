@@ -29,6 +29,7 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.creat
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
@@ -62,6 +63,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     )
     myManager = myProfilers.sessionsManager
     myNativeAllocationsTaskHandler = NativeAllocationsTaskHandler(myManager)
+    myProfilers.addTaskHandler(ProfilerTaskType.NATIVE_ALLOCATIONS, myNativeAllocationsTaskHandler)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -94,7 +96,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
     val heapProfdSessionArtifact = createHeapProfdSessionArtifact(myProfilers, Common.Session.getDefaultInstance(), 1L, 100L)
     val nativeAllocationsTaskArgs = NativeAllocationsTaskArgs(heapProfdSessionArtifact)
     myNativeAllocationsTaskHandler.enter(nativeAllocationsTaskArgs)
@@ -104,7 +106,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testStartTaskWithSetStage() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myNativeAllocationsTaskHandler.setupStage()
@@ -126,7 +128,7 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testStopTaskSuccessfullyTerminatesRecording() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
     // Start the task successfully. No need to configure the StartTrace event's status to be SUCCESS as the Fake StartTrace command for
     // memory profiler assumes a successful start trace status event.
     myNativeAllocationsTaskHandler.setupStage()
@@ -145,7 +147,8 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -163,7 +166,8 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)
@@ -179,7 +183,8 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
 
   @Test
   fun testLoadTaskWithNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(MainMemoryProfilerStage::class.java)

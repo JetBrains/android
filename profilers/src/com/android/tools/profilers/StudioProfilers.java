@@ -52,8 +52,11 @@ import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.args.TaskArgs;
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -62,7 +65,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -78,6 +80,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -136,8 +139,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   private final IdeProfilerServices myIdeServices;
 
-  @Nullable
-  private Project myProject;
+  /**
+   * Callback to open the task type, exposing the task  opening functionality of the tool window accessible.
+   */
+  @NotNull
+  private final BiConsumer<ProfilerTaskType, TaskArgs> myOpenTaskTab;
 
   /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
@@ -208,6 +214,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
 
+  @VisibleForTesting
+  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {});
+  }
+
   /**
    * Under the Task-Based UX, this constructor serves as the primary constructor to create the StudioProfilers instance for the Profiler
    * tool window. What differentiates it from other StudioProfilers constructors is the addition of the project and taskHandlers parameters.
@@ -217,30 +228,25 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public StudioProfilers(@NotNull ProfilerClient client,
                          @NotNull IdeProfilerServices ideServices,
-                         @Nullable Project project,
-                         @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers) {
-    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), project, taskHandlers);
-  }
-
-  @VisibleForTesting
-  public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, null, new HashMap<>());
+                         @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
+                         @NotNull BiConsumer<ProfilerTaskType, TaskArgs> openTaskTab) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, openTaskTab);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
-                         @NotNull IdeProfilerServices ideServices,
-                         @NotNull StopwatchTimer timer,
-                         @Nullable Project project,
-                         @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers) {
+                          @NotNull IdeProfilerServices ideServices,
+                          @NotNull StopwatchTimer timer,
+                          @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
+                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> openTaskTab) {
     myClient = client;
     myIdeServices = ideServices;
-    myProject = project;
     myStage = createDefaultStage();
     mySessionsManager = new SessionsManager(this);
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
     myTaskHandlers = taskHandlers;
+    myOpenTaskTab = openTaskTab;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -698,6 +704,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the
     // session is properly assigned before firing this aspect change.
     changed(ProfilerAspect.AGENT);
+
+    // At the top of this function there is an early return for a session that is ending. So, if the session made it to this point, it a
+    // new/alive session or a terminated session that has selected before. These two cases correspond respectively to the two major cases
+    // in which a task should be launched: launching a task to collect new data and launching a task using data collected prior.
+    // Additionally, it is worth noting that the placement of launching the task after running the session change listener and firing the
+    // ProfilerAspect.AGENT aspect is done purposefully; these two synchronous operations serve as setup for the tasks to record new data
+    // or load past recording (non-imported) data successfully.
+    if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      ProfilerTaskType selectedTaskType = mySessionsManager.getSelectedSessionProfilerTaskType();
+      Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
+      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myOpenTaskTab);
+    }
   }
 
   private void profilingSessionChanged() {
@@ -1006,6 +1024,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public Class<? extends Stage> getStageClass() {
     return myStage.getClass();
+  }
+
+  @VisibleForTesting
+  public void addTaskHandler(ProfilerTaskType taskType, ProfilerTaskHandler taskHandler) {
+    myTaskHandlers.putIfAbsent(taskType, taskHandler);
   }
 
   // TODO: Unify with how monitors expand.

@@ -32,6 +32,7 @@ import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.google.common.truth.Truth.assertThat
@@ -65,6 +66,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     )
     myManager = myProfilers.sessionsManager
     myJavaKotlinMethodTraceTaskHandler = JavaKotlinMethodTraceTaskHandler(myManager)
+    myProfilers.addTaskHandler(ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE, myJavaKotlinMethodTraceTaskHandler)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -90,7 +92,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
     val javaKotlinMethodTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                               Common.Session.getDefaultInstance(),
                                                                                                               1L,
@@ -104,7 +107,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testStartTaskWithSetStage() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
     // To start the task and thus the capture, the stage must be set up before. This will be taken care of via the setupStage() method call,
     // on enter of the task handler, but this test is testing the explicit invocation of startTask.
     myJavaKotlinMethodTraceTaskHandler.setupStage()
@@ -126,7 +130,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testStopTaskSuccessfullyTerminatesRecording() {
-    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer)
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
     // First start the task successfully.
     (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
       .startStatus = Trace.TraceStartStatus.newBuilder()
@@ -151,7 +156,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testLoadTaskInvokedOnEnterWithDeadSession() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -173,7 +179,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testLoadTaskWithNonNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
@@ -193,7 +200,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testLoadTaskWithNullTaskArgs() {
-    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer)
+    TaskHandlerTestUtils.startAndStopSession(myExposureLevel, myProfilers, myManager, myTransportService, myTimer,
+                                             Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
 
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)

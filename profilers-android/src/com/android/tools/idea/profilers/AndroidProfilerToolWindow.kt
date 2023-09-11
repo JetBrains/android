@@ -30,6 +30,7 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
@@ -80,7 +81,10 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     TransportService.getInstance()
 
     val client = ProfilerClient(TransportService.channelName)
-    profilers = StudioProfilers(client, ideProfilerServices, project, taskHandlers)
+    profilers = StudioProfilers(client, ideProfilerServices, taskHandlers) { taskType, args ->
+      ProfilerTaskTabs.open(project, taskType, args)
+    }
+
     val navigator = ideProfilerServices.codeNavigator
     // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
     navigator.cpuArchSource = Supplier { profilers.sessionsManager.selectedSessionMetaData.processAbi }
