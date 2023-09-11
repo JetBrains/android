@@ -59,6 +59,7 @@ import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementModel;
 import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
+import com.android.tools.idea.ui.validation.validators.StringPathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
@@ -82,8 +83,6 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -177,7 +176,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     TextProperty locationText = new TextProperty(myProjectLocation.getTextField());
     BoolProperty isLocationSynced = new BoolValueProperty(true);
     myBindings.bind(locationText, computedLocation, isLocationSynced);
-    myBindings.bind(myProjectModel.getProjectLocation(), locationText);
+    myBindings.bind(myProjectModel.getProjectLocation(), locationText.trim());
     myListeners.listen(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
@@ -221,8 +220,8 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
-    Expression<Path> locationFile = myProjectModel.getProjectLocation().transform(Paths::get);
-    myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
+    myValidatorPanel.registerValidator(myProjectModel.getProjectLocation(),
+                                       new StringPathValidator(PathValidator.createDefault("Save location")));
 
     myValidatorPanel.registerValidator(myProjectModel.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(AndroidUtils.validatePackageName(value)));
