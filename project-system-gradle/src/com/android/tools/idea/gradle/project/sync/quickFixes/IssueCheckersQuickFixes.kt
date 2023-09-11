@@ -99,8 +99,8 @@ class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
 }
 
 /**
- * This QuickFix upgrades the Gradle model to the version in [SdkConstants.GRADLE_PLUGIN_RECOMMENDED_VERSION] and Gradle
- * to the version in [SdkConstants.GRADLE_LATEST_VERSION].
+ * This QuickFix upgrades Gradle and the Android Gradle Plugin in the build configuration to the specified versions, or
+ * latest versions if not given.
  */
 class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
   override val id = "fix.gradle.elements"
