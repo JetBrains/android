@@ -151,8 +151,8 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
 
         // Exception: Always prefer ATTR_SRC_COMPAT over ATTR_SRC:
         if (properties.contains(AUTO_URI, ATTR_SRC_COMPAT)) {
-          properties.remove(ANDROID_URI, ATTR_SRC)
-          properties.remove(AUTO_URI, ATTR_SRC)
+          removeEmptyProperty(properties, ANDROID_URI, ATTR_SRC)
+          removeEmptyProperty(properties, AUTO_URI, ATTR_SRC)
         }
 
         // Exceptions:
@@ -199,7 +199,18 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
       combinedProperties.row(AUTO_URI).keys.removeAll(commonJustAndroidValue)
       combinedProperties.row(ANDROID_URI).keys.removeAll(common.minus(commonJustAndroidValue))
 
-      return combinedProperties ?: emptyTable
+      return combinedProperties
+    }
+
+    private fun removeEmptyProperty(
+      properties: Table<String, String, NlPropertyItem>,
+      namespace: String,
+      name: String
+    ) {
+      val property = properties.get(namespace, name) ?: return
+      if (property.value == null) {
+        properties.remove(namespace, name)
+      }
     }
 
     private fun loadPropertiesFromDescriptors(
