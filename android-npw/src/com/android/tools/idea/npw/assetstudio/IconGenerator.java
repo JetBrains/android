@@ -42,8 +42,8 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.AtomicNullableLazyValue;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NullableLazyValue;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -102,7 +102,7 @@ public abstract class IconGenerator implements Disposable {
 
   @NotNull private final GraphicGeneratorContext myContext;
 
-  @NotNull private final AtomicNullableLazyValue<ApiLookup> myApiLookup;
+  @NotNull private final NullableLazyValue<ApiLookup> myApiLookup;
 
   @NotNull protected final String myLineSeparator;
 
@@ -116,13 +116,7 @@ public abstract class IconGenerator implements Disposable {
   public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
-    myApiLookup = new AtomicNullableLazyValue<>() {
-      @Override
-      @Nullable
-      protected ApiLookup compute() {
-        return LintIdeClient.getApiLookup(project);
-      }
-    };
+    myApiLookup = NullableLazyValue.atomicLazyNullable(() -> LintIdeClient.getApiLookup(project));
     myLineSeparator = CodeStyle.getSettings(project).getLineSeparator();
   }
 
