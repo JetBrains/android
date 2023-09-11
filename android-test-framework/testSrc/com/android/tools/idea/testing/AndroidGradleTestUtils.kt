@@ -147,6 +147,7 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.internal.DummySyncViewManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.externalSystem.JavaProjectData
+import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
@@ -221,6 +222,7 @@ import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.model.GradleExtensions
+import org.jetbrains.plugins.gradle.model.GradleSourceSetModel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
@@ -1424,6 +1426,7 @@ private fun setupTestProjectFromAndroidModelCore(
         override fun getSourceSets(): Map<String, ExternalSourceSet> = mapOf()
         override fun getArtifacts(): List<File> = listOf()
         override fun getArtifactsByConfiguration(): Map<String, MutableSet<File>> = mapOf()
+        override fun getSourceSetModel(): GradleSourceSetModel = DefaultGradleSourceSetModel()
       },
       null
     )
@@ -2220,10 +2223,10 @@ private fun <T> openPreparedProject(
             projectPath.toPath(),
             OpenProjectTask{
               beforeOpen =
-              {
+                {
                   afterCreate(it)
                   true
-              }
+                }
               projectToClose = null
               forceOpenInNewFrame = true
             }
