@@ -134,10 +134,10 @@ public class GoToApkLocationTaskTest extends PlatformTestCase {
   @NotNull
   private static String getExpectedModuleNotificationMessage(@NotNull String moduleName, @Nullable String module2Name) {
     if (module2Name == null) {
-      return "APK(s) generated successfully for 1 module:" + getExpectedModuleLineNotificationMessage(moduleName);
+      return "Build completed successfully for 1 module:" + getExpectedModuleLineNotificationMessage(moduleName);
     }
     else {
-      return "APK(s) generated successfully for 2 modules:" + getExpectedModuleLineNotificationMessage(moduleName) +
+      return "Build completed successfully for 2 modules:" + getExpectedModuleLineNotificationMessage(moduleName) +
              getExpectedModuleLineNotificationMessage(module2Name);
     }
   }
@@ -157,7 +157,7 @@ public class GoToApkLocationTaskTest extends PlatformTestCase {
 
   @NotNull
   private static String getExpectedModuleNotificationMessageNoShowFilePathAction() {
-    return "APK(s) generated successfully for 1 module";
+    return "Build completed successfully for 1 module";
   }
 
   @NotNull

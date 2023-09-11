@@ -98,7 +98,7 @@ public class GoToApkLocationTask {
     if (result.isBuildSuccessful()) {
       StringBuilder builder = new StringBuilder();
       int count = apkBuildsToPaths.size();
-      builder.append("APK(s) generated successfully for ");
+      builder.append("Build completed successfully for ");
       if (isSigned) {
         String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
         builder.append("module '").append(moduleName).append("' with ").append(count)
@@ -137,7 +137,7 @@ public class GoToApkLocationTask {
                          .map(entry -> String.format(" - %s: %s", entry.getKey(), entry.getValue().getPath()))
                          .collect(Collectors.joining("\n")));
         StringBuilder balloonBuilder = new StringBuilder();
-        balloonBuilder.append("APK(s) generated successfully for ");
+        balloonBuilder.append("Build completed successfully for ");
         if (isSigned) {
           String moduleName = Iterators.getOnlyElement(myModules.iterator()).getName();
           balloonBuilder.append("module '").append(moduleName).append("' with ").append(count)
