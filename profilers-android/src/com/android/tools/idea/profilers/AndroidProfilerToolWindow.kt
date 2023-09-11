@@ -34,6 +34,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskTabs
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.TaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandlerFactory
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.CallstackSampleTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodSampleTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.JavaKotlinMethodTraceTaskHandler
@@ -124,14 +125,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun initializeTaskHandlers() {
-    val sessionsManager = profilers.sessionsManager
-    taskHandlers[ProfilerTaskType.SYSTEM_TRACE] = SystemTraceTaskHandler(sessionsManager)
-    taskHandlers[ProfilerTaskType.CALLSTACK_SAMPLE] = CallstackSampleTaskHandler(sessionsManager)
-    taskHandlers[ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE] = JavaKotlinMethodTraceTaskHandler(sessionsManager)
-    taskHandlers[ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE] = JavaKotlinMethodSampleTaskHandler(sessionsManager)
-    taskHandlers[ProfilerTaskType.HEAP_DUMP] = HeapDumpTaskHandler(sessionsManager)
-    taskHandlers[ProfilerTaskType.NATIVE_ALLOCATIONS] = NativeAllocationsTaskHandler(sessionsManager)
-    taskHandlers[ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS] = JavaKotlinAllocationsTaskHandler(sessionsManager)
+    taskHandlers.clear()
+    taskHandlers.putAll(ProfilerTaskHandlerFactory.createTaskHandlers(profilers.sessionsManager))
   }
 
   @VisibleForTesting

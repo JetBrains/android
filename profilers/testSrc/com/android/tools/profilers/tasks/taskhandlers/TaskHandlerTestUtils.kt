@@ -19,97 +19,13 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Memory
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.SupportLevel
-import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.memory.AllocationSessionArtifact
-import com.android.tools.profilers.memory.HeapProfdSessionArtifact
-import com.android.tools.profilers.memory.HprofSessionArtifact
-import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
-import com.android.tools.profilers.sessions.SessionArtifact
-import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth
 
 object TaskHandlerTestUtils {
-
-  fun createCpuCaptureSessionArtifactWithConfig(profilers: StudioProfilers,
-                                                session: Common.Session,
-                                                sessionId: Long,
-                                                traceId: Long,
-                                                config: Trace.TraceConfiguration) = createCpuCaptureSessionArtifactWithConfig(profilers,
-                                                                                                                              session,
-                                                                                                                              sessionId,
-                                                                                                                              traceId, 0, 0,
-                                                                                                                              config)
-
-  /**
-   * Overload of createCpuCaptureSessionArtifactWithConfig that takes in from and end timestamps.
-   */
-  fun createCpuCaptureSessionArtifactWithConfig(profilers: StudioProfilers,
-                                                session: Common.Session,
-                                                sessionId: Long,
-                                                traceId: Long,
-                                                fromTimestamp: Long,
-                                                toTimestamp: Long,
-                                                config: Trace.TraceConfiguration): CpuCaptureSessionArtifact {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
-    val info = Trace.TraceInfo.newBuilder().setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).setTraceId(
-      traceId).setConfiguration(config.toBuilder()).build()
-    return CpuCaptureSessionArtifact(profilers, session, sessionMetadata, info)
-  }
-
-  fun createCpuCaptureSessionArtifact(profilers: StudioProfilers,
-                                      session: Common.Session,
-                                      sessionId: Long,
-                                      traceId: Long) = createCpuCaptureSessionArtifactWithConfig(profilers, session, sessionId, traceId,
-                                                                                                 Trace.TraceConfiguration.getDefaultInstance())
-
-  fun createHprofSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                 startTimestamp: Long,
-                                 endTimestamp: Long): HprofSessionArtifact {
-    val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
-    val info = Memory.HeapDumpInfo.newBuilder().setStartTime(startTimestamp).setEndTime(endTimestamp).build()
-    return HprofSessionArtifact(profilers, session, sessionMetadata, info)
-  }
-
-  fun createHeapProfdSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                     fromTimestamp: Long,
-                                     toTimestamp: Long): HeapProfdSessionArtifact {
-    val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
-    val info = Trace.TraceInfo.newBuilder().setFromTimestamp(fromTimestamp).setToTimestamp(toTimestamp).build()
-    return HeapProfdSessionArtifact(profilers, session, sessionMetadata, info)
-  }
-
-  fun createAllocationSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                      startTimestamp: Long,
-                                      endTimestamp: Long): AllocationSessionArtifact {
-    val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
-    val info = Memory.AllocationsInfo.newBuilder().setStartTime(startTimestamp).setEndTime(endTimestamp).build()
-    return AllocationSessionArtifact(profilers, session, sessionMetadata, info, startTimestamp.toDouble(), endTimestamp.toDouble())
-  }
-
-  fun createLegacyAllocationsSessionArtifact(profilers: StudioProfilers, session: Common.Session,
-                                      startTimestamp: Long,
-                                      endTimestamp: Long): LegacyAllocationsSessionArtifact {
-    val sessionMetadata = Common.SessionMetaData.getDefaultInstance()
-    val info = Memory.AllocationsInfo.newBuilder().setStartTime(startTimestamp).setEndTime(endTimestamp).build()
-    return LegacyAllocationsSessionArtifact(profilers, session, sessionMetadata, info)
-  }
-
-  fun createSessionItem(profilers: StudioProfilers,
-                        initialSession: Common.Session,
-                        sessionId: Long,
-                        childArtifacts: List<SessionArtifact<*>>): SessionItem {
-    val sessionMetadata = Common.SessionMetaData.newBuilder().setSessionId(sessionId).build()
-    return SessionItem(profilers, initialSession, sessionMetadata).apply {
-      setChildArtifacts(childArtifacts)
-    }
-  }
-
   fun startSession(exposureLevel: Common.Process.ExposureLevel,
                    profilers: StudioProfilers,
                    transportService: FakeTransportService,

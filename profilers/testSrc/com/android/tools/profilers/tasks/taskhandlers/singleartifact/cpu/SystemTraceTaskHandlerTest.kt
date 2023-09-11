@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.event.FakeEventService
@@ -75,7 +76,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
 
   @Test
   fun testSupportsArtifactWithSystemTraceSessionArtifact() {
-    val systemTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val systemTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                     Common.Session.getDefaultInstance(),
                                                                                                     1L, 100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
@@ -93,7 +94,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   @Test
   fun testStartTaskInvokedOnEnterWithAliveSession() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.SYSTEM_TRACE)
-    val systemTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val systemTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
@@ -159,7 +160,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
     // Create a fake CpuCaptureSessionArtifact that uses a Perfetto (System Trace) configuration.
-    val systemTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val systemTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
@@ -180,7 +181,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
-    val systemTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val systemTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                     Common.Session.getDefaultInstance(), 1L,
                                                                                                     100L,
                                                                                                     createDefaultPerfettoTraceConfiguration())
@@ -215,8 +216,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to TaskHandlerTestUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
-        TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
+      1L to SessionArtifactUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
+        SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
                                                                        5L, 500L,
                                                                        createDefaultPerfettoTraceConfiguration()))),
     )
@@ -236,8 +237,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to TaskHandlerTestUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
-        TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
+      1L to SessionArtifactUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
+        SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
                                                                        5L, 500L,
                                                                        createDefaultPerfettoTraceConfiguration()))),
     )

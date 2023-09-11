@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="codenavigation" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
   </component>
 </module>

@@ -23,11 +23,11 @@ import com.android.tools.profiler.proto.Common.Process.ExposureLevel
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionArtifactUtils.createAllocationSessionArtifact
+import com.android.tools.profilers.SessionArtifactUtils.createLegacyAllocationsSessionArtifact
+import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createAllocationSessionArtifact
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createLegacyAllocationsSessionArtifact
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createSessionItem
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact

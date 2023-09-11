@@ -21,11 +21,10 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionArtifactUtils.createCpuCaptureSessionArtifact
+import com.android.tools.profilers.SessionArtifactUtils.createSessionItem
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createCpuCaptureSessionArtifact
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createSessionItem
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
-import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test

@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionArtifactUtils
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.event.FakeEventService
@@ -75,7 +76,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
 
   @Test
   fun testSupportsArtifactWithJavaKotlinMethodTraceSessionArtifact() {
-    val javaKotlinMethodTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val javaKotlinMethodTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                               Common.Session.getDefaultInstance(),
                                                                                                               1L, 100L,
                                                                                                               createDefaultArtInstrumentedTraceConfiguration())
@@ -94,7 +95,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
   fun testStartTaskInvokedOnEnterWithAliveSession() {
     TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer,
                                       Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
-    val javaKotlinMethodTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val javaKotlinMethodTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                               Common.Session.getDefaultInstance(),
                                                                                                               1L,
                                                                                                               100L,
@@ -163,7 +164,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
     // Create a fake CpuCaptureSessionArtifact that uses an ART Instrumented (Java/Kotlin Method Sample) configuration.
-    val javaKotlinMethodTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val javaKotlinMethodTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                               Common.Session.getDefaultInstance(),
                                                                                                               1L,
                                                                                                               100L,
@@ -185,7 +186,7 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     // Before enter + loadTask, the stage should not be set yet.
     assertThat(myProfilers.stage).isNotInstanceOf(CpuProfilerStage::class.java)
 
-    val javaKotlinMethodTraceSessionArtifact = TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
+    val javaKotlinMethodTraceSessionArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers,
                                                                                                               Common.Session.getDefaultInstance(),
                                                                                                               1L,
                                                                                                               100L,
@@ -222,8 +223,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
   fun testCreateArgsSuccessfully() {
     val selectedSession = Common.Session.newBuilder().setSessionId(1).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to TaskHandlerTestUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
-        TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
+      1L to SessionArtifactUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
+        SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
                                                                        5L, 500L,
                                                                        createDefaultArtInstrumentedTraceConfiguration()))),
     )
@@ -244,8 +245,8 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     // will fail to be constructed.
     val selectedSession = Common.Session.newBuilder().setSessionId(0).setEndTimestamp(100).build()
     val sessionIdToSessionItems = mapOf(
-      1L to TaskHandlerTestUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
-        TaskHandlerTestUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
+      1L to SessionArtifactUtils.createSessionItem(myProfilers, selectedSession, 1, listOf(
+        SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, selectedSession, 1, 100L,
                                                                        5L, 500L,
                                                                        createDefaultArtInstrumentedTraceConfiguration()))),
     )

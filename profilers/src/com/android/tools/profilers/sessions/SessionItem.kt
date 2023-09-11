@@ -156,6 +156,8 @@ class SessionItem(
     changed(Aspect.MODEL)
   }
 
+  fun containsExactlyOneArtifact() = childArtifacts.size == 1
+
   companion object {
     private const val SESSION_INITIALIZING = "Starting..."
 
