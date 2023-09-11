@@ -50,7 +50,7 @@ public class DebuggerTest {
       studio.waitForBuild();
       emulator.waitForBoot();
       adb.waitForDevice(emulator);
-
+      adb.runCommand("logcat");
       System.out.println("Opening a file");
       Path path = project.getTargetProject().resolve("src/main/java/com/example/minapp/MainActivity.kt");
       String projectName = project.getTargetProject().getFileName().toString();
