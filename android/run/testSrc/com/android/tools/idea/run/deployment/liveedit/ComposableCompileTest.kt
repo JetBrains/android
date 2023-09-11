@@ -21,6 +21,7 @@ import com.intellij.psi.PsiFile
 import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -261,6 +262,129 @@ class ComposableCompileTest {
     assertEquals(2, output2.classes.size)
     assertEquals(0, output2.classesMap.size)
     assertEquals(2, output2.supportClassesMap.size)
+  }
+
+  private val modifierCode = """
+      class Color(val value: Int) {
+          companion object {
+              val Red = Color(0)
+          }
+      }
+
+      class Dp()
+      val Int.dp: Dp get() = Dp()
+
+      interface Modifier {
+          companion object : Modifier
+      }
+
+      fun Modifier.background(c: Color) = this
+      fun Modifier.size(size: Dp) = this
+      fun Modifier.padding(size: Dp) = this
+      """.trimIndent()
+
+  // Regression test for invalid incremental analysis. See b/295257198.
+  @Ignore("b/295257198")
+  @Test
+  fun incrementalAnalysisFunctionBodyTest() {
+    val fileName = "Test.kt"
+    val className = "TestKt"
+    val cache = initialCache(mapOf(fileName to """
+      $modifierCode
+      fun foo() {
+        Modifier.background(Color.Red).size(100.dp).padding(20.dp)
+      }"""))
+
+    val file = projectRule.fixture.configureByText(fileName ,"""
+      $modifierCode
+      fun foo() {
+        Modifier.background(Color.Red).size(100.dp)
+      }""")
+
+    val output = compile(file, cache)
+    Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
+    val klass = loadClass(output, className)
+    // Before the fix, invalid code will be generated and this will lead to a class
+    // cast exception during execution.
+    invokeStatic("foo", klass)
+  }
+
+  // Regression test for invalid incremental analysis. See b/295257198.
+  @Ignore("b/295257198")
+  @Test
+  fun incrementalAnalysisFunctionExpressionBodyTest() {
+    val fileName = "Test.kt"
+    val className = "TestKt"
+    val cache = initialCache(mapOf(fileName to """
+      $modifierCode
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)"""))
+
+    val file = projectRule.fixture.configureByText(fileName ,"""
+      $modifierCode
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp)""")
+
+    val output = compile(file, cache)
+    Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
+    val klass = loadClass(output, className)
+    // Before the fix, invalid code will be generated and this will lead to a class
+    // cast exception during execution.
+    invokeStatic("foo", klass)
+  }
+
+  // Regression test for incorrect fix for b/295257198 where we filtered the
+  // parent context in the incremental analysis too much.
+  @Test
+  fun incrementalAnalysisFunctionBodyWithArgumentsTest() {
+    val fileName = "Test.kt"
+    val className = "TestKt"
+    val cache = initialCache(mapOf(fileName to """
+      fun bar() = foo(0)
+      fun foo(l: Int): Int {
+        return 32
+      }"""))
+
+    val file = projectRule.fixture.configureByText(fileName ,"""
+      fun bar() = foo(0)
+      fun foo(l: Int): Int {
+        return 42
+      }""")
+
+    val output = compile(file, cache)
+    Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
+    val klass = loadClass(output, className)
+    assertEquals(42, invokeStatic("bar", klass))
+  }
+
+  @Test
+  fun incrementalAnalysisPropertyGetter() {
+    val fileName = "Test.kt"
+    val className = "TestKt"
+    val cache = initialCache(mapOf(fileName to """
+      $modifierCode
+      class A {
+        val y: Modifier
+          get() = Modifier.background(Color.Red).size(100.dp).padding(20.dp)
+      }
+      fun bar(): Int {
+        A().y
+        return 42
+      }"""))
+
+    val file = projectRule.fixture.configureByText(fileName ,"""
+      $modifierCode
+      class A {
+        val y: Modifier
+          get() = Modifier.background(Color.Red).size(100.dp)
+      }
+      fun bar(): Int {
+        A().y
+        return 42
+      }""")
+
+    val output = compile(file, cache)
+    Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
+    val klass = loadClass(output, className)
+    assertEquals(42, invokeStatic("bar", klass))
   }
 
   private fun initialCache(files: Map<String, String>): MutableIrClassCache {
