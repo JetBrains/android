@@ -166,7 +166,7 @@ public final class HeapSnapshotStatistics {
   public void calculateExtendedReportDataIfNeeded(@NotNull final FieldCache fieldCache,
                                                   @NotNull final MemoryReportCollector collector,
                                                   @NotNull final WeakList<Object> startRoots) throws HeapSnapshotTraverseException {
-    if (extendedReportStatistics == null) {
+    if (extendedReportStatistics == null || !config.collectObjectTreesData) {
       return;
     }
     extendedReportStatistics.calculateExtendedReportData(config, fieldCache, collector, startRoots);

@@ -25,22 +25,25 @@ public class HeapTraverseConfig {
   private final ComponentsSet componentsSet;
   final boolean collectHistograms;
   final boolean collectDisposerTreeInfo;
+  final boolean collectObjectTreesData;
   @NotNull
   final List<ComponentsSet.Component> exceededComponents;
 
   public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
                             boolean collectHistograms,
                             boolean collectDisposerTreeInfo) {
-    this(componentsSet, collectHistograms, collectDisposerTreeInfo, Collections.emptyList());
+    this(componentsSet, collectHistograms, collectDisposerTreeInfo, false, Collections.emptyList());
   }
 
   public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
                             boolean collectHistograms,
                             boolean collectDisposerTreeInfo,
+                            boolean collectObjectTreesData,
                             @NotNull final List<ComponentsSet.Component> exceededComponents) {
     this.componentsSet = componentsSet;
     this.collectHistograms = collectHistograms;
     this.collectDisposerTreeInfo = collectDisposerTreeInfo;
+    this.collectObjectTreesData = collectObjectTreesData;
     this.exceededComponents = exceededComponents;
   }
 

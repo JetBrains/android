@@ -554,7 +554,9 @@ public final class MemoryReportCollector implements Disposable {
                                                         @NotNull final List<ComponentsSet.Component> exceededClusters,
                                                         @NotNull final Computable<WeakList<Object>> rootsComputable) {
     HeapSnapshotStatistics extendedReportStats =
-      new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet, true, /*collectDisposerTreeInfo=*/true, exceededClusters));
+      new HeapSnapshotStatistics(
+        new HeapTraverseConfig(componentsSet, /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/true, /*collectObjectTreesData=*/
+                               true, exceededClusters));
     new MemoryReportCollector(extendedReportStats).walkObjects(rootsComputable);
 
     StudioCrashReporter.getInstance().submit(extendedReportStats.asCrashReport(exceededClusters), true);
