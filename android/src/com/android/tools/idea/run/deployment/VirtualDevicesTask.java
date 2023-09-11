@@ -46,14 +46,13 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
 
   private final @NotNull Function<AvdInfo, AndroidDevice> myNewLaunchableAndroidDevice;
 
-  @Nullable
-  private final LaunchCompatibilityChecker myChecker;
+  private final @NotNull Supplier<LaunchCompatibilityChecker> myCheckerSupplier;
 
   static final class Builder {
     private @Nullable ExecutorService myExecutorService;
     private @Nullable Supplier<Collection<AvdInfo>> myGetAvds;
     private @Nullable Function<AvdInfo, AndroidDevice> myNewLaunchableAndroidDevice;
-    private @Nullable LaunchCompatibilityChecker myChecker;
+    private @Nullable Supplier<LaunchCompatibilityChecker> myCheckerSupplier;
 
     @NotNull Builder setExecutorService(@NotNull ExecutorService executorService) {
       myExecutorService = executorService;
@@ -70,8 +69,8 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       return this;
     }
 
-    @NotNull Builder setChecker(@Nullable LaunchCompatibilityChecker checker) {
-      myChecker = checker;
+    @NotNull Builder setCheckerSupplier(@NotNull Supplier<LaunchCompatibilityChecker> checkerSupplier) {
+      myCheckerSupplier = checkerSupplier;
       return this;
     }
 
@@ -90,7 +89,8 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
     assert builder.myNewLaunchableAndroidDevice != null;
     myNewLaunchableAndroidDevice = builder.myNewLaunchableAndroidDevice;
 
-    myChecker = builder.myChecker;
+    assert builder.myCheckerSupplier != null;
+    myCheckerSupplier = builder.myCheckerSupplier;
   }
 
   @NotNull
@@ -176,12 +176,13 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
       .addAllSnapshots(snapshots)
       .setType(getTypeFromAndroidDevice(device));
 
-    if (myChecker == null) {
+    LaunchCompatibilityChecker checker = myCheckerSupplier.get();
+    if (checker == null) {
       return builder.build();
     }
 
     return builder
-      .setLaunchCompatibility(myChecker.validate(device))
+      .setLaunchCompatibility(checker.validate(device))
       .build();
   }
 }

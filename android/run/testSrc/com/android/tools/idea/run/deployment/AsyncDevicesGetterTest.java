@@ -16,24 +16,16 @@
 package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import icons.StudioIcons;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetConfiguration;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -221,25 +213,5 @@ public final class AsyncDevicesGetterTest {
       .build();
 
     assertEquals(Collections.singletonList(expectedDevice), actualDevices);
-  }
-
-  @Test
-  public void initChecker() {
-    AndroidRunConfigurationModule configurationModule = Mockito.mock(AndroidRunConfigurationModule.class);
-    Mockito.when(configurationModule.getModule()).thenReturn(myRule.getModule());
-
-    AndroidRunConfiguration configuration = Mockito.mock(AndroidRunConfiguration.class);
-    Mockito.when(configuration.getConfigurationModule()).thenReturn(configurationModule);
-
-    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
-    Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(configuration);
-
-    myGetter.initChecker(configurationAndSettings, AsyncDevicesGetterTest::newAndroidFacet);
-    assertNull(myGetter.getChecker());
-  }
-
-  @NotNull
-  private static AndroidFacet newAndroidFacet(@NotNull Module module) {
-    return new AndroidFacet(module, "Android", Mockito.mock(AndroidFacetConfiguration.class));
   }
 }

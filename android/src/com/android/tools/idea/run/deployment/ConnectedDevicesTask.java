@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,25 +44,25 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
   @NotNull
   private final ProvisionerHelper myHelper;
 
-  private final @Nullable LaunchCompatibilityChecker myLaunchCompatibilityChecker;
+  private final @NotNull Supplier<LaunchCompatibilityChecker> myLaunchCompatibilityCheckerSupplier;
 
   @NotNull
   private final Function<IDevice, AndroidDevice> myNewConnectedAndroidDevice;
 
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
                        @NotNull ProvisionerHelper helper,
-                       @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
-    this(androidDebugBridge, helper, launchCompatibilityChecker, ConnectedAndroidDevice::new);
+                       @NotNull Supplier<LaunchCompatibilityChecker> launchCompatibilityCheckerSupplier) {
+    this(androidDebugBridge, helper, launchCompatibilityCheckerSupplier, ConnectedAndroidDevice::new);
   }
 
   @VisibleForTesting
   ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge,
                        @NotNull ProvisionerHelper helper,
-                       @Nullable LaunchCompatibilityChecker launchCompatibilityChecker,
+                       @NotNull Supplier<LaunchCompatibilityChecker> launchCompatibilityCheckerSupplier,
                        @NotNull Function<IDevice, AndroidDevice> newConnectedAndroidDevice) {
     myAndroidDebugBridge = androidDebugBridge;
     myHelper = helper;
-    myLaunchCompatibilityChecker = launchCompatibilityChecker;
+    myLaunchCompatibilityCheckerSupplier = launchCompatibilityCheckerSupplier;
     myNewConnectedAndroidDevice = newConnectedAndroidDevice;
   }
 
@@ -172,11 +173,12 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
 
   @NotNull
   private ListenableFuture<Optional<LaunchCompatibility>> getLaunchCompatibilityAsync(@NotNull AndroidDevice device) {
-    if (myLaunchCompatibilityChecker == null) {
+    LaunchCompatibilityChecker checker = myLaunchCompatibilityCheckerSupplier.get();
+    if (checker == null) {
       return Futures.immediateFuture(Optional.empty());
     }
 
-    return Futures.submit(() -> Optional.of(myLaunchCompatibilityChecker.validate(device)), AppExecutorUtil.getAppExecutorService());
+    return Futures.submit(() -> Optional.of(checker.validate(device)), AppExecutorUtil.getAppExecutorService());
   }
 
   @NotNull

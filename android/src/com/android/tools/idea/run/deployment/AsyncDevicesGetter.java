@@ -18,30 +18,21 @@ package com.android.tools.idea.run.deployment;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.concurrency.CoroutinesUtilsKt;
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService;
-import com.android.tools.idea.run.LaunchCompatibilityChecker;
-import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import kotlin.coroutines.EmptyCoroutineContext;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A supplier of an optional list of VirtualDevices or PhysicalDevices. It is safe to call the get method from the event dispatch thread.
@@ -67,9 +58,6 @@ final class AsyncDevicesGetter implements Disposable {
 
   @NotNull
   private final KeyToConnectionTimeMap myMap;
-
-  @Nullable
-  private LaunchCompatibilityChecker myChecker;
 
   @NotNull
   private final ProvisionerHelper myHelper;
@@ -107,17 +95,17 @@ final class AsyncDevicesGetter implements Disposable {
    */
   @NotNull
   Optional<List<Device>> get() {
-    initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
+    LaunchCompatibilityCheckerSupplier checkerSupplier = new LaunchCompatibilityCheckerSupplier(myProject, AndroidFacet::getInstance);
 
     AsyncSupplier<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask.Builder()
       .setExecutorService(AppExecutorUtil.getAppExecutorService())
       .setGetAvds(() -> AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false))
       .setNewLaunchableAndroidDevice(LaunchableAndroidDevice::new)
-      .setChecker(myChecker)
+      .setCheckerSupplier(checkerSupplier)
       .build();
 
     Optional<Collection<VirtualDevice>> virtualDevices = myVirtualDevicesWorker.perform(virtualDevicesTask);
-    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myHelper, myChecker));
+    var connectedDevices = myConnectedDevicesWorker.perform(new ConnectedDevicesTask(myBridge, myHelper, checkerSupplier));
 
     if (virtualDevices.isEmpty() || connectedDevices.isEmpty()) {
       return Optional.empty();
@@ -190,46 +178,5 @@ final class AsyncDevicesGetter implements Disposable {
 
   private static boolean containsPathOrName(@NotNull Collection<Key> keys, @NotNull VirtualDevice device) {
     return keys.contains(device.getKey()) || keys.contains(device.getNameKey().orElseThrow(AssertionError::new));
-  }
-
-  @VisibleForTesting
-  void initChecker(@Nullable RunnerAndConfigurationSettings configurationAndSettings, @NotNull Function<Module, AndroidFacet> facetGetter) {
-    if (configurationAndSettings == null) {
-      myChecker = null;
-      return;
-    }
-
-    Object configuration = configurationAndSettings.getConfiguration();
-
-    if (!(configuration instanceof ModuleBasedConfiguration)) {
-      myChecker = null;
-      return;
-    }
-
-    Module module = ((ModuleBasedConfiguration<?, ?>)configuration).getConfigurationModule().getModule();
-
-    if (module == null) {
-      myChecker = null;
-      return;
-    }
-
-    AndroidFacet facet = facetGetter.apply(module);
-
-    if (facet == null || facet.isDisposed()) {
-      myChecker = null;
-      return;
-    }
-
-    if (DumbService.isDumb(myProject)) {
-      myChecker = null;
-      return;
-    }
-
-    myChecker = LaunchCompatibilityCheckerImpl.create(facet, null, null);
-  }
-
-  @VisibleForTesting
-  Object getChecker() {
-    return myChecker;
   }
 }

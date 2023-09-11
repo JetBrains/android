@@ -59,6 +59,7 @@ public final class VirtualDevicesTaskTest {
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(() -> avds)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
+      .setCheckerSupplier(() -> null)
       .build();
 
     // Act
@@ -96,6 +97,7 @@ public final class VirtualDevicesTaskTest {
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
+      .setCheckerSupplier(() -> null)
       .build();
 
     Path directory = myProvider.getAvdLocation().resolve(myFileSystem.getPath("Pixel_2_XL_API_28.avd", "snapshots", "default_boot"));
@@ -114,6 +116,7 @@ public final class VirtualDevicesTaskTest {
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
+      .setCheckerSupplier(() -> null)
       .build();
 
     SnapshotOuterClass.Snapshot protocolBufferSnapshot = SnapshotOuterClass.Snapshot.getDefaultInstance();
@@ -134,6 +137,7 @@ public final class VirtualDevicesTaskTest {
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
+      .setCheckerSupplier(() -> null)
       .build();
 
     SnapshotOuterClass.Snapshot protocolBufferSnapshot = SnapshotOuterClass.Snapshot.newBuilder()
@@ -156,6 +160,7 @@ public final class VirtualDevicesTaskTest {
       .setExecutorService(MoreExecutors.newDirectExecutorService())
       .setGetAvds(Collections::emptyList)
       .setNewLaunchableAndroidDevice(avd -> myAndroidDevice)
+      .setCheckerSupplier(() -> null)
       .build();
 
     SnapshotOuterClass.Snapshot protocolBufferSnapshot = SnapshotOuterClass.Snapshot.newBuilder()
