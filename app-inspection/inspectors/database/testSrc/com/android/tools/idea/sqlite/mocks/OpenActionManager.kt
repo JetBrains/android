@@ -117,8 +117,7 @@ open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManag
   ) = wrapped.addActionPopupMenuListener(listener, parentDisposable)
   override fun addAnActionListener(listener: AnActionListener?) =
     wrapped.addAnActionListener(listener)
-  override fun removeAnActionListener(listener: AnActionListener?) =
-    wrapped.removeAnActionListener(listener)
+
   override fun getKeyboardShortcut(actionId: String): KeyboardShortcut? =
     wrapped.getKeyboardShortcut(actionId)
   override fun getPluginActions(pluginId: PluginId): Array<String> =
