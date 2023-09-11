@@ -16,81 +16,107 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.io.TestFileUtils
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.AndroidTestCase
+import icons.StudioIcons.Common.ANDROID_HEAD
+import icons.StudioIcons.Common.WARNING
 import java.nio.file.FileSystems
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.attribute.FileTime
 import javax.swing.Icon
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
-class GutterIconCacheTest : AndroidTestCase() {
+@RunWith(JUnit4::class)
+class GutterIconCacheTest {
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+
+  private val cache = GutterIconCache(::highDpiDisplay) { _, _, _ -> icon }
+  private val facet by lazy { checkNotNull(projectRule.module.androidFacet) }
+
   private lateinit var sampleSvgPath: Path
   private lateinit var sampleSvgFile: VirtualFile
   private var icon: Icon? = null
-  private val cache = GutterIconCache {_, _, _, -> icon }
+  private var highDpiDisplay = false
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
-    sampleSvgPath = FileSystems.getDefault().getPath(myModule.project.basePath, "HeyImAFile.xml")
+  @Before
+  fun setUp() {
+    val basePath = checkNotNull(projectRule.project.basePath) { "Need non-null base path!" }
+    sampleSvgPath = FileSystems.getDefault().getPath(basePath, "HeyImAFile.xml")
     sampleSvgFile = TestFileUtils.writeFileAndRefreshVfs(sampleSvgPath, "whose contents are immaterial")
   }
 
-  fun testIsIconUpToDate_entryInvalidNotCached() {
-    // If we've never requested an Icon for the path, there should be no valid cache entry.
-    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
+  @Test
+  fun cacheEmptyToStart() {
+    assertThat(cache.getIconIfCached(sampleSvgFile)).isNull()
   }
 
-  fun testIsIconUpToDate_entryValid() {
-    cache.getIcon(sampleSvgFile, null, myFacet)
+  @Test
+  fun cachedNullValue() {
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isNull()
 
-    // If we haven't modified the image since creating an Icon, the cache entry is still valid
-    assertThat(cache.isIconUpToDate(sampleSvgFile)).isTrue()
+    icon = ANDROID_HEAD
+
+    assertThat(cache.getIconIfCached(sampleSvgFile)).isNull()
+    // Should return cached value.
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isNull()
   }
 
-  fun testIsIconUpToDate_entryInvalidUnsavedChanges() {
-    cache.getIcon(sampleSvgFile, null, myFacet)
+  @Test
+  fun cachedNonNullValue() {
+    icon = ANDROID_HEAD
+
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
+
+    icon = null
+
+    assertThat(cache.getIconIfCached(sampleSvgFile)).isEqualTo(ANDROID_HEAD)
+    // Should return cached value.
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
+  }
+
+  @Test
+  fun cachedValueIgnoredOnFileChange() {
+    icon = ANDROID_HEAD
+
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
 
     // "Modify" Document by rewriting its contents
     val document = checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))
-    ApplicationManager.getApplication().runWriteAction { document.setText(document.text) }
-
-    // Modifying the image should have invalidated the cache entry.
-    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
-  }
-
-  @Throws(Exception::class)
-  fun testIconUpToDate_entryInvalidSavedChanges() {
-    cache.getIcon(sampleSvgFile, null, myFacet)
-
-    // Modify image resource by adding an empty comment and then save
-    val document = checkNotNull(FileDocumentManager.getInstance().getDocument(sampleSvgFile))
-    ApplicationManager.getApplication().runWriteAction {
-      document.setText(document.text + "<!-- -->")
-      FileDocumentManager.getInstance().saveDocument(document)
+    with(ApplicationManager.getApplication()) {
+      invokeAndWait { runWriteAction { document.setText(document.text) } }
     }
 
-    // Modifying the image should have invalidated the cache entry.
-    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
+    assertThat(cache.getIconIfCached(sampleSvgFile)).isNull()
+
+    icon = WARNING
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(WARNING)
   }
 
-  @Throws(Exception::class)
-  fun testIconUpToDate_entryInvalidDiskChanges() {
-    cache.getIcon(sampleSvgFile, null, myFacet)
-    val previousTimestamp = Files.getLastModifiedTime(sampleSvgPath)
+  @Test
+  fun cacheClearedOnHiDpiChange() {
+    icon = ANDROID_HEAD
 
-    // "Modify" file by changing its lastModified field
-    Files.setLastModifiedTime(sampleSvgPath, FileTime.fromMillis(System.currentTimeMillis() + 1000))
-    sampleSvgFile.refresh(false, false)
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
 
-    // Sanity check
-    assertThat(previousTimestamp).isLessThan(Files.getLastModifiedTime(sampleSvgPath))
+    highDpiDisplay = true
 
-    // Modifying the image should have invalidated the cache entry.
-    assertThat(cache.isIconUpToDate(sampleSvgFile)).isFalse()
+    assertThat(cache.getIconIfCached(sampleSvgFile)).isNull()
+
+    icon = WARNING
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(WARNING)
+
+    highDpiDisplay = false
+
+    assertThat(cache.getIconIfCached(sampleSvgFile)).isNull()
+
+    icon = ANDROID_HEAD
+    assertThat(cache.getIcon(sampleSvgFile, null, facet)).isEqualTo(ANDROID_HEAD)
   }
 }
