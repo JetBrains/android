@@ -48,7 +48,7 @@ object TraceSyncUtil {
                                           "Trace: org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter::execute\n" +
                                           "Trace: org.jetbrains.kotlin.gradle.model.builder.KotlinModelBuilder\n" +
                                           "Trace: org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService\n" +
-                                          "Trace: org.jetbrains.plugins.gradle.tooling.internal.ExtraModelBuilder\n" +
+                                          "Trace: com.intellij.gradle.toolingExtension.impl.modelBuilder.ExtraModelBuilder\n" +
                                           "Trace: org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModelBuilder\n" +
                                           "Trace: org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder\n" +
                                           "\n" +
