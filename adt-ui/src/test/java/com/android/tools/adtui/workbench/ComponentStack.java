@@ -38,7 +38,7 @@ public class ComponentStack {
   }
 
   public <T> void registerServiceInstance(@NotNull Class<T> key, @NotNull T instance) {
-    T oldInstance = myComponentManager.getService(key, false);
+    T oldInstance = myComponentManager.getServiceIfCreated(key);
     if (oldInstance == null) {
       ServiceContainerUtil.registerServiceInstance(myComponentManager, key, instance);
       myServices.push(new ComponentItem(key, oldInstance));
