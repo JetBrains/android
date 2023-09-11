@@ -23,6 +23,7 @@ import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.GoogleCrashReporter;
 import com.android.tools.idea.diagnostics.report.DiagnosticCrashReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
+import com.google.common.base.Ascii;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.util.containers.WeakList;
@@ -43,6 +44,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class HeapSnapshotStatistics {
+
+  // 1.2mb is a Crash file size limit. If the size of the crash report field value exceeds 250kb it will be wrapped into a file. This file
+  // should not be more than 1.2mb to be processes by Crash.
+  private static final int MAX_BYTES_FOR_COMPONENT_REPORT = 1228 * 1024;
 
   @NotNull final ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking totalStats =
     new ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking();
@@ -243,8 +248,10 @@ public final class HeapSnapshotStatistics {
                                                                             stat.getComponent());
           }
 
+          // truncate by 1.2mb
           GoogleCrashReporter.addBodyToBuilder(builder, "Component " + stat.getComponent().getComponentLabel(),
-                                               componentReportBuilder.toString());
+                                               Ascii.truncate(componentReportBuilder.toString(), MAX_BYTES_FOR_COMPONENT_REPORT,
+                                                              "[truncated]"));
         }
 
         maskToSharedComponentStats.values().stream()
