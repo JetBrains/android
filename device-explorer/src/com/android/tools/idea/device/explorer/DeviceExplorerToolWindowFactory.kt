@@ -27,7 +27,6 @@ import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewImpl
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -37,8 +36,7 @@ import java.nio.file.Path
 
 class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
 
-  override fun isApplicable(project: Project) =
-    StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
+  override fun isApplicable(project: Project) = true
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER)
@@ -84,5 +82,6 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
      * IntelliJ tool window ID. This should be the same value as the "id" attribute of the "toolWindow" XML tag.
      */
     const val TOOL_WINDOW_ID = "Device Explorer"
+    private const val DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled"
   }
 }

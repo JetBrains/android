@@ -385,14 +385,6 @@ public final class StudioFlags {
     "To allow toggling between automatic or user managed ADB server mode.",
     false);
 
-  public static final Flag<Boolean> MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED = Flag.create(
-    RUNDEBUG,
-    "adb.device.monitor.enable",
-    "Enable the \"Device Explorer\" tool window",
-    "Enable the \"Device Explorer\" tool window which contains Device File Explorer and Device Monitor.\n" +
-    "Changing the value of this flag requires restarting Android Studio.",
-    true);
-
   public static final Flag<Boolean> DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER = Flag.create(
     RUNDEBUG,
     "adb.device.explorer.package.filter.enable",

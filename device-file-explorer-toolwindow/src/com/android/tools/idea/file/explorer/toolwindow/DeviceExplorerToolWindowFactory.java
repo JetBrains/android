@@ -33,13 +33,11 @@ import org.jetbrains.annotations.NotNull;
  * [ToolWindowFactory] for the Device File Explorer ToolWindow
  */
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
-  private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true) &&
-           !StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get();
+    return false;
   }
 
   @Override
