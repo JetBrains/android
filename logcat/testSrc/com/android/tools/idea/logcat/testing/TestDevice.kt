@@ -54,7 +54,7 @@ internal class TestDevice(
           makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk))
         ) {
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-          populateDeviceInfoProto("Test", null, emptyMap())
+          populateDeviceInfoProto("Test", null, emptyMap(), "connectionId")
         }
       else ->
         DeviceProperties.buildForTest {

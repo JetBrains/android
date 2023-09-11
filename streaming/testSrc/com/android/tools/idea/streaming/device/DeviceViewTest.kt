@@ -681,6 +681,7 @@ internal class DeviceViewTest {
       "\\s*build_api_level_full: \"30\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "\\s*connection_id: \"fakeConnectionId\"\n" +
       "}\n" +
       "ide_brand: ANDROID_STUDIO\n" +
       "idea_is_internal: \\w+\n" +
@@ -713,6 +714,7 @@ internal class DeviceViewTest {
       "\\s*build_api_level_full: \"30\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "\\s*connection_id: \"fakeConnectionId\"\n" +
       "}\n" +
       "ide_brand: ANDROID_STUDIO\n" +
       "idea_is_internal: \\w+\n" +
@@ -768,6 +770,7 @@ internal class DeviceViewTest {
       "\\s*build_api_level_full: \"30\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "\\s*connection_id: \"fakeConnectionId\"\n" +
       "}\n" +
       "ide_brand: ANDROID_STUDIO\n" +
       "idea_is_internal: \\w+\n" +
@@ -821,6 +824,7 @@ internal class DeviceViewTest {
       "\\s*build_api_level_full: \"30\"\n" +
       "\\s*mdns_connection_type: MDNS_NONE\n" +
       "\\s*device_provisioner_id: \"FakeDevicePlugin\"\n" +
+      "\\s*connection_id: \"fakeConnectionId\"\n" +
       "}\n" +
       "ide_brand: ANDROID_STUDIO\n" +
       "idea_is_internal: \\w+\n" +

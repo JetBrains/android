@@ -54,7 +54,7 @@ class RunStatsUtilsTest {
     isRemote = true
     isVirtual = false
     icon = StudioDefaultDeviceIcons.handheld
-    populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap())
+    populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap(), "connectionId")
   }
   private val deviceHandle = object : DeviceHandle {
     override val scope: CoroutineScope

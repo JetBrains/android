@@ -188,7 +188,7 @@ class FakeScreenSharingAgentRule : TestRule {
     private fun createDeviceProperties(): DeviceProperties {
       return DeviceProperties.build {
         readCommonProperties(deviceState.properties)
-        populateDeviceInfoProto("FakeDevicePlugin", serialNumber, deviceState.properties)
+        populateDeviceInfoProto("FakeDevicePlugin", serialNumber, deviceState.properties, "fakeConnectionId")
         readAdbSerialNumber(serialNumber)
         icon = when (deviceType) {
           DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
