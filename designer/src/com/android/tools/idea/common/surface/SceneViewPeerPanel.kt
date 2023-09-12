@@ -388,6 +388,23 @@ class SceneViewPeerPanel(
   override fun doLayout() {
     layoutData = LayoutData.fromSceneView(sceneView)
 
+    //      SceneViewPeerPanel layout:
+    //
+    //      |--------------------------------------------|
+    //      |             sceneViewTopPanel              |    ↕ preferredHeight
+    //      |---------------------------------------------
+    //      |         |                       |          |    ↑
+    //      |  scene  |                       |  scene   |    |
+    //      |  View   |  sceneViewCenterPanel |  View    |    | centerPanelHeight
+    //      |  Left   |                       |  Right   |    |
+    //      |  Panel  |                       |  Panel   |    ↓
+    //      |---------------------------------------------
+    //      |            sceneViewBottomPanel            |    ↕ preferredHeight
+    //      |---------------------------------------------
+    //
+    //       ←-------→                         ←--------→
+    //       preferredWidth                    preferredWidth
+
     // If there is a model name, we manually assign the content of the modelNameLabel and position
     // it here.
     // Once this panel gets more functionality, we will need the use of a layout manager. For now,
