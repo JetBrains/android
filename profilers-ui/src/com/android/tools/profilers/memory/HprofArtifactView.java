@@ -36,14 +36,4 @@ public final class HprofArtifactView extends SessionArtifactView<HprofSessionArt
     return buildCaptureArtifactView(getArtifact().getName(), getArtifact().getSubtitle(), StudioIcons.Profiler.Sessions.HEAP,
                                     getArtifact().isOngoing());
   }
-
-  @Override
-  protected void exportArtifact() {
-    assert !getArtifact().isOngoing();
-    getSessionsView().getIdeProfilerComponents().createExportDialog().open(
-      () -> "Export As",
-      () -> MemoryProfiler.generateCaptureFileName(),
-      () -> "hprof",
-      file -> getSessionsView().getProfilers().getIdeServices().saveFile(file, outputStream -> getArtifact().export(outputStream), null));
-  }
 }

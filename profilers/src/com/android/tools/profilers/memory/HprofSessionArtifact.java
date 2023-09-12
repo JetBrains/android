@@ -24,9 +24,11 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import com.intellij.util.containers.ContainerUtil;
+import java.io.File;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -57,6 +59,18 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
     assert getCanExport();
     saveHeapDumpToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream,
                        getProfilers().getIdeServices().getFeatureTracker());
+  }
+
+  @NotNull
+  @Override
+  public String getExportableName() {
+    return MemoryProfiler.generateCaptureFileName();
+  }
+
+  @NotNull
+  @Override
+  public String getExportExtension() {
+    return "hprof";
   }
 
   public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,

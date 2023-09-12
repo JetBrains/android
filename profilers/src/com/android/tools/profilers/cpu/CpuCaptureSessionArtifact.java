@@ -19,7 +19,9 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profilers.ExportableArtifact;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -30,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An artifact representation of a CPU capture.
  */
-public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInfo> {
+public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInfo>, ExportableArtifact {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
@@ -166,6 +168,18 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
   public void export(@NotNull OutputStream outputStream) {
     assert getCanExport();
     CpuProfiler.saveCaptureToFile(myProfilers, getArtifactProto(), outputStream);
+  }
+
+  @NotNull
+  @Override
+  public String getExportableName() {
+    return CpuProfiler.generateCaptureFileName(ProfilingConfiguration.TraceType.from(getArtifactProto().getConfiguration()));
+  }
+
+  @NotNull
+  @Override
+  public String getExportExtension() {
+    return "trace";
   }
 
   private boolean isImportedSession() {
