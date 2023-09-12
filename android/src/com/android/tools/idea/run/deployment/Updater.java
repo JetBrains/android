@@ -181,6 +181,10 @@ final class Updater {
     }
   }
 
+  /**
+   * Given that we are in the "multiple devices" selection mode, updates the set of selected devices based on the currently-existing
+   * devices. For example, this might reduce the count of devices when a physical device is unplugged.
+   */
   private void updateInToolbarForMultipleDevices() {
     Set<Target> selectedTargets = myDevicesSelectedService.getTargetsSelectedWithDialog(myDevices);
 
@@ -190,7 +194,7 @@ final class Updater {
       .collect(Collectors.toSet());
 
     if (selectedTargets.retainAll(targets)) {
-      myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets);
+      myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets, Collections.emptyList());
     }
 
     if (selectedTargets.isEmpty()) {

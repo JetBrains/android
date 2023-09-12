@@ -107,7 +107,10 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
     super.doOKAction();
 
     assert myTable != null;
-    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(myTable.getSelectedTargets());
+
+    List<Target> defaultLaunchTargets =
+      myDevices.stream().filter(VirtualDevice.class::isInstance).<Target>map(device -> new QuickBootTarget(device.key())).toList();
+    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(myTable.getSelectedTargets(), defaultLaunchTargets);
   }
 
   @VisibleForTesting
@@ -153,7 +156,8 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   }
 
   @VisibleForTesting
-  @NotNull SelectMultipleDevicesDialogTable getTable() {
+  @NotNull
+  SelectMultipleDevicesDialogTable getTable() {
     assert myTable != null;
     return myTable;
   }

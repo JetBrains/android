@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -25,36 +27,45 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Consumes the selection from the drop down or dialog and splits it up into RunningDeviceTargets and nonRunningDeviceTargets
- * (ColdBootTarget, QuickBootTarget, BootWithSnapshotTarget) to write to DevicesSelectedService.State. For each RunningDeviceTarget in the
- * selection, the corresponding nonRunningDeviceTarget is kept from oldTargets. So the original target selection isn't lost when the device
- * is stopped.
+ * (ColdBootTarget, QuickBootTarget, BootWithSnapshotTarget) to write to DevicesSelectedService.State.
+ *
+ * For each RunningDeviceTarget in the selection, the corresponding nonRunningDeviceTarget is kept from oldTargets, so the original target
+ * selection isn't lost when the device is stopped. If there is no corresponding oldTarget, uses the default launch target (i.e. quickboot)
+ * for virtual devices.
  */
 final class TargetsForWritingSupplier {
   private final @NotNull Collection<RunningDeviceTarget> myRunningDeviceTargets;
   private final @NotNull Collection<Target> myTargets;
 
   TargetsForWritingSupplier(@Nullable Target oldTarget, @Nullable Target newTarget) {
-    this(DeploymentCollections.toList(oldTarget), DeploymentCollections.toList(newTarget));
+    this(DeploymentCollections.toList(oldTarget), DeploymentCollections.toList(newTarget), Collections.emptyList());
   }
 
   /**
    * @param oldTargets either the list from DevicesSelectedService.State.targetSelectedWithDropDown or targetsSelectedWithDialog. None of
    *                   these will be RunningDeviceTargets.
    * @param newTargets the new selection from the drop down or dialog. May contain RunningDeviceTargets.
+   * @param defaultLaunchTargets targets to be used in place of RunningDeviceTargets if there is no existing non-RunningDeviceTarget for the device.
    */
-  TargetsForWritingSupplier(@NotNull Collection<Target> oldTargets, @NotNull Collection<Target> newTargets) {
+  TargetsForWritingSupplier(@NotNull Collection<Target> oldTargets, @NotNull Collection<Target> newTargets, Collection<Target> defaultLaunchTargets) {
     Map<Key, Target> keyToTargetMap = oldTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
+    Map<Key, Target> keyToDefaultLaunchTargetMap = defaultLaunchTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
 
     int size = newTargets.size();
     myRunningDeviceTargets = new ArrayList<>(size);
     myTargets = new ArrayList<>(size);
 
-    newTargets.forEach(newTarget -> {
+    for (Target newTarget : newTargets) {
       if (newTarget instanceof RunningDeviceTarget) {
         Target oldTarget = keyToTargetMap.get(newTarget.getDeviceKey());
 
         if (oldTarget != null) {
           myTargets.add(oldTarget);
+        } else {
+          Target defaultTarget = keyToDefaultLaunchTargetMap.get(newTarget.getDeviceKey());
+          if (defaultTarget != null) {
+            myTargets.add(defaultTarget);
+          }
         }
 
         myRunningDeviceTargets.add((RunningDeviceTarget)newTarget);
@@ -62,7 +73,7 @@ final class TargetsForWritingSupplier {
       else {
         myTargets.add(newTarget);
       }
-    });
+    }
   }
 
   @NotNull Optional<RunningDeviceTarget> getDropDownRunningDeviceTarget() {

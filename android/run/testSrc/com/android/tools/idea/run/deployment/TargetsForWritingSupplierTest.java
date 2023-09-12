@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -90,5 +92,31 @@ public final class TargetsForWritingSupplierTest {
     // Assert
     assertEquals(Optional.of(newTarget), runningDeviceTarget);
     assertEquals(Optional.of(oldTarget), target);
+  }
+
+  @Test
+  public void runningDeviceHasOldTarget() {
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
+    Target newTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
+    Target defaultLaunchTarget = new QuickBootTarget(Keys.PIXEL_4_API_30);
+
+    TargetsForWritingSupplier supplier =
+      new TargetsForWritingSupplier(ImmutableList.of(oldTarget), ImmutableList.of(newTarget), ImmutableList.of(defaultLaunchTarget));
+
+    // Default launch target is not used because we already had a launchable target
+    assertThat(supplier.getDialogRunningDeviceTargets()).containsExactly(newTarget);
+    assertThat(supplier.getDialogTargets()).containsExactly(oldTarget);
+  }
+
+  @Test
+  public void runningDeviceHasNoOldTarget() {
+    Target newTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
+    Target defaultLaunchTarget = new QuickBootTarget(Keys.PIXEL_4_API_30);
+
+    TargetsForWritingSupplier supplier =
+      new TargetsForWritingSupplier(ImmutableList.of(), ImmutableList.of(newTarget), ImmutableList.of(defaultLaunchTarget));
+
+    assertThat(supplier.getDialogRunningDeviceTargets()).containsExactly(newTarget);
+    assertThat(supplier.getDialogTargets()).containsExactly(defaultLaunchTarget);
   }
 }

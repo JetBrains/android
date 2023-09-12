@@ -156,7 +156,8 @@ public final class SelectMultipleDevicesDialogTest {
     ApplicationManager.getApplication().invokeAndWait(() -> myDialog.getOKAction().actionPerformed(null));
 
     // Assert
-    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(Keys.PIXEL_4_API_30)));
+    QuickBootTarget target = new QuickBootTarget(Keys.PIXEL_4_API_30);
+    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(target), Collections.singletonList(target));
   }
 
   @Test

@@ -210,12 +210,24 @@ final class DevicesSelectedService {
     return supplier.getDialogTargets();
   }
 
-  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
+  /**
+   * Updates the currently-persisted selected device state with the new set of selected targets.
+   *
+   * RunningDeviceTargets will be replaced first by any pre-existing launchable targets with the same device key, and alternatively by
+   * defaultLaunchTargets.
+   */
+  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog, @NotNull List<Target> defaultLaunchTargets) {
     var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
-    TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog);
+
+    TargetsForWritingSupplier supplier =
+      new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog, defaultLaunchTargets);
 
     state.setRunningDeviceTargetsSelectedWithDialog(supplier.getDialogRunningDeviceTargets());
     state.setTargetsSelectedWithDialog(supplier.getDialogTargets());
+  }
+
+  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
+    setTargetsSelectedWithDialog(targetsSelectedWithDialog, Collections.emptyList());
   }
 
   @Nullable
