@@ -152,7 +152,7 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
     return false
   }
   val manifestXml = runReadAction { facet.getPrimaryManifestXml() } ?: return false
-  return manifestXml.usesFeature.contains(WEAR_OS_USE_FEATURE_TAG)
+  return runReadAction { manifestXml.usesFeature }.contains(WEAR_OS_USE_FEATURE_TAG)
 }
 
 enum class CanonicalDeviceType(val id: String) {
