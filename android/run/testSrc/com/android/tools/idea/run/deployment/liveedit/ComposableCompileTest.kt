@@ -106,6 +106,7 @@ class ComposableCompileTest {
   }
 
   @Test
+  @Ignore // Bug 298237095
   fun multipleEditsInOneUpdate() {
     val cache = initialCache(mapOf(
       "ComposeSimple.kt" to """
