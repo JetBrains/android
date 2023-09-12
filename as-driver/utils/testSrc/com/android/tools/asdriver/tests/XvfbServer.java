@@ -16,6 +16,7 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
+import com.intellij.openapi.util.SystemInfoRt;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,7 +24,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang.SystemUtils;
 
 /**
  * An X server potentially backed by Xvfb.
@@ -82,7 +82,7 @@ public class XvfbServer implements Display {
    */
   @Override
   public void debugTakeScreenshot(String fileName) throws IOException {
-    if (!SystemUtils.IS_OS_LINUX) {
+    if (!SystemInfoRt.isLinux) {
       throw new RuntimeException("debugTakeScreenshot is only available on Linux since it uses \"import\"");
     } else if (!canCallImport()) {
       throw new RuntimeException("Can't take a screenshot on Linux without \"import\"");

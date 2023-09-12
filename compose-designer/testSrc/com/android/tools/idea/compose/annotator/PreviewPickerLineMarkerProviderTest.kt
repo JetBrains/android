@@ -32,9 +32,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -45,6 +43,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
 class PreviewPickerLineMarkerProviderTest(
@@ -194,8 +194,7 @@ class PreviewPickerLineMarkerProviderTest(
 
 private fun PsiFile.findPreviewAnnotation(ordinal: Int): PsiElement = runInEdtAndGet {
   // The element should start after the '@' so add 1 to the offset
-  val indexOfElement =
-    StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
+  val indexOfElement = StringUtils.ordinalIndexOf(text, "@$COMPOSE_PREVIEW_ANNOTATION_NAME", ordinal) + 1
   checkNotNull(
     PsiTreeUtil.findElementOfClassAtOffset(
       this,

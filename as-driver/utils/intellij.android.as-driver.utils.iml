@@ -35,7 +35,6 @@
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="ktor-serialization-kotlinx-json" level="project" />
-    <orderEntry type="library" scope="TEST" name="commons-lang" level="project" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
   </component>
 </module>

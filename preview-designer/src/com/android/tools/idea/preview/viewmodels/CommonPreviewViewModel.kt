@@ -36,7 +36,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
-import org.apache.commons.lang.time.DurationFormatUtils
+import org.apache.commons.lang3.time.DurationFormatUtils
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -184,7 +184,7 @@ open class CommonPreviewViewModel(
 
 /**
  * Converts the given duration to a display string that contains minutes (if the duration is greater
- * than 60s), seconds and milliseconds.
+ * than 60s), seconds, and milliseconds.
  */
 private fun Duration.toDisplayString(): String {
   val durationMs = toMillis()

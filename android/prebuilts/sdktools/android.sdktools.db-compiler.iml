@@ -124,6 +124,5 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="commons-lang" level="project" />
   </component>
 </module>
