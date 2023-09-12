@@ -185,6 +185,7 @@ maven_repository(
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.0.1",
+        "@maven//:androidx.core.core-ktx_1.10.0",  # Compose Activity
         "@maven//:androidx.core.core-ktx_1.10.1",
         "@maven//:androidx.core.core-ktx_1.11.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.core.core-ktx_1.11.0-beta01",  # Necessary for Compose for TV.
