@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectStoreOwner;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +41,7 @@ import java.util.Properties;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
-public class GradleWrapperTest extends PlatformTestCase {
+public class GradleWrapperTest extends HeavyPlatformTestCase {
   public void testUpdateDistributionUrl() throws IOException {
     File projectPath = getProjectBaseDir();
     File wrapperFilePath = new File(projectPath, FN_GRADLE_WRAPPER_PROPERTIES);

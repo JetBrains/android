@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_UNIX;
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.tools.idea.gradle.util.PropertiesFiles.savePropertiesToFile;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
@@ -26,10 +25,8 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
-import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
-import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.base.Strings;
 import com.google.common.io.Resources;
 import com.intellij.openapi.application.Application;
@@ -148,7 +145,7 @@ public final class GradleWrapper {
   private static VirtualFile getWrapperLocation() {
     File resource = new File("templates/project/wrapper");
     String resourceName = "/" + resource.getPath().replace('\\', '/');
-    URL wrapperUrl = Resources.getResource(TemplateData.class, resourceName);
+    URL wrapperUrl = Resources.getResource(GradleWrapper.class, resourceName);
     VirtualFile wrapperVf = findFileByURL(wrapperUrl);
     assert wrapperVf != null;
     wrapperVf.refresh(false, true);
