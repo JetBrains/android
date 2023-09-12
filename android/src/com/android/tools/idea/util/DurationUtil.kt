@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.util
 
-import org.apache.commons.lang.time.DurationFormatUtils
+import org.apache.commons.lang3.time.DurationFormatUtils
 import java.time.Duration
 
 /**
