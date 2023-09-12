@@ -46,7 +46,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 public class GradleSignStep extends ExportSignedPackageWizardStep {
   @NonNls private static final String PROPERTY_APK_PATH = "ExportApk.ApkPath";
   @NonNls private static final String PROPERTY_BUNDLE_PATH = "ExportBundle.BundlePath";
-  @NonNls private static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
+  @VisibleForTesting
+  @NonNls static final String PROPERTY_BUILD_VARIANTS = "ExportApk.BuildVariants";
 
   private JPanel myContentPanel;
   private TextFieldWithBrowseButton myApkPathField;
@@ -69,7 +70,12 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _init() {
-    myAndroidModel = GradleAndroidModel.get(myWizard.getFacet());
+    _init(GradleAndroidModel.get(myWizard.getFacet()));
+  }
+
+  @VisibleForTesting
+  void _init(GradleAndroidModel androidModel) {
+    myAndroidModel = androidModel;
 
     PropertiesComponent properties = PropertiesComponent.getInstance(myWizard.getProject());
 
@@ -111,7 +117,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.no.model"));
     }
 
-    final String apkFolder = myApkPathField.getText().trim();
+    final String apkFolder = myApkPathField.getText().stripLeading();
     if (apkFolder.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
     }

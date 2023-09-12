@@ -109,7 +109,11 @@ class ApkStep extends ExportSignedPackageWizardStep {
   @Override
   public void _init() {
     if (myInited) return;
-    final AndroidFacet facet = myWizard.getFacet();
+    _init(myWizard.getFacet());
+  }
+
+  @VisibleForTesting
+  void _init(AndroidFacet facet) {
     Module module = facet.getModule();
 
     PropertiesComponent properties = PropertiesComponent.getInstance(module.getProject());
@@ -210,7 +214,7 @@ class ApkStep extends ExportSignedPackageWizardStep {
 
   @Override
   public void _commit(boolean finishChosen) throws CommitStepException {
-    final String apkPath = myApkPathField.getText().trim();
+    final String apkPath = myApkPathField.getText().stripLeading();
     if (apkPath.isEmpty()) {
       throw new CommitStepException(AndroidBundle.message("android.extract.package.specify.apk.path.error"));
     }
