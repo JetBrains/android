@@ -592,7 +592,7 @@ open class NlPropertyItem(
         return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
       }
       val resValue = asResourceValue(value) ?: return null
-      return resolver?.resolveAsIcon(resValue, project, model.facet)
+      return resolver?.resolveAsIcon(resValue, model.facet)
     }
   }
 

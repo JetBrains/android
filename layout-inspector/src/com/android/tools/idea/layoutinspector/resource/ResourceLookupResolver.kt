@@ -212,7 +212,7 @@ class ResourceLookupResolver(
     val tag = findViewTagInFile(view, view.layout) ?: return null
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = url.resolve(namespace, namespaceResolver) ?: return null
-    return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), project, appFacet)
+    return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), appFacet)
   }
 
   /** Attempt to determine if [attributeName] refers to a dimension. */

@@ -70,7 +70,6 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
@@ -467,9 +466,8 @@ fun RenderResources.resolveMultipleColors(value: ResourceValue?, project: Projec
  *   <li> Otherwise a null is returned. </li>
  * </ul>
  */
-fun RenderResources.resolveAsIcon(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
-  return resolveAsColorIcon(value, RESOURCE_ICON_SIZE, project) ?: resolveAsDrawable(value, project, facet)
-}
+fun RenderResources.resolveAsIcon(value: ResourceValue?, facet: AndroidFacet): Icon? =
+  resolveAsColorIcon(value, RESOURCE_ICON_SIZE, facet.module.project) ?: resolveAsDrawable(value, facet)
 
 private fun RenderResources.resolveAsColorIcon(value: ResourceValue?, size: Int, project: Project): Icon? {
   val colors = resolveMultipleColors(value, project)
@@ -484,9 +482,10 @@ private fun findContrastingOtherColor(colors: List<Color>, color: Color): Color 
   return colors.maxByOrNull { MaterialColorUtils.colorDistance(it, color) } ?: colors.first()
 }
 
-private fun RenderResources.resolveAsDrawable(value: ResourceValue?, project: Project, facet: AndroidFacet): Icon? {
+private fun RenderResources.resolveAsDrawable(value: ResourceValue?, facet: AndroidFacet): Icon? {
+  val project = facet.module.project
   val bitmap = AndroidAnnotatorUtil.pickSmallestDpiFile(resolveDrawable(value, project)) ?: return null
-  return GutterIconCache.getInstance(facet.module.project).getIcon(bitmap, this, facet)
+  return GutterIconCache.getInstance(project).getIcon(bitmap, this, facet)
 }
 
 /**

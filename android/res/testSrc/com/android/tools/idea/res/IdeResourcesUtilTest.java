@@ -237,7 +237,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, getProject(), myFacet);
+    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
     assertEquals(new ColorIcon(16, new Color(0xEEDDCC)), icon);
   }
 
@@ -249,7 +249,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, getProject(), myFacet);
+    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
     assertEquals(new ColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
   }
 
@@ -259,7 +259,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, getProject(), myFacet);
+    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
     @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     icon.paintIcon(null, image.getGraphics(), 0, 0);
