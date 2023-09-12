@@ -23,6 +23,7 @@ iml_module(
         "non-gradle": {},
     },
     tags = [
+        "no_k2",
         "no_test_windows",
     ],
     test_class = "com.android.tools.idea.nav.safeargs.kotlin.k1.SafeArgsK1TestSuite",
