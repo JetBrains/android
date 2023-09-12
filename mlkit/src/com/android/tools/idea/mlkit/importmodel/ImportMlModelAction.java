@@ -119,10 +119,9 @@ public class ImportMlModelAction extends AnAction {
       return Collections.emptyList();
     }
     Module module = PlatformCoreDataKeys.MODULE.getData(e.getDataContext());
-    VirtualFile virtualFile = e.getProject().getProjectFile();
-    if (module == null || virtualFile == null) {
+    if (module == null) {
       return Collections.emptyList();
     }
-    return ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile);
+    return ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(null);
   }
 }
