@@ -37,9 +37,9 @@ import org.junit.runners.JUnit4
 class GutterIconCacheTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  private val cache = GutterIconCache(::highDpiDisplay) { _, _, _ -> icon }
   private val facet by lazy { checkNotNull(projectRule.module.androidFacet) }
 
+  private lateinit var cache: GutterIconCache
   private lateinit var sampleSvgPath: Path
   private lateinit var sampleSvgFile: VirtualFile
   private var icon: Icon? = null
@@ -47,6 +47,7 @@ class GutterIconCacheTest {
 
   @Before
   fun setUp() {
+    cache = GutterIconCache(projectRule.project, ::highDpiDisplay) { _, _, _ -> icon }
     val basePath = checkNotNull(projectRule.project.basePath) { "Need non-null base path!" }
     sampleSvgPath = FileSystems.getDefault().getPath(basePath, "HeyImAFile.xml")
     sampleSvgFile = TestFileUtils.writeFileAndRefreshVfs(sampleSvgPath, "whose contents are immaterial")

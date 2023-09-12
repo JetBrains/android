@@ -421,7 +421,7 @@ public class AndroidGutterIconAnnotatorTest extends AndroidTestCase {
 
     // Go through the same process as the real annotator, to handle retina correctly.
     BufferedImage baselineImage = TestRenderingUtils.getImageFromIcon(
-      Objects.requireNonNull(GutterIconCache.INSTANCE.getIcon(expectedImage, null, myFacet)));
+      Objects.requireNonNull(GutterIconCache.getInstance(getProject()).getIcon(expectedImage, null, myFacet)));
     assertImageSimilar(getName(), ImageDiffUtil.convertToARGB(baselineImage), image, 5.); // 5% difference allowed.
   }
 

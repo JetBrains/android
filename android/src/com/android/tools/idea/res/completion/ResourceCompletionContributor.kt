@@ -81,7 +81,7 @@ private class DrawableResourceLookupElement(private val psiFile: PsiFile, privat
                  ?.firstNotNullOfOrNull { it.getSourceAsVirtualFile() }
                ?: return
     val resolver = AndroidAnnotatorUtil.pickConfiguration(psiFile.originalFile, facet)?.resourceResolver ?: return
-    presentation.icon = GutterIconCache.INSTANCE.getIcon(file, resolver, facet)
+    presentation.icon = GutterIconCache.getInstance(module.project).getIcon(file, resolver, facet)
   }
 
   companion object {

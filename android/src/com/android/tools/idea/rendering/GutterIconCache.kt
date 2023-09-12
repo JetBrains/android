@@ -17,7 +17,10 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderResources
 import com.google.common.collect.Maps
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -32,9 +35,11 @@ private fun defaultRenderIcon(
   facet: AndroidFacet
 ) = GutterIconFactory.createIcon(file, renderResources, facet, JBUI.scale(16), JBUI.scale(16))
 
+@Service(Service.Level.PROJECT)
 class GutterIconCache
 @TestOnly
 constructor(
+  private val project: Project,
   private val highDpiSupplier: () -> Boolean,
   private val renderIcon: (VirtualFile, RenderResources?, AndroidFacet) -> Icon?
 ) {
@@ -42,7 +47,7 @@ constructor(
   private var highDpiDisplay by
     observable(false) { _, oldValue, newValue -> if (oldValue != newValue) thumbnailCache.clear() }
 
-  constructor() : this(UIUtil::isRetina, ::defaultRenderIcon)
+  constructor(project: Project) : this(project, UIUtil::isRetina, ::defaultRenderIcon)
 
   /**
    * Returns the potentially cached [Icon] rendered from the [file], or `null` if none could be
@@ -77,6 +82,6 @@ constructor(
   }
 
   companion object {
-    @JvmField val INSTANCE = GutterIconCache()
+    @JvmStatic fun getInstance(project: Project): GutterIconCache = project.service()
   }
 }

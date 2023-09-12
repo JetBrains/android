@@ -176,7 +176,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     VirtualFile resourceFile = AndroidAnnotatorUtil.resolveDrawableFile(resourceValue, resourceResolver, facet);
     if (resourceFile != null) {
       // Updating the GutterIconCache in the background thread to include the icon.
-      GutterIconCache.INSTANCE.getIcon(resourceFile, resourceResolver, facet);
+      GutterIconCache.getInstance(facet.getModule().getProject()).getIcon(resourceFile, resourceResolver, facet);
     }
     return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, resourceFile, configuration);
   }
