@@ -36,7 +36,8 @@ public class GradleImplicitPropertyUsageProvider implements ImplicitPropertyUsag
       return true;
     }
 
-    if (Comparing.equal(file.getName(), "gradle.properties", caseSensitive)) {
+    if (Comparing.equal(file.getName(), "gradle.properties", caseSensitive) ||
+        Comparing.equal(file.getName(), "resources.properties", caseSensitive)) {
       // Ignore all properties in the gradle.properties; we don't have a complete set of what's used
       // and we don't want to suggest to the user that these are unused
       return true;
