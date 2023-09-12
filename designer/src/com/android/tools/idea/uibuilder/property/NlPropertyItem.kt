@@ -353,7 +353,7 @@ open class NlPropertyItem(
   }
 
   // Note: This can be called from a non UI thread.
-  protected open fun getCompletionValues(): List<String> {
+  open fun getCompletionValues(): List<String> {
     if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
       val tags =
         ReadAction.compute<Collection<String>, RuntimeException> {
@@ -441,7 +441,7 @@ open class NlPropertyItem(
     return values
   }
 
-  protected open fun validate(text: String?): Pair<EditingErrorCategory, String> {
+  open fun validate(text: String?): Pair<EditingErrorCategory, String> {
     val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
     return validateEditedValue(value) ?: lintValidation(value) ?: EDITOR_NO_ERROR
   }

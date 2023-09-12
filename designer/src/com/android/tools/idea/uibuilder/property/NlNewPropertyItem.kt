@@ -80,6 +80,12 @@ class NlNewPropertyItem(
   override val libraryName: String
     get() = delegate?.libraryName ?: ""
 
+  override fun validate(text: String?): Pair<EditingErrorCategory, String> =
+    delegate?.validate(text) ?: super.validate(text)
+
+  override fun getCompletionValues(): List<String> =
+    delegate?.getCompletionValues() ?: super.getCompletionValues()
+
   override fun isSameProperty(qualifiedName: String): Boolean {
     val (propertyNamespace, propertyName) = parseName(qualifiedName)
     return name == propertyName && namespace == propertyNamespace
