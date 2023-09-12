@@ -24,6 +24,7 @@ import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.StudioMonitorStage
 import com.android.tools.profilers.StudioProfilers
 import com.google.common.annotations.VisibleForTesting
+import java.io.OutputStream
 import java.util.concurrent.TimeUnit
 
 /**
@@ -69,7 +70,18 @@ class SessionItem(
   override val isOngoing
     get() = SessionsManager.isSessionAlive(activeSession)
 
-  override val canExport = false
+  /**
+   * The MEMORY_CAPTURE and CPU_CAPTURE session types are indicative of imported memory and CPU sessions respectively.
+   */
+  override val canExport = sessionMetaData.type == SessionMetaData.SessionType.MEMORY_CAPTURE
+                           || sessionMetaData.type == SessionMetaData.SessionType.CPU_CAPTURE
+
+  override fun export(outputStream: OutputStream) {
+    assert(canExport)
+    assert(childArtifacts.size == 1)
+    val artifact = childArtifacts.first()
+    artifact.export(outputStream)
+  }
 
   /**
    * Update the [Common.Session] object. Note that while the content within the session can change, the new session instance should

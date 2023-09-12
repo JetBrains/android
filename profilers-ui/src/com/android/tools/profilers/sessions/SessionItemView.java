@@ -25,6 +25,8 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.ExportArtifactUtils;
+import com.android.tools.profilers.ExportableArtifact;
 import com.android.tools.profilers.SupportLevel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.BrowserUtil;
@@ -182,6 +184,23 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
       .build();
 
     return ImmutableList.of(endAction, ContextMenuItem.SEPARATOR, deleteAction);
+  }
+
+  @Override
+  protected void exportArtifact() {
+    assert getArtifact().getCanExport();
+
+    List<SessionArtifact<?>> childArtifacts = getArtifact().getChildArtifacts();
+    assert childArtifacts.size() == 1;
+    SessionArtifact<?> artifact = childArtifacts.get(0);
+
+    assert !artifact.isOngoing();
+
+    assert artifact instanceof ExportableArtifact;
+    ExportableArtifact exportableArtifact = (ExportableArtifact) artifact;
+
+    ExportArtifactUtils.exportArtifact(exportableArtifact, artifact::export, getSessionsView().getIdeProfilerComponents(),
+                                       getProfilers().getIdeServices());
   }
 
   /**
