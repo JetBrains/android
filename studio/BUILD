@@ -647,6 +647,7 @@ studio_plugin(
             "//tools/vendor/google/ml/sml-android:ml.sml-android",
         ],
     },
+    visibility = ["//visibility:public"],
     deps = [
         ":org.jetbrains.android",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
