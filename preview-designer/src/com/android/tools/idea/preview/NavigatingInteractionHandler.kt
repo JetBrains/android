@@ -28,7 +28,7 @@ import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import java.awt.MouseInfo
 import java.awt.event.InputEvent
@@ -44,6 +44,7 @@ import org.intellij.lang.annotations.JdkConstants
  */
 class NavigatingInteractionHandler(
   private val surface: DesignSurface<*>,
+  private val navigationHandler: NavigationHandler,
   private val isSelectionEnabled: () -> Boolean = { false }
 ) : NlInteractionHandler(surface) {
 
@@ -172,10 +173,9 @@ class NavigatingInteractionHandler(
     val sceneView = surface.getSceneViewAt(x, y) ?: return
     val androidX = Coordinates.getAndroidXDip(sceneView, x)
     val androidY = Coordinates.getAndroidYDip(sceneView, y)
-    val navHandler = (surface as NlDesignSurface).navigationHandler ?: return
     val scene = sceneView.scene
     scope.launch(AndroidDispatchers.workerThread) {
-      if (!navHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
+      if (!navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, needsFocusEditor)) {
         val sceneComponent =
           scene.findComponent(sceneView.context, androidX, androidY) ?: return@launch
         navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)

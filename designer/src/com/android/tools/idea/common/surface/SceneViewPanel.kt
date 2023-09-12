@@ -85,9 +85,6 @@ internal class SceneViewPanel(
     invalidate()
   }
 
-  /** Invoked when label in [SceneViewPeerPanel] is clicked. */
-  var onLabelClicked: (suspend (SceneView, Boolean) -> Boolean) = { _, _ -> true }
-
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
@@ -112,17 +109,18 @@ internal class SceneViewPanel(
         if (shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() }
         else null
 
+      val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
+
       add(
         SceneViewPeerPanel(
             sceneView,
-            disposable,
+            labelPanel,
             statusIcon,
             toolbar,
             bottomBar,
             leftBar,
             rightBar,
             errorsPanel,
-            onLabelClicked
           )
           .also { it.alignmentX = sceneViewAlignment }
       )

@@ -172,6 +172,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   onRenderCompleted: () -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
   modelUpdater: NlModel.NlModelUpdaterInterface,
+  navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
 ): List<T> {
@@ -281,11 +282,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           getPsiFileSafely(project, it)
         }
           ?: psiFile
-      (navigationHandler as? PreviewNavigationHandler)?.setDefaultLocation(
-        newModel,
-        defaultFile,
-        offset
-      )
+      navigationHandler.setDefaultLocation(newModel, defaultFile, offset)
 
       withContext(AndroidDispatchers.workerThread) {
         previewElementModelAdapter.applyToConfiguration(previewElement, newModel.configuration)

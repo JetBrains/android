@@ -145,11 +145,7 @@ class ComposePreviewRepresentationTest {
         )
       }
 
-      val navigationHandler = ComposePreviewNavigationHandler()
-      val mainSurface =
-        NlDesignSurface.builder(project, fixture.testRootDisposable)
-          .setNavigationHandler(navigationHandler)
-          .build()
+      val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
       val modelRenderedLatch = CountDownLatch(2)
 
       mainSurface.addListener(
@@ -181,7 +177,9 @@ class ComposePreviewRepresentationTest {
         delayWhileRefreshingOrDumb(preview)
       }
 
-      mainSurface.models.forEach { assertTrue(navigationHandler.defaultNavigationMap.contains(it)) }
+      mainSurface.models.forEach {
+        assertTrue(preview.navigationHandler.defaultNavigationMap.contains(it))
+      }
 
       assertThat(preview.availableGroupsFlow.value.map { it.displayName }).containsExactly("groupA")
 
@@ -225,10 +223,7 @@ class ComposePreviewRepresentationTest {
       }
 
       val navigationHandler = ComposePreviewNavigationHandler()
-      val mainSurface =
-        NlDesignSurface.builder(project, fixture.testRootDisposable)
-          .setNavigationHandler(navigationHandler)
-          .build()
+      val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
       val modelRenderedLatch = CountDownLatch(2)
 
       mainSurface.addListener(
@@ -391,11 +386,7 @@ class ComposePreviewRepresentationTest {
         )
       }
 
-      val navigationHandler = ComposePreviewNavigationHandler()
-      val mainSurface =
-        NlDesignSurface.builder(project, fixture.testRootDisposable)
-          .setNavigationHandler(navigationHandler)
-          .build()
+      val mainSurface = NlDesignSurface.builder(project, fixture.testRootDisposable).build()
       val modelRenderedLatch = CountDownLatch(2)
 
       mainSurface.addListener(

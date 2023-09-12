@@ -254,6 +254,7 @@ class ComposePreviewViewImplTest {
         },
         testPreviewElementModelAdapter,
         DefaultModelUpdater(),
+        navigationHandler = ComposePreviewNavigationHandler(),
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }

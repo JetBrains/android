@@ -35,6 +35,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
+import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.requestBuild
@@ -148,6 +149,7 @@ interface ComposePreviewView {
     onRenderCompleted: () -> Unit,
     previewElementModelAdapter: ComposePreviewElementModelAdapter,
     modelUpdater: NlModel.NlModelUpdaterInterface,
+    navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
   ): List<ComposePreviewElementInstance> {
@@ -165,6 +167,7 @@ interface ComposePreviewView {
       onRenderCompleted,
       previewElementModelAdapter,
       modelUpdater,
+      navigationHandler,
       configureLayoutlibSceneManager
     )
   }

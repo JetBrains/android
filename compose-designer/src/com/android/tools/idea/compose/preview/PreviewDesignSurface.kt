@@ -146,8 +146,7 @@ private fun createPreviewDesignSurfaceBuilder(
   screenViewProvider: ScreenViewProvider
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
-    .setNavigationHandler(navigationHandler)
-    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
+    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface, navigationHandler) }
     .setInteractionHandlerProvider { delegateInteractionHandler }
     .setActionHandler { surface -> PreviewSurfaceActionHandler(surface) }
     .setSceneManagerProvider { surface, model ->

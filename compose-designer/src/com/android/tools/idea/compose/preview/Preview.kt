@@ -118,8 +118,12 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.ui.UIUtil
+import java.io.File
+import java.time.Duration
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -149,11 +153,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
-import java.io.File
-import java.time.Duration
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JComponent
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
@@ -536,7 +535,11 @@ class ComposePreviewRepresentation(
   override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> =
     MutableStateFlow(setOf())
 
-  private val navigationHandler = ComposePreviewNavigationHandler()
+  @VisibleForTesting
+  val navigationHandler =
+    ComposePreviewNavigationHandler().apply {
+      Disposer.register(this@ComposePreviewRepresentation, this)
+    }
 
   private val previewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
@@ -643,13 +646,13 @@ class ComposePreviewRepresentation(
     }
   }
   private fun getSlowData(dataId: String): Any? {
-  return when {
-    // The Compose preview NlModels do not point to the actual file but to a synthetic file
-    // generated for Layoutlib. This ensures we return the right file.
-    CommonDataKeys.VIRTUAL_FILE.`is`(dataId) -> psiFilePointer.virtualFile
-    else -> null
+    return when {
+      // The Compose preview NlModels do not point to the actual file but to a synthetic file
+      // generated for Layoutlib. This ensures we return the right file.
+      CommonDataKeys.VIRTUAL_FILE.`is`(dataId) -> psiFilePointer.virtualFile
+      else -> null
+    }
   }
-}
 
   private val delegateInteractionHandler = DelegateInteractionHandler()
   private val sceneComponentProvider = ComposeSceneComponentProvider()
@@ -683,6 +686,7 @@ class ComposePreviewRepresentation(
         composeWorkBench.mainSurface,
         NavigatingInteractionHandler(
           composeWorkBench.mainSurface,
+          navigationHandler,
           isSelectionEnabled = { StudioFlags.COMPOSE_PREVIEW_SELECTION.get() }
         )
       )
@@ -1256,6 +1260,7 @@ class ComposePreviewRepresentation(
         previewElementModelAdapter,
         if (atfChecksEnabled || visualLintingEnabled) accessibilityModelUpdater
         else defaultModelUpdater,
+        navigationHandler,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh

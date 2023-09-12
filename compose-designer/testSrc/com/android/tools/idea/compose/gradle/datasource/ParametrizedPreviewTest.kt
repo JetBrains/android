@@ -23,7 +23,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TestComposePreviewView
-import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -278,11 +277,8 @@ class ParametrizedPreviewTest {
         .resolve()
     assertEquals(3, elements.count())
 
-    val navigationHandler = ComposePreviewNavigationHandler()
     val mainSurface =
-      NlDesignSurface.builder(project, projectRule.fixture.testRootDisposable)
-        .setNavigationHandler(navigationHandler)
-        .build()
+      NlDesignSurface.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
     val preview =

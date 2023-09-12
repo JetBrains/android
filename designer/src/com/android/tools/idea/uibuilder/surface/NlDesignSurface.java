@@ -132,7 +132,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     private BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider =
       NlDesignSurface::defaultSceneManagerProvider;
     private SurfaceLayoutManager myLayoutManager;
-    private NavigationHandler myNavigationHandler;
     @SurfaceScale private double myMinScale = DEFAULT_MIN_SCALE;
     @SurfaceScale private double myMaxScale = DEFAULT_MAX_SCALE;
     /**
@@ -231,15 +230,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       return this;
     }
 
-    /**
-     * When the surface is clicked, it can delegate navigation related task to the given handler.
-     * @param navigationHandler handles the navigation when the surface is clicked.
-     */
-    @NotNull
-    public Builder setNavigationHandler(NavigationHandler navigationHandler) {
-      myNavigationHandler = navigationHandler;
-      return this;
-    }
 
     /**
      * Restrict the minimum zoom level to the given value. The default value is {@link #DEFAULT_MIN_SCALE}.
@@ -357,7 +347,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myActionManagerProvider,
         myInteractableProvider,
         myInteractionHandlerProvider,
-        myNavigationHandler,
         myMinScale,
         myMaxScale,
         myActionHandlerProvider,
@@ -388,9 +377,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
   @NotNull private SurfaceLayoutManager myLayoutManager;
-
-  @Nullable private final NavigationHandler myNavigationHandler;
-
   @SurfaceScale private final double myMinScale;
   @SurfaceScale private final double myMaxScale;
 
@@ -417,7 +403,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
-                          @Nullable NavigationHandler navigationHandler,
                           @SurfaceScale double minScale,
                           @SurfaceScale double maxScale,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, DesignSurfaceActionHandler> actionHandlerProvider,
@@ -437,16 +422,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myAccessoryPanel.setSurface(this);
     myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
-    myNavigationHandler = navigationHandler;
     mySupportedActions = supportedActions;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
     myVisualLintIssueProvider = new VisualLintIssueProvider(this);
-
-    if (myNavigationHandler != null) {
-      Disposer.register(this, myNavigationHandler);
-      mySceneViewPanel.setOnLabelClicked(myNavigationHandler::handleNavigate);
-    }
-
     myMinScale = minScale;
     myMaxScale = maxScale;
 
@@ -593,11 +571,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       manager.requestLayoutAndRenderAsync(false);
     }
     revalidateScrollArea();
-  }
-
-  @Nullable
-  public NavigationHandler getNavigationHandler() {
-    return myNavigationHandler;
   }
 
   @Override

@@ -18,6 +18,8 @@ package com.android.tools.idea.common.editor;
 import com.android.tools.adtui.stdui.KeyBindingKt;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.LabelPanel;
+import com.android.tools.idea.common.surface.LayoutData;
 import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -124,6 +126,14 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   @Nullable
   public JComponent getSceneViewStatusIcon(@NotNull SceneView sceneView) {
     return null;
+  }
+
+  /**
+   * Creates a {@link JComponent} with a label for a {@link SceneView}.
+   */
+  @NotNull
+  public JComponent createSceneViewLabel(@NotNull SceneView sceneView) {
+    return new LabelPanel(LayoutData.Companion.fromSceneView(sceneView));
   }
 
   /**

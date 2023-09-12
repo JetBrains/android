@@ -19,15 +19,17 @@ import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.InteractiveLabelPanel
+import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.IdeActions
@@ -38,7 +40,8 @@ import javax.swing.JComponent
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
-  private val surface: DesignSurface<LayoutlibSceneManager>
+  private val surface: DesignSurface<LayoutlibSceneManager>,
+  private val navigationHandler: NavigationHandler,
 ) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
 
   private val sceneManagerProvider: () -> LayoutlibSceneManager? = {
@@ -58,6 +61,14 @@ internal class PreviewSurfaceActionManager(
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
+  override fun createSceneViewLabel(sceneView: SceneView): JComponent {
+    return InteractiveLabelPanel(
+      LayoutData.fromSceneView(sceneView),
+      surface,
+      suspend { navigationHandler.handleNavigate(sceneView, false) }
+    )
+  }
+
   override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup {
     // Copy Image
     val actionGroup = DefaultActionGroup().apply { add(copyResultImageAction) }
@@ -68,9 +79,8 @@ internal class PreviewSurfaceActionManager(
       actionGroup.add(ZoomToSelectionAction(surface, sceneView))
     }
     // Jump to Definition
-    ((surface as? NlDesignSurface)?.navigationHandler as? ComposePreviewNavigationHandler)?.let {
-      actionGroup.add(JumpToDefinitionAction(surface, it, sceneView))
-    }
+    actionGroup.add(JumpToDefinitionAction(surface, navigationHandler, sceneView))
+
     return actionGroup
   }
 

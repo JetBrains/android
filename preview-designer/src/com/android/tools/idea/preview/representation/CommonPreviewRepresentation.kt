@@ -152,6 +152,10 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private val delegateInteractionHandler = DelegateInteractionHandler()
 
+  private val navigationHandler =
+    DefaultNavigationHandler { _, _, _, _, _ -> null }
+      .apply { Disposer.register(this@CommonPreviewRepresentation, this) }
+
   private val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
       project,
@@ -162,9 +166,10 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           }
         }
         .setInteractionHandlerProvider {
-          delegateInteractionHandler.apply { delegate = NavigatingInteractionHandler(it) }
+          delegateInteractionHandler.apply {
+            delegate = NavigatingInteractionHandler(it, navigationHandler)
+          }
         }
-        .setNavigationHandler(DefaultNavigationHandler { _, _, _, _, _ -> null })
         .setDelegateDataProvider {
           when (it) {
             PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
@@ -274,6 +279,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         this::onAfterRender,
         previewElementModelAdapter,
         modelUpdater,
+        navigationHandler,
         this::configureLayoutlibSceneManager
       )
 
