@@ -27,6 +27,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
@@ -671,6 +672,7 @@ class ComposeCompletionContributorTest {
       myFixture.completeBasic()
 
       // Then:
+      val indentation = if (isK2Plugin()) "  " else ""
       myFixture.checkResult(
         // language=kotlin
         """
@@ -680,7 +682,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne()
+        ${indentation}FoobarOne()
       }
       """.trimIndent()
       )
@@ -842,9 +844,10 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
+    if (!isK2Plugin()) {
+      myFixture.checkResult(
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -855,8 +858,24 @@ class ComposeCompletionContributorTest {
 
         }
       }
-      """.trimIndent()
-      , true)
+      """.trimIndent(), true)
+    } else {
+      myFixture.checkResult(
+        // language=kotlin
+        """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import com.example.ObjectWithComposables.TestMethod
+
+      @Composable
+      fun Test() {
+          TestMethod {
+
+          }
+      }
+      """.trimIndent(), true)
+    }
   }
 
   /**
@@ -893,10 +912,11 @@ class ComposeCompletionContributorTest {
       """.trimIndent()
     )
 
+    val parameterWithComposeAnnotation = if (isK2Plugin()) "@Composable (() -> Unit)" else "() -> Unit"
     val expectedLookupItems = listOf(
-      "FoobarOne(requiredArg: () -> Unit, ...)",
+      "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...)",
       "FoobarTwo(...)",
-      "FoobarThree(requiredArg: () -> Unit, optionalArg: Int = ...) (com.example) Unit",
+      "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
       "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
       "FoobarFive(requiredArg: () -> Unit, ...)",
       "FoobarSix(...)",
