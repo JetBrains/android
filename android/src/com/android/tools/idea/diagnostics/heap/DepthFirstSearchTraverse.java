@@ -210,10 +210,32 @@ abstract class DepthFirstSearchTraverse {
 
     @Override
     protected void handleProcessedNode(@NotNull StackNode stackNode, @NotNull Object root) {
-      pathToRoot.pop();
-      if (stackNode.getObject() != null) {
-        MemoryReportJniHelper.setObjectTag(stackNode.getObject(), 0);
+      if (stackNode.getObject() == null) {
+        pathToRoot.pop();
+        return;
       }
+      if (ObjectTagUtil.isOwnedByExceededComponent(stackNode.tag)) {
+        ExceededClusterStatistics exceededClusterStatistics =
+          extendedReportStatistics.exceededClustersEnumeration.get(ObjectTagUtil.getOwningExceededClusterIndex(stackNode.tag));
+        String currentObjectClassName = stackNode.getObject().getClass().getName();
+        if (exceededClusterStatistics.isClassNominated(currentObjectClassName)) {
+          extendedReportStatistics.rootPathTree.addObjectWithPathToRoot(pathToRoot, exceededClusterStatistics,
+                                                                        exceededClusterStatistics.nominatedClassesEnumeration.getInt(
+                                                                          currentObjectClassName));
+        }
+        if (stackNode.getObject() instanceof Disposable) {
+          //noinspection deprecation
+          if (Disposer.isDisposed((Disposable)stackNode.getObject())) {
+            extendedReportStatistics.rootPathTree.addDisposedReferencedObjectWithPathToRoot(pathToRoot, exceededClusterStatistics);
+          }
+        }
+      }
+
+      RootPathTree.RootPathElement element = pathToRoot.pop();
+      if (!pathToRoot.empty()) {
+        pathToRoot.peek().addSubtreeSize(element.getSubtreeSize());
+      }
+      MemoryReportJniHelper.setObjectTag(stackNode.getObject(), 0);
     }
 
     @Override
@@ -240,26 +262,6 @@ abstract class DepthFirstSearchTraverse {
                                                                          ? 0
                                                                          : MemoryReportJniHelper.getObjectSize(stackNode.getObject()),
                                                       extendedReportStatistics));
-      if (stackNode.getObject() == null) {
-        return;
-      }
-
-      if (ObjectTagUtil.isOwnedByExceededComponent(stackNode.tag)) {
-        ExceededClusterStatistics exceededClusterStatistics =
-          extendedReportStatistics.exceededClustersEnumeration.get(ObjectTagUtil.getOwningExceededClusterIndex(stackNode.tag));
-        String currentObjectClassName = stackNode.getObject().getClass().getName();
-        if (exceededClusterStatistics.isClassNominated(currentObjectClassName)) {
-          extendedReportStatistics.rootPathTree.addObjectWithPathToRoot(pathToRoot, exceededClusterStatistics,
-                                                                        exceededClusterStatistics.nominatedClassesEnumeration.getInt(
-                                                                          currentObjectClassName));
-        }
-        if (stackNode.getObject() instanceof Disposable) {
-          //noinspection deprecation
-          if (Disposer.isDisposed((Disposable)stackNode.getObject())) {
-            extendedReportStatistics.rootPathTree.addDisposedReferencedObjectWithPathToRoot(pathToRoot, exceededClusterStatistics);
-          }
-        }
-      }
     }
 
     private void checkReferenceIsHoldingClassLoader(@Nullable final Object parentObject,

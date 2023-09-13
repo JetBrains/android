@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.PLAIN_VALUES;
 import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.PLAIN_VALUES;
 import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
