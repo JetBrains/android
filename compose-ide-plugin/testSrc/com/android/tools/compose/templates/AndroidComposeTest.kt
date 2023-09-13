@@ -21,9 +21,9 @@ import com.intellij.codeInsight.template.impl.InvokeTemplateAction
 import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
+class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
 
   override fun setUp() {
     super.setUp()

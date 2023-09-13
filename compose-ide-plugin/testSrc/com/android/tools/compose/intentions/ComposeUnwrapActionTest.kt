@@ -18,13 +18,13 @@ package com.android.tools.compose.intentions
 
 import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 
 /**
  * Test for [ComposeUnwrapAction].
  */
-internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
+internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
   public override fun setUp() {
     super.setUp()

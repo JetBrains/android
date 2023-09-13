@@ -20,7 +20,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth
 import com.intellij.application.options.CodeStyle
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
 /**
  * Test for [ComposeWrapModifiersAction].
  */
-class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureTestCase() {
+class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()

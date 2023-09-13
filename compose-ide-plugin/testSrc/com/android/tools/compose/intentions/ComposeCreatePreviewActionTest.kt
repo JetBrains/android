@@ -20,14 +20,14 @@ import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 
 /**
  * Test for [ComposeCreatePreviewAction]
  */
-class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureTestCase() {
+class ComposeCreatePreviewActionTest : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()

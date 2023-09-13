@@ -21,13 +21,13 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 
 /**
  * Test for [ComposeSurroundWithWidgetActionGroup] and [ComposeSurroundWithWidgetAction]
  */
-class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureTestCase() {
+class ComposeSurroundWithWidgetActionTest : JavaCodeInsightFixtureAdtTestCase() {
   public override fun setUp() {
     super.setUp()
     myFixture.stubComposableAnnotation()
