@@ -21,7 +21,6 @@ import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
 import com.android.tools.idea.preview.mvvm.PreviewView
@@ -71,10 +70,7 @@ class CommonNlDesignSurfacePreviewView(
         override fun getData(dataId: String): Any? =
           if (DESIGN_SURFACE.`is`(dataId)) surface else null
       }
-      .apply {
-        val issuePanelSplitter = IssuePanelSplitter(null, surface, editorPanel)
-        init(issuePanelSplitter, surface, listOf(), false)
-      }
+      .apply { init(editorPanel, surface, listOf(), false) }
 
   @UiThread
   override fun showErrorMessage(

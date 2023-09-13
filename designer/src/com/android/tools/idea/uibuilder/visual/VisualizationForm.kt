@@ -25,7 +25,6 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
-import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
@@ -184,12 +183,11 @@ class VisualizationForm(
     myWorkBench = WorkBench(project, "Visualization", null, this)
     myWorkBench.setLoadingText("Loading...")
     myWorkBench.setToolContext(surface)
-    val mainComponent = IssuePanelSplitter(null, surface, myWorkBench)
     myLayoutManager =
       surface.sceneViewLayoutManager as NlDesignSurfacePositionableContentLayoutManager
     myActionToolbarPanel = createToolbarPanel()
     myRoot.add(myActionToolbarPanel, BorderLayout.NORTH)
-    myRoot.add(mainComponent, BorderLayout.CENTER)
+    myRoot.add(myWorkBench, BorderLayout.CENTER)
     myRoot.isFocusCycleRoot = true
     myRoot.focusTraversalPolicy = VisualizationTraversalPolicy(surface)
     myUpdateQueue =

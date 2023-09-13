@@ -474,10 +474,6 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     return myDesignSurfaceFixture.target().getScrollPosition();
   }
 
-  public void enlargeBottomComponentSplitter() {
-    target().setIssuePanelProportion(0.2f);
-  }
-
   @NotNull
   public MorphDialogFixture findMorphDialog() {
     return new MorphDialogFixture(robot());

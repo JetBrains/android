@@ -510,6 +510,15 @@ class IssuePanelService(private val project: Project) {
   }
 
   /**
+   * Register a file to the corresponding [DesignSurface] and make sure to unregister it when the
+   * surface is disposed.
+   */
+  fun registerFileToSurface(file: VirtualFile, surface: DesignSurface<*>) {
+    Disposer.register(surface) { unregisterFile(file) }
+    registerFile(file, surface.name)
+  }
+
+  /**
    * Register a file which should have the shared issue panel. [tabTitle] indicated the preferred
    * tab name of this file.
    */
