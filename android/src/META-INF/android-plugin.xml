@@ -354,6 +354,8 @@
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
     <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
+    <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.AndroidActivityRunLineMarkerContributor"/>
+    <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.AndroidActivityRunLineMarkerContributor"/>
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
