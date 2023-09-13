@@ -72,6 +72,21 @@ class AndroidRunConfigurationsTest {
   }
 
   @Test
+  fun `set do nothing for app without activity`() {
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.UNIT_TESTING)
+    preparedProject.open { project ->
+      project.requestSyncAndWait()
+      val configurationFactory = AndroidRunConfigurationType.getInstance().factory
+
+      val configurations = RunManager.getInstance(project).getConfigurationsList(configurationFactory.type)
+
+      assertThat(configurations).hasSize(1)
+      assertThat(configurations[0]).isInstanceOf(AndroidRunConfiguration::class.java)
+      assertThat((configurations[0] as AndroidRunConfiguration).MODE).isEqualTo(AndroidRunConfiguration.DO_NOTHING)
+    }
+  }
+
+  @Test
   fun `set default activity launch for app with activity declared not in the main module`() {
     val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.APP_WITH_ACTIVITY_IN_LIB)
     preparedProject.open { project ->

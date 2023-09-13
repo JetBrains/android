@@ -67,7 +67,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   @Slow
   @WorkerThread
   public String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException {
-    String defaultActivity = computeDefaultActivityWithDevicePreference(getActivitiesFromMergedManifest(myFacet), device);
+    String defaultActivity = computeDefaultActivityWithDevicePreference(getActivitiesFromManifestIndex(myFacet), device);
     if (defaultActivity == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
     }
@@ -79,23 +79,29 @@ public class DefaultActivityLocator extends ActivityLocator {
     if (DumbService.isDumb(myFacet.getModule().getProject())) {
       return;
     }
-    List<ActivityWrapper> activities = getActivitiesFromManifestIndex(myFacet);
+    List<ActivityWrapper> activities = doGetActivitiesFromManifestIndex(myFacet);
     if (computeDefaultActivity(activities) == null) {
       throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
     }
   }
 
   /**
-   * Retrieves the list of activities from the merged manifest of the Android module
-   * corresponding to the given facet.
+   * In a smart read action, retrieves the list of activities from the manifest index of the
+   * Android module corresponding to the given facet.
    */
   @VisibleForTesting
-  public static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
-    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> getActivitiesFromManifestIndex(facet));
+  public static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
+    return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> doGetActivitiesFromManifestIndex(facet));
   }
 
+  /**
+   * Retrieves the list of activities from the manifest index of the Android module corresponding
+   * to the given facet.
+   * <p>
+   * Must be called in a smart read action.
+   */
   @NotNull
-  private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
+  private static List<ActivityWrapper> doGetActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
     Stopwatch timer = Stopwatch.createStarted();
     List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet).getJoined();
@@ -140,18 +146,10 @@ public class DefaultActivityLocator extends ActivityLocator {
   }
 
   /**
-   * Returns true if there is a default launcher Activity in the manifest.
+   * Returns true if there is a default launcher Activity in the merged manifest.
    */
-  @Nullable
-  public static boolean hasDefaultLauncherActivity(@NotNull final Manifest manifest) {
-    ApplicationManager.getApplication().assertReadAccessAllowed();
-
-    Application application = manifest.getApplication();
-    if (application == null) {
-      return false;
-    }
-
-    List<ActivityWrapper> activities = merge(application.getActivities(), application.getActivityAliases());
+  public static boolean hasDefaultLauncherActivity(@NotNull final AndroidFacet facet) {
+    List<ActivityWrapper> activities = getActivitiesFromManifestIndex(facet);
     for (ActivityWrapper activity : activities) {
       if (ActivityLocatorUtils.containsLauncherIntent(activity) && activity.isEnabled()) {
         return true;
