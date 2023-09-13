@@ -17,27 +17,22 @@ package com.android.tools.idea.nav.safeargs.index
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.openapi.application.runReadAction
 import com.intellij.util.indexing.FileContentImpl
 import com.intellij.util.io.DataExternalizer
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
 class NavXmlIndexTest {
-  private val projectRule = AndroidProjectRule.onDisk()
-
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule = AndroidProjectRule.onDisk()
 
-  private val fixture: CodeInsightTestFixture by lazy {
-    projectRule.fixture
-  }
+  private val fixture by lazy { projectRule.fixture }
+  private val project by lazy { projectRule.project }
 
   @Test
   fun indexNavigationLayout() {
@@ -399,6 +394,83 @@ class NavXmlIndexTest {
 
     val map = navXmlIndex.indexer.map(FileContentImpl.createByFile(file))
     assertThat(map).isEmpty()
+  }
+
+  @Test
+  fun xmlWithOpeningCommentIsParsed() {
+    // Regression test for b/300221546
+    val file = fixture.addFileToProject(
+      "navigation/main.xml",
+      //language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <!-- Comment `1234567890-=~!@#$%^&*()_+,./;'[]<>?:"{}\| -->
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:id="@+id/top_level_nav"
+                  app:startDestination="@id/fragment1">
+
+          <fragment android:id="@+id/fragment1"
+                    android:name="test.safeargs.Fragment1"
+                    tools:layout="@layout/fragment1" />
+      </navigation>
+    """.trimIndent()).virtualFile
+
+    val navXmlIndex = NavXmlIndex()
+    val map = navXmlIndex.indexer.map(FileContentImpl.createByFile(file))
+
+    assertThat(map).hasSize(1)
+
+    val data = map.values.first()
+    assertThat(data.root.id).isEqualTo("top_level_nav")
+    assertThat(data.root.startDestination).isEqualTo("fragment1")
+
+    verifySerializationLogic(navXmlIndex.valueExternalizer, data)
+  }
+
+  @Test
+  fun navigationFileOutsideResourcesDirIsNotReturnedFromIndex() {
+    // Valid navigation file in correct resource directory.
+    val navigationFile = fixture.addFileToProject(
+      "navigation/main.xml",
+      //language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:id="@+id/top_level_nav"
+                  app:startDestination="@id/fragment1">
+
+          <fragment android:id="@+id/fragment1"
+                    android:name="test.safeargs.Fragment1"
+                    tools:layout="@layout/fragment1" />
+      </navigation>
+    """.trimIndent()).virtualFile
+
+    // Valid navigation file, but in non-resource directory.
+    val otherFile = fixture.addFileToProject(
+      "otherDir/main.xml",
+      //language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:app="http://schemas.android.com/apk/res-auto"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:id="@+id/top_level_nav"
+                  app:startDestination="@id/fragment1">
+
+          <fragment android:id="@+id/fragment1"
+                    android:name="test.safeargs.Fragment1"
+                    tools:layout="@layout/fragment1" />
+      </navigation>
+    """.trimIndent()).virtualFile
+
+    runReadAction {
+      assertThat(NavXmlIndex.getDataForFile(project, navigationFile)).isNotNull()
+      assertThat(NavXmlIndex.getDataForFile(project, otherFile)).isNull()
+    }
   }
 
   private fun verifySerializationLogic(valueExternalizer: DataExternalizer<NavXmlData>, data: NavXmlData) {
