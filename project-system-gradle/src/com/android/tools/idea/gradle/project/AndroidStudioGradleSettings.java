@@ -8,7 +8,7 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.settings.TestRunner;
 
-public class AndroidStudioGradleSettings extends GradleSettings{
+public class AndroidStudioGradleSettings extends GradleSettings {
   public AndroidStudioGradleSettings(@NotNull Project project) {
     super(project);
   }
