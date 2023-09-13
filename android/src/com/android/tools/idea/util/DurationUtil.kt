@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.util
 
-import org.apache.commons.lang3.time.DurationFormatUtils
+import com.intellij.openapi.util.text.Formats
 import java.time.Duration
 
 /**
- * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds and
+ * Converts the given duration to a display string that contains minutes (if the duration is greater than 60s), seconds, and
  * milliseconds.
  */
 fun Duration.toDisplayString(): String {
-  val durationMs = toMillis()
-  val durationFormat = if (durationMs >= 60_000) "mm 'm' ss 's' SSS 'ms'" else "ss 's' SSS 'ms'"
-  return DurationFormatUtils.formatDuration(durationMs, durationFormat, false)
+  return Formats.formatDuration(toMillis())
 }

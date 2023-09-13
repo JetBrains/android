@@ -59,7 +59,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.ArrayUtils;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
@@ -400,7 +400,7 @@ public class TransportServiceProxyTest {
   private IDevice createMockDevice(int version, @NotNull Client[] clients, @NotNull ProfileableClient[] profileables) throws Exception {
     ProfileableClient[] allProfileables =
       version >= AndroidVersion.VersionCodes.S
-      ? ArrayUtils.addAll(Arrays.stream(clients).map(this::createMockProfileableClient).toArray(ProfileableClient[]::new), profileables)
+      ? Stream.concat(Arrays.stream(clients).map(this::createMockProfileableClient), Arrays.stream(profileables)).toList().toArray(ProfileableClient[]::new)
       : new ProfileableClient[0];
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getSerialNumber()).thenReturn("Serial");

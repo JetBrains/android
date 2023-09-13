@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -42,7 +43,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.apache.commons.lang3.StringUtils
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Color
@@ -597,7 +597,7 @@ class TableViewImpl : TableView {
       if (value == null) {
         append("NULL", SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
       } else {
-        append(StringUtils.abbreviate(value as String, 200))
+        append(StringUtil.shortenPathWithEllipsis(value as String, 200, true))
       }
     }
   }
