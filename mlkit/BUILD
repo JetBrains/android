@@ -36,6 +36,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.mlkit.tests",
+    generate_k2_tests = True,
     iml_files = ["intellij.android.mlkit.tests.iml"],
     tags = [
         "no_test_windows",  # b/135665870
