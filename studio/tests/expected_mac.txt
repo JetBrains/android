@@ -339,6 +339,8 @@ Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-Li
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-Medium.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-MediumItalic.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-Regular.ttf
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-SemiBold.ttf
+Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-SemiBoldItalic.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-Thin.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/JetBrainsMono-ThinItalic.ttf
 Android Studio Preview.app/Contents/jbr/Contents/Home/lib/fonts/Roboto-Light.ttf

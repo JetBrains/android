@@ -437,6 +437,8 @@ android-studio/jbr/lib/fonts/JetBrainsMono-LightItalic.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-Medium.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-MediumItalic.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-Regular.ttf
+android-studio/jbr/lib/fonts/JetBrainsMono-SemiBold.ttf
+android-studio/jbr/lib/fonts/JetBrainsMono-SemiBoldItalic.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-Thin.ttf
 android-studio/jbr/lib/fonts/JetBrainsMono-ThinItalic.ttf
 android-studio/jbr/lib/fonts/Roboto-Light.ttf
