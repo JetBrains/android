@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
+import com.android.ide.common.gradle.Component
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
@@ -62,6 +63,7 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -312,6 +314,25 @@ data class JavaModuleModelBuilder(
 
 data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
 data class AndroidLibraryDependency(val library: IdeAndroidLibraryImpl)
+data class JavaLibraryDependency(val library: IdeJavaLibraryImpl) {
+  companion object {
+    fun forJar(jarFile: File): JavaLibraryDependency {
+      val jarName = jarFile.nameWithoutExtension
+      val fakeCoordinates = "${jarName}:${jarName}:0.0.1"
+      val libraryImpl = IdeJavaLibraryImpl(
+        artifactAddress = fakeCoordinates,
+        component = Component.parse(fakeCoordinates),
+        name = "",
+        artifact = jarFile,
+        srcJar = null,
+        docJar = null,
+        samplesJar = null,
+      )
+
+      return JavaLibraryDependency(libraryImpl)
+    }
+  }
+}
 
 /**
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
@@ -352,6 +373,7 @@ interface AndroidProjectStubBuilder {
 
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency>?
+  fun javaLibraryDependencies(variant: String): List<JavaLibraryDependency>?
   fun applicationId(variant: String): String
 
   val testApplicationId: String
@@ -425,6 +447,7 @@ data class AndroidProjectBuilder(
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
   val androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidLibraryDependency> =
     { emptyList() },
+  val javaLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<JavaLibraryDependency> = { emptyList() },
   val androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl = { buildAndroidProjectStub() },
   val variants: AndroidProjectStubBuilder.() -> List<IdeVariantCoreImpl> = { buildVariantStubs() },
   val ndkModel: AndroidProjectStubBuilder.() -> NdkModel? = { null },
@@ -512,6 +535,9 @@ data class AndroidProjectBuilder(
     androidLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidLibraryDependency>
   ) = copy(androidLibraryDependencyList = androidLibraryDependencyList)
 
+  fun withJavaLibraryDependencyList(javaLibraryDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<JavaLibraryDependency>) =
+    copy(javaLibraryDependencyList = javaLibraryDependencyList)
+
   fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> IdeAndroidProjectImpl) =
     copy(androidProject = androidProject)
 
@@ -573,6 +599,8 @@ data class AndroidProjectBuilder(
         override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
         override fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency> =
           androidLibraryDependencyList(variant)
+        override fun javaLibraryDependencies(variant: String): List<JavaLibraryDependency> =
+          javaLibraryDependencyList(variant)
 
         override fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl = mainArtifactStub(variant)
         override fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl? = androidTestArtifactStub(
@@ -801,14 +829,21 @@ fun AndroidProjectStubBuilder.buildProductFlavorContainersStub(dimension: String
 fun AndroidProjectStubBuilder.buildMainArtifactStub(
   variant: String,
 ): IdeAndroidArtifactCoreImpl {
-  val androidLibraryDependencies = this.androidLibraryDependencies(variant).orEmpty()
   val dependenciesStub = buildDependenciesStub(
-    dependencies = androidLibraryDependencies.map {
-      IdeDependencyCoreImpl(
-        internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(it.library)) { it.library },
-        dependencies = listOf()
-      )
-    } + toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
+    dependencies =
+      androidLibraryDependencies(variant).orEmpty().map {
+        IdeDependencyCoreImpl(
+          internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(it.library)) { it.library },
+          dependencies = listOf()
+        )
+      } +
+      javaLibraryDependencies(variant).orEmpty().map {
+        IdeDependencyCoreImpl(
+          internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(it.library)) { it.library },
+          dependencies = listOf(),
+        )
+      } +
+      toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
   )
   val assembleTaskName = "assemble".appendCapitalized(variant)
   return IdeAndroidArtifactCoreImpl(
