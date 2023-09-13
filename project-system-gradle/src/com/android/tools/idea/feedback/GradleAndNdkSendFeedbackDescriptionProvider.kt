@@ -21,7 +21,7 @@ import com.android.repository.api.ProgressIndicator
 import com.android.sdklib.internal.project.ProjectProperties
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.actions.SendFeedbackAction
-import com.android.tools.idea.actions.SendFeedbackAction.safeCall
+import com.android.tools.idea.actions.SendFeedbackAction.Companion.safeCall
 import com.android.tools.idea.actions.SendFeedbackDescriptionProvider
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -84,7 +84,7 @@ class GradleAndNdkSendFeedbackDescriptionProvider : SendFeedbackDescriptionProvi
     }
 
     fun item(prefix: String, getter: () -> String?): String? {
-      return safeCall { getter() }?.let { "$prefix: $it" }
+      return safeCall { getter()  }?.let { "$prefix: $it" }
     }
 
     fun getNdkDetails(): String = getNdkDetails(project, sdkHandler, progress)
