@@ -11,7 +11,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
@@ -39,7 +38,6 @@ import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -62,7 +60,6 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -204,18 +201,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       });
     });
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
-  }
-
-  private void setupJdk(Path path) {
-    assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
-
-    VfsRootAccess.allowRootAccess(getTestRootDisposable(), path.toString());
-    @Nullable Sdk addedSdk = Jdks.getInstance().createAndAddJdk(path.toString());
-    if (addedSdk != null) {
-      Disposer.register(getTestRootDisposable(), () -> {
-        WriteAction.runAndWait(() -> ProjectJdkTable.getInstance().removeJdk(addedSdk));
-      });
-    }
   }
 
   private void cleanJdkTable() {
