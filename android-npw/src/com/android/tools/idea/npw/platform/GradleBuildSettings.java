@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.npw.project;
+package com.android.tools.idea.npw.platform;
 
 import com.android.repository.Revision;
 import com.android.repository.api.ProgressIndicator;
@@ -28,7 +28,8 @@ public class GradleBuildSettings {
   /**
    * Gets the recommended gradle tools {@link Revision}. If there is no "stable" installed version, it will use the latest installed
    * "preview" version.
-   * If no stable or preview version is installed, or they are to older than the recommend version, it returns last known recommend version
+   * If no stable or preview version is installed, or they are older than the recommended version, it returns the last known
+   * recommended version
    *
    * @param sdkHandler The installed Android SDK handler
    * @param progress a progress indicator
