@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.configurations;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.Locale;
 import com.android.sdklib.devices.Device;
@@ -27,6 +30,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ref.GCUtil;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
@@ -136,7 +140,15 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     });
 
     PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
-    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    // Regression test for b/297028624 by running getConfiguration in a background thread.
+    Configuration config = AppExecutorUtil.getAppExecutorService().submit(() -> {
+      try {
+        return ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+      } catch (Throwable t) {
+        fail("No exception expected calling ConfigurationManager#getConfiguration");
+        throw new IllegalStateException();
+      }
+    }).get();
     assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
   }
 
