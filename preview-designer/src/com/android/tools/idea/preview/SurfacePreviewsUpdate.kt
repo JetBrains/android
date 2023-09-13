@@ -30,6 +30,7 @@ import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.preview.MethodPreviewElement
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.Disposable
@@ -262,7 +263,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       newModel.modelDisplayName = previewElement.displaySettings.name
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
-      newModel.organizationGroup = previewElement.displaySettings.group
+      (previewElement as? MethodPreviewElement)?.let { newModel.organizationGroup = it.methodFqn }
       val sceneManager =
         configureLayoutlibSceneManager(
             previewElement.displaySettings,
