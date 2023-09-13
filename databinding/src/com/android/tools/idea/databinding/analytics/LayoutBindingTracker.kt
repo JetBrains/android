@@ -95,7 +95,6 @@ open class LayoutBindingTracker constructor(private val project: Project) : Data
 
         FileTypeIndex
           .getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
-          .filter { BindingXmlIndex.acceptsFile(it) }
           .mapNotNull { BindingXmlIndex.getDataForFile(project, it) }
           .forEach { layoutInfo ->
             if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {

@@ -150,7 +150,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       // language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type='java.util.Map' alias='MyMap'/>
           <variable name='sample' type='MyMap.En${caret}try'/>
@@ -169,7 +169,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       // language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <import type='java.util.M${caret}ap' />
         </data>
@@ -187,7 +187,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       // language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name='sample' type='Int${caret}eger'/>
         </data>
@@ -212,7 +212,7 @@ class DataBindingNavigationTests(private val mode: DataBindingMode) {
       // language=XML
       """
       <?xml version="1.0" encoding="utf-8"?>
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name='sample' type='a.b.c.Samp${caret}le'/>
         </data>

@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding.index
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
@@ -58,7 +59,7 @@ class BindingXmlIndexTest {
   @Test
   fun indexDataBindingLayout() {
     val file = fixture.configureByText("layout.xml", """
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data class="a.b.c.CustomBinding">
           <import type="C"/>
           <import type="Map&lt;D&gt;" alias="Dee" />
@@ -91,7 +92,7 @@ class BindingXmlIndexTest {
   fun indexDataBindingLayout_nullValue() {
     // regression for b/284046638
     val file = fixture.configureByText("layout.xml", """
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data class= >
         </data>
       </layout>
@@ -106,7 +107,7 @@ class BindingXmlIndexTest {
   @Test
   fun indexDataBindingLayout_emptyValue() {
     val file = fixture.configureByText("layout.xml", """
-      <layout>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data class="">
         </data>
       </layout>
@@ -565,6 +566,65 @@ class BindingXmlIndexTest {
     assertIndexedIds(
       ViewIdData("root_view", "LinearLayout", null, null)
     )
+  }
+
+  @Test
+  fun nonLayoutFilesNotReturnedFromIndex() {
+    val layoutContents =
+      // language=XML
+      """
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+          android:id="@+id/root_view"
+          android:orientation="vertical"
+          android:layout_width="fill_parent"
+          android:layout_height="fill_parent">
+        </LinearLayout>
+      </layout>
+      """.trimIndent()
+
+    val layoutPsiFile = fixture.addFileToProject("res/layout/some_layout.xml", layoutContents)
+    val otherPsiFile = fixture.addFileToProject("res/values/some_layout.xml", layoutContents)
+
+    runReadAction {
+      assertThat(BindingXmlIndex.getDataForFile(layoutPsiFile)).isNotNull()
+      assertThat(BindingXmlIndex.getDataForFile(otherPsiFile)).isNull()
+    }
+  }
+
+  @Test
+  fun xmlFileWithoutNamespaceNotIndexed() {
+    val unrelatedContent =
+      // language=XML
+      """
+      <abc>
+        <def>
+          <ghi />
+        </def>
+      </abc>
+      """.trimIndent()
+
+    // This file will be a false positive and will be indexed, even though it's not a layout file.
+    val unrelatedContentWithNamespace =
+      // language=XML
+      """
+      <abc xmlns:android="http://schemas.android.com/apk/res/android">
+        <def>
+          <ghi />
+        </def>
+      </abc>
+      """.trimIndent()
+
+    val unrelatedFile =
+      fixture.configureByText("layout/unrelated.xml", unrelatedContent).virtualFile
+    val unrelatedFileWithNamespace =
+      fixture.configureByText("layout/unrelatedWithNamespace.xml", unrelatedContentWithNamespace).virtualFile
+
+    val map1 = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(unrelatedFile))
+    assertThat(map1).isEmpty()
+
+    val map2 = BindingXmlIndex().indexer.map(FileContentImpl.createByFile(unrelatedFileWithNamespace))
+    assertThat(map2).hasSize(1)
   }
 
   /**

@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
-import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.utils.assertExpected
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -34,7 +33,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -351,7 +349,7 @@ class LightViewBindingClassTest {
   fun methodsAreAnnotatedNonNullAndNullableCorrectly_regularLayouts() {
     fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
-      <LinearLayout />
+      <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" />
     """.trimIndent())
 
     val project = fixture.project
@@ -386,7 +384,7 @@ class LightViewBindingClassTest {
   fun methodsAreAnnotatedNonNullAndNullableCorrectly_mergeLayouts() {
     fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
-      <merge />
+      <merge xmlns:android="http://schemas.android.com/apk/res/android" />
     """.trimIndent())
 
     val project = fixture.project
