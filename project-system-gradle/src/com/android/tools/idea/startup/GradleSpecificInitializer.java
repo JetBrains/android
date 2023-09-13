@@ -33,7 +33,9 @@ import com.intellij.openapi.application.ConfigImportHelper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.util.registry.Registry;
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionMeasuringExtension;
 import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension;
 
 /**
  * Performs Gradle-specific IDE initialization
@@ -66,6 +68,9 @@ public class GradleSpecificInitializer implements ApplicationInitializedListener
         properties.unsetValue(propertyKey);
       }
     }
+    // Disable the extension because it causes performance issues, see http://b/298372819.
+    //noinspection UnstableApiUsage
+    GradleOperationHelperExtension.EP_NAME.getPoint().unregisterExtension(GradleExecutionMeasuringExtension.class);
 
     useIdeGooglePlaySdkIndexInGradleDetector();
 
