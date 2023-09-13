@@ -86,7 +86,23 @@ internal val PREVIEW_LAYOUT_GALLERY_OPTION =
 
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
-  if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
+  if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
+    listOf(
+      SurfaceLayoutManagerOption(
+        // TODO(b/289994157) Change name to "List"
+        message("vertical.groups"),
+        GroupedListSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        DesignSurface.SceneViewAlignment.LEFT
+      ),
+      SurfaceLayoutManagerOption(
+        // TODO(b/289994157) Change name to "Grid"
+        message("grid.groups"),
+        GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        DesignSurface.SceneViewAlignment.LEFT,
+      ),
+      PREVIEW_LAYOUT_GALLERY_OPTION
+    )
+  } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
     listOf(
       SurfaceLayoutManagerOption(
         message("vertical.layout"),
