@@ -183,7 +183,7 @@ public final class HeapSnapshotTraverseService {
         }, statistics,
         new MemoryReportCollector.HeapSnapshotPresentationConfig(
           PLAIN_VALUES,
-          /*shouldLogSharedClusters=*/false,
+          /*shouldLogSharedClusters=*/true,
           /*shouldLogRetainedSizes=*/false));
 
       statistics = null;
