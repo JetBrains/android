@@ -28,7 +28,10 @@ iml_module(
     name = "intellij.android.app-quality-insights.ide.tests",
     iml_files = ["intellij.android.app-quality-insights.ide.tests.iml"],
     test_class = "com.android.tools.idea.insights.InsightsIdeTestSuite",
-    test_data = glob(["testData/**"]),
+    test_data = [
+        ":testData",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -50,5 +53,12 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
     ],
+)
+
+filegroup(
+    name = "testData",
+    srcs = glob(["testData/**"]),
+    visibility = ["//visibility:public"],
 )
