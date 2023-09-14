@@ -51,7 +51,7 @@ public class RootPathTree {
   private int numberOfRootPathTreeNodes = 0;
 
   private final ExtendedReportStatistics extendedReportStatistics;
-  private static final int ROOT_PATH_TREE_MAX_OBJECT_DEPTH = 400;
+  private static final int ROOT_PATH_TREE_MAX_OBJECT_DEPTH = 200;
   private static final int NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT = 2;
   private static final int NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES = 750_000; //750kb
 
