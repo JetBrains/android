@@ -16,16 +16,16 @@
 package com.android.tools.idea.adb
 
 import com.android.adblib.AdbSession
-import com.android.adblib.thisLogger
+import com.android.adblib.adbLogger
 import com.android.adblib.tools.debugging.JdwpSessionPipeline
 import com.android.adblib.tools.debugging.SharedJdwpSessionMonitor
-import com.android.adblib.tools.debugging.utils.SynchronizedChannel
-import com.android.adblib.tools.debugging.utils.SynchronizedReceiveChannel
-import com.android.adblib.tools.debugging.utils.SynchronizedSendChannel
 import com.android.adblib.tools.debugging.packets.JdwpPacketView
 import com.android.adblib.tools.debugging.packets.writeToBuffer
 import com.android.adblib.tools.debugging.receiveAllPacketsCatching
 import com.android.adblib.tools.debugging.sendPacket
+import com.android.adblib.tools.debugging.utils.SynchronizedChannel
+import com.android.adblib.tools.debugging.utils.SynchronizedReceiveChannel
+import com.android.adblib.tools.debugging.utils.SynchronizedSendChannel
 import com.android.adblib.tools.debugging.utils.receiveAllCatching
 import com.android.adblib.utils.ResizableBuffer
 import com.android.jdwpscache.SCacheResponse
@@ -41,7 +41,7 @@ internal class StudioAdbLibSCacheJdwpSessionPipeline(
   private val sessionMonitor: SharedJdwpSessionMonitor?,
   private val debuggerPipeline: JdwpSessionPipeline,
 ) : JdwpSessionPipeline {
-  private val logger = thisLogger(session)
+  private val logger = adbLogger(session)
 
   /**
    * The actual SCache implementation.
