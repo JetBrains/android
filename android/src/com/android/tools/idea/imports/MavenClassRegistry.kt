@@ -198,15 +198,23 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       while (reader.hasNext()) {
         reader.beginObject()
         var fqName: String? = null
+        var xFqName: String? = null
+        var receiverFqName: String? = null
         while (reader.hasNext()) {
           when (reader.nextName()) {
             "fqn" -> fqName = reader.nextString()
+            "xfqn" -> xFqName = reader.nextString()
+            "rcvr" -> receiverFqName = reader.nextString()
             else -> reader.skipValue()
           }
         }
         reader.endObject()
 
-        if (fqName != null) add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
+        when {
+          fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
+          // TODO(b/300487996): Not yet
+          false && xFqName != null && receiverFqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
+        }
       }
       reader.endArray()
     }
@@ -303,10 +311,12 @@ data class KotlinTopLevelFunction(
    * function in the JVM. That makes this name appropriate to use when calling from Kotlin, but not from Java.
    */
   val kotlinFqName: FqName,
+  /** Fully-qualified name of the function's receiver in Kotlin. */
+  val receiverFqName: FqName?,
 ) {
 
   companion object {
-    fun fromJvmQualifiedName(fqName: String): KotlinTopLevelFunction {
+    fun fromJvmQualifiedName(fqName: String, receiverFqName: String? = null): KotlinTopLevelFunction {
       require(fqName.contains('.')) {
         "fqName does not have file facade class containing the function: '$fqName'"
       }
@@ -318,8 +328,10 @@ data class KotlinTopLevelFunction(
 
       return KotlinTopLevelFunction(
           simpleName = functionSimpleName,
+          packageName = packageName,
           kotlinFqName = FqName("$packagePrefix$functionSimpleName"),
-          packageName = packageName)
+          receiverFqName = receiverFqName?.let(::FqName),
+      )
     }
   }
 }

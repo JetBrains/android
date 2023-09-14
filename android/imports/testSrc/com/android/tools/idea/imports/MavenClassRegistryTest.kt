@@ -361,6 +361,10 @@ class MavenClassRegistryTest {
                 },
                 {
                   "has_no_fqn": "should be ignored"
+                },
+                {
+                  "xfqn": "foo.bar.baz.FacadeFileKt.someExtensionFunction",
+                  "rcvr": "amazingReceiver"
                 }
               ]
             }
@@ -541,24 +545,38 @@ class MavenClassRegistryTest {
 
   @Test
   fun kotlinTopLevelFunction_fromJvmQualifiedName() {
+    with(KotlinTopLevelFunction.fromJvmQualifiedName("com.example.FileFacadeKt.foo", "com.example.Receiver")) {
+      assertThat(simpleName).isEqualTo("foo")
+      assertThat(packageName).isEqualTo("com.example")
+      assertThat(kotlinFqName.asString()).isEqualTo("com.example.foo")
+      assertThat(receiverFqName?.asString()).isEqualTo("com.example.Receiver")
+    }
+  }
+
+  @Test
+  fun kotlinTopLevelFunction_fromJvmQualifiedName_withNullReceiver() {
     with(KotlinTopLevelFunction.fromJvmQualifiedName("com.example.FileFacadeKt.foo")) {
       assertThat(simpleName).isEqualTo("foo")
       assertThat(packageName).isEqualTo("com.example")
       assertThat(kotlinFqName.asString()).isEqualTo("com.example.foo")
+      assertThat(receiverFqName).isNull()
     }
   }
 
   @Test
   fun kotlinTopLevelFunction_fromJvmQualifiedName_noPackageName() {
-    with(KotlinTopLevelFunction.fromJvmQualifiedName("FileFacadeKt.foo")) {
+    with(KotlinTopLevelFunction.fromJvmQualifiedName("FileFacadeKt.foo", "com.example.Receiver")) {
       assertThat(simpleName).isEqualTo("foo")
       assertThat(packageName).isEqualTo("")
       assertThat(kotlinFqName.asString()).isEqualTo("foo")
+      assertThat(receiverFqName?.asString()).isEqualTo("com.example.Receiver")
     }
   }
 
   @Test
   fun kotlinTopLevelFunction_fromJvmQualifiedName_noFacadeFile() {
-    assertThrows(IllegalArgumentException::class.java) { KotlinTopLevelFunction.fromJvmQualifiedName("foo") }
+    assertThrows(IllegalArgumentException::class.java) {
+      KotlinTopLevelFunction.fromJvmQualifiedName("foo", "com.example.Receiver")
+    }
   }
 }
