@@ -86,7 +86,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.nio.file.Path
 
-class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
+open class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   private val moduleHierarchyProvider: GradleModuleHierarchyProvider = GradleModuleHierarchyProvider(project)
   private val mySyncManager: ProjectSystemSyncManager = GradleProjectSystemSyncManager(project)
   private val myBuildManager: ProjectSystemBuildManager = GradleProjectSystemBuildManager(project)

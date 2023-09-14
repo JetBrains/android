@@ -126,6 +126,7 @@ import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
@@ -133,8 +134,10 @@ import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
+import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.GradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.ProjectSizeUsageTrackerListener
@@ -1307,60 +1310,13 @@ fun setupTestProjectFromAndroidModel(
     error("There is already more than one module in the test project.")
   }
 
-  val gradleProjectSystem = GradleProjectSystem(project)
-  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(object : AndroidProjectSystem {
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(object : GradleProjectSystem(project) {
     // Many tests that invoke `compileProject` work with timestamps. To avoid flaky tests we inject a millisecond delay each time
     // build is requested.
     private val buildManager = TestProjectSystemBuildManager(ensureClockAdvancesWhileBuilding = true)
     override fun getBuildManager(): ProjectSystemBuildManager = buildManager
 
-    override fun getPsiElementFinders(): Collection<PsiElementFinder> = gradleProjectSystem.getPsiElementFinders()
-
-    override fun getLightResourceClassService(): LightResourceClassService = gradleProjectSystem.getLightResourceClassService()
-
-    override fun getSourceProvidersFactory(): SourceProvidersFactory = gradleProjectSystem.getSourceProvidersFactory()
-
-    override fun getClassJarProvider(): ClassJarProvider = gradleProjectSystem.getClassJarProvider()
-
-    override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
-      gradleProjectSystem.getAndroidFacetsWithPackageName(project, packageName)
-
-    override fun isNamespaceOrParentPackage(packageName: String): Boolean =
-      gradleProjectSystem.isNamespaceOrParentPackage(packageName)
-
-    override fun getBootClasspath(module: Module): Collection<String> {
-      return emptyList()
-    }
-
-    override fun getDefaultApkFile(): VirtualFile? = gradleProjectSystem.getDefaultApkFile()
-
-    override fun getPathToAapt(): Path = gradleProjectSystem.getPathToAapt()
-
-    override fun allowsFileCreation(): Boolean = gradleProjectSystem.allowsFileCreation()
-
-    override fun getModuleSystem(module: Module): AndroidModuleSystem = gradleProjectSystem.getModuleSystem(module)
-
-    override fun getApplicationIdProvider(runConfiguration: RunConfiguration): ApplicationIdProvider? =
-      gradleProjectSystem.getApplicationIdProvider(runConfiguration)
-
-    override fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = gradleProjectSystem.getApkProvider(runConfiguration)
-
-    override fun getSyncManager(): ProjectSystemSyncManager = gradleProjectSystem.getSyncManager()
-
-    override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
-      return gradleProjectSystem.validateRunConfiguration(runConfiguration)
-    }
-
-    override fun getBuildConfigurationSourceProvider(): BuildConfigurationSourceProvider? =
-      gradleProjectSystem.getBuildConfigurationSourceProvider()
-
-    override fun getKnownApplicationIds(): Set<String> = gradleProjectSystem.getKnownApplicationIds()
-
-    override fun findModulesWithApplicationId(applicationId: String): Collection<Module> =
-      gradleProjectSystem.findModulesWithApplicationId(applicationId)
-
-    override fun supportsProfilingMode(): Boolean = gradleProjectSystem.supportsProfilingMode()
-
+    override fun getBootClasspath(module: Module): Collection<String> = emptyList()
   })
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }
