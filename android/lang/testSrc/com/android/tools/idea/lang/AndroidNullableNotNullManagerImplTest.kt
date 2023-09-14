@@ -48,7 +48,7 @@ class AndroidNullableNotNullManagerImplTest {
       import androidx.annotation.NonNull;
 
       interface MakeNonNull {
-        String getSnapshot(<warning descr="Overridden method parameters are not annotated">@NonN<caret>ull</warning> Integer arg);
+        String getSnapshot(<warning descr="Overriding method parameters are not annotated">@NonN<caret>ull</warning> Integer arg);
       }
 
       class MakeNonNullImpl implements MakeNonNull {
@@ -69,7 +69,7 @@ class AndroidNullableNotNullManagerImplTest {
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.checkHighlighting()
 
-    myFixture.getAllQuickFixes().find { it.text == "Annotate overridden method parameters as '@NonNull'" }!!
+    myFixture.getAllQuickFixes().find { it.text == "Annotate overriding method parameters as '@NonNull'" }!!
       .invoke(projectRule.project, myFixture.editor, myFixture.file)
 
     myFixture.checkResult(
