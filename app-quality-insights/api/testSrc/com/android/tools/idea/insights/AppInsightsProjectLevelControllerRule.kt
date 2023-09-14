@@ -28,12 +28,14 @@ import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
 import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerOrReplaceServiceInstance
@@ -56,9 +58,17 @@ import org.mockito.Mockito.`when`
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
 class AppInsightsProjectLevelControllerRule(
-  private val projectRule: ProjectRule,
+  private val projectProvider: () -> Project,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
 ) : NamedExternalResource() {
+  constructor(
+    projectRule: ProjectRule,
+    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+  ) : this({ projectRule.project }, onErrorAction)
+  constructor(
+    androidProjectRule: AndroidProjectRule,
+    onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
+  ) : this({ androidProjectRule.project }, onErrorAction)
   private val disposableRule = DisposableRule()
   val disposable: Disposable
     get() = disposableRule.disposable
@@ -98,7 +108,7 @@ class AppInsightsProjectLevelControllerRule(
         flowStart = SharingStarted.Lazily,
         tracker = tracker,
         clock = clock,
-        project = projectRule.project,
+        project = projectProvider(),
         queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
