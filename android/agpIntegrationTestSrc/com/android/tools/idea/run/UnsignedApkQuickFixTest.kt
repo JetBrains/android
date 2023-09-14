@@ -22,10 +22,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class UnsignedApkQuickFixTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun updatesBuildWithSelectedConfig() {
@@ -39,13 +41,15 @@ class UnsignedApkQuickFixTest {
     assertThat(signingConfigs[0].name()).isEqualTo("debug")
 
     // Fake a selector that picks the default debug signing config.
-    val fakeSelector = object : SigningConfigSelector {
-      override fun showAndGet() = true
-      override fun selectedConfig() = signingConfigs[0]
-    }
+    val fakeSelector =
+      object : SigningConfigSelector {
+        override fun showAndGet() = true
+        override fun selectedConfig() = signingConfigs[0]
+      }
 
     // Release build doesn't have a signing config assigned.
-    val releaseBuildSigningConfig = buildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
+    val releaseBuildSigningConfig =
+      buildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
     assertThat(releaseBuildSigningConfig?.valueAsString()).isNull()
 
     val unsignedApkQuickFix = UnsignedApkQuickFix(module, "release") { fakeSelector }
@@ -53,7 +57,8 @@ class UnsignedApkQuickFixTest {
     val updatedBuildModel = ProjectBuildModel.get(projectRule.project).getModuleBuildModel(module)!!
 
     // Release build is now assigned the debug signing config.
-    val expectedSigningConfig = updatedBuildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
+    val expectedSigningConfig =
+      updatedBuildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
     assertThat(expectedSigningConfig?.valueAsString()).contains("debug")
   }
 }

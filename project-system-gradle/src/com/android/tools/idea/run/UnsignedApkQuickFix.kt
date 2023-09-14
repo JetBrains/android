@@ -37,41 +37,67 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/**
- * Runnable to fix unsigned APK error.
- */
-class UnsignedApkQuickFix @VisibleForTesting constructor(
+/** Runnable to fix unsigned APK error. */
+@Suppress("UnstableApiUsage")
+class UnsignedApkQuickFix
+@VisibleForTesting
+constructor(
   private val module: Module,
   private val selectedBuildTypeName: String,
-  private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector) : ConfigurationQuickFix {
+  private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector
+) : ConfigurationQuickFix {
   /**
-   * Instantiates a dialog as the quick fix action for unsigned APK error. When user closed the dialog with the OK button, the selected
-   * signing config is picked.
+   * Instantiates a dialog as the quick fix action for unsigned APK error. When user closed the
+   * dialog with the OK button, the selected signing config is picked.
    *
    * @param module an IDEA module
    * @param selectedBuildTypeName name of the currently selected build type, e.g. debug
    */
-  constructor(module: Module, selectedBuildTypeName: String) : this(
-    module, selectedBuildTypeName, { gradleBuildModel -> SigningConfigSelectorDialog(gradleBuildModel.android().signingConfigs()) }
+  constructor(
+    module: Module,
+    selectedBuildTypeName: String
+  ) : this(
+    module,
+    selectedBuildTypeName,
+    { gradleBuildModel -> SigningConfigSelectorDialog(gradleBuildModel.android().signingConfigs()) }
   )
 
   override fun applyFix(dataContext: DataContext) {
-    val gradleBuildModel = GradleModelProvider.getInstance().getProjectModel(module.project).getModuleBuildModel(module)
+    val gradleBuildModel =
+      GradleModelProvider.getInstance().getProjectModel(module.project).getModuleBuildModel(module)
     if (gradleBuildModel != null) {
       val signingConfigSelector = makeSigningConfigSelector(gradleBuildModel)
       if (signingConfigSelector.showAndGet()) {
-        gradleBuildModel.android().buildTypes().find { it.name() == selectedBuildTypeName }?.let { selectedBuildType ->
-          selectedBuildType.signingConfig().setValue(ReferenceTo(signingConfigSelector.selectedConfig()))
-          // Write signingConfig to Gradle.
-          WriteCommandAction.runWriteCommandAction(module.project, "Select Signing Config", null, { gradleBuildModel.applyChanges() })
-          // Trigger Gradle sync for the signingConfig to take effect.
-          GradleSyncInvoker.getInstance().requestProjectSync(
-            module.project, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_QF_SIGNING_CONFIG_SELECTED), null)
-        }
+        gradleBuildModel
+          .android()
+          .buildTypes()
+          .find { it.name() == selectedBuildTypeName }
+          ?.let { selectedBuildType ->
+            selectedBuildType
+              .signingConfig()
+              .setValue(ReferenceTo(signingConfigSelector.selectedConfig()))
+            // Write signingConfig to Gradle.
+            WriteCommandAction.runWriteCommandAction(
+              module.project,
+              "Select Signing Config",
+              null,
+              { gradleBuildModel.applyChanges() }
+            )
+            // Trigger Gradle sync for the signingConfig to take effect.
+            GradleSyncInvoker.getInstance()
+              .requestProjectSync(
+                module.project,
+                GradleSyncInvoker.Request(
+                  GradleSyncStats.Trigger.TRIGGER_QF_SIGNING_CONFIG_SELECTED
+                ),
+                null
+              )
+          }
       }
-    }
-    else {
-      throw IllegalStateException("Gradle build model should not be null for module: ${module.name}.")
+    } else {
+      throw IllegalStateException(
+        "Gradle build model should not be null for module: ${module.name}."
+      )
     }
   }
 }
@@ -84,25 +110,27 @@ interface SigningConfigSelector {
    */
   fun showAndGet(): Boolean
 
-  /**
-   * @return the selected signing config model
-   */
+  /** @return the selected signing config model */
   fun selectedConfig(): SigningConfigModel
 }
 
 /**
- * Dialog for selecting an existing signing config, useful for quick-fixing unsigned APK Run config error.
+ * Dialog for selecting an existing signing config, useful for quick-fixing unsigned APK Run config
+ * error.
  */
-class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>) : DialogWrapper(false), SigningConfigSelector {
+class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>) :
+  DialogWrapper(false), SigningConfigSelector {
   private val rootPanel = JPanel(BorderLayout())
 
-  @VisibleForTesting
-  val signingConfigComboBox = ComboBox<SigningConfigModel>()
+  @VisibleForTesting val signingConfigComboBox = ComboBox<SigningConfigModel>()
 
   init {
     title = "Select Signing Config"
-    signingConfigs.forEach(Consumer { item: SigningConfigModel -> signingConfigComboBox.addItem(item) })
-    signingConfigComboBox.renderer = SimpleListCellRenderer.create("<unnamed>", SigningConfigModel::name)
+    signingConfigs.forEach(
+      Consumer { item: SigningConfigModel -> signingConfigComboBox.addItem(item) }
+    )
+    signingConfigComboBox.renderer =
+      SimpleListCellRenderer.create("<unnamed>", SigningConfigModel::name)
     init()
   }
 
@@ -110,12 +138,13 @@ class SigningConfigSelectorDialog(signingConfigs: Collection<SigningConfigModel>
 
   override fun createCenterPanel(): JComponent {
     return rootPanel.apply {
-      add(JPanel(FlowLayout()).apply {
-        add(JBLabel("Debug keys should be strictly used for development purposes only."))
-        add(HyperlinkLabel("Learn more").apply {
-          setHyperlinkTarget(DOC_URL)
-        })
-      }, BorderLayout.NORTH)
+      add(
+        JPanel(FlowLayout()).apply {
+          add(JBLabel("Debug keys should be strictly used for development purposes only."))
+          add(HyperlinkLabel("Learn more").apply { setHyperlinkTarget(DOC_URL) })
+        },
+        BorderLayout.NORTH
+      )
       add(signingConfigComboBox, BorderLayout.CENTER)
     }
   }
