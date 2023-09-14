@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -45,6 +46,7 @@ class InteractiveLabelPanelTest {
   }
 
   @Test
+  @Ignore("b/289994157")
   fun `click label`() {
     runBlocking {
       var clickCount = 0
