@@ -78,7 +78,8 @@ class CpuProfilerContextMenuInstaller {
         () -> "trace",
         file -> myStage.getStudioProfilers().getIdeServices().saveFile(
           file,
-          (output) -> CpuProfiler.saveCaptureToFile(myStage.getStudioProfilers(), getTraceIntersectingWithMouseX(x).getTraceInfo(), output),
+          (output) -> CpuProfiler.saveCaptureToFile(myStage.getStudioProfilers(), myStage.getStudioProfilers().getSession(),
+                                                    getTraceIntersectingWithMouseX(x).getTraceInfo(), output),
           null)));
     myInstaller.installGenericContextMenu(myComponent, ContextMenuItem.SEPARATOR);
   }

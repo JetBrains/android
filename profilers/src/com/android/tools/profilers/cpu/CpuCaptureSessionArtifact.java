@@ -167,7 +167,7 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
   @Override
   public void export(@NotNull OutputStream outputStream) {
     assert getCanExport();
-    CpuProfiler.saveCaptureToFile(myProfilers, getArtifactProto(), outputStream);
+    CpuProfiler.saveCaptureToFile(myProfilers, getSession(), getArtifactProto(), outputStream);
   }
 
   @NotNull

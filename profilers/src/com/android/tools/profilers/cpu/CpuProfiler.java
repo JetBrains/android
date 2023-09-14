@@ -172,11 +172,14 @@ public class CpuProfiler implements StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull StudioProfilers profilers, @NotNull TraceInfo info, @NotNull OutputStream outputStream) {
+  static void saveCaptureToFile(@NotNull StudioProfilers profilers,
+                                @NotNull Common.Session session,
+                                @NotNull TraceInfo info,
+                                @NotNull OutputStream outputStream) {
 
     try {
       Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
-        .setStreamId(profilers.getSession().getStreamId())
+        .setStreamId(session.getStreamId())
         .setId(String.valueOf(info.getTraceId()))
         .build();
       Transport.BytesResponse traceResponse = profilers.getClient().getTransportClient().getBytes(traceRequest);
