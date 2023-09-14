@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.intentions
 
+import com.android.tools.compose.analysis.setUpCompilerArgumentsForComposeCompilerPlugin
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
@@ -41,6 +42,7 @@ class AddComposableToFunctionQuickFixTest {
   @Before
   fun setUp() {
     myFixture.stubComposableAnnotation()
+    setUpCompilerArgumentsForComposeCompilerPlugin(myProject)
   }
 
   @Test

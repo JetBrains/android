@@ -15,20 +15,22 @@
  */
 package com.android.tools.compose.intentions
 
+import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
 import androidx.compose.compiler.plugins.kotlin.k1.ComposeErrors
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.ComposeBundle
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtCompilerPluginDiagnostic0
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinDiagnosticFixFactory
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
 import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 import org.jetbrains.kotlin.idea.util.addAnnotation
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
@@ -69,17 +71,19 @@ class AddComposableToFunctionQuickFix private constructor(element: KtModifierLis
   override fun getText(): String = ComposeBundle.message("add.composable.to.function.with.name", displayName)
 
   override fun invoke(project: Project, editor: Editor?, file: KtFile) {
-    element?.addAnnotation(FqName(COMPOSABLE_ANNOTATION_FQ_NAME))
+    element?.addAnnotation(ComposeClassIds.Composable)
   }
 
   /**
-   * Creates a fix for the COMPOSABLE_EXPECTED error, which appears on a Composable function call from within a non-Composable function.
+   * Creates a fix for the COMPOSABLE_INVOCATION error, which appears on a non-Composable function that contains a Composable call.
    */
   object ComposableInvocationFactory : KotlinSingleIntentionActionFactory() {
-    override fun createAction(diagnostic: Diagnostic): IntentionAction? {
+    override fun createAction(diagnostic: Diagnostic): IntentionAction? = createAction(diagnostic.psiElement)
+
+    fun createAction(psiElement: PsiElement): AddComposableToFunctionQuickFix? {
       // Look for the containing function. This logic is based on ComposableCallChecker.check, which walks up the tree and terminates at
       // various places depending on the structure of the code.
-      var node: PsiElement? = diagnostic.psiElement as? KtElement
+      var node: PsiElement? = psiElement as? KtElement
       while(node != null) {
         // Order of when statements (and empty statements) are kept, to mimic the behavior in ComposableCallChecker.check.
         // In cases where we terminate without returning a fix, it indicates the compiler didn't identify a containing function that could
@@ -124,14 +128,30 @@ class AddComposableToFunctionQuickFix private constructor(element: KtModifierLis
   }
 
   /**
-   * Creates a fix for the COMPOSABLE_INVOCATION error, which appears on a non-Composable function that contains a Composable call.
+   * Creates a fix for the COMPOSABLE_EXPECTED error, which appears on a Composable function call from within a non-Composable function.
    */
   object ComposableExpectedFactory : KotlinSingleIntentionActionFactory() {
-    override fun createAction(diagnostic: Diagnostic): IntentionAction? {
-      val parentNamedFunction = diagnostic.psiElement.parent as? KtNamedFunction ?: return null
-      val displayName = parentNamedFunction.name ?: return null
+    override fun createAction(diagnostic: Diagnostic): IntentionAction? = createAction(diagnostic.psiElement.parent)
 
-      return AddComposableToFunctionQuickFix(parentNamedFunction, displayName)
+    fun createAction(psiElement: PsiElement): AddComposableToFunctionQuickFix? {
+      val namedFunction = psiElement as? KtNamedFunction ?: return null
+      val displayName = namedFunction.name ?: return null
+
+      return AddComposableToFunctionQuickFix(namedFunction, displayName)
+    }
+  }
+
+  companion object {
+    val k2DiagnosticFixFactory: KotlinDiagnosticFixFactory<KtCompilerPluginDiagnostic0> = diagnosticFixFactory(
+      KtCompilerPluginDiagnostic0::class) { diagnostic ->
+      val psiElement = diagnostic.psi
+      listOfNotNull(
+        when (diagnostic.factoryName) {
+          "COMPOSABLE_INVOCATION" -> ComposableInvocationFactory.createAction(psiElement)
+          "COMPOSABLE_EXPECTED" -> ComposableExpectedFactory.createAction(psiElement)
+          else -> null
+        }
+      )
     }
   }
 
