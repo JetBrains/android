@@ -96,7 +96,7 @@ public class AndroidDebuggerPanel {
     AndroidDebuggerConfigurable<AndroidDebuggerState> configurable = getConfigurable(androidDebugger);
 
     if (configurable != null) {
-      configurable.applyTo(myAndroidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
+      configurable.applyTo(androidDebuggerContext.getAndroidDebuggerState(androidDebugger.getId()));
     }
   }
 
