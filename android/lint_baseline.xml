@@ -499,6 +499,30 @@
 
     <issue
         id="VisibleForTests"
+        message="This class should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/ClassWriterWithPseudoClassLocator.kt"
+            line="164"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This class should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="135"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This class should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="135"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
@@ -559,6 +583,14 @@
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
             line="583"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This class should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="53"/>
     </issue>
 
     <issue
