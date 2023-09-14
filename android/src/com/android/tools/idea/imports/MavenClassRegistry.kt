@@ -52,9 +52,10 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
     val foundArtifacts = buildList {
       lookup.classNameMap[shortName]?.let { addAll(it) }
-
+      // TODO(b/300296134): For now, exclude extension functions
+      val functionSpecifier = FunctionSpecifier(shortName, null)
       // Only suggest top-level Kotlin functions when completing in a Kotlin file.
-      if (completionFileType == KotlinFileType.INSTANCE) lookup.topLevelFunctionsMap[shortName]?.let { addAll(it) }
+      if (completionFileType == KotlinFileType.INSTANCE) lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
     }
 
     if (packageName.isEmpty()) return foundArtifacts
@@ -102,7 +103,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   @Throws(IOException::class)
   private fun readIndexArray(reader: JsonReader): LookupData {
     val classNames: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
-    val topLevelFunctions: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
+    val topLevelFunctions: MutableList<Pair<FunctionSpecifier, LibraryImportData>> = mutableListOf()
     val ktxMap: MutableMap<String, String> = mutableMapOf()
     val coordinateList: MutableList<Coordinate> = mutableListOf()
 
@@ -114,7 +115,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
 
       // Get top-level function names and their associated libraries.
-      topLevelFunctions.addAll(indexData.getTopLevelFunctionSimpleNamesWithLibraries())
+      topLevelFunctions.addAll(indexData.getTopLevelFunctionSpecifiersWithLibraries())
 
       // Update "artifact to the associated KTX artifact" map.
       indexData.toKtxMapEntry()?.let {
@@ -212,8 +213,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
         when {
           fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
-          // TODO(b/300487996): Not yet
-          false && xFqName != null && receiverFqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
+          xFqName != null && receiverFqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
         }
       }
       reader.endArray()
@@ -267,10 +267,10 @@ data class GMavenArtifactIndex(
   }
 
   /** Gets a list of top-level function simple names and their corresponding [LibraryImportData]s. */
-  fun getTopLevelFunctionSimpleNamesWithLibraries(): List<Pair<String, LibraryImportData>> {
+  fun getTopLevelFunctionSpecifiersWithLibraries(): List<Pair<FunctionSpecifier, LibraryImportData>> {
     return topLevelFunctions
       .map { topLevelFunction ->
-        topLevelFunction.simpleName to LibraryImportData(
+        topLevelFunction.toSpecifier() to LibraryImportData(
           artifact = "$groupId:$artifactId",
           importedItemFqName = topLevelFunction.kotlinFqName.asString(),
           importedItemPackageName = topLevelFunction.packageName,
@@ -315,6 +315,8 @@ data class KotlinTopLevelFunction(
   val receiverFqName: FqName?,
 ) {
 
+  fun toSpecifier() = FunctionSpecifier(simpleName, receiverFqName)
+
   companion object {
     fun fromJvmQualifiedName(fqName: String, receiverFqName: String? = null): KotlinTopLevelFunction {
       require(fqName.contains('.')) {
@@ -345,9 +347,9 @@ data class LookupData(
    */
   val classNameMap: Map<String, List<LibraryImportData>>,
   /**
-   * A map from simple Kotlin top-level function names to the corresponding [LibraryImportData] objects.
+   * A map from Kotlin function specifiers to the corresponding [LibraryImportData] objects.
    */
-  val topLevelFunctionsMap: Map<String, List<LibraryImportData>>,
+  val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
   /**
    * A map from non-KTX libraries to the associated KTX libraries.
    */
@@ -363,6 +365,11 @@ data class LookupData(
     val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
   }
 }
+
+data class FunctionSpecifier(
+  val simpleName: String,
+  val receiverFqName: FqName?,
+)
 
 /**
  * Exception thrown when parsing malformed GMaven index file.
