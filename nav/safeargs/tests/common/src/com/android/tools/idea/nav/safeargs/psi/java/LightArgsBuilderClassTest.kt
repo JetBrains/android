@@ -25,14 +25,13 @@ import org.junit.Test
 
 @RunsInEdt
 class LightArgsBuilderClassTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   @Test
   fun canFindArgsBuilderClasses() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -56,7 +55,9 @@ class LightArgsBuilderClassTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -64,9 +65,9 @@ class LightArgsBuilderClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context)).isInstanceOf(
-      LightArgsBuilderClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args.Builder", context)).isInstanceOf(
-      LightArgsBuilderClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context))
+      .isInstanceOf(LightArgsBuilderClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args.Builder", context))
+      .isInstanceOf(LightArgsBuilderClass::class.java)
   }
 }

@@ -42,34 +42,28 @@ fun KotlinBuiltIns.getKotlinType(
   moduleDescriptor: ModuleDescriptor,
   isNonNull: Boolean = true
 ): KotlinType {
-  val modulePackageName = moduleDescriptor.module.toModule()?.getModuleSystem()?.getPackageName() ?: ""
+  val modulePackageName =
+    moduleDescriptor.module.toModule()?.getModuleSystem()?.getPackageName() ?: ""
   val resolvedTypeStr = getPsiTypeStr(modulePackageName, typeStr, defaultValue)
 
   // array type
   if (resolvedTypeStr.endsWith("[]")) {
     val type = resolvedTypeStr.removeSuffix("[]")
-    val arrayType = try {
-      JvmPrimitiveType.get(type).primitiveType.let {
-        getPrimitiveArrayKotlinType(it)
+    val arrayType =
+      try {
+        JvmPrimitiveType.get(type).primitiveType.let { getPrimitiveArrayKotlinType(it) }
+      } catch (e: AssertionError) {
+        this.getArrayType(Variance.INVARIANT, getKotlinClassType(FqName(type), moduleDescriptor))
       }
-    }
-    catch (e: AssertionError) {
-      this.getArrayType(Variance.INVARIANT, getKotlinClassType(FqName(type), moduleDescriptor))
-    }
-    if (isNonNull) return arrayType
-    else return arrayType.makeNullable()
+    if (isNonNull) return arrayType else return arrayType.makeNullable()
   }
 
   return try {
-    JvmPrimitiveType.get(resolvedTypeStr).primitiveType.let {
-      getPrimitiveKotlinType(it)
-    }
-  }
-  catch (e: AssertionError) {
+    JvmPrimitiveType.get(resolvedTypeStr).primitiveType.let { getPrimitiveKotlinType(it) }
+  } catch (e: AssertionError) {
     val rawType = getKotlinClassType(FqName(resolvedTypeStr), moduleDescriptor)
 
-    if (isNonNull) return rawType
-    else return rawType.makeNullable()
+    if (isNonNull) return rawType else return rawType.makeNullable()
   }
 }
 
@@ -78,10 +72,13 @@ private fun KotlinBuiltIns.getKotlinClassType(
   moduleDescriptor: ModuleDescriptor
 ): KotlinType {
   val classId = JavaToKotlinClassMap.mapJavaToKotlin(fqName)
-  val classDescriptor = if (classId != null) getBuiltInClassByFqName(classId.asSingleFqName()) else null
+  val classDescriptor =
+    if (classId != null) getBuiltInClassByFqName(classId.asSingleFqName()) else null
   return classDescriptor?.defaultType
-         ?: ClassId.topLevel(fqName).let { moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType }
-         ?: fqName.getUnresolvedType()
+    ?: ClassId.topLevel(fqName).let {
+      moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType
+    }
+      ?: fqName.getUnresolvedType()
 }
 
 private fun FqName.getUnresolvedType(): KotlinType {

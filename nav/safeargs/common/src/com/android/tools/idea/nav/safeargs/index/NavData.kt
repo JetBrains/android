@@ -24,9 +24,8 @@ import com.intellij.util.containers.addIfNotNull
  * A destination may have zero or more arguments. Actions may also have arguments, which act as
  * default values for their destinations.
  *
- * In most cases, users will provide [type] explicitly, but if not specified, it can be
- * inferred from [defaultValue]. If neither [type] nor [defaultValue] are set, this
- * argument data is invalid.
+ * In most cases, users will provide [type] explicitly, but if not specified, it can be inferred
+ * from [defaultValue]. If neither [type] nor [defaultValue] are set, this argument data is invalid.
  */
 interface NavArgumentData {
   val name: String
@@ -45,9 +44,9 @@ interface NavArgumentData {
  *
  * A destination may have zero or more actions.
  *
- * An action itself should point to a single target destination, which is usually set by `destination`,
- * but could also just be set by `popUpTo` (which essentially means the user wants to navigate backwards
- * to a destination that's in the back stack)
+ * An action itself should point to a single target destination, which is usually set by
+ * `destination`, but could also just be set by `popUpTo` (which essentially means the user wants to
+ * navigate backwards to a destination that's in the back stack)
  */
 interface NavActionData {
   val id: String
@@ -60,9 +59,7 @@ interface NavActionData {
   }
 }
 
-/**
- * A useful abstraction across multiple destination types, e.g. <activity> and <fragment>
- */
+/** A useful abstraction across multiple destination types, e.g. <activity> and <fragment> */
 interface NavDestinationData {
   val id: String
   val name: String
@@ -98,7 +95,9 @@ interface NavNavigationData : MaybeNavDestinationData {
     val id = this.id ?: return null
     return object : NavDestinationData {
       override val id = id
-      override val name = ".${id.toUpperCamelCase()}" // The prefix '.' means this class should be scoped in the current module
+      override val name =
+        ".${id.toUpperCamelCase()}" // The prefix '.' means this class should be scoped in the
+      // current module
       override val arguments = this@NavNavigationData.arguments
       override val actions = this@NavNavigationData.actions
     }
@@ -106,15 +105,16 @@ interface NavNavigationData : MaybeNavDestinationData {
 }
 
 /**
- * Data class for storing the indexed content nav XML files, useful for generating relevant
- * safe args classes.
+ * Data class for storing the indexed content nav XML files, useful for generating relevant safe
+ * args classes.
  */
 data class NavXmlData(val root: NavNavigationData) {
   /**
    * Returns a list of all destinations with global actions updated.
    * (https://developer.android.com/guide/navigation/navigation-global-action)
    *
-   * Global actions are collected along the path while traversing, and duplicates are resolved like actions overrides.
+   * Global actions are collected along the path while traversing, and duplicates are resolved like
+   * actions overrides.
    */
   val resolvedDestinations: List<NavDestinationData> by lazy {
     root.traverse(emptyList(), mutableListOf())
@@ -131,14 +131,14 @@ data class NavXmlData(val root: NavNavigationData) {
       .mapNotNull { it.toDestination()?.withGlobalActions(newGlobalActions) }
       .let { allDestinations.addAll(it) }
 
-    this.navigations.map {
-      it.traverse(newGlobalActions, allDestinations)
-    }
+    this.navigations.map { it.traverse(newGlobalActions, allDestinations) }
 
     return allDestinations
   }
 
-  private fun NavDestinationData.withGlobalActions(globalActions: List<NavActionData>): NavDestinationData {
+  private fun NavDestinationData.withGlobalActions(
+    globalActions: List<NavActionData>
+  ): NavDestinationData {
     if (globalActions.isEmpty()) return this
 
     return object : NavDestinationData by this {

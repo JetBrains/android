@@ -32,9 +32,7 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Verify that we can sync a Gradle project that applies the safe args plugin.
- */
+/** Verify that we can sync a Gradle project that applies the safe args plugin. */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class SafeArgsTrackerTest(private val params: TestParams) {
@@ -48,45 +46,47 @@ class SafeArgsTrackerTest(private val params: TestParams) {
     @Suppress("unused") // Accessed via reflection by JUnit
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val parameters = listOf(
-      TestParams(TestDataPaths.MULTI_MODULE_PROJECT) { event ->
-        event!!
-        assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
-        event.projectMetadata.let { projectMetadata ->
-          assertThat(projectMetadata.moduleCount).isEqualTo(3)
-          assertThat(projectMetadata.javaPluginCount).isEqualTo(1)
-          assertThat(projectMetadata.kotlinPluginCount).isEqualTo(1)
-        }
-      },
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN) { event ->
-        event!!
-        assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
-        event.projectMetadata.let { projectMetadata ->
-          assertThat(projectMetadata.moduleCount).isEqualTo(1)
-          assertThat(projectMetadata.javaPluginCount).isEqualTo(1)
-          assertThat(projectMetadata.kotlinPluginCount).isEqualTo(0)
-        }
-      },
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN) { event ->
-        event!!
-        assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
-        event.projectMetadata.let { projectMetadata ->
-          assertThat(projectMetadata.moduleCount).isEqualTo(1)
-          assertThat(projectMetadata.javaPluginCount).isEqualTo(0)
-          assertThat(projectMetadata.kotlinPluginCount).isEqualTo(1)
-        }
-      },
-      // Projects not using safe args don't generate safe args metrics
-      TestParams(TestDataPaths.PROJECT_WITHOUT_SAFE_ARGS) { event -> assertThat(event).isNull() })
+    val parameters =
+      listOf(
+        TestParams(TestDataPaths.MULTI_MODULE_PROJECT) { event ->
+          event!!
+          assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
+          event.projectMetadata.let { projectMetadata ->
+            assertThat(projectMetadata.moduleCount).isEqualTo(3)
+            assertThat(projectMetadata.javaPluginCount).isEqualTo(1)
+            assertThat(projectMetadata.kotlinPluginCount).isEqualTo(1)
+          }
+        },
+        TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN) { event ->
+          event!!
+          assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
+          event.projectMetadata.let { projectMetadata ->
+            assertThat(projectMetadata.moduleCount).isEqualTo(1)
+            assertThat(projectMetadata.javaPluginCount).isEqualTo(1)
+            assertThat(projectMetadata.kotlinPluginCount).isEqualTo(0)
+          }
+        },
+        TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN) { event ->
+          event!!
+          assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
+          event.projectMetadata.let { projectMetadata ->
+            assertThat(projectMetadata.moduleCount).isEqualTo(1)
+            assertThat(projectMetadata.javaPluginCount).isEqualTo(0)
+            assertThat(projectMetadata.kotlinPluginCount).isEqualTo(1)
+          }
+        },
+        // Projects not using safe args don't generate safe args metrics
+        TestParams(TestDataPaths.PROJECT_WITHOUT_SAFE_ARGS) { event -> assertThat(event).isNull() }
+      )
   }
 
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Test
   fun verifyExpectedAnalytics() {
@@ -98,15 +98,15 @@ class SafeArgsTrackerTest(private val params: TestParams) {
       projectRule.load(params.project)
       projectRule.requestSyncAndWait()
 
-      val safeArgsEvent = tracker.usages
-        .map { it.studioEvent }
-        .filter { it.kind == AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT }
-        .map { it.navSafeArgsEvent }
-        .lastOrNull()
+      val safeArgsEvent =
+        tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT }
+          .map { it.navSafeArgsEvent }
+          .lastOrNull()
 
       params.verify(safeArgsEvent)
-    }
-    finally {
+    } finally {
       tracker.close()
       UsageTracker.cleanAfterTesting()
     }

@@ -16,9 +16,7 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
-import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
@@ -62,7 +60,6 @@ import org.jetbrains.kotlin.utils.Printer
  * An "Arg" represents an argument which can get passed from one destination to another.
  *
  * For example, if you had the following "nav.xml":
- *
  * ```
  * <argument
  *    android:name="message"
@@ -70,7 +67,6 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  *
  * This would generate a class like the following:
- *
  * ```
  *  data class FirstFragmentArgs( val message: String) : NavArgs {
  *       fun toBundle(): Bundle
@@ -91,14 +87,25 @@ class LightArgsKtClass(
   sourceElement: SourceElement,
   containingDescriptor: DeclarationDescriptor,
   private val storageManager: StorageManager
-) : ClassDescriptorImpl(containingDescriptor, name, Modality.FINAL, ClassKind.CLASS, superTypes, sourceElement, false, storageManager) {
+) :
+  ClassDescriptorImpl(
+    containingDescriptor,
+    name,
+    Modality.FINAL,
+    ClassKind.CLASS,
+    superTypes,
+    sourceElement,
+    false,
+    storageManager
+  ) {
 
   private val _primaryConstructor = storageManager.createLazyValue { computePrimaryConstructor() }
   private val _companionObject = storageManager.createLazyValue { computeCompanionObject() }
   private val scope = storageManager.createLazyValue { ArgsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
-  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
+  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
+    unsubstitutedMemberScope
 
   override fun getConstructors() = listOf(_primaryConstructor())
   override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
@@ -106,20 +113,37 @@ class LightArgsKtClass(
 
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
     val valueParametersProvider = { constructor: ClassConstructorDescriptor ->
-      val resolvedArguments = if (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
-        destination.arguments.sortedBy { it.defaultValue != null }
-      else
-        destination.arguments
+      val resolvedArguments =
+        if (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+          destination.arguments.sortedBy { it.defaultValue != null }
+        else destination.arguments
 
       var index = 0
       resolvedArguments
         .asSequence()
         .map { arg ->
           val pName = Name.identifier(arg.name.toCamelCase())
-          val pType = this.builtIns.getKotlinType(arg.type, arg.defaultValue, containingDeclaration.module, arg.isNonNull())
+          val pType =
+            this.builtIns.getKotlinType(
+              arg.type,
+              arg.defaultValue,
+              containingDeclaration.module,
+              arg.isNonNull()
+            )
           val hasDefaultValue = arg.defaultValue != null
-          ValueParameterDescriptorImpl(constructor, null, index++, Annotations.EMPTY, pName, pType, hasDefaultValue,
-                                       false, false, null, SourceElement.NO_SOURCE)
+          ValueParameterDescriptorImpl(
+            constructor,
+            null,
+            index++,
+            Annotations.EMPTY,
+            pName,
+            pType,
+            hasDefaultValue,
+            false,
+            false,
+            null,
+            SourceElement.NO_SOURCE
+          )
         }
         .toList()
     }
@@ -128,8 +152,17 @@ class LightArgsKtClass(
 
   private fun computeCompanionObject(): ClassDescriptor {
     val argsClassDescriptor = this@LightArgsKtClass
-    return object : ClassDescriptorImpl(argsClassDescriptor, Name.identifier("Companion"), Modality.FINAL,
-                                        ClassKind.OBJECT, emptyList(), argsClassDescriptor.source, false, storageManager) {
+    return object :
+      ClassDescriptorImpl(
+        argsClassDescriptor,
+        Name.identifier("Companion"),
+        Modality.FINAL,
+        ClassKind.OBJECT,
+        emptyList(),
+        argsClassDescriptor.source,
+        false,
+        storageManager
+      ) {
 
       private val companionObjectScope = storageManager.createLazyValue { CompanionScope() }
       private val companionObject = this
@@ -137,54 +170,96 @@ class LightArgsKtClass(
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
       override fun getUnsubstitutedMemberScope() = companionObjectScope()
-      override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
+      override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
+        unsubstitutedMemberScope
 
       private inner class CompanionScope : MemberScopeImpl() {
-        private val companionMethods = storageManager.createLazyValue {
-          val methods = mutableListOf<SimpleFunctionDescriptor>()
+        private val companionMethods =
+          storageManager.createLazyValue {
+            val methods = mutableListOf<SimpleFunctionDescriptor>()
 
-          val fromBundleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
-            val bundleType = argsClassDescriptor.builtIns.getKotlinType("android.os.Bundle", null, argsClassDescriptor.module)
-            val bundleParam = ValueParameterDescriptorImpl(
-              method, null, 0, Annotations.EMPTY, Name.identifier("bundle"), bundleType,
-              false, false, false, null, SourceElement.NO_SOURCE
-            )
-            listOf(bundleParam)
-          }
-
-          methods.add(companionObject.createMethod(
-            name = "fromBundle",
-            returnType = argsClassDescriptor.getDefaultType(),
-            valueParametersProvider = fromBundleParametersProvider
-          ))
-
-          if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
-            val fromSavedStateHandleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
-              val handleType =
-                argsClassDescriptor.builtIns.getKotlinType("androidx.lifecycle.SavedStateHandle", null, argsClassDescriptor.module)
-              val handleParam = ValueParameterDescriptorImpl(
-                method, null, 0, Annotations.EMPTY, Name.identifier("savedStateHandle"), handleType,
-                false, false, false, null, SourceElement.NO_SOURCE
-              )
-              listOf(handleParam)
+            val fromBundleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
+              val bundleType =
+                argsClassDescriptor.builtIns.getKotlinType(
+                  "android.os.Bundle",
+                  null,
+                  argsClassDescriptor.module
+                )
+              val bundleParam =
+                ValueParameterDescriptorImpl(
+                  method,
+                  null,
+                  0,
+                  Annotations.EMPTY,
+                  Name.identifier("bundle"),
+                  bundleType,
+                  false,
+                  false,
+                  false,
+                  null,
+                  SourceElement.NO_SOURCE
+                )
+              listOf(bundleParam)
             }
 
-            methods.add(companionObject.createMethod(
-              name = "fromSavedStateHandle",
-              returnType = argsClassDescriptor.getDefaultType(),
-              valueParametersProvider = fromSavedStateHandleParametersProvider
-            ))
+            methods.add(
+              companionObject.createMethod(
+                name = "fromBundle",
+                returnType = argsClassDescriptor.getDefaultType(),
+                valueParametersProvider = fromBundleParametersProvider
+              )
+            )
+
+            if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+              val fromSavedStateHandleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
+                val handleType =
+                  argsClassDescriptor.builtIns.getKotlinType(
+                    "androidx.lifecycle.SavedStateHandle",
+                    null,
+                    argsClassDescriptor.module
+                  )
+                val handleParam =
+                  ValueParameterDescriptorImpl(
+                    method,
+                    null,
+                    0,
+                    Annotations.EMPTY,
+                    Name.identifier("savedStateHandle"),
+                    handleType,
+                    false,
+                    false,
+                    false,
+                    null,
+                    SourceElement.NO_SOURCE
+                  )
+                listOf(handleParam)
+              }
+
+              methods.add(
+                companionObject.createMethod(
+                  name = "fromSavedStateHandle",
+                  returnType = argsClassDescriptor.getDefaultType(),
+                  valueParametersProvider = fromSavedStateHandleParametersProvider
+                )
+              )
+            }
+
+            methods
           }
 
-          methods
+        override fun getContributedDescriptors(
+          kindFilter: DescriptorKindFilter,
+          nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> {
+          return companionMethods().filter {
+            kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name)
+          }
         }
 
-        override fun getContributedDescriptors(kindFilter: DescriptorKindFilter,
-                                               nameFilter: (Name) -> Boolean): Collection<DeclarationDescriptor> {
-          return companionMethods().filter { kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name) }
-        }
-
-        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
+        override fun getContributedFunctions(
+          name: Name,
+          location: LookupLocation
+        ): Collection<SimpleFunctionDescriptor> {
           return companionMethods().filter { it.name == name }
         }
 
@@ -197,98 +272,123 @@ class LightArgsKtClass(
 
   private inner class ArgsClassScope : MemberScopeImpl() {
     private val argsClassDescriptor = this@LightArgsKtClass
-    private val methods = storageManager.createLazyValue {
-      val methods = mutableListOf<SimpleFunctionDescriptor>()
+    private val methods =
+      storageManager.createLazyValue {
+        val methods = mutableListOf<SimpleFunctionDescriptor>()
 
-      val bundleType = argsClassDescriptor.builtIns.getKotlinType("android.os.Bundle", null, argsClassDescriptor.module)
-      val savedStateHandleType = argsClassDescriptor.builtIns.getKotlinType(
-        "androidx.lifecycle.SavedStateHandle",
-        null,
-        argsClassDescriptor.module
-      )
-
-      // Add toBundle method.
-      methods.add(
-        argsClassDescriptor.createMethod(
-          name = "toBundle",
-          returnType = bundleType,
-        )
-      )
-
-      // Add copy method.
-      methods.add(
-        argsClassDescriptor.createMethod(
-          name = "copy",
-          returnType = argsClassDescriptor.getDefaultType(),
-          valueParametersProvider = { argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters }
-        )
-      )
-
-      // Add component functions.
-      var index = 1
-      destination.arguments
-        .asSequence()
-        .map { arg ->
-          val methodName = "component" + index++
-          val returnType = argsClassDescriptor.builtIns
-            .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
-          val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
-          val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(
-              SafeArgsXmlTag(
-                it as XmlTagImpl,
-                IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
-                methodName,
-                argsClassDescriptor.fqNameSafe.asString()
-              )
-            )
-          } ?: argsClassDescriptor.source
-
-          argsClassDescriptor.createMethod(
-            name = methodName,
-            returnType = returnType,
-            isOperator = true,
-            sourceElement = resolvedSourceElement
+        val bundleType =
+          argsClassDescriptor.builtIns.getKotlinType(
+            "android.os.Bundle",
+            null,
+            argsClassDescriptor.module
           )
-        }
-        .map { methods.add(it) }
-        .toList()
+        val savedStateHandleType =
+          argsClassDescriptor.builtIns.getKotlinType(
+            "androidx.lifecycle.SavedStateHandle",
+            null,
+            argsClassDescriptor.module
+          )
 
-      // Add on version specific methods since the navigation library side is keeping introducing new methods.
-      if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+        // Add toBundle method.
         methods.add(
           argsClassDescriptor.createMethod(
-            name = "toSavedStateHandle",
-            returnType = savedStateHandleType
+            name = "toBundle",
+            returnType = bundleType,
           )
         )
+
+        // Add copy method.
+        methods.add(
+          argsClassDescriptor.createMethod(
+            name = "copy",
+            returnType = argsClassDescriptor.getDefaultType(),
+            valueParametersProvider = {
+              argsClassDescriptor.unsubstitutedPrimaryConstructor.valueParameters
+            }
+          )
+        )
+
+        // Add component functions.
+        var index = 1
+        destination.arguments
+          .asSequence()
+          .map { arg ->
+            val methodName = "component" + index++
+            val returnType =
+              argsClassDescriptor.builtIns.getKotlinType(
+                arg.type,
+                arg.defaultValue,
+                argsClassDescriptor.module,
+                arg.isNonNull()
+              )
+            val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
+            val resolvedSourceElement =
+              xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
+                XmlSourceElement(
+                  SafeArgsXmlTag(
+                    it as XmlTagImpl,
+                    IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
+                    methodName,
+                    argsClassDescriptor.fqNameSafe.asString()
+                  )
+                )
+              }
+                ?: argsClassDescriptor.source
+
+            argsClassDescriptor.createMethod(
+              name = methodName,
+              returnType = returnType,
+              isOperator = true,
+              sourceElement = resolvedSourceElement
+            )
+          }
+          .map { methods.add(it) }
+          .toList()
+
+        // Add on version specific methods since the navigation library side is keeping introducing
+        // new methods.
+        if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+          methods.add(
+            argsClassDescriptor.createMethod(
+              name = "toSavedStateHandle",
+              returnType = savedStateHandleType
+            )
+          )
+        }
+
+        methods
       }
 
-      methods
-    }
-
-    private val properties = storageManager.createLazyValue {
-      destination.arguments
-        .asSequence()
-        .map { arg ->
-          val pName = arg.name.toCamelCase()
-          val pType = argsClassDescriptor.builtIns
-            .getKotlinType(arg.type, arg.defaultValue, argsClassDescriptor.module, arg.isNonNull())
-          val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
-          val resolvedSourceElement = xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
-            XmlSourceElement(
-              SafeArgsXmlTag(
-                it as XmlTagImpl,
-                KotlinIcons.FIELD_VAL,
-                arg.name,
-                argsClassDescriptor.fqNameSafe.asString()
+    private val properties =
+      storageManager.createLazyValue {
+        destination.arguments
+          .asSequence()
+          .map { arg ->
+            val pName = arg.name.toCamelCase()
+            val pType =
+              argsClassDescriptor.builtIns.getKotlinType(
+                arg.type,
+                arg.defaultValue,
+                argsClassDescriptor.module,
+                arg.isNonNull()
               )
-            )
-          } ?: argsClassDescriptor.source
-          argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
-        }
-        .toList()
-    }
+            val xmlTag = argsClassDescriptor.source.getPsi() as? XmlTag
+            val resolvedSourceElement =
+              xmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)?.let {
+                XmlSourceElement(
+                  SafeArgsXmlTag(
+                    it as XmlTagImpl,
+                    KotlinIcons.FIELD_VAL,
+                    arg.name,
+                    argsClassDescriptor.fqNameSafe.asString()
+                  )
+                )
+              }
+                ?: argsClassDescriptor.source
+            argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
+          }
+          .toList()
+      }
 
     private val classifiers = storageManager.createLazyValue { listOf(companionObjectDescriptor) }
 
@@ -296,20 +396,36 @@ class LightArgsKtClass(
       kindFilter: DescriptorKindFilter,
       nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-      return methods().filter { kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name) } +
-             properties().filter { kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK) && nameFilter(it.name) } +
-             classifiers().filter { kindFilter.acceptsKinds(DescriptorKindFilter.SINGLETON_CLASSIFIERS_MASK) && nameFilter(it.name) }
+      return methods().filter {
+        kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK) && nameFilter(it.name)
+      } +
+        properties().filter {
+          kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK) && nameFilter(it.name)
+        } +
+        classifiers().filter {
+          kindFilter.acceptsKinds(DescriptorKindFilter.SINGLETON_CLASSIFIERS_MASK) &&
+            nameFilter(it.name)
+        }
     }
 
-    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+    override fun getContributedClassifier(
+      name: Name,
+      location: LookupLocation
+    ): ClassifierDescriptor? {
       return classifiers().firstOrNull { it.name == name }
     }
 
-    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
+    override fun getContributedFunctions(
+      name: Name,
+      location: LookupLocation
+    ): Collection<SimpleFunctionDescriptor> {
       return methods().filter { it.name == name }
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): List<PropertyDescriptor> {
+    override fun getContributedVariables(
+      name: Name,
+      location: LookupLocation
+    ): List<PropertyDescriptor> {
       return properties().filter { it.name == name }
     }
 

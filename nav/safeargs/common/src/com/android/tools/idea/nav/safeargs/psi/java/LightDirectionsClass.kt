@@ -35,7 +35,6 @@ import com.intellij.psi.util.PsiTypesUtil
  * A "Direction" represents functionality that takes you away from one destination to another.
  *
  * For example, if you had the following "nav.xml":
- *
  * ```
  *  <navigation>
  *    <fragment id="@+id/mainMenu">
@@ -54,7 +53,6 @@ import com.intellij.psi.util.PsiTypesUtil
  * ```
  *
  * This would generate a class like the following:
- *
  * ```
  *  class MainMenuDirections {
  *    static NavDirections actionToOptions();
@@ -71,16 +69,16 @@ import com.intellij.psi.util.PsiTypesUtil
  *
  * ```
  */
-class LightDirectionsClass(
-  navInfo: NavInfo,
-  navEntry: NavEntry,
-  destination: NavDestinationData
-) : SafeArgsLightBaseClass(navInfo, navEntry, destination, "Directions") {
-  private val LOG get() = Logger.getInstance(LightDirectionsClass::class.java)
+class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: NavDestinationData) :
+  SafeArgsLightBaseClass(navInfo, navEntry, destination, "Directions") {
+  private val LOG
+    get() = Logger.getInstance(LightDirectionsClass::class.java)
   private val actionClasses by lazy { computeInnerClasses() }
   private val _methods by lazy { computeMethods() }
   private val _navigationElement by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }
-  private val _actions by lazy { destination.getActionsWithResolvedArguments(navEntry.data, navInfo.packageName) }
+  private val _actions by lazy {
+    destination.getActionsWithResolvedArguments(navEntry.data, navInfo.packageName)
+  }
 
   override fun getMethods() = _methods
   override fun getAllMethods() = methods
@@ -99,18 +97,27 @@ class LightDirectionsClass(
   }
 
   private fun computeMethods(): Array<PsiMethod> {
-    val navDirectionsType = parsePsiType(navInfo.packageName, "androidx.navigation.NavDirections", null, this)
+    val navDirectionsType =
+      parsePsiType(navInfo.packageName, "androidx.navigation.NavDirections", null, this)
     return _actions
       .map { action ->
         val methodName = action.id.toCamelCase()
-        val resolvedNavigationElement = _navigationElement?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
-        val resolvedNavDirectionsType = actionClasses.find { it.name!!.usLocaleDecapitalize() == methodName }
-                                          ?.let { PsiTypesUtil.getClassType(it) }
-                                        ?: navDirectionsType
-        createMethod(name = methodName,
-                     navigationElement = resolvedNavigationElement,
-                     modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-                     returnType = annotateNullability(resolvedNavDirectionsType))
+        val resolvedNavigationElement =
+          _navigationElement?.findFirstMatchingElementByTraversingUp(
+            SdkConstants.TAG_ACTION,
+            action.id
+          )
+        val resolvedNavDirectionsType =
+          actionClasses
+            .find { it.name!!.usLocaleDecapitalize() == methodName }
+            ?.let { PsiTypesUtil.getClassType(it) }
+            ?: navDirectionsType
+        createMethod(
+            name = methodName,
+            navigationElement = resolvedNavigationElement,
+            modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+            returnType = annotateNullability(resolvedNavDirectionsType)
+          )
           .apply {
             action.arguments.forEach { arg ->
               if (arg.defaultValue == null) {
@@ -119,8 +126,8 @@ class LightDirectionsClass(
               }
             }
           }
-
-      }.toTypedArray()
+      }
+      .toTypedArray()
   }
 
   private fun computeInnerClasses(): Array<PsiClass> {
@@ -133,6 +140,4 @@ class LightDirectionsClass(
       }
       .toTypedArray()
   }
-
 }
-

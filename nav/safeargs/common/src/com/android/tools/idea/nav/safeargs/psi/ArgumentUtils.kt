@@ -1,4 +1,5 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the
+// Apache 2.0 license.
 package com.android.tools.idea.nav.safeargs.psi
 
 import com.android.tools.idea.nav.safeargs.index.NavActionData
@@ -34,18 +35,20 @@ object ArgumentUtils {
 
       val argsFromTargetDestination = action.getTargetDestination(data)?.arguments.orEmpty()
 
-      val resolvedArguments = (action.arguments + argsFromTargetDestination)
-        .groupBy { it.name }
-        .map { entry ->
-          if (entry.value.size > 1) checkArguments(entry, modulePackage)
-          entry.value.first()
-        }
+      val resolvedArguments =
+        (action.arguments + argsFromTargetDestination)
+          .groupBy { it.name }
+          .map { entry ->
+            if (entry.value.size > 1) checkArguments(entry, modulePackage)
+            entry.value.first()
+          }
 
-      val adjustedArguments = if (adjustArgumentsWithDefaults) {
-        resolvedArguments.sortedBy { it.defaultValue != null }
-      } else {
-        resolvedArguments
-      }
+      val adjustedArguments =
+        if (adjustArgumentsWithDefaults) {
+          resolvedArguments.sortedBy { it.defaultValue != null }
+        } else {
+          resolvedArguments
+        }
 
       return@mapNotNull object : NavActionData by action {
         override val arguments: List<NavArgumentData> = adjustedArguments
@@ -53,15 +56,21 @@ object ArgumentUtils {
     }
 
   /**
-   * Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
+   * Warn if incompatible types of argument exist. We still provide best results though it fails to
+   * compile.
    */
-  private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>, modulePackage: String) {
-    val types = entry.value
-      .asSequence()
-      .map { arg -> getPsiTypeStr(modulePackage, arg.type, arg.defaultValue) }
-      .toSet()
+  private fun checkArguments(
+    entry: Map.Entry<String, List<NavArgumentData>>,
+    modulePackage: String
+  ) {
+    val types =
+      entry.value
+        .asSequence()
+        .map { arg -> getPsiTypeStr(modulePackage, arg.type, arg.defaultValue) }
+        .toSet()
 
-    if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}: ${types.joinToString(", ")}.")
+    if (types.size > 1)
+      LOG.warn("Incompatible types of argument ${entry.key}: ${types.joinToString(", ")}.")
   }
 
   private val LOG = thisLogger()

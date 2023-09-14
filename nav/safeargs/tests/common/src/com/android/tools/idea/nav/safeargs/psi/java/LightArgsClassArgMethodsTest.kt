@@ -30,35 +30,35 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests that would normally go in [LightArgsClassTest] but are related to
- * a bunch of arguments types that we want to test with parametrization.
+ * Tests that would normally go in [LightArgsClassTest] but are related to a bunch of arguments
+ * types that we want to test with parametrization.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun data() = listOf(
-      TypeMapping("integer", PsiTypes.intType().name),
-      TypeMapping(PsiTypes.floatType().name),
-      TypeMapping(PsiTypes.longType().name),
-      TypeMapping(PsiTypes.booleanType().name),
-      TypeMapping("string", "String"),
-      TypeMapping("reference", PsiTypes.intType().name),
-      TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable
-      TypeMapping("test.safeargs.MyEnum", "MyEnum")
-    )
+    fun data() =
+      listOf(
+        TypeMapping("integer", PsiTypes.intType().name),
+        TypeMapping(PsiTypes.floatType().name),
+        TypeMapping(PsiTypes.longType().name),
+        TypeMapping(PsiTypes.booleanType().name),
+        TypeMapping("string", "String"),
+        TypeMapping("reference", PsiTypes.intType().name),
+        TypeMapping("test.safeargs.MyCustomType", "MyCustomType"), // e.g Parcelable, Serializable
+        TypeMapping("test.safeargs.MyEnum", "MyEnum")
+      )
   }
 
   @Test
   fun expectedMethodsAreCreated() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -77,7 +77,9 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
                 app:argType="${typeMapping.before}[]" />
           </fragment>
         </navigation>
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -85,7 +87,8 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass =
+      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     // Check supers
     argClass.supers.asList().let {
@@ -96,10 +99,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     // Check methods
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(4)
-      methods[0].checkSignaturesAndReturnType(
-        name = "getArgOne",
-        returnType = typeMapping.after
-      )
+      methods[0].checkSignaturesAndReturnType(name = "getArgOne", returnType = typeMapping.after)
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArgTwo",
@@ -109,15 +109,10 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
       methods[2].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(
-          Parameter("bundle", "Bundle")
-        )
+        parameters = listOf(Parameter("bundle", "Bundle"))
       )
 
-      methods[3].checkSignaturesAndReturnType(
-        name = "toBundle",
-        returnType = "Bundle"
-      )
+      methods[3].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
     }
   }
 
@@ -127,7 +122,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -146,7 +141,9 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
                 app:argType="${typeMapping.before}[]" />
           </fragment>
         </navigation>
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -154,7 +151,8 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass =
+      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     // Check supers
     argClass.supers.asList().let {
@@ -165,10 +163,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     // Check methods
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(5)
-      methods[0].checkSignaturesAndReturnType(
-        name = "getArgOne",
-        returnType = typeMapping.after
-      )
+      methods[0].checkSignaturesAndReturnType(name = "getArgOne", returnType = typeMapping.after)
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArgTwo",
@@ -178,23 +173,16 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
       methods[2].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(
-          Parameter("bundle", "Bundle")
-        )
+        parameters = listOf(Parameter("bundle", "Bundle"))
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "fromSavedStateHandle",
         returnType = "FragmentArgs",
-        parameters = listOf(
-          Parameter("savedStateHandle", "SavedStateHandle")
-        )
+        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle"))
       )
 
-      methods[4].checkSignaturesAndReturnType(
-        name = "toBundle",
-        returnType = "Bundle"
-      )
+      methods[4].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
     }
   }
 
@@ -204,7 +192,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -223,7 +211,9 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
                 app:argType="${typeMapping.before}[]" />
           </fragment>
         </navigation>
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -231,7 +221,8 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass =
+      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     // Check supers
     argClass.supers.asList().let {
@@ -242,10 +233,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
     // Check methods
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(6)
-      methods[0].checkSignaturesAndReturnType(
-        name = "getArgOne",
-        returnType = typeMapping.after
-      )
+      methods[0].checkSignaturesAndReturnType(name = "getArgOne", returnType = typeMapping.after)
 
       methods[1].checkSignaturesAndReturnType(
         name = "getArgTwo",
@@ -255,17 +243,13 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
       methods[2].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(
-          Parameter("bundle", "Bundle")
-        )
+        parameters = listOf(Parameter("bundle", "Bundle"))
       )
 
       methods[3].checkSignaturesAndReturnType(
         name = "fromSavedStateHandle",
         returnType = "FragmentArgs",
-        parameters = listOf(
-          Parameter("savedStateHandle", "SavedStateHandle")
-        )
+        parameters = listOf(Parameter("savedStateHandle", "SavedStateHandle"))
       )
 
       methods[4].checkSignaturesAndReturnType(
@@ -273,10 +257,7 @@ class LightArgsClassArgMethodsTest(private val typeMapping: TypeMapping) {
         returnType = "SavedStateHandle"
       )
 
-      methods[5].checkSignaturesAndReturnType(
-        name = "toBundle",
-        returnType = "Bundle"
-      )
+      methods[5].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
     }
   }
 }

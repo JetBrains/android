@@ -34,9 +34,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.Mockito.verify
 
-/**
- * Verify that we can sync a Gradle project that applies the safe args plugin.
- */
+/** Verify that we can sync a Gradle project that applies the safe args plugin. */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
@@ -46,19 +44,20 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
     @Suppress("unused") // Accessed via reflection by JUnit
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val parameters = listOf(
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, SafeArgsMode.JAVA),
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, SafeArgsMode.KOTLIN)
-    )
+    val parameters =
+      listOf(
+        TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, SafeArgsMode.JAVA),
+        TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, SafeArgsMode.KOTLIN)
+      )
   }
 
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
   private var modificationCountBaseline = Long.MIN_VALUE
 
   @Before
@@ -71,18 +70,22 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
   @Test
   fun verifyExpectedSafeMode() {
     val listener = mock<SafeArgsModeModuleService.SafeArgsModeChangedListener>()
-    projectRule.project.messageBus.connect(fixture.projectDisposable).subscribe(
-      SafeArgsModeModuleService.MODE_CHANGED,
-      SafeArgsModeModuleService.SafeArgsModeChangedListener { module, mode ->
-        listener.onSafeArgsModeChanged(module, mode)
-      })
+    projectRule.project.messageBus
+      .connect(fixture.projectDisposable)
+      .subscribe(
+        SafeArgsModeModuleService.MODE_CHANGED,
+        SafeArgsModeModuleService.SafeArgsModeChangedListener { module, mode ->
+          listener.onSafeArgsModeChanged(module, mode)
+        }
+      )
 
     projectRule.load(params.project)
     projectRule.requestSyncAndWait()
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.safeArgsMode).isEqualTo(params.mode)
-    assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
+    assertThat(projectRule.project.safeArgsModeTracker.modificationCount)
+      .isGreaterThan(modificationCountBaseline)
     verify(listener).onSafeArgsModeChanged(facet.module, params.mode)
   }
 }

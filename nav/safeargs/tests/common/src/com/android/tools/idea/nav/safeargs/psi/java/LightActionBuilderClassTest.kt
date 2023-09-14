@@ -28,14 +28,13 @@ import org.junit.Test
 
 @RunsInEdt
 class LightActionBuilderClassTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   @Test
   fun canFindActionBuilderClasses() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -65,17 +64,29 @@ class LightActionBuilderClassTest {
               app:destination="@id/main" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
-    Truth.assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions.ActionFragment2ToMain", context)).isNull()
+    Truth.assertThat(
+        safeArgsRule.fixture.findClass(
+          "test.safeargs.Fragment2Directions.ActionFragment2ToMain",
+          context
+        )
+      )
+      .isNull()
 
     // Classes can be found with context
-    val actionBuilderClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions.ActionFragment1ToFragment2", context)
+    val actionBuilderClass =
+      safeArgsRule.fixture.findClass(
+        "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
+        context
+      )
     Truth.assertThat(actionBuilderClass).isInstanceOf(LightActionBuilderClass::class.java)
 
     // Check supers
@@ -91,15 +102,10 @@ class LightActionBuilderClassTest {
       methods[0].checkSignaturesAndReturnType(
         name = "setArgOne",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(
-          Parameter("arg", "String")
-        )
+        parameters = listOf(Parameter("arg", "String"))
       )
 
-      methods[1].checkSignaturesAndReturnType(
-        name = "getArgOne",
-        returnType = "String"
-      )
+      methods[1].checkSignaturesAndReturnType(name = "getArgOne", returnType = "String")
     }
   }
 
@@ -107,7 +113,7 @@ class LightActionBuilderClassTest {
   fun testOverriddenArguments() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -149,7 +155,9 @@ class LightActionBuilderClassTest {
               app:destination="@id/main" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -157,10 +165,20 @@ class LightActionBuilderClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // All resolved arguments are with default values, so it falls back to NavDirections.
-    Truth.assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions.ActionFragment2ToMain", context)).isNull()
+    Truth.assertThat(
+        safeArgsRule.fixture.findClass(
+          "test.safeargs.Fragment2Directions.ActionFragment2ToMain",
+          context
+        )
+      )
+      .isNull()
 
     // Classes can be found with context
-    val actionBuilderClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions.ActionFragment1ToFragment2", context)
+    val actionBuilderClass =
+      safeArgsRule.fixture.findClass(
+        "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
+        context
+      )
     Truth.assertThat(actionBuilderClass).isInstanceOf(LightActionBuilderClass::class.java)
 
     // Check supers
@@ -176,22 +194,15 @@ class LightActionBuilderClassTest {
       methods[0].checkSignaturesAndReturnType(
         name = "setOverriddenArg",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(
-          Parameter("overriddenArg", "String")
-        )
+        parameters = listOf(Parameter("overriddenArg", "String"))
       )
 
-      methods[1].checkSignaturesAndReturnType(
-        name = "getOverriddenArg",
-        returnType = "String"
-      )
+      methods[1].checkSignaturesAndReturnType(name = "getOverriddenArg", returnType = "String")
 
       methods[2].checkSignaturesAndReturnType(
         name = "setOverriddenArgWithDefaultValue",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(
-          Parameter("overriddenArgWithDefaultValue", "int")
-        )
+        parameters = listOf(Parameter("overriddenArgWithDefaultValue", "int"))
       )
 
       methods[3].checkSignaturesAndReturnType(
@@ -202,15 +213,10 @@ class LightActionBuilderClassTest {
       methods[4].checkSignaturesAndReturnType(
         name = "setArg",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(
-          Parameter("arg", "String")
-        )
+        parameters = listOf(Parameter("arg", "String"))
       )
 
-      methods[5].checkSignaturesAndReturnType(
-        name = "getArg",
-        returnType = "String"
-      )
+      methods[5].checkSignaturesAndReturnType(name = "getArg", returnType = "String")
     }
 
     // Check private constructor
@@ -219,10 +225,7 @@ class LightActionBuilderClassTest {
       constructors[0].checkSignaturesAndReturnType(
         name = "ActionFragment1ToFragment2",
         returnType = PsiTypes.nullType().presentableText,
-        parameters = listOf(
-          Parameter("overriddenArg", "String"),
-          Parameter("arg", "String")
-        )
+        parameters = listOf(Parameter("overriddenArg", "String"), Parameter("arg", "String"))
       )
     }
   }

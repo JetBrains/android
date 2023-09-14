@@ -31,21 +31,24 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtension
 import org.jetbrains.kotlin.storage.StorageManager
 
-/**
- * Safe Args Kotlin Synthetic module package provider
- */
+/** Safe Args Kotlin Synthetic module package provider */
 class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragmentProviderExtension {
-  override fun getPackageFragmentProvider(project: Project,
-                                          module: ModuleDescriptor,
-                                          storageManager: StorageManager,
-                                          trace: BindingTrace,
-                                          moduleInfo: ModuleInfo?,
-                                          lookupTracker: LookupTracker): PackageFragmentProvider? {
+  override fun getPackageFragmentProvider(
+    project: Project,
+    module: ModuleDescriptor,
+    storageManager: StorageManager,
+    trace: BindingTrace,
+    moduleInfo: ModuleInfo?,
+    lookupTracker: LookupTracker
+  ): PackageFragmentProvider? {
     val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
 
-    val packageDescriptors = KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors(module).takeIf { it.isNotEmpty() }
-                             ?: return null
+    val packageDescriptors =
+      KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors(module).takeIf {
+        it.isNotEmpty()
+      }
+        ?: return null
     return SafeArgsSyntheticPackageProvider(packageDescriptors)
   }
 }
@@ -53,7 +56,10 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
 class SafeArgsSyntheticPackageProvider(
   private val packageDescriptorProvider: Map<FqName, List<PackageFragmentDescriptor>>
 ) : PackageFragmentProviderOptimized {
-  override fun collectPackageFragments(fqName: FqName, packageFragments: MutableCollection<PackageFragmentDescriptor>) {
+  override fun collectPackageFragments(
+    fqName: FqName,
+    packageFragments: MutableCollection<PackageFragmentDescriptor>
+  ) {
     val descriptors = packageDescriptorProvider[fqName] ?: return
     packageFragments.addAll(descriptors)
   }
@@ -63,7 +69,8 @@ class SafeArgsSyntheticPackageProvider(
   }
 
   override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): List<FqName> {
-    return packageDescriptorProvider.asSequence()
+    return packageDescriptorProvider
+      .asSequence()
       .filter { (k, _) -> !k.isRoot && k.parent() == fqName }
       .mapTo(mutableListOf()) { it.key }
   }

@@ -21,9 +21,7 @@ import com.android.tools.idea.nav.safeargs.psi.java.SafeArgsLightBaseClass
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * A finder that can find instances of [LightDirectionsClass] by qualified name / package.
- */
+/** A finder that can find instances of [LightDirectionsClass] by qualified name / package. */
 class DirectionsClassFinder(project: Project) : SafeArgsClassFinderBase(project) {
   override fun findAll(facet: AndroidFacet): List<SafeArgsLightBaseClass> {
     return SafeArgsCacheModuleService.getInstance(facet).directions

@@ -33,17 +33,14 @@ import org.junit.Test
 
 @RunsInEdt
 class SafeArgsKotlinPackageDescriptorTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
+  @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.KOTLIN)
 
-  /**
-   * Check contributed args and directions class descriptors for single module case
-   */
+  /** Check contributed args and directions class descriptors for single module case */
   @Test
   fun checkContributorsOfPackage() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -76,49 +73,57 @@ class SafeArgsKotlinPackageDescriptorTest {
               android:id="@+id/action_main_to_fragment1"
               app:destination="@id/fragment1" />                      
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
-    val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
-      it is SafeArgsKtPackageProviderExtension
-    }
+    val safeArgProviderExtension =
+      PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
+        it is SafeArgsKtPackageProviderExtension
+      }
 
     val traceMock: BindingTrace = mock()
     val moduleSourceInfo = safeArgsRule.module.productionSourceInfo
     val moduleDescriptor = safeArgsRule.module.toDescriptor()
 
-    val fragmentProvider = safeArgProviderExtension.getPackageFragmentProvider(
-      project = safeArgsRule.project,
-      module = moduleDescriptor!!,
-      storageManager = LockBasedStorageManager.NO_LOCKS,
-      trace = traceMock,
-      moduleInfo = moduleSourceInfo,
-      lookupTracker = LookupTracker.DO_NOTHING
-    ) as SafeArgsSyntheticPackageProvider
+    val fragmentProvider =
+      safeArgProviderExtension.getPackageFragmentProvider(
+        project = safeArgsRule.project,
+        module = moduleDescriptor!!,
+        storageManager = LockBasedStorageManager.NO_LOCKS,
+        trace = traceMock,
+        moduleInfo = moduleSourceInfo,
+        lookupTracker = LookupTracker.DO_NOTHING
+      ) as SafeArgsSyntheticPackageProvider
 
     // Check contents for Fragment1
-    val classesMetadata1 = fragmentProvider
-      .getPackageFragments(FqName("test.safeargs"))
-      .flatMap { it.getMemberScope().classesInScope() }
-      .sortedBy { it.fqcn }
+    val classesMetadata1 =
+      fragmentProvider
+        .getPackageFragments(FqName("test.safeargs"))
+        .flatMap { it.getMemberScope().classesInScope() }
+        .sortedBy { it.fqcn }
 
-    assertThat(classesMetadata1.map { it.toString() }).containsExactly(
-      "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
-      "test.safeargs.Fragment1Directions",
-      "test.safeargs.MainDirections"
-    )
+    assertThat(classesMetadata1.map { it.toString() })
+      .containsExactly(
+        "test.safeargs.Fragment1Args: androidx.navigation.NavArgs",
+        "test.safeargs.Fragment1Directions",
+        "test.safeargs.MainDirections"
+      )
 
     // Check contents for Fragment2
-    val classesMetadata2 = fragmentProvider
-      .getPackageFragments(FqName("test.safeargs.sub1"))
-      .flatMap { it.getMemberScope().classesInScope() }
-      .sortedBy { it.fqcn }
+    val classesMetadata2 =
+      fragmentProvider
+        .getPackageFragments(FqName("test.safeargs.sub1"))
+        .flatMap { it.getMemberScope().classesInScope() }
+        .sortedBy { it.fqcn }
 
-    assertThat(classesMetadata2.map { it.toString() }).containsExactly(
-      "test.safeargs.sub1.Fragment2Args: androidx.navigation.NavArgs",
-      "test.safeargs.sub1.Fragment2Directions"
-    )
+    assertThat(classesMetadata2.map { it.toString() })
+      .containsExactly(
+        "test.safeargs.sub1.Fragment2Args: androidx.navigation.NavArgs",
+        "test.safeargs.sub1.Fragment2Directions"
+      )
   }
 }

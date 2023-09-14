@@ -30,8 +30,7 @@ import org.junit.Test
 
 @RunsInEdt
 class DumbModeTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   @Before
   fun setUp() {
@@ -42,7 +41,7 @@ class DumbModeTest {
   fun indexWhenDumbMode() {
     val project = safeArgsRule.project
     val xmlContent =
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -59,7 +58,8 @@ class DumbModeTest {
                   app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent()
+      """
+        .trimIndent()
     val navFile = safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
     safeArgsRule.waitForResourceRepositoryUpdates()
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
@@ -74,7 +74,8 @@ class DumbModeTest {
               android:name="arg2"
               app:argType="integer" />
         </fragment>
-      """.trimIndent()
+      """
+        .trimIndent()
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
     }
@@ -86,20 +87,22 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
 
-  private fun getNumberOfArgs(args: List<LightArgsClass>) = args.sumOf { it.destination.arguments.size }
+  private fun getNumberOfArgs(args: List<LightArgsClass>) =
+    args.sumOf { it.destination.arguments.size }
 
   @Test
   fun scopeDoesNotCacheStaleValuesInDumbMode() {
     val dumbService = DumbServiceImpl.getInstance(safeArgsRule.project)
     assertThat(dumbService.isDumb).isFalse()
 
-    // In dumb mode, add a resource and then request the current scope. In the past, this would cause
+    // In dumb mode, add a resource and then request the current scope. In the past, this would
+    // cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
     dumbService.isDumb = true
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/nav_main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -116,7 +119,9 @@ class DumbModeTest {
                 app:destination="@id/main" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
     safeArgsRule.waitForResourceRepositoryUpdates()
     val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
 

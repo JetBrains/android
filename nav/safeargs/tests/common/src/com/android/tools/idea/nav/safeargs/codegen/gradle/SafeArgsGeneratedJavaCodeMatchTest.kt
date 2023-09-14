@@ -36,6 +36,7 @@ import com.intellij.psi.PsiType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
@@ -45,39 +46,42 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 @RunsInEdt
 class SafeArgsGeneratedJavaCodeMatchTest {
   private val moduleName = "javaapp"
   private val projectRule = AndroidGradleProjectRule()
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
-  //TODO (b/162520387): Do not ignore these methods when testing.
-  private val IGNORED_METHODS = setOf("equals", "hashCode", "toString", "getActionId", "getArguments")
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
+  // TODO (b/162520387): Do not ignore these methods when testing.
+  private val IGNORED_METHODS =
+    setOf("equals", "hashCode", "toString", "getActionId", "getArguments")
 
-  @get:Rule
-  val expect: Expect = Expect.create()
+  @get:Rule val expect: Expect = Expect.create()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun initProject() {
     // to be able to change the project before import, we copy it into a temp folder
-    val testSrc = resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
+    val testSrc =
+      resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
     val container = temporaryFolder.newFile("TestApp")
     testSrc.toFile().copyRecursively(container, overwrite = true)
 
-    val settingsFile = container.resolve("settings.gradle").also {
-      assertWithMessage("settings file should exist").that(it.exists()).isTrue()
-    }
+    val settingsFile =
+      container.resolve("settings.gradle").also {
+        assertWithMessage("settings file should exist").that(it.exists()).isTrue()
+      }
     // update settings to only include the desired module
-    settingsFile.writeText("""
+    settingsFile.writeText(
+      """
       include ':$moduleName'
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     projectRule.fixture.testDataPath = temporaryFolder.root.absolutePath
     projectRule.load("TestApp") { projectRoot ->
@@ -89,7 +93,9 @@ class SafeArgsGeneratedJavaCodeMatchTest {
           // language=java
           """
             class FooClass
-          """.trimIndent())
+          """
+            .trimIndent()
+        )
       }
     }
 
@@ -101,9 +107,12 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
 
     LocalFileSystem.getInstance().refresh(false)
-    val codeOutDir = File(projectRule.project.basePath, "$moduleName/$PLUGIN_OUT_DIR").also {
-      assertWithMessage("should be able to find generated navigation code").that(it.exists()).isTrue()
-    }
+    val codeOutDir =
+      File(projectRule.project.basePath, "$moduleName/$PLUGIN_OUT_DIR").also {
+        assertWithMessage("should be able to find generated navigation code")
+          .that(it.exists())
+          .isTrue()
+      }
     // parse generated code
     val allGeneratedCode = listOf(codeOutDir).flatMap(::loadClasses).toSet()
     // delete generated code
@@ -127,14 +136,24 @@ class SafeArgsGeneratedJavaCodeMatchTest {
       val psiClass = psiFacade.findClass(generated.qualifiedName, scope)!!
       val psiDescription = psiClass.toDescription()
 
-      expect.withMessage(generated.qualifiedName).that(psiDescription.qualifiedName).isEqualTo(generated.qualifiedName)
-      expect.withMessage(generated.qualifiedName).that(psiDescription.methods).containsExactlyElementsIn(generated.methods)
-      expect.withMessage(generated.qualifiedName).that(psiDescription.fields).containsExactlyElementsIn(generated.fields)
+      expect
+        .withMessage(generated.qualifiedName)
+        .that(psiDescription.qualifiedName)
+        .isEqualTo(generated.qualifiedName)
+      expect
+        .withMessage(generated.qualifiedName)
+        .that(psiDescription.methods)
+        .containsExactlyElementsIn(generated.methods)
+      expect
+        .withMessage(generated.qualifiedName)
+        .that(psiDescription.fields)
+        .containsExactlyElementsIn(generated.fields)
     }
   }
 
   private fun loadClasses(classesOut: File): List<ClassDescription> {
-    return classesOut.walkTopDown()
+    return classesOut
+      .walkTopDown()
       .filter { it.name.endsWith(".java") }
       .toList()
       .flatMap { generatedSourceFile -> generatedSourceFile.loadClassesDescriptions() }
@@ -143,58 +162,67 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   private fun File.loadClassesDescriptions(): List<ClassDescription> {
     val descriptions = mutableListOf<ClassDescription>()
 
-    val virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this) ?: throw IllegalArgumentException("cannot find $this")
+    val virtual =
+      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this)
+        ?: throw IllegalArgumentException("cannot find $this")
     val psi = PsiManager.getInstance(projectRule.project).findFile(virtual)
     val uast = psi.toUElement()!!
-    uast.accept(object : AbstractUastVisitor() {
-      override fun visitClass(node: UClass): Boolean {
-        node.javaPsi.takeIf { it.modifierSet().contains(JvmModifier.PUBLIC) }
-          ?.toDescription()
-          ?.let { descriptions.add(it) }
-        return super.visitClass(node)
+    uast.accept(
+      object : AbstractUastVisitor() {
+        override fun visitClass(node: UClass): Boolean {
+          node.javaPsi
+            .takeIf { it.modifierSet().contains(JvmModifier.PUBLIC) }
+            ?.toDescription()
+            ?.let { descriptions.add(it) }
+          return super.visitClass(node)
+        }
       }
-    })
+    )
     return descriptions
   }
 
-  private fun PsiClass.toDescription() = ClassDescription(
-    qualifiedName = this.qualifiedName!!,
-    methods = (methods + constructors)
-      .filter { it.modifierSet().contains(JvmModifier.PUBLIC) }
-      .map { it.toDescription() }
-      .filter { !IGNORED_METHODS.contains(it.name) }
-      .sortedBy { it.name }
-      .toSet(),
-    fields = fields
-      .filter { it.modifierSet().contains(JvmModifier.PUBLIC) }
-      .map { it.toDescription() }
-      .sortedBy { it.name }
-      .toSet()
-  )
+  private fun PsiClass.toDescription() =
+    ClassDescription(
+      qualifiedName = this.qualifiedName!!,
+      methods =
+        (methods + constructors)
+          .filter { it.modifierSet().contains(JvmModifier.PUBLIC) }
+          .map { it.toDescription() }
+          .filter { !IGNORED_METHODS.contains(it.name) }
+          .sortedBy { it.name }
+          .toSet(),
+      fields =
+        fields
+          .filter { it.modifierSet().contains(JvmModifier.PUBLIC) }
+          .map { it.toDescription() }
+          .sortedBy { it.name }
+          .toSet()
+    )
 
-  private fun PsiMethod.toDescription() = MethodDescription(
-    name = this.name,
-    type = this.returnType?.toDescription(),
-    params = this.parameters
-      .filterIsInstance<PsiParameter>()
-      .map { it.toDescription() }
-      .toSet(),
-    modifiers = this.modifierSet()
-  )
+  private fun PsiMethod.toDescription() =
+    MethodDescription(
+      name = this.name,
+      type = this.returnType?.toDescription(),
+      params = this.parameters.filterIsInstance<PsiParameter>().map { it.toDescription() }.toSet(),
+      modifiers = this.modifierSet()
+    )
 
-  private fun PsiParameter.toDescription() = ParamDescription(
-    name = this.name,
-    type = this.type.toDescription(),
-    modifiers = this.modifierSet().filter { it != JvmModifier.PACKAGE_LOCAL }.toSet()
-  )
+  private fun PsiParameter.toDescription() =
+    ParamDescription(
+      name = this.name,
+      type = this.type.toDescription(),
+      modifiers = this.modifierSet().filter { it != JvmModifier.PACKAGE_LOCAL }.toSet()
+    )
 
-  private fun PsiField.toDescription() = FieldDescription(
-    name = this.name,
-    type = this.type.toDescription(),
-    modifiers = this.modifierSet()
-  )
+  private fun PsiField.toDescription() =
+    FieldDescription(
+      name = this.name,
+      type = this.type.toDescription(),
+      modifiers = this.modifierSet()
+    )
 
-  private fun PsiType.toDescription() = this.canonicalText.substringAfterLast('.').substringAfterLast('$')
+  private fun PsiType.toDescription() =
+    this.canonicalText.substringAfterLast('.').substringAfterLast('$')
 
   private data class ClassDescription(
     val qualifiedName: String,
@@ -206,19 +234,23 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     val name: String,
     val type: String?,
     val modifiers: Set<JvmModifier>,
-    val params: Set<ParamDescription>)
+    val params: Set<ParamDescription>
+  )
 
   private data class FieldDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<JvmModifier>)
+    val modifiers: Set<JvmModifier>
+  )
 
   private data class ParamDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<JvmModifier>)
+    val modifiers: Set<JvmModifier>
+  )
 
-  private fun PsiModifierListOwner.modifierSet() = JvmModifier.values().filter { hasModifier(it) }.toSet()
+  private fun PsiModifierListOwner.modifierSet() =
+    JvmModifier.values().filter { hasModifier(it) }.toSet()
 
   companion object {
     const val PLUGIN_OUT_DIR = "build/generated/source/navigation-args/debug"

@@ -29,23 +29,23 @@ import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * A base class for safe arg light class finder
- *
- */
+/** A base class for safe arg light class finder */
 abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElementFinder() {
 
   private fun findAll(project: Project): List<AndroidLightClassBase> {
     val provider = {
-      val result = SafeArgsEnabledFacetsProjectService.getInstance(project)
-        .modulesUsingSafeArgs
-        .asSequence()
-        .flatMap { facet -> findAll(facet).asSequence() }
-        .toList()
+      val result =
+        SafeArgsEnabledFacetsProjectService.getInstance(project)
+          .modulesUsingSafeArgs
+          .asSequence()
+          .flatMap { facet -> findAll(facet).asSequence() }
+          .toList()
 
-      CachedValueProvider.Result.create(result,
-                                        ProjectNavigationResourceModificationTracker.getInstance(project),
-                                        project.safeArgsModeTracker)
+      CachedValueProvider.Result.create(
+        result,
+        ProjectNavigationResourceModificationTracker.getInstance(project),
+        project.safeArgsModeTracker
+      )
     }
 
     val manager = CachedValuesManager.getManager(project)
@@ -55,18 +55,15 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
   abstract fun findAll(facet: AndroidFacet): List<AndroidLightClassBase>
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    return findAll(project)
-      .firstOrNull { lightClass ->
-        lightClass.qualifiedName == qualifiedName
-        && PsiSearchScopeUtil.isInScope(scope, lightClass)
-      }
+    return findAll(project).firstOrNull { lightClass ->
+      lightClass.qualifiedName == qualifiedName && PsiSearchScopeUtil.isInScope(scope, lightClass)
+    }
   }
 
   override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> {
     return findAll(project)
       .filter { lightClass ->
-        lightClass.qualifiedName == qualifiedName
-        && PsiSearchScopeUtil.isInScope(scope, lightClass)
+        lightClass.qualifiedName == qualifiedName && PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
       .toTypedArray()
   }
@@ -78,8 +75,8 @@ abstract class SafeArgsClassFinderBase(private val project: Project) : PsiElemen
 
     return findAll(psiPackage.project)
       .filter { lightClass ->
-        psiPackage.qualifiedName == lightClass.qualifiedName?.substringBeforeLast('.')
-        && PsiSearchScopeUtil.isInScope(scope, lightClass)
+        psiPackage.qualifiedName == lightClass.qualifiedName?.substringBeforeLast('.') &&
+          PsiSearchScopeUtil.isInScope(scope, lightClass)
       }
       .toTypedArray()
   }

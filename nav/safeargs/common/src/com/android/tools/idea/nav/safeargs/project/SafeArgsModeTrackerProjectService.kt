@@ -28,28 +28,29 @@ import net.jcip.annotations.ThreadSafe
  * Component that owns a project-wide tracker which gets updated whenever any module's
  * `safeArgsMode` is updated.
  *
- * See also: [SafeArgsModeModuleService]
- * See also: [safeArgsModeTracker]
+ * See also: [SafeArgsModeModuleService] See also: [safeArgsModeTracker]
  */
 @ThreadSafe
 @Service(Service.Level.PROJECT)
-class SafeArgsModeTrackerProjectService(project: Project) : ModificationTracker, Disposable.Default {
+class SafeArgsModeTrackerProjectService(project: Project) :
+  ModificationTracker, Disposable.Default {
   companion object {
-    fun getInstance(project: Project) = project.getService(SafeArgsModeTrackerProjectService::class.java)!!
+    fun getInstance(project: Project) =
+      project.getService(SafeArgsModeTrackerProjectService::class.java)!!
   }
 
   init {
-    project.messageBus.connect(this).subscribe(
-      SafeArgsModeModuleService.MODE_CHANGED,
-      SafeArgsModeModuleService.SafeArgsModeChangedListener { _, _ ->
-        tracker.incModificationCount()
-      }
-    )
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        SafeArgsModeModuleService.MODE_CHANGED,
+        SafeArgsModeModuleService.SafeArgsModeChangedListener { _, _ ->
+          tracker.incModificationCount()
+        }
+      )
   }
 
-  /**
-   * A thread-safe modification tracker that should get updated
-   */
+  /** A thread-safe modification tracker that should get updated */
   private val tracker = SimpleModificationTracker()
 
   override fun getModificationCount(): Long = tracker.modificationCount

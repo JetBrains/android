@@ -38,17 +38,18 @@ import org.mockito.Mockito.verify
 /**
  * Test that our project-wide modification tracker works across multiple modules.
  *
- * This needs to be a gradle test because that's the only way right now we can support multi-module configurations
+ * This needs to be a gradle test because that's the only way right now we can support multi-module
+ * configurations
  */
 @RunsInEdt
 class ProjectNavigationResourceModificationTrackerTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Before
   fun setUp() {
@@ -58,38 +59,57 @@ class ProjectNavigationResourceModificationTrackerTest {
   }
 
   /**
-   *  Project structure:
-   *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
+   * Project structure: base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep
+   * module(safe arg mode is on)
    */
   @Test
   fun multiModuleModificationTrackerTest() {
     projectRule.requestSyncAndWait()
-    val baseLineNumber = ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
+    val baseLineNumber =
+      ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
     val listener = mock<NavigationResourcesChangeListener>()
     projectRule.project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, listener)
 
-    val navFileInBaseAppModule = projectRule.project.baseDir.findFileByRelativePath(
-      "app/src/main/res/navigation/nav_graph.xml")!!
+    val navFileInBaseAppModule =
+      projectRule.project.baseDir.findFileByRelativePath(
+        "app/src/main/res/navigation/nav_graph.xml"
+      )!!
     val appModule = navFileInBaseAppModule.getModule(projectRule.project)!!
 
-    val navFileInDepModule = projectRule.project.baseDir.findFileByRelativePath(
-      "mylibrary2/src/main/res/navigation/libnav_graph.xml")!!
+    val navFileInDepModule =
+      projectRule.project.baseDir.findFileByRelativePath(
+        "mylibrary2/src/main/res/navigation/libnav_graph.xml"
+      )!!
     val depModule = navFileInDepModule.getModule(projectRule.project)!!
 
     // modify a nav file in base-app module without saving
     WriteCommandAction.runWriteCommandAction(fixture.project) {
-      navFileInBaseAppModule.replaceWithoutSaving("FirstFragment", "FirstFragmentChanged", fixture.project)
+      navFileInBaseAppModule.replaceWithoutSaving(
+        "FirstFragment",
+        "FirstFragmentChanged",
+        fixture.project
+      )
     }
     // picked up 1 document change
-    assertThat(ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount).isEqualTo(baseLineNumber + 1)
+    assertThat(
+        ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
+      )
+      .isEqualTo(baseLineNumber + 1)
     verify(listener).onNavigationResourcesChanged(appModule)
 
     // modify a nav file in dep module without saving
     WriteCommandAction.runWriteCommandAction(fixture.project) {
-      navFileInDepModule.replaceWithoutSaving("FirstFragment", "FirstFragmentChanged", fixture.project)
+      navFileInDepModule.replaceWithoutSaving(
+        "FirstFragment",
+        "FirstFragmentChanged",
+        fixture.project
+      )
     }
     // picked up 1 document change
-    assertThat(ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount).isEqualTo(baseLineNumber + 2)
+    assertThat(
+        ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
+      )
+      .isEqualTo(baseLineNumber + 2)
     verify(listener).onNavigationResourcesChanged(depModule)
   }
 }

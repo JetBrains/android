@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
@@ -35,17 +34,16 @@ import org.jetbrains.android.facet.AndroidFacet
 class SafeArgsCacheModuleService private constructor(module: Module) : Disposable.Default {
   private class Status(val directions: List<LightDirectionsClass>, val args: List<LightArgsClass>)
 
-  private val currentStatus by NavStatusCache(this, module, SafeArgsMode.JAVA) { navInfo ->
-    val directions = navInfo.entries
-      .flatMap { entry -> createLightDirectionsClasses(navInfo, entry) }
-      .toList()
+  private val currentStatus by
+    NavStatusCache(this, module, SafeArgsMode.JAVA) { navInfo ->
+      val directions =
+        navInfo.entries.flatMap { entry -> createLightDirectionsClasses(navInfo, entry) }.toList()
 
-    val args = navInfo.entries
-      .flatMap { entry -> createLightArgsClasses(navInfo, entry) }
-      .toList()
+      val args =
+        navInfo.entries.flatMap { entry -> createLightArgsClasses(navInfo, entry) }.toList()
 
-    Status(directions, args)
-  }
+      Status(directions, args)
+    }
 
   val directions: List<LightDirectionsClass>
     get() = currentStatus?.directions ?: emptyList()
@@ -53,14 +51,20 @@ class SafeArgsCacheModuleService private constructor(module: Module) : Disposabl
   val args: List<LightArgsClass>
     get() = currentStatus?.args ?: emptyList()
 
-  private fun createLightDirectionsClasses(navInfo: NavInfo, navEntry: NavEntry): Collection<LightDirectionsClass> {
+  private fun createLightDirectionsClasses(
+    navInfo: NavInfo,
+    navEntry: NavEntry
+  ): Collection<LightDirectionsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
       .map { destination -> LightDirectionsClass(navInfo, navEntry, destination) }
       .toSet()
   }
 
-  private fun createLightArgsClasses(navInfo: NavInfo, navEntry: NavEntry): Collection<LightArgsClass> {
+  private fun createLightArgsClasses(
+    navInfo: NavInfo,
+    navEntry: NavEntry
+  ): Collection<LightArgsClass> {
     return navEntry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }
       .map { destination -> LightArgsClass(navInfo, navEntry, destination) }

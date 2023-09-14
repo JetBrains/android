@@ -29,36 +29,40 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Tests that would normally go in [LightArgsBuilderClassTest] and [LightArgsClass] but are related to
- * a bunch of arguments types that we want to test with parametrization.
+ * Tests that would normally go in [LightArgsBuilderClassTest] and [LightArgsClass] but are related
+ * to a bunch of arguments types that we want to test with parametrization.
  */
 @RunsInEdt
 @RunWith(Parameterized::class)
 class LightArgsAndBuilderClassNullabilityAnnotationTest(
   private val typeNullabilityMapping: TypeNullabilityMapping
 ) {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun data() = listOf(
-      TypeNullabilityMapping("integer", PsiTypes.intType().name, false),
-      TypeNullabilityMapping(PsiTypes.floatType().name, false),
-      TypeNullabilityMapping(PsiTypes.longType().name, false),
-      TypeNullabilityMapping(PsiTypes.booleanType().name, false),
-      TypeNullabilityMapping("string", "String", true),
-      TypeNullabilityMapping("reference", PsiTypes.intType().name, false),
-      TypeNullabilityMapping("test.safeargs.MyCustomType", "MyCustomType", true) // e.g Parcelable, Serializable
-    )
+    fun data() =
+      listOf(
+        TypeNullabilityMapping("integer", PsiTypes.intType().name, false),
+        TypeNullabilityMapping(PsiTypes.floatType().name, false),
+        TypeNullabilityMapping(PsiTypes.longType().name, false),
+        TypeNullabilityMapping(PsiTypes.booleanType().name, false),
+        TypeNullabilityMapping("string", "String", true),
+        TypeNullabilityMapping("reference", PsiTypes.intType().name, false),
+        TypeNullabilityMapping(
+          "test.safeargs.MyCustomType",
+          "MyCustomType",
+          true
+        ) // e.g Parcelable, Serializable
+      )
   }
 
   @Test
   fun expectedBuilderConstructorsAndMethodsAreCreated_withNullabilityAnnotations() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -75,7 +79,9 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
                 app:nullable="true"/>
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -83,7 +89,9 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val builderClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context) as LightArgsBuilderClass
+    val builderClass =
+      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs.Builder", context)
+        as LightArgsBuilderClass
 
     // For the above xml, we expect a getter and setter for each <argument> tag as well as a final
     // `build()` method that generates its parent args class.
@@ -93,9 +101,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
       methods[0].checkSignaturesAndReturnType(
         name = "setArg1",
         returnType = "Builder",
-        parameters = listOf(
-          Parameter("arg1", typeNullabilityMapping.after)
-        )
+        parameters = listOf(Parameter("arg1", typeNullabilityMapping.after))
       )
 
       methods[1].checkSignaturesAndReturnType(
@@ -104,10 +110,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
         isReturnTypeNullable = typeNullabilityMapping.isReturnTypeNullable
       )
 
-      methods[2].checkSignaturesAndReturnType(
-        name = "build",
-        returnType = "FragmentArgs"
-      )
+      methods[2].checkSignaturesAndReturnType(name = "build", returnType = "FragmentArgs")
     }
   }
 
@@ -115,7 +118,7 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
   fun expectedGettersAndFromBundleMethodsAreCreated_withNullabilityAnnotations() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -132,7 +135,9 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
                 app:nullable="true"/>
           </fragment>
         </navigation>
-        """.trimIndent())
+        """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -140,7 +145,8 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment {}")
 
     // Classes can be found with context
-    val argClass = safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
+    val argClass =
+      safeArgsRule.fixture.findClass("test.safeargs.FragmentArgs", context) as LightArgsClass
 
     argClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(3)
@@ -153,19 +159,21 @@ class LightArgsAndBuilderClassNullabilityAnnotationTest(
       methods[1].checkSignaturesAndReturnType(
         name = "fromBundle",
         returnType = "FragmentArgs",
-        parameters = listOf(
-          Parameter("bundle", "Bundle")
-        )
+        parameters = listOf(Parameter("bundle", "Bundle"))
       )
 
-      methods[2].checkSignaturesAndReturnType(
-        name = "toBundle",
-        returnType = "Bundle"
-      )
+      methods[2].checkSignaturesAndReturnType(name = "toBundle", returnType = "Bundle")
     }
   }
 }
 
-data class TypeNullabilityMapping(val before: String, val after: String, val isReturnTypeNullable: Boolean) {
-  constructor(beforeAndAfter: String, nullability: Boolean) : this(beforeAndAfter, beforeAndAfter, nullability)
+data class TypeNullabilityMapping(
+  val before: String,
+  val after: String,
+  val isReturnTypeNullable: Boolean
+) {
+  constructor(
+    beforeAndAfter: String,
+    nullability: Boolean
+  ) : this(beforeAndAfter, beforeAndAfter, nullability)
 }

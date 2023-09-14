@@ -20,12 +20,11 @@ import com.android.tools.idea.nav.safeargs.psi.java.LightActionBuilderClass
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * A finder that can find instances of [LightActionBuilderClass] by qualified name / package.
- */
+/** A finder that can find instances of [LightActionBuilderClass] by qualified name / package. */
 class ActionBuilderClassFinder(project: Project) : SafeArgsClassFinderBase(project) {
   override fun findAll(facet: AndroidFacet): List<LightActionBuilderClass> {
-    return SafeArgsCacheModuleService.getInstance(facet).directions
+    return SafeArgsCacheModuleService.getInstance(facet)
+      .directions
       .flatMap { it.innerClasses.toList() }
       .filterIsInstance<LightActionBuilderClass>()
   }

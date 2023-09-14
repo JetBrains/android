@@ -28,21 +28,21 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
 
 @RunsInEdt
 class SafeArgsKtCompletionContributorTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Before
   fun setUp() {
@@ -58,7 +58,9 @@ class SafeArgsKtCompletionContributorTest {
           """
             package com.example.myapplication
             class FooClass
-          """.trimIndent())
+          """
+            .trimIndent()
+        )
       }
     }
 
@@ -68,18 +70,21 @@ class SafeArgsKtCompletionContributorTest {
   /**
    * Check args and directions classes shown up in the completions
    *
-   * Test Project structure:
-   * base app module(safe arg mode is on) --> lib dep module(safe arg mode is on)
+   * Test Project structure: base app module(safe arg mode is on) --> lib dep module(safe arg mode
+   * is on)
    */
   @Test
   fun testBasicCompletion() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.replaceWithSaving(
         "class FooClass",
-        //language=kotlin
+        // language=kotlin
         """
         class FooClass {
             fun myTest() {
@@ -88,8 +93,10 @@ class SafeArgsKtCompletionContributorTest {
                 val generatedClass = 
             }
         }
-      """.trimIndent(),
-        fixture.project)
+      """
+          .trimIndent(),
+        fixture.project
+      )
     }
 
     fixture.openFileInEditor(file!!)
@@ -98,73 +105,86 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("val argsClass = |")
     fixture.type("Args")
     fixture.completeBasic()
-    val argsElements = fixture.lookupElements!!
-      .map {
-        val presentation = LookupElementPresentation()
-        it.renderElement(presentation)
-        presentation
-      }
-      .map { it.itemText + " " + it.tailText }
+    val argsElements =
+      fixture.lookupElements!!
+        .map {
+          val presentation = LookupElementPresentation()
+          it.renderElement(presentation)
+          presentation
+        }
+        .map { it.itemText + " " + it.tailText }
 
-    assertThat(argsElements).containsAllOf(
-      "FirstFragmentArgs  (com.example.mylibrary)",
-      "SecondFragmentArgs  (com.example.myapplication)",
-      "SecondFragmentArgs  (com.example.mylibrary)")
+    assertThat(argsElements)
+      .containsAllOf(
+        "FirstFragmentArgs  (com.example.mylibrary)",
+        "SecondFragmentArgs  (com.example.myapplication)",
+        "SecondFragmentArgs  (com.example.mylibrary)"
+      )
 
     // check directions classes
     fixture.moveCaret("val directionsClass = |")
     fixture.type("Directions")
     fixture.completeBasic()
-    val directionsElements = fixture.lookupElements!!
-      .map {
-        val presentation = LookupElementPresentation()
-        it.renderElement(presentation)
-        presentation
-      }
-      .map { it.itemText + " " + it.tailText }
+    val directionsElements =
+      fixture.lookupElements!!
+        .map {
+          val presentation = LookupElementPresentation()
+          it.renderElement(presentation)
+          presentation
+        }
+        .map { it.itemText + " " + it.tailText }
 
-    assertThat(directionsElements).containsAllOf(
-      "SecondFragmentDirections  (com.example.myapplication)",
-      "FirstFragmentDirections  (com.example.mylibrary)",
-      "SecondFragmentDirections  (com.example.mylibrary)")
-
+    assertThat(directionsElements)
+      .containsAllOf(
+        "SecondFragmentDirections  (com.example.myapplication)",
+        "FirstFragmentDirections  (com.example.mylibrary)",
+        "SecondFragmentDirections  (com.example.mylibrary)"
+      )
 
     // check all safe args classes
     fixture.moveCaret("val generatedClass = |")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements!!
-      .map {
-        val presentation = LookupElementPresentation()
-        it.renderElement(presentation)
-        presentation
-      }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      .map { it.itemText + " " + it.tailText }
+    val allElements =
+      fixture.lookupElements!!
+        .map {
+          val presentation = LookupElementPresentation()
+          it.renderElement(presentation)
+          presentation
+        }
+        .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+        .map { it.itemText + " " + it.tailText }
 
-    assertThat(allElements).containsAllOf(
-      "FirstFragmentArgs  (com.example.mylibrary)",
-      "SecondFragmentArgs  (com.example.myapplication)",
-      "SecondFragmentArgs  (com.example.mylibrary)",
-      "SecondFragmentDirections  (com.example.myapplication)",
-      "FirstFragmentDirections  (com.example.mylibrary)",
-      "SecondFragmentDirections  (com.example.mylibrary)")
+    assertThat(allElements)
+      .containsAllOf(
+        "FirstFragmentArgs  (com.example.mylibrary)",
+        "SecondFragmentArgs  (com.example.myapplication)",
+        "SecondFragmentArgs  (com.example.mylibrary)",
+        "SecondFragmentDirections  (com.example.myapplication)",
+        "FirstFragmentDirections  (com.example.mylibrary)",
+        "SecondFragmentDirections  (com.example.mylibrary)"
+      )
   }
 
   @Test
   fun testCompletionInImports() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.replaceWithSaving(
         "class FooClass",
-        //language=kotlin
+        // language=kotlin
         """
         import com.
         import com.example.mylibrary.
         class FooClass
-      """.trimIndent(),
-        fixture.project)
+      """
+          .trimIndent(),
+        fixture.project
+      )
     }
 
     fixture.openFileInEditor(file!!)
@@ -185,38 +205,46 @@ class SafeArgsKtCompletionContributorTest {
     // (Just for sanity check, completions are not provided by [SafeArgsKtCompletionContributor])
     fixture.moveCaret("import com.example.mylibrary.|")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements!!
-      .map {
-        val presentation = LookupElementPresentation()
-        it.renderElement(presentation)
-        presentation
-      }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      .map { it.itemText + " " + it.tailText }
+    val allElements =
+      fixture.lookupElements!!
+        .map {
+          val presentation = LookupElementPresentation()
+          it.renderElement(presentation)
+          presentation
+        }
+        .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+        .map { it.itemText + " " + it.tailText }
 
-    assertThat(allElements).containsAllOf(
-      "FirstFragmentArgs  (com.example.mylibrary)",
-      "FirstFragmentDirections  (com.example.mylibrary)",
-      "SecondFragmentArgs  (com.example.mylibrary)",
-      "SecondFragmentDirections  (com.example.mylibrary)")
+    assertThat(allElements)
+      .containsAllOf(
+        "FirstFragmentArgs  (com.example.mylibrary)",
+        "FirstFragmentDirections  (com.example.mylibrary)",
+        "SecondFragmentArgs  (com.example.mylibrary)",
+        "SecondFragmentDirections  (com.example.mylibrary)"
+      )
   }
 
   @Test
   fun testCompletionWithReceiver() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.replaceWithSaving(
         "class FooClass",
-        //language=kotlin
+        // language=kotlin
         """
         class FooClass {
           val a = com.
           val b = com.example.mylibrary.
         }
-      """.trimIndent(),
-        fixture.project)
+      """
+          .trimIndent(),
+        fixture.project
+      )
     }
 
     fixture.openFileInEditor(file!!)
@@ -237,19 +265,22 @@ class SafeArgsKtCompletionContributorTest {
     // (Just for sanity check, completions are not provided by [SafeArgsKtCompletionContributor])
     fixture.moveCaret("com.example.mylibrary.|")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements!!
-      .map {
-        val presentation = LookupElementPresentation()
-        it.renderElement(presentation)
-        presentation
-      }
-      .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
-      .map { it.itemText + " " + it.tailText }
+    val allElements =
+      fixture.lookupElements!!
+        .map {
+          val presentation = LookupElementPresentation()
+          it.renderElement(presentation)
+          presentation
+        }
+        .filter { it.itemText!!.endsWith("Args") || it.itemText!!.endsWith("Directions") }
+        .map { it.itemText + " " + it.tailText }
 
-    assertThat(allElements).containsAllOf(
-      "FirstFragmentArgs  (com.example.mylibrary)",
-      "FirstFragmentDirections  (com.example.mylibrary)",
-      "SecondFragmentArgs  (com.example.mylibrary)",
-      "SecondFragmentDirections  (com.example.mylibrary)")
+    assertThat(allElements)
+      .containsAllOf(
+        "FirstFragmentArgs  (com.example.mylibrary)",
+        "FirstFragmentDirections  (com.example.mylibrary)",
+        "SecondFragmentArgs  (com.example.mylibrary)",
+        "SecondFragmentDirections  (com.example.mylibrary)"
+      )
   }
 }

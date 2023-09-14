@@ -46,11 +46,13 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
 
     fun getDataForFile(project: Project, file: VirtualFile): NavXmlData? {
       ApplicationManager.getApplication().assertReadAccessAllowed()
-      val navXmlData = FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project) ?: return null
+      val navXmlData =
+        FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project) ?: return null
 
       // Verify that this is a navigation resource file before returning.
       val containingFolderName = file.parent?.name ?: return null
-      if (ResourceFolderType.getFolderType(containingFolderName) != ResourceFolderType.NAVIGATION) return null
+      if (ResourceFolderType.getFolderType(containingFolderName) != ResourceFolderType.NAVIGATION)
+        return null
 
       return navXmlData
     }
@@ -58,8 +60,10 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
 
   private val jaxbContext = JAXBContext.newInstance(MutableNavNavigationData::class.java)
   // JAXB marshallers / unmarshallers are not thread-safe, so create a new one each time
-  private val jaxbSerializer get() = jaxbContext.createMarshaller()
-  private val jaxbDeserializer get() = jaxbContext.createUnmarshaller()
+  private val jaxbSerializer
+    get() = jaxbContext.createMarshaller()
+  private val jaxbDeserializer
+    get() = jaxbContext.createUnmarshaller()
 
   override fun getVersion() = 11
   override fun dependsOnFileContent() = true
@@ -74,15 +78,17 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
   }
 
   /**
-   * Defines the data externalizer handling the serialization/de-serialization of indexed information.
+   * Defines the data externalizer handling the serialization/de-serialization of indexed
+   * information.
    */
   override fun getValueExternalizer(): DataExternalizer<NavXmlData> {
     return object : DataExternalizer<NavXmlData> {
       override fun save(out: DataOutput, value: NavXmlData) {
-        val outBytes = ByteArrayOutputStream().use { writer ->
-          jaxbSerializer.marshal(value.root, writer)
-          writer.toByteArray()
-        }
+        val outBytes =
+          ByteArrayOutputStream().use { writer ->
+            jaxbSerializer.marshal(value.root, writer)
+            writer.toByteArray()
+          }
         out.writeInt(outBytes.size)
         out.write(outBytes)
       }
@@ -90,7 +96,10 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
       override fun read(`in`: DataInput): NavXmlData {
         val inBytes = ByteArray(`in`.readInt())
         `in`.readFully(inBytes)
-        val rootNav = ByteArrayInputStream(inBytes).use { bytes -> jaxbDeserializer.unmarshal(bytes) as NavNavigationData }
+        val rootNav =
+          ByteArrayInputStream(inBytes).use { bytes ->
+            jaxbDeserializer.unmarshal(bytes) as NavNavigationData
+          }
         return NavXmlData(rootNav)
       }
     }
@@ -103,7 +112,8 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
         if (!text.contains("<navigation")) return null
 
         return try {
-          val rootNav = jaxbDeserializer.unmarshal(StringReader(text.toString())) as NavNavigationData
+          val rootNav =
+            jaxbDeserializer.unmarshal(StringReader(text.toString())) as NavNavigationData
           NavXmlData(rootNav)
         }
         // Normally we'd just catch explicit exceptions, like UnmarshalException, but JAXB also
@@ -111,7 +121,10 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
         // failed, and we definitely don't want any exceptions to leak to our users here, to be safe
         // we just catch and log all possible problems.
         catch (e: Throwable) {
-          getLog().info("${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\": ${e.message}")
+          getLog()
+            .info(
+              "${NavXmlIndex::class.java.simpleName} skipping over \"${inputData.file.path}\": ${e.message}"
+            )
           null
         }
       }

@@ -51,8 +51,8 @@ data class SafeArgsXmlTag(
 
   override fun isEquivalentTo(another: PsiElement?): Boolean {
     val anotherSafeArgsXmlTag = another as? SafeArgsXmlTag ?: return false
-    return xmlTag.isEquivalentTo(xmlTag)
-           && name == anotherSafeArgsXmlTag.name
-           && containerIdentifier == anotherSafeArgsXmlTag.containerIdentifier
+    return xmlTag.isEquivalentTo(xmlTag) &&
+      name == anotherSafeArgsXmlTag.name &&
+      containerIdentifier == anotherSafeArgsXmlTag.containerIdentifier
   }
 }

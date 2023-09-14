@@ -21,7 +21,6 @@ import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
-import com.android.utils.usLocaleCapitalize
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -33,7 +32,6 @@ import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.augment.AndroidLightClassBase
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Inner class that is generated inside a Directions class, which helps build actions.
@@ -46,17 +44,28 @@ class LightActionBuilderClass(
   private val directionsClass: LightDirectionsClass,
   private val action: NavActionData,
   private val backingResourceFile: XmlFile?,
-) : AndroidLightClassBase(PsiManager.getInstance(navInfo.facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
+) :
+  AndroidLightClassBase(
+    PsiManager.getInstance(navInfo.facet.module.project),
+    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)
+  ) {
   private val NAV_DIRECTIONS_FQCN = "androidx.navigation.NavDirections"
   private val name: String = className
   private val qualifiedName: String = "${directionsClass.qualifiedName}.$name"
   private val _constructors by lazy { computeConstructors() }
   private val _methods by lazy { computeMethods() }
   private val _fields by lazy { computeFields() }
-  private val navDirectionsType by lazy { PsiType.getTypeByName(NAV_DIRECTIONS_FQCN, project, this.resolveScope) }
-  private val navDirectionsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_DIRECTIONS_FQCN, this.resolveScope) }
+  private val navDirectionsType by lazy {
+    PsiType.getTypeByName(NAV_DIRECTIONS_FQCN, project, this.resolveScope)
+  }
+  private val navDirectionsClass by lazy {
+    JavaPsiFacade.getInstance(project).findClass(NAV_DIRECTIONS_FQCN, this.resolveScope)
+  }
   private val _navigationElement by lazy {
-    (directionsClass.navigationElement as? XmlTag)?.findFirstMatchingElementByTraversingUp(SdkConstants.TAG_ACTION, action.id)
+    (directionsClass.navigationElement as? XmlTag)?.findFirstMatchingElementByTraversingUp(
+      SdkConstants.TAG_ACTION,
+      action.id
+    )
   }
 
   override fun getName() = name
@@ -81,32 +90,41 @@ class LightActionBuilderClass(
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
 
-    return action.arguments.flatMap { arg ->
-      // Create a getter and setter per argument
-      val argType = arg.parsePsiType(navInfo.packageName, this)
-      val setter = createMethod(name = "set${arg.name.toUpperCamelCase()}",
-                                navigationElement = getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(thisType))
-        .addParameter(arg.name.toCamelCase(), argType)
+    return action.arguments
+      .flatMap { arg ->
+        // Create a getter and setter per argument
+        val argType = arg.parsePsiType(navInfo.packageName, this)
+        val setter =
+          createMethod(
+              name = "set${arg.name.toUpperCamelCase()}",
+              navigationElement = getFieldNavigationElementByName(arg.name),
+              returnType = annotateNullability(thisType)
+            )
+            .addParameter(arg.name.toCamelCase(), argType)
 
-      val getter = createMethod(name = "get${arg.name.toUpperCamelCase()}",
-                                navigationElement = getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(argType, arg.isNonNull()))
+        val getter =
+          createMethod(
+            name = "get${arg.name.toUpperCamelCase()}",
+            navigationElement = getFieldNavigationElementByName(arg.name),
+            returnType = annotateNullability(argType, arg.isNonNull())
+          )
 
-      listOf(setter, getter)
-    }.toTypedArray()
+        listOf(setter, getter)
+      }
+      .toTypedArray()
   }
 
   private fun computeConstructors(): Array<PsiMethod> {
-    val privateConstructor = createConstructor().apply {
-      action.arguments.forEach { arg ->
-        if (arg.defaultValue == null) {
-          val argType = arg.parsePsiType(navInfo.packageName, this)
-          this.addParameter(arg.name.toCamelCase(), argType)
+    val privateConstructor =
+      createConstructor().apply {
+        action.arguments.forEach { arg ->
+          if (arg.defaultValue == null) {
+            val argType = arg.parsePsiType(navInfo.packageName, this)
+            this.addParameter(arg.name.toCamelCase(), argType)
+          }
         }
+        this.setModifiers(PsiModifier.PRIVATE)
       }
-      this.setModifiers(PsiModifier.PRIVATE)
-    }
 
     return arrayOf(privateConstructor)
   }
@@ -117,10 +135,15 @@ class LightActionBuilderClass(
     return action.arguments
       .asSequence()
       .map { arg ->
-        // Since we support args overrides, we first try to locate argument tag within current action. If not found,
+        // Since we support args overrides, we first try to locate argument tag within current
+        // action. If not found,
         // we search in the target destination tag.
-        val targetArgumentTag = _navigationElement?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
-                                ?: targetDestinationTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+        val targetArgumentTag =
+          _navigationElement?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+            ?: targetDestinationTag?.findChildTagElementByNameAttr(
+              SdkConstants.TAG_ARGUMENT,
+              arg.name
+            )
         createField(arg, navInfo.packageName, targetArgumentTag)
       }
       .toList()

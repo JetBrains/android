@@ -44,19 +44,24 @@ import org.jetbrains.kotlin.storage.StorageManager
 /**
  * A module service which stores safe args kt package descriptors([KtArgsPackageDescriptor]s and
  * [KtDirectionsPackageDescriptor]s) by querying from [NavXmlIndex].
- *
  */
 class KtDescriptorCacheModuleService(private val module: Module) : Disposable.Default {
   private val fetcher = NavInfoFetcher(this, module, SafeArgsMode.KOTLIN)
 
-  private data class QualifiedDescriptor(val fqName: FqName, val descriptor: PackageFragmentDescriptor)
+  private data class QualifiedDescriptor(
+    val fqName: FqName,
+    val descriptor: PackageFragmentDescriptor
+  )
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = module.getService(KtDescriptorCacheModuleService::class.java)!!
+    fun getInstance(module: Module) =
+      module.getService(KtDescriptorCacheModuleService::class.java)!!
   }
 
-  fun getDescriptors(moduleDescriptor: ModuleDescriptor): Map<FqName, List<PackageFragmentDescriptor>> {
+  fun getDescriptors(
+    moduleDescriptor: ModuleDescriptor
+  ): Map<FqName, List<PackageFragmentDescriptor>> {
     ProgressManager.checkCanceled()
 
     val navInfo = fetcher.getCurrentNavInfo() ?: return emptyMap()
@@ -64,12 +69,13 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
     return navInfo.entries
       .asSequence()
       .flatMap { navEntry ->
-        val sourceElement = navEntry.backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
+        val sourceElement =
+          navEntry.backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
         val navFileInfo = SafeArgsNavFileInfo(moduleDescriptor, module, navInfo, navEntry)
 
         val packages =
           createArgsPackages(navFileInfo, sourceElement) +
-          createDirectionsPackages(navFileInfo, sourceElement)
+            createDirectionsPackages(navFileInfo, sourceElement)
 
         packages.asSequence()
       }
@@ -85,36 +91,38 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
       .asSequence()
       .filter { destination -> destination.actions.isNotEmpty() }
       .mapNotNull { destination ->
-        val fqName = destination.name.let { name ->
-          val resolvedName = if (!name.startsWith('.')) name else "${navFileInfo.navInfo.packageName}$name"
-          resolvedName + "Directions"
-        }
+        val fqName =
+          destination.name.let { name ->
+            val resolvedName =
+              if (!name.startsWith('.')) name else "${navFileInfo.navInfo.packageName}$name"
+            resolvedName + "Directions"
+          }
 
         val className = fqName.substringAfterLast('.').let { Name.identifier(it) }
         val packageName = FqName(fqName.substringBeforeLast('.'))
 
-        val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
-                                      ?.findXmlTagById(destination.id)
-                                      ?.let {
-                                        XmlSourceElement(
-                                          SafeArgsXmlTag(
-                                            it as XmlTagImpl,
-                                            IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
-                                            className.asString(),
-                                            packageName.asString()
-                                          )
-                                        )
-                                      }
-                                    ?: sourceElement
+        val resolvedSourceElement =
+          (sourceElement.getPsi() as? XmlFile)?.findXmlTagById(destination.id)?.let {
+            XmlSourceElement(
+              SafeArgsXmlTag(
+                it as XmlTagImpl,
+                IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
+                className.asString(),
+                packageName.asString()
+              )
+            )
+          }
+            ?: sourceElement
 
-        val packageDescriptor = KtDirectionsPackageDescriptor(
-          navFileInfo,
-          packageName,
-          className,
-          destination,
-          resolvedSourceElement,
-          storageManager
-        )
+        val packageDescriptor =
+          KtDirectionsPackageDescriptor(
+            navFileInfo,
+            packageName,
+            className,
+            destination,
+            resolvedSourceElement,
+            storageManager
+          )
 
         QualifiedDescriptor(packageName, packageDescriptor)
       }
@@ -130,43 +138,49 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
       .asSequence()
       .filter { destination -> destination.arguments.isNotEmpty() }
       .mapNotNull { destination ->
-
-        val fqName = destination.name.let { name ->
-          val resolvedName = if (!name.startsWith('.')) name else "${navFileInfo.navInfo.packageName}$name"
-          resolvedName + "Args"
-        }
+        val fqName =
+          destination.name.let { name ->
+            val resolvedName =
+              if (!name.startsWith('.')) name else "${navFileInfo.navInfo.packageName}$name"
+            resolvedName + "Args"
+          }
 
         val className = fqName.substringAfterLast('.').let { Name.identifier(it) }
         val packageName = FqName(fqName.substringBeforeLast('.'))
 
-        val resolvedSourceElement = (sourceElement.getPsi() as? XmlFile)
-                                      ?.findXmlTagById(destination.id)
-                                      ?.let {
-                                        XmlSourceElement(
-                                          SafeArgsXmlTag(
-                                            it as XmlTagImpl,
-                                            IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
-                                            className.asString(),
-                                            packageName.asString()
-                                          )
-                                        )
-                                      }
-                                    ?: sourceElement
+        val resolvedSourceElement =
+          (sourceElement.getPsi() as? XmlFile)?.findXmlTagById(destination.id)?.let {
+            XmlSourceElement(
+              SafeArgsXmlTag(
+                it as XmlTagImpl,
+                IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
+                className.asString(),
+                packageName.asString()
+              )
+            )
+          }
+            ?: sourceElement
 
         val superTypesProvider = { packageDescriptor: PackageFragmentDescriptorImpl ->
-          val ktType = packageDescriptor.builtIns.getKotlinType("androidx.navigation.NavArgs", null, packageDescriptor.module)
+          val ktType =
+            packageDescriptor.builtIns.getKotlinType(
+              "androidx.navigation.NavArgs",
+              null,
+              packageDescriptor.module
+            )
           listOf(ktType)
         }
 
-        val packageDescriptor = KtArgsPackageDescriptor(
-          navFileInfo,
-          packageName,
-          className,
-          destination,
-          superTypesProvider,
-          resolvedSourceElement,
-          storageManager
-        )
+        val packageDescriptor =
+          KtArgsPackageDescriptor(
+            navFileInfo,
+            packageName,
+            className,
+            destination,
+            superTypesProvider,
+            resolvedSourceElement,
+            storageManager
+          )
 
         QualifiedDescriptor(packageName, packageDescriptor)
       }

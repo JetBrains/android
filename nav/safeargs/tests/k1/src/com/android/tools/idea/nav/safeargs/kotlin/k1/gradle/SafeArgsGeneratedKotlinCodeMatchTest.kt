@@ -28,6 +28,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -54,40 +55,42 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 @RunsInEdt
 class SafeArgsGeneratedKotlinCodeMatchTest {
   private val moduleName = "kotlinapp"
   private val projectRule = AndroidGradleProjectRule()
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
-  //TODO (b/162520387): Do not ignore these methods when testing.
-  private val IGNORED_METHODS = setOf("equals", "hashCode", "toString", "getActionId", "getArguments")
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
+  // TODO (b/162520387): Do not ignore these methods when testing.
+  private val IGNORED_METHODS =
+    setOf("equals", "hashCode", "toString", "getActionId", "getArguments")
 
-  @get:Rule
-  val expect: Expect = Expect.create()
+  @get:Rule val expect: Expect = Expect.create()
 
-  @get:Rule
-  val temporaryFolder = TemporaryFolder()
+  @get:Rule val temporaryFolder = TemporaryFolder()
 
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun initProject() {
     // to be able to change the project before import, we copy it into a temp folder
-    val testSrc = resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
+    val testSrc =
+      resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
     val container = temporaryFolder.newFile("TestApp")
     testSrc.toFile().copyRecursively(container, overwrite = true)
 
-    val settingsFile = container.resolve("settings.gradle").also {
-      assertWithMessage("settings file should exist").that(it.exists()).isTrue()
-    }
+    val settingsFile =
+      container.resolve("settings.gradle").also {
+        assertWithMessage("settings file should exist").that(it.exists()).isTrue()
+      }
     // update settings to only include the desired module
-    settingsFile.writeText("""
+    settingsFile.writeText(
+      """
       include ':$moduleName'
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     projectRule.fixture.testDataPath = temporaryFolder.root.absolutePath
     projectRule.load("TestApp") { projectRoot ->
@@ -99,7 +102,9 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
           // language=kotlin
           """
             class FooClass
-          """.trimIndent())
+          """
+            .trimIndent()
+        )
       }
     }
 
@@ -114,9 +119,12 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     assertThat(assembleDebug.isBuildSuccessful).isTrue()
 
     LocalFileSystem.getInstance().refresh(false)
-    val codeOutDir = File(projectRule.project.basePath, "$moduleName/$PLUGIN_OUT_DIR").also {
-      assertWithMessage("should be able to find generated navigation code").that(it.exists()).isTrue()
-    }
+    val codeOutDir =
+      File(projectRule.project.basePath, "$moduleName/$PLUGIN_OUT_DIR").also {
+        assertWithMessage("should be able to find generated navigation code")
+          .that(it.exists())
+          .isTrue()
+      }
     // parse generated code
     val allGeneratedCode = listOf(codeOutDir).flatMap(::loadClasses).toSet()
     // delete generated code
@@ -127,103 +135,146 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     // now find all that code via other means (in memory codegen) and assert it is the same.
 
     val moduleDescriptor = projectRule.project.findAppModule().getMainModule().toDescriptor()!!
-    moduleDescriptor.resolveClassByFqName(FqName("com.example.safeargtest.Foo"), NoLookupLocation.WHEN_FIND_BY_FQNAME)
+    moduleDescriptor.resolveClassByFqName(
+      FqName("com.example.safeargtest.Foo"),
+      NoLookupLocation.WHEN_FIND_BY_FQNAME
+    )
 
     allGeneratedCode.forEach { generated ->
-
-      val classDescriptor = if (generated.isCompanionObject) {
-        moduleDescriptor.resolveClassByFqName(FqName(generated.qualifiedName).parent(), NoLookupLocation.WHEN_FIND_BY_FQNAME)
-          ?.companionObjectDescriptor?.toDescription()
-      }
-      else {
-        moduleDescriptor.resolveClassByFqName(FqName(generated.qualifiedName), NoLookupLocation.WHEN_FIND_BY_FQNAME)
-          ?.toDescription()
-      }
+      val classDescriptor =
+        if (generated.isCompanionObject) {
+          moduleDescriptor
+            .resolveClassByFqName(
+              FqName(generated.qualifiedName).parent(),
+              NoLookupLocation.WHEN_FIND_BY_FQNAME
+            )
+            ?.companionObjectDescriptor
+            ?.toDescription()
+        } else {
+          moduleDescriptor
+            .resolveClassByFqName(
+              FqName(generated.qualifiedName),
+              NoLookupLocation.WHEN_FIND_BY_FQNAME
+            )
+            ?.toDescription()
+        }
 
       expect.withMessage(generated.qualifiedName).that(classDescriptor).isNotNull()
       classDescriptor!!.let {
-        expect.withMessage(generated.qualifiedName).that(classDescriptor.qualifiedName).isEqualTo(generated.qualifiedName)
-        expect.withMessage(generated.qualifiedName).that(classDescriptor.constructor).isEqualTo(generated.constructor)
-        expect.withMessage(generated.qualifiedName).that(classDescriptor.methods).containsExactlyElementsIn(generated.methods)
-        expect.withMessage(generated.qualifiedName).that(classDescriptor.fields).containsExactlyElementsIn(generated.fields)
+        expect
+          .withMessage(generated.qualifiedName)
+          .that(classDescriptor.qualifiedName)
+          .isEqualTo(generated.qualifiedName)
+        expect
+          .withMessage(generated.qualifiedName)
+          .that(classDescriptor.constructor)
+          .isEqualTo(generated.constructor)
+        expect
+          .withMessage(generated.qualifiedName)
+          .that(classDescriptor.methods)
+          .containsExactlyElementsIn(generated.methods)
+        expect
+          .withMessage(generated.qualifiedName)
+          .that(classDescriptor.fields)
+          .containsExactlyElementsIn(generated.fields)
       }
     }
   }
 
   private fun loadClasses(classesOut: File): List<ClassDescription> {
-    return classesOut.walkTopDown().filter {
-      it.name.endsWith("kt")
-    }.toList().flatMap { generatedSourceFile ->
-      generatedSourceFile.loadClassesDescriptions()
-    }
+    return classesOut
+      .walkTopDown()
+      .filter { it.name.endsWith("kt") }
+      .toList()
+      .flatMap { generatedSourceFile -> generatedSourceFile.loadClassesDescriptions() }
   }
 
   private fun File.loadClassesDescriptions(): List<ClassDescription> {
     val descriptions = mutableListOf<ClassDescription>()
 
-    val virtual = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this) ?: throw IllegalArgumentException("cannot find $this")
+    val virtual =
+      LocalFileSystem.getInstance().refreshAndFindFileByIoFile(this)
+        ?: throw IllegalArgumentException("cannot find $this")
     val psi = PsiManager.getInstance(projectRule.project).findFile(virtual)
     val uast = psi.toUElement()!!
-    uast.accept(object : AbstractUastVisitor() {
-      override fun visitClass(node: UClass): Boolean {
-        val descriptor = (node as KotlinUClass).sourcePsi?.descriptor as? ClassDescriptor
-        descriptor?.takeIf { it.visibility == DescriptorVisibilities.PUBLIC }?.toDescription()?.let {
-          descriptions.add(it)
+    uast.accept(
+      object : AbstractUastVisitor() {
+        override fun visitClass(node: UClass): Boolean {
+          val descriptor = (node as KotlinUClass).sourcePsi?.descriptor as? ClassDescriptor
+          descriptor
+            ?.takeIf { it.visibility == DescriptorVisibilities.PUBLIC }
+            ?.toDescription()
+            ?.let { descriptions.add(it) }
+          return super.visitClass(node)
         }
-        return super.visitClass(node)
       }
-    })
+    )
     return descriptions
   }
 
-  private fun ClassDescriptor.toDescription() = ClassDescription(
-    isCompanionObject = this.isCompanionObject,
-    qualifiedName = this.fqNameSafe.asString(),
-    constructor = (this.unsubstitutedPrimaryConstructor as? FunctionDescriptor)
-      ?.takeIf { it.visibility == DescriptorVisibilities.PUBLIC }
-      ?.toDescription(),
-    methods = this.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS)
-      .asSequence()
-      .filterIsInstance<FunctionDescriptor>()
-      .filter { it.visibility == DescriptorVisibilities.PUBLIC }
-      .map { it.toDescription() }
-      .filter { !IGNORED_METHODS.contains(it.name) }
-      .sortedBy { it.name }
-      .toSet(),
-    fields = this.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.VARIABLES)
-      .asSequence()
-      .filterIsInstance<PropertyDescriptor>()
-      .map { it.toDescription() }
-      .sortedBy { it.name }
-      .toSet()
-  )
+  private fun ClassDescriptor.toDescription() =
+    ClassDescription(
+      isCompanionObject = this.isCompanionObject,
+      qualifiedName = this.fqNameSafe.asString(),
+      constructor =
+        (this.unsubstitutedPrimaryConstructor as? FunctionDescriptor)
+          ?.takeIf { it.visibility == DescriptorVisibilities.PUBLIC }
+          ?.toDescription(),
+      methods =
+        this.unsubstitutedMemberScope
+          .getContributedDescriptors(DescriptorKindFilter.FUNCTIONS)
+          .asSequence()
+          .filterIsInstance<FunctionDescriptor>()
+          .filter { it.visibility == DescriptorVisibilities.PUBLIC }
+          .map { it.toDescription() }
+          .filter { !IGNORED_METHODS.contains(it.name) }
+          .sortedBy { it.name }
+          .toSet(),
+      fields =
+        this.unsubstitutedMemberScope
+          .getContributedDescriptors(DescriptorKindFilter.VARIABLES)
+          .asSequence()
+          .filterIsInstance<PropertyDescriptor>()
+          .map { it.toDescription() }
+          .sortedBy { it.name }
+          .toSet()
+    )
 
-  private fun FunctionDescriptor.toDescription() = MethodDescription(
-    name = this.name.asString(),
-    type = this.returnType?.toDescription(),
-    params = this.valueParameters.map { it.toDescription() }.toSet(),
-    modifiers = setOf(this.visibility.toString(), this.modality.toString())
-  )
+  private fun FunctionDescriptor.toDescription() =
+    MethodDescription(
+      name = this.name.asString(),
+      type = this.returnType?.toDescription(),
+      params = this.valueParameters.map { it.toDescription() }.toSet(),
+      modifiers = setOf(this.visibility.toString(), this.modality.toString())
+    )
 
-  private fun PropertyDescriptor.toDescription() = FieldDescription(
-    name = this.name.asString(),
-    type = this.type.toDescription(),
-    modifiers = setOf(this.visibility.toString(), this.modality.toString())
-  )
+  private fun PropertyDescriptor.toDescription() =
+    FieldDescription(
+      name = this.name.asString(),
+      type = this.type.toDescription(),
+      modifiers = setOf(this.visibility.toString(), this.modality.toString())
+    )
 
-  private fun ValueParameterDescriptor.toDescription() = ParamDescription(
-    name = this.name.asString(),
-    type = this.type.toDescription(),
-    modifiers = setOf(this.visibility.toString())
-  )
+  private fun ValueParameterDescriptor.toDescription() =
+    ParamDescription(
+      name = this.name.asString(),
+      type = this.type.toDescription(),
+      modifiers = setOf(this.visibility.toString())
+    )
 
   private fun KotlinType.toDescription(): String {
     val type = if (this.isMarkedNullable) this.makeNullable() else this
     return when (type) {
-      // Note: References to dependencies are not working when generating sources, e.g. NavDirections, but they are
-      // not critical to verifying safe args behavior, so we're OK simply peeling the class name out of the error type
+      // Note: References to dependencies are not working when generating sources, e.g.
+      // NavDirections, but they are
+      // not critical to verifying safe args behavior, so we're OK simply peeling the class name out
+      // of the error type
       // for now.
-      is ErrorType -> type.debugMessage.removePrefix("Unresolved type for ").substringAfterLast('.').substringAfterLast('$')
+      is ErrorType ->
+        type.debugMessage
+          .removePrefix("Unresolved type for ")
+          .substringAfterLast('.')
+          .substringAfterLast('$')
       else -> type.fqName!!.shortName().asString().substringAfterLast('$')
     }
   }
@@ -240,17 +291,20 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     val name: String,
     val type: String?,
     val modifiers: Set<String>,
-    val params: Set<ParamDescription>)
+    val params: Set<ParamDescription>
+  )
 
   private data class FieldDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<String>)
+    val modifiers: Set<String>
+  )
 
   private data class ParamDescription(
     val name: String,
     val type: String,
-    val modifiers: Set<String>)
+    val modifiers: Set<String>
+  )
 
   companion object {
     const val PLUGIN_OUT_DIR = "build/generated/source/navigation-args/debug"

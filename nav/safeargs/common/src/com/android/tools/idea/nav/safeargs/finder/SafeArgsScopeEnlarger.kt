@@ -47,16 +47,24 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
 
   internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
     return CachedValuesManager.getManager(facet.module.project).getCachedValue(facet) {
-      val allFacets = listOf(facet) + ModuleRootManager.getInstance(facet.module)
-        .getDependencies(false)
-        .mapNotNull { module -> module.androidFacet }
+      val allFacets =
+        listOf(facet) +
+          ModuleRootManager.getInstance(facet.module).getDependencies(false).mapNotNull { module ->
+            module.androidFacet
+          }
 
-      val scopeIncludingDeps = allFacets
-        .filter { it.safeArgsMode == SafeArgsMode.JAVA }
-        .map { it.getLocalScope() }
-        .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope -> scopeAccum.union(depScope) }
+      val scopeIncludingDeps =
+        allFacets
+          .filter { it.safeArgsMode == SafeArgsMode.JAVA }
+          .map { it.getLocalScope() }
+          .fold(GlobalSearchScope.EMPTY_SCOPE) { scopeAccum, depScope ->
+            scopeAccum.union(depScope)
+          }
 
-      CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
+      CachedValueProvider.Result.create(
+        scopeIncludingDeps,
+        PsiModificationTracker.MODIFICATION_COUNT
+      )
     }
   }
 
@@ -83,7 +91,8 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
  * Therefore, we provide one here that simply delegates to it.
  */
 class SafeArgsKotlinScopeEnlarger : KotlinResolveScopeEnlarger {
-  private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(SafeArgsScopeEnlarger::class.java)
+  private val delegateEnlarger =
+    ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(SafeArgsScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
     val facet = module.androidFacet ?: return null

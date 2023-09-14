@@ -23,22 +23,15 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 enum class SafeArgsMode {
-  /**
-   * Safe Args is not enabled for this module.
-   */
+  /** Safe Args is not enabled for this module. */
   NONE,
 
-  /**
-   * Safe Args is enabled for this module and will generate Java classes.
-   */
+  /** Safe Args is enabled for this module and will generate Java classes. */
   JAVA,
 
-  /**
-   * Safe Args is enabled for this module and will generate Kotlin classes.
-   */
+  /** Safe Args is enabled for this module and will generate Kotlin classes. */
   KOTLIN,
 }
-
 
 var AndroidFacet.safeArgsMode: SafeArgsMode
   get() = SafeArgsModeModuleService.getInstance(module).safeArgsMode

@@ -34,7 +34,8 @@ import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.kotlin.utils.alwaysTrue
 
 /**
- * Args Kt package descriptor, which wraps and indirectly exposes a [LightArgsKtClass] class descriptor
+ * Args Kt package descriptor, which wraps and indirectly exposes a [LightArgsKtClass] class
+ * descriptor
  */
 class KtArgsPackageDescriptor(
   private val containingNavFileInfo: SafeArgsNavFileInfo,
@@ -56,24 +57,29 @@ class KtArgsPackageDescriptor(
   private val safeArgsPackageDescriptor = this@KtArgsPackageDescriptor
 
   private inner class SafeArgsModuleScope : MemberScopeImpl() {
-    private val classes = storageManager.createLazyValue {
-      val argsClass = LightArgsKtClass(
-        containingNavFileInfo.navInfo,
-        className,
-        destination,
-        superTypesProvider(safeArgsPackageDescriptor),
-        sourceElement,
-        safeArgsPackageDescriptor,
-        storageManager
-      )
-      listOfNotNull(argsClass)
-    }
+    private val classes =
+      storageManager.createLazyValue {
+        val argsClass =
+          LightArgsKtClass(
+            containingNavFileInfo.navInfo,
+            className,
+            destination,
+            superTypesProvider(safeArgsPackageDescriptor),
+            sourceElement,
+            safeArgsPackageDescriptor,
+            storageManager
+          )
+        listOfNotNull(argsClass)
+      }
 
     override fun getContributedDescriptors(
       kindFilter: DescriptorKindFilter,
       nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-      return classes().filter { kindFilter.acceptsKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK) && nameFilter(it.name) }
+      return classes().filter {
+        kindFilter.acceptsKinds(DescriptorKindFilter.NON_SINGLETON_CLASSIFIERS_MASK) &&
+          nameFilter(it.name)
+      }
     }
 
     override fun getClassifierNames(): Set<Name> {
@@ -82,7 +88,10 @@ class KtArgsPackageDescriptor(
         .mapTo(mutableSetOf()) { it.name }
     }
 
-    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+    override fun getContributedClassifier(
+      name: Name,
+      location: LookupLocation
+    ): ClassifierDescriptor? {
       return classes().firstOrNull { it.name == name }
     }
 

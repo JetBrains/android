@@ -33,41 +33,58 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.KotlinType
 
-/**
- *  Class, method and property descriptors generator
- */
+/** Class, method and property descriptors generator */
 internal fun ClassDescriptorImpl.createMethod(
   name: String,
   returnType: KotlinType,
   isOperator: Boolean = false,
-  valueParametersProvider: (SimpleFunctionDescriptorImpl) -> List<ValueParameterDescriptor> = { emptyList() },
+  valueParametersProvider: (SimpleFunctionDescriptorImpl) -> List<ValueParameterDescriptor> = {
+    emptyList()
+  },
   sourceElement: SourceElement = this.source.withFunctionIcon(name, this.fqNameSafe.asString())
 ): SimpleFunctionDescriptorImpl {
 
-  val method = object : SimpleFunctionDescriptorImpl(
-    this,
-    null,
-    Annotations.EMPTY,
-    Name.identifier(name),
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    sourceElement
-  ) {
-    override fun isOperator(): Boolean {
-      return isOperator
+  val method =
+    object :
+      SimpleFunctionDescriptorImpl(
+        this,
+        null,
+        Annotations.EMPTY,
+        Name.identifier(name),
+        CallableMemberDescriptor.Kind.SYNTHESIZED,
+        sourceElement
+      ) {
+      override fun isOperator(): Boolean {
+        return isOperator
+      }
     }
-  }
 
-  return method.initialize(null, this.thisAsReceiverParameter, emptyList(),
-                           valueParametersProvider(method), returnType, Modality.FINAL, DescriptorVisibilities.PUBLIC)
+  return method.initialize(
+    null,
+    this.thisAsReceiverParameter,
+    emptyList(),
+    valueParametersProvider(method),
+    returnType,
+    Modality.FINAL,
+    DescriptorVisibilities.PUBLIC
+  )
 }
 
 internal fun ClassDescriptorImpl.createConstructor(
-  valueParameterProvider: (ClassConstructorDescriptor) -> List<ValueParameterDescriptor> = { emptyList() }
-): ClassConstructorDescriptor {
-  return ClassConstructorDescriptorImpl.createSynthesized(this, Annotations.EMPTY, true, this.source).apply {
-    this.initialize(valueParameterProvider(this), DescriptorVisibilities.PUBLIC)
-    this.returnType = this@createConstructor.defaultType
+  valueParameterProvider: (ClassConstructorDescriptor) -> List<ValueParameterDescriptor> = {
+    emptyList()
   }
+): ClassConstructorDescriptor {
+  return ClassConstructorDescriptorImpl.createSynthesized(
+      this,
+      Annotations.EMPTY,
+      true,
+      this.source
+    )
+    .apply {
+      this.initialize(valueParameterProvider(this), DescriptorVisibilities.PUBLIC)
+      this.returnType = this@createConstructor.defaultType
+    }
 }
 
 internal fun ClassDescriptorImpl.createProperty(
@@ -75,37 +92,41 @@ internal fun ClassDescriptorImpl.createProperty(
   type: KotlinType,
   sourceElement: SourceElement = SourceElement.NO_SOURCE
 ): PropertyDescriptor {
-  val property = object : PropertyDescriptorImpl(
-    this,
-    null,
-    Annotations.EMPTY,
-    Modality.FINAL,
-    DescriptorVisibilities.PUBLIC,
-    false,
-    Name.identifier(name),
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    sourceElement, // todo: refined navigation element
-    false,
-    false,
-    false,
-    false,
-    false,
-    false) {}
+  val property =
+    object :
+      PropertyDescriptorImpl(
+        this,
+        null,
+        Annotations.EMPTY,
+        Modality.FINAL,
+        DescriptorVisibilities.PUBLIC,
+        false,
+        Name.identifier(name),
+        CallableMemberDescriptor.Kind.SYNTHESIZED,
+        sourceElement, // todo: refined navigation element
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ) {}
 
   property.setType(type, emptyList<TypeParameterDescriptor>(), this.thisAsReceiverParameter, null)
 
-  val getter = PropertyGetterDescriptorImpl(
-    property,
-    Annotations.EMPTY,
-    Modality.FINAL,
-    DescriptorVisibilities.PUBLIC,
-    false,
-    false,
-    false,
-    CallableMemberDescriptor.Kind.SYNTHESIZED,
-    null,
-    sourceElement
-  )
+  val getter =
+    PropertyGetterDescriptorImpl(
+      property,
+      Annotations.EMPTY,
+      Modality.FINAL,
+      DescriptorVisibilities.PUBLIC,
+      false,
+      false,
+      false,
+      CallableMemberDescriptor.Kind.SYNTHESIZED,
+      null,
+      sourceElement
+    )
   getter.initialize(type)
 
   property.initialize(getter, null)

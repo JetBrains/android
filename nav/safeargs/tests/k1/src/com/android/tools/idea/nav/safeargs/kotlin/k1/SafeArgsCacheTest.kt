@@ -27,14 +27,13 @@ import org.junit.Test
 
 @RunsInEdt
 class SafeArgsCacheTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule(SafeArgsMode.NONE)
+  @get:Rule val safeArgsRule = SafeArgsRule(SafeArgsMode.NONE)
 
   @Test
   fun cachesAreClearedWhenPluginModeChanges() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/nav_main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -51,7 +50,9 @@ class SafeArgsCacheTest {
                 app:destination="@id/main" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val javaCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)
     val ktCache = KtDescriptorCacheModuleService.getInstance(safeArgsRule.module)

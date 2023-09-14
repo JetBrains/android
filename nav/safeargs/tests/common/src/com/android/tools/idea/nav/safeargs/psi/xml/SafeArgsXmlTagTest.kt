@@ -25,28 +25,30 @@ import org.junit.Rule
 import org.junit.Test
 
 class SafeArgsXmlTagTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   @Test
   fun checkValueEquivalency() {
-    val originalTag = object: XmlTagImpl() {
-      override fun isPhysical() = true
-    }
+    val originalTag =
+      object : XmlTagImpl() {
+        override fun isPhysical() = true
+      }
 
-    val tagA = SafeArgsXmlTag(
-      xmlTag = originalTag,
-      icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
-      name = "Foo",
-      containerIdentifier = "package1"
-    )
+    val tagA =
+      SafeArgsXmlTag(
+        xmlTag = originalTag,
+        icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
+        name = "Foo",
+        containerIdentifier = "package1"
+      )
 
-    val tagB = SafeArgsXmlTag(
-      xmlTag = originalTag,
-      icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
-      name = "Foo",
-      containerIdentifier = "package1"
-    )
+    val tagB =
+      SafeArgsXmlTag(
+        xmlTag = originalTag,
+        icon = IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
+        name = "Foo",
+        containerIdentifier = "package1"
+      )
 
     ApplicationManager.getApplication().runReadAction {
       assertThat(tagA.isEquivalentTo(tagB)).isTrue()

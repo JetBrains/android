@@ -37,8 +37,8 @@ object SafeArgsFeatureVersions {
  */
 internal fun AndroidFacet.findNavigationVersion(): Version {
   return module
-           .getModuleSystem()
-           .getResolvedDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getCoordinate("+"))
-           ?.lowerBoundVersion
-         ?: GRADLE_VERSION_ZERO
+    .getModuleSystem()
+    .getResolvedDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getCoordinate("+"))
+    ?.lowerBoundVersion
+    ?: GRADLE_VERSION_ZERO
 }

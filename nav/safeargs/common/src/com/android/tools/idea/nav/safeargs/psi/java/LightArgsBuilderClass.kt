@@ -21,13 +21,11 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiTypesUtil
 import org.jetbrains.android.augment.AndroidLightClassBase
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Light class for Args.Builder classes generated from navigation xml files.
  *
  * For example, if you had the following "nav.xml":
- *
  * ```
  *  <action id="@+id/sendMessage" destination="@+id/editorFragment">
  *    <argument name="message" argType="string" />
@@ -36,7 +34,6 @@ import org.jetbrains.android.facet.AndroidFacet
  * ```
  *
  * This would generate a builder class like the following:
- *
  * ```
  *  class EditorFragmentArgs {
  *    static class Builder {
@@ -57,7 +54,11 @@ import org.jetbrains.android.facet.AndroidFacet
 class LightArgsBuilderClass(
   private val navInfo: NavInfo,
   private val argsClass: LightArgsClass,
-) : AndroidLightClassBase(PsiManager.getInstance(navInfo.facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
+) :
+  AndroidLightClassBase(
+    PsiManager.getInstance(navInfo.facet.module.project),
+    setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)
+  ) {
   companion object {
     const val BUILDER_NAME = "Builder"
   }
@@ -84,16 +85,17 @@ class LightArgsBuilderClass(
   }
 
   private fun computeConstructors(): Array<PsiMethod> {
-    val copyConstructor = createConstructor()
-      .addParameter("original", PsiTypesUtil.getClassType(argsClass))
+    val copyConstructor =
+      createConstructor().addParameter("original", PsiTypesUtil.getClassType(argsClass))
 
-    val argsConstructor = createConstructor().apply {
-      argsClass.destination.arguments.forEach { arg ->
-        if (arg.defaultValue == null) {
-          this.addParameter(arg.name.toCamelCase(), arg.parsePsiType(navInfo.packageName, this))
+    val argsConstructor =
+      createConstructor().apply {
+        argsClass.destination.arguments.forEach { arg ->
+          if (arg.defaultValue == null) {
+            this.addParameter(arg.name.toCamelCase(), arg.parsePsiType(navInfo.packageName, this))
+          }
         }
       }
-    }
 
     return arrayOf(copyConstructor, argsConstructor)
   }
@@ -102,21 +104,34 @@ class LightArgsBuilderClass(
     val thisType = PsiTypesUtil.getClassType(this)
 
     // Create a getter and setter per argument
-    val argMethods: Array<PsiMethod> = containingClass.destination.arguments.flatMap { arg ->
-      val argType = arg.parsePsiType(navInfo.packageName, this)
-      val setter = createMethod(name = "set${arg.name.toUpperCamelCase()}",
-                                navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(thisType))
-        .addParameter(arg.name.toCamelCase(), argType)
+    val argMethods: Array<PsiMethod> =
+      containingClass.destination.arguments
+        .flatMap { arg ->
+          val argType = arg.parsePsiType(navInfo.packageName, this)
+          val setter =
+            createMethod(
+                name = "set${arg.name.toUpperCamelCase()}",
+                navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
+                returnType = annotateNullability(thisType)
+              )
+              .addParameter(arg.name.toCamelCase(), argType)
 
-      val getter = createMethod(name = "get${arg.name.toUpperCamelCase()}",
-                                navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
-                                returnType = annotateNullability(argType, arg.isNonNull()))
+          val getter =
+            createMethod(
+              name = "get${arg.name.toUpperCamelCase()}",
+              navigationElement = containingClass.getFieldNavigationElementByName(arg.name),
+              returnType = annotateNullability(argType, arg.isNonNull())
+            )
 
-      listOf(setter, getter)
-    }.toTypedArray()
+          listOf(setter, getter)
+        }
+        .toTypedArray()
 
-    val build = createMethod(name = "build", returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass)))
+    val build =
+      createMethod(
+        name = "build",
+        returnType = annotateNullability(PsiTypesUtil.getClassType(argsClass))
+      )
     return argMethods + build
   }
 }

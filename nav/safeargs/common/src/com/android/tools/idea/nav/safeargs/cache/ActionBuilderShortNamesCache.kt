@@ -32,7 +32,8 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.Processor
 
 /**
- * A short names cache for finding any [LightActionBuilderClass] instances by their unqualified name.
+ * A short names cache for finding any [LightActionBuilderClass] instances by their unqualified
+ * name.
  */
 class ActionBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val enabledFacetsProvider = SafeArgsEnabledFacetsProjectService.getInstance(project)
@@ -41,21 +42,28 @@ class ActionBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    lightClassesCache = cachedValuesManager.createCachedValue {
-      val builders = enabledFacetsProvider.modulesUsingSafeArgs
-        .asSequence()
-        .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).directions.asSequence() }
-        .flatMap { it.innerClasses.asSequence() }
-        .filterIsInstance<LightActionBuilderClass>()
-        .toList()
+    lightClassesCache =
+      cachedValuesManager.createCachedValue {
+        val builders =
+          enabledFacetsProvider.modulesUsingSafeArgs
+            .asSequence()
+            .flatMap { facet ->
+              SafeArgsCacheModuleService.getInstance(facet).directions.asSequence()
+            }
+            .flatMap { it.innerClasses.asSequence() }
+            .filterIsInstance<LightActionBuilderClass>()
+            .toList()
 
-      CachedValueProvider.Result.create(builders,
-                                        ProjectNavigationResourceModificationTracker.getInstance(project),
-                                        project.safeArgsModeTracker)
-    }
+        CachedValueProvider.Result.create(
+          builders,
+          ProjectNavigationResourceModificationTracker.getInstance(project),
+          project.safeArgsModeTracker
+        )
+      }
   }
 
-  override fun getAllClassNames(): Array<String> = lightClassesCache.value.mapNotNull { it.name }.toTypedArray()
+  override fun getAllClassNames(): Array<String> =
+    lightClassesCache.value.mapNotNull { it.name }.toTypedArray()
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     return lightClassesCache.value.filter { it.name == name }.toTypedArray()
@@ -63,13 +71,19 @@ class ActionBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllMethodNames() = arrayOf<String>()
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiMethod>()
-  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
 
-  override fun processMethodsWithName(name: String,
-                                      scope: GlobalSearchScope,
-                                      processor: Processor<in PsiMethod>): Boolean {
+  override fun processMethodsWithName(
+    name: String,
+    scope: GlobalSearchScope,
+    processor: Processor<in PsiMethod>
+  ): Boolean {
     // We are asked to process each method in turn, aborting if false is ever returned, and passing
     // that result back up the chain.
     return getMethodsByName(name, scope).all { method -> processor.process(method) }
@@ -77,7 +91,11 @@ class ActionBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllFieldNames() = arrayOf<String>()
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiField>()
-  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 }

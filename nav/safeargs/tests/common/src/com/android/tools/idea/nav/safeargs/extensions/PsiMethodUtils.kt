@@ -25,9 +25,7 @@ import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypes
 
-/**
- * A simple sanity check helper for [PsiMethod] instances using String checks.
- */
+/** A simple sanity check helper for [PsiMethod] instances using String checks. */
 fun PsiMethod.checkSignaturesAndReturnType(
   name: String,
   returnType: String,
@@ -38,8 +36,7 @@ fun PsiMethod.checkSignaturesAndReturnType(
 
   if (returnType == PsiTypes.nullType().presentableText) {
     assertThat(getTypeName(this.returnType)).isNull()
-  }
-  else {
+  } else {
     assertThat(getTypeName(this.returnType)).isEqualTo(returnType)
 
     val nullabilityManager = NullableNotNullManager.getInstance(this.project)
@@ -48,11 +45,13 @@ fun PsiMethod.checkSignaturesAndReturnType(
 
   assertThat(this.parameters.size).isEqualTo(parameters.size)
 
-  this.parameters.map { parameter ->
-    val pName = parameter.name!!
-    val pType = getTypeName((parameter as PsiParameter).type)!!
-    Parameter(pName, pType)
-  }.containsAll(parameters)
+  this.parameters
+    .map { parameter ->
+      val pName = parameter.name!!
+      val pType = getTypeName((parameter as PsiParameter).type)!!
+      Parameter(pName, pType)
+    }
+    .containsAll(parameters)
 }
 
 private fun getTypeName(type: PsiType?): String? {
@@ -67,8 +66,4 @@ private fun getTypeName(type: PsiType?): String? {
   }
 }
 
-data class Parameter(
-  val name: String,
-  val type: String
-)
-
+data class Parameter(val name: String, val type: String)

@@ -44,70 +44,96 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.source.getPsi
 
 /**
- * This provides completions for generated [LightArgsKtClass] and [LightDirectionsKtClass] from modules with dependencies.
+ * This provides completions for generated [LightArgsKtClass] and [LightDirectionsKtClass] from
+ * modules with dependencies.
  *
  * This comes after [KotlinCompletionContributor]
  */
 class SafeArgsKtCompletionContributor : CompletionContributor() {
   init {
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(), object : CompletionProvider<CompletionParameters>() {
-      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    extend(
+      CompletionType.BASIC,
+      PlatformPatterns.psiElement(),
+      object : CompletionProvider<CompletionParameters>() {
+        override fun addCompletions(
+          parameters: CompletionParameters,
+          context: ProcessingContext,
+          result: CompletionResultSet
+        ) {
 
-        val position = parameters.position
-        val facet = position.androidFacet ?: return
+          val position = parameters.position
+          val facet = position.androidFacet ?: return
 
-        val element = position.parent as? KtSimpleNameExpression ?: return
-        if (element.isImportDirectiveExpression()) return
-        if (element.getReceiverExpression() != null) return
+          val element = position.parent as? KtSimpleNameExpression ?: return
+          if (element.isImportDirectiveExpression()) return
+          if (element.getReceiverExpression() != null) return
 
-        val importedDirectives = getImportedDirectives(element)
+          val importedDirectives = getImportedDirectives(element)
 
-        val lookupElements = facet.module.getDescriptorsByModulesWithDependencies().values.asSequence()
-          .flatten()
-          .map { ProgressManager.checkCanceled(); it }
-          .filter { element.containingKtFile.packageFqName != it.fqName }
-          .mapNotNull { it.getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { true }.firstOrNull() }
-          .filterIsInstance<ClassDescriptor>()
-          .filter { it.importableFqName != null }
-          .filter { descriptor ->
-            // Classes in imported packages are already autocompleted, and we don't want to add duplicate results.
-            importedDirectives.none { importPath -> descriptor.importableFqName!!.isImported(importPath) }
-          }
-          .mapNotNull { createLookUpElement(it) }
-          .toList()
+          val lookupElements =
+            facet.module
+              .getDescriptorsByModulesWithDependencies()
+              .values
+              .asSequence()
+              .flatten()
+              .map {
+                ProgressManager.checkCanceled()
+                it
+              }
+              .filter { element.containingKtFile.packageFqName != it.fqName }
+              .mapNotNull {
+                it
+                  .getMemberScope()
+                  .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { true }
+                  .firstOrNull()
+              }
+              .filterIsInstance<ClassDescriptor>()
+              .filter { it.importableFqName != null }
+              .filter { descriptor ->
+                // Classes in imported packages are already autocompleted, and we don't want to add
+                // duplicate results.
+                importedDirectives.none { importPath ->
+                  descriptor.importableFqName!!.isImported(importPath)
+                }
+              }
+              .mapNotNull { createLookUpElement(it) }
+              .toList()
 
-        result.addAllElements(lookupElements)
-      }
-
-      private fun createLookUpElement(classDescriptor: ClassDescriptor): LookupElement? {
-        val lookupObject = object : DeclarationLookupObjectImpl(classDescriptor) {
-          override val psiElement = classDescriptor.source.getPsi()
-          override fun getIcon(flags: Int) = KotlinDescriptorIconProvider.getIcon(classDescriptor, psiElement, flags)
+          result.addAllElements(lookupElements)
         }
 
-        var element = LookupElementBuilder.create(lookupObject, classDescriptor.name.asString())
-          .withInsertHandler(KotlinClassifierInsertHandler)
+        private fun createLookUpElement(classDescriptor: ClassDescriptor): LookupElement? {
+          val lookupObject =
+            object : DeclarationLookupObjectImpl(classDescriptor) {
+              override val psiElement = classDescriptor.source.getPsi()
+              override fun getIcon(flags: Int) =
+                KotlinDescriptorIconProvider.getIcon(classDescriptor, psiElement, flags)
+            }
 
-        val classFqName = classDescriptor.fqNameSafe.takeUnless { it.isRoot } ?: return null
+          var element =
+            LookupElementBuilder.create(lookupObject, classDescriptor.name.asString())
+              .withInsertHandler(KotlinClassifierInsertHandler)
 
-        val containerName = classFqName.parent()
-        element = element.appendTailText(" ($containerName)", true)
-        return element.withIconFromLookupObject()
+          val classFqName = classDescriptor.fqNameSafe.takeUnless { it.isRoot } ?: return null
+
+          val containerName = classFqName.parent()
+          element = element.appendTailText(" ($containerName)", true)
+          return element.withIconFromLookupObject()
+        }
+
+        private fun getImportedDirectives(element: KtSimpleNameExpression): Set<ImportPath> {
+          return element.containingKtFile.importDirectives.mapNotNull { it.importPath }.toSet()
+        }
       }
-
-      private fun getImportedDirectives(element: KtSimpleNameExpression): Set<ImportPath> {
-        return element.containingKtFile.importDirectives
-          .mapNotNull { it.importPath }
-          .toSet()
-      }
-    })
+    )
   }
 }
 
 // Copy from BasicLookupElementFactory
-private fun LookupElement.withIconFromLookupObject(): LookupElement = object : LookupElementDecorator<LookupElement>(this) {
-  override fun renderElement(presentation: LookupElementPresentation) {
-    super.renderElement(presentation)
-    presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject)
+private fun LookupElement.withIconFromLookupObject(): LookupElement =
+  object : LookupElementDecorator<LookupElement>(this) {
+    override fun renderElement(presentation: LookupElementPresentation) {
+      super.renderElement(presentation)
+      presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject)
+    }
   }
-}

@@ -25,14 +25,13 @@ import org.junit.Test
 
 @RunsInEdt
 class ShortNamesCacheTestSingleJavaModule {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   @Test
   fun getShortNamesCache() {
     val project = safeArgsRule.project
     val xmlContent =
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -53,23 +52,20 @@ class ShortNamesCacheTestSingleJavaModule {
                   app:destination="@id/main" />                  
           </fragment>
         </navigation>
-      """.trimIndent()
+      """
+        .trimIndent()
     safeArgsRule.fixture.addFileToProject("res/navigation/main.xml", xmlContent)
     val cache = PsiShortNamesCache.getInstance(project)
 
     // Check light arg classes
-    assertThat(cache.getContents("FragmentArgs", project)).containsExactly(
-      "test.safeargs.FragmentArgs"
-    )
+    assertThat(cache.getContents("FragmentArgs", project))
+      .containsExactly("test.safeargs.FragmentArgs")
 
     // Check light direction classes
-    assertThat(cache.getContents("FragmentDirections", project)).containsExactly(
-      "test.safeargs.FragmentDirections"
-    )
+    assertThat(cache.getContents("FragmentDirections", project))
+      .containsExactly("test.safeargs.FragmentDirections")
 
     // Check light builder classes
-    assertThat(cache.getContents("Builder", project)).contains(
-      "test.safeargs.FragmentArgs.Builder"
-    )
+    assertThat(cache.getContents("Builder", project)).contains("test.safeargs.FragmentArgs.Builder")
   }
 }

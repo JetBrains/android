@@ -51,18 +51,16 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 /**
- * A project-wide listener that determines which modules' navigation files are affected by VFS changes or Document
- * changes and sends a [NAVIGATION_RESOURCES_CHANGED] event to tell the corresponding
- * [ModuleNavigationResourcesModificationTracker]s and [ProjectNavigationResourceModificationTracker]s to increment counter.
+ * A project-wide listener that determines which modules' navigation files are affected by VFS
+ * changes or Document changes and sends a [NAVIGATION_RESOURCES_CHANGED] event to tell the
+ * corresponding [ModuleNavigationResourcesModificationTracker]s and
+ * [ProjectNavigationResourceModificationTracker]s to increment counter.
  *
- * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS changes and Document
- * changes after the project opening.
+ * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS
+ * changes and Document changes after the project opening.
  */
-class NavigationResourcesModificationListener(
-  project: Project
-) : PoliteAndroidVirtualFileListener(project),
-    DocumentListener,
-    FileDocumentManagerListener {
+class NavigationResourcesModificationListener(project: Project) :
+  PoliteAndroidVirtualFileListener(project), DocumentListener, FileDocumentManagerListener {
 
   private val psiDocumentManager = PsiDocumentManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
@@ -74,7 +72,9 @@ class NavigationResourcesModificationListener(
   }
 
   override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
-    if (ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.NAVIGATION) {
+    if (
+      ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.NAVIGATION
+    ) {
       return true
     }
 
@@ -82,18 +82,20 @@ class NavigationResourcesModificationListener(
       return false
     }
 
-    // If module resources aren't cached, we don't want to load them now on the event thread; just say the file is relevant. In the case
-    // where it's not truly relevant but we increment the modification trackers anyway, we may have some unnecessary cache invalidation.
-    val moduleResources = StudioResourceRepositoryManager.getInstance(facet).cachedModuleResources ?: return true
-    val navResourceVfs = moduleResources
-      .getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
-      .values()
-      .mapNotNull(ResourceItem::getSourceAsVirtualFile)
+    // If module resources aren't cached, we don't want to load them now on the event thread; just
+    // say the file is relevant. In the case
+    // where it's not truly relevant but we increment the modification trackers anyway, we may have
+    // some unnecessary cache invalidation.
+    val moduleResources =
+      StudioResourceRepositoryManager.getInstance(facet).cachedModuleResources ?: return true
+    val navResourceVfs =
+      moduleResources
+        .getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
+        .values()
+        .mapNotNull(ResourceItem::getSourceAsVirtualFile)
 
     // If the directory is an ancestor of any navigation resource files.
-    return navResourceVfs.any { navVFile ->
-      VfsUtilCore.isAncestor(file, navVFile, false)
-    }
+    return navResourceVfs.any { navVFile -> VfsUtilCore.isAncestor(file, navVFile, false) }
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
@@ -101,7 +103,8 @@ class NavigationResourcesModificationListener(
   }
 
   override fun contentsChanged(event: VirtualFileEvent) {
-    // Content changes are not handled at the VFS level but either in fileWithNoDocumentChanged or documentChanged
+    // Content changes are not handled at the VFS level but either in fileWithNoDocumentChanged or
+    // documentChanged
   }
 
   override fun fileWithNoDocumentChanged(file: VirtualFile) = possiblyIrrelevantFileChanged(file)
@@ -112,15 +115,15 @@ class NavigationResourcesModificationListener(
 
     if (psiFile == null) {
       fileDocumentManager.getFile(document)?.let { possiblyIrrelevantFileChanged(it) }
-    }
-    else {
+    } else {
       psiFile.virtualFile?.let { possiblyIrrelevantFileChanged(it) }
     }
   }
 
   /**
-   * [StartupActivity] responsible for ensuring that a [Project] has a [NavigationResourcesModificationListener]
-   * subscribed to listen for both VFS and Document changes when opening projects.
+   * [StartupActivity] responsible for ensuring that a [Project] has a
+   * [NavigationResourcesModificationListener] subscribed to listen for both VFS and Document
+   * changes when opening projects.
    */
   class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
@@ -131,9 +134,11 @@ class NavigationResourcesModificationListener(
   @Service(Service.Level.PROJECT)
   private class Subscriber(private val project: Project) : Disposable.Default {
     private val subscriber =
-      object : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
-        NavigationResourcesModificationListener(project), this
-      ) {
+      object :
+        LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
+          NavigationResourcesModificationListener(project),
+          this
+        ) {
         override fun subscribe() {
           // To receive all changes happening in the VFS. File modifications may
           // not be picked up immediately if such changes are not saved on the disk yet
@@ -158,14 +163,15 @@ class NavigationResourcesModificationListener(
   }
 
   private fun dispatchResourcesChanged(module: Module?) {
-    project.messageBus.syncPublisher(NAVIGATION_RESOURCES_CHANGED).onNavigationResourcesChanged(module)
+    project.messageBus
+      .syncPublisher(NAVIGATION_RESOURCES_CHANGED)
+      .onNavigationResourcesChanged(module)
   }
 
   companion object {
     /**
-     * Normally, this listener waits for the project to finish syncing before subscribing
-     * to events, but for tests, we sometimes have to kickstart the subscription process
-     * manually.
+     * Normally, this listener waits for the project to finish syncing before subscribing to events,
+     * but for tests, we sometimes have to kickstart the subscription process manually.
      */
     @TestOnly
     fun ensureSubscribed(project: Project) {
@@ -178,7 +184,8 @@ fun interface NavigationResourcesChangeListener {
   /**
    * Called when the navigation resources for a given module have changed.
    *
-   * If [module] is `null`, this is the result of a project-wide change, and all modules should be considered changed.
+   * If [module] is `null`, this is the result of a project-wide change, and all modules should be
+   * considered changed.
    */
   fun onNavigationResourcesChanged(module: Module?)
 }

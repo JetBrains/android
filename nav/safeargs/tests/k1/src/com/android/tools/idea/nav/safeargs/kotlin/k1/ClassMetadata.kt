@@ -55,10 +55,7 @@ internal class PropertyMetadata(
   }
 }
 
-internal class ParameterMetadata(
-  var name: String = "",
-  var type: String = ""
-) {
+internal class ParameterMetadata(var name: String = "", var type: String = "") {
   override fun toString(): String {
     return "$name: $type"
   }
@@ -94,8 +91,7 @@ internal class ClassMetadata(
         descriptor.unsubstitutedMemberScope.getContributedDescriptors().forEach { desc ->
           if (desc is ClassDescriptor) {
             classifiers.add(fromDescriptor(desc))
-          }
-          else {
+          } else {
             desc.accept(visitor, this)
           }
         }
@@ -111,7 +107,9 @@ internal class ClassMetadata(
   }
 }
 
-internal fun ResolutionScope.classesInScope(nameFilter: (String) -> Boolean = { true }): Collection<ClassMetadata> {
+internal fun ResolutionScope.classesInScope(
+  nameFilter: (String) -> Boolean = { true }
+): Collection<ClassMetadata> {
   return this.getContributedDescriptors { nameFilter(it.asString()) }
     .sortedWith(MemberComparator.INSTANCE)
     .filterIsInstance<ClassDescriptor>()
@@ -126,8 +124,9 @@ private fun KotlinType.asString(): String {
 }
 
 private fun List<ParameterDescriptor>.toMetadata(): MutableList<ParameterMetadata> {
-  return this
-    .map { paramDesc -> ParameterMetadata(paramDesc.name.asString(), paramDesc.type.asString()) }
+  return this.map { paramDesc ->
+      ParameterMetadata(paramDesc.name.asString(), paramDesc.type.asString())
+    }
     .toMutableList()
 }
 
@@ -146,13 +145,17 @@ private fun PropertyDescriptor.toMetadata(): PropertyMetadata {
 private class MetadataVisitor : DeclarationDescriptorVisitor<Unit, ClassMetadata> {
   override fun visitClassDescriptor(descriptor: ClassDescriptor, data: ClassMetadata) {
     data.fqcn = descriptor.fqNameSafe.asString()
-    data.supertypes = descriptor.typeConstructor.supertypes
-      .filter { type -> !type.isAnyOrNullableAny() }
-      .map { type -> type.asString() }
-      .toMutableList()
+    data.supertypes =
+      descriptor.typeConstructor.supertypes
+        .filter { type -> !type.isAnyOrNullableAny() }
+        .map { type -> type.asString() }
+        .toMutableList()
   }
 
-  override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, data: ClassMetadata) {
+  override fun visitConstructorDescriptor(
+    constructorDescriptor: ConstructorDescriptor,
+    data: ClassMetadata
+  ) {
     data.constructors.add(constructorDescriptor.toMetadata())
   }
 
@@ -164,16 +167,33 @@ private class MetadataVisitor : DeclarationDescriptorVisitor<Unit, ClassMetadata
     data.properties.add(descriptor.toMetadata())
   }
 
-
   override fun visitModuleDeclaration(descriptor: ModuleDescriptor, data: ClassMetadata) {}
   override fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, data: ClassMetadata) {}
-  override fun visitPropertyGetterDescriptor(descriptor: PropertyGetterDescriptor, data: ClassMetadata) {}
-  override fun visitPropertySetterDescriptor(descriptor: PropertySetterDescriptor, data: ClassMetadata) {}
-  override fun visitReceiverParameterDescriptor(descriptor: ReceiverParameterDescriptor, data: ClassMetadata) {}
-  override fun visitPackageFragmentDescriptor(descriptor: PackageFragmentDescriptor, data: ClassMetadata) {}
+  override fun visitPropertyGetterDescriptor(
+    descriptor: PropertyGetterDescriptor,
+    data: ClassMetadata
+  ) {}
+  override fun visitPropertySetterDescriptor(
+    descriptor: PropertySetterDescriptor,
+    data: ClassMetadata
+  ) {}
+  override fun visitReceiverParameterDescriptor(
+    descriptor: ReceiverParameterDescriptor,
+    data: ClassMetadata
+  ) {}
+  override fun visitPackageFragmentDescriptor(
+    descriptor: PackageFragmentDescriptor,
+    data: ClassMetadata
+  ) {}
   override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: ClassMetadata) {}
   override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, data: ClassMetadata) {}
-  override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, data: ClassMetadata) {}
-  override fun visitValueParameterDescriptor(descriptor: ValueParameterDescriptor, data: ClassMetadata) {}
+  override fun visitTypeParameterDescriptor(
+    descriptor: TypeParameterDescriptor,
+    data: ClassMetadata
+  ) {}
+  override fun visitValueParameterDescriptor(
+    descriptor: ValueParameterDescriptor,
+    data: ClassMetadata
+  ) {}
   override fun visitVariableDescriptor(descriptor: VariableDescriptor, data: ClassMetadata) {}
 }

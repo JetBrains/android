@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.gradle
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
-import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.kotlin.k1.classesInScope
+import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.findAppModule
@@ -40,10 +38,10 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Before
   fun setUp() {
@@ -53,11 +51,11 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
   }
 
   /**
-   * Check contributed descriptors for base app and library module by providing fully qualified package names
+   * Check contributed descriptors for base app and library module by providing fully qualified
+   * package names
    *
-   * Test Project structure:
-   * -base app module(safe arg mode is on) --> lib dep module(safe arg mode is on)
-   * -excluded lib module(safe arg mode is on)
+   * Test Project structure: -base app module(safe arg mode is on) --> lib dep module(safe arg mode
+   * is on) -excluded lib module(safe arg mode is on)
    */
   @Test
   fun multiModuleTest() {
@@ -67,56 +65,64 @@ class SafeArgsKtPackageDescriptorTestMultiKtModules {
     val appModule = fixture.project.findAppModule().getMainModule()
     val appModuleDescriptor = appModule.toDescriptor()
 
-    val classesMetadataAppPackageInApp = appModuleDescriptor!!
-      .getPackage(FqName("com.example.myapplication"))
-      .memberScope
-      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+    val classesMetadataAppPackageInApp =
+      appModuleDescriptor!!
+        .getPackage(FqName("com.example.myapplication"))
+        .memberScope
+        .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
-    assertThat(classesMetadataAppPackageInApp.map { it.fqcn to it.file }).containsExactly(
-      "com.example.myapplication.SecondFragmentArgs" to "nav_graph.xml",
-      "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml"
-    )
+    assertThat(classesMetadataAppPackageInApp.map { it.fqcn to it.file })
+      .containsExactly(
+        "com.example.myapplication.SecondFragmentArgs" to "nav_graph.xml",
+        "com.example.myapplication.SecondFragmentDirections" to "nav_graph.xml"
+      )
 
     // check contents when providing lib package name in app module.
-    val classesMetadataLibPackageInApp = appModuleDescriptor
-      .getPackage(FqName("com.example.mylibrary"))
-      .memberScope
-      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+    val classesMetadataLibPackageInApp =
+      appModuleDescriptor.getPackage(FqName("com.example.mylibrary")).memberScope.classesInScope {
+        name ->
+        name.endsWith("Args") || name.endsWith("Directions")
+      }
 
     // It collects 'packageFragmentProviderForWholeModuleWithDependencies'
-    assertThat(classesMetadataLibPackageInApp.map { it.fqcn to it.file }).containsExactly(
-      "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
-      "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
-      "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
-      "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
-    )
+    assertThat(classesMetadataLibPackageInApp.map { it.fqcn to it.file })
+      .containsExactly(
+        "com.example.mylibrary.FirstFragmentArgs" to "nav_graph.xml",
+        "com.example.mylibrary.FirstFragmentDirections" to "nav_graph.xml",
+        "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
+        "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
+      )
 
     // check contents for library module
     val libModule = fixture.project.findModule("mylibrary").getMainModule()
     val libModuleDescriptor = libModule.toDescriptor()
 
-    val classesMetadataInLib = libModuleDescriptor!!
-      .getPackage(FqName("com.example.mylibrary"))
-      .memberScope
-      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+    val classesMetadataInLib =
+      libModuleDescriptor!!
+        .getPackage(FqName("com.example.mylibrary"))
+        .memberScope
+        .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
-    assertThat(classesMetadataInLib.map { it.fqcn to it.file }).containsExactly(
-      "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
-      "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
-    )
+    assertThat(classesMetadataInLib.map { it.fqcn to it.file })
+      .containsExactly(
+        "com.example.mylibrary.SecondFragmentArgs" to "libnav_graph.xml",
+        "com.example.mylibrary.SecondFragmentDirections" to "libnav_graph.xml"
+      )
 
     // check contents for excluded library module
     val libModuleExcluded = fixture.project.findModule("mylibraryexcluded").getMainModule()
     val libModuleExcludedDescriptor = libModuleExcluded.toDescriptor()
 
-    val classesMetadataInLibExcluded = libModuleExcludedDescriptor!!
-      .getPackage(FqName("com.example.mylibrary"))
-      .memberScope
-      .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
+    val classesMetadataInLibExcluded =
+      libModuleExcludedDescriptor!!
+        .getPackage(FqName("com.example.mylibrary"))
+        .memberScope
+        .classesInScope { name -> name.endsWith("Args") || name.endsWith("Directions") }
 
-    assertThat(classesMetadataInLibExcluded.map { it.fqcn to it.file }).containsExactly(
-      "com.example.mylibrary.SecondFragmentArgs" to "excludedlibnav_graph.xml",
-      "com.example.mylibrary.SecondFragmentDirections" to "excludedlibnav_graph.xml"
-    )
+    assertThat(classesMetadataInLibExcluded.map { it.fqcn to it.file })
+      .containsExactly(
+        "com.example.mylibrary.SecondFragmentArgs" to "excludedlibnav_graph.xml",
+        "com.example.mylibrary.SecondFragmentDirections" to "excludedlibnav_graph.xml"
+      )
   }
 }

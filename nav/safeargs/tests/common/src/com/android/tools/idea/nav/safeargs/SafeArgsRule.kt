@@ -58,34 +58,49 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
 
   override fun before() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    fixture.addFileToProject("AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.safeargs">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     androidFacet.safeArgsMode = mode
 
     // Add fake "NavArgs" interface to this project so the args class can resolve its interface
-    with(fixture.addFileToProject("src/androidx/navigation/NavArgs.java",
-      // language=java
-      """
+    with(
+      fixture.addFileToProject(
+        "src/androidx/navigation/NavArgs.java",
+        // language=java
+        """
         package androidx.navigation;
 
         public interface NavArgs {}
-      """.trimIndent())) {
+      """
+          .trimIndent()
+      )
+    ) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
 
-    // Add fake "NavDirections" interface to this project so the args class can resolve its interface
-    with(fixture.addFileToProject("src/androidx/navigation/NavDirections.java",
-      // language=java
-      """
+    // Add fake "NavDirections" interface to this project so the args class can resolve its
+    // interface
+    with(
+      fixture.addFileToProject(
+        "src/androidx/navigation/NavDirections.java",
+        // language=java
+        """
         package androidx.navigation;
 
         public interface NavDirections {}
-      """.trimIndent())) {
+      """
+          .trimIndent()
+      )
+    ) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
   }
@@ -93,7 +108,9 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
   override fun apply(base: Statement, description: Description): Statement {
     // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
     // initialized on the EDT.
-    return RuleChain.outerRule(projectRule).around(EdtRule()).apply(super.apply(base, description), description)
+    return RuleChain.outerRule(projectRule)
+      .around(EdtRule())
+      .apply(super.apply(base, description), description)
   }
 
   /**
@@ -106,7 +123,11 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
    */
   fun addFakeNavigationDependency(version: Version) {
     val projectSystem = TestProjectSystem(module.project)
-    projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON, module, GradleVersion.parse(version.toString()))
+    projectSystem.addDependency(
+      GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON,
+      module,
+      GradleVersion.parse(version.toString())
+    )
     projectSystem.useInTests()
   }
 }

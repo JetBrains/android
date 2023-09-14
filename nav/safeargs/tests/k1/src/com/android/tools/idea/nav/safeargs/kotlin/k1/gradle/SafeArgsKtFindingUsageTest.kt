@@ -29,21 +29,21 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.UsageTargetUtil
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
 
 @RunsInEdt
 class SafeArgsKtFindingUsageTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Before
   fun setUp() {
@@ -67,7 +67,9 @@ class SafeArgsKtFindingUsageTest {
                     val argsClass2 = FirstFragmentArgs().
                 }
             }
-          """.trimIndent())
+          """
+            .trimIndent()
+        )
       }
     }
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
@@ -78,11 +80,16 @@ class SafeArgsKtFindingUsageTest {
     projectRule.requestSyncAndWait()
 
     val appModuleMain = fixture.project.findAppModule().getMainModule()
-    val file = appModuleMain.fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      appModuleMain.fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     fixture.configureFromExistingVirtualFile(file!!)
-    val targets = UsageTargetUtil.findUsageTargets { (fixture.editor as EditorEx).dataContext.getData(it) }
-    val presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
-    assertThat(presentation).isEqualTo("""
+    val targets =
+      UsageTargetUtil.findUsageTargets { (fixture.editor as EditorEx).dataContext.getData(it) }
+    val presentation =
+      fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
+    assertThat(presentation)
+      .isEqualTo(
+        """
       <root> (3)
        XML tag
         <FirstFragmentArgs> of file nav_graph.xml
@@ -107,6 +114,8 @@ class SafeArgsKtFindingUsageTest {
            FooClass.kt (1)
             3import com.example.mylibrary.FirstFragmentArgs
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 }

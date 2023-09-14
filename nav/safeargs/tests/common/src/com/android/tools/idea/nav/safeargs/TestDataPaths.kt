@@ -17,11 +17,10 @@ package com.android.tools.idea.nav.safeargs
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 
-/**
- * Constants for safe args test project paths.
- */
+/** Constants for safe args test project paths. */
 object TestDataPaths {
-  val TEST_DATA_ROOT: String = resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData").toString()
+  val TEST_DATA_ROOT: String =
+    resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData").toString()
 
   const val PROJECT_WITHOUT_SAFE_ARGS = "projects/projectWithoutSafeArgs"
   const val PROJECT_USING_JAVA_PLUGIN = "projects/safeArgsWithJavaPlugin"

@@ -1,4 +1,5 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the
+// Apache 2.0 license.
 package com.android.tools.idea.nav.safeargs.module.gradle
 
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
@@ -19,12 +20,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.EnumSet
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.EnumSet
 
 @RunsInEdt
 class NavInfoFetcherTest {
@@ -32,7 +33,8 @@ class NavInfoFetcherTest {
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val changeReasons: MutableSet<NavInfoChangeReason> = EnumSet.noneOf(NavInfoChangeReason::class.java)
+  private val changeReasons: MutableSet<NavInfoChangeReason> =
+    EnumSet.noneOf(NavInfoChangeReason::class.java)
   private var baselineModificationCount = 0L
   private lateinit var module: Module
   private lateinit var fetcher: NavInfoFetcher
@@ -44,9 +46,11 @@ class NavInfoFetcherTest {
     NavigationResourcesModificationListener.ensureSubscribed(projectRule.project)
 
     module = projectRule.getModule("app.main")
-    fetcher = NavInfoFetcher(projectRule.fixture.testRootDisposable, module, SafeArgsMode.KOTLIN) { changeReason ->
-      changeReasons.add(changeReason)
-    }
+    fetcher =
+      NavInfoFetcher(projectRule.fixture.testRootDisposable, module, SafeArgsMode.KOTLIN) {
+        changeReason ->
+        changeReasons.add(changeReason)
+      }
     baselineModificationCount = fetcher.modificationCount
     changeReasons.clear()
   }
@@ -75,12 +79,12 @@ class NavInfoFetcherTest {
 
       val destinations = potentialDestinations.mapNotNull { it.toDestination() }
       assertThat(destinations).hasSize(2)
-      val (firstDest, secondDest) = if (destinations[0].id == "FirstFragment") {
-        destinations
-      }
-      else {
-        destinations.reversed()
-      }
+      val (firstDest, secondDest) =
+        if (destinations[0].id == "FirstFragment") {
+          destinations
+        } else {
+          destinations.reversed()
+        }
 
       firstDest.apply {
         assertThat(id).isEqualTo("FirstFragment")
@@ -130,23 +134,18 @@ class NavInfoFetcherTest {
   @Test
   fun updatesOnNavFileChange() {
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
-      module.fileUnderGradleRoot("src/main/res/navigation/nav_graph.xml")!!.replaceWithoutSaving(
-        "@+id/FirstFragment",
-        "@+id/FirstFragmentChanged",
-        module.project
-      )
+      module
+        .fileUnderGradleRoot("src/main/res/navigation/nav_graph.xml")!!
+        .replaceWithoutSaving("@+id/FirstFragment", "@+id/FirstFragmentChanged", module.project)
     }
 
     assertModified(NavInfoChangeReason.NAVIGATION_RESOURCE_CHANGED)
     assertThat(
-      fetcher
-        .getCurrentNavInfo()!!
-        .entries
-        .single()
-        .data
-        .resolvedDestinations
-        .singleOrNull { it.id == "FirstFragmentChanged" }
-    ).isNotNull()
+        fetcher.getCurrentNavInfo()!!.entries.single().data.resolvedDestinations.singleOrNull {
+          it.id == "FirstFragmentChanged"
+        }
+      )
+      .isNotNull()
   }
 
   @Test
@@ -166,7 +165,8 @@ class NavInfoFetcherTest {
 
   @Test
   fun updatesOnProjectSync() {
-    module.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
+    module.project.messageBus
+      .syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC)
       .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
 
     assertModified(NavInfoChangeReason.GRADLE_SYNC)

@@ -32,8 +32,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
 class NavigationResourcesModificationListenerTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   private lateinit var myModuleNavResourcesTracker: ModuleNavigationResourcesModificationTracker
   private lateinit var myProjectNavResourcesTracker: ProjectNavigationResourceModificationTracker
@@ -45,14 +44,17 @@ class NavigationResourcesModificationListenerTest {
 
   @Before
   fun setUp() {
-    // Ensure that the resource repository is initialized before we start testing, since NavigationResourcesModificationListener will only
-    // used an already-cached version of the repository and won't trigger creation if it doesn't already exist.
+    // Ensure that the resource repository is initialized before we start testing, since
+    // NavigationResourcesModificationListener will only
+    // used an already-cached version of the repository and won't trigger creation if it doesn't
+    // already exist.
     safeArgsRule.fixture.addFileToProject("res/values/strings.xml", "")
     safeArgsRule.waitForResourceRepositoryUpdates()
 
     project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, listener)
     NavigationResourcesModificationListener.ensureSubscribed(project)
-    myModuleNavResourcesTracker = ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
+    myModuleNavResourcesTracker =
+      ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
     myProjectNavResourcesTracker = ProjectNavigationResourceModificationTracker.getInstance(project)
     assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(0L)
@@ -62,7 +64,7 @@ class NavigationResourcesModificationListenerTest {
   fun addFilesToNavigationResourcesFolder() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -78,7 +80,9 @@ class NavigationResourcesModificationListenerTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
@@ -86,7 +90,7 @@ class NavigationResourcesModificationListenerTest {
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/other.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -102,7 +106,9 @@ class NavigationResourcesModificationListenerTest {
                 app:argType="integer" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
@@ -111,10 +117,11 @@ class NavigationResourcesModificationListenerTest {
 
   @Test
   fun deleteNavigationResourceFolder() {
-    val navFile = safeArgsRule.fixture.addFileToProject(
-      "res/navigation/main.xml",
-      //language=XML
-      """
+    val navFile =
+      safeArgsRule.fixture.addFileToProject(
+        "res/navigation/main.xml",
+        // language=XML
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
@@ -129,15 +136,15 @@ class NavigationResourcesModificationListenerTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
     verifyModuleChangeEventsFired(2)
 
-    WriteCommandAction.runWriteCommandAction(project) {
-      navFile.virtualFile.parent.delete(this)
-    }
+    WriteCommandAction.runWriteCommandAction(project) { navFile.virtualFile.parent.delete(this) }
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 vfs change
     verifyModuleChangeEventsFired(1)
@@ -145,10 +152,11 @@ class NavigationResourcesModificationListenerTest {
 
   @Test
   fun modifyNavResourceFile() {
-    val navFile = safeArgsRule.fixture.addFileToProject(
-      "res/navigation/main.xml",
-      //language=XML
-      """
+    val navFile =
+      safeArgsRule.fixture.addFileToProject(
+        "res/navigation/main.xml",
+        // language=XML
+        """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
@@ -163,7 +171,9 @@ class NavigationResourcesModificationListenerTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
     verifyModuleChangeEventsFired(2)

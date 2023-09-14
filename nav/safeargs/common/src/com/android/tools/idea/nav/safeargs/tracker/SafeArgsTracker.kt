@@ -16,18 +16,16 @@
 package com.android.tools.idea.nav.safeargs.tracker
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
-/**
- * A service which allows tracking safe args related metrics.
- */
+/** A service which allows tracking safe args related metrics. */
 abstract class SafeArgsTracker(private val project: Project) {
   companion object {
     @JvmStatic
@@ -43,22 +41,25 @@ abstract class SafeArgsTracker(private val project: Project) {
       val kotlinPluginFacets = allFacets.count { it.safeArgsMode == SafeArgsMode.KOTLIN }
       if (javaPluginFacets + kotlinPluginFacets == 0) return@runSlowWork
 
-      val safeArgsEvent = NavSafeArgsEvent.newBuilder()
-        .setEventContext(context)
-        .setProjectMetadata(NavSafeArgsEvent.ProjectMetadata.newBuilder()
-                              .setModuleCount(allFacets.size)
-                              .setJavaPluginCount(javaPluginFacets)
-                              .setKotlinPluginCount(kotlinPluginFacets))
+      val safeArgsEvent =
+        NavSafeArgsEvent.newBuilder()
+          .setEventContext(context)
+          .setProjectMetadata(
+            NavSafeArgsEvent.ProjectMetadata.newBuilder()
+              .setModuleCount(allFacets.size)
+              .setJavaPluginCount(javaPluginFacets)
+              .setKotlinPluginCount(kotlinPluginFacets)
+          )
 
       track(safeArgsEvent)
     }
   }
 
   private fun track(safeArgsEvent: NavSafeArgsEvent.Builder) {
-    val studioEvent = AndroidStudioEvent
-      .newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT)
-      .setNavSafeArgsEvent(safeArgsEvent)
+    val studioEvent =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.NAV_SAFE_ARGS_EVENT)
+        .setNavSafeArgsEvent(safeArgsEvent)
 
     UsageTracker.log(studioEvent.withProjectId(project))
   }

@@ -17,37 +17,38 @@ package com.android.tools.idea.nav.safeargs.module
 
 import com.android.tools.idea.nav.safeargs.project.NAVIGATION_RESOURCES_CHANGED
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesChangeListener
-import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
-import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 
 /**
- * A module-wide modification tracker whose modification count is a value incremented by any modifications of
- * corresponding navigation resource files.
+ * A module-wide modification tracker whose modification count is a value incremented by any
+ * modifications of corresponding navigation resource files.
  */
-class ModuleNavigationResourcesModificationTracker(val module: Module) : ModificationTracker, Disposable {
+class ModuleNavigationResourcesModificationTracker(val module: Module) :
+  ModificationTracker, Disposable {
   private val navigationModificationTracker = SimpleModificationTracker()
 
   init {
-    module.project.messageBus.connect(this).subscribe(
-      NAVIGATION_RESOURCES_CHANGED,
-      NavigationResourcesChangeListener { changedModule ->
-        if (changedModule == null || changedModule == module) {
-          navigationChanged()
+    module.project.messageBus
+      .connect(this)
+      .subscribe(
+        NAVIGATION_RESOURCES_CHANGED,
+        NavigationResourcesChangeListener { changedModule ->
+          if (changedModule == null || changedModule == module) {
+            navigationChanged()
+          }
         }
-      }
-    )
+      )
   }
 
   companion object {
     @JvmStatic
-    fun getInstance(module: Module) = module.getService(ModuleNavigationResourcesModificationTracker::class.java)!!
+    fun getInstance(module: Module) =
+      module.getService(ModuleNavigationResourcesModificationTracker::class.java)!!
   }
 
   override fun getModificationCount() = navigationModificationTracker.modificationCount
@@ -55,11 +56,13 @@ class ModuleNavigationResourcesModificationTracker(val module: Module) : Modific
   override fun dispose() {}
 
   /**
-   * This is invoked when NavigationModificationListener detects a navigation file has been changed or added or deleted for this module
+   * This is invoked when NavigationModificationListener detects a navigation file has been changed
+   * or added or deleted for this module
    */
   private fun navigationChanged() {
     navigationModificationTracker.incModificationCount()
-    logger<ModuleNavigationResourcesModificationTracker>()
-      .debug { "Navigation Modification Tracker of $module is updated to $modificationCount" }
+    logger<ModuleNavigationResourcesModificationTracker>().debug {
+      "Navigation Modification Tracker of $module is updated to $modificationCount"
+    }
   }
 }

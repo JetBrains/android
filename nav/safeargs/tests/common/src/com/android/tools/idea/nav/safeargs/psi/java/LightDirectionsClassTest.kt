@@ -29,14 +29,13 @@ import org.junit.Test
 
 @RunsInEdt
 class LightDirectionsClassTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   @Test
   fun canFindDirectionsClasses() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -69,7 +68,9 @@ class LightDirectionsClassTest {
           <!-- Sample action -->
           <action android:id="@+id/action_without_destination" />
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -77,16 +78,19 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)).isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context))
+      .isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context))
+      .isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context))
+      .isInstanceOf(LightDirectionsClass::class.java)
   }
 
   @Test
   fun actionMethodsGeneratedWithArgs() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -136,15 +140,21 @@ class LightDirectionsClassTest {
 
           </navigation>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
-    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
-    val fragment1directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
+    val mainDirections =
+      safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)
+        as LightDirectionsClass
+    val fragment1directions =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)
+        as LightDirectionsClass
 
     mainDirections.findMethodsByName("actionToNested").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
@@ -157,19 +167,15 @@ class LightDirectionsClassTest {
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment1ToFragment2",
         returnType = "ActionFragment1ToFragment2",
-        parameters = listOf(
-          Parameter("argOne", "String"),
-          Parameter("argTwo", PsiTypes.floatType().name)
-        )
+        parameters =
+          listOf(Parameter("argOne", "String"), Parameter("argTwo", PsiTypes.floatType().name))
       )
     }
     fragment1directions.findMethodsByName("actionFragment1ToFragment3").first().let { action ->
       (action as PsiMethod).checkSignaturesAndReturnType(
         name = "actionFragment1ToFragment3",
         returnType = "ActionFragment1ToFragment3",
-        parameters = listOf(
-          Parameter("arg", PsiTypes.intType().name)
-        )
+        parameters = listOf(Parameter("arg", PsiTypes.intType().name))
       )
     }
   }
@@ -178,7 +184,7 @@ class LightDirectionsClassTest {
   fun testIncludedNavigationCase() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -195,7 +201,9 @@ class LightDirectionsClassTest {
                   app:destination="@id/included_graph" />                  
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -203,7 +211,9 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Class can be found with context
-    val fragment2Directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
+    val fragment2Directions =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)
+        as LightDirectionsClass
 
     // Check method
     fragment2Directions.findMethodsByName("actionFragment2ToIncludedGraph").first().let { action ->
@@ -218,7 +228,7 @@ class LightDirectionsClassTest {
   fun testGlobalActionCase() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -254,7 +264,9 @@ class LightDirectionsClassTest {
                 
           </navigation>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -262,7 +274,9 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Class can be found with context
-    val fragment2Directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
+    val fragment2Directions =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)
+        as LightDirectionsClass
     // Check methods of Fragment2Directions
     fragment2Directions.methods.let { methods ->
       assertThat(methods.size).isEqualTo(3)
@@ -282,8 +296,9 @@ class LightDirectionsClassTest {
       )
     }
 
-    val innerNavigationDirections = safeArgsRule.fixture.findClass("test.safeargs.InnerNavigationDirections",
-                                                                   context) as LightDirectionsClass
+    val innerNavigationDirections =
+      safeArgsRule.fixture.findClass("test.safeargs.InnerNavigationDirections", context)
+        as LightDirectionsClass
     // Check methods of InnerNavigationDirections
     innerNavigationDirections.methods.let { methods ->
       assertThat(methods.size).isEqualTo(2)
@@ -298,7 +313,9 @@ class LightDirectionsClassTest {
       )
     }
 
-    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
+    val mainDirections =
+      safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)
+        as LightDirectionsClass
     // Check methods of InnerNavigationDirections
     mainDirections.methods.let { methods ->
       assertThat(methods.size).isEqualTo(1)
@@ -313,7 +330,7 @@ class LightDirectionsClassTest {
   fun testNoDestinationDefined() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -342,7 +359,9 @@ class LightDirectionsClassTest {
                   app:popUpTo="@id/fragment1" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -350,21 +369,24 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    val fragment1DirectionsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
-    val fragment2DirectionsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context) as LightDirectionsClass
+    val fragment1DirectionsClass =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)
+        as LightDirectionsClass
+    val fragment2DirectionsClass =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)
+        as LightDirectionsClass
 
-    // Because we don't have destination defined, no arguments are supposed to be passed. This means no inner builder
-    // action classes are created. NavDirections class(`ActionOnlyNavDirections` as the implementation under the hood)
+    // Because we don't have destination defined, no arguments are supposed to be passed. This means
+    // no inner builder
+    // action classes are created. NavDirections class(`ActionOnlyNavDirections` as the
+    // implementation under the hood)
     // is being used here.
     assertThat(fragment1DirectionsClass.innerClasses).isEmpty()
     assertThat(fragment2DirectionsClass.innerClasses).isEmpty()
 
     fragment1DirectionsClass.methods.let { methods ->
       assertThat(methods.size).isEqualTo(1)
-      methods[0].checkSignaturesAndReturnType(
-        name = "actionToMain",
-        returnType = "NavDirections"
-      )
+      methods[0].checkSignaturesAndReturnType(name = "actionToMain", returnType = "NavDirections")
     }
 
     fragment2DirectionsClass.methods.let { methods ->

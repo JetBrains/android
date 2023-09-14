@@ -30,8 +30,7 @@ import java.util.concurrent.atomic.AtomicReference
 /**
  * Component that owns and updates a module's [SafeArgsMode] state.
  *
- * See also: [SafeArgsModeTrackerProjectService]
- * See also: [safeArgsMode]
+ * See also: [SafeArgsModeTrackerProjectService] See also: [safeArgsMode]
  */
 class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
   fun interface SafeArgsModeChangedListener {
@@ -39,7 +38,8 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
   }
 
   companion object {
-    fun getInstance(module: Module): SafeArgsModeModuleService = module.getService(SafeArgsModeModuleService::class.java)
+    fun getInstance(module: Module): SafeArgsModeModuleService =
+      module.getService(SafeArgsModeModuleService::class.java)
 
     val MODE_CHANGED: Topic<SafeArgsModeChangedListener> =
       Topic(SafeArgsModeChangedListener::class.java, Topic.BroadcastDirection.TO_CHILDREN, true)
@@ -60,19 +60,23 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
     // initialized before here, so call update immediately just in case.
     updateSafeArgsMode()
 
-    GradleSyncState.subscribe(module.project, object : GradleSyncListener {
-      override fun syncSucceeded(project: Project) {
-        updateSafeArgsMode()
-      }
+    GradleSyncState.subscribe(
+      module.project,
+      object : GradleSyncListener {
+        override fun syncSucceeded(project: Project) {
+          updateSafeArgsMode()
+        }
 
-      override fun syncFailed(project: Project, errorMessage: String) {
-        updateSafeArgsMode()
-      }
+        override fun syncFailed(project: Project, errorMessage: String) {
+          updateSafeArgsMode()
+        }
 
-      override fun syncSkipped(project: Project) {
-        updateSafeArgsMode()
-      }
-    }, this)
+        override fun syncSkipped(project: Project) {
+          updateSafeArgsMode()
+        }
+      },
+      this
+    )
   }
 
   private fun updateSafeArgsMode() {

@@ -30,22 +30,22 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
+import java.io.File
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
 
 @RunsInEdt
 class SafeArgsIconsRenderingTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Before
   fun setUp() {
@@ -61,7 +61,9 @@ class SafeArgsIconsRenderingTest {
           """
             package com.example.myapplication
             class FooClass
-          """.trimIndent())
+          """
+            .trimIndent()
+        )
       }
     }
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
@@ -71,11 +73,14 @@ class SafeArgsIconsRenderingTest {
   fun testClassIcons() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.replaceWithSaving(
         "class FooClass",
-        //language=kotlin
+        // language=kotlin
         """
         class FooClass {
             fun myTest() {
@@ -83,8 +88,10 @@ class SafeArgsIconsRenderingTest {
                 val directionsClass = 
             }
         }
-      """.trimIndent(),
-        fixture.project)
+      """
+          .trimIndent(),
+        fixture.project
+      )
     }
 
     fixture.openFileInEditor(file!!)
@@ -93,32 +100,39 @@ class SafeArgsIconsRenderingTest {
     fixture.moveCaret("val argsClass = |")
     fixture.type("Args")
     fixture.completeBasic()
-    var icons = fixture.lookupElements!!
-      .filter { it.lookupString.endsWith("FragmentArgs") }
-      .map { DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
-    assertThat(icons).containsExactly(IconManager.getInstance().getPlatformIcon(PlatformIcons.Class))
+    var icons =
+      fixture.lookupElements!!
+        .filter { it.lookupString.endsWith("FragmentArgs") }
+        .map { DefaultLookupItemRenderer.getRawIcon(it) }
+        .toSet()
+    assertThat(icons)
+      .containsExactly(IconManager.getInstance().getPlatformIcon(PlatformIcons.Class))
 
     // check directions classes
     fixture.moveCaret("val directionsClass = |")
     fixture.type("Directions")
     fixture.completeBasic()
-    icons = fixture.lookupElements!!
-      .filter { it.lookupString.endsWith("FragmentDirections") }
-      .mapNotNull { DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
-    assertThat(icons).containsExactly(IconManager.getInstance().getPlatformIcon(PlatformIcons.Class))
+    icons =
+      fixture.lookupElements!!
+        .filter { it.lookupString.endsWith("FragmentDirections") }
+        .mapNotNull { DefaultLookupItemRenderer.getRawIcon(it) }
+        .toSet()
+    assertThat(icons)
+      .containsExactly(IconManager.getInstance().getPlatformIcon(PlatformIcons.Class))
   }
 
   @Test
   fun testMethodAndPropertyIcons() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.replaceWithSaving(
         "class FooClass",
-        //language=kotlin
+        // language=kotlin
         """
         class FooClass {
             fun myTest() {
@@ -129,8 +143,10 @@ class SafeArgsIconsRenderingTest {
                 val directionsClass2 = SecondFragmentDirections().
             }
         }
-      """.trimIndent(),
-        fixture.project)
+      """
+          .trimIndent(),
+        fixture.project
+      )
     }
 
     fixture.openFileInEditor(file!!)
@@ -138,32 +154,42 @@ class SafeArgsIconsRenderingTest {
     // check static method from args class
     fixture.moveCaret("val argsClass1 = SecondFragmentArgs.|")
     fixture.completeBasic()
-    var icons = fixture.lookupElements!!
-      .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
-    assertThat(icons).contains("fromBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function))
+    var icons =
+      fixture.lookupElements!!
+        .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
+        .toSet()
+    assertThat(icons)
+      .contains("fromBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function))
 
     // check static method from directions class
     fixture.moveCaret("val directionsClass1 = SecondFragmentDirections.|")
     fixture.completeBasic()
-    icons = fixture.lookupElements!!
-      .mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
-    assertThat(icons).contains("actionSecondFragmentToFirstFragment" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function))
+    icons =
+      fixture.lookupElements!!
+        .mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
+        .toSet()
+    assertThat(icons)
+      .contains(
+        "actionSecondFragmentToFirstFragment" to
+          IconManager.getInstance().getPlatformIcon(PlatformIcons.Function)
+      )
 
     // check methods from args class
     fixture.moveCaret("val argsClass2 = SecondFragmentArgs().|")
 
     fixture.completeBasic()
-    icons = fixture.lookupElements!!
-      .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
-      .toSet()
-    assertThat(icons).containsAllOf(
-      // componentN() functions of data class are filtered out when collecting variants during completions.
-      "arg1" to KotlinIcons.FIELD_VAL,
-      "copy" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
-      "toBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function)
-    )
+    icons =
+      fixture.lookupElements!!
+        .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
+        .toSet()
+    assertThat(icons)
+      .containsAllOf(
+        // componentN() functions of data class are filtered out when collecting variants during
+        // completions.
+        "arg1" to KotlinIcons.FIELD_VAL,
+        "copy" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
+        "toBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function)
+      )
 
     // directions class only has companion object
   }

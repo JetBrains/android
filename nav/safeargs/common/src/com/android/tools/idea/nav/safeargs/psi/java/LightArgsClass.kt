@@ -36,7 +36,6 @@ import com.intellij.psi.util.PsiTypesUtil
  * An "Arg" represents an argument which can get passed from one destination to another.
  *
  * For example, if you had the following "nav.xml":
- *
  * ```
  * <argument
  *    android:name="message"
@@ -44,7 +43,6 @@ import com.intellij.psi.util.PsiTypesUtil
  * ```
  *
  * This would generate a class like the following:
- *
  * ```
  *  class EditorFragmentArgs implements NavArgs {
  *    static EditorFragmentArgs fromBundle(Bundle bundle);
@@ -66,8 +64,12 @@ class LightArgsClass(
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
   private val backingXmlTag by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }
-  private val navArgsType by lazy { PsiType.getTypeByName(NAV_ARGS_FQCN, project, this.resolveScope) }
-  private val navArgsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_ARGS_FQCN, this.resolveScope) }
+  private val navArgsType by lazy {
+    PsiType.getTypeByName(NAV_ARGS_FQCN, project, this.resolveScope)
+  }
+  private val navArgsClass by lazy {
+    JavaPsiFacade.getInstance(project).findClass(NAV_ARGS_FQCN, this.resolveScope)
+  }
 
   override fun getImplementsListTypes() = arrayOf(navArgsType)
   override fun getSuperTypes() = arrayOf(navArgsType)
@@ -91,42 +93,56 @@ class LightArgsClass(
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
     val bundleType = parsePsiType(navInfo.packageName, "android.os.Bundle", null, this)
-    val savedStateHandleType = parsePsiType(navInfo.packageName, "androidx.lifecycle.SavedStateHandle", null, this)
+    val savedStateHandleType =
+      parsePsiType(navInfo.packageName, "androidx.lifecycle.SavedStateHandle", null, this)
 
     val methods = mutableListOf<PsiMethod>()
 
-    methods.addAll(destination.arguments.map { arg ->
-      val psiType = arg.parsePsiType(navInfo.packageName, this)
-      createMethod(name = "get${arg.name.toUpperCamelCase()}",
-                   navigationElement = getFieldNavigationElementByName(arg.name),
-                   returnType = annotateNullability(psiType, arg.isNonNull()))
-    })
+    methods.addAll(
+      destination.arguments.map { arg ->
+        val psiType = arg.parsePsiType(navInfo.packageName, this)
+        createMethod(
+          name = "get${arg.name.toUpperCamelCase()}",
+          navigationElement = getFieldNavigationElementByName(arg.name),
+          returnType = annotateNullability(psiType, arg.isNonNull())
+        )
+      }
+    )
 
-    methods.add(createMethod(name = "fromBundle",
-                             modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-                             returnType = annotateNullability(thisType))
-                  .addParameter("bundle", bundleType))
+    methods.add(
+      createMethod(
+          name = "fromBundle",
+          modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+          returnType = annotateNullability(thisType)
+        )
+        .addParameter("bundle", bundleType)
+    )
 
-    // Add on version specific methods since the navigation library side is keeping introducing new methods.
+    // Add on version specific methods since the navigation library side is keeping introducing new
+    // methods.
     if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
       methods.add(
         createMethod(
-          name = "fromSavedStateHandle",
-          modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
-          returnType = annotateNullability(thisType)
-        ).addParameter("savedStateHandle", savedStateHandleType)
+            name = "fromSavedStateHandle",
+            modifiers = MODIFIERS_STATIC_PUBLIC_METHOD,
+            returnType = annotateNullability(thisType)
+          )
+          .addParameter("savedStateHandle", savedStateHandleType)
       )
     }
 
-    // Add on version specific methods since the navigation library side is keeping introducing new methods.
+    // Add on version specific methods since the navigation library side is keeping introducing new
+    // methods.
     if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
-      methods.add(createMethod(name = "toSavedStateHandle", returnType = annotateNullability(savedStateHandleType)))
+      methods.add(
+        createMethod(
+          name = "toSavedStateHandle",
+          returnType = annotateNullability(savedStateHandleType)
+        )
+      )
     }
 
-    methods.add(createMethod(
-      name = "toBundle",
-      returnType = annotateNullability(bundleType)
-    ))
+    methods.add(createMethod(name = "toBundle", returnType = annotateNullability(bundleType)))
 
     return methods.toTypedArray()
   }
@@ -135,7 +151,8 @@ class LightArgsClass(
     return destination.arguments
       .asSequence()
       .map { arg ->
-        val targetArgumentTag = backingXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
+        val targetArgumentTag =
+          backingXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
         createField(arg, navInfo.packageName, targetArgumentTag)
       }
       .toList()

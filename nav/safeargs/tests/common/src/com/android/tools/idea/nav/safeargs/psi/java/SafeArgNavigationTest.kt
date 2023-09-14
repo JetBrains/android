@@ -27,14 +27,13 @@ import org.junit.Test
 
 @RunsInEdt
 class SafeArgNavigationTest {
-  @get:Rule
-  val safeArgsRule = SafeArgsRule()
+  @get:Rule val safeArgsRule = SafeArgsRule()
 
   @Test
   fun canNavigateToXmlTagFromArgClass() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -58,7 +57,9 @@ class SafeArgNavigationTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -69,7 +70,8 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check Fragment1Args class navigation
-    val arg1Class = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context) as LightArgsClass
+    val arg1Class =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context) as LightArgsClass
     arg1Class.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -78,7 +80,8 @@ class SafeArgNavigationTest {
     }
 
     // check Fragment2Args class navigation
-    val arg2Class = safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context) as LightArgsClass
+    val arg2Class =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context) as LightArgsClass
     arg2Class.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -94,14 +97,16 @@ class SafeArgNavigationTest {
 
       // check getter method
       if (it.name == "getArgOne") {
-        assertThat(it.navigationElement.text).isEqualTo(
-          """
+        assertThat(it.navigationElement.text)
+          .isEqualTo(
+            """
           <argument
                   android:name="arg_one"
                   app:argType="string" />
-          """.trimIndent())
-      }
-      else {
+          """
+              .trimIndent()
+          )
+      } else {
         assertThat(it.navigationElement.text).contains("id=\"@+id/fragment1\"")
       }
     }
@@ -114,14 +119,16 @@ class SafeArgNavigationTest {
 
       // check getter method
       if (it.name == "getArgTwo") {
-        assertThat(it.navigationElement.text).isEqualTo(
-          """
+        assertThat(it.navigationElement.text)
+          .isEqualTo(
+            """
           <argument
                   android:name="arg_two"
                   app:argType="string" />
-          """.trimIndent())
-      }
-      else {
+          """
+              .trimIndent()
+          )
+      } else {
         assertThat(it.navigationElement.text).contains("id=\"@+id/fragment2\"")
       }
     }
@@ -131,7 +138,7 @@ class SafeArgNavigationTest {
   fun canNavigateToXmlTagFromInnerArgsBuilderClass() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -151,7 +158,9 @@ class SafeArgNavigationTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2" />
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -162,7 +171,9 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check class navigation
-    val innerBuilderClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context) as LightArgsBuilderClass
+    val innerBuilderClass =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context)
+        as LightArgsBuilderClass
     innerBuilderClass.navigate(true)
     assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
     assertThat(innerBuilderClass.navigationElement).isInstanceOf(XmlTag::class.java)
@@ -184,14 +195,16 @@ class SafeArgNavigationTest {
 
       // check getter and setter method
       if (it.name == "getArgOne" || it.name == "setArgOne") {
-        assertThat(it.navigationElement.text).isEqualTo(
-          """
+        assertThat(it.navigationElement.text)
+          .isEqualTo(
+            """
           <argument
                   android:name="arg_one"
                   app:argType="string" />
-          """.trimIndent())
-      }
-      else {
+          """
+              .trimIndent()
+          )
+      } else {
         assertThat(it.navigationElement.text).contains("id=\"@+id/fragment1\"")
       }
     }
@@ -201,7 +214,7 @@ class SafeArgNavigationTest {
   fun canNavigateToXmlTagFromDirectionClass() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -242,7 +255,9 @@ class SafeArgNavigationTest {
 
           </navigation>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -253,7 +268,9 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check mainDirections class navigation
-    val mainDirections = safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context) as LightDirectionsClass
+    val mainDirections =
+      safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)
+        as LightDirectionsClass
     mainDirections.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -262,7 +279,9 @@ class SafeArgNavigationTest {
     }
 
     // check fragment1directions class navigation
-    val fragment1directions = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context) as LightDirectionsClass
+    val fragment1directions =
+      safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)
+        as LightDirectionsClass
     fragment1directions.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
@@ -275,12 +294,15 @@ class SafeArgNavigationTest {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
-      assertThat(it.navigationElement.text).isEqualTo(
-        """
+      assertThat(it.navigationElement.text)
+        .isEqualTo(
+          """
         <action
             android:id="@+id/action_to_nested"
             app:destination="@id/nested" />
-        """.trimIndent())
+        """
+            .trimIndent()
+        )
     }
 
     // check methods navigation of fragment1directions
@@ -290,20 +312,26 @@ class SafeArgNavigationTest {
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
       when (it.name) {
         "actionFragment1ToFragment2" -> {
-          assertThat(it.navigationElement.text).isEqualTo(
-            """
+          assertThat(it.navigationElement.text)
+            .isEqualTo(
+              """
             <action
                   android:id="@+id/action_fragment1_to_fragment2"
                   app:destination="@id/fragment2" />
-            """.trimIndent())
+            """
+                .trimIndent()
+            )
         }
         "actionFragment1ToFragment3" -> {
-          assertThat(it.navigationElement.text).isEqualTo(
-            """
+          assertThat(it.navigationElement.text)
+            .isEqualTo(
+              """
             <action
                   android:id="@+id/action_fragment1_to_fragment3"
                   app:destination="@id/fragment3" />
-            """.trimIndent())
+            """
+                .trimIndent()
+            )
         }
       }
     }
@@ -313,7 +341,7 @@ class SafeArgNavigationTest {
   fun canNavigateToXmlTagFromInnerActionsBuilderClass() {
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
-      //language=XML
+      // language=XML
       """
         <?xml version="1.0" encoding="utf-8"?>
         <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -349,7 +377,9 @@ class SafeArgNavigationTest {
                 app:argType="string" />
           </fragment>
         </navigation>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     // Initialize repository after creating resources, needed for codegen to work
     StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
@@ -360,14 +390,18 @@ class SafeArgNavigationTest {
     assertThat(editors.selectedFiles).isEmpty()
 
     // check actionBuilderClass navigation
-    val actionBuilderClass = safeArgsRule.fixture
-      .findClass("test.safeargs.Fragment1Directions.ActionFragment1ToFragment2", context) as LightActionBuilderClass
+    val actionBuilderClass =
+      safeArgsRule.fixture.findClass(
+        "test.safeargs.Fragment1Directions.ActionFragment1ToFragment2",
+        context
+      ) as LightActionBuilderClass
     actionBuilderClass.let {
       it.navigate(true)
       assertThat(editors.selectedFiles[0].name).isEqualTo("main.xml")
       assertThat(it.navigationElement).isInstanceOf(XmlTag::class.java)
-      assertThat(it.navigationElement.text).isEqualTo(
-        """
+      assertThat(it.navigationElement.text)
+        .isEqualTo(
+          """
           <action
                   android:id="@+id/action_fragment1_to_fragment2"
                   app:destination="@id/fragment2" >
@@ -379,7 +413,9 @@ class SafeArgNavigationTest {
                     android:name="arg_in_action"
                     app:argType="string" />
               </action>
-        """.trimIndent())
+        """
+            .trimIndent()
+        )
     }
 
     // check methods navigation of actionBuilderClass
@@ -390,30 +426,42 @@ class SafeArgNavigationTest {
 
       // check getters and setters
       when (it.name) {
-        "getArg", "setArg" -> {
-          assertThat(it.navigationElement.text).isEqualTo(
-            """
+        "getArg",
+        "setArg" -> {
+          assertThat(it.navigationElement.text)
+            .isEqualTo(
+              """
               <argument
                         android:name="arg"
                         app:argType="string"
                         android:defaultValue="defaultString" />
-            """.trimIndent())
-        }
-        "getArgInAction", "setArgInAction" -> {
-          assertThat(it.navigationElement.text).isEqualTo(
             """
+                .trimIndent()
+            )
+        }
+        "getArgInAction",
+        "setArgInAction" -> {
+          assertThat(it.navigationElement.text)
+            .isEqualTo(
+              """
               <argument
                         android:name="arg_in_action"
                         app:argType="string" />
-            """.trimIndent())
-        }
-        "getArgInDestination", "setArgInDestination" -> {
-          assertThat(it.navigationElement.text).isEqualTo(
             """
+                .trimIndent()
+            )
+        }
+        "getArgInDestination",
+        "setArgInDestination" -> {
+          assertThat(it.navigationElement.text)
+            .isEqualTo(
+              """
               <argument
                       android:name="arg_in_destination"
                       app:argType="string" />
-            """.trimIndent())
+            """
+                .trimIndent()
+            )
         }
         else -> throw IllegalAccessError("This should never happen!")
       }

@@ -33,18 +33,25 @@ import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 import org.jetbrains.kotlin.resolve.source.getPsi
 
-internal fun Module.getDescriptorsByModulesWithDependencies(): Map<FqName, List<PackageFragmentDescriptor>> {
+internal fun Module.getDescriptorsByModulesWithDependencies():
+  Map<FqName, List<PackageFragmentDescriptor>> {
   val moduleDescriptor = this.toDescriptor() ?: return emptyMap()
-  val descriptorsFromThisModule = KtDescriptorCacheModuleService.getInstance(this).getDescriptors(moduleDescriptor).toMutableMap()
-  return ModuleRootManager.getInstance(this).getDependencies(false)
+  val descriptorsFromThisModule =
+    KtDescriptorCacheModuleService.getInstance(this).getDescriptors(moduleDescriptor).toMutableMap()
+  return ModuleRootManager.getInstance(this)
+    .getDependencies(false)
     .asSequence()
-    .map { ProgressManager.checkCanceled(); it }
+    .map {
+      ProgressManager.checkCanceled()
+      it
+    }
     .mapNotNull {
       val descriptor = it?.toDescriptor() ?: return@mapNotNull null
       KtDescriptorCacheModuleService.getInstance(it).getDescriptors(descriptor)
     }
     .fold(descriptorsFromThisModule) { acc, curr ->
-      // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav resource files) need to be
+      // TODO(b/159954452): duplications(e.g Same fragment class declared across multiple nav
+      // resource files) need to be
       //  resolved.
       curr.entries.forEach { entry -> acc.merge(entry.key, entry.value) { old, new -> old + new } }
       acc
@@ -61,8 +68,19 @@ internal fun ModuleDescriptor.toModule(): Module? {
 
 class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
 
-internal fun SourceElement.withFunctionIcon(name: String, containingClassName: String): SourceElement {
+internal fun SourceElement.withFunctionIcon(
+  name: String,
+  containingClassName: String
+): SourceElement {
   return (this.getPsi() as? SafeArgsXmlTag)?.let {
-    XmlSourceElement(SafeArgsXmlTag(it.getOriginal(), IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function), name, containingClassName))
-  } ?: this
+    XmlSourceElement(
+      SafeArgsXmlTag(
+        it.getOriginal(),
+        IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function),
+        name,
+        containingClassName
+      )
+    )
+  }
+    ?: this
 }

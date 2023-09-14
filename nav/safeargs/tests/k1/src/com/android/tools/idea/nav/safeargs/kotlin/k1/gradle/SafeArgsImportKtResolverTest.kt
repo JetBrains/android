@@ -27,21 +27,21 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import java.io.File
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.io.File
 
 @RunsInEdt
 class SafeArgsImportKtResolverTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture
+    get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Before
   fun setUp() {
@@ -61,7 +61,9 @@ class SafeArgsImportKtResolverTest {
                     val argsClass2 = FirstFragmentArgs().
                 }
             }
-          """.trimIndent())
+          """
+            .trimIndent()
+        )
       }
     }
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
@@ -71,12 +73,15 @@ class SafeArgsImportKtResolverTest {
   fun testImportFixWithSingleSuggestion() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     fixture.configureFromExistingVirtualFile(file!!)
 
     // Before auto import fix
-    val unresolvedReferences = fixture.doHighlighting()
-      .filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
+    val unresolvedReferences =
+      fixture.doHighlighting().filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
 
     assertThat(unresolvedReferences).hasSize(2)
 
@@ -97,17 +102,22 @@ class SafeArgsImportKtResolverTest {
                 val argsClass2 = FirstFragmentArgs().
             }
         }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testImportFixWithAmbiguities() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.setText(
-        //language=kotlin
+        // language=kotlin
         """
           class FooClass {
               fun myTest() {
@@ -115,14 +125,16 @@ class SafeArgsImportKtResolverTest {
                   val argsClass2 = SecondFragmentArgs().
               }
           }
-        """.trimIndent(),
-        fixture.project)
+        """
+          .trimIndent(),
+        fixture.project
+      )
     }
     fixture.configureFromExistingVirtualFile(file!!)
 
     // Before auto import fix
-    val unresolvedReferences = fixture.doHighlighting()
-      .filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
+    val unresolvedReferences =
+      fixture.doHighlighting().filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
 
     assertThat(unresolvedReferences).hasSize(2)
 
@@ -144,17 +156,22 @@ class SafeArgsImportKtResolverTest {
                 val argsClass2 = SecondFragmentArgs().
             }
         }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun testImportFixForCompanionFunctions() {
     projectRule.requestSyncAndWait()
 
-    val file = fixture.project.findAppModule().fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
+    val file =
+      fixture.project
+        .findAppModule()
+        .fileUnderGradleRoot("src/main/java/com/example/myapplication/FooClass.kt")
     WriteCommandAction.runWriteCommandAction(fixture.project) {
       file!!.setText(
-        //language=kotlin
+        // language=kotlin
         """
           package com.example.myapplication
 
@@ -163,14 +180,16 @@ class SafeArgsImportKtResolverTest {
                   val argsClass1 = from${caret}Bundle()
               }
           }
-        """.trimIndent(),
-        fixture.project)
+        """
+          .trimIndent(),
+        fixture.project
+      )
     }
     fixture.configureFromExistingVirtualFile(file!!)
 
     // Before auto import fix
-    val unresolvedReferences = fixture.doHighlighting()
-      .filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
+    val unresolvedReferences =
+      fixture.doHighlighting().filter { it.description?.contains("[UNRESOLVED_REFERENCE]") == true }
 
     assertThat(unresolvedReferences).hasSize(1)
 
@@ -189,6 +208,8 @@ class SafeArgsImportKtResolverTest {
                 val argsClass1 = from${caret}Bundle()
             }
         }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 }

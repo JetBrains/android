@@ -41,38 +41,42 @@ private const val STRING_FQCN_ARRAY = "java.lang.String[]"
 private const val INT_ARRAY = "int[]"
 private const val FALLBACK_TYPE = STRING_FQCN
 
-private val NAV_TO_JAVA_TYPE_MAP = mapOf(
-  "string" to STRING_FQCN,
-  "string[]" to STRING_FQCN_ARRAY,
-  "integer" to PsiTypes.intType().name,
-  "integer[]" to INT_ARRAY,
-  "reference" to PsiTypes.intType().name,
-  "reference[]" to INT_ARRAY
-)
+private val NAV_TO_JAVA_TYPE_MAP =
+  mapOf(
+    "string" to STRING_FQCN,
+    "string[]" to STRING_FQCN_ARRAY,
+    "integer" to PsiTypes.intType().name,
+    "integer[]" to INT_ARRAY,
+    "reference" to PsiTypes.intType().name,
+    "reference[]" to INT_ARRAY
+  )
 
 /**
- * Given type strings we pull out of navigation xml files, generate a corresponding [PsiType]
- * for them.
+ * Given type strings we pull out of navigation xml files, generate a corresponding [PsiType] for
+ * them.
  *
  * @param modulePackage The current package that safe args are being generated into. This will be
- *    used if `typeStr` is specified with a relative path name (i.e. if it starts with '.')
+ *   used if `typeStr` is specified with a relative path name (i.e. if it starts with '.')
  * @param context The [PsiElement] context we are in when creating this [PsiType] -- this is needed
- *    for IntelliJ machinery.
+ *   for IntelliJ machinery.
  * @param typeStr A String of the type we want to create, e.g. "com.example.SomeClass". This value
- *    can start with a '.', e.g. ".util.SomeClass", at which point it will be placed within the
- *    current module package. This value can also be a special type as documented here:
- *    https://developer.android.com/guide/navigation/navigation-pass-data#supported_argument_types
- *    If null, `defaultValue` will be used to infer the type.
+ *   can start with a '.', e.g. ".util.SomeClass", at which point it will be placed within the
+ *   current module package. This value can also be a special type as documented here:
+ *   https://developer.android.com/guide/navigation/navigation-pass-data#supported_argument_types If
+ *   null, `defaultValue` will be used to infer the type.
  * @param defaultValue The default value specified for this type. This is used as a fallback if
- *    `typeStr` itself is not specified.
- *
+ *   `typeStr` itself is not specified.
  */
-fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue: String?, context: PsiElement): PsiType {
+fun parsePsiType(
+  modulePackage: String,
+  typeStr: String?,
+  defaultValue: String?,
+  context: PsiElement
+): PsiType {
   val psiTypeStr = getPsiTypeStr(modulePackage, typeStr, defaultValue)
   return try {
     PsiElementFactory.getInstance(context.project).createTypeFromText(psiTypeStr, context)
-  }
-  catch (e: IncorrectOperationException) {
+  } catch (e: IncorrectOperationException) {
     PsiElementFactory.getInstance(context.project).createTypeFromText(FALLBACK_TYPE, context)
   }
 }
@@ -81,7 +85,8 @@ fun NavArgumentData.parsePsiType(modulePackage: String, context: PsiElement): Ps
   parsePsiType(modulePackage, type, defaultValue, context)
 
 fun getPsiTypeStr(modulePackage: String, typeStr: String?, defaultValue: String?): String {
-  // When specified as inputs to safe args, inner classes in XML should use the Java syntax (e.g. "Outer$Inner"), but IntelliJ resolves
+  // When specified as inputs to safe args, inner classes in XML should use the Java syntax (e.g.
+  // "Outer$Inner"), but IntelliJ resolves
   // the type using dot syntax ("Outer.Inner")
   var psiTypeStr = typeStr?.replace('$', '.')
 
@@ -144,8 +149,7 @@ private fun String.parseUnsignedInt(): String? {
   try {
     Integer.parseUnsignedInt(this.substring(2), 16)
     return PsiTypes.intType().name
-  }
-  catch (ignore: NumberFormatException) {
+  } catch (ignore: NumberFormatException) {
     return null
   }
 }
@@ -169,22 +173,30 @@ internal fun PsiClass.createConstructor(
   val fallback = this.navigationElement
   return LightMethodBuilder(this, JavaLanguage.INSTANCE)
     .setConstructor(true)
-    .addModifiers(*modifiers).apply {
-      this.navigationElement = navigationElement ?: fallback
-    }
+    .addModifiers(*modifiers)
+    .apply { this.navigationElement = navigationElement ?: fallback }
 }
 
-internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag?): LightFieldBuilder {
+internal fun PsiClass.createField(
+  arg: NavArgumentData,
+  modulePackage: String,
+  xmlTag: XmlTag?
+): LightFieldBuilder {
   val psiType = arg.parsePsiType(modulePackage, this)
   val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
-  return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
-    this.navigationElement = xmlTag ?: this.navigationElement
-  }
+  return NullabilityLightFieldBuilder(
+      manager,
+      arg.name,
+      psiType,
+      nonNull,
+      PsiModifier.PUBLIC,
+      PsiModifier.FINAL
+    )
+    .apply { this.navigationElement = xmlTag ?: this.navigationElement }
 }
 
 /**
- * Annotate the target type with the proper nullability based on the <argument> nullable
- * attribute.
+ * Annotate the target type with the proper nullability based on the <argument> nullable attribute.
  */
 internal fun PsiClass.annotateNullability(psiType: PsiType, isNonNull: Boolean = true): PsiType {
   val nonNull = psiType is PsiPrimitiveType || isNonNull
@@ -201,10 +213,13 @@ internal fun PsiClass.createMethod(
   return LightMethodBuilder(manager, JavaLanguage.INSTANCE, name)
     .setContainingClass(this)
     .setModifiers(*modifiers)
-    .setMethodReturnType(returnType).apply {
-      this.navigationElement = navigationElement ?: this@createMethod.navigationElement
-    }
+    .setMethodReturnType(returnType)
+    .apply { this.navigationElement = navigationElement ?: this@createMethod.navigationElement }
 }
 
-fun String.toCamelCase() = this.split("_").mapIndexed { index, s -> if (index > 0) s.usLocaleCapitalize() else s }.joinToString("")
+fun String.toCamelCase() =
+  this.split("_")
+    .mapIndexed { index, s -> if (index > 0) s.usLocaleCapitalize() else s }
+    .joinToString("")
+
 fun String.toUpperCamelCase() = this.toCamelCase().usLocaleCapitalize()

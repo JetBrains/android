@@ -31,6 +31,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.popup.list.ListPopupImpl
 import com.intellij.ui.popup.list.PopupListElementRenderer
+import java.awt.BorderLayout
+import javax.swing.JPanel
+import javax.swing.ListCellRenderer
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -54,12 +57,10 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.resolve.asImportedFromObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
-import java.awt.BorderLayout
-import javax.swing.JPanel
-import javax.swing.ListCellRenderer
 
 /**
- * Registers an unresolved reference resolver in Kotlin files which recognizes classes from Safe Args kotlin classes
+ * Registers an unresolved reference resolver in Kotlin files which recognizes classes from Safe
+ * Args kotlin classes
  */
 class SafeArgsImportKtResolver : QuickFixContributor {
   override fun registerQuickFixes(quickFixes: QuickFixes) {
@@ -112,38 +113,47 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
 
     // Copied from KotlinAddImportAction
     object : ListPopupImpl(project, getVariantSelectionPopup(project, file, suggestions)) {
-      override fun getListElementRenderer(): ListCellRenderer<AutoImportVariant> {
-        val baseRenderer = super.getListElementRenderer() as PopupListElementRenderer<AutoImportVariant>
-        val psiRenderer = SafeArgsPsiElementCellRenderer()
-        return ListCellRenderer { list, value, index, isSelected, cellHasFocus ->
-          JPanel(BorderLayout()).apply {
-            baseRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-            add(baseRenderer.nextStepLabel, BorderLayout.EAST)
-            add(
-              psiRenderer.getListCellRendererComponent(
+        override fun getListElementRenderer(): ListCellRenderer<AutoImportVariant> {
+          val baseRenderer =
+            super.getListElementRenderer() as PopupListElementRenderer<AutoImportVariant>
+          val psiRenderer = SafeArgsPsiElementCellRenderer()
+          return ListCellRenderer { list, value, index, isSelected, cellHasFocus ->
+            JPanel(BorderLayout()).apply {
+              baseRenderer.getListCellRendererComponent(
                 list,
-                value.declarationToImport(project),
+                value,
                 index,
                 isSelected,
                 cellHasFocus
               )
-            )
+              add(baseRenderer.nextStepLabel, BorderLayout.EAST)
+              add(
+                psiRenderer.getListCellRendererComponent(
+                  list,
+                  value.declarationToImport(project),
+                  index,
+                  isSelected,
+                  cellHasFocus
+                )
+              )
+            }
           }
         }
       }
-    }.showInBestPositionFor(editor)
+      .showInBestPositionFor(editor)
   }
 
   private fun collectSuggestions(file: PsiFile): List<AutoImportVariant> {
     val module = ModuleUtil.findModuleForFile(file) ?: return emptyList()
     val nameIdentifier = Name.identifier(referenceName)
-    return module.getDescriptorsByModulesWithDependencies()
+    return module
+      .getDescriptorsByModulesWithDependencies()
       .values
       .flatten()
       .asSequence()
       .flatMap { descriptor ->
         descriptor.findVisibleClassesBySimpleName(nameIdentifier) +
-        descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
+          descriptor.findVisibleFunctionsBySimpleName(nameIdentifier)
       }
       .map { AutoImportVariant(it) }
       .filter { it.importFqName != null }
@@ -151,21 +161,33 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       .toList()
   }
 
-  private fun PackageFragmentDescriptor.findVisibleClassesBySimpleName(name: Name): Sequence<DeclarationDescriptor> {
-    return getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }.asSequence() +
-           getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS).asSequence()
-             .filterIsInstance<ClassDescriptor>()
-             .mapNotNull { it.companionObjectDescriptor }
-             .filter { it.name == name }
+  private fun PackageFragmentDescriptor.findVisibleClassesBySimpleName(
+    name: Name
+  ): Sequence<DeclarationDescriptor> {
+    return getMemberScope()
+      .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { it == name }
+      .asSequence() +
+      getMemberScope()
+        .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
+        .asSequence()
+        .filterIsInstance<ClassDescriptor>()
+        .mapNotNull { it.companionObjectDescriptor }
+        .filter { it.name == name }
   }
 
-  private fun PackageFragmentDescriptor.findVisibleFunctionsBySimpleName(name: Name): Sequence<DeclarationDescriptor> {
-    return getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS).asSequence()
+  private fun PackageFragmentDescriptor.findVisibleFunctionsBySimpleName(
+    name: Name
+  ): Sequence<DeclarationDescriptor> {
+    return getMemberScope()
+      .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
+      .asSequence()
       .filterIsInstance<ClassDescriptor>()
       .mapNotNull { it.companionObjectDescriptor }
       .flatMap {
-        ProgressManager.checkCanceled();
-        it.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.FUNCTIONS).asSequence()
+        ProgressManager.checkCanceled()
+        it.unsubstitutedMemberScope
+          .getContributedDescriptors(DescriptorKindFilter.FUNCTIONS)
+          .asSequence()
       }
       .filterIsInstance<FunctionDescriptor>()
       .map { it.asImportedFromObject() }
@@ -174,7 +196,8 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
 
   private fun addImport(project: Project, file: KtFile, import: FqName) {
     project.executeWriteCommand(QuickFixBundle.message("add.import")) {
-      val descriptor = file.resolveImportReference(import).firstOrNull() ?: return@executeWriteCommand
+      val descriptor =
+        file.resolveImportReference(import).firstOrNull() ?: return@executeWriteCommand
       ImportInsertHelper.getInstance(project).importDescriptor(file, descriptor)
     }
   }
@@ -184,12 +207,20 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
     file: KtFile,
     suggestions: List<AutoImportVariant>
   ): BaseListPopupStep<AutoImportVariant> {
-    return object : BaseListPopupStep<AutoImportVariant>(KotlinBundle.message("action.add.import.chooser.title"), suggestions) {
+    return object :
+      BaseListPopupStep<AutoImportVariant>(
+        KotlinBundle.message("action.add.import.chooser.title"),
+        suggestions
+      ) {
       override fun isAutoSelectionEnabled() = false
 
       override fun isSpeedSearchEnabled() = true
-      override fun onChosen(selectedValue: AutoImportVariant?, finalChoice: Boolean): PopupStep<String>? {
-        if (selectedValue == null || project.isDisposed || selectedValue.importFqName == null) return null
+      override fun onChosen(
+        selectedValue: AutoImportVariant?,
+        finalChoice: Boolean
+      ): PopupStep<String>? {
+        if (selectedValue == null || project.isDisposed || selectedValue.importFqName == null)
+          return null
 
         if (finalChoice) {
           addImport(project, file, selectedValue.importFqName)

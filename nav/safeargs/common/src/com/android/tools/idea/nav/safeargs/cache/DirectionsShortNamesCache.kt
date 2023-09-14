@@ -33,8 +33,8 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.Processor
 
 /**
- * A short names cache for finding any [LightDirectionsClass] classes or their methods by their unqualified
- * name.
+ * A short names cache for finding any [LightDirectionsClass] classes or their methods by their
+ * unqualified name.
  */
 class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val enabledFacetsProvider = SafeArgsEnabledFacetsProjectService.getInstance(project)
@@ -45,45 +45,58 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    lightClassesCache = cachedValuesManager.createCachedValue {
-      val lightClasses = enabledFacetsProvider.modulesUsingSafeArgs
-        .asSequence()
-        .flatMap { facet ->
-          SafeArgsCacheModuleService.getInstance(facet).directions.asSequence()
-        }
-        .groupBy { lightClass -> lightClass.name }
-      CachedValueProvider.Result.create(lightClasses,
-                                        ProjectNavigationResourceModificationTracker.getInstance(project),
-                                        project.safeArgsModeTracker)
-    }
+    lightClassesCache =
+      cachedValuesManager.createCachedValue {
+        val lightClasses =
+          enabledFacetsProvider.modulesUsingSafeArgs
+            .asSequence()
+            .flatMap { facet ->
+              SafeArgsCacheModuleService.getInstance(facet).directions.asSequence()
+            }
+            .groupBy { lightClass -> lightClass.name }
+        CachedValueProvider.Result.create(
+          lightClasses,
+          ProjectNavigationResourceModificationTracker.getInstance(project),
+          project.safeArgsModeTracker
+        )
+      }
 
-    allClassNamesCache = cachedValuesManager.createCachedValue {
-      CachedValueProvider.Result.create(lightClassesCache.value.keys.toTypedArray(), lightClassesCache)
-    }
+    allClassNamesCache =
+      cachedValuesManager.createCachedValue {
+        CachedValueProvider.Result.create(
+          lightClassesCache.value.keys.toTypedArray(),
+          lightClassesCache
+        )
+      }
   }
-
 
   override fun getAllClassNames(): Array<String> = allClassNamesCache.value
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     return lightClassesCache.value[name]
-             ?.asSequence()
-             ?.filter { PsiSearchScopeUtil.isInScope(scope, it) }
-             ?.map { it as PsiClass }
-             ?.toList()
-             ?.toTypedArray()
-           ?: PsiClass.EMPTY_ARRAY
+      ?.asSequence()
+      ?.filter { PsiSearchScopeUtil.isInScope(scope, it) }
+      ?.map { it as PsiClass }
+      ?.toList()
+      ?.toTypedArray()
+      ?: PsiClass.EMPTY_ARRAY
   }
 
   override fun getAllMethodNames() = arrayOf<String>()
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiMethod>()
 
-  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
 
-  override fun processMethodsWithName(name: String,
-                                      scope: GlobalSearchScope,
-                                      processor: Processor<in PsiMethod>): Boolean {
+  override fun processMethodsWithName(
+    name: String,
+    scope: GlobalSearchScope,
+    processor: Processor<in PsiMethod>
+  ): Boolean {
     // We are asked to process each method in turn, aborting if false is ever returned, and passing
     // that result back up the chain.
     return getMethodsByName(name, scope).all { method -> processor.process(method) }
@@ -92,7 +105,11 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   override fun getAllFieldNames() = arrayOf<String>()
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiField>()
 
-  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 }

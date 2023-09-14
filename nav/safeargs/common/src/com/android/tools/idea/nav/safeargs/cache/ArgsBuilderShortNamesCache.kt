@@ -41,18 +41,22 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    lightClassesCache = cachedValuesManager.createCachedValue {
-      val builders = enabledFacetsProvider.modulesUsingSafeArgs
-        .asSequence()
-        .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence() }
-        .flatMap { it.innerClasses.asSequence() }
-        .filterIsInstance<LightArgsBuilderClass>()
-        .toList()
+    lightClassesCache =
+      cachedValuesManager.createCachedValue {
+        val builders =
+          enabledFacetsProvider.modulesUsingSafeArgs
+            .asSequence()
+            .flatMap { facet -> SafeArgsCacheModuleService.getInstance(facet).args.asSequence() }
+            .flatMap { it.innerClasses.asSequence() }
+            .filterIsInstance<LightArgsBuilderClass>()
+            .toList()
 
-      CachedValueProvider.Result.create(builders,
-                                        ProjectNavigationResourceModificationTracker.getInstance(project),
-                                        project.safeArgsModeTracker)
-    }
+        CachedValueProvider.Result.create(
+          builders,
+          ProjectNavigationResourceModificationTracker.getInstance(project),
+          project.safeArgsModeTracker
+        )
+      }
   }
 
   override fun getAllClassNames(): Array<String> = arrayOf("Builder")
@@ -67,13 +71,19 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllMethodNames() = arrayOf<String>()
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiMethod>()
-  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
 
-  override fun processMethodsWithName(name: String,
-                                      scope: GlobalSearchScope,
-                                      processor: Processor<in PsiMethod>): Boolean {
+  override fun processMethodsWithName(
+    name: String,
+    scope: GlobalSearchScope,
+    processor: Processor<in PsiMethod>
+  ): Boolean {
     // We are asked to process each method in turn, aborting if false is ever returned, and passing
     // that result back up the chain.
     return getMethodsByName(name, scope).all { method -> processor.process(method) }
@@ -81,7 +91,11 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllFieldNames() = arrayOf<String>()
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiField>()
-  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 }

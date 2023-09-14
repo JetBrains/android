@@ -23,16 +23,17 @@ import com.intellij.psi.xml.XmlTag
 
 fun XmlFile.findXmlTagById(attrId: String): XmlTag? {
   var resultTag: XmlTag? = null
-  val visitor = object : XmlRecursiveElementWalkingVisitor() {
-    override fun visitXmlTag(tag: XmlTag) {
-      super.visitXmlTag(tag)
-      // unique resource id in the same xml file
-      if (tag.isTagIdEqualTo(attrId)) {
-        resultTag = tag
-        stopWalking()
+  val visitor =
+    object : XmlRecursiveElementWalkingVisitor() {
+      override fun visitXmlTag(tag: XmlTag) {
+        super.visitXmlTag(tag)
+        // unique resource id in the same xml file
+        if (tag.isTagIdEqualTo(attrId)) {
+          resultTag = tag
+          stopWalking()
+        }
       }
     }
-  }
   this.accept(visitor)
   return resultTag
 }

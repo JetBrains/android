@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.java
 
-import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import com.android.tools.idea.nav.safeargs.module.NavEntry
 import com.android.tools.idea.nav.safeargs.module.NavInfo
-import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -27,19 +25,19 @@ import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiModifier
-import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.augment.AndroidLightClassBase
-import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Common functionality for all safe args light classes.
- */
+/** Common functionality for all safe args light classes. */
 abstract class SafeArgsLightBaseClass(
   protected val navInfo: NavInfo,
   protected val navEntry: NavEntry,
   val destination: NavDestinationData,
   suffix: String,
-) : AndroidLightClassBase(PsiManager.getInstance(navInfo.facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
+) :
+  AndroidLightClassBase(
+    PsiManager.getInstance(navInfo.facet.module.project),
+    setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
+  ) {
 
   private val name: String
   private val qualifiedName: String
@@ -49,15 +47,20 @@ abstract class SafeArgsLightBaseClass(
     super.setModuleInfo(navInfo.facet.module, false)
     val fileFactory = PsiFileFactory.getInstance(project)
 
-    qualifiedName = destination.name.let { name ->
-      val nameWithoutSuffix = if (!name.startsWith('.')) name else "${navInfo.packageName}$name"
-      "$nameWithoutSuffix$suffix"
-    }
+    qualifiedName =
+      destination.name.let { name ->
+        val nameWithoutSuffix = if (!name.startsWith('.')) name else "${navInfo.packageName}$name"
+        "$nameWithoutSuffix$suffix"
+      }
     name = qualifiedName.substringAfterLast('.')
 
     // Create a placeholder backing file to represent this light class
-    backingFile = fileFactory.createFileFromText("${name}.java", JavaFileType.INSTANCE,
-                                                 "// This class is generated on-the-fly by the IDE.") as PsiJavaFile
+    backingFile =
+      fileFactory.createFileFromText(
+        "${name}.java",
+        JavaFileType.INSTANCE,
+        "// This class is generated on-the-fly by the IDE."
+      ) as PsiJavaFile
     backingFile.packageName = (qualifiedName.substringBeforeLast('.'))
   }
 
