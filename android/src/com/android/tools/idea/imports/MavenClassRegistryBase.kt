@@ -47,9 +47,11 @@ abstract class MavenClassRegistryBase {
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
+   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` otherwise.
    */
   abstract fun findLibraryData(
     name: String,
+    receiverType: String?,
     useAndroidX: Boolean,
     completionFileType: FileType?
   ): Collection<LibraryImportData>

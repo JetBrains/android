@@ -94,11 +94,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     perform(project, editor, element, true)
   }
 
-  /** Performs a fix. Or let users to choose from the popup if there's multiple options. */
+  /** Performs a fix. Or let users choose from the popup if there are multiple options. */
   fun perform(project: Project, editor: Editor, element: PsiElement, sync: Boolean) {
     val resolvable =
       findResolvable(element, editor.caretModel.offset) { text ->
-        Resolvable.createNewOrNull(findLibraryData(project, text, element.containingFile?.fileType))
+        // TODO(b/300296134): Use receiver type if available.
+        Resolvable.createNewOrNull(
+          findLibraryData(project, text, null, element.containingFile?.fileType)
+        )
       }
         ?: return
 
@@ -292,7 +295,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
     val resolvable =
       findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
-        Resolvable.createNewOrNull(findLibraryData(project, text, element.containingFile?.fileType))
+        // TODO(b/300296134): Use receiver type if available.
+        Resolvable.createNewOrNull(
+          findLibraryData(project, text, null, element.containingFile?.fileType)
+        )
       }
         ?: return false
 
@@ -399,8 +405,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           is KtDotQualifiedExpression -> {
             var curr: KtDotQualifiedExpression? = current
             while (curr != null) {
-              val found = curr.formText()?.let { resolve(it) }
-              if (found != null) return found
+              curr.formText()?.let(resolve)?.let {
+                return it
+              }
 
               curr = curr.parent as? KtDotQualifiedExpression
             }
@@ -458,9 +465,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun findLibraryData(
     project: Project,
     text: String,
+    receiverType: String?,
     completionFileType: FileType?
   ): Collection<MavenClassRegistryBase.LibraryImportData> {
-    return getMavenClassRegistry().findLibraryData(text, project.isAndroidx(), completionFileType)
+    return getMavenClassRegistry()
+      .findLibraryData(text, receiverType, project.isAndroidx(), completionFileType)
   }
 
   private fun resolveArtifact(project: Project, language: Language, artifact: String): String {

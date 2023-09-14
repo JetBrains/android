@@ -43,9 +43,11 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
+   * @param receiverType the fully-qualified type of the receiver, if any, or `null` otherwise.
    */
   override fun findLibraryData(
     name: String,
+    receiverType: String?,
     useAndroidX: Boolean,
     completionFileType: FileType?
   ): Collection<LibraryImportData> {
@@ -57,8 +59,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
 
     val foundArtifacts = buildList {
       lookup.classNameMap[shortName]?.let { addAll(it) }
-      // TODO(b/300296134): For now, exclude extension functions
-      val functionSpecifier = FunctionSpecifier(shortName, null)
+      val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
       // Only suggest top-level Kotlin functions when completing in a Kotlin file.
       if (completionFileType == KotlinFileType.INSTANCE)
         lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
