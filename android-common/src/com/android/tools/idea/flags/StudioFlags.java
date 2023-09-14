@@ -1258,7 +1258,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = Flag.create(
     COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
-    "If enabled, multiple previews associated with composable will be grouped", false);
+    "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
+    "enabling or disabling (File -> Invalidate Caches...)", false);
 
   public static final Flag<Boolean> COMPOSE_NEW_PREVIEW_LAYOUT = Flag.create(
     COMPOSE, "new.preview.layout", "Enable the new layout options of Compose Preview",
