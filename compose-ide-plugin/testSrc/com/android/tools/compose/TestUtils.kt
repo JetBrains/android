@@ -19,8 +19,8 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.intellij.openapi.application.ex.PathManagerEx
 import java.nio.file.Files
 
-fun getComposePluginTestDataPath():String {
+fun getComposePluginTestDataPath(): String {
   val adtPath = resolveWorkspacePath("tools/adt/idea/compose-ide-plugin/testData")
   return if (Files.exists(adtPath)) adtPath.toString()
-         else PathManagerEx.findFileUnderCommunityHome("plugins/android-compose-ide-plugin").path
+  else PathManagerEx.findFileUnderCommunityHome("plugins/android-compose-ide-plugin").path
 }

@@ -24,6 +24,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
+import java.util.Collections
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.EXTRACT_FUNCTION
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractFunction.ExtractKotlinFunctionHandler
@@ -35,14 +36,14 @@ import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.Extracti
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.Collections
 
 class ComposableFunctionExtractableAnalyserTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
+  private val myFixture: CodeInsightTestFixtureImpl by lazy {
+    projectRule.fixture as CodeInsightTestFixtureImpl
+  }
 
   @Before
   fun setUp() {
@@ -50,15 +51,24 @@ class ComposableFunctionExtractableAnalyserTest {
     myFixture.stubComposableAnnotation()
   }
 
-  private val helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
-    override fun configureAndRun(project: Project,
-                                 editor: Editor,
-                                 descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
-                                 onFinish: (ExtractionResult) -> Unit) {
-      val newDescriptor = descriptorWithConflicts.descriptor.copy(suggestedNames = Collections.singletonList("newComposableFunction"))
-      doRefactor(ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT), onFinish)
+  private val helper =
+    object : ExtractionEngineHelper(EXTRACT_FUNCTION) {
+      override fun configureAndRun(
+        project: Project,
+        editor: Editor,
+        descriptorWithConflicts: ExtractableCodeDescriptorWithConflicts,
+        onFinish: (ExtractionResult) -> Unit
+      ) {
+        val newDescriptor =
+          descriptorWithConflicts.descriptor.copy(
+            suggestedNames = Collections.singletonList("newComposableFunction")
+          )
+        doRefactor(
+          ExtractionGeneratorConfiguration(newDescriptor, ExtractionGeneratorOptions.DEFAULT),
+          onFinish
+        )
+      }
     }
-  }
 
   @RunsInEdt
   @Test
@@ -75,13 +85,15 @@ class ComposableFunctionExtractableAnalyserTest {
       fun sourceFunction() {
         <selection>print(true)</selection>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    ExtractKotlinFunctionHandler(helper = helper).invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+    ExtractKotlinFunctionHandler(helper = helper)
+      .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
 
     myFixture.checkResult(
-      //language=kotlin
+      // language=kotlin
       """
         package com.example
 
@@ -96,7 +108,8 @@ class ComposableFunctionExtractableAnalyserTest {
         private fun newComposableFunction() {
             print(true)
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -119,13 +132,15 @@ class ComposableFunctionExtractableAnalyserTest {
           <selection>print(true)</selection>
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    ExtractKotlinFunctionHandler(helper = helper).invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+    ExtractKotlinFunctionHandler(helper = helper)
+      .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
 
     myFixture.checkResult(
-      //language=kotlin
+      // language=kotlin
       """
       package com.example
 
@@ -144,7 +159,8 @@ class ComposableFunctionExtractableAnalyserTest {
       private fun newComposableFunction() {
           print(true)
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 }

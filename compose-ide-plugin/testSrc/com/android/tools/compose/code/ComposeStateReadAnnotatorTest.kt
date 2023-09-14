@@ -43,8 +43,7 @@ val EXPECTED_ICON = StudioIcons.Common.INFO
 @RunWith(JUnit4::class)
 @RunsInEdt
 class ComposeStateReadAnnotatorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
   private val annotator = ComposeStateReadAnnotator()
@@ -60,10 +59,11 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun delegatedPropertyRead() {
-    val psiFile = fixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.loadNewFile(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -80,20 +80,22 @@ class ComposeStateReadAnnotatorTest {
 
       @Composable
       fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val allElements = psiFile.collectDescendantsOfType<PsiElement>()
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
 
-    assertThat(annotations).hasSize(1);
+    assertThat(annotations).hasSize(1)
     with(annotations.first()) {
       assertThat(message).isEqualTo(createMessage("name", "HelloScreen"))
       assertThat(message).isEqualTo(message)
       assertThat(gutterIconRenderer).isNotNull()
       assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
       assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
+      assertThat(textAttributes)
+        .isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
       assertThat(startOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = |name)"))
       assertThat(endOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = name|)"))
     }
@@ -101,10 +103,11 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun assignedPropertyRead() {
-    val psiFile = fixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.loadNewFile(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -119,30 +122,35 @@ class ComposeStateReadAnnotatorTest {
 
       @Composable
       fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val allElements = psiFile.collectDescendantsOfType<PsiElement>()
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
 
-    assertThat(annotations).hasSize(1);
+    assertThat(annotations).hasSize(1)
     with(annotations.first()) {
       assertThat(message).isEqualTo(createMessage("assignedName", "HelloScreen"))
       assertThat(message).isEqualTo(message)
       assertThat(gutterIconRenderer).isNotNull()
       assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
       assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.|value)"))
-      assertThat(endOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.value|)"))
+      assertThat(textAttributes)
+        .isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
+      assertThat(startOffset)
+        .isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.|value)"))
+      assertThat(endOffset)
+        .isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.value|)"))
     }
   }
   @Test
   fun listPropertyRead() {
-    val psiFile = fixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.loadNewFile(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -157,30 +165,35 @@ class ComposeStateReadAnnotatorTest {
 
       @Composable
       fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val allElements = psiFile.collectDescendantsOfType<PsiElement>()
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
 
-    assertThat(annotations).hasSize(1);
+    assertThat(annotations).hasSize(1)
     with(annotations.first()) {
       assertThat(message).isEqualTo(createMessage("listName[0]", "HelloScreen"))
       assertThat(gutterIconRenderer).isNotNull()
       assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
       assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = listName[0].|value)"))
-      assertThat(endOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = listName[0].value|)"))
+      assertThat(textAttributes)
+        .isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
+      assertThat(startOffset)
+        .isEqualTo(fixture.offsetForWindow("HelloContent(name = listName[0].|value)"))
+      assertThat(endOffset)
+        .isEqualTo(fixture.offsetForWindow("HelloContent(name = listName[0].value|)"))
     }
   }
 
   @Test
   fun nestedPropertyRead() {
-    val psiFile = fixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      fixture.loadNewFile(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -198,21 +211,25 @@ class ComposeStateReadAnnotatorTest {
       fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
 
       class StateHolder(val name: MutableState<String>)
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val allElements = psiFile.collectDescendantsOfType<PsiElement>()
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
 
-    assertThat(annotations).hasSize(1);
+    assertThat(annotations).hasSize(1)
     with(annotations.first()) {
       assertThat(message).isEqualTo(createMessage("name", "HelloScreen"))
       assertThat(gutterIconRenderer).isNotNull()
       assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
       assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = container.name.|value)"))
-      assertThat(endOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = container.name.value|)"))
+      assertThat(textAttributes)
+        .isEqualTo(ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
+      assertThat(startOffset)
+        .isEqualTo(fixture.offsetForWindow("HelloContent(name = container.name.|value)"))
+      assertThat(endOffset)
+        .isEqualTo(fixture.offsetForWindow("HelloContent(name = container.name.value|)"))
     }
   }
 

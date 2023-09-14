@@ -38,9 +38,8 @@ sealed class MockReferenceType(
   override fun name() = name
   override fun signature(): String = "L$name;"
   override fun isPrepared(): Boolean = true
-  override fun nestedTypes(): List<ReferenceType> = debugProcess.virtualMachineProxy.allClasses().filter {
-    it.name().startsWith("${name()}\$")
-  }
+  override fun nestedTypes(): List<ReferenceType> =
+    debugProcess.virtualMachineProxy.allClasses().filter { it.name().startsWith("${name()}\$") }
 
   override fun allLineLocations(): List<Location> = methods().flatMap { it.allLineLocations() }
   override fun allMethods(): List<Method> = methods()
@@ -68,7 +67,12 @@ class MockClassType(
     methodToValue[name] = value
   }
 
-  override fun invokeMethod(thread: ThreadReference?, method: Method, arguments: List<Value>, options: Int): Value {
+  override fun invokeMethod(
+    thread: ThreadReference?,
+    method: Method,
+    arguments: List<Value>,
+    options: Int
+  ): Value {
     val name = method.name() ?: error("Name of method \"$method\" is null.")
     return methodToValue[name] ?: error("Fake value is not set for method \"$name\" when asked.")
   }
@@ -79,7 +83,12 @@ class MockClassType(
   override fun subclasses(): List<ClassType> = emptyList()
   override fun isEnum() = false
   override fun setValue(field: Field?, value: Value?) {}
-  override fun newInstance(thread: ThreadReference?, method: Method, arguments: List<Value>, options: Int): ObjectReference {
+  override fun newInstance(
+    thread: ThreadReference?,
+    method: Method,
+    arguments: List<Value>,
+    options: Int
+  ): ObjectReference {
     throw UnsupportedOperationException()
   }
 

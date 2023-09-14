@@ -68,8 +68,9 @@ fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
   return false
 }
 
-internal fun KotlinType.isClassOrExtendsClass(classFqName:String): Boolean {
-  return fqName?.asString() == classFqName || supertypes().any { it.fqName?.asString() == classFqName }
+internal fun KotlinType.isClassOrExtendsClass(classFqName: String): Boolean {
+  return fqName?.asString() == classFqName ||
+    supertypes().any { it.fqName?.asString() == classFqName }
 }
 
 internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): FqName? {
@@ -77,43 +78,46 @@ internal fun KtValueArgument.matchingParamTypeFqName(callee: KtNamedFunction): F
     val argumentName = getArgumentName()!!.asName.asString()
     val matchingParam = callee.valueParameters.find { it.name == argumentName } ?: return null
     matchingParam.returnTypeFqName()
-  }
-  else {
+  } else {
     val argumentIndex = (parent as KtValueArgumentList).arguments.indexOf(this)
     val paramAtIndex = callee.valueParameters.getOrNull(argumentIndex) ?: return null
     paramAtIndex.returnTypeFqName()
   }
 }
 
-internal fun KtDeclaration.returnTypeFqName(): FqName? = if (isK2Plugin()) {
-  if (this !is KtCallableDeclaration) null
-  else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
-}
-else {
-  this.type()?.fqName
-}
+internal fun KtDeclaration.returnTypeFqName(): FqName? =
+  if (isK2Plugin()) {
+    if (this !is KtCallableDeclaration) null
+    else analyze(this) { asFqName(this@returnTypeFqName.getReturnKtType()) }
+  } else {
+    this.type()?.fqName
+  }
 
 @OptIn(KtAllowAnalysisOnEdt::class)
-internal fun KtElement.callReturnTypeFqName() = if (isK2Plugin()) {
-  allowAnalysisOnEdt {
-    analyze(this) {
-      val callReturnType = this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
-      callReturnType?.let { asFqName(it) }
+internal fun KtElement.callReturnTypeFqName() =
+  if (isK2Plugin()) {
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val callReturnType =
+          this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
+        callReturnType?.let { asFqName(it) }
+      }
     }
+  } else {
+    resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
   }
-}
-else {
-  resolveToCall(BodyResolveMode.PARTIAL)?.resultingDescriptor?.returnType?.fqName
-}
 
-// TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType` and `KtTypeRenderer`.
-internal fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
+// TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
+// and `KtTypeRenderer`.
+internal fun KtAnalysisSession.asFqName(type: KtType) =
+  type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
 
-internal fun KtFunction.hasComposableAnnotation() = if (isK2Plugin()) {
-  hasAnnotation(ComposeClassIds.Composable)
-} else {
-  descriptor?.hasComposableAnnotation() == true
-}
+internal fun KtFunction.hasComposableAnnotation() =
+  if (isK2Plugin()) {
+    hasAnnotation(ComposeClassIds.Composable)
+  } else {
+    descriptor?.hasComposableAnnotation() == true
+  }
 
 internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallableSymbol): Boolean {
   fun hasComposableAnnotation(annotated: KtAnnotated?) =
@@ -122,10 +126,11 @@ internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallable
   val type = callableSymbol.returnType
   if (hasComposableAnnotation(type)) return true
   val functionSymbol = callableSymbol as? KtFunctionSymbol
-  if (functionSymbol != null &&
+  if (
+    functionSymbol != null &&
       functionSymbol.isOperator &&
       functionSymbol.name == OperatorNameConventions.INVOKE
-    ) {
+  ) {
     functionSymbol.receiverType?.let { receiverType ->
       if (hasComposableAnnotation(receiverType)) return true
     }

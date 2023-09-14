@@ -29,35 +29,56 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 /**
  * Used to apply styles for calls to @Composable functions.
  *
- * JetBrains documentation recommends doing highlighting such as this using [com.intellij.lang.annotation.Annotator] (guidance available at
- * https://plugins.jetbrains.com/docs/intellij/syntax-highlighting-and-error-highlighting.html#annotator). But it turns out that the Kotlin
- * plugin is running its syntax highlighting using a different mechanism which can run in parallel with annotators. That doesn't matter for
- * annotators that don't conflict with the built-in highlighting, but in the case of Compose we are overriding some of the standard function
- * colors, and so we need to ensure that Compose highlighting takes precedence.
+ * JetBrains documentation recommends doing highlighting such as this using
+ * [com.intellij.lang.annotation.Annotator] (guidance available at
+ * https://plugins.jetbrains.com/docs/intellij/syntax-highlighting-and-error-highlighting.html#annotator).
+ * But it turns out that the Kotlin plugin is running its syntax highlighting using a different
+ * mechanism which can run in parallel with annotators. That doesn't matter for annotators that
+ * don't conflict with the built-in highlighting, but in the case of Compose we are overriding some
+ * of the standard function colors, and so we need to ensure that Compose highlighting takes
+ * precedence.
  *
- * Luckily, the Kotlin plugin provides its own extension mechanism, which is implemented here with [HighlighterExtension]. When this code
- * returns Composable function highlighting for a given method call, it will always be used instead of the default Kotlin highlighting.
+ * Luckily, the Kotlin plugin provides its own extension mechanism, which is implemented here with
+ * [HighlighterExtension]. When this code returns Composable function highlighting for a given
+ * method call, it will always be used instead of the default Kotlin highlighting.
  */
 class ComposableHighlighterExtension : KotlinHighlightingVisitorExtension() {
   companion object {
     const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
     val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-      TextAttributesKey.createTextAttributesKey(COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME, DefaultLanguageHighlighterColors.FUNCTION_CALL)
-    val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType = HighlightInfoType.HighlightInfoTypeImpl(HighlightInfoType.SYMBOL_TYPE_SEVERITY, COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY, false)
+      TextAttributesKey.createTextAttributesKey(
+        COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
+        DefaultLanguageHighlighterColors.FUNCTION_CALL
+      )
+    val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
+      HighlightInfoType.HighlightInfoTypeImpl(
+        HighlightInfoType.SYMBOL_TYPE_SEVERITY,
+        COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
+        false
+      )
   }
 
-  override fun highlightDeclaration(elementToHighlight: PsiElement, descriptor: DeclarationDescriptor): HighlightInfoType? = null
+  override fun highlightDeclaration(
+    elementToHighlight: PsiElement,
+    descriptor: DeclarationDescriptor
+  ): HighlightInfoType? = null
 
-  override fun highlightCall(elementToHighlight: PsiElement, resolvedCall: ResolvedCall<*>): HighlightInfoType? {
+  override fun highlightCall(
+    elementToHighlight: PsiElement,
+    resolvedCall: ResolvedCall<*>
+  ): HighlightInfoType? {
     if (!resolvedCall.isComposableInvocation()) return null
 
     // For composable invocations, highlight if either:
     // 1. compose is enabled for the current module, or
     // 2. the file is part of a library's source code.
-    return if (isComposeEnabled(elementToHighlight) || isInLibrarySource(elementToHighlight)) COMPOSABLE_CALL_TEXT_TYPE else null
+    return if (isComposeEnabled(elementToHighlight) || isInLibrarySource(elementToHighlight))
+      COMPOSABLE_CALL_TEXT_TYPE
+    else null
   }
 
   private fun isInLibrarySource(element: PsiElement) =
     element.containingFile.virtualFile != null &&
-    ProjectFileIndex.getInstance(element.project).isInLibrarySource(element.containingFile.virtualFile)
+      ProjectFileIndex.getInstance(element.project)
+        .isInLibrarySource(element.containingFile.virtualFile)
 }

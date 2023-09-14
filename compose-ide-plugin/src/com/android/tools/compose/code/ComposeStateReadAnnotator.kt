@@ -53,20 +53,25 @@ const val FQNAME = "androidx.compose.runtime.State"
 private val CLASS_ID_OF_STATE = ClassId.topLevel(FqName(FQNAME))
 
 /**
- * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside `@Composable` functions.
+ * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside
+ * `@Composable` functions.
  *
- * TODO(b/225218822): Before productionizing this, depending on whether we want a gutter icon, highlighting, or both,
- *  we must change this to use `KotlinHighlightingVisitorExtension` (to avoid race conditions), or use a
- *  `RelatedItemLineMarkerProvider` for the gutter icon so it can be disabled with a setting. If we do both, we will
- *  need to share the logic and store result on the `PsiElement` to avoid computing it twice.
+ * TODO(b/225218822): Before productionizing this, depending on whether we want a gutter icon,
+ *   highlighting, or both, we must change this to use `KotlinHighlightingVisitorExtension` (to
+ *   avoid race conditions), or use a `RelatedItemLineMarkerProvider` for the gutter icon so it can
+ *   be disabled with a setting. If we do both, we will need to share the logic and store result on
+ *   the `PsiElement` to avoid computing it twice.
  */
 class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (!StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) return
     if (element !is KtNameReferenceExpression) return
-    val scopeName = element.parentOfType<KtNamedFunction>()?.takeIf { it.hasComposableAnnotation() }?.name ?: return
+    val scopeName =
+      element.parentOfType<KtNamedFunction>()?.takeIf { it.hasComposableAnnotation() }?.name
+        ?: return
     element.getStateReadElement()?.let {
-      holder.newAnnotation(HighlightSeverity.INFORMATION, createMessage(it.text, scopeName))
+      holder
+        .newAnnotation(HighlightSeverity.INFORMATION, createMessage(it.text, scopeName))
         .textAttributes(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
         .gutterIconRenderer(ComposeStateReadGutterIconRenderer(it.text, scopeName))
         .create()
@@ -99,8 +104,8 @@ class ComposeStateReadAnnotator : Annotator {
   }
 
   /**
-   * Returns whether the expression represents an implicit call to `State#getValue`, i.e. if the expression
-   * is for a delegated property where the delegate is of type `State`.
+   * Returns whether the expression represents an implicit call to `State#getValue`, i.e. if the
+   * expression is for a delegated property where the delegate is of type `State`.
    *
    * E.g. for a name reference expression `foo` if `foo` is defined as:
    *
@@ -113,33 +118,33 @@ class ComposeStateReadAnnotator : Annotator {
   private fun KotlinType.isStateType() =
     (fqName?.asString() == FQNAME || supertypes().any { it.fqName?.asString() == FQNAME })
 
-  private fun KtAnalysisSession.isStateType(type: KtType): Boolean = if (type is KtNonErrorClassType) {
-    type.classId == CLASS_ID_OF_STATE || type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == CLASS_ID_OF_STATE }
-  } else {
-    false
-  }
+  private fun KtAnalysisSession.isStateType(type: KtType): Boolean =
+    if (type is KtNonErrorClassType) {
+      type.classId == CLASS_ID_OF_STATE ||
+        type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == CLASS_ID_OF_STATE }
+    } else {
+      false
+    }
 
   @OptIn(KtAllowAnalysisOnEdt::class)
   private fun KtExpression.isStateType(): Boolean =
     if (isK2Plugin()) {
-      allowAnalysisOnEdt {
-        analyze(this) {
-          getKtType()?.let { isStateType(it) } ?: false
-        }
-      }
+      allowAnalysisOnEdt { analyze(this) { getKtType()?.let { isStateType(it) } ?: false } }
     } else {
       resolveExprType()?.isStateType() ?: false
     }
 
   private fun KtNameReferenceExpression.isAssignee(): Boolean {
     return parentOfType<KtBinaryExpression>()
-             ?.takeIf { it.operationToken.toString() == "EQ" }
-             ?.let { it.left == this || it.left?.descendants()?.contains(this) == true }
-             ?: false
+      ?.takeIf { it.operationToken.toString() == "EQ" }
+      ?.let { it.left == this || it.left?.descendants()?.contains(this) == true }
+      ?: false
   }
 
-  private data class ComposeStateReadGutterIconRenderer(private val stateName: String,
-                                                        private val functionName: String) : GutterIconRenderer() {
+  private data class ComposeStateReadGutterIconRenderer(
+    private val stateName: String,
+    private val functionName: String
+  ) : GutterIconRenderer() {
     override fun getIcon() = StudioIcons.Common.INFO
     override fun getTooltipText() = createMessage(stateName, functionName)
   }
@@ -147,7 +152,10 @@ class ComposeStateReadAnnotator : Annotator {
   companion object {
     const val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME = "ComposeStateReadTextAttributes"
     val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-      TextAttributesKey.createTextAttributesKey(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME, DefaultLanguageHighlighterColors.FUNCTION_CALL)
+      TextAttributesKey.createTextAttributesKey(
+        COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME,
+        DefaultLanguageHighlighterColors.FUNCTION_CALL
+      )
 
     private fun createMessage(stateVariable: String, composable: String) =
       "State read: when the value of \"$stateVariable\" changes, \"$composable\" will recompose."

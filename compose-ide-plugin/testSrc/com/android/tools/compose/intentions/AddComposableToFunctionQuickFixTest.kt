@@ -33,8 +33,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class AddComposableToFunctionQuickFixTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture by lazy { projectRule.fixture }
   private val myProject by lazy { projectRule.project }
@@ -61,7 +60,8 @@ class AddComposableToFunctionQuickFixTest {
       fun NonComposable<caret>Function() {
           ComposableFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     invokeQuickFix()
@@ -79,7 +79,9 @@ class AddComposableToFunctionQuickFixTest {
       fun NonComposableFunction() {
           ComposableFunction()
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -98,7 +100,8 @@ class AddComposableToFunctionQuickFixTest {
       fun NonComposableFunction() {
           Composable<caret>Function()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     invokeQuickFix()
@@ -116,7 +119,9 @@ class AddComposableToFunctionQuickFixTest {
       fun NonComposableFunction() {
           ComposableFunction()
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -131,7 +136,8 @@ class AddComposableToFunctionQuickFixTest {
 
       @Composable
       fun ComposableFunction() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -143,7 +149,8 @@ class AddComposableToFunctionQuickFixTest {
       fun NonComposable<caret>Function() {
           ComposableFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     invokeQuickFix()
@@ -158,7 +165,9 @@ class AddComposableToFunctionQuickFixTest {
       fun NonComposableFunction() {
           ComposableFunction()
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -183,12 +192,15 @@ class AddComposableToFunctionQuickFixTest {
               ComposableFunction()  // invocation
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertQuickFixNotAvailable("Composable|Function()  // invocation")
 
-    ApplicationManager.getApplication().invokeAndWait { myFixture.moveCaret("fun NonComposable|Function") }
+    ApplicationManager.getApplication().invokeAndWait {
+      myFixture.moveCaret("fun NonComposable|Function")
+    }
     invokeQuickFix()
 
     myFixture.checkResult(
@@ -210,7 +222,9 @@ class AddComposableToFunctionQuickFixTest {
               ComposableFunction()  // invocation
           }
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -233,11 +247,14 @@ class AddComposableToFunctionQuickFixTest {
               ComposableFunction()  // invocation
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    // Adding @Composable to `NonComposableFunction` isn't correct here. To fix the build error, @Composable should be added to the
-    // `content` parameter of `functionThatTakesALambda`. That's currently out of scope for this quick fix (although could be added in the
+    // Adding @Composable to `NonComposableFunction` isn't correct here. To fix the build error,
+    // @Composable should be added to the
+    // `content` parameter of `functionThatTakesALambda`. That's currently out of scope for this
+    // quick fix (although could be added in the
     // future), so for now we just assert that the quick fix isn't available.
     assertQuickFixNotAvailable("fun NonComposable|Function() {")
     assertQuickFixNotAvailable("functionThatTake|sALambda {")
@@ -265,7 +282,8 @@ class AddComposableToFunctionQuickFixTest {
           }
           return MyClass()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -295,13 +313,18 @@ class AddComposableToFunctionQuickFixTest {
           }
           return MyClass()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    // The compiler reports this error on the property, even though it's the getter function that needs to have @Composable added.
-    // Furthermore, it does the same when the setter function calls a @Composable function, but that scenario can't be handled because
-    // @Composable doesn't apply to setters. It's not trivial to determine from the compiler error on the property which accessor it should
-    // apply to, so we just don't show the fix. There will be a separate error on the getter() in this case that shows the fix anyway, which
+    // The compiler reports this error on the property, even though it's the getter function that
+    // needs to have @Composable added.
+    // Furthermore, it does the same when the setter function calls a @Composable function, but that
+    // scenario can't be handled because
+    // @Composable doesn't apply to setters. It's not trivial to determine from the compiler error
+    // on the property which accessor it should
+    // apply to, so we just don't show the fix. There will be a separate error on the getter() in
+    // this case that shows the fix anyway, which
     // suffices for the user to be able to quickly fix the error.
     assertQuickFixNotAvailable("val pro|perty: String")
 
@@ -330,7 +353,9 @@ class AddComposableToFunctionQuickFixTest {
           }
           return MyClass()
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -358,7 +383,8 @@ class AddComposableToFunctionQuickFixTest {
           }
           return MyClass()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // @Composable is not allowed on setters, so we shouldn't suggest adding it.
@@ -390,7 +416,8 @@ class AddComposableToFunctionQuickFixTest {
           }
           return MyClass()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertQuickFixNotAvailable("fun getMy|Class(): Any")
@@ -402,17 +429,16 @@ class AddComposableToFunctionQuickFixTest {
     val fixFilter: (IntentionAction) -> Boolean =
       if (expectedFunctionName != null) {
         { action -> action.text == "Add '@Composable' to function '$expectedFunctionName'" }
-      }
-      else {
+      } else {
         { action -> action.text.startsWith("Add '@Composable' to function '") }
       }
 
     val action = myFixture.availableIntentions.singleOrNull(fixFilter)
     if (action == null) {
-      val intentionTexts = myFixture.availableIntentions.joinToString(transform = IntentionAction::getText)
+      val intentionTexts =
+        myFixture.availableIntentions.joinToString(transform = IntentionAction::getText)
       fail("Could not find expected quick fix. Available intentions: $intentionTexts")
-    }
-    else {
+    } else {
       WriteCommandAction.runWriteCommandAction(myProject) {
         action.invoke(myProject, myFixture.editor, myFixture.file)
       }
@@ -420,7 +446,12 @@ class AddComposableToFunctionQuickFixTest {
   }
 
   private fun assertQuickFixNotAvailable(window: String) {
-    ApplicationManager.getApplication().invokeAndWait { myFixture.moveCaret (window) }
-    assertThat(myFixture.availableIntentions.filter { it.text.startsWith("Add '@Composable' to function '") }).isEmpty()
+    ApplicationManager.getApplication().invokeAndWait { myFixture.moveCaret(window) }
+    assertThat(
+        myFixture.availableIntentions.filter {
+          it.text.startsWith("Add '@Composable' to function '")
+        }
+      )
+      .isEmpty()
   }
 }

@@ -58,7 +58,11 @@ interface MockValueScope {
   fun value(value: Value)
 }
 
-fun mockDebugProcess(project: Project, disposable: Disposable, block: MockDebugProcessScope.() -> Unit): MockDebugProcessImpl {
+fun mockDebugProcess(
+  project: Project,
+  disposable: Disposable,
+  block: MockDebugProcessScope.() -> Unit
+): MockDebugProcessImpl {
   val debugProcess = MockDebugProcessImpl(project)
   Disposer.register(disposable) {
     // Stop and dispose the debugger process in order to avoid leaking the project via
@@ -68,38 +72,43 @@ fun mockDebugProcess(project: Project, disposable: Disposable, block: MockDebugP
     debugProcess.dispose()
   }
   object : MockDebugProcessScope {
-    override val virtualMachineProxy: VirtualMachineProxyImpl
-      get() = debugProcess.virtualMachineProxy
+      override val virtualMachineProxy: VirtualMachineProxyImpl
+        get() = debugProcess.virtualMachineProxy
 
-    override fun classType(
-      signature: String,
-      superClass: ClassType?,
-      interfaces: List<InterfaceType>,
-      block: MockReferenceTypeScope.() -> Unit
-    ): ClassType {
-      val classType = debugProcess.addClassType(signature, superClass, interfaces) as MockClassType
-      object : MockReferenceTypeScope {
-        override fun method(
-          name: String,
-          signature: String?,
-          argumentTypeNames: List<String>,
-          lines: List<Int>,
-          block: MockValueScope.() -> Unit
-        ) {
-          val method = MockMethod(name, signature, argumentTypeNames, lines, classType, debugProcess)
-          classType.addMethod(method)
+      override fun classType(
+        signature: String,
+        superClass: ClassType?,
+        interfaces: List<InterfaceType>,
+        block: MockReferenceTypeScope.() -> Unit
+      ): ClassType {
+        val classType =
+          debugProcess.addClassType(signature, superClass, interfaces) as MockClassType
+        object : MockReferenceTypeScope {
+            override fun method(
+              name: String,
+              signature: String?,
+              argumentTypeNames: List<String>,
+              lines: List<Int>,
+              block: MockValueScope.() -> Unit
+            ) {
+              val method =
+                MockMethod(name, signature, argumentTypeNames, lines, classType, debugProcess)
+              classType.addMethod(method)
 
-          object : MockValueScope {
-            override fun value(value: Value) {
-              classType.setValue(value, method)
+              object : MockValueScope {
+                  override fun value(value: Value) {
+                    classType.setValue(value, method)
+                  }
+                }
+                .block()
             }
-          }.block()
-        }
-      }.block()
+          }
+          .block()
 
-      return classType
+        return classType
+      }
     }
-  }.block()
+    .block()
   return debugProcess
 }
 
@@ -108,12 +117,16 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
   private val mockVirtualMachineProxy = MockVirtualMachineProxy(this, referencesByName)
 
   val prepareRequestPatterns = mutableListOf<String>()
-  private val mockRequestManager = object : RequestManagerImpl(this) {
-    override fun createClassPrepareRequest(requestor: ClassPrepareRequestor, pattern: String): ClassPrepareRequest? {
-      prepareRequestPatterns.add(pattern)
-      return MockitoKt.mock()
+  private val mockRequestManager =
+    object : RequestManagerImpl(this) {
+      override fun createClassPrepareRequest(
+        requestor: ClassPrepareRequestor,
+        pattern: String
+      ): ClassPrepareRequest? {
+        prepareRequestPatterns.add(pattern)
+        return MockitoKt.mock()
+      }
     }
-  }
 
   override fun getVirtualMachineProxy(): VirtualMachineProxyImpl = mockVirtualMachineProxy
   override fun getSearchScope(): GlobalSearchScope = GlobalSearchScope.allScope(project)
@@ -125,8 +138,9 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     method: Method,
     args: List<Value>
   ): Value {
-    val referenceType: ReferenceType = referencesByName[objRef.type().name()]
-                                       ?: error("Reference type \"${objRef.type()}\" is not available when asked.")
+    val referenceType: ReferenceType =
+      referencesByName[objRef.type().name()]
+        ?: error("Reference type \"${objRef.type()}\" is not available when asked.")
 
     return when (referenceType) {
       is ClassType -> referenceType.invokeMethod(objRef.owningThread(), method, args, 0)
@@ -149,8 +163,6 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     superClass: ClassType?,
     interfaces: List<InterfaceType>
   ): ClassType {
-    return MockClassType(this, name, superClass, interfaces).apply {
-      referencesByName[name] = this
-    }
+    return MockClassType(this, name, superClass, interfaces).apply { referencesByName[name] = this }
   }
 }

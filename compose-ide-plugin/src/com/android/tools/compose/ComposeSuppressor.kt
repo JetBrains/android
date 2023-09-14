@@ -21,19 +21,16 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.lexer.KtTokens
 
-/**
- * Suppress inspection that require composable function names to start with a lower case letter.
- */
+/** Suppress inspection that require composable function names to start with a lower case letter. */
 class ComposeSuppressor : InspectionSuppressor {
   override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
     return toolId == "FunctionName" &&
-           element.language == KotlinLanguage.INSTANCE &&
-           element.node.elementType == KtTokens.IDENTIFIER &&
-           element.parent.isComposableFunction()
+      element.language == KotlinLanguage.INSTANCE &&
+      element.node.elementType == KtTokens.IDENTIFIER &&
+      element.parent.isComposableFunction()
   }
 
   override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> {
     return SuppressQuickFix.EMPTY_ARRAY
   }
 }
-

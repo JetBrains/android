@@ -21,8 +21,9 @@ import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFi
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
 
 class ComposeIdePluginQuickFixRegistrar : KotlinQuickFixRegistrar() {
-  override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
-    registerApplicator(ComposeCreateComposableFunctionQuickFix.factory)
-    registerApplicator(AddComposableToFunctionQuickFix.k2DiagnosticFixFactory)
-  }
+  override val list: KotlinQuickFixesList =
+    KtQuickFixesListBuilder.registerPsiQuickFix {
+      registerApplicator(ComposeCreateComposableFunctionQuickFix.factory)
+      registerApplicator(AddComposableToFunctionQuickFix.k2DiagnosticFixFactory)
+    }
 }

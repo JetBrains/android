@@ -25,9 +25,7 @@ import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
 
-/**
- * Test for [ComposeWrapModifiersAction].
- */
+/** Test for [ComposeWrapModifiersAction]. */
 class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
@@ -46,10 +44,12 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
     }
 
     fun Modifier.extentionFunction():Modifier { return this}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
-    val settings = CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
+    val settings =
+      CodeStyle.getSettings(project).getCustomSettings(KotlinCodeStyleSettings::class.java)
     settings.CONTINUATION_INDENT_FOR_CHAINED_CALLS = false
   }
 
@@ -68,7 +68,8 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
           val m2 = Modifier.adjust().adjust()
           val m3 = Modifier.adjust().adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     var action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }
@@ -92,7 +93,8 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
           val m2 = Modifier.adjust().adjust()
           val m3 = Modifier.adjust().adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.moveCaret("val m2 = Modifier.adj|ust().adjust()")
@@ -108,7 +110,6 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
     WriteCommandAction.writeCommandAction(project).run<RuntimeException> {
       action!!.invoke(project, myFixture.editor, myFixture.file)
     }
-
 
     myFixture.checkResult(
       """
@@ -129,7 +130,8 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
               .adjust()
               .adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -148,7 +150,8 @@ class ComposeWrapModifiersActionTest : JavaCodeInsightFixtureAdtTestCase() {
               .ad<caret>just()
               .adjust()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Wrap modifiers" }

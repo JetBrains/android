@@ -19,16 +19,17 @@ import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinIconProvider
 import org.jetbrains.kotlin.idea.util.hasMatchingExpected
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.hasActualModifier
-import javax.swing.Icon
 
 /**
- * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise to allow fallback to any
- * other providers. This may be used in various places across the IDE; one example is in the "Add Import" menu.
+ * Returns Composable function icon for [KtFunction] elements that are composable, or null otherwise
+ * to allow fallback to any other providers. This may be used in various places across the IDE; one
+ * example is in the "Add Import" menu.
  */
 class ComposableIconProvider : KotlinIconProvider() {
 
@@ -48,8 +49,9 @@ class ComposableIconProvider : KotlinIconProvider() {
     return declaration.hasActualModifier() && declaration.hasMatchingExpected()
   }
 
-  private fun createRowIcon(baseIcon: Icon, visibilityIcon: Icon): RowIcon = RowIcon(2).apply {
-    setIcon(baseIcon, /* layer = */ 0)
-    setIcon(visibilityIcon, /* layer = */ 1)
-  }
+  private fun createRowIcon(baseIcon: Icon, visibilityIcon: Icon): RowIcon =
+    RowIcon(2).apply {
+      setIcon(baseIcon, /* layer = */ 0)
+      setIcon(visibilityIcon, /* layer = */ 1)
+    }
 }

@@ -33,8 +33,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposableFunctionRenderingTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -56,7 +55,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -77,7 +77,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(foo: Int = 0, bar: String = "") {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -98,7 +99,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(foo: Int, bar: String) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -119,7 +121,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(foo: Int, bar: String = "", baz: Int = "") {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -140,7 +143,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(foo: @Composable () -> Unit) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -161,7 +165,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(foo: () -> Unit) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -182,7 +187,8 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(a: Int, b: Int = 0, foo: @Composable () -> Unit) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
@@ -203,10 +209,12 @@ class ComposableFunctionRenderingTest {
 
       @Composable
       fun ${caret}HomeScreen(a: Int, b: Int = 0, foo: () -> Unit) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    // This seems like odd behavior, but it's documenting the existing behavior at the time this test is being written.
+    // This seems like odd behavior, but it's documenting the existing behavior at the time this
+    // test is being written.
     with(getComposableFunctionRenderPartsAtCaret()) {
       assertThat(parameters).isEqualTo("(a: Int, foo: () -> Unit, ...)")
       assertThat(tail).isNull()
@@ -215,6 +223,7 @@ class ComposableFunctionRenderingTest {
 
   private fun getComposableFunctionRenderPartsAtCaret() = runReadAction {
     val element = myFixture.elementAtCaret as KtDeclaration
-    element.getComposableFunctionRenderParts() ?: throw AssertionError("Test must contain a valid composable function")
+    element.getComposableFunctionRenderParts()
+      ?: throw AssertionError("Test must contain a valid composable function")
   }
 }

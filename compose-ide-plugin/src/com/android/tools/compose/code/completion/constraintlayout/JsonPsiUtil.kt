@@ -20,8 +20,10 @@ import com.intellij.json.psi.JsonProperty
 import com.intellij.psi.util.parentOfType
 
 /**
- * From the element being invoked, returns the [JsonProperty] parent that also includes the [JsonProperty] from which completion is
- * triggered.
+ * From the element being invoked, returns the [JsonProperty] parent that also includes the
+ * [JsonProperty] from which completion is triggered.
  */
 internal fun getJsonPropertyParent(parameters: CompletionParameters): JsonProperty? =
-  parameters.position.parentOfType<JsonProperty>(withSelf = true)?.parentOfType<JsonProperty>(withSelf = false)
+  parameters.position
+    .parentOfType<JsonProperty>(withSelf = true)
+    ?.parentOfType<JsonProperty>(withSelf = false)

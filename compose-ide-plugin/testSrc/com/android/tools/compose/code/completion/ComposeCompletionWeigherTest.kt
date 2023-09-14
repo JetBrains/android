@@ -34,8 +34,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ComposeCompletionWeigherTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -72,10 +71,11 @@ class ComposeCompletionWeigherTest {
 
       // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
       object MaterialTheme
-      """)
+      """
+    )
 
-
-    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the promotion/demotion
+    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the
+    // promotion/demotion
     myFixture.addFileToProject(
       "src/com/example/MaterialTheme.kt",
       // language=kotlin
@@ -83,8 +83,8 @@ class ComposeCompletionWeigherTest {
       package com.example
 
       object MaterialTheme
-      """)
-
+      """
+    )
 
     // Given:
     myFixture.loadNewFile(
@@ -99,18 +99,21 @@ class ComposeCompletionWeigherTest {
       fun HomeScreen() {
         Material$caret
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    Truth.assertThat(myFixture.renderedLookupElements).containsExactly(
-      "MaterialTheme ($materialThemePackage)",
-      "MaterialTheme {...}",
-      "MaterialTheme (com.example)",
-    ).inOrder()
+    Truth.assertThat(myFixture.renderedLookupElements)
+      .containsExactly(
+        "MaterialTheme ($materialThemePackage)",
+        "MaterialTheme {...}",
+        "MaterialTheme (com.example)",
+      )
+      .inOrder()
   }
 
   /** Regression test for b/155314487. */
@@ -140,10 +143,11 @@ class ComposeCompletionWeigherTest {
 
       // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
       object MaterialTheme
-      """)
+      """
+    )
 
-
-    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the promotion/demotion
+    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the
+    // promotion/demotion
     myFixture.addFileToProject(
       "src/com/example/MaterialTheme.kt",
       // language=kotlin
@@ -151,8 +155,8 @@ class ComposeCompletionWeigherTest {
       package com.example
 
       object MaterialTheme
-      """)
-
+      """
+    )
 
     // Add Color so it can be referenced without causing a missing reference.
     myFixture.addFileToProject(
@@ -162,8 +166,8 @@ class ComposeCompletionWeigherTest {
       package androidx.compose.ui.graphics
 
       class Color
-      """)
-
+      """
+    )
 
     // Given:
     myFixture.loadNewFile(
@@ -182,24 +186,29 @@ class ComposeCompletionWeigherTest {
 
       @Composable
       fun HomeScreenElement(color: Color) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    Truth.assertThat(myFixture.renderedLookupElements).containsExactly(
-      "MaterialTheme ($materialThemePackage)",
-      "MaterialTheme (com.example)",
-      "MaterialTheme {...}",
-    ).inOrder()
+    Truth.assertThat(myFixture.renderedLookupElements)
+      .containsExactly(
+        "MaterialTheme ($materialThemePackage)",
+        "MaterialTheme (com.example)",
+        "MaterialTheme {...}",
+      )
+      .inOrder()
   }
 
   @Test
   fun testLookupElementOrder_valueArgumentWithDotExpression() {
-    // This test applies to any value argument being filled in with a dot expression, as in "icon = Icons.<caret>". Using Icons specifically
-    // just because they can fulfill that scenario, and the autocomplete list would be in a different order if the weighing code didn't run.
+    // This test applies to any value argument being filled in with a dot expression, as in "icon =
+    // Icons.<caret>". Using Icons specifically
+    // just because they can fulfill that scenario, and the autocomplete list would be in a
+    // different order if the weighing code didn't run.
     myFixture.addFileToProject(
       "src/androidx/compose/material/icons/Icons.kt",
       // language=kotlin
@@ -214,7 +223,8 @@ class ComposeCompletionWeigherTest {
         object Sharp
         object TwoTone
       }
-      """)
+      """
+    )
 
     // Given:
     myFixture.loadNewFile(
@@ -233,7 +243,8 @@ class ComposeCompletionWeigherTest {
 
       @Composable
       fun HomeScreenElement(icon: Any) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
@@ -242,17 +253,20 @@ class ComposeCompletionWeigherTest {
     // Then:
     val renderedLookupElements = myFixture.renderedLookupElements
 
-    // There should be at least one more suggestion that's not one of the Icons object, but we don't really care what it is as long as it's
+    // There should be at least one more suggestion that's not one of the Icons object, but we don't
+    // really care what it is as long as it's
     // ranked lower than the Icons entries.
     Truth.assertThat(renderedLookupElements.size).isAtLeast(7)
-    Truth.assertThat(renderedLookupElements.toList().subList(0, 6)).containsExactly(
-      "Defaultnull Icons.Filled",
-      "Filled (androidx.compose.material.icons.Icons)",
-      "Outlined (androidx.compose.material.icons.Icons)",
-      "Rounded (androidx.compose.material.icons.Icons)",
-      "Sharp (androidx.compose.material.icons.Icons)",
-      "TwoTone (androidx.compose.material.icons.Icons)"
-    ).inOrder()
+    Truth.assertThat(renderedLookupElements.toList().subList(0, 6))
+      .containsExactly(
+        "Defaultnull Icons.Filled",
+        "Filled (androidx.compose.material.icons.Icons)",
+        "Outlined (androidx.compose.material.icons.Icons)",
+        "Rounded (androidx.compose.material.icons.Icons)",
+        "Sharp (androidx.compose.material.icons.Icons)",
+        "TwoTone (androidx.compose.material.icons.Icons)"
+      )
+      .inOrder()
   }
 
   @Test
@@ -273,7 +287,8 @@ class ComposeCompletionWeigherTest {
 
       @Composable
       fun WrappingFunction(foobarArg: Int) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Given:
@@ -289,18 +304,21 @@ class ComposeCompletionWeigherTest {
       fun HomeScreen() {
         WrappingFunction(foobar<caret>)
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // When:
     myFixture.completeBasic()
 
     // Then:
-    Truth.assertThat(myFixture.renderedLookupElements).containsExactly(
-      "foobarArg = Int",
-      "foobarOne(required: Int) (com.example) Int",
-      "foobarTwo(required: Int, optional: Int = ...) (com.example) Int",
-    ).inOrder()
+    Truth.assertThat(myFixture.renderedLookupElements)
+      .containsExactly(
+        "foobarArg = Int",
+        "foobarOne(required: Int) (com.example) Int",
+        "foobarTwo(required: Int, optional: Int = ...) (com.example) Int",
+      )
+      .inOrder()
   }
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>

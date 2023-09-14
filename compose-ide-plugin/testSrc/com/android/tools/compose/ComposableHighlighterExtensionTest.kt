@@ -41,8 +41,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposableHighlighterExtensionTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
   private val highlighter = ComposableHighlighterExtension()
 
@@ -76,10 +75,13 @@ class ComposableHighlighterExtensionTest {
     whenever(mockContainingFile.isValid).thenReturn(true)
     whenever(mockContainingFile.project).thenReturn(projectRule.project)
     whenever(mockContainingFile.virtualFile).thenReturn(mockVirtualFile)
-    whenever(mockContainingFile.getUserData(ModuleUtilCore.KEY_MODULE)).thenReturn(projectRule.module)
+    whenever(mockContainingFile.getUserData(ModuleUtilCore.KEY_MODULE))
+      .thenReturn(projectRule.module)
 
     // Setup mocks to return whether the function is composable
-    whenever(mockProjectFileIndex.isInLibrarySource(mockVirtualFile)).thenAnswer { isInLibrarySource }
+    whenever(mockProjectFileIndex.isInLibrarySource(mockVirtualFile)).thenAnswer {
+      isInLibrarySource
+    }
 
     // Setup mocks to return whether the function is in library source.
     whenever(mockResolvedCall.candidateDescriptor).thenReturn(mockCandidateDescriptor)
@@ -123,24 +125,25 @@ class ComposableHighlighterExtensionTest {
     isComposableInvocation = true
     moduleUsesCompose = true
 
-    // If the call is outside a compose-enabled module or library source, there should be no highlighting.
+    // If the call is outside a compose-enabled module or library source, there should be no
+    // highlighting.
     moduleUsesCompose = false
     isInLibrarySource = false
     assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isNull()
 
     moduleUsesCompose = false
     isInLibrarySource = true
-    assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isEqualTo(
-      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
+    assertThat(highlighter.highlightCall(mockElement, mockResolvedCall))
+      .isEqualTo(ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
 
     moduleUsesCompose = true
     isInLibrarySource = false
-    assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isEqualTo(
-      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
+    assertThat(highlighter.highlightCall(mockElement, mockResolvedCall))
+      .isEqualTo(ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
 
     moduleUsesCompose = true
     isInLibrarySource = true
-    assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isEqualTo(
-      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
+    assertThat(highlighter.highlightCall(mockElement, mockResolvedCall))
+      .isEqualTo(ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
   }
 }

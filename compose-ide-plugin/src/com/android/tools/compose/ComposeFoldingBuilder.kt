@@ -28,33 +28,34 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.getChildrenOfType
 
-/**
- * Adds a folding region for a Modifier chain longer than two.
- */
+/** Adds a folding region for a Modifier chain longer than two. */
 class ComposeFoldingBuilder : CustomFoldingBuilder() {
-  override fun buildLanguageFoldRegions(descriptors: MutableList<FoldingDescriptor>, root: PsiElement, document: Document, quick: Boolean) {
+  override fun buildLanguageFoldRegions(
+    descriptors: MutableList<FoldingDescriptor>,
+    root: PsiElement,
+    document: Document,
+    quick: Boolean
+  ) {
     if (root !is KtFile || DumbService.isDumb(root.project) || !isComposeEnabled(root)) {
       return
     }
 
-    val composableFunctions = root.getChildrenOfType<KtNamedFunction>().filter { it.isComposableFunction() }
+    val composableFunctions =
+      root.getChildrenOfType<KtNamedFunction>().filter { it.isComposableFunction() }
 
     for (function in composableFunctions) {
-      val modifiersChains = PsiTreeUtil.findChildrenOfType(function, KtDotQualifiedExpression::class.java).filter {
-        it.parent !is KtDotQualifiedExpression &&
-        isModifierChainLongerThanTwo(it)
-      }
+      val modifiersChains =
+        PsiTreeUtil.findChildrenOfType(function, KtDotQualifiedExpression::class.java).filter {
+          it.parent !is KtDotQualifiedExpression && isModifierChainLongerThanTwo(it)
+        }
 
       for (modifierChain in modifiersChains) {
         descriptors.add(FoldingDescriptor(modifierChain.node, modifierChain.node.textRange))
       }
     }
-
   }
 
-  /**
-   * For Modifier.adjust().adjust() -> Modifier.(...)
-   */
+  /** For Modifier.adjust().adjust() -> Modifier.(...) */
   override fun getLanguagePlaceholderText(node: ASTNode, range: TextRange): String {
     return node.text.substringBefore(".").trim() + ".(...)"
   }

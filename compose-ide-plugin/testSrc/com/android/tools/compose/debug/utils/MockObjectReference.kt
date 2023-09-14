@@ -43,8 +43,14 @@ class MockClassObjectReference(
   override fun reflectedType(): ReferenceType = referenceType
 
   override fun toString(): String {
-    return "instance of " + referenceType().name() +
-           "(reflected class=" + reflectedType().name() + ", " + "id=" + "@fakeUniqueId" + ")"
+    return "instance of " +
+      referenceType().name() +
+      "(reflected class=" +
+      reflectedType().name() +
+      ", " +
+      "id=" +
+      "@fakeUniqueId" +
+      ")"
   }
 }
 

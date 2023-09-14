@@ -24,17 +24,17 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-/**
- * Renames KtFile if a @Composable function with the same name was renamed.
- */
+/** Renames KtFile if a @Composable function with the same name was renamed. */
 class ComposableElementAutomaticRenamerFactory : AutomaticRenamerFactory {
 
   override fun isApplicable(element: PsiElement): Boolean {
-    if (element.getModuleSystem()?.usesCompose != true ||
+    if (
+      element.getModuleSystem()?.usesCompose != true ||
         element !is KtNamedFunction ||
         element.parent !is KtFile ||
         !element.isComposableFunction()
-    ) return false
+    )
+      return false
 
     val virtualFile = element.containingKtFile.virtualFile
     return virtualFile?.nameWithoutExtension == element.name
@@ -46,7 +46,11 @@ class ComposableElementAutomaticRenamerFactory : AutomaticRenamerFactory {
 
   override fun setEnabled(enabled: Boolean) {}
 
-  override fun createRenamer(element: PsiElement, newName: String?, usages: MutableCollection<UsageInfo>?): AutomaticRenamer {
+  override fun createRenamer(
+    element: PsiElement,
+    newName: String?,
+    usages: MutableCollection<UsageInfo>?
+  ): AutomaticRenamer {
     return object : AutomaticRenamer() {
       init {
         val file = element.containingFile
@@ -56,7 +60,8 @@ class ComposableElementAutomaticRenamerFactory : AutomaticRenamerFactory {
 
       override fun getDialogTitle() = ComposeBundle.message("rename.file")
 
-      override fun getDialogDescription() = ComposeBundle.message("rename.files.with.following.names")
+      override fun getDialogDescription() =
+        ComposeBundle.message("rename.files.with.following.names")
 
       override fun entityName() = ComposeBundle.message("file.name")
     }

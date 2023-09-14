@@ -19,18 +19,18 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
-/**
- * Test for [ComposeSuppressor].
- */
+/** Test for [ComposeSuppressor]. */
 class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
 
-  fun testFunctionNameWarning(): Unit = myFixture.run {
-    enableInspections(FunctionNameInspection::class.java)
-    stubComposableAnnotation()
+  fun testFunctionNameWarning(): Unit =
+    myFixture.run {
+      enableInspections(FunctionNameInspection::class.java)
+      stubComposableAnnotation()
 
-    val file = addFileToProject(
-      "src/com/example/views.kt",
-      """
+      val file =
+        addFileToProject(
+          "src/com/example/views.kt",
+          """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -39,10 +39,11 @@ class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
       fun MyView() {}
 
       fun <weak_warning descr="Function name 'NormalFunction' should start with a lowercase letter">NormalFunction</weak_warning>() {}
-      """.trimIndent()
-    )
+      """
+            .trimIndent()
+        )
 
-    configureFromExistingVirtualFile(file.virtualFile)
-    checkHighlighting()
-  }
+      configureFromExistingVirtualFile(file.virtualFile)
+      checkHighlighting()
+    }
 }

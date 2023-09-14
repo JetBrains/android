@@ -49,34 +49,28 @@ import org.jetbrains.kotlin.types.Variance
  *
  * Created action creates new function with @Composable annotation.
  *
- * Example:
- * For
+ * Example: For
  *
- * @Composable
- * fun myComposable() {
- *  <caret>newFunction()
- * }
+ * @Composable fun myComposable() { <caret>newFunction() }
  *
  * creates
  *
- * @Composable
- * fun newFunction() {
- *  TODO("Not yet implemented")
- * }
+ * @Composable fun newFunction() {
  *
- * b/267429486: This quickfix should make use of [CreateCallableFromUsageFix]
- * when that machinery is available on K2. For now, this implementation will
- * e.g. always extract the newFunction as a sibling to the calling compose
- * Function, and have fewer smarts in terms of parameter names and types.
+ * b/267429486: This quickfix should make use of [CreateCallableFromUsageFix] when that machinery is
+ * available on K2. For now, this implementation will e.g. always extract the newFunction as a
+ * sibling to the calling compose Function, and have fewer smarts in terms of parameter names and
+ * types.
+ *
+ * TODO("Not yet implemented") }
  */
 class ComposeCreateComposableFunctionQuickFix(
   element: KtCallExpression,
   private val newFunction: KtNamedFunction,
   private val sibling: KtNamedFunction,
-): QuickFixActionBase<KtCallExpression>(element) {
+) : QuickFixActionBase<KtCallExpression>(element) {
 
-  override fun getFamilyName(): String =
-    KotlinBundle.message("fix.create.from.usage.family")
+  override fun getFamilyName(): String = KotlinBundle.message("fix.create.from.usage.family")
 
   override fun getText(): String =
     ComposeBundle.message("create.composable.function") + " '${newFunction.name}'"
@@ -99,7 +93,9 @@ class ComposeCreateComposableFunctionQuickFix(
       val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
       if (!parentFunction.isComposableFunction()) return null
 
-      val unresolvedName = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
+      val unresolvedName =
+        (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName()
+          ?: return null
       if (unresolvedName.isBlank() || !unresolvedName[0].isUpperCase()) return null
 
       val fullCallExpression = unresolvedCall.getQualifiedExpressionForSelectorOrThis()
@@ -113,9 +109,8 @@ class ComposeCreateComposableFunctionQuickFix(
     }
 
     /**
-     * Budget-version of [CreateCallableFromUsageFix]: Constructs a plain
-     * function annotated with `@Composable`: infers (type) parameters from
-     * [unresolvedCall].
+     * Budget-version of [CreateCallableFromUsageFix]: Constructs a plain function annotated with
+     * `@Composable`: infers (type) parameters from [unresolvedCall].
      *
      * See b/267429486.
      */
@@ -124,23 +119,31 @@ class ComposeCreateComposableFunctionQuickFix(
       unresolvedName: String,
       container: KtElement,
     ): KtNamedFunction =
-      KtPsiFactory(container).createFunction(
-        KtPsiFactory.CallableBuilder(KtPsiFactory.CallableBuilder.Target.FUNCTION).apply {
-          modifier("@$COMPOSABLE_ANNOTATION_NAME")
-          typeParams(unresolvedCall.typeArguments.mapIndexed { index, _ -> "T$index" })
-          name(unresolvedName)
-          unresolvedCall.valueArguments.forEachIndexed { index, arg ->
-            val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
-            val name = arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
-            param(name, type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT))
-          }
-          noReturnType()
-          blockBody("TODO(\"Not yet implemented\")")
-        }.asString())
+      KtPsiFactory(container)
+        .createFunction(
+          KtPsiFactory.CallableBuilder(KtPsiFactory.CallableBuilder.Target.FUNCTION)
+            .apply {
+              modifier("@$COMPOSABLE_ANNOTATION_NAME")
+              typeParams(unresolvedCall.typeArguments.mapIndexed { index, _ -> "T$index" })
+              name(unresolvedName)
+              unresolvedCall.valueArguments.forEachIndexed { index, arg ->
+                val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
+                val name =
+                  arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
+                param(
+                  name,
+                  type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
+                )
+              }
+              noReturnType()
+              blockBody("TODO(\"Not yet implemented\")")
+            }
+            .asString()
+        )
 
     /**
-     * For the purpose of creating Composable functions, optimistically guesses
-     * that [expression] is of type `Unit`.
+     * For the purpose of creating Composable functions, optimistically guesses that [expression] is
+     * of type `Unit`.
      */
     private fun KtAnalysisSession.guessReturnType(expression: KtExpression): KtType {
       return (expression.getKtType() as? KtFunctionalType)?.returnType ?: builtinTypes.UNIT

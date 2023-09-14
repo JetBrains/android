@@ -35,8 +35,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposeLineMarkerProviderDescriptorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -50,10 +49,11 @@ class ComposeLineMarkerProviderDescriptorTest {
 
   @Test
   fun composableFunction_identifierHasMarker() {
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -65,8 +65,9 @@ class ComposeLineMarkerProviderDescriptorTest {
       fun HomeScreen() {
         MyButton() // invocation
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     var identifier: LeafPsiElement? = null
     ApplicationManager.getApplication().invokeAndWait {
@@ -74,16 +75,19 @@ class ComposeLineMarkerProviderDescriptorTest {
       identifier = myFixture.moveCaret("MyBut|ton() // invocation") as LeafPsiElement
     }
 
-    val lineMarkerInfo = runReadAction { ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!) }
+    val lineMarkerInfo = runReadAction {
+      ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!)
+    }
     assertThat(lineMarkerInfo).isNotNull()
   }
 
   @Test
   fun composableFunction_ktFunctionElementHasNoMarker() {
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -95,8 +99,9 @@ class ComposeLineMarkerProviderDescriptorTest {
       fun HomeScreen() {
         MyButton() // invocation
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     var functionElement: KtNamedFunction? = null
     ApplicationManager.getApplication().invokeAndWait {
@@ -104,16 +109,19 @@ class ComposeLineMarkerProviderDescriptorTest {
       functionElement = myFixture.moveCaret("MyBut|ton() // invocation").parentOfType()!!
     }
 
-    val lineMarkerInfo = runReadAction { ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(functionElement!!) }
+    val lineMarkerInfo = runReadAction {
+      ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(functionElement!!)
+    }
     assertThat(lineMarkerInfo).isNull()
   }
 
   @Test
   fun nonComposableFunction_noMarker() {
-    val psiFile = myFixture.addFileToProject(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
+    val psiFile =
+      myFixture.addFileToProject(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
       package com.example
 
       fun MyButton() {}
@@ -121,8 +129,9 @@ class ComposeLineMarkerProviderDescriptorTest {
       fun HomeScreen() {
         MyButton() // invocation
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     var identifier: LeafPsiElement? = null
     ApplicationManager.getApplication().invokeAndWait {
@@ -130,7 +139,9 @@ class ComposeLineMarkerProviderDescriptorTest {
       identifier = myFixture.moveCaret("MyBut|ton() // invocation") as LeafPsiElement
     }
 
-    val lineMarkerInfo = runReadAction { ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!) }
+    val lineMarkerInfo = runReadAction {
+      ComposeLineMarkerProviderDescriptor().getLineMarkerInfo(identifier!!)
+    }
     assertThat(lineMarkerInfo).isNull()
   }
 }

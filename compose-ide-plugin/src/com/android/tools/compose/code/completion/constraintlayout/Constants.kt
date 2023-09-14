@@ -16,30 +16,22 @@
 package com.android.tools.compose.code.completion.constraintlayout
 
 internal object KeyWords {
-  /**
-   * Name of the property within a MotionScene that contains several ConstraintSet declarations.
-   */
+  /** Name of the property within a MotionScene that contains several ConstraintSet declarations. */
   const val ConstraintSets = "ConstraintSets"
 
-  /**
-   * Name of the property within a MotionScene that contains several Transition declarations.
-   */
+  /** Name of the property within a MotionScene that contains several Transition declarations. */
   const val Transitions = "Transitions"
 
   /**
-   * Name of the property used to indicate that the containing ConstraintSet inherits its constraints from the ConstraintSet given by the
-   * `Extends` property value.
+   * Name of the property used to indicate that the containing ConstraintSet inherits its
+   * constraints from the ConstraintSet given by the `Extends` property value.
    */
   const val Extends = "Extends"
 
-  /**
-   * Reserved ID for the containing layout. Typically referenced in constraint blocks.
-   */
+  /** Reserved ID for the containing layout. Typically referenced in constraint blocks. */
   const val ParentId = "parent"
 
-  /**
-   * Name of the Visibility property in a constraint block.
-   */
+  /** Name of the Visibility property in a constraint block. */
   const val Visibility = "visibility"
 
   /**
@@ -61,10 +53,8 @@ internal interface ConstraintLayoutKeyWord {
   val keyWord: String
 }
 
-//region Constrain KeyWords
-/**
- * The classic anchors used to constrain a widget.
- */
+// region Constrain KeyWords
+/** The classic anchors used to constrain a widget. */
 internal enum class StandardAnchor(override val keyWord: String) : ConstraintLayoutKeyWord {
   Start("start"),
   Left("left"),
@@ -96,17 +86,13 @@ internal enum class SpecialAnchor(override val keyWord: String) : ConstraintLayo
   CenterV("centerVertically")
 }
 
-/**
- * Supported keywords to define the dimension of a widget.
- */
+/** Supported keywords to define the dimension of a widget. */
 internal enum class Dimension(override val keyWord: String) : ConstraintLayoutKeyWord {
   Width("width"),
   Height("height")
 }
 
-/**
- * Keywords to apply rendering time transformations to a widget.
- */
+/** Keywords to apply rendering time transformations to a widget. */
 internal enum class RenderTransform(override val keyWord: String) : ConstraintLayoutKeyWord {
   Alpha("alpha"),
   ScaleX("scaleX"),
@@ -118,7 +104,7 @@ internal enum class RenderTransform(override val keyWord: String) : ConstraintLa
   TranslationY("translationY"),
   TranslationZ("translationZ"),
 }
-//endregion
+// endregion
 
 internal enum class DimBehavior(override val keyWord: String) : ConstraintLayoutKeyWord {
   Spread("spread"),
@@ -127,19 +113,19 @@ internal enum class DimBehavior(override val keyWord: String) : ConstraintLayout
   MatchParent("parent")
 }
 
-internal enum class VisibilityMode(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class VisibilityMode(override val keyWord: String) : ConstraintLayoutKeyWord {
   Visible("visible"),
   Invisible("invisible"),
   Gone("gone")
 }
 
-internal enum class ClearOption(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class ClearOption(override val keyWord: String) : ConstraintLayoutKeyWord {
   Constraints("constraints"),
   Dimensions("dimensions"),
   Transforms("transforms")
 }
 
-internal enum class TransitionField(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class TransitionField(override val keyWord: String) : ConstraintLayoutKeyWord {
   From("from"),
   To("to"),
   PathArc("pathMotionArc"),
@@ -147,14 +133,14 @@ internal enum class TransitionField(override val keyWord: String): ConstraintLay
   OnSwipe("onSwipe")
 }
 
-internal enum class OnSwipeField(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class OnSwipeField(override val keyWord: String) : ConstraintLayoutKeyWord {
   AnchorId("anchor"),
   Direction("direction"),
   Side("side"),
   Mode("mode")
 }
 
-internal enum class OnSwipeSide(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class OnSwipeSide(override val keyWord: String) : ConstraintLayoutKeyWord {
   Top("top"),
   Left("left"),
   Right("right"),
@@ -164,7 +150,7 @@ internal enum class OnSwipeSide(override val keyWord: String): ConstraintLayoutK
   End("end")
 }
 
-internal enum class OnSwipeDirection(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class OnSwipeDirection(override val keyWord: String) : ConstraintLayoutKeyWord {
   Up("up"),
   Down("down"),
   Left("left"),
@@ -175,28 +161,27 @@ internal enum class OnSwipeDirection(override val keyWord: String): ConstraintLa
   AntiClockwise("anticlockwise")
 }
 
-internal enum class OnSwipeMode(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class OnSwipeMode(override val keyWord: String) : ConstraintLayoutKeyWord {
   Velocity("velocity"),
   Spring("spring")
 }
 
-internal enum class KeyFrameField(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class KeyFrameField(override val keyWord: String) : ConstraintLayoutKeyWord {
   Positions("KeyPositions"),
   Attributes("KeyAttributes"),
   Cycles("KeyCycles")
 }
 
-/**
- * Common fields used by any of [KeyFrameField].
- */
-internal enum class KeyFrameChildCommonField(override val keyWord: String): ConstraintLayoutKeyWord {
+/** Common fields used by any of [KeyFrameField]. */
+internal enum class KeyFrameChildCommonField(override val keyWord: String) :
+  ConstraintLayoutKeyWord {
   TargetId("target"),
   Frames("frames"),
   Easing("transitionEasing"),
   Fit("curveFit"),
 }
 
-internal enum class KeyPositionField(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class KeyPositionField(override val keyWord: String) : ConstraintLayoutKeyWord {
   PercentX("percentX"),
   PercentY("percentY"),
   PercentWidth("percentWidth"),
@@ -205,7 +190,7 @@ internal enum class KeyPositionField(override val keyWord: String): ConstraintLa
   Type("type")
 }
 
-internal enum class KeyCycleField(override val keyWord: String): ConstraintLayoutKeyWord {
+internal enum class KeyCycleField(override val keyWord: String) : ConstraintLayoutKeyWord {
   Period("period"),
   Offset("offset"),
   Phase("phase")

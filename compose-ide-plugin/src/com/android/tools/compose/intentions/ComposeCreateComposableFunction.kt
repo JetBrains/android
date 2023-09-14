@@ -51,7 +51,6 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
 
-
 class ComposeUnresolvedFunctionFixContributor : QuickFixContributor {
   override fun registerQuickFixes(quickFixes: QuickFixes) {
     quickFixes.register(Errors.UNRESOLVED_REFERENCE, ComposeUnresolvedFunctionFixFactory())
@@ -63,21 +62,15 @@ class ComposeUnresolvedFunctionFixContributor : QuickFixContributor {
  *
  * Created action creates new function with @Composable annotation.
  *
- * Example:
- * For
+ * Example: For
  *
- * @Composable
- * fun myComposable() {
- *  <caret>newFunction()
- * }
+ * @Composable fun myComposable() { <caret>newFunction() }
  *
  * creates
  *
- * @Composable
- * fun newFunction() {
- *  TODO("Not yet implemented")
- * }
+ * @Composable fun newFunction() {
  *
+ *     TODO("Not yet implemented") }
  */
 private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionFactory() {
   override fun createAction(diagnostic: Diagnostic): IntentionAction? {
@@ -85,17 +78,22 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
     val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
     if (!parentFunction.isComposableFunction()) return null
 
-    val name = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
+    val name =
+      (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName()
+        ?: return null
     // Composable function usually starts with uppercase first letter.
     if (name.isBlank() || !name[0].isUpperCase()) return null
 
-    val ktCreateCallableFromUsageFix = CreateCallableFromUsageFix(unresolvedCall) {
-      listOfNotNull(createNewComposeFunctionInfo(name, it, parentFunction))
-    }
+    val ktCreateCallableFromUsageFix =
+      CreateCallableFromUsageFix(unresolvedCall) {
+        listOfNotNull(createNewComposeFunctionInfo(name, it, parentFunction))
+      }
 
-    // Since CreateCallableFromUsageFix is no longer an 'open' class, we instead use delegation to customize the text.
+    // Since CreateCallableFromUsageFix is no longer an 'open' class, we instead use delegation to
+    // customize the text.
     return object : IntentionAction by ktCreateCallableFromUsageFix {
-      override fun getText(): String = ComposeBundle.message("create.composable.function") + " '$name'"
+      override fun getText(): String =
+        ComposeBundle.message("create.composable.function") + " '$name'"
     }
   }
 
@@ -103,45 +101,65 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
 
   // n.b. Do not cache this CallableInfo anywhere, otherwise it is easy to leak Kotlin descriptors.
   // (see https://github.com/JetBrains/intellij-community/commit/608589428c).
-  private fun createNewComposeFunctionInfo(name: String,
-                                           element: KtCallExpression,
-                                           parentComposableFunction: KtNamedFunction): CallableInfo? {
+  private fun createNewComposeFunctionInfo(
+    name: String,
+    element: KtCallExpression,
+    parentComposableFunction: KtNamedFunction
+  ): CallableInfo? {
     val analysisResult = element.analyzeAndGetResult()
     val fullCallExpression = element.getQualifiedExpressionForSelectorOrThis()
-    val expectedType = fullCallExpression.guessTypes(analysisResult.bindingContext, analysisResult.moduleDescriptor).singleOrNull()
+    val expectedType =
+      fullCallExpression
+        .guessTypes(analysisResult.bindingContext, analysisResult.moduleDescriptor)
+        .singleOrNull()
     if (expectedType != null && KotlinBuiltIns.isUnit(expectedType)) {
       val typeParameters = element.getTypeInfoForTypeArguments()
       val returnType = TypeInfo(expectedType, Variance.OUT_VARIANCE)
       val modifierList = KtPsiFactory(element.project).createModifierList(composableAnnotation)
       val containers = element.getQualifiedExpressionForSelectorOrThis().getExtractionContainers()
 
-      val parameters = if (element.valueArguments.lastOrNull() is KtLambdaArgument) {
-        // If the last argument is a lambda, treat it as a `content` parameter containing another Composable.
-        // In this case, we want the resulting argument name to be "content" and it should have a @Composable attribute.
-        val parameterInfos = element.getParameterInfos()
-        val modifiedLastParameter = parameterInfos.last().let {
-          ParameterInfo(
-            typeInfo = ComposableLambdaTypeInfo(it.typeInfo, parentComposableFunction),
-            nameSuggestions = listOf("content") + it.nameSuggestions)
+      val parameters =
+        if (element.valueArguments.lastOrNull() is KtLambdaArgument) {
+          // If the last argument is a lambda, treat it as a `content` parameter containing another
+          // Composable.
+          // In this case, we want the resulting argument name to be "content" and it should have a
+          // @Composable attribute.
+          val parameterInfos = element.getParameterInfos()
+          val modifiedLastParameter =
+            parameterInfos.last().let {
+              ParameterInfo(
+                typeInfo = ComposableLambdaTypeInfo(it.typeInfo, parentComposableFunction),
+                nameSuggestions = listOf("content") + it.nameSuggestions
+              )
+            }
+
+          parameterInfos.dropLast(1) + listOf(modifiedLastParameter)
+        } else {
+          element.getParameterInfos()
         }
 
-        parameterInfos.dropLast(1) + listOf(modifiedLastParameter)
-      }
-      else {
-        element.getParameterInfos()
-      }
-
-      return FunctionInfo(name, TypeInfo.Empty, returnType, containers, parameters, typeParameters, modifierList = modifierList)
+      return FunctionInfo(
+        name,
+        TypeInfo.Empty,
+        returnType,
+        containers,
+        parameters,
+        typeParameters,
+        modifierList = modifierList
+      )
     }
     return null
   }
 
   /** Wrapper around [TypeInfo] adding a @Composable annotation to the argument type. */
-  private class ComposableLambdaTypeInfo(private val wrapped: TypeInfo,
-                                         private val parentComposableFunction: KtNamedFunction) : TypeInfo(wrapped.variance) {
+  private class ComposableLambdaTypeInfo(
+    private val wrapped: TypeInfo,
+    private val parentComposableFunction: KtNamedFunction
+  ) : TypeInfo(wrapped.variance) {
     override fun getPossibleTypes(builder: CallableBuilder): List<KotlinType> {
       val wrappedTypes = wrapped.getPossibleTypes(builder)
-      val composableAnnotationDescriptor = parentComposableFunction.getComposableAnnotation()?.resolveToDescriptorIfAny()
+      val composableAnnotationDescriptor =
+        parentComposableFunction.getComposableAnnotation()?.resolveToDescriptorIfAny()
 
       if (composableAnnotationDescriptor == null) {
         thisLogger().warn("Could not resolve @Composable annotation descriptor.")
@@ -149,7 +167,8 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
       }
 
       return wrappedTypes.map {
-        val newAnnotations = Annotations.create(it.annotations + listOf(composableAnnotationDescriptor))
+        val newAnnotations =
+          Annotations.create(it.annotations + listOf(composableAnnotationDescriptor))
         it.replaceAnnotations(newAnnotations)
       }
     }

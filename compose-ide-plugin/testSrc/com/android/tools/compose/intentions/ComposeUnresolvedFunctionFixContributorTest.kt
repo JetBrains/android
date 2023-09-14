@@ -32,8 +32,7 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class ComposeUnresolvedFunctionFixContributorTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
@@ -57,10 +56,14 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun NewsStory() {
           <caret>UnresolvedFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
+    val action =
+      myFixture.availableIntentions.find {
+        it.text == "Create @Composable function 'UnresolvedFunction'"
+      }
     assertThat(action).isNotNull()
 
     WriteCommandAction.runWriteCommandAction(myFixture.project) {
@@ -68,7 +71,8 @@ class ComposeUnresolvedFunctionFixContributorTest {
     }
 
     // language=kotlin
-    val expectedText = """
+    val expectedText =
+      """
       package com.example
 
       import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -104,10 +108,14 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun NewsStory() {
           <caret>UnresolvedFunction<Int>(45, f = { 43 }, "OK".length)
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
+    val action =
+      myFixture.availableIntentions.find {
+        it.text == "Create @Composable function 'UnresolvedFunction'"
+      }
     assertThat(action).isNotNull()
 
     WriteCommandAction.runWriteCommandAction(myFixture.project) {
@@ -132,7 +140,8 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun <T0> UnresolvedFunction(x0: Int, f: () -> Int, x2: Int) {
           TODO("Not yet implemented")
       }
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     } else {
       myFixture.checkResult(
@@ -152,7 +161,8 @@ class ComposeUnresolvedFunctionFixContributorTest {
           TODO("Not yet implemented")
       }
 
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     }
   }
@@ -171,10 +181,14 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun NewsStory() {
           val k:Int = <caret>unresolvedFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'unresolvedFunction'" }
+    val action =
+      myFixture.availableIntentions.find {
+        it.text == "Create @Composable function 'unresolvedFunction'"
+      }
     assertThat(action).isNull()
   }
 
@@ -192,10 +206,14 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun NewsStory() {
           <caret>unresolvedFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'unresolvedFunction'" }
+    val action =
+      myFixture.availableIntentions.find {
+        it.text == "Create @Composable function 'unresolvedFunction'"
+      }
     assertThat(action).isNull()
   }
 
@@ -213,10 +231,14 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun NewsStory() {
           <caret>UnresolvedFunction {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
+    val action =
+      myFixture.availableIntentions.find {
+        it.text == "Create @Composable function 'UnresolvedFunction'"
+      }
     assertThat(action).isNotNull()
 
     WriteCommandAction.runWriteCommandAction(myFixture.project) {
@@ -241,7 +263,8 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun UnresolvedFunction(x0: () -> Unit) {
           TODO("Not yet implemented")
       }
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     } else {
       myFixture.checkResult(
@@ -261,7 +284,8 @@ class ComposeUnresolvedFunctionFixContributorTest {
           TODO("Not yet implemented")
       }
 
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     }
   }

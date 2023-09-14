@@ -26,9 +26,9 @@ import icons.StudioIcons
 import kotlin.collections.Map.Entry
 
 /**
- *  A [XNamedValue] representing the recomposition state of the enclosing Composable function/lambda
+ * A [XNamedValue] representing the recomposition state of the enclosing Composable function/lambda
  *
- *  The node looks something like this:
+ * The node looks something like this:
  *
  *  ```
  *  + Recomposition State = Composable fun FunctionName(): Arguments: Different: ["arg1"] Same: ["arg2", "this"]
@@ -39,8 +39,9 @@ import kotlin.collections.Map.Entry
  *    + this = Same
  *      + value = <value of this>
  *  ```
- *  Which means, for this recomposition, the value `arg1` has changed from the last time the Composable was composed. `arg2` & `this` have
- *  not changed.
+ *
+ * Which means, for this recomposition, the value `arg1` has changed from the last time the
+ * Composable was composed. `arg2` & `this` have not changed.
  */
 internal class ComposeStateNode(
   private val evaluationContext: EvaluationContextImpl,
@@ -70,7 +71,8 @@ internal class ComposeStateNode(
   }
 
   private fun getStateSummary(): String {
-    fun Entry<ParamState, List<StateObject>>.toSummary() = "${key.name}: [${value.joinToString { """"${it.name}"""" }}]"
+    fun Entry<ParamState, List<StateObject>>.toSummary() =
+      "${key.name}: [${value.joinToString { """"${it.name}"""" }}]"
 
     val summary = stateObjects.groupBy { it.state }.entries.joinToString { it.toSummary() }
     return ComposeBundle.message("recomposition.state.summary", summary)

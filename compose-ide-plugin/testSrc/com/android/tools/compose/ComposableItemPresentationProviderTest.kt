@@ -28,8 +28,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposableItemPresentationProviderTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
   private val provider = ComposableItemPresentationProvider()
 
@@ -42,7 +41,9 @@ class ComposableItemPresentationProviderTest {
 
       val testFunction = <caret>{ }
 
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     runReadAction {
       val function = runReadAction { projectRule.fixture.elementAtCaret }
@@ -61,7 +62,9 @@ class ComposableItemPresentationProviderTest {
 
       fun testFun<caret>ction(arg0: Int, arg1: Int) {}
 
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     runReadAction {
       val function = projectRule.fixture.elementAtCaret
@@ -73,12 +76,16 @@ class ComposableItemPresentationProviderTest {
 
   @Test
   fun getPresentation_functionIsComposable_composablePresentationReturned() {
-    projectRule.fixture.addFileToProject("androidx/compose/runtime/Composable.kt", """
+    projectRule.fixture.addFileToProject(
+      "androidx/compose/runtime/Composable.kt",
+      """
       package androidx.compose.runtime
 
       annotation class Composable
 
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
@@ -90,7 +97,9 @@ class ComposableItemPresentationProviderTest {
       @Composable
       fun testFun<caret>ction(arg0: Int, arg1: Int = 0) {}
 
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     runReadAction {
       val function = projectRule.fixture.elementAtCaret
@@ -103,12 +112,16 @@ class ComposableItemPresentationProviderTest {
 
   @Test
   fun getPresentation_functionIsComposable_composablePresentationReturnedWithLambda() {
-    projectRule.fixture.addFileToProject("androidx/compose/runtime/Composable.kt", """
+    projectRule.fixture.addFileToProject(
+      "androidx/compose/runtime/Composable.kt",
+      """
       package androidx.compose.runtime
 
       annotation class Composable
 
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
@@ -120,14 +133,17 @@ class ComposableItemPresentationProviderTest {
       @Composable
       fun testFun<caret>ction(arg0: Int, arg1: Int = 0, arg2: @Composable () -> Unit) {}
 
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     runReadAction {
       val function = projectRule.fixture.elementAtCaret
       assertThat(function).isInstanceOf(KtFunction::class.java)
 
       val presentation = provider.getPresentation(function as KtFunction)!!
-      assertThat(presentation.presentableText).isEqualTo("@Composable testFunction(arg0: Int, ...) {...}")
+      assertThat(presentation.presentableText)
+        .isEqualTo("@Composable testFunction(arg0: Int, ...) {...}")
     }
   }
 }

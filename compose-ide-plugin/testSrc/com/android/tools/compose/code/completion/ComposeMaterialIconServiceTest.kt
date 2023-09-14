@@ -22,13 +22,13 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.MaterialVdIconsProvider
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.google.common.truth.Truth.assertThat
+import java.awt.image.BufferedImage
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.invocation.InvocationOnMock
-import java.awt.image.BufferedImage
 
 class ComposeMaterialIconServiceTest {
 
@@ -43,7 +43,8 @@ class ComposeMaterialIconServiceTest {
   }
 
   private fun storeCallback(invocation: InvocationOnMock) {
-    this.callback = invocation.arguments[0] as (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit
+    this.callback =
+      invocation.arguments[0] as (MaterialVdIcons, MaterialVdIconsProvider.Status) -> Unit
   }
 
   @Test

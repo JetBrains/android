@@ -52,22 +52,30 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
   override fun getIcon() = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-    if (element !is LeafPsiElement || element.elementType != KtTokens.IDENTIFIER || !isComposeEnabled(element)) return null
+    if (
+      element !is LeafPsiElement ||
+        element.elementType != KtTokens.IDENTIFIER ||
+        !isComposeEnabled(element)
+    )
+      return null
 
     val parentFunction = element.parent.parent as? KtCallExpression ?: return null
     if (!isComposableInvocation(parentFunction)) return null
 
-    return LineMarkerInfo<PsiElement>(element,
-                                      element.range,
-                                      StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION,
-                                      { ComposeBundle.message("composable.line.marker.tooltip") },
-                                      /* navHandler = */ null,
-                                      GutterIconRenderer.Alignment.RIGHT,
-                                      { ComposeBundle.message("composable.line.marker.tooltip") })
+    return LineMarkerInfo<PsiElement>(
+      element,
+      element.range,
+      StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION,
+      { ComposeBundle.message("composable.line.marker.tooltip") },
+      /* navHandler = */ null,
+      GutterIconRenderer.Alignment.RIGHT,
+      { ComposeBundle.message("composable.line.marker.tooltip") }
+    )
   }
 
   companion object {
-    private val ANALYSIS_RESULT_KEY = Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
+    private val ANALYSIS_RESULT_KEY =
+      Key<CachedValue<AnalysisResult>>("ComposeLineMarkerProviderDescriptor.AnalysisResult")
 
     private fun isComposableInvocation(parentFunction: KtCallExpression): Boolean {
       if (isK2Plugin()) {
@@ -82,17 +90,25 @@ class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
 
       val containingFile = parentFunction.containingFile as? KtFile ?: return false
 
-      val analysisResult = CachedValuesManager.getManager(parentFunction.project).getCachedValue(
-        containingFile,
-        ANALYSIS_RESULT_KEY,
-        getCachedValueProvider(containingFile),
-        /* trackValue = */ false)
+      val analysisResult =
+        CachedValuesManager.getManager(parentFunction.project)
+          .getCachedValue(
+            containingFile,
+            ANALYSIS_RESULT_KEY,
+            getCachedValueProvider(containingFile),
+            /* trackValue = */ false
+          )
 
-      return parentFunction.getResolvedCall(analysisResult.bindingContext)?.isComposableInvocation() ?: false
+      return parentFunction.getResolvedCall(analysisResult.bindingContext)?.isComposableInvocation()
+        ?: false
     }
 
     private fun getCachedValueProvider(ktFile: KtFile) = CachedValueProvider {
-      CachedValueProvider.Result.create(ktFile.analyzeWithAllCompilerChecks(), ktFile, PsiModificationTracker.MODIFICATION_COUNT)
+      CachedValueProvider.Result.create(
+        ktFile.analyzeWithAllCompilerChecks(),
+        ktFile,
+        PsiModificationTracker.MODIFICATION_COUNT
+      )
     }
   }
 }

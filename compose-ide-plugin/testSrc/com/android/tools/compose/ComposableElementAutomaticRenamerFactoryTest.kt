@@ -29,10 +29,11 @@ import org.junit.Rule
 import org.junit.Test
 
 class ComposableElementAutomaticRenamerFactoryTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  private val myFixture: CodeInsightTestFixtureImpl by lazy { projectRule.fixture as CodeInsightTestFixtureImpl }
+  private val myFixture: CodeInsightTestFixtureImpl by lazy {
+    projectRule.fixture as CodeInsightTestFixtureImpl
+  }
 
   @Before
   fun setUp() {
@@ -43,22 +44,26 @@ class ComposableElementAutomaticRenamerFactoryTest {
   @RunsInEdt
   @Test
   fun testRenaming() {
-    val kotlinFile = myFixture.addFileToProject(
-      "/scr/com/example/Greeting.kt",
-      //language=kotlin
-      """
+    val kotlinFile =
+      myFixture.addFileToProject(
+        "/scr/com/example/Greeting.kt",
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
 
       @Composable
       fun Greeting() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-    val javaFile = myFixture.addFileToProject(
-      "src/com/example/MyClass.java",
-      //language=Java
-      """
+    val javaFile =
+      myFixture.addFileToProject(
+        "src/com/example/MyClass.java",
+        // language=Java
+        """
       package com.example;
 
       public class MyClass {
@@ -66,7 +71,9 @@ class ComposableElementAutomaticRenamerFactoryTest {
           GreetingKt.Greeting();
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     myFixture.openFileInEditor(kotlinFile.virtualFile)
     myFixture.moveCaret("Gree|ting")
@@ -80,13 +87,14 @@ class ComposableElementAutomaticRenamerFactoryTest {
 
       @Composable
       fun GreetingNew() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Check the file name is changed.
     assertThat(myFixture.file?.name).isEqualTo("GreetingNew.kt")
 
-    //Check references to the file name are changed.
+    // Check references to the file name are changed.
     myFixture.openFileInEditor(javaFile.virtualFile)
     myFixture.checkResult(
       """
@@ -97,7 +105,8 @@ class ComposableElementAutomaticRenamerFactoryTest {
           GreetingNewKt.GreetingNew();
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 }

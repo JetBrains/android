@@ -474,10 +474,11 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testMissingOverrideComposableLambda() {
-    val functionDeclarationWithError = if (!isK2Plugin())
-      "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
-    else
-      "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [fun invoke(): Unit, @Composable() fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
+    val functionDeclarationWithError =
+      if (!isK2Plugin())
+        "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
+      else
+        "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [fun invoke(): Unit, @Composable() fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">override fun invoke()</error> {}"
     doTest(
       """
                 import androidx.compose.runtime.Composable
@@ -491,10 +492,11 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testWrongOverrideLambda() {
-    val functionDeclarationWithError = if (!isK2Plugin())
-      "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
-    else
-      "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+    val functionDeclarationWithError =
+      if (!isK2Plugin())
+        "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+      else
+        "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
     doTest(
       """
                 import androidx.compose.runtime.Composable
@@ -508,10 +510,11 @@ class ComposableDeclarationCheckerTests : AbstractComposeDiagnosticsTest() {
 
   @Test
   fun testMultipleOverrideLambda() {
-    val functionDeclarationWithError = if (!isK2Plugin())
-      "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
-    else
-      "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+    val functionDeclarationWithError =
+      if (!isK2Plugin())
+        "<error descr=\"[CONFLICTING_OVERLOADS] @Composable annotation mismatch with overridden function: @Composable public open fun invoke(): Unit defined in com.example.Impl, public abstract operator fun invoke(): Unit defined in kotlin.Function0\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
+      else
+        "<error descr=\"[CONFLICTING_OVERLOADS] Conflicting overloads: [@Composable() fun invoke(): Unit, fun invoke(): R]\" textAttributesKey=\"ERRORS_ATTRIBUTES\">@Composable override fun invoke()</error> {}"
     doTest(
       """
                 import androidx.compose.runtime.Composable

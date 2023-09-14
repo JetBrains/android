@@ -32,26 +32,31 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposableIconProviderTest {
-  @get:Rule
-  var projectRule = AndroidProjectRule.inMemory()
+  @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setup() {
     // Allow @Composable attribute to be used in snippets below.
-    projectRule.fixture.addFileToProject("androidx/compose/runtime/Composable.kt", """
+    projectRule.fixture.addFileToProject(
+      "androidx/compose/runtime/Composable.kt",
+      """
 package androidx.compose.runtime
 
-annotation class Composable""")
+annotation class Composable"""
+    )
   }
 
   @Test
   fun getPresentation_notAFunction() {
-    projectRule.fixture.configureByText(KotlinFileType.INSTANCE, """
+    projectRule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
 package com.example
 
 val fo<caret>o = 1234
 
-""")
+"""
+    )
 
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
@@ -63,12 +68,15 @@ val fo<caret>o = 1234
 
   @Test
   fun getPresentation_notComposeFunction() {
-    projectRule.fixture.configureByText(KotlinFileType.INSTANCE, """
+    projectRule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
 package com.example
 
 fun testFun<caret>ction() {}
 
-""")
+"""
+    )
 
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
@@ -80,7 +88,9 @@ fun testFun<caret>ction() {}
 
   @Test
   fun getPresentation_composeFunctionWithVisibility() {
-    projectRule.fixture.configureByText(KotlinFileType.INSTANCE, """
+    projectRule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
 package com.example
 
 import androidx.compose.runtime.Composable
@@ -88,7 +98,8 @@ import androidx.compose.runtime.Composable
 @Composable
 fun testFun<caret>ction() {}
 
-""")
+"""
+    )
 
     runReadAction {
       val element = projectRule.fixture.elementAtCaret
@@ -105,7 +116,9 @@ fun testFun<caret>ction() {}
 
   @Test
   fun getPresentation_composeFunctionWithoutVisibility() {
-    projectRule.fixture.configureByText(KotlinFileType.INSTANCE, """
+    projectRule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      """
 package com.example
 
 import androidx.compose.runtime.Composable
@@ -113,7 +126,8 @@ import androidx.compose.runtime.Composable
 @Composable
 fun testFun<caret>ction() {}
 
-""")
+"""
+    )
 
     runReadAction {
       val element = projectRule.fixture.elementAtCaret

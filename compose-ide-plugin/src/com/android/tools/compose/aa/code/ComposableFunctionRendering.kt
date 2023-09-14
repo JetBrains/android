@@ -29,48 +29,70 @@ import org.jetbrains.kotlin.name.FqName
 /**
  * Generates [ComposableFunctionRenderParts] for a given Composable function.
  *
- * Since Composable functions tend to have numerous optional parameters, those are omitted from the rendered parameters and replaced with an
- * ellipsis ("..."). Additional modifications are made to ensure that a lambda can be added in cases where the Composable function requires
- * another Composable as its final argument.
+ * Since Composable functions tend to have numerous optional parameters, those are omitted from the
+ * rendered parameters and replaced with an ellipsis ("..."). Additional modifications are made to
+ * ensure that a lambda can be added in cases where the Composable function requires another
+ * Composable as its final argument.
  */
-fun KtAnalysisSession.getComposableFunctionRenderParts(functionSymbol: KtFunctionLikeSymbol): ComposableFunctionRenderParts {
+fun KtAnalysisSession.getComposableFunctionRenderParts(
+  functionSymbol: KtFunctionLikeSymbol
+): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
   val requiredParameters = allParameters.filter { isRequired(it) }
-  val lastParamIsComposable = allParameters.lastOrNull()?.let { isComposableFunctionParameter(it) } == true
+  val lastParamIsComposable =
+    allParameters.lastOrNull()?.let { isComposableFunctionParameter(it) } == true
   val inParens = if (lastParamIsComposable) requiredParameters.dropLast(1) else requiredParameters
 
-  val tail = if (lastParamIsComposable) LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION else null
+  val tail =
+    if (lastParamIsComposable) LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION else null
 
-  val stringAfterValueParameters = when {
-    requiredParameters.size < allParameters.size -> if (inParens.isNotEmpty()) ", ...)" else "...)"
-    inParens.isEmpty() && lastParamIsComposable -> null // Don't render an empty pair of parentheses if we're rendering a lambda afterwards.
-    else -> ")"
-  } ?: return ComposableFunctionRenderParts(null, tail)
+  val stringAfterValueParameters =
+    when {
+      requiredParameters.size < allParameters.size ->
+        if (inParens.isNotEmpty()) ", ...)" else "...)"
+      inParens.isEmpty() && lastParamIsComposable ->
+        null // Don't render an empty pair of parentheses if we're rendering a lambda afterwards.
+      else -> ")"
+    }
+      ?: return ComposableFunctionRenderParts(null, tail)
 
   val parameters = renderValueParameters(inParens, stringAfterValueParameters)
   return ComposableFunctionRenderParts(parameters, tail)
 }
 
-fun KtAnalysisSession.renderValueParameters(valueParamsInParen: List<KtValueParameterSymbol>, closingString: String) = buildString {
+fun KtAnalysisSession.renderValueParameters(
+  valueParamsInParen: List<KtValueParameterSymbol>,
+  closingString: String
+) = buildString {
   append("(")
-  valueParamsInParen.joinTo(buffer = this) { it.render(KtDeclarationRendererForSource.WITH_SHORT_NAMES) }
+  valueParamsInParen.joinTo(buffer = this) {
+    it.render(KtDeclarationRendererForSource.WITH_SHORT_NAMES)
+  }
   append(closingString)
 }
 
 private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
   if (valueParamSymbol.hasDefaultValue) return false
 
-  // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky solution or not.
-  // The KtValueParameterSymbol we get when running this from [ComposableItemPresentationProvider] for some reason says that optional
-  // Composable parameters don't declare a default value, which is incorrect. At the moment, the only way I've found to determine that
+  // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky
+  // solution or not.
+  // The KtValueParameterSymbol we get when running this from [ComposableItemPresentationProvider]
+  // for some reason says that optional
+  // Composable parameters don't declare a default value, which is incorrect. At the moment, the
+  // only way I've found to determine that
   // they're truly optional is by looking at their text.
   return valueParamSymbol.psi?.text?.endsWith("/* = compiled code */") != true
 }
 
-fun KtAnalysisSession.isComposableFunctionParameter(valueParamSymbol: KtValueParameterSymbol): Boolean {
-  // Since vararg is not a function type parameter, we have to return false for a parameter with a vararg.
-  // In FE1.0, it was simple because vararg has an array type and checking that the parameter is a function type returns false.
-  // On the other hand, K2's value parameter symbol deliberately unwraps it and returns the element type as a symbol's returnType.
+fun KtAnalysisSession.isComposableFunctionParameter(
+  valueParamSymbol: KtValueParameterSymbol
+): Boolean {
+  // Since vararg is not a function type parameter, we have to return false for a parameter with a
+  // vararg.
+  // In FE1.0, it was simple because vararg has an array type and checking that the parameter is a
+  // function type returns false.
+  // On the other hand, K2's value parameter symbol deliberately unwraps it and returns the element
+  // type as a symbol's returnType.
   // We need a separate check for a vararg.
   if (valueParamSymbol.isVararg) return false
 
@@ -78,5 +100,7 @@ fun KtAnalysisSession.isComposableFunctionParameter(valueParamSymbol: KtValuePar
   // Mimic FE1.0 `KotlinType.isBuiltinFunctionalType`.
   val isBuiltinFunctionalType = parameterType.isFunctionType || parameterType.isSuspendFunctionType
   return isBuiltinFunctionalType &&
-         parameterType.annotationsByClassId(ClassId.topLevel(FqName(COMPOSABLE_ANNOTATION_FQ_NAME))).isNotEmpty()
+    parameterType
+      .annotationsByClassId(ClassId.topLevel(FqName(COMPOSABLE_ANNOTATION_FQ_NAME)))
+      .isNotEmpty()
 }
