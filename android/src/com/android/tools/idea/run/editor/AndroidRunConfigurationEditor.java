@@ -141,7 +141,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myShowLogcatCheckBox.setVisible(showLogcatCheckbox);
 
-    checkValidationResults(config.validate(null));
+    checkValidationResults(config.validate(null, this::fireEditorStateChanged));
   }
 
   /**

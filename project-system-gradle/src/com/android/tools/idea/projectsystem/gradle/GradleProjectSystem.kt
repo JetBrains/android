@@ -168,9 +168,9 @@ open class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     )
   }
 
-  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration, quickFixCallback: Runnable?): List<ValidationError> {
     val context = runConfiguration.getGradleContext() ?: return super.validateRunConfiguration(runConfiguration)
-    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration, context.alwaysDeployApkFromBundle)
+    return GradleApkProvider.doValidate(context.androidFacet, context.isTestConfiguration, context.alwaysDeployApkFromBundle, quickFixCallback)
   }
 
   internal fun getBuiltApksForSelectedVariant(

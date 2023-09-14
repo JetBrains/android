@@ -20,12 +20,14 @@ import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.ConfigurationQuickFix
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.HyperlinkLabel
@@ -42,8 +44,9 @@ import javax.swing.JPanel
 class UnsignedApkQuickFix
 @VisibleForTesting
 constructor(
-  private val module: Module,
-  private val selectedBuildTypeName: String,
+  val module: Module,
+  val selectedBuildTypeName: String,
+  val callback: Runnable?,
   private val makeSigningConfigSelector: (GradleBuildModel) -> SigningConfigSelector
 ) : ConfigurationQuickFix {
   /**
@@ -52,13 +55,16 @@ constructor(
    *
    * @param module an IDEA module
    * @param selectedBuildTypeName name of the currently selected build type, e.g. debug
+   * @param callback a Runnable to execute after Gradle sync finishes
    */
   constructor(
     module: Module,
-    selectedBuildTypeName: String
+    selectedBuildTypeName: String,
+    callback: Runnable?
   ) : this(
     module,
     selectedBuildTypeName,
+    callback,
     { gradleBuildModel -> SigningConfigSelectorDialog(gradleBuildModel.android().signingConfigs()) }
   )
 
@@ -90,7 +96,15 @@ constructor(
                 GradleSyncInvoker.Request(
                   GradleSyncStats.Trigger.TRIGGER_QF_SIGNING_CONFIG_SELECTED
                 ),
-                null
+                object : GradleSyncListener {
+                  override fun syncSucceeded(project: Project) {
+                    callback?.run()
+                  }
+
+                  override fun syncFailed(project: Project, errorMessage: String) {
+                    callback?.run()
+                  }
+                }
               )
           }
       }
@@ -98,6 +112,34 @@ constructor(
       throw IllegalStateException(
         "Gradle build model should not be null for module: ${module.name}."
       )
+    }
+  }
+
+  companion object {
+    @VisibleForTesting var unsignedApkQuickFix: UnsignedApkQuickFix? = null
+
+    /**
+     * To avoid repeatedly creating a new QuickFix (and losing the calling SettingsEditor's
+     * callback), only instantiate a new UnsignedApkQuickFix if the cached one doesn't match. Null
+     * callbacks also will not overwrite the existing cache if the module and build type remain the
+     * same.
+     */
+    @JvmStatic
+    fun create(
+      module: Module,
+      buildType: String,
+      quickFixCallback: Runnable?
+    ): UnsignedApkQuickFix? {
+      if (
+        unsignedApkQuickFix == null ||
+          unsignedApkQuickFix?.module != module ||
+          unsignedApkQuickFix?.selectedBuildTypeName != buildType ||
+          (quickFixCallback != null && unsignedApkQuickFix?.callback != quickFixCallback)
+      ) {
+        unsignedApkQuickFix = UnsignedApkQuickFix(module, buildType, quickFixCallback)
+      }
+
+      return unsignedApkQuickFix
     }
   }
 }

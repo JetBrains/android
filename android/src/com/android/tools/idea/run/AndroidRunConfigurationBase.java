@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
@@ -132,6 +131,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
    */
   public List<ValidationError> validate(@Nullable Executor executor) {
+    return validate(executor, null);
+  }
+
+  public List<ValidationError> validate(@Nullable Executor executor, @Nullable Runnable quickFixCallback) {
     List<ValidationError> errors = new ArrayList<>();
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     try {
@@ -198,7 +201,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     AndroidProjectSystem projectSystem = getProjectSystem(getProject());
-    errors.addAll(projectSystem.validateRunConfiguration(this));
+    errors.addAll(projectSystem.validateRunConfiguration(this, quickFixCallback));
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();

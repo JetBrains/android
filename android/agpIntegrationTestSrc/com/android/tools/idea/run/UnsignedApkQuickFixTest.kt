@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.run
 
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.module.Module
+import junit.framework.TestCase.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,7 +55,7 @@ class UnsignedApkQuickFixTest {
       buildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
     assertThat(releaseBuildSigningConfig?.valueAsString()).isNull()
 
-    val unsignedApkQuickFix = UnsignedApkQuickFix(module, "release") { fakeSelector }
+    val unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null) { fakeSelector }
     unsignedApkQuickFix.applyFix(DataContext.EMPTY_CONTEXT)
     val updatedBuildModel = ProjectBuildModel.get(projectRule.project).getModuleBuildModel(module)!!
 
@@ -60,5 +63,75 @@ class UnsignedApkQuickFixTest {
     val expectedSigningConfig =
       updatedBuildModel.android().buildTypes().find { it.name() == "release" }?.signingConfig()
     assertThat(expectedSigningConfig?.valueAsString()).contains("debug")
+  }
+
+  @Test
+  fun differentModuleReCaches() {
+    val module = MockitoKt.mock<Module>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null)
+
+    val module2 = MockitoKt.mock<Module>()
+    val quickFix = UnsignedApkQuickFix.create(module2, "release", null)
+
+    assertEquals(module2, quickFix!!.module)
+  }
+
+  @Test
+  fun differentBuildTypeReCaches() {
+    val module = MockitoKt.mock<Module>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null)
+
+    val quickFix = UnsignedApkQuickFix.create(module, "debug", null)
+
+    assertEquals("debug", quickFix!!.selectedBuildTypeName)
+  }
+
+  /**
+   * Tests the case where validation has been run already, but then the {@code
+   * AndroidRunConfigurationEditor} is opened, creating a new QuickFix where the callback would
+   * trigger the editor revalidation.
+   */
+  @Test
+  fun nonNullCallbackReCachesIfCurrentlyNull() {
+    val module = MockitoKt.mock<Module>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", null)
+
+    val callback = MockitoKt.mock<Runnable>()
+    val quickFix = UnsignedApkQuickFix.create(module, "release", callback)
+
+    assertEquals(callback, quickFix!!.callback)
+  }
+
+  /**
+   * Tests the case where the {@code AndroidRunConfigurationEditor} has already set a revalidation
+   * callback, but a different validation request would have created a new QuickFix. In this case,
+   * we do not want to overwrite the cache.
+   */
+  @Test
+  fun nullCallbackDoesNotReCache() {
+    val module = MockitoKt.mock<Module>()
+    val callback = MockitoKt.mock<Runnable>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", callback)
+
+    val quickFix = UnsignedApkQuickFix.create(module, "release", null)
+
+    assertEquals(callback, quickFix!!.callback)
+  }
+
+  /**
+   * Tests the case where a different callback is requested, e.g. if the {@code
+   * AndroidRunConfigurationEditor} dialog is opened again, meaning the new dialog would need to
+   * receive the revalidation request.
+   */
+  @Test
+  fun differentCallbackReCaches() {
+    val module = MockitoKt.mock<Module>()
+    val callback = MockitoKt.mock<Runnable>()
+    UnsignedApkQuickFix.unsignedApkQuickFix = UnsignedApkQuickFix(module, "release", callback)
+
+    val callback2 = MockitoKt.mock<Runnable>()
+    val quickFix = UnsignedApkQuickFix.create(module, "release", callback2)
+
+    assertEquals(callback2, quickFix!!.callback)
   }
 }

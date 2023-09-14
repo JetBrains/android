@@ -93,7 +93,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
   fun getApkProvider(runConfiguration: RunConfiguration): ApkProvider? = null
 
   fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
-    return listOf(ValidationError.fatal("Run configuration ${runConfiguration.name} is not supported in this project"));
+    return validateRunConfiguration(runConfiguration, null)
+  }
+
+  fun validateRunConfiguration(runConfiguration: RunConfiguration, quickFixCallback: Runnable?): List<ValidationError> {
+    return listOf(ValidationError.fatal("Run configuration ${runConfiguration.name} is not supported in this project"))
   }
 
   /**

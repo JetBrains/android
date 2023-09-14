@@ -138,7 +138,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
   }
 
-  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration, quickFixCallback: Runnable?): List<ValidationError> {
     return emptyList()
   }
 

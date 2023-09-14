@@ -611,7 +611,8 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   public static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
                                                           boolean isTest,
-                                                          boolean alwaysDeployApkFromBundle) {
+                                                          boolean alwaysDeployApkFromBundle,
+                                                          @Nullable Runnable quickFixCallback) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
     GradleAndroidModel gradleAndroidModel = GradleAndroidModel.get(androidFacet);
@@ -654,8 +655,10 @@ public final class GradleApkProvider implements ApkProvider {
 
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", gradleAndroidModel.getSelectedVariant().getDisplayName());
-    ConfigurationQuickFix quickFix = new UnsignedApkQuickFix(module, gradleAndroidModel.getSelectedVariant().getBuildType());
-    result.add(ValidationError.fatal(message, quickFix));
+    UnsignedApkQuickFix quickfix = UnsignedApkQuickFix.create(module,
+                                                              gradleAndroidModel.getSelectedVariant().getBuildType(),
+                                                              quickFixCallback);
+    result.add(ValidationError.fatal(message, quickfix));
     return result.build();
   }
 
