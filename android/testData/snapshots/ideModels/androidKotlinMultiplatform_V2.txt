@@ -1558,10 +1558,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                     AssembleTaskName              : assembleTypeoneModetwoDebug
                 GeneratedResourceFolders      : <ROOT>/androidLib/build/generated/res/resValues/typeoneModetwo/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createTypeoneModetwoDebugVariantModel
-                    File                          : <ROOT>/androidLib/build/intermediates/variant_model/typeoneModetwoDebug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileTypeoneModetwoDebugAndroidTestSources
@@ -1961,10 +1957,6 @@ MODULE                        : Kotlin_Multiplatform.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

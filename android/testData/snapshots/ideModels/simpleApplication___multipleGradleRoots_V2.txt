@@ -649,10 +649,6 @@ MODULE                        : gradle_project_1.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/gradle_project_1/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/gradle_project_1/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/gradle_project_1/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -1809,10 +1805,6 @@ MODULE                        : gradle_project_name.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/gradle_project_2/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/gradle_project_2/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/gradle_project_2/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

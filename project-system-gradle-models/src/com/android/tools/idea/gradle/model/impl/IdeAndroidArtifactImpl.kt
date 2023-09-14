@@ -45,7 +45,6 @@ data class IdeAndroidArtifactCoreImpl(
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
   override val codeShrinker: CodeShrinker?,
-  override val modelSyncFiles: Collection<IdeModelSyncFileImpl>,
   override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
   override val desugaredMethodsFiles: Collection<File>,
   override val generatedClassPaths: Map<String, File>

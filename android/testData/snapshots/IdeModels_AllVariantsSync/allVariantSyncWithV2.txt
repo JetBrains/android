@@ -1615,10 +1615,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createBasicBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicBarDebugAndroidTestSources
@@ -2556,10 +2552,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createBasicOtherBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compileBasicOtherBarDebugAndroidTestSources
@@ -3498,10 +3490,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createPaidBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidBarDebugAndroidTestSources
@@ -4443,10 +4431,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createPaidOtherBarDebugVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarDebug/variant_model.json [-]
         AndroidTestArtifact
             Name                          : ANDROID_TEST
             CompileTaskName               : compilePaidOtherBarDebugAndroidTestSources
@@ -5384,10 +5368,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createBasicBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarReleaseUnitTestSources
@@ -6087,10 +6067,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createBasicOtherBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarReleaseUnitTestSources
@@ -6791,10 +6767,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createPaidBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarReleaseUnitTestSources
@@ -7498,10 +7470,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createPaidOtherBarReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarReleaseUnitTestSources
@@ -8194,10 +8162,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createBasicBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarSpecialReleaseUnitTestSources
@@ -8893,10 +8857,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createBasicOtherBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/basicOtherBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarSpecialReleaseUnitTestSources
@@ -9593,10 +9553,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createPaidBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarSpecialReleaseUnitTestSources
@@ -10296,10 +10252,6 @@ IdeVariants
                 ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-            ModelSyncFile
-                Type                          : BASIC
-                TaskName                      : createPaidOtherBarSpecialReleaseVariantModel
-                File                          : <ROOT>/app/build/intermediates/variant_model/paidOtherBarSpecialRelease/variant_model.json [-]
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarSpecialReleaseUnitTestSources

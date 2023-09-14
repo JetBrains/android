@@ -37,7 +37,6 @@ import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
-import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
@@ -408,7 +407,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidArtifact.additionalRuntimeApks.forEach { prop("AdditionalRuntimeApks") { it.path.toPrintablePath() } }
       ideAndroidArtifact.testOptions?.let { dump(it) }
       ideAndroidArtifact.abiFilters.forEach { prop("AbiFilters") { it } }
-      ideAndroidArtifact.modelSyncFiles.forEach { dump(it) }
     }
 
     private fun dump(property: String, ideDependencies: IdeDependencies) {
@@ -794,15 +792,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("AnimationsDisabled") { testOptions.animationsDisabled.toString() }
         prop("Execution") { testOptions.execution?.toString() }
         prop("InstrumentedTestTaskName") { testOptions.instrumentedTestTaskName }
-      }
-    }
-
-    private fun dump(modelSyncFile: IdeModelSyncFile) {
-      head("ModelSyncFile")
-      nest {
-        prop("Type") { modelSyncFile.modelSyncType.toString() }
-        prop("TaskName") { modelSyncFile.taskName }
-        prop("File") { modelSyncFile.syncFile.path.toPrintablePath() }
       }
     }
 

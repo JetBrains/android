@@ -1644,10 +1644,6 @@ MODULE                        : TestCompositeLib1.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/TestCompositeLib1/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/app/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/TestCompositeLib1/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -2775,10 +2771,6 @@ MODULE                        : TestCompositeLib1.lib
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib1/lib/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/TestCompositeLib1/lib/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -4371,10 +4363,6 @@ MODULE                        : TestCompositeLib3.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/TestCompositeLib3/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/app/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/TestCompositeLib3/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -5466,10 +5454,6 @@ MODULE                        : TestCompositeLib3.lib
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/TestCompositeLib3/lib/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/TestCompositeLib3/lib/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -7382,10 +7366,6 @@ MODULE                        : project.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -8507,10 +8487,6 @@ MODULE                        : project.lib
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/lib/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

@@ -2858,10 +2858,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -3964,10 +3960,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/feature-a/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/feature-a/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -4874,10 +4866,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/feature-b/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/feature-b/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -5786,10 +5774,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/kmp-java/sample-test/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/kmp-java/sample-test/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources
@@ -6121,10 +6105,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     AssembleTaskName              : assembleDebug
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>/lib/build/intermediates/variant_model/debug/variant_model.json [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

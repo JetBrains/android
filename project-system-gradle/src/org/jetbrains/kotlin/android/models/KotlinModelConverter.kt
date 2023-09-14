@@ -492,7 +492,6 @@ class KotlinModelConverter {
       abiFilters = emptySet(),
       buildInformation = mainBuildInformation,
       codeShrinker = CodeShrinker.R8.takeIf { mainAndroidCompilation.mainInfo.minificationEnabled },
-      modelSyncFiles = emptyList(),
       privacySandboxSdkInfo = null,
       desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
       generatedClassPaths = emptyMap()
@@ -555,7 +554,6 @@ class KotlinModelConverter {
           apkFromBundleTaskOutputListingFile = null
         ),
         codeShrinker = mainArtifact.codeShrinker,
-        modelSyncFiles = emptyList(),
         privacySandboxSdkInfo = null,
         desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
         generatedClassPaths = emptyMap()

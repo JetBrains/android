@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.builder.model.v2.ModelSyncFile
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ClassField
 import com.android.builder.model.v2.dsl.DependenciesInfo
@@ -68,7 +67,6 @@ import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_FAT
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_IGNORE
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_INFORMATIONAL
 import com.android.tools.idea.gradle.model.IdeLintOptions.Companion.SEVERITY_WARNING
-import com.android.tools.idea.gradle.model.IdeModelSyncFile
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.ANDROID_TEST
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
@@ -97,7 +95,6 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
@@ -696,18 +693,6 @@ internal fun modelCacheV2Impl(
     }
   }
 
-  /**
-   * Converts a [ModelSyncFile] from the Gradle Sync Model to the internal Ide Model.
-   */
-  fun modelSyncFileFrom(modelSyncFile: ModelSyncFile): IdeModelSyncFileImpl {
-    return IdeModelSyncFileImpl(
-      // TODO(b/205713031): Parse syncType and handle unknown values.
-      modelSyncType = IdeModelSyncFile.IdeModelSyncType.BASIC,
-      taskName = modelSyncFile.taskName.deduplicate(),
-      syncFile = modelSyncFile.syncFile.deduplicateFile()
-    )
-  }
-
   fun buildTasksOutputInformationFrom(artifact: AndroidArtifact): IdeBuildTasksAndOutputInformationImpl {
     return IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = artifact.assembleTaskName,
@@ -766,7 +751,6 @@ internal fun modelCacheV2Impl(
       buildInformation = buildTasksOutputInformationFrom(artifact),
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
-      modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
       privacySandboxSdkInfo = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 14, false))
         artifact.privacySandboxSdkInfo?.let {
           IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile, it.taskLegacy, it.outputListingLegacyFile)
