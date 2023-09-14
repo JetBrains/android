@@ -33,18 +33,13 @@ class OpenResourceManagerAction : DumbAwareAction("Resource Manager", "Open the 
 
   override fun update(e: AnActionEvent) {
     val project = e.project
-    e.presentation.isEnabledAndVisible = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+    e.presentation.isEnabledAndVisible = project != null
+                                         && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+                                         && ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) != null
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.getData(CommonDataKeys.PROJECT)
-    if (project != null) {
-      showResourceExplorer(project)
-    }
-  }
-
-  private fun showResourceExplorer(project: Project) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)!!
-    toolWindow.show(null)
+    val project = e.getData(CommonDataKeys.PROJECT) ?: return
+    ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)?.show(null)
   }
 }
