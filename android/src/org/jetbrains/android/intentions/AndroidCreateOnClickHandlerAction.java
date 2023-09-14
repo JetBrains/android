@@ -60,7 +60,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.asJava.classes.KtLightClass;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
-import org.jetbrains.kotlin.idea.core.OldGenerateUtilKt;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
@@ -199,7 +198,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       KtNamedFunction namedFunction = new KtPsiFactory(origin.getProject())
         .createFunction("fun " + methodName + "(" + varName + ": " + methodParamType + ") {}");
       KtDeclaration anchor = Iterables.getLast(origin.getDeclarations(), null);
-      OldGenerateUtilKt.insertMembersAfterAndReformat(null, origin, namedFunction, anchor);
+      GenerateUtilsKt.insertMembersAfterAndReformat(null, origin, namedFunction, anchor);
     }
     return null;
   }
