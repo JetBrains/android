@@ -172,7 +172,24 @@ public class JavaToKotlinConversionTest {
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-   //Invoking project make.
+    // TODO(devtools-engprod): remove this step once b/300329659 is fixed
+    // Starting form Iguana release onwards, kotlinOptions is added in the build.gradle
+    // on configuring kotlin in java project. Above bug is raise to update the
+    // correct version of jvmTarget in kotlinOptions.
+    editor.open("app/build.gradle")
+      .select("jvmTarget.*(17)")
+      .enterText("1.8");
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    // TODO(devtools-engprod): Remove this once all libraries are migrated to kotlin-stdlib
+    // More details for this issue is found here b/278545487
+    // and here https://youtrack.jetbrains.com/issue/KT-55297
+    editor.open("app/build.gradle")
+      .moveBetween("dependencies {", "")
+      .enterText("\nimplementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')");
+
+    //Invoking project make.
     ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300),
                                          "Build", "Rebuild Project");
     guiTest.waitForAllBackgroundTasksToBeCompleted();

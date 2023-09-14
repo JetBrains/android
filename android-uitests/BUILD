@@ -3260,9 +3260,7 @@ java_test(
     name = "JavaToKotlinConversionTest",
     size = "enormous",
     timeout = "long",
-    data = COMMON_DATA + glob([
-        "testData/SimpleApplication/**",
-    ]),
+    data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest"],
     tags = COMMON_TAGS + [
         "no_mac",
