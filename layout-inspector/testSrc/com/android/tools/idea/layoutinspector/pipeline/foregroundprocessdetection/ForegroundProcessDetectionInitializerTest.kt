@@ -30,6 +30,7 @@ import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
+import com.android.tools.idea.transport.manager.TransportStreamManagerRule
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
@@ -43,17 +44,20 @@ import layout_inspector.LayoutInspector
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 class ForegroundProcessDetectionInitializerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  @get:Rule
-  val grpcServerRule =
+  private val grpcServerRule =
     FakeGrpcServer.createFakeGrpcServer(
       "ForegroundProcessDetectionInitializerTest",
       transportService
     )
+  private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
+
+  @get:Rule val ruleChain = RuleChain.outerRule(grpcServerRule).around(streamManagerRule)
 
   private val device1 = FakeDevice(serial = "1")
   private val device2 = FakeDevice(serial = "2")
@@ -104,6 +108,7 @@ class ForegroundProcessDetectionInitializerTest {
       processModel = processModel,
       deviceModel = deviceModel,
       coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      streamManager = streamManagerRule.streamManager,
       foregroundProcessListener = foregroundProcessListener,
       metrics = ForegroundProcessDetectionMetrics,
     )
@@ -191,7 +196,8 @@ class ForegroundProcessDetectionInitializerTest {
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
-      coroutineScope = projectRule.project.coroutineScope,
+      coroutineScope = CoroutineScope(SameThreadExecutor.INSTANCE.asCoroutineDispatcher()),
+      streamManager = streamManagerRule.streamManager,
       transportClient = transportClient,
       metrics = ForegroundProcessDetectionMetrics,
     )

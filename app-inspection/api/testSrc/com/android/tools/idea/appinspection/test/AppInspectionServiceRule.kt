@@ -105,14 +105,10 @@ class AppInspectionServiceRule(
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
     executorService = Executors.newSingleThreadExecutor()
-    streamManager =
-      TransportStreamManager.createManager(
-        client.transportStub,
-        executorService.asCoroutineDispatcher()
-      )
     streamChannel =
       TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
+    streamManager = TransportStreamManager(client.transportStub, scope)
     transport = AppInspectionTransport(client, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope)
@@ -130,7 +126,6 @@ class AppInspectionServiceRule(
   }
 
   override fun after(description: Description) = runBlocking {
-    TransportStreamManager.unregisterManager(streamManager)
     scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
     timer.currentTimeNs += 1

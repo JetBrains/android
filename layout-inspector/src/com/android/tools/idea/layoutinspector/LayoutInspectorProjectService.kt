@@ -35,9 +35,11 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
+import com.android.tools.idea.transport.manager.TransportStreamManagerService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
@@ -187,6 +189,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         processModel = processesModel,
         deviceModel = deviceModel,
         coroutineScope = coroutineScope,
+        streamManager = service<TransportStreamManagerService>().streamManager,
         metrics = ForegroundProcessDetectionMetrics
       )
     } else {

@@ -31,16 +31,17 @@ import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
+import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
+import com.android.tools.idea.transport.manager.TransportStreamManagerRule
 import com.android.tools.profiler.proto.Commands.Command
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.containers.reverse
 import java.util.concurrent.atomic.AtomicLong
@@ -63,24 +64,24 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
 class ForegroundProcessDetectionTest {
-  @get:Rule val disposableRule = DisposableRule()
-
   private val projectRule = ProjectRule()
-
   private val adbRule = FakeAdbRule()
   private val adbProperties: AdbDebugViewProperties =
     FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
-
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)
-
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
+  private val grpcServerRule =
+    FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+  private val streamManagerRule = TransportStreamManagerRule(grpcServerRule)
 
   @get:Rule
-  val grpcServerRule =
-    FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+  val ruleChain: RuleChain =
+    RuleChain.outerRule(projectRule)
+      .around(adbRule)
+      .around(adbService)
+      .around(grpcServerRule)
+      .around(streamManagerRule)
 
   private val timestampGenerator = AtomicLong()
 
@@ -171,7 +172,7 @@ class ForegroundProcessDetectionTest {
     workDispatcher = AndroidDispatchers.workerThread
     transportClient = TransportClient(grpcServerRule.name)
 
-    coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    coroutineScope = AndroidCoroutineScope(projectRule.disposable)
 
     // mock device response to handshake command
     transportService.setCommandHandler(
@@ -228,6 +229,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -271,8 +273,8 @@ class ForegroundProcessDetectionTest {
     val (deviceModel1, processModel1) = createDeviceModel(device1)
     val (deviceModel2, processModel2) = createDeviceModel(device1)
 
-    val coroutineScope1 = AndroidCoroutineScope(disposableRule.disposable)
-    val coroutineScope2 = AndroidCoroutineScope(disposableRule.disposable)
+    val coroutineScope1 = AndroidCoroutineScope(projectRule.disposable)
+    val coroutineScope2 = AndroidCoroutineScope(projectRule.disposable)
 
     // studio1
     val foregroundProcessDetection1 =
@@ -284,6 +286,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope1,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -299,6 +302,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope2,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -360,6 +364,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -415,6 +420,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -459,6 +465,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -553,6 +560,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected,
         pollingIntervalMs = 500L
@@ -592,6 +600,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -683,6 +692,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -763,6 +773,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -804,6 +815,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -868,6 +880,7 @@ class ForegroundProcessDetectionTest {
       layoutInspectorMetrics,
       mock(),
       coroutineScope,
+      streamManagerRule.streamManager,
       workDispatcher,
       onDeviceDisconnected = onDeviceDisconnected,
       pollingIntervalMs = 500L
@@ -933,6 +946,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -978,6 +992,7 @@ class ForegroundProcessDetectionTest {
         mock(),
         mock(),
         coroutineScope,
+        streamManagerRule.streamManager,
         workDispatcher,
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
@@ -1080,7 +1095,7 @@ class ForegroundProcessDetectionTest {
   ): Pair<DeviceModel, ProcessesModel> {
     devices.forEach { testProcessDiscovery.addDevice(it.toDeviceDescriptor()) }
     val processModel = ProcessesModel(testProcessDiscovery)
-    return DeviceModel(disposableRule.disposable, processModel) to processModel
+    return DeviceModel(projectRule.disposable, processModel) to processModel
   }
 
   private fun createForegroundProcessEvent(

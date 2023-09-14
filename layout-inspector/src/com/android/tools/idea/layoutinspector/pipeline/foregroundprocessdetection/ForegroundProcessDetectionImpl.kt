@@ -116,6 +116,7 @@ class ForegroundProcessDetectionImpl(
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
   private val metrics: ForegroundProcessDetectionMetrics,
   private val scope: CoroutineScope,
+  private val streamManager: TransportStreamManager,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
   @TestOnly private val pollingIntervalMs: Long = 2000
@@ -222,11 +223,8 @@ class ForegroundProcessDetectionImpl(
       }
     }
 
-    val manager =
-      TransportStreamManager.createManager(transportClient.transportStub, workDispatcher)
-
     scope.launch {
-      manager.streamActivityFlow().collect { activity ->
+      streamManager.streamActivityFlow().collect { activity ->
         val streamChannel = activity.streamChannel
         val streamDevice = streamChannel.stream.device.toDeviceDescriptor()
         val stream = streamChannel.stream
@@ -453,12 +451,8 @@ class ForegroundProcessDetectionImpl(
    *
    * @see ForegroundProcessDetectionImpl.deviceModels
    */
-  private fun shouldStopPollingDevice(selectedDevice: DeviceDescriptor): Boolean {
-    val deviceModels = ForegroundProcessDetectionImpl.deviceModels
-    val count =
-      deviceModels.mapNotNull { it.selectedDevice }.count { it.serial == selectedDevice.serial }
-    return count <= 1
-  }
+  private fun shouldStopPollingDevice(selectedDevice: DeviceDescriptor) =
+    deviceModels.mapNotNull { it.selectedDevice }.count { it.serial == selectedDevice.serial } <= 1
 
   /**
    * Initiates a new handshake. Only if [device] already executed the handshake that happens at
