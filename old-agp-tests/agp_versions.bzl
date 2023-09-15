@@ -146,7 +146,7 @@ GRADLE_DISTRIBUTIONS = {
     GRADLE_5_3_1: ["//tools/base/build-system:gradle-distrib-5.3.1"],
 }
 
-def local_old_agp_test(
+def _local_old_agp_test(
         gradle_version,
         agp_version,
         additional_jdks = [],
@@ -169,3 +169,16 @@ def local_old_agp_test(
         ignore_other_tests = False,
         **kwargs
     )
+
+def generate_old_agp_tests_from_list(tests_list):
+    """Creates tests running with OldAgpSuite from a list of test descriptions.
+
+    Having all test definitions as a list in one macro allows us to implement a check to ensure all
+    OldAgpTest tests from the module are covered with a test target and thus will actually run.
+
+    Args:
+      tests_list: list of kwargs objects, one per required test, containing arguments for that test.
+                  See _local_old_agp_test and old_agp_test for test arguments description.
+    """
+    for test_kwargs in tests_list:
+        _local_old_agp_test(**test_kwargs)
