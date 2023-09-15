@@ -47,7 +47,8 @@ abstract class MavenClassRegistryBase {
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
-   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` otherwise.
+   * @param receiverType the fully-qualified name of the receiver type, if any, [ALL_RECEIVER_TYPES]
+   *   if results for all receiver types should be returned, or `null` otherwise.
    */
   abstract fun findLibraryData(
     name: String,
@@ -91,5 +92,9 @@ abstract class MavenClassRegistryBase {
         mapOf("androidx.compose.ui:ui-tooling" to DependencyType.DEBUG_IMPLEMENTATION)
       else -> emptyMap()
     }
+  }
+
+  companion object {
+    const val ALL_RECEIVER_TYPES = "*"
   }
 }

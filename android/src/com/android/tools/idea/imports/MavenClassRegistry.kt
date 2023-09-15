@@ -43,7 +43,9 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
-   * @param receiverType the fully-qualified type of the receiver, if any, or `null` otherwise.
+   * @param receiverType the fully-qualified name of the receiver type, if any,
+   *   [MavenClassRegistryBase.ALL_RECEIVER_TYPES] if results for any receiver type (including no
+   *   receiver) should be returned, or `null` otherwise.
    */
   override fun findLibraryData(
     name: String,
@@ -58,11 +60,17 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
     val foundArtifacts = buildList {
-      lookup.classNameMap[shortName]?.let { addAll(it) }
-      val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
+      if (receiverType == null || receiverType == ALL_RECEIVER_TYPES)
+        lookup.classNameMap[shortName]?.let { addAll(it) }
       // Only suggest top-level Kotlin functions when completing in a Kotlin file.
-      if (completionFileType == KotlinFileType.INSTANCE)
-        lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+      if (completionFileType == KotlinFileType.INSTANCE) {
+        if (receiverType == ALL_RECEIVER_TYPES) {
+          lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
+        } else {
+          val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
+          lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+        }
+      }
     }
 
     if (packageName.isEmpty()) return foundArtifacts
@@ -222,7 +230,8 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
 
         when {
           fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
-          xFqName != null && receiverFqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
+          xFqName != null && receiverFqName != null ->
+            add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
         }
       }
       reader.endArray()
@@ -325,7 +334,10 @@ data class KotlinTopLevelFunction(
   fun toSpecifier() = FunctionSpecifier(simpleName, receiverFqName)
 
   companion object {
-    fun fromJvmQualifiedName(fqName: String, receiverFqName: String? = null): KotlinTopLevelFunction {
+    fun fromJvmQualifiedName(
+      fqName: String,
+      receiverFqName: String? = null
+    ): KotlinTopLevelFunction {
       require(fqName.contains('.')) {
         "fqName does not have file facade class containing the function: '$fqName'"
       }
@@ -349,7 +361,7 @@ data class KotlinTopLevelFunction(
 data class LookupData(
   /** A map from simple class names to the corresponding [LibraryImportData] objects. */
   val classNameMap: Map<String, List<LibraryImportData>>,
-  /** A map from Kotlin function specifiers to the corresponding [LibraryImportData] objects. */
+  /** A map from function specifiers to the corresponding [LibraryImportData] objects. */
   val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
   /** A map from non-KTX libraries to the associated KTX libraries. */
   val ktxMap: Map<String, String>,
@@ -357,6 +369,15 @@ data class LookupData(
   /** A list of Google Maven [MavenClassRegistryBase.Coordinate]. */
   val coordinateList: List<MavenClassRegistryBase.Coordinate>,
 ) {
+  /**
+   * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
+   * objects.
+   */
+  val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
+    topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
+      it.value.flatten().distinct()
+    }
+
   companion object {
     @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
   }

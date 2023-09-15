@@ -84,9 +84,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     companion object {
       fun createNewOrNull(
         libraries: Collection<MavenClassRegistryBase.LibraryImportData>
-      ): Resolvable? {
-        return if (libraries.isEmpty()) null else Resolvable(libraries)
-      }
+      ): Resolvable? = libraries.takeUnless { it.isEmpty() }?.let(::Resolvable)
     }
   }
 
@@ -387,8 +385,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       if (element.parent is PsiJavaCodeReferenceElement) {
         var curr: PsiJavaCodeReferenceElement? = element.parent as PsiJavaCodeReferenceElement
         while (curr != null) {
-          val found = resolve(curr.text)
-          if (found != null) return found
+          resolve(curr.text)?.let {
+            return it
+          }
 
           curr = curr.parent as? PsiJavaCodeReferenceElement
         }
@@ -415,8 +414,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           is KtUserType -> {
             var curr: KtUserType? = current
             while (curr != null) {
-              val found = resolve(curr.text)
-              if (found != null) return found
+              resolve(curr.text)?.let {
+                return it
+              }
 
               curr = curr.parent as? KtUserType
             }
