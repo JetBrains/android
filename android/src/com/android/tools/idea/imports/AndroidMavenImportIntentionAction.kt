@@ -371,7 +371,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     if (version.isNullOrEmpty()) GradleCoordinate.parseCoordinateString("$artifact:+")
     else GradleCoordinate.parseCoordinateString("$artifact:$version")
 
-  private fun findResolvable(
+  private tailrec fun findResolvable(
     element: PsiElement,
     caret: Int,
     resolve: (String, String?) -> Resolvable?
@@ -441,22 +441,28 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     // scenario, where you've just typed in the symbol you're interested in) PSI picks the element
     // on the right of the caret, which is the next element, not the symbol element.
     if (caret == element.textOffset || element is PsiWhiteSpace) {
-      if (element.prevSibling != null) {
-        return resolveWithoutReceiver(element.prevSibling.text)
-      }
+      // Find the element at the previous position.
       val targetOffset = caret - 1
-      var curr = element.parent
-      while (curr != null && curr.textOffset > targetOffset) {
-        curr = curr.parent
-      }
-      if (curr != null) {
-        val text = curr.findElementAt(targetOffset - curr.textOffset)?.text ?: element.text
-        return resolveWithoutReceiver(text)
+      element.parentContainingOffset(targetOffset)?.findElementAtAbsoluteOffset(targetOffset)?.let {
+        return findResolvable(it, targetOffset, resolve)
       }
     }
 
     return resolveWithoutReceiver(element.text)
   }
+
+  /**
+   * Walks up the tree of parent [PsiElement]s until it finds one that contains the [targetOffset].
+   */
+  private tailrec fun PsiElement.parentContainingOffset(targetOffset: Int): PsiElement? =
+    if (textRange.contains(targetOffset)) this else parent?.parentContainingOffset(targetOffset)
+
+  /**
+   * Like [PsiElement.findElementAt], but with a [targetOffset] corrected for the relative offset of
+   * `this` [PsiElement] in the document.
+   */
+  private fun PsiElement.findElementAtAbsoluteOffset(targetOffset: Int): PsiElement? =
+    findElementAt(targetOffset - textRange.startOffset)
 
   private fun KtDotQualifiedExpression.formText(): Pair<String, String>? {
     val referenceNameElement =

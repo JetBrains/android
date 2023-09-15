@@ -29,8 +29,10 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.google.errorprone.annotations.CheckReturnValue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 
@@ -106,7 +108,7 @@ class AndroidMavenImportIntentionActionTest {
           package test.pkg.imports;
           public class Test {
               public static void Foo() {
-                  cameraCoreTopLevelFunction() // Here cameraCoreTopLevelFunction is an unresolvable symbol
+                  cameraCoreTopLevelFunction() // cameraCoreTopLevelFunction is an unresolvable symbol
               }
           }
           """
@@ -150,7 +152,8 @@ class AndroidMavenImportIntentionActionTest {
     // importantly, the unresolved symbol is typically not the final name, but the first
     // unresolvable package segment. In this case, we have to search a little harder to
     // find the real corresponding library to import.
-    AndroidMavenImportIntentionActionTestConfig(
+    val baseConfig =
+      AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText = listOf("androidx.recyclerview:recyclerview:"),
         fileContents =
@@ -166,7 +169,13 @@ class AndroidMavenImportIntentionActionTest {
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
         addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
-      .run()
+
+    val caretPlacements =
+      listOf("andro|idx", "recyc|lerview", "wid|get", "Recycler|View", "RecyclerView|")
+
+    for (caretPlacement in caretPlacements) {
+      baseConfig.copy(caretPlacement = caretPlacement).run()
+    }
   }
 
   @Test
@@ -182,7 +191,7 @@ class AndroidMavenImportIntentionActionTest {
           """
           package test.pkg.imports;
           public class Test {
-              private androidx.recyclerview.widget.RecyclerView.FakeNestedClass view; // recyclerview(package segment) is an unresolvable symbol
+              private androidx.recyclerview.widget.RecyclerView.FakeNestedClass view; // recyclerview is an unresolvable symbol
           }
           """
             .trimIndent(),
@@ -200,20 +209,25 @@ class AndroidMavenImportIntentionActionTest {
     // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name
     // must be mapped both in the display name and in the dependency inserted into the build.gradle
     // file)
-    AndroidMavenImportIntentionActionTestConfig(
+    val baseConfig =
+      AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText = listOf("androidx.recyclerview:recyclerview:"),
         fileContents =
           """
           package test.pkg.imports
-          val view = androidx.recyclerview.widget.RecyclerView() // Here recyclerview(package segment) is an unresolvable symbol
+          val view = androidx.recyclerview.widget.RecyclerView() // recyclerview is an unresolvable symbol
           """
             .trimIndent(),
-        caretPlacement = "recyc|lerview",
         actionText = "Add dependency on androidx.recyclerview:recyclerview and import",
         addedGradleText = listOf("implementation 'androidx.recyclerview:recyclerview:1.1.0"),
       )
-      .run()
+
+    val caretPlacements =
+      listOf("andro|idx", "recyc|lerview", "wid|get", "Recycler|View()", "RecyclerView()|")
+    for (caretPlacement in caretPlacements) {
+      baseConfig.copy(caretPlacement = caretPlacement).run()
+    }
   }
 
   @Test
@@ -228,29 +242,33 @@ class AndroidMavenImportIntentionActionTest {
         addedImports = listOf("my.madeup.pkg.amazing.extensionFunction"),
       )
 
-    // With parens
-    baseConfig
-      .copy(
+    val withParens =
+      baseConfig.copy(
         fileContents =
           """
           package test.pkg.imports
-          val v = "foobar".extensionFunction()
+          val v = "foobar".extensionFunction() // Space for caret
           """
             .trimIndent(),
       )
-      .run()
 
-    // Without parens
-    baseConfig
-      .copy(
+    val withoutParens =
+      baseConfig.copy(
         fileContents =
           """
           package test.pkg.imports
-          val v = "foobar".extensionFunction
+          val v = "foobar".extensionFunction // Space for caret
           """
             .trimIndent(),
       )
-      .run()
+
+    withParens.run()
+
+    withoutParens.run()
+
+    withParens.copy(caretPlacement = "extensionFunction()|").run()
+
+    withoutParens.copy(caretPlacement = "extensionFunction|").run()
   }
 
   @Test
@@ -265,49 +283,71 @@ class AndroidMavenImportIntentionActionTest {
         addedImports = listOf("my.madeup.pkg.amazing.extensionFunction"),
       )
 
-    // With parens
-    baseConfig
-      .copy(
+    val withParens =
+      baseConfig.copy(
         fileContents =
           """
           package test.pkg.imports
           val s = "foobar"
-          val v = s.extensionFunction()
+          val v = s.extensionFunction() // Space for caret
           """
             .trimIndent(),
       )
-      .run()
 
-    // Without parens
-    baseConfig
-      .copy(
+    val withoutParens =
+      baseConfig.copy(
         fileContents =
           """
           package test.pkg.imports
           val s = "foobar"
-          val v = s.extensionFunction
+          val v = s.extensionFunction // Space for caret
           """
             .trimIndent(),
       )
-      .run()
+
+    withParens.run()
+
+    withoutParens.run()
+
+    withParens.copy(caretPlacement = "extensionFunction()|").run()
+
+    withoutParens.copy(caretPlacement = "extensionFunction|").run()
   }
 
   @Test
   fun extensionFunction_inImport() {
-    AndroidMavenImportIntentionActionTestConfig(
+    val baseConfig =
+      AndroidMavenImportIntentionActionTestConfig(
         projectRule = projectRule,
         forbiddenGradleText = listOf("my.madeup.package:amazing-package:"),
         fileContents =
           """
           package test.pkg.imports
-          import my.madeup.pkg.amazing.extensionFunction
+          import my.madeup.pkg.amazing.extensionFunction // extra space for caret
           """
             .trimIndent(),
-        caretPlacement = "extension|Function",
         actionText = "Add dependency on my.madeup.pkg:amazing-pkg and import",
         addedGradleText = listOf("implementation 'my.madeup.pkg:amazing-pkg:4.2.0"),
       )
-      .run()
+
+    val caretPlacements =
+      listOf(
+        "|my.madeup.pkg.amazing.extensionFunction",
+        "m|y.madeup.pkg.amazing.extensionFunction",
+        "my|.madeup.pkg.amazing.extensionFunction",
+        "my.mad|eup.pkg.amazing.extensionFunction",
+        "my.madeup|.pkg.amazing.extensionFunction",
+        "my.madeup.pk|g.amazing.extensionFunction",
+        "my.madeup.pkg|.amazing.extensionFunction",
+        "my.madeup.pkg.ama|zing.extensionFunction",
+        "my.madeup.pkg.amazing|.extensionFunction",
+        "my.madeup.pkg.amazing.extension|Function",
+        "my.madeup.pkg.amazing.extensionFunction|",
+      )
+
+    for (caretPlacement in caretPlacements) {
+      baseConfig.copy(caretPlacement = caretPlacement).run()
+    }
   }
 
   @Test
@@ -322,7 +362,7 @@ class AndroidMavenImportIntentionActionTest {
         fileContents =
           """
           package test.pkg.imports
-          val view = androidx.recyclerview.widget.RecyclerView.FakeNestedClass() // Here recyclerview(package segment) is an unresolvable symbol
+          val view = androidx.recyclerview.widget.RecyclerView.FakeNestedClass() // "recyclerview" is an unresolvable symbol
           """
             .trimIndent(),
         caretPlacement = "recyc|lerview",
@@ -341,7 +381,7 @@ class AndroidMavenImportIntentionActionTest {
         fileContents =
           """
           package test.pkg.imports
-          val palette = Palette() // Here "Palette" is an unresolvable symbol
+          val palette = Palette() // "Palette" is an unresolvable symbol
           """
             .trimIndent(),
         caretPlacement = "Palette|",
@@ -470,7 +510,7 @@ class AndroidMavenImportIntentionActionTest {
         fileContents =
           """
           package test.pkg.imports
-          val someClass = FakeClass() // Here FakeClass is an unresolvable symbol
+          val someClass = FakeClass() // "FakeClass" is an unresolvable symbol
           """
             .trimIndent(),
         caretPlacement = "FakeClass|()",
@@ -504,7 +544,7 @@ class AndroidMavenImportIntentionActionTest {
         fileContents =
           """
           package test.pkg.imports
-          val builder = object : androidx.camera.core.ExtendableBuilder { // Here `camera` (package segment) is an unresolvable symbol
+          val builder = object : androidx.camera.core.ExtendableBuilder { // "camera" is an unresolvable symbol
           """
             .trimIndent(),
         caretPlacement = "came|ra",
@@ -530,7 +570,7 @@ class AndroidMavenImportIntentionActionTest {
         fileContents =
           """
           package test.pkg.imports
-          val callback = object : androidx.camera.core.ImageCapture.OnImageSavedCallback { // Here `camera` is an unresolvable symbol
+          val callback = object : androidx.camera.core.ImageCapture.OnImageSavedCallback { // "camera" is an unresolvable symbol
           """
             .trimIndent(),
         caretPlacement = "came|ra",
