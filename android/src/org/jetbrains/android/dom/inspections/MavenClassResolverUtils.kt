@@ -26,10 +26,14 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.refactoring.isAndroidx
 
 /**
- * Returns a collection of [LocalQuickFix] by querying [MavenClassRegistryManager.getMavenClassRegistry].
+ * Returns a collection of [LocalQuickFix] by querying
+ * [MavenClassRegistryManager.getMavenClassRegistry].
  */
 internal fun MavenClassRegistryManager.collectFixesFromMavenClassRegistry(
-    className: String, project: Project, completionFileType: FileType?): List<LocalQuickFix> {
+  className: String,
+  project: Project,
+  completionFileType: FileType?
+): List<LocalQuickFix> {
   val fixes = mutableListOf<LocalQuickFix>()
   val useAndroidX = project.isAndroidx()
 
@@ -37,12 +41,12 @@ internal fun MavenClassRegistryManager.collectFixesFromMavenClassRegistry(
     .findLibraryData(className, useAndroidX, completionFileType)
     .asSequence()
     .map {
-      val resolvedArtifact = if (useAndroidX) {
-        AndroidxNameUtils.getCoordinateMapping(it.artifact)
-      }
-      else {
-        it.artifact
-      }
+      val resolvedArtifact =
+        if (useAndroidX) {
+          AndroidxNameUtils.getCoordinateMapping(it.artifact)
+        } else {
+          it.artifact
+        }
 
       fixes.add(AndroidMavenImportFix(className, resolvedArtifact, it.version))
     }
