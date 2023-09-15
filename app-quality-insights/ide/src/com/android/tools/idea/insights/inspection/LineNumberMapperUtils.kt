@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.insights.inspection
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.vcs.createVcsDocument
 import com.android.tools.idea.insights.vcs.getVcsManager
-import com.android.tools.idea.insights.vcs.isVcsInfoEnabledInAgp
 import com.android.tools.idea.insights.vcs.locateRepository
 import com.intellij.diff.comparison.iterables.FairDiffIterable
 import com.intellij.diff.tools.util.text.LineOffsetsUtil
@@ -31,17 +29,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.VcsException
 import com.intellij.openapi.vcs.ex.compareLines
 import com.intellij.openapi.vfs.VirtualFile
-
-fun Project.isChangeAwareAnnotationEnabled(): Boolean {
-  if (
-    !StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get() ||
-      !StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT.get()
-  ) {
-    return false
-  }
-
-  return isVcsInfoEnabledInAgp()
-}
 
 fun AppInsight.tryCreateVcsDocumentOrNull(contextVFile: VirtualFile, project: Project): Document? {
   return try {

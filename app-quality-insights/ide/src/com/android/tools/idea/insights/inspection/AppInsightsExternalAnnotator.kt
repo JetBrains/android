@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.inspection
 
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
+import com.android.tools.idea.insights.VcsIntegrationToken
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
@@ -24,6 +25,7 @@ import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.I
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.lang.annotation.AnnotationHolder
@@ -76,9 +78,14 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     collectedInfo ?: return null
 
     val project = collectedInfo.project
+    val projectSystem = project.getProjectSystem()
+    val changeAwareToken =
+      VcsIntegrationToken.EP_NAME.getExtensions(project).firstOrNull {
+        it.isApplicable(projectSystem)
+      }
     val insights = collectedInfo.insights
 
-    if (!project.isChangeAwareAnnotationEnabled()) {
+    if (changeAwareToken?.isChangeAwareAnnotationEnabled(projectSystem) != true) {
       return AnnotationResult(insights)
     }
 
