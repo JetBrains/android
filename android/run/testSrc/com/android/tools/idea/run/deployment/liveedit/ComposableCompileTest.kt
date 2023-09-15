@@ -285,7 +285,6 @@ class ComposableCompileTest {
       """.trimIndent()
 
   // Regression test for invalid incremental analysis. See b/295257198.
-  @Ignore("b/295257198")
   @Test
   fun incrementalAnalysisFunctionBodyTest() {
     val fileName = "Test.kt"
@@ -311,7 +310,6 @@ class ComposableCompileTest {
   }
 
   // Regression test for invalid incremental analysis. See b/295257198.
-  @Ignore("b/295257198")
   @Test
   fun incrementalAnalysisFunctionExpressionBodyTest() {
     val fileName = "Test.kt"
