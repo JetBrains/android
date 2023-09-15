@@ -659,7 +659,7 @@ fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(
  * @param show whether to show or hide the issue panel.
  * @param runnable optional task to execute after the visibility of issue panel is changed.
  *
- * TODO(b/298229332): Revisit this function to see if we can remove the DesignSurface dependency.
+ * TODO(b/300646581): Revisit this function to see if we can remove the DesignSurface dependency.
  */
 fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, runnable: Runnable? = null) {
   analyticsManager.trackShowIssuePanel()
