@@ -205,6 +205,28 @@ class SourceCodeEditorProviderTest {
     }
   }
 
+  @Test
+  fun testUpdatesRepresentationWithProjectAlreadyInSmartMode() {
+    val file = fixture.addFileToProject("src/Preview.kt", "")
+    val representation = TestPreviewRepresentationProvider("Representation1", false)
+    val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
+    val editor =
+      invokeAndWaitIfNeeded { sourceCodeProvider.createEditor(file.project, file.virtualFile) }
+        .also { Disposer.register(fixture.testRootDisposable, it) }
+    val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
+
+    assertThat(preview.representationNames).isEmpty()
+    representation.isAccept = true
+    assertThat(preview.representationNames).isEmpty()
+
+    runBlocking {
+      // The representations update is scheduled right after [sourceCodeProvider.createEditor()] is
+      // called. In this case we don't need to wait for smart mode to finish
+      preview.awaitForRepresentationsUpdated()
+      preview.representationNames.singleOrNull() == "Representation1"
+    }
+  }
+
   // Regression test for b/232045613
   @Test
   fun testDoesNotAcceptFilesBecauseOfTheExtension() {
