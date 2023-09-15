@@ -579,7 +579,7 @@ class GradleModuleSystem(
    */
   override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
-  override val enableVcsInfo: Boolean get() = agpBuildGlobalFlags.enableVcsInfo
+  val enableVcsInfo: Boolean get() = agpBuildGlobalFlags.enableVcsInfo
 
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules

@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -53,7 +54,10 @@ class VcsIntegrationGradleToken : VcsIntegrationToken<GradleProjectSystem>, Grad
 
   private fun Project.isVcsInfoEnabledInAgp(): Boolean {
     return cacheInvalidatingOnSyncModifications {
-      modules.asList().any { it.getModuleSystem().enableVcsInfo }
+      modules
+        .asList()
+        .mapNotNull { it.getModuleSystem() as? GradleModuleSystem }
+        .any { it.enableVcsInfo }
     }
   }
 }
