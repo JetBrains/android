@@ -74,6 +74,7 @@ import javax.swing.border.EmptyBorder;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
@@ -113,7 +114,8 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     myOnCloseCallback.accept(selectedConfigSupported ? selectedConfig : null);
   }
 
-  private static class ProfilingConfigurable implements Configurable {
+  @VisibleForTesting
+  static class ProfilingConfigurable implements Configurable {
 
     private static final String ADD = "Add";
 
@@ -226,14 +228,29 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       ToolbarDecorator toolbarDecorator = ToolbarDecorator.createDecorator(myConfigurations)
         .setToolbarPosition(ActionToolbarPosition.TOP)
         .setPanelBorder(JBUI.Borders.empty())
-        .setMoveUpAction(moveUpAction).setMoveUpActionUpdater(moveUpAction).setMoveUpActionName(MOVE_UP)
-        .setMoveDownAction(moveDownAction).setMoveDownActionUpdater(moveDownAction).setMoveDownActionName(MOVE_DOWN)
-        .setRemoveAction(removeAction).setRemoveActionUpdater(removeAction).setRemoveActionName(REMOVE)
-        .setAddAction(addAction).setAddActionUpdater(addAction).setAddActionName(ADD)
         .setMinimumSize(new JBDimension(200, 200))
         .setForcedDnD();
+
+      if (!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        toolbarDecorator
+          .setMoveUpAction(moveUpAction).setMoveUpActionUpdater(moveUpAction).setMoveUpActionName(MOVE_UP)
+          .setMoveDownAction(moveDownAction).setMoveDownActionUpdater(moveDownAction).setMoveDownActionName(MOVE_DOWN)
+          .setRemoveAction(removeAction).setRemoveActionUpdater(removeAction).setRemoveActionName(REMOVE)
+          .setAddAction(addAction).setAddActionUpdater(addAction).setAddActionName(ADD);
+      }
+      else {
+        // Make the icons invisible
+        toolbarDecorator
+          .disableRemoveAction()
+          .disableDownAction()
+          .disableUpAction()
+          .disableAddAction();
+      }
+
       JComponent panel = toolbarDecorator.createPanel();
-      addAction.setPopupParent(panel);
+      if (!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        addAction.setPopupParent(panel);
+      }
       return panel;
     }
 
