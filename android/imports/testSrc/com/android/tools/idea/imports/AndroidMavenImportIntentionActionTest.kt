@@ -296,6 +296,150 @@ class AndroidMavenImportIntentionActionTest {
   }
 
   @Test
+  fun extensionFunction_withLiteralReceiver() {
+    openTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE) { // this project uses AndroidX
+      assertBuildGradle(project) { !it.contains("my.madeup.package:amazing-package:") }
+      fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val v = "foobar".extensionFunction()
+      """.trimIndent()
+      )
+      val source = fixture.editor.document.text
+
+      val action = AndroidMavenImportIntentionAction()
+      val element = fixture.moveCaret("extension|Function")
+      val available = action.isAvailable(project, fixture.editor, element)
+      assertThat(available).isTrue()
+      assertThat(action.text).isEqualTo("Add dependency on my.madeup.pkg:amazing-pkg and import")
+      // Note: We do perform, not performAndSync here, since this isn't a real library.
+      performWithoutSync(action, element)
+
+      assertBuildGradle(project) { it.contains("implementation 'my.madeup.pkg:amazing-pkg:4.2.0") }
+
+      // Make sure we haven't added an import statement since the reference is already fully qualified
+      val newSource = fixture.editor.document.text
+      val diff = TestUtils.getDiff(source, newSource, 1)
+      assertThat(diff.trim()).isEqualTo(
+        """
+      @@ -2 +2
+        package test.pkg.imports
+      +
+      + import my.madeup.pkg.amazing.extensionFunction
+      +
+        val v = "foobar".extensionFunction()
+      """.trimIndent().trim()
+      )
+    }
+  }
+
+  @Test
+  fun extensionFunction_withVariableReceiver() {
+    openTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE) { // this project uses AndroidX
+      assertBuildGradle(project) { !it.contains("my.madeup.package:amazing-package:") }
+      fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val s = "foobar"
+      val v = s.extensionFunction()
+      """.trimIndent()
+      )
+      val source = fixture.editor.document.text
+
+      val action = AndroidMavenImportIntentionAction()
+      val element = fixture.moveCaret("extension|Function")
+      val available = action.isAvailable(project, fixture.editor, element)
+      assertThat(available).isTrue()
+      assertThat(action.text).isEqualTo("Add dependency on my.madeup.pkg:amazing-pkg and import")
+      // Note: We do perform, not performAndSync here, since this isn't a real library.
+      performWithoutSync(action, element)
+
+      assertBuildGradle(project) { it.contains("implementation 'my.madeup.pkg:amazing-pkg:4.2.0") }
+
+      // Make sure we haven't added an import statement since the reference is already fully qualified
+      val newSource = fixture.editor.document.text
+      val diff = TestUtils.getDiff(source, newSource, 1)
+      assertThat(diff.trim()).isEqualTo(
+        """
+      @@ -2 +2
+        package test.pkg.imports
+      +
+      + import my.madeup.pkg.amazing.extensionFunction
+      +
+        val s = "foobar"
+      """.trimIndent().trim()
+      )
+    }
+  }
+
+  @Test
+  fun extensionFunction_withVariableReceiver_noParens() {
+    openTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE) { // this project uses AndroidX
+      assertBuildGradle(project) { !it.contains("my.madeup.package:amazing-package:") }
+      fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      val s = "foobar"
+      val v = s.extensionFunction
+      """.trimIndent()
+      )
+      val source = fixture.editor.document.text
+
+      val action = AndroidMavenImportIntentionAction()
+      val element = fixture.moveCaret("extension|Function")
+      val available = action.isAvailable(project, fixture.editor, element)
+      assertThat(available).isTrue()
+      assertThat(action.text).isEqualTo("Add dependency on my.madeup.pkg:amazing-pkg and import")
+      // Note: We do perform, not performAndSync here, since this isn't a real library.
+      performWithoutSync(action, element)
+
+      assertBuildGradle(project) { it.contains("implementation 'my.madeup.pkg:amazing-pkg:4.2.0") }
+
+      // Make sure we haven't added an import statement since the reference is already fully qualified
+      val newSource = fixture.editor.document.text
+      val diff = TestUtils.getDiff(source, newSource, 1)
+      assertThat(diff.trim()).isEqualTo(
+        """
+      @@ -2 +2
+        package test.pkg.imports
+      +
+      + import my.madeup.pkg.amazing.extensionFunction
+      +
+        val s = "foobar"
+      """.trimIndent().trim()
+      )
+    }
+  }
+
+  @Test
+  fun extensionFunction_inImport() {
+    openTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE) { // this project uses AndroidX
+      assertBuildGradle(project) { !it.contains("my.madeup.package:amazing-package:") }
+      fixture.loadNewFile(
+        "app/src/main/java/test/pkg/imports/MainActivity2.kt", """
+      package test.pkg.imports
+      import my.madeup.pkg.amazing.extensionFunction
+      """.trimIndent()
+      )
+      val source = fixture.editor.document.text
+
+      val action = AndroidMavenImportIntentionAction()
+      val element = fixture.moveCaret("extension|Function")
+      val available = action.isAvailable(project, fixture.editor, element)
+      assertThat(available).isTrue()
+      assertThat(action.text).isEqualTo("Add dependency on my.madeup.pkg:amazing-pkg and import")
+      // Note: We do perform, not performAndSync here, since this isn't a real library.
+      performWithoutSync(action, element)
+
+      assertBuildGradle(project) { it.contains("implementation 'my.madeup.pkg:amazing-pkg:4.2.0") }
+
+      // Make sure we haven't added an import statement since the reference is already fully qualified
+      val newSource = fixture.editor.document.text
+      assertThat(newSource).isEqualTo(source)
+    }
+  }
+
+  @Test
   fun doNotImportWhenAlreadyFQKotlin_dotQualifiedExpressionCase_nestedClass() {
     // Like testDoNotImportWhenAlreadyFullyQualifiedJava, but for Kotlin
     // Like testUnresolvedSymbolInKotlin, but in an AndroidX project (so the artifact name

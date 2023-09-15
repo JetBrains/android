@@ -51,13 +51,17 @@ import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
+import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtUserType
+import org.jetbrains.kotlin.types.error.ErrorType
 
 /**
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on
@@ -401,13 +405,14 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       // down the chain for the actual imported class symbol and scan on that one instead.
       if (element.parent is KtNameReferenceExpression) {
         when (val current = element.parent.parent) {
-          is KtDotQualifiedExpression -> {
-            var curr: KtDotQualifiedExpression? = current
+          is KtDotQualifiedExpression,
+          is KtCallExpression -> {
+            var curr =
+              current as? KtDotQualifiedExpression ?: current.parent as? KtDotQualifiedExpression
             while (curr != null) {
-              // TODO(b/300296134): Use receiver type if available.
               curr
                 .formText()
-                ?.let { resolveWithoutReceiver(it) }
+                ?.let { resolve(it.first, it.second) }
                 ?.let {
                   return it
                 }
@@ -453,17 +458,25 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     return resolveWithoutReceiver(element.text)
   }
 
-  private fun KtDotQualifiedExpression.formText(): String? {
-    val referenceNameElement = selectorExpression
-    if (referenceNameElement != null) {
-      var left: PsiElement = referenceNameElement
-      while (left.firstChild != null) {
-        left = left.firstChild
+  private fun KtDotQualifiedExpression.formText(): Pair<String, String>? {
+    val referenceNameElement =
+      when (val selector = selectorExpression) {
+        null -> return null
+        is KtCallExpression -> selector.calleeExpression ?: return null // Get rid of any parens.
+        else -> selector
       }
-      return "${receiverExpression.text}.${left.text}"
+    var left: PsiElement = referenceNameElement
+    while (left.firstChild != null) {
+      left = left.firstChild
+    }
+    val receiverExpr =
+      (receiverExpression as? KtDotQualifiedExpression)?.selectorExpression ?: receiverExpression
+    val receiverType = receiverExpr.resolveExprType()?.takeUnless { it is ErrorType }
+    receiverType?.fqName?.asString()?.let {
+      return left.text to it
     }
 
-    return null
+    return "${receiverExpression.text}.${left.text}" to MavenClassRegistryBase.ALL_RECEIVER_TYPES
   }
 
   private fun findLibraryData(
