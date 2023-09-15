@@ -27,6 +27,12 @@ final class NoSkin implements Skin {
 
   @NotNull
   @Override
+  public Skin merge(@NotNull Skin skin) {
+    throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
   public Path path() {
     return Path.of(SkinUtils.NO_SKIN);
   }

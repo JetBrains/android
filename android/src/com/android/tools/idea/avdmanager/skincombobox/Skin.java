@@ -27,6 +27,9 @@ public interface Skin extends Comparable<Skin> {
     .thenComparing(Object::toString, Collator.getInstance(ULocale.ROOT));
 
   @NotNull
+  Skin merge(@NotNull Skin skin);
+
+  @NotNull
   Path path();
 
   @Override

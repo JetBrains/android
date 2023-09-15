@@ -20,6 +20,18 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 record DefaultSkin(@NotNull Path path) implements Skin {
+  /**
+   * Resolve collisions in favor of the parameter. If the user picks a platform skin or a system image skin with the file chooser before the
+   * asynchronous skin collection finishes it will be represented by a DefaultSkin. We resolve collisions in this way because the combo box
+   * renders PlatformSkins and SystemImageSkins with more information.
+   */
+  @NotNull
+  @Override
+  public Skin merge(@NotNull Skin skin) {
+    assert skin.path().equals(path) : skin;
+    return skin;
+  }
+
   @NotNull
   @Override
   public String toString() {

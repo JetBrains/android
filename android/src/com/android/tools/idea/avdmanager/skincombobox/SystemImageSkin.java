@@ -22,6 +22,18 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 record SystemImageSkin(@NotNull Path path, @NotNull AndroidVersion version, @NotNull String abi) implements Skin {
+  /**
+   * If the parameter is a DefaultSkin, return this; otherwise return the parameter. System images that don't have their own skins refer to
+   * the platform skins for their platform version. This resolution will drop those skins. It also handles the user manually picking a
+   * system image skin before the asynchronous collection is done.
+   */
+  @NotNull
+  @Override
+  public Skin merge(@NotNull Skin skin) {
+    assert skin.path().equals(path) : skin;
+    return skin instanceof DefaultSkin ? this : skin;
+  }
+
   @NotNull
   @Override
   public String toString() {
