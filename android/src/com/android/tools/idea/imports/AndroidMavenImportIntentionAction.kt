@@ -95,10 +95,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   /** Performs a fix. Or let users choose from the popup if there are multiple options. */
   fun perform(project: Project, editor: Editor, element: PsiElement, sync: Boolean) {
     val resolvable =
-      findResolvable(element, editor.caretModel.offset) { text ->
-        // TODO(b/300296134): Use receiver type if available.
+      findResolvable(element, editor.caretModel.offset) { text, receiverType ->
         Resolvable.createNewOrNull(
-          findLibraryData(project, text, null, element.containingFile?.fileType)
+          findLibraryData(project, text, receiverType, element.containingFile?.fileType)
         )
       }
         ?: return
@@ -292,10 +291,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
 
     val resolvable =
-      findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
-        // TODO(b/300296134): Use receiver type if available.
+      findResolvable(element, editor?.caretModel?.offset ?: -1) { text, receiverType ->
         Resolvable.createNewOrNull(
-          findLibraryData(project, text, null, element.containingFile?.fileType)
+          findLibraryData(project, text, receiverType, element.containingFile?.fileType)
         )
       }
         ?: return false
@@ -372,8 +370,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun findResolvable(
     element: PsiElement,
     caret: Int,
-    resolve: (String) -> Resolvable?
+    resolve: (String, String?) -> Resolvable?
   ): Resolvable? {
+    // This is actually the common case.
+    fun resolveWithoutReceiver(s: String) = resolve(s, null)
     if (element is PsiIdentifier || caret == 0) {
       // In Java code, if you're pointing somewhere in the middle of a fully qualified name (such as
       // an import statement to a library that isn't available), the unresolved symbol won't be the
@@ -385,7 +385,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       if (element.parent is PsiJavaCodeReferenceElement) {
         var curr: PsiJavaCodeReferenceElement? = element.parent as PsiJavaCodeReferenceElement
         while (curr != null) {
-          resolve(curr.text)?.let {
+          resolveWithoutReceiver(curr.text)?.let {
             return it
           }
 
@@ -393,7 +393,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
         }
       }
 
-      return resolve(element.text)
+      return resolveWithoutReceiver(element.text)
     } else if (element is LeafPsiElement && element.elementType == KtTokens.IDENTIFIER) {
       // In Kotlin code, if you're pointing somewhere in the middle of a fully qualified name (such
       // as an import statement to a library that isn't available), the unresolved symbol won't be
@@ -404,9 +404,13 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           is KtDotQualifiedExpression -> {
             var curr: KtDotQualifiedExpression? = current
             while (curr != null) {
-              curr.formText()?.let(resolve)?.let {
-                return it
-              }
+              // TODO(b/300296134): Use receiver type if available.
+              curr
+                .formText()
+                ?.let { resolveWithoutReceiver(it) }
+                ?.let {
+                  return it
+                }
 
               curr = curr.parent as? KtDotQualifiedExpression
             }
@@ -414,18 +418,18 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
           is KtUserType -> {
             var curr: KtUserType? = current
             while (curr != null) {
-              resolve(curr.text)?.let {
+              resolveWithoutReceiver(curr.text)?.let {
                 return it
               }
 
               curr = curr.parent as? KtUserType
             }
           }
-          else -> return resolve(element.text)
+          else -> return resolveWithoutReceiver(element.text)
         }
       }
 
-      return resolve(element.text)
+      return resolveWithoutReceiver(element.text)
     }
 
     // When the caret is at the end of the word (which it frequently is in the unresolved symbol
@@ -433,7 +437,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     // on the right of the caret, which is the next element, not the symbol element.
     if (caret == element.textOffset || element is PsiWhiteSpace) {
       if (element.prevSibling != null) {
-        return resolve(element.prevSibling.text)
+        return resolveWithoutReceiver(element.prevSibling.text)
       }
       val targetOffset = caret - 1
       var curr = element.parent
@@ -442,11 +446,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       }
       if (curr != null) {
         val text = curr.findElementAt(targetOffset - curr.textOffset)?.text ?: element.text
-        return resolve(text)
+        return resolveWithoutReceiver(text)
       }
     }
 
-    return resolve(element.text)
+    return resolveWithoutReceiver(element.text)
   }
 
   private fun KtDotQualifiedExpression.formText(): String? {
