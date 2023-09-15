@@ -20,6 +20,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractiveLabelPanel
+import com.android.tools.idea.common.surface.LabelPanel
 import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
@@ -61,7 +62,7 @@ internal class PreviewSurfaceActionManager(
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun createSceneViewLabel(sceneView: SceneView): JComponent {
+  override fun createSceneViewLabel(sceneView: SceneView): LabelPanel {
     return InteractiveLabelPanel(
       LayoutData.fromSceneView(sceneView),
       surface,

@@ -20,7 +20,7 @@ import com.intellij.ui.components.JBLabel
 import java.awt.Dimension
 
 /** This label displays the [SceneView] model label. */
-open class LabelPanel(private val layoutData: LayoutData) : JBLabel() {
+open class LabelPanel(var layoutData: LayoutData) : JBLabel() {
   init {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = labelDefaultColor

@@ -129,10 +129,10 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   }
 
   /**
-   * Creates a {@link JComponent} with a label for a {@link SceneView}.
+   * Creates a {@link LabelPanel} with a label for a {@link SceneView}.
    */
   @NotNull
-  public JComponent createSceneViewLabel(@NotNull SceneView sceneView) {
+  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView) {
     return new LabelPanel(LayoutData.Companion.fromSceneView(sceneView));
   }
 

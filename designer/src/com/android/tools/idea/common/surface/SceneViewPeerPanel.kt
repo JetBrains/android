@@ -90,7 +90,7 @@ data class LayoutData(
  */
 class SceneViewPeerPanel(
   val sceneView: SceneView,
-  private val labelPanel: JComponent,
+  private val labelPanel: LabelPanel,
   private val sceneViewStatusIcon: JComponent?,
   private val sceneViewToolbar: JComponent?,
   private val sceneViewBottomBar: JComponent?,
@@ -353,6 +353,7 @@ class SceneViewPeerPanel(
 
   override fun doLayout() {
     layoutData = LayoutData.fromSceneView(sceneView)
+    labelPanel.layoutData = layoutData
 
     //      SceneViewPeerPanel layout:
     //
