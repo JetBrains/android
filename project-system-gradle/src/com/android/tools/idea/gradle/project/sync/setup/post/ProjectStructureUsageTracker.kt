@@ -116,6 +116,9 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     var libModel: GradleAndroidModel? = null
     var appCount = 0
     var libCount = 0
+    var dynamicFeatureCount = 0
+    var testCount = 0
+    var kmpCount = 0
     val gradleLibraries: MutableList<GradleLibrary> = ArrayList()
     for (facet in myProject.getAndroidFacets()) {
       val androidModel = get(facet)
@@ -133,12 +136,12 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
             gradleLibraries.add(gradleLibrary)
           }
 
+          IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> dynamicFeatureCount++
+          IdeAndroidProjectType.PROJECT_TYPE_TEST -> testCount++
+          IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> kmpCount++
           IdeAndroidProjectType.PROJECT_TYPE_ATOM -> Unit
-          IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Unit
-          IdeAndroidProjectType.PROJECT_TYPE_TEST -> Unit
-          else -> {}
         }
       }
     }
@@ -159,6 +162,9 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
       .setTotalModuleCount(countHolderModules())
       .setAppModuleCount(appCount.toLong())
       .setLibModuleCount(libCount.toLong())
+      .setDynamicFeatureModuleCount(dynamicFeatureCount.toLong())
+      .setTestModuleCount(testCount.toLong())
+      .setKotlinMultiplatformModuleCount(kmpCount.toLong())
       .build()
 
     for (facet in myProject.getAndroidFacets()) {

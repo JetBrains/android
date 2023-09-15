@@ -138,6 +138,9 @@ data class GradleSyncLoggedEventsTestDef(
             |total_module_count: 11
             |app_module_count: 1
             |lib_module_count: 6
+            |dynamic_feature_module_count: 1
+            |test_module_count: 0
+            |kotlin_multiplatform_module_count: 0
           """.trimMargin()
         )
       },
@@ -152,6 +155,9 @@ data class GradleSyncLoggedEventsTestDef(
             |total_module_count: 13
             |app_module_count: 3
             |lib_module_count: 3
+            |dynamic_feature_module_count: 0
+            |test_module_count: 0
+            |kotlin_multiplatform_module_count: 0
           """.trimMargin()
         )
       },
