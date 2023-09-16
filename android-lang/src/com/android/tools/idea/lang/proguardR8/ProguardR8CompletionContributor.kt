@@ -45,7 +45,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 
 /**
- * Provides code completion for key words for proguardR8 files
+ * Provides code completion for keywords for proguardR8 files
  *
  * Provides code completion for flags, java keywords and proguardR8 specific wildcards
  */
@@ -234,7 +234,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
       flagCompletionProvider
     )
 
-    // Add completion for java key words ("private", "public" ...) inside class specification body
+    // Add completion for java keywords ("private", "public" ...) inside class specification body
     extend(
       CompletionType.BASIC,
       or(startOfNewJavaRule, afterFieldOrMethodModifier, insideClassSpecification.afterLeaf("!")),
@@ -312,7 +312,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
 
   override fun beforeCompletion(context: CompletionInitializationContext) {
     if (context.file is ProguardR8PsiFile) {
-      // We need lower case identifier because original ("IntellijIdeaRulezzz") breaks lexer for flags (flags can be only lowercase).
+      // We need lower case identifier because original ("IntellijIdeaRule") breaks lexer for flags (flags can be only lowercase).
       context.dummyIdentifier = lowerCaseIdentifier
     }
     super.beforeCompletion(context)
