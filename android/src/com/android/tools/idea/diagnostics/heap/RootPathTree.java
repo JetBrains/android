@@ -183,7 +183,7 @@ public class RootPathTree {
       ObjectsStatistics rootSubtreeStatistics = nominatedObjectsStatsInTheNodeSubtree.get(r);
       return (rootSubtreeStatistics != null) &&
              !shouldSkipPrintingNodeSubtree(totalNominatedTypeStatistics, rootSubtreeStatistics, nominatedNodeTypeId);
-    }).sorted(Comparator.comparingInt(r -> nominatedObjectsStatsInTheNodeSubtree.get(r).getObjectsCount()).reversed()).forEach(r -> {
+    }).sorted(Comparator.comparingLong(r -> nominatedObjectsStatsInTheNodeSubtree.get(r).getTotalSizeInBytes()).reversed()).forEach(r -> {
       writer.accept(String.format(Locale.US, "Root %d:", rootIndex.getAndIncrement()));
       printRootPathIteration(writer, r, " ", true, false, totalNominatedTypeStatistics, exceededClusterStatistics.exceededClusterIndex,
                              nominatedNodeTypeId, nominatedObjectsStatsInTheNodeSubtree);
@@ -193,8 +193,8 @@ public class RootPathTree {
   private static boolean shouldSkipPrintingNodeSubtree(@NotNull ObjectsStatistics totalNominatedTypeStatistics,
                                                        ObjectsStatistics rootSubtreeStatistics,
                                                        int nominatedNodeTypeId) {
-    return (100 * rootSubtreeStatistics.getObjectsCount() <
-            totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
+    return (100 * rootSubtreeStatistics.getTotalSizeInBytes() <
+            totalNominatedTypeStatistics.getTotalSizeInBytes() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
            (rootSubtreeStatistics.getTotalSizeInBytes() < NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES) &&
            !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId);
   }
@@ -262,7 +262,7 @@ public class RootPathTree {
         c -> (c.instancesStatistics[exceededClusterId][nominatedNodeTypeId] != null &&
               c.instancesStatistics[exceededClusterId][nominatedNodeTypeId].getObjectsCount() > 0) &&
              nominatedObjectsStatsInTheNodeSubtree.containsKey(c))
-      .sorted(Comparator.comparingInt(c -> nominatedObjectsStatsInTheNodeSubtree.get(c).getObjectsCount()).reversed()).toList();
+      .sorted(Comparator.comparingLong(c -> nominatedObjectsStatsInTheNodeSubtree.get(c).getTotalSizeInBytes()).reversed()).toList();
 
     if (children.size() > 1) {
       int i = 0;
@@ -298,7 +298,8 @@ public class RootPathTree {
                                        int nominatedNodeTypeId,
                                        @NotNull final ObjectsStatistics nominatedObjectsInTheSubtree) {
     String percentString =
-      padStart((int)(100.0 * nominatedObjectsInTheSubtree.getObjectsCount() / totalNominatedTypeStatistics.getObjectsCount()) + "%", 4,
+      padStart((int)(100.0 * nominatedObjectsInTheSubtree.getTotalSizeInBytes() / totalNominatedTypeStatistics.getTotalSizeInBytes()) + "%",
+               4,
                ' ');
 
     return '[' +

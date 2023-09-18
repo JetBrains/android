@@ -560,6 +560,70 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
+  public void testExtendedReportNodesOrdering() throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("TestComponent",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray"));
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    roots.add(new ReferenceToObjectArray(new int[]{1}, new int[]{2}, new int[]{3}));
+    roots.add(new ReferenceToObjectArray(new int[]{1, 2, 3, 4, 5, 6}, new int[]{7, 8, 9, 10, 11, 12}));
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+
+    assertRequestContainsField(serializedExtendedReport, "Component TestComponent", """
+      Owned: 240B/9 objects
+            Histogram:
+              152B/5 objects: [I
+              56B/2 objects: [Ljava.lang.Object;
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+            Studio objects histogram:
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+            Component roots histogram:
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      Platform object: 0B/0 objects[0B/0 objects]
+      ======== INSTANCES OF EACH NOMINATED CLASS ========
+      Nominated classes:
+       --> [152B/5 objects] [I
+       --> [32B/2 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+       --> [56B/2 objects] [Ljava.lang.Object;
+
+      CLASS: [I (5 objects)
+      Root 1:
+      [    2/ 52%/   80B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      [    2/ 52%/   80B]      104B/1 objects          myArray: [Ljava.lang.Object;
+      [    2/ 52%/   80B]       80B/2 objects *        []: [I
+      Root 2:
+      [    3/ 47%/   72B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      [    3/ 47%/   72B]      104B/1 objects          myArray: [Ljava.lang.Object;
+      [    3/ 47%/   72B]       72B/3 objects *        []: [I
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray (2 objects)
+      Root 1:
+      [    1/ 50%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      Root 2:
+      [    1/ 50%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      CLASS: [Ljava.lang.Object; (2 objects)
+      Root 1:
+      [    1/ 57%/   32B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      [    1/ 57%/   32B]      104B/1 objects *        myArray: [Ljava.lang.Object;
+      Root 2:
+      [    1/ 42%/   24B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      [    1/ 42%/   24B]      104B/1 objects *        myArray: [Ljava.lang.Object;""");
+  }
+
+  @Test
   public void testExtendedReportNominatedClassesTree() throws IOException {
     ComponentsSet componentsSet = new ComponentsSet();
 
@@ -621,7 +685,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
        --> [96B/4 objects] [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
        --> [64B/4 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
        --> [48B/3 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-            
+
       CLASS: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; (4 objects)
       Root 1:
       [    1/ 25%/   24B]       40B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
@@ -1040,6 +1104,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     private final B[] myArray;
 
     private D(B... b) {
+      myArray = b;
+    }
+  }
+
+  private static class ReferenceToObjectArray {
+    private final Object[] myArray;
+
+    private ReferenceToObjectArray(Object... b) {
       myArray = b;
     }
   }
