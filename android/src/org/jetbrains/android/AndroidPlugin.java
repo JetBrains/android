@@ -12,6 +12,7 @@ import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Anchor;
@@ -70,6 +71,11 @@ public final class AndroidPlugin {
           public void update(@NotNull AnActionEvent e) {
             Project project = e.getProject();
             e.getPresentation().setEnabledAndVisible(project != null && ProjectSystemUtil.requiresAndroidModel(project));
+          }
+          @NotNull
+          @Override
+          public ActionUpdateThread getActionUpdateThread() {
+            return ActionUpdateThread.BGT;
           }
         };
         actionManager.registerAction(groupId, group);
