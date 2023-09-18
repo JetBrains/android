@@ -223,7 +223,7 @@ public class AgpUpgradeRefactoringProcessorDialog extends DialogWrapper {
   }
 
   @Override
-  protected Action[] createActions() {
+  protected Action @NotNull [] createActions() {
     Action previewAction = new AgpUpgradeRefactoringProcessorDialog.PreviewRefactoringAction();
     return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }

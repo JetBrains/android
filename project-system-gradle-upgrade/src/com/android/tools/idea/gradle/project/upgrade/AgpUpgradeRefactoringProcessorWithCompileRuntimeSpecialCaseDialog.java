@@ -96,7 +96,7 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
   }
 
   @Override
-  protected Action[] createActions() {
+  protected Action @NotNull [] createActions() {
     Action previewAction = new AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog.PreviewRefactoringAction();
     return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }
