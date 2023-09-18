@@ -164,7 +164,7 @@ class VitalsIssueDetailsPanel(
   @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
 
   // Title
-  private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor, controller)
+  private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor, controller, false)
 
   // TODO(b/290647605): add back device label
   // Events, users, affected api levels
@@ -228,7 +228,11 @@ class VitalsIssueDetailsPanel(
             mainPanel,
             if (issue != null) MAIN_CARD else EMPTY_CARD
           )
-          header.updateWithIssue(issue)
+          if (issue == null) {
+            header.clear()
+          } else {
+            header.updateWithIssue(issue)
+          }
         }
     }
 

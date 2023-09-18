@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.IssueVariant
@@ -57,7 +56,8 @@ private val KEY = Key.create<Pair<String, String>>("android.aqi.details.header")
 
 class DetailsPanelHeader(
   editor: Editor,
-  private val controller: AppInsightsProjectLevelController
+  private val controller: AppInsightsProjectLevelController,
+  private val supportsVariants: Boolean
 ) : JPanel(BorderLayout()) {
   @VisibleForTesting val titleLabel = JBLabel()
 
@@ -122,18 +122,18 @@ class DetailsPanelHeader(
     )
   }
 
-  fun updateWithIssue(issue: AppInsightsIssue?) {
+  fun clear() {
     titleLabel.icon = null
     titleLabel.text = null
     toolbar.component.isVisible = false
     variantPanel.isVisible = false
+  }
 
-    if (issue == null) return
-
+  fun updateWithIssue(issue: AppInsightsIssue) {
     titleLabel.icon = issue.issueDetails.fatality.getIcon()
     val (className, methodName) = issue.issueDetails.getDisplayTitle()
     toolbar.component.isVisible = true
-    if (StudioFlags.CRASHLYTICS_2023H2_UI.get()) {
+    if (supportsVariants) {
       comboBoxStateFlow.value = DisabledComboBoxState.loading
       variantPanel.isVisible = true
       titleLabel.putUserData(KEY, Pair(className, methodName))
@@ -150,7 +150,8 @@ class DetailsPanelHeader(
   fun updateComboBox(
     issue: AppInsightsIssue,
     variants: LoadingState.Done<Selection<IssueVariant>?>
-  ) =
+  ) {
+    require(supportsVariants)
     when (variants) {
       is LoadingState.Ready -> {
         comboBoxStateFlow.value =
@@ -161,8 +162,10 @@ class DetailsPanelHeader(
         comboBoxStateFlow.value = DisabledComboBoxState.failure
       }
     }
+  }
 
-  private fun generateTitleLabelText(className: String, methodName: String): String {
+  @VisibleForTesting
+  fun generateTitleLabelText(className: String, methodName: String): String {
     val contentWidth = width - toolbar.component.width
     var remainingWidth = contentWidth - 5 - variantPanel.preferredWidth - 20
     if (remainingWidth <= 0) return "<html></html>"
