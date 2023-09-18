@@ -26,7 +26,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
-import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.concurrency.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.SetAllOnline;

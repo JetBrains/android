@@ -21,7 +21,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
-import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.concurrency.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.StorageDevice;
