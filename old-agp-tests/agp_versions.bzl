@@ -1,4 +1,4 @@
-load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
 
 COMMON_DATA = [
     "//prebuilts/studio/layoutlib:build.prop",
@@ -146,7 +146,7 @@ GRADLE_DISTRIBUTIONS = {
     GRADLE_5_3_1: ["//tools/base/build-system:gradle-distrib-5.3.1"],
 }
 
-def _local_old_agp_test(
+def _local_old_agp_test_update_kwargs(
         gradle_version,
         agp_version,
         additional_jdks = [],
@@ -157,28 +157,20 @@ def _local_old_agp_test(
     if "11" in additional_jdks:
         jdk_data.append("//prebuilts/studio/jdk/jdk11")
 
-    old_agp_test(
+    kwargs.update(
         name = "OldAgpTests",
         agp_version = agp_version,
         data = COMMON_DATA + GRADLE_DISTRIBUTIONS[gradle_version] + AGP_DATA[agp_version] + jdk_data,
         gradle_version = gradle_version,
-        iml_module = ":intellij.android.old-agp-tests",
         maven_deps = COMMON_MAVEN_DEPS + AGP_MAVEN_REPOS[agp_version],
         test_class = "com.android.tools.idea.OldAgpTests",
         timeout = "long",
         ignore_other_tests = False,
-        **kwargs
     )
+    return kwargs
 
-def generate_old_agp_tests_from_list(tests_list):
-    """Creates tests running with OldAgpSuite from a list of test descriptions.
-
-    Having all test definitions as a list in one macro allows us to implement a check to ensure all
-    OldAgpTest tests from the module are covered with a test target and thus will actually run.
-
-    Args:
-      tests_list: list of kwargs objects, one per required test, containing arguments for that test.
-                  See _local_old_agp_test and old_agp_test for test arguments description.
-    """
-    for test_kwargs in tests_list:
-        _local_old_agp_test(**test_kwargs)
+def local_generate_old_agp_tests_from_list(tests_list):
+    generate_old_agp_tests_from_list(
+        iml_module = ":intellij.android.old-agp-tests",
+        tests_list = [_local_old_agp_test_update_kwargs(**test_kwargs) for test_kwargs in tests_list],
+    )

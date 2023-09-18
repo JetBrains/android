@@ -51,3 +51,34 @@ def old_agp_test(
         data = data,
         **kwargs
     )
+
+def generate_old_agp_tests_from_list(iml_module, tests_list):
+    """Creates tests running with OldAgpSuite from a list of test descriptions.
+
+    Having all test definitions as a list in one macro allows us to implement a check to ensure all
+    OldAgpTest tests from the module are covered with a test target and thus will actually run.
+
+    Args:
+      tests_list: list of kwargs objects, one per required test, containing arguments for that test.
+                  See _local_old_agp_test and old_agp_test for test arguments description.
+    """
+    tests_defined_versions = [test_kwargs["agp_version"] + "@" + test_kwargs["gradle_version"] for test_kwargs in tests_list]
+    test_jar = "%s_test.jar" % iml_module
+
+    native.java_test(
+        name = "%s_old-agp-tests_check-version-pairs" % iml_module[iml_module.index(":") + 1::],
+        runtime_deps = [
+            "//tools/adt/idea/android-test-framework:intellij.android.testFramework_testlib",
+            "%s_testlib" % iml_module,
+        ],
+        jvm_flags = [
+            "-Dold.agp.tests.check.jar=$(location %s)" % test_jar,
+            "-Dagp.gradle.version.pair.targets=%s" % ":".join(tests_defined_versions),
+        ],
+        data = [
+            test_jar,
+        ],
+        test_class = "com.android.testutils.junit4.OldAgpTestTargetsChecker",
+    )
+    for test_kwargs in tests_list:
+        old_agp_test(iml_module = iml_module, **test_kwargs)
