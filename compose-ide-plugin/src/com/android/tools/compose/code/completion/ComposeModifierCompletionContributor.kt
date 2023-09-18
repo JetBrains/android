@@ -34,6 +34,7 @@ import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.childrenOfType
@@ -49,6 +50,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferencesInRange
 import org.jetbrains.kotlin.idea.base.fir.codeInsight.HLIndexHelper
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
@@ -530,6 +532,11 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     }
 
     override fun handleInsert(context: InsertionContext) {
+      if (isK2Plugin()) {
+        handleInsertK2(context)
+        return
+      }
+
       val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
       // Compose plugin inserts Modifier if completion character is '\n', doesn't happened with
       // '\t'. Looks like a bug.
@@ -543,14 +550,33 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
         psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
       }
       val ktFile = context.file as KtFile
-      if (isK2Plugin()) {
+      val modifierDescriptor =
+        ktFile.resolveImportReference(FqName(COMPOSE_MODIFIER_FQN)).singleOrNull()
+      modifierDescriptor?.let {
+        ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it)
+      }
+      psiDocumentManager.commitAllDocuments()
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+      super.handleInsert(context)
+    }
+
+    private fun handleInsertK2(context: InsertionContext) {
+      val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
+      val ktFile = context.file as KtFile
+      // Compose plugin inserts Modifier if completion character is '\n', doesn't happened with
+      // '\t'. Looks like a bug.
+      if (insertModifier && context.completionChar != '\n') {
+        val modifierObjectAsQualifier = "$COMPOSE_MODIFIER_FQN."
+        val startOffset = context.startOffset
+        val endOffset = startOffset + modifierObjectAsQualifier.length
+        context.document.insertString(startOffset, modifierObjectAsQualifier)
+        context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, endOffset)
+        psiDocumentManager.commitAllDocuments()
+        psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)
+        shortenReferencesInRange(ktFile, TextRange(startOffset, endOffset))
+      }
+      if (ktFile.importDirectives.all { it.importedFqName != FqName(COMPOSE_MODIFIER_FQN) }) {
         ktFile.addImport(FqName(COMPOSE_MODIFIER_FQN))
-      } else {
-        val modifierDescriptor =
-          ktFile.resolveImportReference(FqName(COMPOSE_MODIFIER_FQN)).singleOrNull()
-        modifierDescriptor?.let {
-          ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it)
-        }
       }
       psiDocumentManager.commitAllDocuments()
       psiDocumentManager.doPostponedOperationsAndUnblockDocument(context.document)

@@ -35,6 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Before
@@ -335,6 +336,54 @@ class ComposeModifierCompletionContributorTest {
 
   @RunsInEdt
   @Test
+  fun modifierImportAlias() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(Modifier1.<caret>
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.completeBasic()
+
+    var lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("extensionFunction")
+    assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
+    assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+
+    myFixture.lookup.currentItem =
+      myFixture.lookupElements.find { it.lookupString.contains("extensionFunction") }
+    myFixture.finishLookup('\n')
+    // TODO(302558638): Fix this redundant import issue for K1.
+    val redundantImport = if (!isK2Plugin()) "import androidx.compose.ui.Modifier\n      " else ""
+    myFixture.checkResult(
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      ${redundantImport}import androidx.compose.ui.extensionFunction
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(Modifier1.extensionFunction()
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @RunsInEdt
+  @Test
   fun modifierAsProperty() {
 
     myFixture.loadNewFile(
@@ -421,6 +470,55 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings).contains("extensionFunction")
     assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+  }
+
+  @RunsInEdt
+  @Test
+  fun modifierImportAliasForProperty() {
+
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          val myModifier:Modifier1 = <caret>
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.completeBasic()
+
+    var lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("Modifier.extensionFunction")
+    // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
+    assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
+
+    myFixture.type("extensionFunction\t")
+
+    // TODO(302569454): Handle import alias for both K1 and K2. In the following code, we do not
+    // actually need `Modifier` because we already have `Modifier1`.
+    myFixture.checkResult(
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+      import androidx.compose.ui.extensionFunction
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          val myModifier:Modifier1 = Modifier.extensionFunction()
+      }
+      """
+        .trimIndent()
+    )
   }
 
   @RunsInEdt
