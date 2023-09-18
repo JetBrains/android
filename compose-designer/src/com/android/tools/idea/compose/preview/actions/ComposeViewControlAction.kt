@@ -27,7 +27,6 @@ import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -46,7 +45,8 @@ class ComposeViewControlAction(
   private val layoutManagerSwitcher: LayoutManagerSwitcher,
   private val layoutManagers: List<SurfaceLayoutManagerOption>,
   private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
-  private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit
+  private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit,
+  private val additionalActionProvider: (DataContext) -> AnAction?
 ) :
   DropDownAction(
     message("action.scene.view.control.title"),
@@ -98,11 +98,9 @@ class ComposeViewControlAction(
     // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
     addSeparator()
     add(ShowInspectionTooltipsAction(context))
-    if (StudioFlags.COMPOSE_COLORBLIND_MODE.get()) {
-      (context.getData(DESIGN_SURFACE) as? NlDesignSurface)?.let { surface ->
-        addSeparator()
-        add(ComposeColorBlindAction(surface))
-      }
+    additionalActionProvider(context)?.let {
+      addSeparator()
+      add(it)
     }
     return true
   }

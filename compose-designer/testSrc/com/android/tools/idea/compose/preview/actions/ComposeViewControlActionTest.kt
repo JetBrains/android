@@ -93,7 +93,8 @@ class ComposeViewControlActionTest {
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,
         options,
-        onSurfaceLayoutSelected = { _, _ -> }
+        onSurfaceLayoutSelected = { _, _ -> },
+        additionalActionProvider = { _ -> ComposeColorBlindAction(designSurfaceMock) }
       )
     viewControlAction.updateActions(context)
 
@@ -146,7 +147,8 @@ class ComposeViewControlActionTest {
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,
         options,
-        onSurfaceLayoutSelected = { _, _ -> }
+        onSurfaceLayoutSelected = { _, _ -> },
+        additionalActionProvider = { _ -> ComposeColorBlindAction(designSurfaceMock) }
       )
     viewControlAction.updateActions(context)
 
@@ -206,7 +208,8 @@ class ComposeViewControlActionTest {
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,
         options,
-        onSurfaceLayoutSelected = { _, _ -> }
+        onSurfaceLayoutSelected = { _, _ -> },
+        additionalActionProvider = { _ -> ComposeColorBlindAction(designSurfaceMock) }
       )
     viewControlAction.updateActions(context)
 
@@ -269,7 +272,8 @@ class ComposeViewControlActionTest {
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,
         listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        onSurfaceLayoutSelected = { _, _ -> }
+        onSurfaceLayoutSelected = { _, _ -> },
+        additionalActionProvider = { _ -> null }
       )
 
     manager.currentStatus = nonRefreshingStatus
@@ -300,7 +304,7 @@ class ComposeViewControlActionTest {
     val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
-    val action = ComposeViewControlAction(switcher, option, { enabled }) { _, _ -> }
+    val action = ComposeViewControlAction(switcher, option, { enabled }, { _, _ -> }) { _ -> null }
     val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.

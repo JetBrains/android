@@ -264,7 +264,7 @@ class GroupedGridSurfaceLayoutManager(
 
     val visibleContents = content.filter { it.isVisible }
     if (visibleContents.size == 1) {
-      val singleContent = content.single()
+      val singleContent = visibleContents.single()
       // When there is only one visible preview, centralize it as a special case.
       val point = getSingleContentPosition(singleContent, availableWidth, availableHeight)
 

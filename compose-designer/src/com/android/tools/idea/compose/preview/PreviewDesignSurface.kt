@@ -84,8 +84,7 @@ internal val PREVIEW_LAYOUT_GALLERY_OPTION =
     DesignSurface.SceneViewAlignment.LEFT,
   )
 
-/** List of available layouts for the Compose Preview Surface. */
-internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
+internal val BASE_LAYOUT_MANAGER_OPTIONS =
   if (StudioFlags.COMPOSE_PREVIEW_GROUP_LAYOUT.get()) {
     listOf(
       SurfaceLayoutManagerOption(
@@ -99,8 +98,7 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
         message("grid.groups"),
         GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
         DesignSurface.SceneViewAlignment.LEFT,
-      ),
-      PREVIEW_LAYOUT_GALLERY_OPTION
+      )
     )
   } else if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
     listOf(
@@ -123,8 +121,7 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
           NlConstants.SCREEN_DELTA
         ),
         DesignSurface.SceneViewAlignment.LEFT
-      ),
-      PREVIEW_LAYOUT_GALLERY_OPTION
+      )
     )
   } else {
     listOf(
@@ -137,10 +134,13 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
         message("new.grid.layout.title"),
         GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
         DesignSurface.SceneViewAlignment.LEFT,
-      ),
-      PREVIEW_LAYOUT_GALLERY_OPTION
+      )
     )
   }
+
+/** List of available layouts for the Compose Preview Surface. */
+internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
+  BASE_LAYOUT_MANAGER_OPTIONS + PREVIEW_LAYOUT_GALLERY_OPTION
 
 /** Default layout manager selected in the preview. */
 internal val DEFAULT_PREVIEW_LAYOUT_MANAGER = PREVIEW_LAYOUT_MANAGER_OPTIONS.first().layoutManager

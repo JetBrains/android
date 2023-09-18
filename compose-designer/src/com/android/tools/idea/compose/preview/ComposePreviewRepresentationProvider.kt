@@ -19,6 +19,7 @@ import com.android.flags.ifEnabled
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
+import com.android.tools.idea.compose.preview.actions.ComposeColorBlindAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
@@ -28,7 +29,9 @@ import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
+import com.android.tools.idea.compose.preview.actions.UiCheckFilteringAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
+import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
@@ -46,6 +49,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -109,9 +113,28 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
                   it.setMode(PreviewMode.Default)
                 }
               }
+            },
+            additionalActionProvider = {
+              if (StudioFlags.COMPOSE_COLORBLIND_MODE.get() && surface is NlDesignSurface)
+                ComposeColorBlindAction(surface)
+              else null
             }
           )
           .visibleOnlyInStaticPreview(),
+        ComposeViewControlAction(
+            layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
+            layoutManagers = BASE_LAYOUT_MANAGER_OPTIONS,
+            isSurfaceLayoutActionEnabled = {
+              !isPreviewRefreshing(it.dataContext) &&
+                // If Essentials Mode is enabled, it should not be possible to switch layout.
+                !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+            },
+            onSurfaceLayoutSelected = { _, _ -> },
+            additionalActionProvider = { dataContext ->
+              dataContext.getData(COMPOSE_PREVIEW_MANAGER)?.let { UiCheckFilteringAction(it) }
+            }
+          )
+          .visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {

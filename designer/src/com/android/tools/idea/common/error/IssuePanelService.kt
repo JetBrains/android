@@ -549,6 +549,7 @@ class IssuePanelService(private val project: Project) {
     name: String,
     displayName: String,
     surface: NlDesignSurface,
+    postIssueUpdateListener: () -> Unit,
     additionalDataProvider: DataProvider
   ) {
     val contentManager =
@@ -557,16 +558,19 @@ class IssuePanelService(private val project: Project) {
 
     var uiCheckIssuePanel = nameToTabMap[name]?.first
     if (uiCheckIssuePanel == null) {
+      val issueProvider =
+        DesignToolsIssueProvider(parentDisposable, project, NotSuppressedFilter, name)
       uiCheckIssuePanel =
         DesignerCommonIssuePanel(
           parentDisposable,
           project,
           DesignerCommonIssuePanelModelProvider.getInstance(project).createModel(),
           { UICheckNodeFactory },
-          DesignToolsIssueProvider(parentDisposable, project, NotSuppressedFilter, name),
+          issueProvider,
           { "UI Check did not find any issues to report" },
           additionalDataProvider
         )
+      issueProvider.registerUpdateListener(postIssueUpdateListener)
 
       val tab =
         contentManager.factory

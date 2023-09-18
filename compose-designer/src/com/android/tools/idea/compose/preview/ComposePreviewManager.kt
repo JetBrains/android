@@ -109,6 +109,9 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   /** Flag to indicate if the preview filter is enabled or not. */
   var isFilterEnabled: Boolean
 
+  /** Flag to indicate if the UI Check filter is enabled or not. */
+  var isUiCheckFilterEnabled: Boolean
+
   /** Flag to indicate whether ATF checks should be run on the preview. */
   val atfChecksEnabled: Boolean
     get() = (currentOrNextMode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
@@ -147,6 +150,7 @@ class NopComposePreviewManager : ComposePreviewManager {
   override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
+  override var isUiCheckFilterEnabled: Boolean = false
   override var mode: PreviewMode = PreviewMode.Default
   override fun setMode(newMode: PreviewMode.Settable) {
     mode = newMode

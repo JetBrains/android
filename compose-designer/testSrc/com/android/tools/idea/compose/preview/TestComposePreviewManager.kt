@@ -51,6 +51,8 @@ open class TestComposePreviewManager(
 
   override var isFilterEnabled: Boolean = false
 
+  override var isUiCheckFilterEnabled: Boolean = false
+
   override var atfChecksEnabled: Boolean = false
 
   override var mode: PreviewMode = PreviewMode.Default

@@ -37,12 +37,29 @@ private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultAct
   }
 }
 
+private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
+      e.presentation.isVisible = it.mode is PreviewMode.UiCheck
+    }
+  }
+}
+
 /**
  * Makes the given action only visible when the Compose preview is not in interactive or animation
  * modes. Returns an [ActionGroup] that handles the visibility.
  */
 internal fun AnAction.visibleOnlyInComposeDefaultPreview(): ActionGroup =
   ComposePreviewDefaultWrapper(listOf(this))
+
+/**
+ * Makes the given action only visible when the Compose preview is in UI Check mode. Returns an
+ * [ActionGroup] that handles the visibility.
+ */
+internal fun AnAction.visibleOnlyInUiCheck(): ActionGroup =
+  ComposePreviewUiCheckWrapper(listOf(this))
 
 /**
  * The given disables the actions if any surface is refreshing or if the [sceneView] contains
