@@ -236,6 +236,9 @@
     <newResourceCreationHandler
       implementation="com.android.tools.idea.gradle.actions.GradleNewResourceCreationHandler" />
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.model">
+    <mergedManifestInfoToken implementation="com.android.tools.idea.model.MergedManifestInfoGradleToken"/>
+  </extensions>
   <actions>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="Android.MainToolBarActionGroup" anchor="before" relative-to-action="AndroidDeviceManagerPlaceholder"/>

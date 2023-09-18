@@ -23,9 +23,9 @@ import com.android.manifmerger.Actions;
 import com.android.manifmerger.ManifestMerger2;
 import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlDocument;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.project.SyncTimestampUtil;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ManifestOverrides;
 import com.android.tools.idea.projectsystem.MergedManifestContributors;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -33,7 +33,6 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
-import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,6 +54,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -389,8 +389,13 @@ final class MergedManifestInfo {
       }
     });
 
-    if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
-      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
+    Project project = facet.getModule().getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    Optional<MergedManifestInfoToken<AndroidProjectSystem>> maybeToken =
+      Arrays.stream(MergedManifestInfoToken.EP_NAME.getExtensions(project))
+        .filter(t -> t.isApplicable(projectSystem))
+        .findFirst();
+    maybeToken.ifPresent(token -> token.withProjectSystemFeatures(projectSystem, manifestMergerInvoker));
 
     return manifestMergerInvoker.merge();
   }
@@ -421,12 +426,5 @@ final class MergedManifestInfo {
       return androidFacet.getMainModule();
     }
     return null;
-  }
-
-  private static boolean isVersionAtLeast7_4_0(Project project) {
-    AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
-    return androidPluginInfo != null &&
-           androidPluginInfo.getPluginVersion() != null &&
-           androidPluginInfo.getPluginVersion().isAtLeast(7, 4, 0);
   }
 }
