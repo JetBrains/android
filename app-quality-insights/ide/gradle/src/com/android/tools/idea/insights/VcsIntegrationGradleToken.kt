@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
@@ -59,5 +60,11 @@ class VcsIntegrationGradleToken : VcsIntegrationToken<GradleProjectSystem>, Grad
         .mapNotNull { it.getModuleSystem() as? GradleModuleSystem }
         .any { it.enableVcsInfo }
     }
+  }
+
+  private fun Project.hasRequiredAgpVersion(requiredAppVersion: String): Boolean {
+    val androidPluginInfo = AndroidPluginInfo.findFromModel(this)?.pluginVersion ?: return false
+
+    return androidPluginInfo >= requiredAppVersion
   }
 }
