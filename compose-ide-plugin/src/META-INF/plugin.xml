@@ -31,7 +31,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
-    <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
     <annotator language="kotlin" implementationClass="com.android.tools.compose.code.ComposeStateReadAnnotator"/>
 
     <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
@@ -156,6 +155,8 @@
 
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.compose.code.ComposeLineMarkerProviderDescriptor" />
+    <codeInsight.lineMarkerProvider language="kotlin"
+                                    implementationClass="com.android.tools.compose.ComposeColorLineMarkerProviderDescriptor" />
 
     <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
   </extensions>

@@ -17,83 +17,76 @@ package com.android.tools.compose
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
-import com.intellij.lang.annotation.AnnotationHolder
-import com.intellij.lang.annotation.Annotator
-import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
+import com.intellij.codeInsight.daemon.LineMarkerInfo
+import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiTypes
+import com.intellij.psi.util.elementType
 import com.intellij.util.ui.ColorIcon
 import java.awt.Color
 import java.awt.MouseInfo
+import java.awt.event.MouseEvent
 import java.util.Locale
-import javax.swing.Icon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.editor.fixers.range
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
-import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.uast.UCallExpression
-import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UastCallKind
 import org.jetbrains.uast.toUElement
 
 private const val ICON_SIZE = 8
 
-/**
- * [Annotator] to place color gutter icons for compose color declarations. It does this by looking
- * at the parameters of the Color() method and so does not work is the parameters are references. It
- * also does not work predefined colors. eg. Color.White
- */
-class ComposeColorAnnotator : Annotator {
+class ComposeColorLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
+  override fun getName() = ComposeBundle.message("compose.color.picker.name")
 
-  override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    when {
-      element.getModuleSystem()?.usesCompose != true -> return
-      element is KtCallElement -> {
-        val uElement = element.toUElement(UCallExpression::class.java) ?: return
-        val returnType = uElement.returnType ?: return
-        if (
-          uElement.kind != UastCallKind.METHOD_CALL ||
-            returnType != PsiTypes.longType() ||
-            COLOR_METHOD != uElement.methodName
-        ) {
-          return
-        }
+  override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+    if (element.elementType != KtTokens.IDENTIFIER || !isComposeEnabled(element)) return null
 
-        // Resolve the MethodCall expression after the faster checks
-        val fqName = uElement.resolve()?.containingClass?.qualifiedName ?: return
-        if (fqName == COMPOSE_COLOR_CLASS) {
-          val color = getColor(uElement) ?: return
-          holder
-            .newSilentAnnotation(HighlightSeverity.INFORMATION)
-            .gutterIconRenderer(ColorIconRenderer(uElement, color))
-            .create()
-        }
-      }
-    }
+    val uElement =
+      (element.parent.parent as? KtCallExpression)?.toUElement(UCallExpression::class.java)
+        ?: return null
+    if (!uElement.isColorCall()) return null
+
+    val color = getColor(uElement) ?: return null
+    val iconRenderer = ColorIconRenderer(uElement, color)
+    return LineMarkerInfo(
+      element,
+      element.range,
+      iconRenderer.icon,
+      { ComposeBundle.message("compose.color.picker.tooltip") },
+      iconRenderer,
+      GutterIconRenderer.Alignment.RIGHT,
+      { ComposeBundle.message("compose.color.picker.tooltip") },
+    )
   }
 
-  private fun getColor(uElement: UElement): Color? {
-    val callElement = uElement as? UCallExpression ?: return null
+  private fun UCallExpression.isColorCall() =
+    kind == UastCallKind.METHOD_CALL &&
+      returnType == PsiTypes.longType() &&
+      COLOR_METHOD == methodName &&
+      // Resolve the MethodCall expression after the faster checks
+      resolve()?.containingClass?.qualifiedName == COMPOSE_COLOR_CLASS
+
+  private fun getColor(uElement: UCallExpression): Color? {
     val arguments = (uElement.sourcePsi as? KtCallExpression)?.valueArguments ?: return null
-    return when (getConstructorType(callElement.valueArguments)) {
+    return when (getConstructorType(uElement.valueArguments)) {
       ComposeColorConstructor.INT -> getColorInt(arguments)
       ComposeColorConstructor.LONG -> getColorLong(arguments)
       ComposeColorConstructor.INT_X3 -> getColorIntX3(arguments)
@@ -115,15 +108,13 @@ class ComposeColorAnnotator : Annotator {
  * TODO(lukeegan): Implement for ComposeColorConstructor.FLOAT_X4_COLORSPACE Color parameter
  */
 data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
-  GutterIconRenderer() {
+  GutterIconNavigationHandler<PsiElement> {
 
-  override fun getIcon(): Icon {
-    return ColorIcon(ICON_SIZE, color)
-  }
+  val icon = ColorIcon(ICON_SIZE, color)
 
-  override fun getClickAction(): AnAction? {
-    val project = element.sourcePsi?.project ?: return null
-    val setColorTask: (Color) -> Unit = getSetColorTask() ?: return null
+  override fun navigate(e: MouseEvent?, elt: PsiElement?) {
+    val project = element.sourcePsi?.project ?: return
+    val setColorTask: (Color) -> Unit = getSetColorTask() ?: return
 
     val pickerListener = ColorPickerListener { color, _ ->
       ApplicationManager.getApplication()
@@ -139,28 +130,22 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
           project.disposed
         )
     }
-    return object : AnAction() {
-      override fun actionPerformed(e: AnActionEvent) {
-        val editor = e.getData(CommonDataKeys.EDITOR)
-        if (editor != null) {
-          val dialog = LightCalloutPopup()
-          val colorPicker =
-            ColorPickerBuilder()
-              .setOriginalColor(color)
-              .addSaturationBrightnessComponent()
-              .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
-              .addColorValuePanel()
-              .withFocus()
-              .addSeparator()
-              .addCustomComponent(MaterialColorPaletteProvider)
-              .addColorPickerListener(pickerListener)
-              .focusWhenDisplay(true)
-              .setFocusCycleRoot(true)
-              .build()
-          dialog.show(colorPicker, null, MouseInfo.getPointerInfo().location)
-        }
-      }
-    }
+
+    val dialog = LightCalloutPopup()
+    val colorPicker =
+      ColorPickerBuilder()
+        .setOriginalColor(color)
+        .addSaturationBrightnessComponent()
+        .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
+        .addColorValuePanel()
+        .withFocus()
+        .addSeparator()
+        .addCustomComponent(MaterialColorPaletteProvider)
+        .addColorPickerListener(pickerListener)
+        .focusWhenDisplay(true)
+        .setFocusCycleRoot(true)
+        .build()
+    dialog.show(colorPicker, null, MouseInfo.getPointerInfo().location)
   }
 
   @VisibleForTesting

@@ -23,31 +23,27 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import java.awt.Color
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-/** Tests for [ComposeColorAnnotator] */
-class ComposeColorAnnotatorTest {
+/** Tests for [ComposeColorLineMarkerProviderDescriptor] */
+class ComposeColorLineMarkerProviderDescriptorTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
-  private val myFixture: JavaCodeInsightTestFixture by lazy {
-    projectRule.fixture as JavaCodeInsightTestFixture
-  }
+  private val myFixture: JavaCodeInsightTestFixture by lazy { projectRule.fixture }
 
   @Before
   fun setUp() {
@@ -115,8 +111,7 @@ class ComposeColorAnnotatorTest {
         Color(74, 138, 123, 255),
         Color(87, 173, 40, 255),
         Color(87, 173, 40, 128)
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0xFF4A8A7B)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(color = 0xFF57AD28)", Color(0xFFAABBCC.toInt()))
@@ -159,8 +154,7 @@ class ComposeColorAnnotatorTest {
     checkGutterIconInfos(
       listOf(
         Color(255, 0, 0, 255),
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0xFFFF0000)", Color(0x0DFF0000, true))
     assertThat(myFixture.editor.document.text)
@@ -206,8 +200,7 @@ class ComposeColorAnnotatorTest {
         Color(74, 138, 123, 128),
         Color(87, 173, 40, 0),
         Color(87, 173, 40, 64)
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0x4A8A7B)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(color = 0x57AD28)", Color(0xFFAABBCC.toInt()))
@@ -260,8 +253,7 @@ class ComposeColorAnnotatorTest {
         Color(170, 187, 204),
         Color(87, 173, 40),
         Color(180, 200, 120)
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0x4A, 0x8A, 0x7B)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(170, 187, 204)", Color(0xFF406080.toInt()))
@@ -316,8 +308,7 @@ class ComposeColorAnnotatorTest {
         Color(170, 187, 204),
         Color(87, 173, 40),
         Color(64, 120, 192)
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0x4A, 0x8A, 0x7B, 0xFF)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(green = 120, red = 64, alpha = 255, blue = 192)", Color(0xFFAABBCC.toInt()))
@@ -370,8 +361,7 @@ class ComposeColorAnnotatorTest {
         Color(77, 138, 122),
         Color(87, 173, 38),
         Color(87, 173, 38)
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0.3f, 0.54f, 0.48f)", Color(0xFFAABBCC.toInt()))
     setNewColor("Co|lor(green = 0.68f, red = 0.34f, blue = 0.15f)", Color(0xFFAABBCC.toInt()))
@@ -424,8 +414,7 @@ class ComposeColorAnnotatorTest {
         Color(189, 35, 77, 215),
         Color(222, 44, 102, 64),
         Color(222, 44, 102, 64)
-      ),
-      includeClickAction = true
+      )
     )
     setNewColor("Co|lor(0.74f, 0.138f, 0.3f, 0.845f)", Color(0xFFAABBCC.toInt()))
     setNewColor(
@@ -478,21 +467,25 @@ class ComposeColorAnnotatorTest {
       )
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     // No gutter for color space.
-    checkGutterIconInfos(listOf(), includeClickAction = false)
+    checkGutterIconInfos(listOf())
   }
 
   private fun setNewColor(window: String, newColor: Color) {
     val element = runInEdtAndGet { myFixture.moveCaret(window) }
-    val annotations = runReadAction {
-      CodeInsightTestUtil.testAnnotator(
-        ComposeColorAnnotator(),
-        element.parentOfType<KtCallExpression>()!!
-      )
+
+    myFixture.doHighlighting()
+    val highlightInfo = runReadAction {
+      DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.editor.document, myFixture.project).single {
+        lineMarkerInfo ->
+        lineMarkerInfo.navigationHandler is ColorIconRenderer && lineMarkerInfo.element == element
+      }
     }
+
     runInEdtAndWait {
-      val iconRenderer = annotations[0].gutterIconRenderer as ColorIconRenderer
       val project = myFixture.project
-      val setColorTask = iconRenderer.getSetColorTask() ?: return@runInEdtAndWait
+      val setColorTask =
+        (highlightInfo.navigationHandler as ColorIconRenderer).getSetColorTask()
+          ?: return@runInEdtAndWait
       WriteCommandAction.runWriteCommandAction(
         project,
         "Change Color",
@@ -502,24 +495,21 @@ class ComposeColorAnnotatorTest {
     }
   }
 
-  private fun checkGutterIconInfos(expectedColorIcons: List<Color>, includeClickAction: Boolean) {
-    val iconList =
-      myFixture
-        .doHighlighting()
-        .filter { it.gutterIconRenderer is ColorIconRenderer }
+  private fun checkGutterIconInfos(expectedColorIcons: List<Color>) {
+    myFixture.doHighlighting()
+    val highlightInfos = runReadAction {
+      DaemonCodeAnalyzerImpl.getLineMarkers(myFixture.editor.document, myFixture.project)
+        .filter { lineMarkerInfo -> lineMarkerInfo.navigationHandler is ColorIconRenderer }
         .sortedBy { it.startOffset }
-    assertThat(iconList).hasSize(expectedColorIcons.size)
-    iconList.forEach {
-      assertThat(it.gutterIconRenderer.icon).isNotNull()
-      if (includeClickAction) {
-        val action = runReadAction { (it.gutterIconRenderer as ColorIconRenderer).clickAction }
-        assertThat(action).isNotNull()
-      } else {
-        val action = runReadAction { (it.gutterIconRenderer as ColorIconRenderer).clickAction }
-        assertThat(action).isNull()
-      }
     }
-    assertThat(iconList.map { (it.gutterIconRenderer as ColorIconRenderer).color })
+
+    assertThat(highlightInfos).hasSize(expectedColorIcons.size)
+    highlightInfos.forEach {
+      assertThat(it.icon).isNotNull()
+      assertThat(it.navigationHandler).isNotNull()
+    }
+
+    assertThat(highlightInfos.map { (it.navigationHandler as ColorIconRenderer).color })
       .containsExactlyElementsIn(expectedColorIcons)
   }
 }
