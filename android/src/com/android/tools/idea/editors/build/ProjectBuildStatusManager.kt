@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.editors.build
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.CompilationResult
@@ -37,18 +36,15 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.jetbrains.kotlin.idea.util.projectStructure.module
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * This represents the build status of the project without taking into account any file
