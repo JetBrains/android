@@ -142,7 +142,7 @@ class ProcessesModelTest {
   }
 
   @Test
-  fun newProcessDoesNotCauseSelectionToChange() {
+  fun lastPreferredProcessIsSelected() {
     val testNotifier = TestProcessDiscovery()
     val model = ProcessesModel(testNotifier) { it.name in listOf("A", "B") }
 
@@ -152,9 +152,10 @@ class ProcessesModelTest {
 
     testNotifier.fireConnected(fakeProcessA)
     testNotifier.fireConnected(fakeProcessB)
+
     // Verify the added target.
     assertThat(model.processes.size).isEqualTo(2)
-    assertThat(model.selectedProcess!!).isSameAs(fakeProcessA)
+    assertThat(model.selectedProcess!!).isSameAs(fakeProcessB)
   }
 
   @Test

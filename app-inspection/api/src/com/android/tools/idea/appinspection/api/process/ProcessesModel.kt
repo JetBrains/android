@@ -136,7 +136,7 @@ class ProcessesModel(
 
         synchronized(lock) {
           _processes.add(process)
-          if (isProcessPreferred(process) && !isProcessPreferred(selectedProcess)) {
+          if (isProcessPreferred(process)) {
             setSelectedProcess(process, autoConnected = true)
           }
         }
