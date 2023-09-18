@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.SystemImage;
-import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.concurrency.CountDownLatchAssert;
 import com.android.tools.idea.concurrency.CountDownLatchFutureCallback;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;

@@ -17,7 +17,7 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
-import com.android.tools.idea.devicemanager.CountDownLatchAssert;
+import com.android.tools.idea.concurrency.CountDownLatchAssert;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.testFramework.ApplicationRule;
 import java.util.List;

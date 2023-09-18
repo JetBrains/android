@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager;
+package com.android.tools.idea.concurrency;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
