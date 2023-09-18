@@ -245,31 +245,10 @@ class ComposeUnresolvedFunctionFixContributorTest {
       action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
     }
 
-    // TODO(b/267429486): Revisit after implementing the K2 version of `CreateCallableFromUsageFix`.
-    if (isK2Plugin()) {
-      myFixture.checkResult(
-        // language=kotlin
-        """
-      package com.example
-
-      import $COMPOSABLE_ANNOTATION_FQ_NAME
-
-      @Composable
-      fun NewsStory() {
-          UnresolvedFunction {}
-      }
-
-      @Composable
-      fun UnresolvedFunction(x0: () -> Unit) {
-          TODO("Not yet implemented")
-      }
-    """
-          .trimIndent()
-      )
-    } else {
-      myFixture.checkResult(
-        // language=kotlin
-        """
+    val extraEmptyLine = if (isK2Plugin()) "" else "\n"
+    myFixture.checkResult(
+      // language=kotlin
+      """
       package com.example
 
       import $COMPOSABLE_ANNOTATION_FQ_NAME
@@ -282,11 +261,9 @@ class ComposeUnresolvedFunctionFixContributorTest {
       @Composable
       fun UnresolvedFunction(content: @Composable () -> Unit) {
           TODO("Not yet implemented")
-      }
-
-    """
-          .trimIndent()
-      )
-    }
+      }$extraEmptyLine
+      """
+        .trimIndent()
+    )
   }
 }

@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.idea.refactoring.getExtractionContainers
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -126,13 +127,18 @@ class ComposeCreateComposableFunctionQuickFix(
               modifier("@$COMPOSABLE_ANNOTATION_NAME")
               typeParams(unresolvedCall.typeArguments.mapIndexed { index, _ -> "T$index" })
               name(unresolvedName)
+              val lastIndex = unresolvedCall.valueArguments.lastIndex
               unresolvedCall.valueArguments.forEachIndexed { index, arg ->
+                val isLastLambdaArgument = index == lastIndex && arg is KtLambdaArgument
                 val type = arg.getArgumentExpression()?.getKtType() ?: builtinTypes.ANY
-                val name =
-                  arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
+                val paramName =
+                  if (isLastLambdaArgument) "content"
+                  else arg.getArgumentName()?.referenceExpression?.getReferencedName() ?: "x$index"
                 param(
-                  name,
+                  paramName,
+                  "${if (isLastLambdaArgument) "@$COMPOSABLE_ANNOTATION_NAME " else ""}${
                   type.render(KtTypeRendererForSource.WITH_SHORT_NAMES, Variance.INVARIANT)
+                }"
                 )
               }
               noReturnType()
