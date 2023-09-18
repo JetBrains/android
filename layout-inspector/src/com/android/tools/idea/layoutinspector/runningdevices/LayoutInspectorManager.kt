@@ -139,7 +139,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         // Dispose to trigger clean up.
         Disposer.dispose(previousTab.tabComponents)
 
-        previousTab.layoutInspector.deviceModel?.selectedDevice = null
+        previousTab.layoutInspector.stopInspector()
       }
 
       field = value
