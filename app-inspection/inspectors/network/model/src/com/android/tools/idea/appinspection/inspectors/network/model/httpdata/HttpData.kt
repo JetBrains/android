@@ -34,6 +34,7 @@ const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
  */
 data class HttpData(
   val id: Long,
+  val updateTimeUs: Long,
   val requestStartTimeUs: Long,
   val requestCompleteTimeUs: Long,
   val responseStartTimeUs: Long,
@@ -101,12 +102,13 @@ data class HttpData(
   companion object {
     fun createHttpData(
       id: Long,
-      requestStartTimeUs: Long,
-      requestCompleteTimeUs: Long,
-      responseStartTimeUs: Long,
-      responseCompleteTimeUs: Long,
-      connectionEndTimeUs: Long,
-      threads: List<JavaThread>,
+      updateTimeUs: Long = 0,
+      requestStartTimeUs: Long = 0,
+      requestCompleteTimeUs: Long = 0,
+      responseStartTimeUs: Long = 0,
+      responseCompleteTimeUs: Long = 0,
+      connectionEndTimeUs: Long = 0,
+      threads: List<JavaThread> = emptyList(),
       url: String = "",
       method: String = "",
       trace: String = "",
@@ -115,9 +117,9 @@ data class HttpData(
       responseFields: String = "",
       responsePayload: ByteString = ByteString.EMPTY
     ): HttpData {
-      assert(threads.isNotEmpty()) { "HttpData must be initialized with at least one thread" }
       return HttpData(
         id,
+        updateTimeUs,
         requestStartTimeUs,
         requestCompleteTimeUs,
         responseStartTimeUs,

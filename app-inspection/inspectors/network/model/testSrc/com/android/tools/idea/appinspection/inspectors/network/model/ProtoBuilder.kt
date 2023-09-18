@@ -30,10 +30,10 @@ import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 internal fun requestStarted(
   id: Long,
   timestampNanos: Long,
-  url: String = "www.url.com",
-  method: String = "GET",
+  url: String = "",
+  method: String = "",
   fields: String = "",
-  trace: String = "trace",
+  trace: String = "",
 ) =
   httpConnectionEvent(id, timestampNanos) {
       setHttpRequestStarted(

@@ -21,9 +21,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import studio.network.inspection.NetworkInspectorProtocol.Event
-import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
-import java.util.concurrent.TimeUnit
 
 /** A model that allows for the querying of [HttpData] based on time range. */
 interface HttpDataModel {
@@ -59,71 +56,6 @@ class HttpDataModelImpl(
   }
 
   override fun getData(timeCurrentRangeUs: Range) = runBlocking {
-    dataSource
-      .queryForHttpData(timeCurrentRangeUs)
-      .groupBy { httpEvent -> httpEvent.httpConnectionEvent.connectionId }
-      .values
-      .filter { events ->
-        events.first().httpConnectionEvent.hasHttpRequestStarted() &&
-          events.find { it.httpConnectionEvent.hasHttpThread() } != null
-      }
-      .mapNotNull { eventGroup ->
-        val eventByType = eventGroup.groupBy { it.httpConnectionEvent.unionCase }
-        val requestStartEvent =
-          eventByType[HttpConnectionEvent.UnionCase.HTTP_REQUEST_STARTED]?.first()
-            ?: return@mapNotNull null
-        val threadData =
-          eventByType[HttpConnectionEvent.UnionCase.HTTP_THREAD] ?: return@mapNotNull null
-        if (threadData.isEmpty()) return@mapNotNull null
-
-        val requestCompleteEvent =
-          eventByType[HttpConnectionEvent.UnionCase.HTTP_REQUEST_COMPLETED]?.first()
-            ?: Event.getDefaultInstance()
-        val responseStartEvent =
-          eventByType[HttpConnectionEvent.UnionCase.HTTP_RESPONSE_STARTED]?.first()
-            ?: Event.getDefaultInstance()
-        val responseCompleteEvent =
-          eventByType[HttpConnectionEvent.UnionCase.HTTP_RESPONSE_COMPLETED]?.first()
-            ?: Event.getDefaultInstance()
-        val httpCloseEvent =
-          eventByType[HttpConnectionEvent.UnionCase.HTTP_CLOSED]?.first()
-            ?: Event.getDefaultInstance()
-        val requestPayloadEvent =
-          eventByType[HttpConnectionEvent.UnionCase.REQUEST_PAYLOAD]?.first()
-            ?: Event.getDefaultInstance()
-        val responsePayloadEvent =
-          eventByType[HttpConnectionEvent.UnionCase.RESPONSE_PAYLOAD]?.first()
-            ?: Event.getDefaultInstance()
-
-        val requestStartTimeUs = TimeUnit.NANOSECONDS.toMicros(requestStartEvent.timestamp)
-        val requestCompleteTimeUs = TimeUnit.NANOSECONDS.toMicros(requestCompleteEvent.timestamp)
-        val respondStartTimeUs = TimeUnit.NANOSECONDS.toMicros(responseStartEvent.timestamp)
-        val respondCompleteTimeUs = TimeUnit.NANOSECONDS.toMicros(responseCompleteEvent.timestamp)
-        val connectionEndTimeUs = TimeUnit.NANOSECONDS.toMicros(httpCloseEvent.timestamp)
-        val threads =
-          threadData.map {
-            JavaThread(
-              it.httpConnectionEvent.httpThread.threadId,
-              it.httpConnectionEvent.httpThread.threadName
-            )
-          }
-        val requestStartData = requestStartEvent.httpConnectionEvent.httpRequestStarted
-        HttpData.createHttpData(
-          requestStartEvent.httpConnectionEvent.connectionId,
-          requestStartTimeUs,
-          requestCompleteTimeUs,
-          respondStartTimeUs,
-          respondCompleteTimeUs,
-          connectionEndTimeUs,
-          threads,
-          requestStartData.url,
-          requestStartData.method,
-          requestStartData.trace,
-          requestStartData.fields,
-          requestPayloadEvent.httpConnectionEvent.requestPayload.payload,
-          responseStartEvent.httpConnectionEvent.httpResponseStarted.fields,
-          responsePayloadEvent.httpConnectionEvent.responsePayload.payload
-        )
-      }
+    dataSource.queryForHttpData(timeCurrentRangeUs).filter { events -> events.threads.isNotEmpty() }
   }
 }

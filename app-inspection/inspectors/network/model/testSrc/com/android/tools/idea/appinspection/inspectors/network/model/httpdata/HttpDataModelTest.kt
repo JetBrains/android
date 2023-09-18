@@ -36,57 +36,30 @@ import org.junit.Test
 
 private const val CONNECTION_ID = 1L
 private val fakeUrl = fakeUrl(CONNECTION_ID)
+private const val fields = ""
 private val faceTrace = fakeStackTrace(CONNECTION_ID)
 
 private val HTTP_DATA =
   listOf(
-    requestStarted(
-      CONNECTION_ID,
-      timestampNanos = SECONDS.toNanos(0),
-      url = fakeUrl,
-      method = "",
-      trace = faceTrace
-    ),
-    requestPayload(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
-    requestCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1)),
-    responseStarted(
-      CONNECTION_ID,
-      timestampNanos = SECONDS.toNanos(2),
-      fields = fakeResponseFields(CONNECTION_ID)
-    ),
-    responsePayload(
-      CONNECTION_ID,
-      timestampNanos = SECONDS.toNanos(3),
-      payload = "RESPONSE_CONTENT"
-    ),
-    responseCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(3)),
-    httpClosed(CONNECTION_ID, timestamp = SECONDS.toNanos(3), completed = true),
+    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", fields, faceTrace),
+    requestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
+    requestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
+    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), fields = fakeResponseFields(CONNECTION_ID)),
+    responsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
+    responseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
+    httpClosed(CONNECTION_ID, SECONDS.toNanos(3), completed = true),
   )
 
 private val HTTP_DATA_WITH_THREAD =
   listOf(
-    requestStarted(
-      CONNECTION_ID,
-      timestampNanos = SECONDS.toNanos(0),
-      url = fakeUrl,
-      method = "",
-      trace = faceTrace
-    ),
-    requestPayload(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
-    requestCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1)),
-    responseStarted(
-      CONNECTION_ID,
-      timestampNanos = SECONDS.toNanos(2),
-      fields = fakeResponseFields(CONNECTION_ID)
-    ),
-    responsePayload(
-      CONNECTION_ID,
-      timestampNanos = SECONDS.toNanos(3),
-      payload = "RESPONSE_CONTENT"
-    ),
-    responseCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(3)),
-    httpClosed(CONNECTION_ID, timestamp = SECONDS.toNanos(3), completed = true),
-    httpThread(CONNECTION_ID, timestampNanos = SECONDS.toNanos(4), 1, "thread"),
+    requestStarted(CONNECTION_ID, SECONDS.toNanos(0), fakeUrl, method = "", fields, faceTrace),
+    requestPayload(CONNECTION_ID, SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
+    requestCompleted(CONNECTION_ID, SECONDS.toNanos(1)),
+    responseStarted(CONNECTION_ID, SECONDS.toNanos(2), fields = fakeResponseFields(CONNECTION_ID)),
+    responsePayload(CONNECTION_ID, SECONDS.toNanos(3), payload = "RESPONSE_CONTENT"),
+    responseCompleted(CONNECTION_ID, SECONDS.toNanos(3)),
+    httpClosed(CONNECTION_ID, SECONDS.toNanos(3), completed = true),
+    httpThread(CONNECTION_ID, SECONDS.toNanos(4), 1, "thread"),
   )
 
 class HttpDataModelTest {

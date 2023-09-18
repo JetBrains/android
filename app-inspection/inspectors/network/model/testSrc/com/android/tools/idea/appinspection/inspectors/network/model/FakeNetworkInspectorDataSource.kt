@@ -23,16 +23,19 @@ import studio.network.inspection.NetworkInspectorProtocol
 import studio.network.inspection.NetworkInspectorProtocol.Event
 
 class FakeNetworkInspectorDataSource(
-  private val httpEventList: List<Event> = emptyList(),
+  httpEventList: List<Event> = emptyList(),
   private val speedEventList: List<Event> = emptyList()
 ) : NetworkInspectorDataSource {
+  private val httpDataCollector =
+    HttpDataCollector().apply { httpEventList.forEach { processEvent(it) } }
+
   private fun Event.isInRange(range: Range) =
     timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) &&
       timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
 
   override val connectionEventFlow: Flow<NetworkInspectorProtocol.HttpConnectionEvent> = flow {}
 
-  override suspend fun queryForHttpData(range: Range) = httpEventList.filter { it.isInRange(range) }
+  override suspend fun queryForHttpData(range: Range) = httpDataCollector.getDataForRange(range)
 
   override suspend fun queryForSpeedData(range: Range) =
     speedEventList.filter { it.isInRange(range) }

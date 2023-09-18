@@ -65,6 +65,7 @@ fun createFakeHttpData(
 ) =
   HttpData.createHttpData(
     id,
+    connectionEndTimeUs,
     requestStartTimeUs,
     requestCompleteTimeUs,
     responseStartTimeUs,

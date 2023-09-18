@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.Executors
 import kotlin.test.fail
@@ -36,21 +37,25 @@ class NetworkInspectorDataSourceTest {
   private val scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
 
   @Test
-  fun basicSearch() = runBlocking {
+  fun basicSearch(): Unit = runBlocking {
     val speedEvent = speedEvent(timestampNanos = 1000, rxSpeed = 10, txSpeed = 20)
-    val httpEvent = requestStarted(id = 1, timestampNanos = 1002)
+    val httpEvent = requestStarted(id = 1, timestampNanos = 1002, url = "www.google.com")
     val testMessenger =
       TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
     val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
     testMessenger.await()
 
-    val speedEvents = dataSource.queryForSpeedData(Range(1.0, 2.0))
-    assertThat(speedEvents).hasSize(1)
-    assertThat(speedEvents[0]).isEqualTo(speedEvent)
+    assertThat(dataSource.queryForSpeedData(Range(1.0, 2.0))).containsExactly(speedEvent)
 
-    val httpEvents = dataSource.queryForHttpData(Range(1.0, 2.0))
-    assertThat(httpEvents).hasSize(1)
-    assertThat(httpEvents[0]).isEqualTo(httpEvent)
+    assertThat(dataSource.queryForHttpData(Range(1.0, 2.0)))
+      .containsExactly(
+        HttpData.createHttpData(
+          id = 1,
+          updateTimeUs = 1,
+          requestStartTimeUs = 1,
+          url = "www.google.com"
+        )
+      )
   }
 
   @Test
@@ -175,41 +180,63 @@ class NetworkInspectorDataSourceTest {
   @Test
   fun searchHttpData(): Unit = runBlocking {
     // Request that starts in the selection range but ends outside of it.
-    val httpEvent = requestStarted(id = 1, timestampNanos = 1002)
-    val httpEvent2 = requestCompleted(id = 1, timestampNanos = 3000)
+    val srart1 = requestStarted(id = 1, timestampNanos = 1002, url = "www.url1.com")
+    val end1 = requestCompleted(id = 1, timestampNanos = 3000)
 
     // Request that starts outside the range, but ends inside of it.
-    val httpEvent3 = requestStarted(id = 2, timestampNanos = 44)
-    val httpEvent4 = requestCompleted(id = 2, timestampNanos = 1534)
+    val start2 = requestStarted(id = 2, timestampNanos = 44, url = "www.url2.com")
+    val end2 = requestCompleted(id = 2, timestampNanos = 1534)
 
     // Request that starts and ends outside the range, but spans over it.
-    val httpEvent5 = requestStarted(id = 3, timestampNanos = 55)
-    val httpEvent6 = requestCompleted(id = 3, timestampNanos = 4500)
+    val start3 = requestStarted(id = 3, timestampNanos = 55, url = "www.url3.com")
+    val end3 = requestCompleted(id = 3, timestampNanos = 4500)
 
     // Request that starts and ends outside and not overlap the range.
-    val httpEvent7 = requestStarted(id = 4, timestampNanos = 58)
-    val httpEvent8 = requestCompleted(id = 4, timestampNanos = 67)
+    val start4 = requestStarted(id = 4, timestampNanos = 58, url = "www.url4.com")
+    val end4 = requestCompleted(id = 4, timestampNanos = 67)
 
     val testMessenger =
       TestMessenger(
         scope,
         flowOf(
-          httpEvent.toByteArray(),
-          httpEvent2.toByteArray(),
-          httpEvent3.toByteArray(),
-          httpEvent4.toByteArray(),
-          httpEvent5.toByteArray(),
-          httpEvent6.toByteArray(),
-          httpEvent7.toByteArray(),
-          httpEvent8.toByteArray()
+          srart1.toByteArray(),
+          end1.toByteArray(),
+          start2.toByteArray(),
+          end2.toByteArray(),
+          start3.toByteArray(),
+          end3.toByteArray(),
+          start4.toByteArray(),
+          end4.toByteArray()
         )
       )
     val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
     testMessenger.await()
 
-    val httpEvents = dataSource.queryForHttpData(Range(1.0, 2.0))
-    assertThat(httpEvents).hasSize(6)
-    assertThat(httpEvents).containsNoneOf(httpEvent7, httpEvent8)
+    assertThat(dataSource.queryForHttpData(Range(1.0, 2.0)))
+      .containsExactly(
+        HttpData.createHttpData(
+          id = 2,
+          updateTimeUs = 1,
+          requestStartTimeUs = 0,
+          requestCompleteTimeUs = 1,
+          url = "www.url2.com"
+        ),
+        HttpData.createHttpData(
+          id = 3,
+          updateTimeUs = 4,
+          requestStartTimeUs = 0,
+          requestCompleteTimeUs = 4,
+          url = "www.url3.com"
+        ),
+        HttpData.createHttpData(
+          id = 1,
+          updateTimeUs = 3,
+          requestStartTimeUs = 1,
+          requestCompleteTimeUs = 3,
+          url = "www.url1.com"
+        ),
+      )
+      .inOrder()
   }
 
   @Test
