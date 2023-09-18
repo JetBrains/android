@@ -24,13 +24,11 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.cr
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Before
 import org.junit.Test
-import studio.network.inspection.NetworkInspectorProtocol.Event
-import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 
 class NetworkInspectorModelTest {
   private lateinit var model: NetworkInspectorModel
@@ -46,35 +44,13 @@ class NetworkInspectorModelTest {
         FakeNetworkInspectorDataSource(
           speedEventList =
             listOf(
-              Event.newBuilder()
-                .apply {
-                  timestamp = 0
-                  speedEvent =
-                    SpeedEvent.newBuilder()
-                      .apply {
-                        rxSpeed = 1
-                        txSpeed = 2
-                      }
-                      .build()
-                }
-                .build(),
-              Event.newBuilder()
-                .apply {
-                  timestamp = TimeUnit.SECONDS.toNanos(10)
-                  speedEvent =
-                    SpeedEvent.newBuilder()
-                      .apply {
-                        rxSpeed = 3
-                        txSpeed = 4
-                      }
-                      .build()
-                }
-                .build()
+              speedEvent(timestampNanos = 0, rxSpeed = 1, txSpeed = 2),
+              speedEvent(timestampNanos = SECONDS.toNanos(10), rxSpeed = 3, txSpeed = 4),
             )
         ),
         CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
       )
-    model.timeline.viewRange.set(0.0, TimeUnit.SECONDS.toMicros(5).toDouble())
+    model.timeline.viewRange.set(0.0, SECONDS.toMicros(5).toDouble())
   }
 
   @Test
@@ -99,7 +75,7 @@ class NetworkInspectorModelTest {
     model.tooltip = (NetworkTrafficTooltipModel(model))
     assertThat(model.tooltip).isInstanceOf(NetworkTrafficTooltipModel::class.java)
     val tooltip = model.tooltip as NetworkTrafficTooltipModel
-    val tooltipTime = TimeUnit.SECONDS.toMicros(10).toDouble()
+    val tooltipTime = SECONDS.toMicros(10).toDouble()
     model.timeline.tooltipRange.set(tooltipTime, tooltipTime)
     val networkLegends = tooltip.getLegends()
     assertThat(networkLegends.rxLegend.name).isEqualTo("Received")
@@ -119,10 +95,10 @@ class NetworkInspectorModelTest {
     assertThat(sending.name).isEqualTo("Sending")
     assertThat(receiving.series).hasSize(1)
     assertThat(receiving.series[0].x).isEqualTo(0)
-    assertThat(receiving.series[0].value.toLong()).isEqualTo(1)
+    assertThat(receiving.series[0].value).isEqualTo(1)
     assertThat(sending.series).hasSize(1)
     assertThat(sending.series[0].x).isEqualTo(0)
-    assertThat(sending.series[0].value.toLong()).isEqualTo(2)
+    assertThat(sending.series[0].value).isEqualTo(2)
   }
 
   @Test
@@ -151,24 +127,18 @@ class NetworkInspectorModelTest {
     assertThat(legendsUpdated).isFalse()
     assertThat(tooltipLegendsUpdated).isFalse()
 
-    model.timeline.viewRange.set(
-      TimeUnit.SECONDS.toMicros(1).toDouble(),
-      TimeUnit.SECONDS.toMicros(2).toDouble()
-    )
+    model.timeline.viewRange.set(SECONDS.toMicros(1).toDouble(), SECONDS.toMicros(2).toDouble())
     assertThat(networkUsageUpdated).isTrue()
 
     // Make sure the axis lerps correctly when we move the range there.
-    model.timeline.dataRange.max = TimeUnit.SECONDS.toMicros(101).toDouble()
-    model.timeline.viewRange.set(
-      TimeUnit.SECONDS.toMicros(99).toDouble(),
-      TimeUnit.SECONDS.toMicros(101).toDouble()
-    )
+    model.timeline.dataRange.max = SECONDS.toMicros(101).toDouble()
+    model.timeline.viewRange.set(SECONDS.toMicros(99).toDouble(), SECONDS.toMicros(101).toDouble())
     timer.tick(100)
     assertThat(legendsUpdated).isTrue()
     assertThat(trafficAxisUpdated).isTrue()
     model.timeline.tooltipRange.set(
-      TimeUnit.SECONDS.toMicros(100).toDouble(),
-      TimeUnit.SECONDS.toMicros(100).toDouble()
+      SECONDS.toMicros(100).toDouble(),
+      SECONDS.toMicros(100).toDouble()
     )
     assertThat(tooltipLegendsUpdated).isTrue()
   }

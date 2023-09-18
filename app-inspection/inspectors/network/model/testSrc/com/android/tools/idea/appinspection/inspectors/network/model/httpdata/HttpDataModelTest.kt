@@ -18,138 +18,76 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
+import com.android.tools.idea.appinspection.inspectors.network.model.httpClosed
+import com.android.tools.idea.appinspection.inspectors.network.model.httpThread
+import com.android.tools.idea.appinspection.inspectors.network.model.requestCompleted
+import com.android.tools.idea.appinspection.inspectors.network.model.requestPayload
+import com.android.tools.idea.appinspection.inspectors.network.model.requestStarted
+import com.android.tools.idea.appinspection.inspectors.network.model.responseCompleted
+import com.android.tools.idea.appinspection.inspectors.network.model.responsePayload
+import com.android.tools.idea.appinspection.inspectors.network.model.responseStarted
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Test
-import studio.network.inspection.NetworkInspectorProtocol.Event
-import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 
 private const val CONNECTION_ID = 1L
+private val fakeUrl = fakeUrl(CONNECTION_ID)
+private val faceTrace = fakeStackTrace(CONNECTION_ID)
 
 private val HTTP_DATA =
   listOf(
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(0)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              httpRequestStarted =
-                HttpConnectionEvent.RequestStarted.newBuilder()
-                  .apply {
-                    url = fakeUrl(CONNECTION_ID)
-                    method = ""
-                    trace = fakeStackTrace(1)
-                    fields = ""
-                  }
-                  .build()
-            }
-            .build()
-      }
-      .build(),
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(1)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              requestPayload =
-                HttpConnectionEvent.Payload.newBuilder()
-                  .apply { payload = ByteString.copyFromUtf8("REQUEST_CONTENT") }
-                  .build()
-            }
-            .build()
-      }
-      .build(),
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(1)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              httpRequestCompleted = HttpConnectionEvent.RequestCompleted.getDefaultInstance()
-            }
-            .build()
-      }
-      .build(),
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(2)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              httpResponseStarted =
-                HttpConnectionEvent.ResponseStarted.newBuilder()
-                  .apply { fields = fakeResponseFields(CONNECTION_ID) }
-                  .build()
-            }
-            .build()
-      }
-      .build(),
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(3)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              responsePayload =
-                HttpConnectionEvent.Payload.newBuilder()
-                  .apply { payload = ByteString.copyFromUtf8("RESPONSE_CONTENT") }
-                  .build()
-            }
-            .build()
-      }
-      .build(),
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(3)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              httpResponseCompleted = HttpConnectionEvent.ResponseCompleted.getDefaultInstance()
-            }
-            .build()
-      }
-      .build(),
-    Event.newBuilder()
-      .apply {
-        timestamp = TimeUnit.SECONDS.toNanos(3)
-        httpConnectionEvent =
-          HttpConnectionEvent.newBuilder()
-            .apply {
-              connectionId = CONNECTION_ID
-              httpClosed =
-                HttpConnectionEvent.Closed.newBuilder().apply { completed = true }.build()
-            }
-            .build()
-      }
-      .build()
+    requestStarted(
+      CONNECTION_ID,
+      timestampNanos = SECONDS.toNanos(0),
+      url = fakeUrl,
+      method = "",
+      trace = faceTrace
+    ),
+    requestPayload(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
+    requestCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1)),
+    responseStarted(
+      CONNECTION_ID,
+      timestampNanos = SECONDS.toNanos(2),
+      fields = fakeResponseFields(CONNECTION_ID)
+    ),
+    responsePayload(
+      CONNECTION_ID,
+      timestampNanos = SECONDS.toNanos(3),
+      payload = "RESPONSE_CONTENT"
+    ),
+    responseCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(3)),
+    httpClosed(CONNECTION_ID, timestamp = SECONDS.toNanos(3), completed = true),
   )
 
 private val HTTP_DATA_WITH_THREAD =
-  HTTP_DATA +
-    listOf(
-      Event.newBuilder()
-        .setTimestamp(TimeUnit.SECONDS.toNanos(4))
-        .setHttpConnectionEvent(
-          HttpConnectionEvent.newBuilder()
-            .setConnectionId(CONNECTION_ID)
-            .setHttpThread(
-              HttpConnectionEvent.ThreadData.newBuilder().setThreadId(1).setThreadName("thread")
-            )
-        )
-        .build()
-    )
+  listOf(
+    requestStarted(
+      CONNECTION_ID,
+      timestampNanos = SECONDS.toNanos(0),
+      url = fakeUrl,
+      method = "",
+      trace = faceTrace
+    ),
+    requestPayload(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1), payload = "REQUEST_CONTENT"),
+    requestCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(1)),
+    responseStarted(
+      CONNECTION_ID,
+      timestampNanos = SECONDS.toNanos(2),
+      fields = fakeResponseFields(CONNECTION_ID)
+    ),
+    responsePayload(
+      CONNECTION_ID,
+      timestampNanos = SECONDS.toNanos(3),
+      payload = "RESPONSE_CONTENT"
+    ),
+    responseCompleted(CONNECTION_ID, timestampNanos = SECONDS.toNanos(3)),
+    httpClosed(CONNECTION_ID, timestamp = SECONDS.toNanos(3), completed = true),
+    httpThread(CONNECTION_ID, timestampNanos = SECONDS.toNanos(4), 1, "thread"),
+  )
 
 class HttpDataModelTest {
 
@@ -158,7 +96,7 @@ class HttpDataModelTest {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA_WITH_THREAD)
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val model = HttpDataModelImpl(source, StubNetworkInspectorTracker(), scope)
-    val httpDataList = model.getData(Range(0.0, TimeUnit.SECONDS.toMicros(5).toDouble()))
+    val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).hasSize(1)
     val httpData = httpDataList[0]
 
@@ -168,8 +106,8 @@ class HttpDataModelTest {
     assertThat(httpData.responseCompleteTimeUs).isEqualTo(3000000)
     assertThat(httpData.connectionEndTimeUs).isEqualTo(3000000)
     assertThat(httpData.method).isEmpty()
-    assertThat(httpData.url).isEqualTo(fakeUrl(CONNECTION_ID))
-    assertThat(httpData.trace).isEqualTo(fakeStackTrace(CONNECTION_ID))
+    assertThat(httpData.url).isEqualTo(fakeUrl)
+    assertThat(httpData.trace).isEqualTo(faceTrace)
     assertThat(httpData.requestPayload).isEqualTo(ByteString.copyFromUtf8("REQUEST_CONTENT"))
     assertThat(httpData.responsePayload).isEqualTo(ByteString.copyFromUtf8("RESPONSE_CONTENT"))
     assertThat(httpData.responseHeader.getField("connId")).isEqualTo("1")
@@ -180,7 +118,7 @@ class HttpDataModelTest {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA)
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val model = HttpDataModelImpl(source, StubNetworkInspectorTracker(), scope)
-    val httpDataList = model.getData(Range(0.0, TimeUnit.SECONDS.toMicros(5).toDouble()))
+    val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).isEmpty()
   }
 }
