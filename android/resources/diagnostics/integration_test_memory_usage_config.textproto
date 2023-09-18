@@ -236,6 +236,10 @@ categories: {
     class_names: "com.intellij.util.lang.JdkZipResourceFile"
     class_names: "com.intellij.util.lang.ZipResourceFile"
   }
+  components: {
+    label: "indexing"
+    package_names: "com.intellij.util.indexing"
+  }
 }
 shared_components_limit: 200
 shared_cluster_extended_report_threshold_bytes: 280000000
