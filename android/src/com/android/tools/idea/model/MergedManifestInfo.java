@@ -322,8 +322,6 @@ final class MergedManifestInfo {
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);
     manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.SKIP_BLAME, ManifestMerger2.Invoker.Feature.SKIP_XML_STRING, ManifestMerger2.Invoker.Feature.KEEP_GOING_AFTER_ERRORS);
-    if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
-      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
     manifestMergerInvoker.addFlavorAndBuildTypeManifests(VfsUtilCore.virtualToIoFiles(flavorAndBuildTypeManifests).toArray(new File[0]));
     manifestMergerInvoker.addNavigationFiles(VfsUtilCore.virtualToIoFiles(navigationFiles));
     manifestMergerInvoker.withProcessCancellationChecker(ProgressManager::checkCanceled);
@@ -390,6 +388,9 @@ final class MergedManifestInfo {
         return vFile.getInputStream();
       }
     });
+
+    if(!isVersionAtLeast7_4_0(facet.getModule().getProject()))
+      manifestMergerInvoker.withFeatures(ManifestMerger2.Invoker.Feature.DISABLE_STRIP_LIBRARY_TARGET_SDK);
 
     return manifestMergerInvoker.merge();
   }
