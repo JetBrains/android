@@ -17,7 +17,10 @@ package com.android.tools.compose
 
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+
+import org.jetbrains.kotlin.idea.k1.codeinsight.inspections.FunctionNameInspection as K1FunctionNameInspection
+import org.jetbrains.kotlin.idea.k2.codeinsight.inspections.FunctionNameInspection as K2FunctionNameInspection
 
 /**
  * Test for [ComposeSuppressor].
@@ -25,7 +28,11 @@ import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
-    enableInspections(FunctionNameInspection::class.java)
+    if (isK2Plugin()) {
+      enableInspections(K2FunctionNameInspection::class.java)
+    } else {
+      enableInspections(K1FunctionNameInspection::class.java)
+    }
     stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
 
     val file = addFileToProject(
