@@ -63,7 +63,6 @@ MODULE                        : My_First_App.app
                     artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -102,7 +101,6 @@ MODULE                        : My_First_App.app
                     artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -149,7 +147,6 @@ MODULE                        : My_First_App.app
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -191,7 +188,6 @@ MODULE                        : My_First_App.app
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
@@ -239,7 +235,6 @@ MODULE                        : My_First_App.app
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -647,10 +642,6 @@ MODULE                        : My_First_App.app
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -726,7 +717,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -762,7 +752,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     androidx.viewpager:viewpager  : null => androidx.viewpager:viewpager:1.0.0@aar
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/R.jar [-]
@@ -806,7 +795,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
                 PackageDependencies
@@ -845,7 +833,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                     org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                    org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
@@ -890,7 +877,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
             PackageDependencies
@@ -927,7 +913,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
                 org.jetbrains.kotlin:kotlin-android-extensions-runtime      : null => org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                org.jetbrains.kotlin:kotlin-stdlib-common         : null => org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
@@ -1314,10 +1299,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
                 ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
-            LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>)
-                - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                ResolvedCoordinates           : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LintModelLibrary              : JavaLibrary(org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>)
                 - JarFiles                    : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
                 Identifier                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>

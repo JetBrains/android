@@ -478,8 +478,6 @@ MODULE                        : project
                             file                          : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>.jar
                             source                        : <M2>/com/android/tools/repository/<ANDROID_TOOLS_BASE_VERSION>/repository-<ANDROID_TOOLS_BASE_VERSION>-sources.jar
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
                         - dependencies                : DefaultExternalLibraryDependency
@@ -601,7 +599,6 @@ MODULE                        : project
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish/build/resources/main [-]
@@ -680,7 +677,6 @@ MODULE                        : project
                                 outputDir                     : <ROOT>/lintpublish-remote/out/production/classes [-]
                                 - gradleOutputDirs            : <ROOT>/lintpublish-remote/build/classes/java/main [-]
                                 patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)

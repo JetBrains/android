@@ -208,6 +208,10 @@ Task                          : :lib:bundleLibRuntimeToJarDebug
     PrimaryTaskCategory           : COMPILED_CLASSES
     SecondaryTaskCategories       : ZIPPING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:checkKotlinGradlePluginConfigurationErrors
+    TaskType                      : org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors
+    PrimaryTaskCategory           : KOTLIN
+    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 Task                          : :lib:compileDebugJavaWithJavac
     TaskType                      : org.gradle.api.tasks.compile.JavaCompile
     PrimaryTaskCategory           : JAVA

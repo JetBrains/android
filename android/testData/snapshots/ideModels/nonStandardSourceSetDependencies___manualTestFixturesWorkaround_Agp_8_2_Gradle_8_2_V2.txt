@@ -664,18 +664,6 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
         component                     : org.hamcrest:hamcrest-library:1.3
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -1023,7 +1011,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     commonTestIntransitiveDependenciesMetadata        : <empty>
                     commonTestResolvableDependenciesMetadata          : <empty>
                     commonTestRuntimeOnly         : <empty>
-                    compileClasspath              : <empty>
                     default                       : <empty>
                     - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
                     - jvmApiElements-published    : <ROOT>/common/build/libs/common-jvm.jar [-]
@@ -1117,13 +1104,7 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - gradleOutputDirs            : <ROOT>/desktop/build/classes/kotlin/main [-]
                                 patterns                      : FilePatternSetImpl
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
@@ -1153,13 +1134,7 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
                             - files                       : <ROOT>/desktop/build/resources/main [-]
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
@@ -1782,11 +1757,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         - dependencies                : default (DefaultExternalProjectDependency)
                             projectPath                   : :jarWrapperLib
                             - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
@@ -1820,15 +1790,10 @@ MODULE                        : NonStandardSourceSetDependencies
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar-MPP-1 [-]
                         - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - dependencies                : default (DefaultExternalProjectDependency)
                             projectPath                   : :jarWrapperLib
                             - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
@@ -1852,9 +1817,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
                                 - gradleOutputDirs            : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
                                 patterns                      : FilePatternSetImpl
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultFileCollectionDependency
@@ -1947,8 +1909,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         tasks
                             jvmTest                       : jvmTest (DefaultExternalTask)
                                 qName                         : :kmp-java:sample:jvmTest
-                            test                          : test (DefaultExternalTask)
-                                qName                         : :kmp-java:sample:test
                         sourceSets
                             main                          : main (DefaultExternalSourceSet)
                                 sources
@@ -1964,16 +1924,11 @@ MODULE                        : NonStandardSourceSetDependencies
                                         - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                         patterns                      : FilePatternSetImpl
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                - dependencies                : DefaultExternalLibraryDependency
-                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultFileCollectionDependency
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                     - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                             test                          : test (DefaultExternalSourceSet)
@@ -1990,17 +1945,9 @@ MODULE                        : NonStandardSourceSetDependencies
                                         - gradleOutputDirs            : <ROOT>/kmp-java/sample/build/processedResources/jvm/test [-]
                                         patterns                      : FilePatternSetImpl
                                 - dependencies                : DefaultFileCollectionDependency
-                                    - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-                                    - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-                                    - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                - dependencies                : DefaultFileCollectionDependency
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                 - dependencies                : DefaultFileCollectionDependency
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-                                - dependencies                : DefaultExternalLibraryDependency
-                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultFileCollectionDependency
@@ -2014,11 +1961,9 @@ MODULE                        : NonStandardSourceSetDependencies
                         externalSystemId              : GRADLE
                         - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
                         - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                        - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                         artifactsByConfiguration
                             allSourceSetsCompileDependenciesMetadata          : <empty>
                             annotationProcessor           : <empty>
-                            - apiElements                 : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
                             commonMainApi                 : <empty>
@@ -2090,8 +2035,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             kotlinScriptDef               : <empty>
                             kotlinScriptDefExtensions     : <empty>
-                            - mainSourceElements          : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
-                            - mainSourceElements          : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
                             - metadataApiElements         : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
                             metadataCommonMainCompilationApi        : <empty>
                             metadataCommonMainCompilationCompileOnly          : <empty>
@@ -2105,7 +2048,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             metadataCompileClasspath      : <empty>
                             metadataSourcesElements       : <empty>
                             runtimeClasspath              : <empty>
-                            - runtimeElements             : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             runtimeOnly                   : <empty>
                             testAnnotationProcessor       : <empty>
                             testCompileClasspath          : <empty>
@@ -2113,7 +2055,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             testImplementation            : <empty>
                             testKotlinScriptDef           : <empty>
                             testKotlinScriptDefExtensions : <empty>
-                            - testResultsElementsForTest  : <ROOT>/kmp-java/sample/build/test-results/test/binary [-]
                             testRuntimeClasspath          : <empty>
                             testRuntimeOnly               : <empty>
                     sample-test                   : :kmp-java:sample-test (DefaultExternalProject)
@@ -2755,24 +2696,16 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 Dependencies
                     compileClasspath
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
@@ -2881,16 +2814,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -2899,7 +2825,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -2907,16 +2833,15 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:javaLibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -2980,36 +2905,25 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 Dependencies
                     compileClasspath
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/lib/build/libs/manual-test-fixtures.jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     runtimeClasspath
                         javaLibrary                   : <ROOT>/lib/build/libs/manual-test-fixtures.jar
                 ProvidedDependencies
                     - provided                    : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     - provided                    : __wrapped_aars__::aarWrapperLib:unspecified@aar
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                    - provided                    : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     - provided                    : org.jetbrains:annotations:13.0
                 ApplicationId                 : me.monori.gradleprojectpathissue.test
@@ -3038,29 +2952,21 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 Dependencies
                     compileClasspath
                         androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3171,16 +3077,9 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         androidLibrary                : com.example:with-runtime:1.0@aar
                             androidLibrary                : com.example:runtime:1.0@aar
                         androidLibrary                : com.example:runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3189,7 +3088,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:app-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:feature-a-MAIN
                             module                        : <ROOT>-:feature-b-MAIN
                             module                        : <ROOT>-:feature-b-commonMain
@@ -3198,7 +3097,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -3206,23 +3105,22 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:javaLibrary-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/jars/classes.jar
@@ -3350,37 +3248,29 @@ MODULE                        : NonStandardSourceSetDependencies.common
     kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonTest
                 - dependency                  : :common/commonMain
                 - dependency                  : :common/jvmMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmMain
                 - dependency                  : :common/commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmTest
                 - dependency                  : :common/commonMain
                 - dependency                  : :common/commonTest
                 - dependency                  : :common/jvmMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 9
-            patch                         : 0
-            versionString                 : 1.9.0
+            patch                         : 20
+            versionString                 : 1.9.20-Beta
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3392,7 +3282,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/commonMain/resources [-]
@@ -3410,7 +3299,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/jvmMain/resources [-]
@@ -3437,7 +3325,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -3465,7 +3352,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/commonTest/resources [-]
@@ -3486,7 +3372,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/jvmTest/resources [-]
@@ -3516,7 +3401,6 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -3585,7 +3469,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -3610,7 +3493,6 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -3961,16 +3843,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -3981,8 +3856,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4089,16 +3963,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4109,8 +3976,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 IsSigned                      : false
@@ -4226,16 +4092,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4244,12 +4103,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4356,16 +4214,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4374,7 +4225,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -4382,8 +4233,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 ApplicationId                 : me.monori.feature.a.test
@@ -4502,16 +4352,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.3.1@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4520,12 +4363,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.appcompat:appcompat:1.3.0@aar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4632,16 +4474,9 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                             androidLibrary                : androidx.core:core:1.5.0@aar
                             androidLibrary                : androidx.customview:customview:1.0.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         javaLibrary                   : androidx.arch.core:core-common:2.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
@@ -4650,7 +4485,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         javaLibrary                   : androidx.collection:collection:1.1.0@jar
                             javaLibrary                   : androidx.annotation:annotation:1.2.0@jar
                         module                        : <ROOT>-:feature-a-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
@@ -4658,8 +4493,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
@@ -5035,31 +4869,21 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -5082,40 +4906,30 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                    runtimeClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                    runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 ApplicationId                 : me.monori.feature.b.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -5141,40 +4955,30 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                    runtimeClasspath
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+                    runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
                         module                        : <ROOT>-:feature-b-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-jvmMain
                         module                        : <ROOT>-:common-commonMain
                         module                        : <ROOT>-:common-commonMain
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
         dependencies
@@ -5198,8 +5002,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 9
-            patch                         : 0
-            versionString                 : 1.9.0
+            patch                         : 20
+            versionString                 : 1.9.20-Beta
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -5211,7 +5015,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/commonMain/resources [-]
@@ -5234,7 +5037,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/androidMain/resources [-]
@@ -5269,7 +5071,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5305,7 +5106,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/androidInstrumentedTest/resources [-]
@@ -5343,7 +5143,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5372,7 +5171,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/commonTest/resources [-]
@@ -5398,7 +5196,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/androidUnitTest/resources [-]
@@ -5436,7 +5233,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5519,7 +5315,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5544,7 +5339,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5569,7 +5363,6 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5614,37 +5407,29 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     kotlinMppGradleModel          : {commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
         dependencies
             commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             commonTest
                 - dependency                  : :kmp-java:sample/commonMain
                 - dependency                  : :kmp-java:sample/jvmMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmMain
                 - dependency                  : :kmp-java:sample/commonMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
             jvmTest
                 - dependency                  : :kmp-java:sample/commonMain
                 - dependency                  : :kmp-java:sample/commonTest
                 - dependency                  : :kmp-java:sample/jvmMain
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 9
-            patch                         : 0
-            versionString                 : 1.9.0
+            patch                         : 20
+            versionString                 : 1.9.20-Beta
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -5656,7 +5441,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/commonMain/resources [-]
@@ -5674,7 +5458,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
@@ -5702,7 +5485,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -5731,7 +5513,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/commonTest/resources [-]
@@ -5752,7 +5533,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
@@ -5783,7 +5563,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     useFirLT                      : true
@@ -6378,30 +6157,16 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
                             androidLibrary                : com.example:runtime:1.0@aar
                         androidLibrary                : com.example:runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
                 IsSigned                      : false
@@ -6466,18 +6231,11 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
                             javaLibrary                   : junit:junit:4.12@jar
@@ -6521,18 +6279,11 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                         javaLibrary                   : org.hamcrest:hamcrest-integration:1.3@jar
                             javaLibrary                   : org.hamcrest:hamcrest-library:1.3@jar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
@@ -6562,40 +6313,26 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         androidLibrary                : com.example:with-runtime:1.0@aar
                             androidLibrary                : com.example:runtime:1.0@aar
                         androidLibrary                : com.example:runtime:1.0@aar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
-                        javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : junit:junit:4.12@jar
                             javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3@jar
                         module                        : <ROOT>-:lib-MAIN
-                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+                            javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             androidLibrary                : com.example:with-runtime:1.0@aar
                 RuntimeOnlyClasses
                     - class                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.0/jars/classes.jar
