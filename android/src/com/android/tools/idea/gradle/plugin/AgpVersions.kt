@@ -111,10 +111,7 @@ object AgpVersions {
   }
 
   @VisibleForTesting
-  fun getNewProjectWizardVersions(
-    latestKnown: AgpVersion = this.latestKnown,
-    availableVersions: Set<AgpVersion> = getAvailableVersions()
-  ): Set<AgpVersion> {
+  fun getNewProjectWizardVersions(latestKnown: AgpVersion, availableVersions: Set<AgpVersion>): Set<AgpVersion> {
     val include = setOf(AndroidGradlePluginCompatibility.COMPATIBLE, AndroidGradlePluginCompatibility.DEPRECATED)
     var minOfCurrentSeries = AgpVersion(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE)
     val recommended = mutableListOf<AgpVersion>()
@@ -122,7 +119,13 @@ object AgpVersions {
       // Go from latest first, and include latest from each series that is compatible
       if (version < minOfCurrentSeries &&
           include.contains(computeAndroidGradlePluginCompatibility(version, latestKnown)) ) {
-        minOfCurrentSeries = AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
+        minOfCurrentSeries = if (version.isSnapshot) {
+          // Treat -dev as special case, so also include the latest release version from the current series, if present.
+          version
+        } else {
+          // Exclude all older versions from the current series
+          AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
+        }
         recommended.add(version)
       }
     }

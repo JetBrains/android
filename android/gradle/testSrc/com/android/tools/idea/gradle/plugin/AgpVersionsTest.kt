@@ -100,4 +100,27 @@ class AgpVersionsTest {
       .inOrder()
   }
 
+
+  @Test
+  fun `test get new project wizard versions with dev available`() {
+    val availableVersions = listOf(
+      "8.1.2",
+      "8.2.0-beta01", "8.2.0-beta02", "8.2.0-dev", // Incompatible dev version is ignored
+      "8.3.0-alpha01", "8.3.0-alpha02", "8.3.0-dev",
+    ).map { AgpVersion.parse(it) }.toSet()
+    assertThat(AgpVersions.getNewProjectWizardVersions(
+      latestKnown = AgpVersion.parse("8.3.0-dev"),
+      availableVersions = availableVersions
+    ).map { it.toString() })
+      .containsExactly("8.3.0-dev", "8.3.0-alpha02", "8.2.0-beta02", "8.1.2")
+      .inOrder()
+
+    assertThat(AgpVersions.getNewProjectWizardVersions(
+      latestKnown = AgpVersion.parse("8.3.0-alpha01"),
+      availableVersions = availableVersions
+    ).map { it.toString() })
+      .containsExactly("8.3.0-dev", "8.3.0-alpha01", "8.1.2")
+      .inOrder()
+  }
+
 }
