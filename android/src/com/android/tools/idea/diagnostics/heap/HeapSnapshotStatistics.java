@@ -123,10 +123,6 @@ public final class HeapSnapshotStatistics {
                                      boolean isRetainedByPlatform, boolean isDisposedButReferenced) {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
-    
-    if (stats.getComponent().isClassNameTracked(objectClassName)) {
-      stats.addTrackedFQNInstance(objectClassName);
-    }
 
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size, isRoot,
@@ -148,9 +144,6 @@ public final class HeapSnapshotStatistics {
                                              boolean isDisposedButReferenced) {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
-    if (stats.getComponentCategory().getTrackedFQNs() != null && stats.getComponentCategory().getTrackedFQNs().contains(objectClassName)) {
-      stats.addTrackedFQNInstance(objectClassName);
-    }
     if (config.collectHistograms && extendedReportStatistics != null) {
       extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size, isRoot,
                                                                     isDisposedButReferenced);
@@ -175,6 +168,17 @@ public final class HeapSnapshotStatistics {
       return;
     }
     extendedReportStatistics.calculateExtendedReportData(config, fieldCache, collector, startRoots);
+  }
+
+  public void checkClassIsTrackedAndAdd(@NotNull final String className) {
+    ComponentsSet componentsSet = config.getComponentsSet();
+
+    for (ComponentsSet.ComponentCategory category : componentsSet.getCategoriesTrackingClassName().get(className)) {
+      categoryComponentStats.get(category.getId()).addTrackedFQNInstance(className);
+    }
+    for (ComponentsSet.Component component : componentsSet.getComponentsTrackingClassName().get(className)) {
+      componentStats.get(component.getId()).addTrackedFQNInstance(className);
+    }
   }
 
   private static String getOptimalUnitsStatisticsPresentation(@NotNull final ObjectsStatistics statistics) {
@@ -307,6 +311,12 @@ public final class HeapSnapshotStatistics {
                                     objectsStatsPresentation.apply(
                                       stat.getRetainedClusterStat().objectsStat)));
       }
+      if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
+        writer.accept("    Number of instances of tracked classes:");
+        for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
+          writer.accept(String.format(Locale.US, "      %s:%d", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
+        }
+      }
       writer.accept(String.format(Locale.US, "    Platform object: %s[%s]",
                                   objectsStatsPresentation.apply(
                                     stat.getOwnedClusterStat().platformObjectsSelfStats), objectsStatsPresentation.apply(
@@ -320,6 +330,9 @@ public final class HeapSnapshotStatistics {
                                   objectsStatsPresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics())));
       if (config.collectHistograms && extendedReportStatistics != null) {
         extendedReportStatistics.logComponentHistogram(writer, stat.getComponent());
+        if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getComponent())) {
+          extendedReportStatistics.printExceededClusterStatisticsIfNeeded(writer, stat.getComponent());
+        }
       }
       if (presentationConfig.shouldLogRetainedSizes) {
         writer.accept(String.format(Locale.US, "    Retained: %s",

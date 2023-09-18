@@ -183,6 +183,7 @@ public final class MemoryReportCollector implements Disposable {
             node.isRetainedByPlatform = true;
           }
           statistics.addObjectToTotal(currentObjectSize, isPlatformObject, node.isRetainedByPlatform);
+          statistics.checkClassIsTrackedAndAdd(currentObjectClassName);
 
           boolean isDisposedButReferenced = false;
           if (statistics.getConfig().collectDisposerTreeInfo && currentObject instanceof Disposable) {

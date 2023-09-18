@@ -519,16 +519,23 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   public void testTrackedFQNs() {
     ComponentsSet componentsSet = new ComponentsSet();
 
-    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
-    componentsSet.addComponentWithPackagesAndClassNames("diagnostics_main",
+    ComponentsSet.ComponentCategory defaultCategory =
+      componentsSet.registerCategory("diagnostics", Long.MAX_VALUE, List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
+                                                                            "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+    componentsSet.addComponentWithPackagesAndClassNames("B",
                                                         Long.MAX_VALUE,
                                                         defaultCategory,
-                                                        List.of(
-                                                          "com.android.tools.idea.diagnostics"),
                                                         Collections.emptyList(),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics$B"),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
                                                                 "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
                                                         Collections.emptyList());
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of(
+                                                          "com.android.tools.idea.diagnostics$D"));
 
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
@@ -546,7 +553,10 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
     Assert.assertTrue(event.getComponentStats(0).getInstanceCountPerClassNameMap().isEmpty());
     Assert.assertTrue(event.getComponentCategoryStats(0).getInstanceCountPerClassNameMap().isEmpty());
-    Assert.assertTrue(event.getComponentCategoryStats(1).getInstanceCountPerClassNameMap().isEmpty());
+    Assert.assertEquals(3, event.getComponentCategoryStats(1)
+      .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    Assert.assertEquals(1, event.getComponentCategoryStats(1)
+      .getInstanceCountPerClassNameOrThrow("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
   }
 
   @Test
@@ -928,7 +938,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     Assert.assertEquals(StatusCode.NO_ERROR,
                         new MemoryReportCollector(statistics).walkObjects(List.of(new A(b1), new A(b2), new ReferenceToB(b1),
-                                                                                             new ReferenceToB(b2))));
+                                                                                  new ReferenceToB(b2))));
     Assert.assertNotNull(statistics.getExtendedReportStatistics());
 
     Assert.assertEquals(1, statistics.getExtendedReportStatistics().sharedClustersHistograms.size());
@@ -988,10 +998,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(0, statistics.getComponentStats().get(2).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
 
-    Assert.assertEquals(1, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
+    Assert.assertEquals(1, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
+      .getObjectsCount());
     Assert.assertEquals(32, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+      .getObjectsCount());
     Assert.assertEquals(120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
   }
