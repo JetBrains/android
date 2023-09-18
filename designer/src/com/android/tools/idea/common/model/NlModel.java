@@ -1002,11 +1002,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @Nullable
-  public final String getGroupId() {
+  public final String getOrganizationGroup() {
     return myGroupId;
   }
 
-  public final void setGroupId(@Nullable String groupId) {
+  public final void setOrganizationGroup(@Nullable String groupId) {
     myGroupId = groupId;
   }
 

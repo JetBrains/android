@@ -262,7 +262,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       newModel.modelDisplayName = previewElement.displaySettings.name
       newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
       newModel.setModelUpdater(modelUpdater)
-      newModel.groupId = previewElement.displaySettings.group
+      newModel.organizationGroup = previewElement.displaySettings.group
       val sceneManager =
         configureLayoutlibSceneManager(
             previewElement.displaySettings,

@@ -62,20 +62,6 @@ private val NO_GROUP_TRANSFORM:
     listOf(it.toList())
   }
 
-@Suppress("unused") // b/258718991
-private val GROUP_BY_GROUP_ID_TRANSFORM:
-  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
-  { contents ->
-    val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
-    for (content in contents) {
-      groups.getOrPut(content.groupId) { mutableListOf() }.add(content)
-    }
-    // Put the previews which don't have group first.
-    // TODO(b/245363234)?: Consider to sort the group by name?
-    val nulls = groups.remove(null)
-    if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
-  }
-
 /** Toolbar option to select [LayoutMode.Gallery] layout. */
 internal val PREVIEW_LAYOUT_GALLERY_OPTION =
   SurfaceLayoutManagerOption(

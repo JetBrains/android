@@ -35,7 +35,7 @@ class TestPositionableContent(
 
   private val dimension = Dimension(width, height)
 
-  override val groupId: String? = null
+  override val organizationGroup: String? = null
 
   override val isVisible: Boolean
     get() = true

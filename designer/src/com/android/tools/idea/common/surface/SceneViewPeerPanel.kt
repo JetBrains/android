@@ -111,8 +111,8 @@ class SceneViewPeerPanel(
 
   val positionableAdapter =
     object : PositionableContent {
-      override val groupId: String?
-        get() = this@SceneViewPeerPanel.sceneView.sceneManager.model.groupId
+      override val organizationGroup: String?
+        get() = sceneView.sceneManager.model.organizationGroup
 
       override val scale: Double
         get() = sceneView.scale

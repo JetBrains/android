@@ -33,7 +33,7 @@ internal fun Collection<PositionableContent>.sortByPosition() =
  */
 interface PositionableContent {
 
-  val groupId: String?
+  val organizationGroup: String?
 
   /** The current scale value of this [PositionableContent]. */
   @SurfaceScale val scale: Double
