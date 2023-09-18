@@ -16,10 +16,28 @@
 package com.android.tools.idea.execution.common;
 
 import com.android.testutils.JarTestSuiteRunner;
+import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.icons.CoreIconManager;
+import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 public class AndroidExecutionCommonTestSuite extends IdeaTestSuiteBase {
+  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
+  static {
+    unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");
+    linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest");
+    linkIntoOfflineMavenRepo("tools/adt/idea/execution/common/test_deps.manifest");
+    linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
+    // Avoid depending on the execution order and initializing icons with dummies.
+    try {
+      IconManager.Companion.activate(new CoreIconManager());
+    }
+    catch (Throwable e) {
+      e.printStackTrace();
+    }
+  }
 }

@@ -17,7 +17,9 @@ package com.android.tools.idea.execution.common.applychanges;
 
 import static icons.StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES;
 
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
+import com.android.tools.idea.execution.common.AndroidSessionInfo;
 import com.android.tools.idea.execution.common.UtilsKt;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.ExecutionTargetManager;
@@ -32,7 +34,11 @@ import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.swing.KeyStroke;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,19 +79,22 @@ public class ApplyChangesAction extends BaseAction {
       return;
     }
 
-    // Disable "Apply Changes" for any kind of test project.
-    RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
     AndroidExecutionTarget selectedExecutionTarget = (AndroidExecutionTarget)ExecutionTargetManager.getActiveTarget(project);
 
-    final List<ProcessHandler> runningProcessHandlers =
-      UtilsKt.getProcessHandlersForDevices(runConfig, project, selectedExecutionTarget.getRunningDevices().stream().toList());
+    final List<IDevice> devices = selectedExecutionTarget.getRunningDevices().stream().toList();
 
-    final List<Executor> executors = getRunningExecutorsOfDifferentType(project, runningProcessHandlers);
+    final List<ProcessHandler> debugProcessHandlers =
+      Arrays.stream(XDebuggerManager.getInstance(project).getDebugSessions()).map(x -> x.getDebugProcess().getProcessHandler()).toList();
 
-    // otherwise should be disabled by [BaseAction].
-    assert executors.size() <= 1;
+    final boolean debuggerConnected = debugProcessHandlers.stream().anyMatch(processHandler -> {
+      final AndroidSessionInfo sessionInfo = AndroidSessionInfo.Companion.from(processHandler);
+      if (sessionInfo == null) {
+        return false;
+      }
+      return devices.stream().anyMatch(device -> sessionInfo.getDevices().contains(device));
+    });
 
-    if (!executors.isEmpty() && executors.get(0) == DefaultDebugExecutor.getDebugExecutorInstance()) {
+    if (debuggerConnected) {
       disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "debug execution",
                                                             "it is currently not allowed during debugging"));
     }
