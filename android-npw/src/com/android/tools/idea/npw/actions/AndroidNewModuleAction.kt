@@ -21,6 +21,7 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.showDefaultWizard
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
@@ -32,6 +33,8 @@ open class AndroidNewModuleAction : AnAction, DumbAware {
   constructor() : super(message("android.wizard.module.new.module.menu"), message("android.wizard.module.new.module.menu.description"), null)
 
   constructor(text: String?, description: String?, icon: Icon?) : super(text, description, icon) {}
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.project?.let {
