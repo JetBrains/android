@@ -31,6 +31,7 @@ import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -63,6 +64,12 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
   public AndroidOpenFileAction(@NotNull String text) {
     super(text);
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
