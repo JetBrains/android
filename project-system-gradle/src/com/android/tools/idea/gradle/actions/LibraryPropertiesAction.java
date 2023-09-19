@@ -19,6 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.library.LibraryPropertiesDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -36,6 +37,12 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 public class LibraryPropertiesAction extends AnAction {
   public LibraryPropertiesAction() {
     super("Library Properties...", null, AllIcons.Actions.Properties);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

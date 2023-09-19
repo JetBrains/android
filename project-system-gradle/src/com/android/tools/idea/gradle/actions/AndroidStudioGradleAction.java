@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.intellij.ide.impl.TrustedProjects;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -35,6 +36,12 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   protected AndroidStudioGradleAction(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
     super(text, description, icon);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
