@@ -17,7 +17,6 @@ package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -36,16 +35,9 @@ class UnusedResourcesHandler : RefactoringActionHandler {
     val filter = UnusedResourcesProcessor.FileFilter.from(elements.toList())
     invokeWithDialog(project, filter)
   }
+}
 
-  companion object {
-    fun invokeWithDialog(project: Project, filter: UnusedResourcesProcessor.Filter) {
-      val processor = UnusedResourcesProcessor(project, filter)
-
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        processor.run()
-      } else {
-        UnusedResourcesDialog(project, processor).show()
-      }
-    }
-  }
+private fun invokeWithDialog(project: Project, filter: UnusedResourcesProcessor.Filter) {
+  val processor = UnusedResourcesProcessor(project, filter)
+  UnusedResourcesDialog(project, processor).show()
 }
