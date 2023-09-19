@@ -5,6 +5,7 @@ import com.android.ddmlib.Client;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -32,6 +33,12 @@ public class AndroidConnectDebuggerAction extends AnAction {
       AppExecutorUtil.getAppExecutorService().execute(
         () -> AndroidConnectDebugger.closeOldSessionAndRun(project, dialog.getSelectedAndroidDebugger(), client, dialog.getRunConfiguration()));
     }
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
