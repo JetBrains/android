@@ -116,7 +116,9 @@ import kotlinx.coroutines.withContext
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
+import java.text.Collator
 import java.time.Duration
+import java.util.Arrays
 
 private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.emulator.frame.visible"
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
@@ -127,6 +129,10 @@ private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
 private val ID_KEY = Key.create<DeviceId>("device-id")
 
 private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
+
+private val COLLATOR = Collator.getInstance()
+
+private val TAB_COMPARATOR = compareBy<Content, Any?>(COLLATOR) { it.tabName ?: "" }.thenBy { ID_KEY.get(it) }
 
 /**
  * Manages contents of the Running Devices tool window. Listens to device connections and
@@ -390,7 +396,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
     for (deviceClient in deviceClients.values) {
       if (findContentBySerialNumberOfPhysicalDevice(deviceClient.deviceSerialNumber) == null) {
-        addPanel(DeviceToolWindowPanel(project, deviceClient))
+        addPanel(DeviceToolWindowPanel(toolWindow.disposable, project, deviceClient))
       }
     }
 
@@ -419,7 +425,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       // Restore content of visible panels.
       for (content in contentManager.selectedContents) {
         val panel = content.component as? RunningDevicePanel ?: continue
-        panel.createContent(deviceFrameVisible, savedUiState[panel.id])
+        if (!panel.hasContent) {
+          panel.createContent(deviceFrameVisible, savedUiState[panel.id])
+        }
       }
     }
 
@@ -460,7 +468,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
-    addPanel(EmulatorToolWindowPanel(project, emulator))
+    addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator))
   }
 
   private fun addPanel(panel: RunningDevicePanel) {
@@ -480,13 +488,29 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     panel.zoomToolbarVisible = zoomToolbarIsVisible
 
-    if (findContentByDeviceId(panel.id) != null) {
-      thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
-                         TraceUtils.getCurrentStack() +
-                         "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      if (findContentByDeviceId(panel.id) != null) {
+        thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
+                           TraceUtils.getCurrentStack() +
+                           "Panel creation history:\n${FlightRecorder.getAndClear().joinToString("\n")}")
+        return
+      }
+
+      // Add panel to the end.
+      contentManager.addContent(content)
+    }
+    else {
+      val index = Arrays.binarySearch(contentManager.contents, content, TAB_COMPARATOR).inv()
+      if (index < 0) {
+        thisLogger().error("An attempt to add a duplicate panel ${TraceUtils.getSimpleId(panel)} ${panel.title}\n" +
+                           FlightRecorder.getAndClear())
+        return
+      }
+
+      // Insert panel in alphabetical order of the title.
+      contentManager.addContent(content, index)
     }
 
-    contentManager.addContent(content)
     FlightRecorder.log { "${TraceUtils.getSimpleId(this)}: added panel ${TraceUtils.getSimpleId(content)} ${content.displayName}\n" +
                          TraceUtils.getCurrentStack() }
 
@@ -737,7 +761,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       if (contentShown) {
         updateMirroringHandlesFlow()
         deviceClient.establishAgentConnectionWithoutVideoStreamAsync() // Start the agent and connect to it proactively.
-        val panel = DeviceToolWindowPanel(project, deviceClient)
+        val panel = DeviceToolWindowPanel(toolWindow.disposable, project, deviceClient)
         addPanel(panel)
         if (activationLevel >= ActivationLevel.SELECT_TAB) {
           selectContent(panel, requestFocus = activationLevel >= ActivationLevel.ACTIVATE_TAB)

@@ -813,13 +813,7 @@ class EmulatorToolWindowPanelTest {
     val emulators = catalog.updateNow().get()
     assertThat(emulators).hasSize(1)
     val emulatorController = emulators.first()
-    val panel = EmulatorToolWindowPanel(projectRule.project, emulatorController)
-    Disposer.register(testRootDisposable) {
-      if (panel.primaryEmulatorView != null) {
-        panel.destroyContent()
-      }
-      emulator.stop()
-    }
+    val panel = EmulatorToolWindowPanel(testRootDisposable, projectRule.project, emulatorController)
     panel.zoomToolbarVisible = true
     waitForCondition(5, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
     return panel

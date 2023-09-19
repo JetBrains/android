@@ -54,6 +54,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -78,6 +79,7 @@ private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
  * Provides view of one AVD in the Running Devices tool window.
  */
 internal class EmulatorToolWindowPanel(
+  disposableParent: Disposable,
   private val project: Project,
   val emulator: EmulatorController
 ) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),
@@ -147,6 +149,10 @@ internal class EmulatorToolWindowPanel(
   @get:TestOnly
   var lastUiState: EmulatorUiState? = null
 
+  init {
+    Disposer.register(disposableParent, this)
+  }
+
   override fun setDeviceFrameVisible(visible: Boolean) {
     primaryDisplayView?.deviceFrameVisible = visible
   }
@@ -166,8 +172,14 @@ internal class EmulatorToolWindowPanel(
    * Populates the emulator panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
+    if (contentDisposable != null) {
+      thisLogger().error(IllegalStateException("${title}: content already exists"))
+      return
+    }
+
     lastUiState = null
     val disposable = Disposer.newDisposable()
+    Disposer.register(this, disposable)
     contentDisposable = disposable
 
     clipboardSynchronizer = EmulatorClipboardSynchronizer(emulator, disposable)

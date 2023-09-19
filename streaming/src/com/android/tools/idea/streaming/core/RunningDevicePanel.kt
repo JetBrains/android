@@ -21,10 +21,12 @@ import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.ui.customization.CustomActionsSchema
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -44,7 +46,7 @@ abstract class RunningDevicePanel(
   val id: DeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String,
-) : BorderLayoutPanel(), DataProvider {
+) : BorderLayoutPanel(), DataProvider, Disposable {
 
   /** Plain text name of the device. */
   internal abstract val title: String
@@ -116,6 +118,10 @@ abstract class RunningDevicePanel(
       DEVICE_ID_KEY.name -> id
       else -> null
     }
+  }
+
+  override fun dispose() {
+    destroyContent()
   }
 
   @Suppress("SameParameterValue")

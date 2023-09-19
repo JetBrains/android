@@ -40,11 +40,8 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun init(toolWindow: ToolWindow) {
     if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
       toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
-      StreamingToolWindowManager(toolWindow)
     }
-    else {
-      StreamingToolWindowManagerNoDnd(toolWindow)
-    }
+    StreamingToolWindowManager(toolWindow)
   }
 
   private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {

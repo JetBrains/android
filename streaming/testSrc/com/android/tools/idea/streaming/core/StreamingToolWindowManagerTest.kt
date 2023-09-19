@@ -91,6 +91,7 @@ import com.intellij.util.ConcurrencyUtil.awaitQuiescence
 import com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -299,7 +300,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testZoomStatePreservation() {
-
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 

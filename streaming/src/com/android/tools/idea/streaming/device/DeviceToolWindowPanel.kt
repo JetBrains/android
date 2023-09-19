@@ -28,8 +28,10 @@ import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListene
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.utils.TraceUtils
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
@@ -41,6 +43,7 @@ import javax.swing.JComponent
  * Provides view of one physical device in the Running Devices tool window.
  */
 internal class DeviceToolWindowPanel(
+  disposableParent: Disposable,
   private val project: Project,
   val deviceClient: DeviceClient,
 ) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
@@ -97,6 +100,10 @@ internal class DeviceToolWindowPanel(
     }
   }
 
+  init {
+    Disposer.register(disposableParent, this)
+  }
+
   override fun setDeviceFrameVisible(visible: Boolean) {
     // Showing device frame is not supported for physical devices.
   }
@@ -105,7 +112,13 @@ internal class DeviceToolWindowPanel(
    * Populates the device panel with content.
    */
   override fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState?) {
+    if (contentDisposable != null) {
+      thisLogger().error(IllegalStateException("${title}: content already exists"))
+      return
+    }
+
     val disposable = Disposer.newDisposable()
+    Disposer.register(this, disposable)
     contentDisposable = disposable
 
     val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
