@@ -27,6 +27,7 @@ import com.intellij.diff.util.DiffUserDataKeys
 import com.intellij.diff.util.DiffUserDataKeysEx
 import com.intellij.diff.util.Side
 import com.intellij.openapi.ListSelection
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.Pair
@@ -96,17 +97,29 @@ class InsightsDiffRequestChain(val context: ContextDataForDiff, val project: Pro
       return ListSelection.create(chained, null)
     } catch (exception: Exception) {
       // Rethrow, then the exception message would be printed out in the diff view.
-      throw DiffRequestProducerException(exception)
+      throw DiffRequestProducerException(exception.message, exception.cause)
     }
   }
 
   private val changes: List<Change>
     get() {
-      val vcsContext =
+      val vcsContent =
         VcsForAppInsights.getExtensionByKey(context.vcsKey)
           ?.createVcsContent(context.filePath, context.revision, project)
 
-      return createChangesWithCurrentContentForFile(context.filePath, vcsContext)
+      // We try to retrieve content beforehand to have a chance to make the error message more
+      // user-friendly if there's errors. If no retrieving errors, still it doesn't hurt as
+      // there's a cache layer under the hood and our effort is not wasted.
+      try {
+        vcsContent?.content
+      } catch (exception: Exception) {
+        val message = "Source revision is not available. Update your working tree and try again."
+
+        thisLogger().warn(message + "(original message: ${exception.message})")
+        throw DiffRequestProducerException(message, exception.cause)
+      }
+
+      return createChangesWithCurrentContentForFile(context.filePath, vcsContent)
     }
 }
 
