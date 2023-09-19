@@ -18,6 +18,7 @@ package com.android.tools.idea.actions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -27,6 +28,12 @@ public class MeetAndroidStudioHelpAction extends AnAction {
 
   public MeetAndroidStudioHelpAction() {
     super("Android Studio Help", "Help", AllIcons.Actions.Help);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
