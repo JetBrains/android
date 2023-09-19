@@ -46,7 +46,10 @@ public class UnusedResourcesGradleTest {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_GROOVY);
     openPreparedTestProject(preparedProject, project -> {
       assertThat(getTextForFile(project, "app/build.gradle")).contains("resValue");
-      UnusedResourcesHandler.invokeSilent(project, null, null);
+
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null);
+      processor.setIncludeIds(true);
+      processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -64,7 +67,9 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertThat(getTextForFile(project, "app/build.gradle")).contains("resValue");
 
-      UnusedResourcesHandler.invokeSilent(project, null, null);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null);
+      processor.setIncludeIds(true);
+      processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -89,7 +94,10 @@ public class UnusedResourcesGradleTest {
       Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
       assertThat(app).isNotNull();
 
-      UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(app), null);
+      UnusedResourcesProcessor.ModuleFilter filter = new UnusedResourcesProcessor.ModuleFilter(ImmutableSet.of(app));
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
+      processor.setIncludeIds(true);
+      processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -121,7 +129,10 @@ public class UnusedResourcesGradleTest {
       assertThat(holderModule).isNotNull();
       assertThat(holderModule).isNotSameAs(app);
 
-      UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(holderModule), null);
+      UnusedResourcesProcessor.ModuleFilter filter = new UnusedResourcesProcessor.ModuleFilter(ImmutableSet.of(holderModule));
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
+      processor.setIncludeIds(true);
+      processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -152,7 +163,10 @@ public class UnusedResourcesGradleTest {
         moduleManager.findModuleByName("project.app.mylibrary.main"); // module name derived from test name + gradle name
       assertThat(app).isNotNull();
 
-      UnusedResourcesHandler.invokeSilent(project, ImmutableSet.of(app), null);
+      UnusedResourcesProcessor.ModuleFilter filter = new UnusedResourcesProcessor.ModuleFilter(ImmutableSet.of(app));
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
+      processor.setIncludeIds(true);
+      processor.run();
 
       // Make sure we have NOT deleted the unused resources in app
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
@@ -181,7 +195,9 @@ public class UnusedResourcesGradleTest {
     openPreparedTestProject(preparedProject, project -> {
       assertThat(getTextForFile(project, "app/build.gradle.kts")).contains("resValue");
 
-      UnusedResourcesHandler.invokeSilent(project, null, null);
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, null);
+      processor.setIncludeIds(true);
+      processor.run();
 
       assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +

@@ -23,6 +23,9 @@ import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
 import com.android.tools.idea.lint.common.LintProblemData
+import com.android.tools.idea.projectsystem.getAllLinkedModules
+import com.android.tools.idea.projectsystem.isHolderModule
+import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.lint.checks.UnusedResourceDetector
 import com.android.tools.lint.detector.api.Issue
@@ -31,7 +34,9 @@ import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -52,10 +57,10 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
-import java.io.File
 import org.jetbrains.kotlin.ir.types.impl.IrErrorClassImpl.startOffset
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
+import java.io.File
 
 class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
   BaseRefactoringProcessor(project, null) {
@@ -67,6 +72,25 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
   private object AllFilter : Filter {
     override fun shouldProcessFile(psiFile: PsiFile) = true
+    override fun shouldProcessResource(resource: String?) = true
+  }
+
+  class ModuleFilter(modules: Set<Module>) : Filter {
+    private val modulesWithLinked =
+      modules.flatMap { m ->
+        if (m.isLinkedAndroidModule() && m.isHolderModule()) m.getAllLinkedModules()
+        else listOf(m)
+      }
+      .toSet()
+
+    override fun shouldProcessFile(psiFile: PsiFile): Boolean {
+      // An empty module list implies that the entire project was selected.
+      if (modulesWithLinked.isEmpty()) return true
+
+      val module = ModuleUtilCore.findModuleForFile(psiFile)
+      return module == null || module in modulesWithLinked
+    }
+
     override fun shouldProcessResource(resource: String?) = true
   }
 

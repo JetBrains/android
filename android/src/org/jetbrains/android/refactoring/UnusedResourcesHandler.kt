@@ -16,9 +16,6 @@
 package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.projectsystem.getAllLinkedModules
-import com.android.tools.idea.projectsystem.isHolderModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -56,8 +53,8 @@ class UnusedResourcesHandler : RefactoringActionHandler {
   }
 
   companion object {
-    fun invokeWithDialog(project: Project, modules: Collection<Module>) {
-      val processor = UnusedResourcesProcessor(project, getFilter(modules))
+    fun invokeWithDialog(project: Project, modules: Set<Module>) {
+      val processor = UnusedResourcesProcessor(project, UnusedResourcesProcessor.ModuleFilter(modules))
 
       if (ApplicationManager.getApplication().isUnitTestMode) {
         processor.run()
@@ -65,46 +62,5 @@ class UnusedResourcesHandler : RefactoringActionHandler {
         UnusedResourcesDialog(project, processor).show()
       }
     }
-
-    @JvmStatic
-    fun invokeSilent(project: Project, modules: Collection<Module>?, filter: String?) {
-      val processor = UnusedResourcesProcessor(project, getFilter(modules, filter))
-      processor.includeIds = true
-
-      processor.run()
-    }
-
-    private fun getFilter(
-      modules: Collection<Module>?,
-      filter: String? = null
-    ): UnusedResourcesProcessor.Filter? {
-      if (modules.isNullOrEmpty()) {
-        return null
-      }
-
-      // Some of the given modules may be holder modules for the linked module group. In that
-      // case, all the linked modules should be listed so that resources can be removed from all
-      // of them.
-      val modulesWithLinked =
-        modules
-          .flatMap { m ->
-            if (m.isLinkedAndroidModule() && m.isHolderModule()) m.getAllLinkedModules()
-            else listOf(m)
-          }
-          .toSet()
-      return ResourcesProcessorFilter(modulesWithLinked, filter)
-    }
-  }
-
-  private class ResourcesProcessorFilter(
-    private val modules: Set<Module>,
-    private val filter: String?
-  ) : UnusedResourcesProcessor.Filter {
-    override fun shouldProcessFile(psiFile: PsiFile): Boolean {
-      val module = ModuleUtilCore.findModuleForFile(psiFile)
-      return module == null || module in modules
-    }
-
-    override fun shouldProcessResource(resource: String?) = filter == null || filter == resource
   }
 }
