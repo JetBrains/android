@@ -27,7 +27,15 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.util.UserDataHolder;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.RunsInEdt;
+import java.nio.file.Paths;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -90,46 +98,10 @@ public class UnusedResourcesGradleTest {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
     openPreparedTestProject(preparedProject, project -> {
 
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
-      assertThat(app).isNotNull();
+      VirtualFile moduleDir = VfsUtil.findFile(Paths.get(project.getBasePath(), "app/src/main"), false);
+      PsiDirectory modulePsiDir = PsiManager.getInstance(project).findDirectory(moduleDir);
 
-      UnusedResourcesProcessor.ModuleFilter filter = new UnusedResourcesProcessor.ModuleFilter(ImmutableSet.of(app));
-      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
-      processor.setIncludeIds(true);
-      processor.run();
-
-      assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<resources>\n" +
-        "    <string name=\"app_name\">Hello World</string>\n" +
-        "    <string name=\"used_from_test\">Referenced from test</string>\n" +
-        "</resources>\n");
-
-      // Make sure it *didn't* delete resources from the library since it's not included in the module list!
-      assertThat(getTextForFile(project, "app/mylibrary/src/main/res/values/values.xml")).isEqualTo(
-        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-        "<resources>\n" +
-        "    <string name=\"unusedlib\">Unused string in library</string>\n" +
-        "    <string name=\"usedlib\">String used from app</string>\n" +
-        "</resources>\n");
-    });
-  }
-
-  @Test
-  public void testSpecificHolderModule() {
-    // Same as testSpecificModule, except that the test runs against the linked holder module.
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
-    openPreparedTestProject(preparedProject, project -> {
-
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      Module app = moduleManager.findModuleByName("project.app.main"); // module name derived from test name + gradle name
-      assertThat(app).isNotNull();
-      Module holderModule = ModuleSystemUtil.getHolderModule(app);
-      assertThat(holderModule).isNotNull();
-      assertThat(holderModule).isNotSameAs(app);
-
-      UnusedResourcesProcessor.ModuleFilter filter = new UnusedResourcesProcessor.ModuleFilter(ImmutableSet.of(holderModule));
+      UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(modulePsiDir));
       UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
       processor.setIncludeIds(true);
       processor.run();
@@ -158,12 +130,10 @@ public class UnusedResourcesGradleTest {
     final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
     openPreparedTestProject(preparedProject, project -> {
 
-      ModuleManager moduleManager = ModuleManager.getInstance(project);
-      Module app =
-        moduleManager.findModuleByName("project.app.mylibrary.main"); // module name derived from test name + gradle name
-      assertThat(app).isNotNull();
+      VirtualFile moduleDir = VfsUtil.findFile(Paths.get(project.getBasePath(), "app/mylibrary/src/main"), false);
+      PsiDirectory modulePsiDir = PsiManager.getInstance(project).findDirectory(moduleDir);
 
-      UnusedResourcesProcessor.ModuleFilter filter = new UnusedResourcesProcessor.ModuleFilter(ImmutableSet.of(app));
+      UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(modulePsiDir));
       UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
       processor.setIncludeIds(true);
       processor.run();
@@ -206,6 +176,68 @@ public class UnusedResourcesGradleTest {
         "</resources>\n");
 
       assertThat(getTextForFile(project, "app/build.gradle.kts")).doesNotContain("resValue");
+    });
+  }
+
+  @Test
+  public void testSingleFile() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
+    openPreparedTestProject(preparedProject, project -> {
+
+      VirtualFile valuesFile = VfsUtil.findFile(Paths.get(project.getBasePath(), "app/mylibrary/src/main/res/values/values.xml"), false);
+      PsiFile valuesPsiFile = PsiManager.getInstance(project).findFile(valuesFile);
+
+      UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(valuesPsiFile));
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
+      processor.setIncludeIds(true);
+      processor.run();
+
+      // Make sure that the main module's file was *not* modified.
+      assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"app_name\">Hello World</string>\n" +
+        "    <string name=\"newstring\">@string/usedlib</string>\n" +
+        "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+        "</resources>\n");
+
+      // Unused string should be deleted from the library file.
+      assertThat(getTextForFile(project, "app/mylibrary/src/main/res/values/values.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"usedlib\">String used from app</string>\n" +
+        "</resources>\n");
+    });
+  }
+
+  @Test
+  public void testMultipleFiles() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.UNUSED_RESOURCES_MULTI_MODULE);
+    openPreparedTestProject(preparedProject, project -> {
+
+      VirtualFile stringsFile = VfsUtil.findFile(Paths.get(project.getBasePath(), "app/src/main/res/values/strings.xml"), false);
+      PsiFile stringsPsiFile = PsiManager.getInstance(project).findFile(stringsFile);
+
+      VirtualFile valuesFile = VfsUtil.findFile(Paths.get(project.getBasePath(), "app/mylibrary/src/main/res/values/values.xml"), false);
+      PsiFile valuesPsiFile = PsiManager.getInstance(project).findFile(valuesFile);
+
+      UnusedResourcesProcessor.FileFilter filter = UnusedResourcesProcessor.FileFilter.from(ImmutableSet.of(stringsPsiFile, valuesPsiFile));
+      UnusedResourcesProcessor processor = new UnusedResourcesProcessor(project, filter);
+      processor.setIncludeIds(true);
+      processor.run();
+
+      assertThat(getTextForFile(project, "app/src/main/res/values/strings.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"app_name\">Hello World</string>\n" +
+        "    <string name=\"used_from_test\">Referenced from test</string>\n" +
+        "</resources>\n");
+
+      assertThat(getTextForFile(project, "app/mylibrary/src/main/res/values/values.xml")).isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<resources>\n" +
+        "    <string name=\"usedlib\">String used from app</string>\n" +
+        "</resources>\n");
     });
   }
 }

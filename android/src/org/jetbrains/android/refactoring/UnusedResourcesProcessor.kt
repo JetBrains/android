@@ -23,9 +23,6 @@ import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
 import com.android.tools.idea.lint.common.LintProblemData
-import com.android.tools.idea.projectsystem.getAllLinkedModules
-import com.android.tools.idea.projectsystem.isHolderModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.lint.checks.UnusedResourceDetector
 import com.android.tools.lint.detector.api.Issue
@@ -34,14 +31,13 @@ import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -75,23 +71,35 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
     override fun shouldProcessResource(resource: String?) = true
   }
 
-  class ModuleFilter(modules: Set<Module>) : Filter {
-    private val modulesWithLinked =
-      modules.flatMap { m ->
-        if (m.isLinkedAndroidModule() && m.isHolderModule()) m.getAllLinkedModules()
-        else listOf(m)
-      }
-      .toSet()
+  class FileFilter private constructor(
+    private val files: Set<PsiFile>,
+    private val directories: Set<PsiDirectory>) : Filter {
 
     override fun shouldProcessFile(psiFile: PsiFile): Boolean {
-      // An empty module list implies that the entire project was selected.
-      if (modulesWithLinked.isEmpty()) return true
+      if (psiFile in files) return true
 
-      val module = ModuleUtilCore.findModuleForFile(psiFile)
-      return module == null || module in modulesWithLinked
+      if (directories.isEmpty()) return false
+
+      var dir = psiFile.containingDirectory
+      while (dir != null) {
+        if (dir in directories) return true
+        dir = dir.parentDirectory
+      }
+
+      return false
     }
 
     override fun shouldProcessResource(resource: String?) = true
+
+    companion object {
+      @JvmStatic
+      fun from(elements: Collection<PsiElement>) : FileFilter {
+        val files = elements.mapNotNull { it.containingFile }.toSet()
+        val dirs = elements.mapNotNull { it as? PsiDirectory }.toSet()
+
+        return FileFilter(files, dirs)
+      }
+    }
   }
 
   private var elements = PsiElement.EMPTY_ARRAY

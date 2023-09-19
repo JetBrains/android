@@ -17,44 +17,29 @@ package org.jetbrains.android.refactoring
 
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
-import org.jetbrains.android.facet.AndroidFacet
 
 class UnusedResourcesHandler : RefactoringActionHandler {
   @UiThread
-  override fun invoke(project: Project, editor: Editor, file: PsiFile, dataContext: DataContext) =
-    invoke(project, arrayOf(file), dataContext)
+  override fun invoke(project: Project, editor: Editor, file: PsiFile, dataContext: DataContext) {
+    val filter = UnusedResourcesProcessor.FileFilter.from(setOf(file))
+    invokeWithDialog(project, filter)
+  }
 
   @UiThread
   override fun invoke(project: Project, elements: Array<PsiElement>, dataContext: DataContext) {
-    val moduleSet: MutableSet<Module> =
-      LangDataKeys.MODULE_CONTEXT_ARRAY.getData(dataContext)?.toMutableSet()
-        ?: PlatformCoreDataKeys.MODULE.getData(dataContext)?.let { mutableSetOf(it) }
-          ?: mutableSetOf()
-
-    moduleSet.addAll(elements.mapNotNull { ModuleUtilCore.findModuleForPsiElement(it) })
-
-    // If you've only selected the root project, which isn't an Android module,
-    // analyze the whole project.
-    if (moduleSet.size == 1 && AndroidFacet.getInstance(moduleSet.single()) == null) {
-      moduleSet.clear()
-    }
-
-    invokeWithDialog(project, moduleSet)
+    val filter = UnusedResourcesProcessor.FileFilter.from(elements.toList())
+    invokeWithDialog(project, filter)
   }
 
   companion object {
-    fun invokeWithDialog(project: Project, modules: Set<Module>) {
-      val processor = UnusedResourcesProcessor(project, UnusedResourcesProcessor.ModuleFilter(modules))
+    fun invokeWithDialog(project: Project, filter: UnusedResourcesProcessor.Filter) {
+      val processor = UnusedResourcesProcessor(project, filter)
 
       if (ApplicationManager.getApplication().isUnitTestMode) {
         processor.run()
