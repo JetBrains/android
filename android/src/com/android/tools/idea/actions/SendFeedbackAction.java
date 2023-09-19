@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
@@ -141,6 +142,11 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     if (e.getPresentation().isEnabled()) {
       e.getPresentation().setEnabled(SystemInfo.isMac || SystemInfo.isLinux || SystemInfo.isWindows);
     }
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   private static String getNewFeedbackUrl() {
