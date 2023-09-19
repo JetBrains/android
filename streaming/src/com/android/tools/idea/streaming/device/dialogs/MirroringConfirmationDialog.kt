@@ -69,7 +69,7 @@ internal class MirroringConfirmationDialog(val title: String) {
           CloseDialogAction(dialogPanel, "Acknowledge", ACCEPT_EXIT_CODE, isDefault = true),
           CloseDialogAction(dialogPanel, "Cancel", REJECT_EXIT_CODE)
         )
-      })
+      }).apply { pack() }
   }
 
   companion object {
