@@ -13,5 +13,7 @@
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
     <orderEntry type="module" module-name="android.sdktools.resource-repository" />
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
   </component>
 </module>

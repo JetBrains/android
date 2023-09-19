@@ -19,5 +19,7 @@
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-api-base" />
     <orderEntry type="library" name="kxml2" level="project" />
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
+    <orderEntry type="module" module-name="android.sdktools.base.apkparser.analyzer-base" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
   </component>
 </module>

@@ -15,6 +15,8 @@ iml_module(
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
+        "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
     ],
 )
 
@@ -30,6 +32,8 @@ kotlin_library(
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
+        "//tools/base/apkparser:tools.binary-resources",
+        "//tools/base/apkparser/analyzer:tools.analyzer",
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/resource-repository:tools.resource-repository",
