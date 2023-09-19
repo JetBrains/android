@@ -111,6 +111,7 @@ private:
   int socket_fd_;  // Owned.
   Base128InputStream input_stream_;
   Base128OutputStream output_stream_;
+  volatile bool stopped = false;
   PointerHelper* pointer_helper_;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]

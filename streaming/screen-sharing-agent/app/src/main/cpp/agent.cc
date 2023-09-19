@@ -231,12 +231,12 @@ void Agent::RestoreEnvironment() {
 
 void Agent::Shutdown() {
   if (!shutting_down_.exchange(true)) {
-    if (controller_ != nullptr) {
-      controller_->Stop();
-    }
-    close(control_socket_fd_);
     for (auto& it : display_streamers_) {
       it.second.Stop();
+    }
+    DisplayManager::UnregisterAllDisplayListeners(Jvm::GetJni());
+    if (controller_ != nullptr) {
+      controller_->Stop();
     }
     close(video_socket_fd_);
     RestoreEnvironment();

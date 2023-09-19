@@ -116,6 +116,8 @@ Controller::Controller(int socket_fd)
 
 Controller::~Controller() {
   Stop();
+  input_stream_.Close();
+  output_stream_.Close();
   delete pointer_helper_;
   delete key_character_map_;
 }
@@ -124,8 +126,7 @@ void Controller::Stop() {
   if (device_supports_multiple_states_) {
     DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
   }
-  input_stream_.Close();
-  output_stream_.Close();
+  stopped = true;
 }
 
 void Controller::Initialize() {
@@ -179,15 +180,17 @@ void Controller::Run() {
 
   try {
     for (;;) {
-      if (max_synced_clipboard_length_ != 0) {
-        SendClipboardChangedNotification();
-      }
+      if (!stopped) {
+        if (max_synced_clipboard_length_ != 0) {
+          SendClipboardChangedNotification();
+        }
 
-      if (device_supports_multiple_states_) {
-        SendDeviceStateNotification();
-      }
+        if (device_supports_multiple_states_) {
+          SendDeviceStateNotification();
+        }
 
-      SendPendingDisplayEvents();
+        SendPendingDisplayEvents();
+      }
 
       SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);  // Set a receive timeout to avoid blocking for a long time.
       int32_t message_type;
@@ -198,7 +201,9 @@ void Controller::Run() {
       }
       SetReceiveTimeoutMillis(0, socket_fd_);  // Remove receive timeout for reading the rest of the message.
       unique_ptr<ControlMessage> message = ControlMessage::Deserialize(message_type, input_stream_);
-      ProcessMessage(*message);
+      if (!stopped) {
+        ProcessMessage(*message);
+      }
     }
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");

@@ -32,17 +32,6 @@ constexpr int BATTERY_PLUGGED_AC = 1;
 constexpr int BATTERY_PLUGGED_USB = 2;
 constexpr int BATTERY_PLUGGED_WIRELESS = 4;
 
-// Names an location of the screen sharing agent's files.
-#define SCREEN_SHARING_AGENT_JAR_NAME "screen-sharing-agent.jar"
-#define SCREEN_SHARING_AGENT_SO_NAME "libscreen-sharing-agent.so"
-#define DEVICE_PATH_BASE "/data/local/tmp/.studio"
-
-// Removes files of the screen sharing agent from the persistent storage.
-void RemoveAgentFiles() {
-  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_JAR_NAME);
-  remove(DEVICE_PATH_BASE "/" SCREEN_SHARING_AGENT_SO_NAME);
-}
-
 }  // namespace
 
 SessionEnvironment::SessionEnvironment(bool turn_off_display)
@@ -64,8 +53,6 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
       Log::W("Unable to get display token to turn off display");
     }
   }
-
-  RemoveAgentFiles();
 }
 
 SessionEnvironment::~SessionEnvironment() {

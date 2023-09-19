@@ -127,10 +127,13 @@ void DisplayManager::RegisterDisplayListener(Jni jni, DisplayManager::DisplayLis
 }
 
 void DisplayManager::UnregisterDisplayListener(Jni jni, DisplayManager::DisplayListener* listener) {
-  InitializeStatics(jni);
-  if (display_listener_dispatcher_ == nullptr) {
-    return;
+  {
+    scoped_lock lock(static_initialization_mutex);
+    if (display_listener_dispatcher_ == nullptr) {
+      return;
+    }
   }
+
   for (;;) {
     auto old_listeners = display_listeners_.load();
     auto new_listeners = new vector<DisplayListener*>(*old_listeners);
@@ -138,14 +141,33 @@ void DisplayManager::UnregisterDisplayListener(Jni jni, DisplayManager::DisplayL
     if (pos != new_listeners->end()) {
       new_listeners->erase(pos);
     }
-    if (new_listeners->empty()) {
-      display_listener_dispatcher_->Stop();
-    }
     if (display_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
+      if (new_listeners->empty()) {
+        display_listener_dispatcher_->Stop();
+      }
       delete old_listeners;
       break;
     }
     delete new_listeners;
+  }
+}
+
+void DisplayManager::UnregisterAllDisplayListeners(Jni jni) {
+  {
+    scoped_lock lock(static_initialization_mutex);
+    if (display_listener_dispatcher_ == nullptr) {
+      return;
+    }
+  }
+
+  auto empty_listeners = new vector<DisplayListener*>();
+  for (;;) {
+    auto old_listeners = display_listeners_.load();
+    if (display_listeners_.compare_exchange_strong(old_listeners, empty_listeners)) {
+      display_listener_dispatcher_->Stop();
+      delete old_listeners;
+      break;
+    }
   }
 }
 
