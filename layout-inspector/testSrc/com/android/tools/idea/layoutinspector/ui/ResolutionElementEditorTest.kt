@@ -32,18 +32,16 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.ui.laf.darcula.DarculaLaf
+import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBColor
@@ -62,6 +60,8 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
+import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.testing.ui.flatten
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
@@ -237,7 +237,7 @@ class IntelliJLafRule : ExternalResource() {
     theme = MetalLookAndFeel.getCurrentTheme()
     // Clear out anything set explicitly by previous tests
     UIManager.getDefaults().clear()
-    UIManager.setLookAndFeel(DarculaLaf())
+    UIManager.setLookAndFeel(IntelliJLaf())
   }
 
   override fun after() {
