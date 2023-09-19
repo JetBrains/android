@@ -263,12 +263,17 @@ class LintIdeTest : UsefulTestCase() {
   }
 
   fun testDisabledTestsEnabledOnTheFly() {
-    // If this changes test no longer applies; pick different disabled issue
-    /* b/214265385
-        assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse()
-    b/214265385 */
-    myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
-    doGlobalInspectionTest(AndroidLintStopShipInspection())
+    // Verifies that inspections are force-enabled when the IDE inspection profile mentions them.
+    val wasEnabled = CommentDetector.STOP_SHIP.isEnabledByDefault()
+    try {
+      CommentDetector.STOP_SHIP.setEnabledByDefault(false)
+      myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
+      doGlobalInspectionTest(AndroidLintStopShipInspection())
+      assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isTrue()
+    }
+    finally {
+      CommentDetector.STOP_SHIP.setEnabledByDefault(wasEnabled)
+    }
   }
 
   fun testGradleWindows() {
