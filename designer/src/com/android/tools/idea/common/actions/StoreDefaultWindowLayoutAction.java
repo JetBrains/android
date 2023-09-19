@@ -17,6 +17,7 @@ package com.android.tools.idea.common.actions;
 
 import com.android.tools.adtui.workbench.WorkBenchManager;
 import com.intellij.ide.actions.StoreDefaultLayoutAction;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -39,6 +40,12 @@ public class StoreDefaultWindowLayoutAction extends AnAction implements DumbAwar
 
     WorkBenchManager workBenchManager = WorkBenchManager.getInstance();
     workBenchManager.storeDefaultLayout();
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
