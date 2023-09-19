@@ -16,11 +16,19 @@
 package com.android.tools.idea.file.explorer.toolwindow.actions;
 
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerController;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
 public class GotoSdcardFolderAction extends DumbAwareAction {
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     DeviceExplorerController controller = DeviceExplorerController.getProjectController(e.getProject());
