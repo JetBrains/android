@@ -36,20 +36,47 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
   val lookup: LookupData = generateLookup()
 
   /**
-   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the
-   * maven.google.com artifacts containing a class or function matching the name.
+   * Given an unresolved name, returns the likely collection of
+   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
+   * containing a class or function matching the [name] and [receiverType].
    *
    * This implementation only returns results of index data from [GMavenIndexRepository].
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
-   * @param receiverType the fully-qualified name of the receiver type, if any,
-   *   [MavenClassRegistryBase.ALL_RECEIVER_TYPES] if results for any receiver type (including no
-   *   receiver) should be returned, or `null` otherwise.
+   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` for no
+   *   receiver.
    */
   override fun findLibraryData(
     name: String,
     receiverType: String?,
+    useAndroidX: Boolean,
+    completionFileType: FileType?
+  ): Collection<LibraryImportData> =
+    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
+
+  /**
+   * Given an unresolved name, returns the likely collection of
+   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
+   * containing a class or function matching the [name].
+   *
+   * This implementation only returns results of index data from [GMavenIndexRepository].
+   *
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name
+   *   (any files) or a top-level Kotlin function name, including extension functions (Kotlin files
+   *   only).
+   */
+  override fun findLibraryDataAnyReceiver(
+    name: String,
+    useAndroidX: Boolean,
+    completionFileType: FileType?
+  ): Collection<LibraryImportData> =
+    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
+
+  private fun findLibraryDataInternal(
+    name: String,
+    receiverType: String?,
+    anyReceiver: Boolean,
     useAndroidX: Boolean,
     completionFileType: FileType?
   ): Collection<LibraryImportData> {
@@ -60,11 +87,10 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
     val foundArtifacts = buildList {
-      if (receiverType == null || receiverType == ALL_RECEIVER_TYPES)
-        lookup.classNameMap[shortName]?.let { addAll(it) }
+      if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
       // Only suggest top-level Kotlin functions when completing in a Kotlin file.
       if (completionFileType == KotlinFileType.INSTANCE) {
-        if (receiverType == ALL_RECEIVER_TYPES) {
+        if (anyReceiver) {
           lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
         } else {
           val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))

@@ -63,6 +63,8 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtUserType
 import org.jetbrains.kotlin.types.error.ErrorType
 
+private const val ALL_RECEIVER_TYPES = "*"
+
 /**
  * An action which recognizes classes from key Maven artifacts and offers to add a dependency on
  * them.
@@ -482,7 +484,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
       return left.text to it
     }
 
-    return "${receiverExpression.text}.${left.text}" to MavenClassRegistryBase.ALL_RECEIVER_TYPES
+    return "${receiverExpression.text}.${left.text}" to ALL_RECEIVER_TYPES
   }
 
   private fun findLibraryData(
@@ -491,6 +493,10 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     receiverType: String?,
     completionFileType: FileType?
   ): Collection<MavenClassRegistryBase.LibraryImportData> {
+    if (receiverType == ALL_RECEIVER_TYPES) {
+      return getMavenClassRegistry()
+        .findLibraryDataAnyReceiver(text, project.isAndroidx(), completionFileType)
+    }
     return getMavenClassRegistry()
       .findLibraryData(text, receiverType, project.isAndroidx(), completionFileType)
   }

@@ -43,16 +43,31 @@ abstract class MavenClassRegistryBase {
   /**
    * Given an unresolved name, returns the likely collection of
    * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
-   * containing a class or function matching the name.
+   * containing a class or function matching the [name] and [receiverType].
    *
    * @param name simple or fully-qualified name typed by the user. May correspond to a class name
    *   (any files) or a top-level Kotlin function name (Kotlin files only).
-   * @param receiverType the fully-qualified name of the receiver type, if any, [ALL_RECEIVER_TYPES]
-   *   if results for all receiver types should be returned, or `null` otherwise.
+   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` for no
+   *   receiver.
    */
   abstract fun findLibraryData(
     name: String,
     receiverType: String?,
+    useAndroidX: Boolean,
+    completionFileType: FileType?
+  ): Collection<LibraryImportData>
+
+  /**
+   * Given an unresolved name, returns the likely collection of
+   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
+   * containing a class or function matching the [name].
+   *
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name
+   *   (any files) or a top-level Kotlin function name, including extension functions (Kotlin files
+   *   only).
+   */
+  abstract fun findLibraryDataAnyReceiver(
+    name: String,
     useAndroidX: Boolean,
     completionFileType: FileType?
   ): Collection<LibraryImportData>
@@ -92,9 +107,5 @@ abstract class MavenClassRegistryBase {
         mapOf("androidx.compose.ui:ui-tooling" to DependencyType.DEBUG_IMPLEMENTATION)
       else -> emptyMap()
     }
-  }
-
-  companion object {
-    const val ALL_RECEIVER_TYPES = "*"
   }
 }
