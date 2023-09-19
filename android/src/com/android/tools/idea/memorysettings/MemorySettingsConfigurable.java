@@ -116,14 +116,14 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
     private JBLabel myInfoLabel;
     private HyperlinkLabel myApplyRecommendationLabel;
     private JPanel myDaemonPanel;
-    private ComboBox myKotlinDaemonXmxBox;
+    private ComboBox<Integer> myKotlinDaemonXmxBox;
     private JBLabel myDaemonInfoLabel;
     private HyperlinkLabel myShowDaemonsLabel;
     private JBLabel myIdeBottomLabel;
     private JBLabel myIdeInfoLabel;
-    private Project myProject;
+    private final Project myProject;
     private int myCurrentIdeXmx;
-    private int myRecommendedIdeXmx;
+    private final int myRecommendedIdeXmx;
     private int myCurrentGradleXmx;
     private int myCurrentKotlinXmx;
     private int mySelectedIdeXmx;
@@ -175,12 +175,9 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       int machineMem = MemorySettingsUtil.getMachineMem();
       int maxXmx = getMaxXmxInMB(machineMem);
       setXmxBox(myIdeXmxBox, myCurrentIdeXmx, myRecommendedIdeXmx, DEFAULT_IDE_XMX, maxXmx, SIZE_INCREMENT,
-                new ItemListener() {
-                  @Override
-                  public void itemStateChanged(ItemEvent event) {
-                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                      mySelectedIdeXmx = (int)event.getItem();
-                    }
+                event -> {
+                  if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                    mySelectedIdeXmx = (int)event.getItem();
                   }
                 });
 
@@ -215,12 +212,9 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                 myDaemonMemorySettings.getDefaultGradleDaemonXmx(),
                 DaemonMemorySettings.MAX_GRADLE_DAEMON_XMX_IN_MB,
                 SIZE_INCREMENT / 2,
-                new ItemListener() {
-                  @Override
-                  public void itemStateChanged(ItemEvent event) {
-                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                      mySelectedGradleXmx = (int)event.getItem();
-                    }
+                event -> {
+                  if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                    mySelectedGradleXmx = (int)event.getItem();
                   }
                 });
 
@@ -228,12 +222,9 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                 myDaemonMemorySettings.getDefaultKotlinDaemonXmx(),
                 DaemonMemorySettings.MAX_KOTLIN_DAEMON_XMX_IN_MB,
                 SIZE_INCREMENT / 2,
-                new ItemListener() {
-                  @Override
-                  public void itemStateChanged(ItemEvent event) {
-                    if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
-                      mySelectedKotlinXmx = (int)event.getItem();
-                    }
+                event -> {
+                  if (event.getStateChange() == ItemEvent.SELECTED && event.getItem() != null) {
+                    mySelectedKotlinXmx = (int)event.getItem();
                   }
                 });
 
@@ -257,12 +248,12 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
         });
     }
 
-    private void setXmxBoxWithOnlyCurrentValue(JComboBox box, int current) {
+    private void setXmxBoxWithOnlyCurrentValue(JComboBox<Integer> box, int current) {
       box.setEditable(false);
       box.removeAllItems();
       box.addItem(current);
       box.setSelectedItem(current);
-      box.setRenderer(new ColoredListCellRenderer<Integer>() {
+      box.setRenderer(new ColoredListCellRenderer<>() {
         @Override
         protected void customizeCellRenderer(@NotNull JList<? extends Integer> list,
                                              Integer value,
@@ -275,12 +266,12 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       });
     }
 
-    private void setXmxBox(JComboBox box, int current, int recommended,
+    private void setXmxBox(JComboBox<Integer> box, int current, int recommended,
                            int defaultSize, int max, int increment, ItemListener listener) {
       box.setEditable(false);
       box.removeAllItems();
 
-      ArrayList<Integer> items = new ArrayList();
+      ArrayList<Integer> items = new ArrayList<>();
 
       items.add(current);
       if (recommended > 0 && recommended != current) {
@@ -304,22 +295,22 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
       box.setSelectedItem(current);
       box.addItemListener(listener);
 
-      box.setRenderer(new ColoredListCellRenderer<Integer>() {
+      box.setRenderer(new ColoredListCellRenderer<>() {
         @Override
         protected void customizeCellRenderer(@NotNull JList<? extends Integer> list,
                                              Integer value,
                                              int index,
                                              boolean selected,
                                              boolean hasFocus) {
-          if (value.equals(Integer.valueOf(current))) {
+          if (value.equals(current)) {
             append(String.format(Locale.US, "%s - current", memSizeText(current)),
                    SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
           }
-          else if (value.equals(Integer.valueOf(defaultSize))) {
+          else if (value.equals(defaultSize)) {
             append(String.format(Locale.US, "%s - default", memSizeText(defaultSize)),
                    SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
           }
-          else if (value.equals(Integer.valueOf(recommended))) {
+          else if (value.equals(recommended)) {
             append(String.format(Locale.US, "%s - recommended", memSizeText(recommended)),
                    new SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, null));
           }
@@ -361,7 +352,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                              myRecommendedIdeXmx, -1, -1,
                              mySelectedIdeXmx, mySelectedGradleXmx, mySelectedKotlinXmx);
 
-      boolean changed = false;
+      boolean needsUpdate = isMemorySettingsModified();
 
       boolean isGradleXmxModified = isGradleDaemonXmxModified();
       boolean isKotlinXmxModified = isKotlinDaemonXmxModified();
@@ -373,7 +364,6 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
             myCurrentKotlinXmx = mySelectedKotlinXmx;
           }
           myDaemonMemorySettings.saveProjectDaemonXmx(myCurrentGradleXmx, myCurrentKotlinXmx);
-          changed = true;
       }
 
       if (isIdeXmxModified()) {
@@ -389,9 +379,8 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
           ((ApplicationEx)ApplicationManager.getApplication()).restart(true);
         }
-        changed = true;
       }
-      if (changed) {
+      if (needsUpdate) {
         // repaint
         setUI();
       }
