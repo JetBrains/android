@@ -24,6 +24,7 @@ import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle.actionText
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
@@ -32,6 +33,11 @@ import org.jetbrains.android.sdk.AndroidSdkUtils
 
 @Suppress("ComponentNotRegistered")
 class AndroidNewProjectAction @JvmOverloads constructor(text: String = actionText("NewDirectoryProject")) : AnAction(text), DumbAware {
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
+
   override fun update(e: AnActionEvent) {
     if (NewWelcomeScreen.isNewWelcomeScreen(e)) {
       e.presentation.icon = AllIcons.Welcome.CreateNewProjectTab
