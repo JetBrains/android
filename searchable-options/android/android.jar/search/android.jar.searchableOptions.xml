@@ -1489,20 +1489,10 @@
     <option name="to" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
     <option name="using" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
     <option name="you" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
-    <option name="1024" hit="1024" />
-    <option name="1280" hit="1280" />
-    <option name="2048" hit="2048" />
-    <option name="3072" hit="3072" />
-    <option name="4096" hit="4096" />
     <option name="daemon" hit="Daemon Heap Size Settings" />
     <option name="heap" hit="Daemon Heap Size Settings" />
     <option name="settings" hit="Daemon Heap Size Settings" />
     <option name="size" hit="Daemon Heap Size Settings" />
-    <option name="daemon" hit="Gradle daemon max heap size:" />
-    <option name="gradle" hit="Gradle daemon max heap size:" />
-    <option name="heap" hit="Gradle daemon max heap size:" />
-    <option name="max" hit="Gradle daemon max heap size:" />
-    <option name="size" hit="Gradle daemon max heap size:" />
     <option name="heap" hit="IDE Heap Size Settings" />
     <option name="ide" hit="IDE Heap Size Settings" />
     <option name="settings" hit="IDE Heap Size Settings" />
@@ -1511,11 +1501,6 @@
     <option name="ide" hit="IDE max heap size:" />
     <option name="max" hit="IDE max heap size:" />
     <option name="size" hit="IDE max heap size:" />
-    <option name="daemon" hit="Kotlin daemon max heap size:" />
-    <option name="heap" hit="Kotlin daemon max heap size:" />
-    <option name="kotlin" hit="Kotlin daemon max heap size:" />
-    <option name="max" hit="Kotlin daemon max heap size:" />
-    <option name="size" hit="Kotlin daemon max heap size:" />
     <option name="label" hit="Label" />
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
