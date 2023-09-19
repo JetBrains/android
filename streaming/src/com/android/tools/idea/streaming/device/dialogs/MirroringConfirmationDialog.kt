@@ -77,7 +77,7 @@ internal class MirroringConfirmationDialog(@NlsContexts.DialogTitle val title: S
                             if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) "Cancel" else "Disable Mirroring",
                             REJECT_EXIT_CODE)
         )
-      })
+      }).apply { pack() }
   }
 
   companion object {
