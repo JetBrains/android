@@ -29,6 +29,8 @@ interface TestArtifactSearchScopes {
   /** Returns a [GlobalSearchScope] that contains unit tests of the given module.  */
   val unitTestSourceScope: GlobalSearchScope
 
+  // TODO(karimai): Add screenshotTest search scope here as well
+
   /** Checks if the given file is an android test. */
   fun isAndroidTestSource(file: VirtualFile): Boolean
 

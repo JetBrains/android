@@ -371,6 +371,7 @@ private val IdeAndroidArtifact.scopeType: ScopeType
     IdeArtifactName.MAIN -> ScopeType.MAIN
     IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
     IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
+    IdeArtifactName.SCREENSHOT_TEST -> ScopeType.SCREENSHOT_TEST
   }
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
@@ -378,6 +379,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     (
       model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) } +
       model.allUnitTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.UNIT_TEST) } +
+        // TODO(karimai): add support for screenshotTest
       model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) } +
       model.allTestFixturesSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES) }
     )
@@ -452,12 +454,15 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     }.orEmpty(),
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
-    generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
-      ScopeType.UNIT_TEST),
-    generatedAndroidTestSources = model.selectedVariant.androidTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
-      ScopeType.ANDROID_TEST),
-    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
-      ScopeType.TEST_FIXTURES)
+    //TODO(karimai): refactor sourceProviders into host and device ones.
+    generatedUnitTestSources =
+    model.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.toGeneratedIdeaSourceProvider()
+      ?: emptySourceProvider(ScopeType.UNIT_TEST),
+    generatedAndroidTestSources =
+    model.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.toGeneratedIdeaSourceProvider()
+      ?: emptySourceProvider(ScopeType.ANDROID_TEST),
+    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider()
+      ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
   )
 }
 

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker
 
+// TODO(b/235567998): Review this class as well and add support for screenshot testing.
 enum class TestCompileType(
   val displayName: String,
   val compileAndroidTests: Boolean = false,

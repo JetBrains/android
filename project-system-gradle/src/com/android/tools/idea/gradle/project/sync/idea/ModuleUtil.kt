@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
@@ -38,16 +38,6 @@ object ModuleUtil {
   @JvmStatic
   fun getModuleName(artifactName: IdeArtifactName): String {
     return artifactName.toWellKnownSourceSet().sourceSetName
-  }
-
-  @JvmStatic
-  fun IdeArtifactName.toWellKnownSourceSet(): IdeModuleWellKnownSourceSet {
-    return when (this) {
-      IdeArtifactName.MAIN -> IdeModuleWellKnownSourceSet.MAIN
-      IdeArtifactName.UNIT_TEST -> IdeModuleWellKnownSourceSet.UNIT_TEST
-      IdeArtifactName.ANDROID_TEST -> IdeModuleWellKnownSourceSet.ANDROID_TEST
-      IdeArtifactName.TEST_FIXTURES -> IdeModuleWellKnownSourceSet.TEST_FIXTURES
-    }
   }
 
   /**
@@ -79,6 +69,7 @@ object ModuleUtil {
         getModuleName(IdeArtifactName.UNIT_TEST) -> unitTestModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.ANDROID_TEST) -> androidTestModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.TEST_FIXTURES) -> testFixturesModule = dataToModuleMap(it.data)
+        // TODO(karimai): add support for ScreenshotTest mapping.
         else -> logger<ModuleUtil>().warn("Unknown artifact name: $sourceSetName")
       }
     }
@@ -93,6 +84,7 @@ object ModuleUtil {
 
       return
     }
+    // TODO(karimai): add ScreenshotTest module
     val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
     androidModuleGroup.getModules().forEach { module ->
       module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)

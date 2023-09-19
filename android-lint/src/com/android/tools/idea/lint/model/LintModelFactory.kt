@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeClassField
@@ -323,7 +324,10 @@ class LintModelFactory : LintModelModuleLoader {
       name = variant.name,
       useSupportLibraryVectorDrawables = useSupportLibraryVectorDrawables(variant),
       mainArtifactOrNull = getArtifact(variant.mainArtifact, LintModelArtifactType.MAIN),
-      testArtifact = getTestArtifact(variant),
+      testArtifact =
+        getUnitTestArtifact(
+          variant
+        ), // TODO(karimai): we need to change the Lint models to add screenshot Test  artifact.
       androidTestArtifact = getAndroidTestArtifact(variant),
       testFixturesArtifact = getTestFixturesArtifact(variant),
       mergedManifest = null, // Injected elsewhere by the legacy Android Gradle Plugin lint runner
@@ -355,12 +359,14 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   private fun getAndroidTestArtifact(variant: IdeVariant): LintModelAndroidArtifact? {
-    val artifact = variant.androidTestArtifact ?: return null
+    val artifact =
+      variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
     return getArtifact(artifact, LintModelArtifactType.INSTRUMENTATION_TEST)
   }
 
-  private fun getTestArtifact(variant: IdeVariant): LintModelJavaArtifact? {
-    val artifact = variant.unitTestArtifact ?: return null
+  private fun getUnitTestArtifact(variant: IdeVariant): LintModelJavaArtifact? {
+    val artifact =
+      variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST } ?: return null
     return getArtifact(artifact, LintModelArtifactType.UNIT_TEST)
   }
 
@@ -812,7 +818,7 @@ class LintModelFactory : LintModelModuleLoader {
 
     private var _testArtifact: LintModelJavaArtifact? = null
     override val testArtifact: LintModelJavaArtifact?
-      get() = _testArtifact ?: getTestArtifact(variant).also { _testArtifact = it }
+      get() = _testArtifact ?: getUnitTestArtifact(variant).also { _testArtifact = it }
 
     private var _androidTestArtifact: LintModelAndroidArtifact? = null
     override val androidTestArtifact: LintModelAndroidArtifact?

@@ -28,6 +28,9 @@ import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
@@ -72,10 +75,10 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
       assertContainsElements(result, Collections2.transform(model.getSelectedVariant().getMainArtifact().getGeneratedResourceFolders(),
                                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
 
+      IdeJavaArtifact unitTestArtifact =
+        model.getSelectedVariant().getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.UNIT_TEST).toList().get(0);
       Collection<String> unitTestClassesFolders =
-        Collections2.transform(
-          model.getSelectedVariant().getUnitTestArtifact().getClassesFolder(),
-          (input) -> input == null ? null : pathToIdeaUrl(input));
+        Collections2.transform(unitTestArtifact.getClassesFolder(), (input) -> input == null ? null : pathToIdeaUrl(input));
       Collection<String> intersectionMainAndUnitTest = getIntersection(result, unitTestClassesFolders);
       // Main artifact and unit test artifact may either share the same R.jar or none at all (see bug 133326990).
       if (!intersectionMainAndUnitTest.isEmpty()) {
@@ -83,10 +86,12 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
         Assert.assertTrue(intersectionMainAndUnitTest.iterator().next().endsWith("R.jar!/"));
       }
 
-      assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder(),
-                                                         (input) -> input == null ? null : pathToIdeaUrl(input)));
-      assertDoesntContain(result, Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
-                                                         (input) -> input == null ? null : pathToIdeaUrl(input)));
+      IdeAndroidArtifact androidArtifact =
+        model.getSelectedVariant().getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList().get(0);
+      assertDoesntContain(
+        result, Collections2.transform(androidArtifact.getClassesFolder(), (input) -> input == null ? null : pathToIdeaUrl(input)));
+      assertDoesntContain(
+        result, Collections2.transform(androidArtifact.getGeneratedResourceFolders(), (input) -> input == null ? null : pathToIdeaUrl(input)));
     });
   }
 
@@ -120,10 +125,10 @@ public class AndroidGradleOrderEnumeratorHandlerTest {
       GradleAndroidModel model = GradleAndroidModel.get(module);
       Set<String> expected = new HashSet<>();
       // Android Test
-      expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getClassesFolder(),
-                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
-      expected.addAll(Collections2.transform(model.getSelectedVariant().getAndroidTestArtifact().getGeneratedResourceFolders(),
-                                             (input) -> input == null ? null : pathToIdeaUrl(input)));
+      IdeAndroidArtifact androidArtifact =
+        model.getSelectedVariant().getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList().get(0);
+      expected.addAll(Collections2.transform(androidArtifact.getClassesFolder(), (input) -> input == null ? null : pathToIdeaUrl(input)));
+      expected.addAll(Collections2.transform(androidArtifact.getGeneratedResourceFolders(), (input) -> input == null ? null : pathToIdeaUrl(input)));
       assertEquals(expected, result);
     });
   }

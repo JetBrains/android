@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -65,7 +66,8 @@ class AndroidGradleOrderEnumeratorHandlerFactory : GradleOrderEnumeratorHandler.
         return listOfNotNull(
           androidModel.mainArtifact.takeIf { includeProduction && module.isMainModule() },
           androidModel.getArtifactForAndroidTest()?.takeIf { includeTests && module.isAndroidTestModule() },
-          androidModel.selectedVariant.unitTestArtifact?.takeIf { includeTests && module.isUnitTestModule() },
+          androidModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.takeIf { includeTests && module.isUnitTestModule() },
+          // TODO(karimai): add ScreenshotTest artifact fetching here when we support the ST module.
           androidModel.selectedVariant.testFixturesArtifact?.takeIf { includeTests && module.isTestFixturesModule() },
         )
           .distinct()

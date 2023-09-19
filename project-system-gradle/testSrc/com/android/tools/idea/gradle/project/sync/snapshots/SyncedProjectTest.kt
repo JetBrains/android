@@ -228,6 +228,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplicationVersionCatalog() = testProject(TestProject.SIMPLE_APPLICATION_VERSION_CATALOG)
 
   @Test
+  fun testSimpleApplicationWithScreenshotTest() = testProject(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST)
+
+  @Test
   fun testCustomSourceType() = testProject(TestProject.CUSTOM_SOURCE_TYPE)
 
   @Test

@@ -27,9 +27,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
@@ -267,9 +267,12 @@ class GradleModuleSystem(
 
     return when (scope) {
       DependencyScopeType.MAIN -> gradleModel.selectedVariant.mainArtifact.compileClasspath
-      DependencyScopeType.ANDROID_TEST -> gradleModel.selectedVariant.androidTestArtifact?.compileClasspath
-      DependencyScopeType.UNIT_TEST -> gradleModel.selectedVariant.unitTestArtifact?.compileClasspath
+      DependencyScopeType.ANDROID_TEST ->
+        gradleModel.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
+      DependencyScopeType.UNIT_TEST ->
+        gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspath
       DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
+      // TODO(karimai): Add support for ScreenshotTest.
     }
   }
 
@@ -285,9 +288,10 @@ class GradleModuleSystem(
       val selectedVariant = gradleModel.selectedVariant
       val artifact = when (scope) {
         DependencyScopeType.MAIN -> selectedVariant.mainArtifact
-        DependencyScopeType.ANDROID_TEST -> selectedVariant.androidTestArtifact
-        DependencyScopeType.UNIT_TEST -> selectedVariant.unitTestArtifact
+        DependencyScopeType.ANDROID_TEST -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
+        DependencyScopeType.UNIT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
         DependencyScopeType.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
+        // TODO(karimai): Add support for ScreenshotTest.
       }
       if (artifact != null) yield(artifact.runtimeClasspath)
 
@@ -439,7 +443,7 @@ class GradleModuleSystem(
     val gradleAndroidModel = GradleAndroidModel.get(facet)
     val variant = gradleAndroidModel?.selectedVariant ?: return null
     // Only report a test package if the selected variant actually has corresponding androidTest components
-    if (variant.androidTestArtifact == null) return null
+    if (variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } == null) return null
     return gradleAndroidModel.androidProject.testNamespace ?: variant.deprecatedPreMergedTestApplicationId ?: run {
       // That's how older versions of AGP that do not include testNamespace directly in the model work:
       // in apps the applicationId from the model is used with the ".test" suffix (ignoring the manifest), in libs
@@ -469,6 +473,7 @@ class GradleModuleSystem(
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
+      ScopeType.SCREENSHOT_TEST -> GlobalSearchScope.EMPTY_SCOPE // TODO(karimai): Add support for ScreenshotTest module.
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 
@@ -541,7 +546,8 @@ class GradleModuleSystem(
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
 
   override fun getTestLibrariesInUse(): TestLibraries? {
-    val androidTestArtifact = GradleAndroidModel.get(module)?.selectedVariant?.androidTestArtifact ?: return null
+    val androidTestArtifact =
+      GradleAndroidModel.get(module)?.selectedVariant?.deviceTestArtifacts?.find { it.name == IdeArtifactName.ANDROID_TEST } ?: return null
     return TestLibraries.newBuilder().also { recordTestLibraries(it, androidTestArtifact) }.build()
   }
 

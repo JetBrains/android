@@ -47,6 +47,8 @@ interface SourceProviders {
    */
   val unitTestSources: IdeaSourceProvider
 
+  // TODO(karimai): Add support for ScreeenshotTest.
+
   /**
    * Returns the source provider for all android test sources in the currently selected variant in the overlay order.
    */
@@ -66,6 +68,8 @@ interface SourceProviders {
    * Returns the source provider for all unit test sources in the currently selected variant in the overlay order.
    */
   val generatedUnitTestSources: IdeaSourceProvider
+
+  // TODO(karimai): Add support for ScreenshotTest sources.
 
   /**
    * Returns the source provider for all android test sources in the currently selected variant in the overlay order.
@@ -110,6 +114,8 @@ interface SourceProviders {
    * @see currentSourceProviders
    */
   val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
+
+  // TODO(karimai): add support for ScreenshotTest sourceProviders.
 
   /**
    * Returns a list of source providers for Android test artifacts (e.g. `androidTest/` source sets), in increasing

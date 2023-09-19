@@ -261,6 +261,26 @@ enum class TestProject(
       )
     }
   ),
+  SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "simple_application_with_screenshot_test",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { projectRoot ->
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent { content ->
+        content
+          .replace(
+            "buildTypes {",
+            """// Do not remove. This is needed to test screenshot tests support.
+                  experimentalProperties["android.experimental.enableScreenshotTest"] = true
+                   buildTypes {
+            """.trimMargin())
+      }
+      projectRoot.resolve("gradle.properties").replaceContent { content ->
+        content
+          .replace("android.experimental.enableScreenshotTest=false", "android.experimental.enableScreenshotTest=true")
+      }
+    }
+  ),
   KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "multiple_source_set_per_android_compilation",

@@ -47,6 +47,7 @@ import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeArtifactName;
 import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -293,7 +294,11 @@ public final class GradleApkProvider implements ApkProvider {
         apkList.addAll(0, getTargetedApks(variant, deviceAbis, deviceVersion));
       }
       else {
-        IdeAndroidArtifact testArtifactInfo = androidModel.getSelectedVariant().getAndroidTestArtifact();
+        IdeAndroidArtifact testArtifactInfo =
+          androidModel
+            .getSelectedVariant().
+            getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST)
+            .toList().get(0);
         if (testArtifactInfo != null) {
           File testApk =
             getApk(androidModel.getSelectedVariant().getName(), getAndroidTestArtifact(androidModel.getSelectedVariant()), deviceAbis,
@@ -527,10 +532,12 @@ public final class GradleApkProvider implements ApkProvider {
 
   @NotNull
   public static IdeAndroidArtifact getAndroidTestArtifact(@NotNull IdeVariant variant) throws ApkProvisionException {
-    if (variant.getAndroidTestArtifact() == null) {
+    IdeAndroidArtifact androidTestArtifact =
+      variant.getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).toList().get(0);
+    if (androidTestArtifact == null) {
       throw new ApkProvisionException(String.format("AndroidTest artifact is not configured in %s variant.", variant.getDisplayName()));
     }
-    return variant.getAndroidTestArtifact();
+    return androidTestArtifact;
   }
 
   @NotNull

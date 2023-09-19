@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.idea
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeVariantCore
@@ -26,7 +27,6 @@ import com.android.tools.idea.gradle.project.model.testFixturesSourceProviders
 import com.android.tools.idea.gradle.project.model.unitTestSourceProviders
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
 import com.intellij.openapi.externalSystem.model.DataNode
-import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -75,19 +75,20 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
   val variant = androidModel.selectedVariantCore
 
   fun populateContentEntries(
-    artifactSelector: ArtifactSelector,
+    artifact: IdeBaseArtifactCore?,
     sourceProviderSelector: SourceProviderSelector
   ): List<DataNode<ContentRootData>> {
-    val sourceSetDataNode = findSourceSetDataForArtifact(artifactSelector(variant) ?: return emptyList())
-    val contentRoots = collectContentRootDataForArtifact(artifactSelector, sourceProviderSelector, androidModel, variant)
+    val sourceSetDataNode = findSourceSetDataForArtifact(artifact ?: return emptyList())
+    val contentRoots = collectContentRootDataForArtifact(artifact, sourceProviderSelector, androidModel)
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
   val sourceSetContentRoots =
-    populateContentEntries(IdeVariantCore::mainArtifact,  GradleAndroidModelData::activeSourceProviders) +
-      populateContentEntries(IdeVariantCore::unitTestArtifact, GradleAndroidModelData::unitTestSourceProviders) +
-      populateContentEntries(IdeVariantCore::androidTestArtifact, GradleAndroidModelData::androidTestSourceProviders) +
-      populateContentEntries(IdeVariantCore::testFixturesArtifact, GradleAndroidModelData::testFixturesSourceProviders)
+    populateContentEntries(variant.mainArtifact,  GradleAndroidModelData::activeSourceProviders) +
+    populateContentEntries(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }, GradleAndroidModelData::unitTestSourceProviders) +
+    populateContentEntries(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }, GradleAndroidModelData::androidTestSourceProviders) +
+    populateContentEntries(variant.testFixturesArtifact, GradleAndroidModelData::testFixturesSourceProviders)
+    // TODO(karimai): add screenshot test source provider
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 
@@ -113,12 +114,11 @@ private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
 }
 
 private fun collectContentRootDataForArtifact(
-  artifactSelector: ArtifactSelector,
+  artifact: IdeBaseArtifactCore?,
   sourceProviderSelector: SourceProviderSelector,
-  androidModel: GradleAndroidModelData,
-  selectedVariant: IdeVariantCore
+  androidModel: GradleAndroidModelData
 ) : Collection<ContentRootData> {
-  val artifact = artifactSelector(selectedVariant) ?: throw ExternalSystemException("Couldn't find artifact for descriptor")
+  checkNotNull(artifact) { "Couldn't find artifact for descriptor" }
 
   val newContentRoots = mutableListOf<ContentRootData>()
 

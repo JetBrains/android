@@ -84,6 +84,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_SCREENSHOT_TEST),
       ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
       ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
       ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),

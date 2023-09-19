@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBaseConfig
 import com.android.tools.idea.gradle.model.IdeBasicVariant
@@ -302,6 +303,8 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     fun dump(ideVariant: IdeVariant) {
+      fun String.toPrintableArtifactName() = "${this}Artifact"
+
       head("IdeVariant")
       nest {
         prop("Name") { ideVariant.name }
@@ -349,20 +352,20 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         nest {
           dump(ideVariant.mainArtifact)
         }
-        ideVariant.androidTestArtifact?.let {
-          head("AndroidTestArtifact")
+        ideVariant.deviceTestArtifacts.forEach {
+          head("${it.name.toPrintableName()}Artifact")
           nest {
             dump(it)
           }
         }
-        ideVariant.unitTestArtifact?.let {
-          head("UnitTestArtifact")
+        ideVariant.hostTestArtifacts.forEach {
+          head("${it.name.toPrintableName()}Artifact")
           nest {
             dump(it)
           }
         }
         ideVariant.testFixturesArtifact?.let {
-          head("TestFixturesArtifact")
+          head("${it.name.toPrintableName()}Artifact")
           nest {
             dump(it)
           }

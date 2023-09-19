@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
@@ -107,16 +108,17 @@ class GradleAndroidModel(
   fun getArtifactForAndroidTest(): IdeAndroidArtifact? {
     return when (androidProject.projectType) {
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariant.mainArtifact
-      else -> selectedVariant.androidTestArtifact
+      else -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     }
   }
 
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
-    return selectedVariantCore.androidTestArtifact?.testOptions?.instrumentedTestTaskName
+    return selectedVariantCore.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.testOptions?.instrumentedTestTaskName
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
-  val selectedAndroidTestCompileDependencies: IdeDependencies? get() = selectedVariant.androidTestArtifact?.compileClasspath
+  val selectedAndroidTestCompileDependencies: IdeDependencies? get() =
+    selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath
 
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
   val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultSourceProvider.sourceProvider!!
@@ -244,7 +246,7 @@ class GradleAndroidModel(
   }
 
   override fun getTestOptions(): TestOptions {
-    val testArtifact = selectedVariant.androidTestArtifact
+    val testArtifact = selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     val testOptions = testArtifact?.testOptions
     val executionOption: TestExecutionOption? =
       when (val execution = testOptions?.execution) {

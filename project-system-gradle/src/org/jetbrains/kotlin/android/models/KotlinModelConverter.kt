@@ -569,8 +569,8 @@ class KotlinModelConverter {
       name = kotlinMultiplatformAndroidVariantName,
       displayName = kotlinMultiplatformAndroidVariantName,
       mainArtifact = mainArtifact,
-      unitTestArtifact = unitTestArtifact,
-      androidTestArtifact = androidTestArtifact,
+      hostTestArtifacts = listOfNotNull(unitTestArtifact),
+      deviceTestArtifacts = listOfNotNull(androidTestArtifact),
       testFixturesArtifact = null,
       buildType = "", // TODO(b/288062702): figure out what will this affect
       productFlavors = emptyList(),

@@ -404,7 +404,8 @@ enum class DependencyScopeType {
   MAIN,
   UNIT_TEST,
   ANDROID_TEST,
-  TEST_FIXTURES
+  TEST_FIXTURES,
+  // TODO(karimai): add support for ScreenshotTest
 }
 
 /**
@@ -418,20 +419,21 @@ enum class ScopeType {
   ANDROID_TEST,
   UNIT_TEST,
   TEST_FIXTURES,
+  SCREENSHOT_TEST,
   ;
 
   /** Converts this [ScopeType] to a [Boolean], so it can be used with APIs that don't distinguish between test types. */
   val isForTest
     get() = when (this) {
       MAIN, TEST_FIXTURES -> false
-      ANDROID_TEST, UNIT_TEST -> true
+      ANDROID_TEST, UNIT_TEST, SCREENSHOT_TEST -> true
     }
 
   /** Returns true if this [ScopeType] can contain Android resources. */
   val canHaveAndroidResources
     get() = when (this) {
       TEST_FIXTURES, UNIT_TEST -> false
-      MAIN, ANDROID_TEST -> true
+      MAIN, ANDROID_TEST, SCREENSHOT_TEST -> true
     }
 }
 
@@ -465,7 +467,11 @@ fun Module.getUnitTestModule() : Module?  {
   return linkedGroup.unitTest
 }
 
+// TODO(karimai) : add utility for screenshot test.
+
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
+
+// TODO(karimai): add utility to check for screenshot test.
 
 fun Module.getAndroidTestModule() : Module? {
   val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this

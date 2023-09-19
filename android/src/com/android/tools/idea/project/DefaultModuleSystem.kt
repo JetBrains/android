@@ -248,7 +248,7 @@ class DefaultModuleSystem(override val module: Module) :
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
     val includeTests = when (scopeType) {
       ScopeType.MAIN -> false
-      ScopeType.ANDROID_TEST, ScopeType.UNIT_TEST -> true
+      ScopeType.ANDROID_TEST, ScopeType.UNIT_TEST, ScopeType.SCREENSHOT_TEST -> true
       else -> error("unknown scope type")
     }
     return module.getModuleWithDependenciesAndLibrariesScope(includeTests)

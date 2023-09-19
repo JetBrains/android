@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.BuildMode
@@ -225,8 +226,11 @@ class GradleTaskFinderWorker private constructor(
                   it.getPrivacySandboxSdkLegacyTask()
                 ) // Don't need getAdditionalApkSplitTask for bundle deployment
               }.tasks +
-              if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
-                setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
+              if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE &&
+                  moduleToProcess.testCompileMode.compileAndroidTests)
+                setOfNotNull(
+                  moduleToProcess.androidModel.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.assembleTaskName
+                )
               else emptySet()
             )
           }
@@ -344,11 +348,13 @@ private fun ModuleAndMode.getTasksBy(
   by: (artifact: IdeBaseArtifact) -> List<String>
 ): ModuleTasks {
   val tasks: Set<String> = androidModel?.selectedVariant?.let { variant ->
-    listOfNotNull(
-      variant.mainArtifact.takeUnless { implicitMain && (testCompileMode.compileAndroidTests || testCompileMode.compileUnitTests) },
-      variant.unitTestArtifact.takeIf { testCompileMode.compileUnitTests },
-      variant.androidTestArtifact.takeIf { testCompileMode.compileAndroidTests },
-    ).flatMap { by.invoke(it) }.toSet()
+    val artifacts =
+      listOfNotNull(
+        variant.mainArtifact.takeUnless { implicitMain && (testCompileMode.compileAndroidTests || testCompileMode.compileUnitTests) },
+        // TODO(karimai): We need to also consider providing ScreenshotTest tasks when we support ST modules.
+        variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { testCompileMode.compileUnitTests },
+        variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { testCompileMode.compileAndroidTests })
+      artifacts.flatMap { by.invoke(it) }.toSet()
   }.orEmpty()
   return ModuleTasks(module, tasks.takeIf { isClean }.orEmpty(), tasks.takeUnless { isClean }.orEmpty())
 }

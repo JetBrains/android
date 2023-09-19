@@ -109,6 +109,7 @@ data class GradleAndroidModelDataImpl(
       IdeArtifactName.UNIT_TEST -> unitTestSourceProviders
       IdeArtifactName.MAIN -> emptyList()
       IdeArtifactName.TEST_FIXTURES -> emptyList()
+      IdeArtifactName.SCREENSHOT_TEST -> emptyList() // TODO(karimai): support ScreenshotTest sourceProviders.
     }
   }
 

@@ -823,7 +823,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       // NB: the model will not be available for things that are not applicable, e.g. library and dynamic feature main
       IdeArtifactName.MAIN -> legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(apkVariantName)
       IdeArtifactName.ANDROID_TEST -> legacyAndroidGradlePluginProperties?.componentToApplicationIdMap?.get(variantName + "AndroidTest")
-      IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES -> null
+      IdeArtifactName.UNIT_TEST, IdeArtifactName.TEST_FIXTURES, IdeArtifactName.SCREENSHOT_TEST -> null
     }
     val androidArtifactCoreImpl = IdeAndroidArtifactCoreImpl(
       name = ideArtifactName,
@@ -988,8 +988,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       name = variant.name,
       displayName = variant.displayName,
       mainArtifact = mainArtifact.model,
-      unitTestArtifact = unitTestArtifact?.model,
-      androidTestArtifact = androidTestArtifact?.model,
+      hostTestArtifacts = listOfNotNull(unitTestArtifact?.model),
+      deviceTestArtifacts = listOfNotNull(androidTestArtifact?.model),
       testFixturesArtifact = null,
       buildType = variant.buildType,
       productFlavors = ImmutableList.copyOf(variant.productFlavors),
@@ -1020,8 +1020,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         postProcessor = fun(): IdeVariantCoreImpl {
           return variantCoreImpl.copy(
             mainArtifact = mainArtifact.postProcess(),
-            androidTestArtifact = androidTestArtifact?.postProcess(),
-            unitTestArtifact = unitTestArtifact?.postProcess()
+            deviceTestArtifacts = listOfNotNull(androidTestArtifact?.postProcess()),
+            hostTestArtifacts = listOfNotNull(unitTestArtifact?.postProcess())
           )
         }
       )

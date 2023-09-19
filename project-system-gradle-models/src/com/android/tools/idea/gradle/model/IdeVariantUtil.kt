@@ -34,3 +34,8 @@ const val ARTIFACT_NAME_UNIT_TEST = "_unit_test_"
  * Name reserved the test fixtures artifact in a [IdeVariant].
  */
 const val ARTIFACT_NAME_TEST_FIXTURES = "_test_fixtures_"
+
+/**
+ * Name reserved the screenshot test artifact in a [IdeVariant].
+ */
+const val ARTIFACT_NAME_SCREENSHOT_TEST = "_screenshot_test_"

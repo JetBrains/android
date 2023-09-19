@@ -24,7 +24,9 @@ import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.IdeApiVersion
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
@@ -45,9 +47,10 @@ import com.intellij.util.containers.addIfNotNull
  */
 private enum class ArtifactSelector(val selector: IdeVariantCore.() -> IdeBaseArtifactCore?, val artifactName: String) {
   MAIN({ mainArtifact }, ARTIFACT_NAME_MAIN),
-  UNIT_TEST({ unitTestArtifact }, ARTIFACT_NAME_UNIT_TEST),
-  ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST),
-  TEST_FIXTURES({ testFixturesArtifact }, ARTIFACT_NAME_TEST_FIXTURES);
+  UNIT_TEST({ hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST } }, ARTIFACT_NAME_UNIT_TEST),
+  ANDROID_TEST({ deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } }, ARTIFACT_NAME_ANDROID_TEST),
+  TEST_FIXTURES({ testFixturesArtifact }, ARTIFACT_NAME_TEST_FIXTURES),
+  SCREENSHOT_TEST({ hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST } }, ARTIFACT_NAME_SCREENSHOT_TEST);
 
   fun IdeVariantCore.selectArtifact(): IdeBaseArtifactCore? = selector()
   fun IdeSourceProviderContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
@@ -62,7 +65,7 @@ private enum class ArtifactSelector(val selector: IdeVariantCore.() -> IdeBaseAr
 private fun GradleAndroidModelData.collectMainSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, MAIN)
 private fun GradleAndroidModelData.collectUnitTestSourceProviders(variant: IdeVariantCore) = collectCurrentProvidersFor(variant, UNIT_TEST)
 private fun GradleAndroidModelData.collectAndroidTestSourceProviders(variant: IdeVariantCore) =
-  if (variant.androidTestArtifact != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
+  if (variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST } != null) collectCurrentProvidersFor(variant, ANDROID_TEST)
   else emptyList()
 private fun GradleAndroidModelData.collectTestFixturesSourceProviders(variant: IdeVariantCore) =
   if (variant.testFixturesArtifact != null) collectCurrentProvidersFor(variant, TEST_FIXTURES)

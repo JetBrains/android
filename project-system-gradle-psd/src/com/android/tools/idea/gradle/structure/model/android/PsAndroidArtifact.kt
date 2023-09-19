@@ -62,6 +62,11 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArt
         name = "UnitTest"
         icon = TestRoot
       }
+
+      IdeArtifactName.SCREENSHOT_TEST -> {
+        name = "ScreenshotTest"
+        icon = TestRoot  // TODO(karimai): Add support for this artifact on PSD
+      }
     }
     this.name = name
     this.icon = icon
@@ -131,6 +136,7 @@ fun getPossibleConfigurationNames(
       configurationNames.add(TEST_FIXTURES_API)
       configurationNames.add(TEST_FIXTURES_IMPLEMENTATION)
     }
+    IdeArtifactName.SCREENSHOT_TEST -> {} // TODO(karimai): add ScreenshotTest to commonConfigs names
   }
 
   when (resolvedName) {
@@ -170,6 +176,8 @@ fun getPossibleConfigurationNames(
         configurationNames.add("testFixtures" + capitalize(productFlavorName) + API_SUFFIX)
         configurationNames.add("testFixtures" + capitalize(productFlavorName) + IMPLEMENTATION_SUFFIX)
       }
+
+      IdeArtifactName.SCREENSHOT_TEST -> {}  //TODO(karimai): add support here.
     }
   }
   return configurationNames

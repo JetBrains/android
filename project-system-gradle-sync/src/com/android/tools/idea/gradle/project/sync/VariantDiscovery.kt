@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
+import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapNull
@@ -217,9 +219,10 @@ internal class VariantDiscovery(
           fun getUnresolvedDependencies(): List<IdeUnresolvedDependency> {
             val unresolvedDependencies = mutableListOf<IdeUnresolvedDependency>()
             unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
-            ideVariant.androidTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+            ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
             ideVariant.testFixturesArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
-            ideVariant.unitTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+            // TODO(karimai):add support for screenshotTest dependencies.
+            ideVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
             return unresolvedDependencies
           }
 

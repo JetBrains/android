@@ -35,17 +35,15 @@ import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeArtifactName
-import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
-import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactOutputImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v1.IdeNativeVariantAbiImpl
@@ -58,7 +56,6 @@ import com.intellij.openapi.util.io.FileUtil
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
-import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
 
@@ -180,8 +177,8 @@ typealias IdeVariantWithPostProcessor = IdeModelWithPostProcessor<IdeVariantCore
 val IdeVariantWithPostProcessor.variant: IdeVariantCoreImpl get() = model
 val IdeVariantWithPostProcessor.name: String get() = variant.name
 val IdeVariantWithPostProcessor.mainArtifact: IdeAndroidArtifactCoreImpl get() = variant.mainArtifact
-val IdeVariantWithPostProcessor.unitTestArtifact: IdeJavaArtifactCoreImpl? get() = variant.unitTestArtifact
-val IdeVariantWithPostProcessor.androidTestArtifact: IdeAndroidArtifactCoreImpl? get() = variant.androidTestArtifact
+val IdeVariantWithPostProcessor.hostTestArtifacts: List<IdeJavaArtifactCoreImpl> get() = variant.hostTestArtifacts
+val IdeVariantWithPostProcessor.deviceTestArtifacts: List<IdeAndroidArtifactCoreImpl> get() = variant.deviceTestArtifacts
 val IdeVariantWithPostProcessor.testFixturesArtifact: IdeAndroidArtifactCoreImpl? get() = variant.testFixturesArtifact
 
 @VisibleForTesting
@@ -212,6 +209,7 @@ internal fun convertArtifactName(name: String): IdeArtifactName = when (name) {
   ARTIFACT_NAME_ANDROID_TEST -> IdeArtifactName.ANDROID_TEST
   ARTIFACT_NAME_UNIT_TEST -> IdeArtifactName.UNIT_TEST
   ARTIFACT_NAME_TEST_FIXTURES -> IdeArtifactName.TEST_FIXTURES
+  ARTIFACT_NAME_SCREENSHOT_TEST -> IdeArtifactName.SCREENSHOT_TEST
   else -> error("Invalid android artifact name: $name")
 }
 
