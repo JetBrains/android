@@ -144,6 +144,21 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
                    @NotNull T context,
                    @NotNull List<ToolWindowDefinition<T>> definitions,
                    boolean minimizedWindows) {
+    mySplitter.setInnerComponent(content);
+    init(context, definitions, minimizedWindows);
+  }
+
+  /**
+   * Initializes a {@link WorkBench} with context and tool windows.
+   * The main content is not provided, so only the tool windows will be added.
+   *
+   * @param context an instance identifying the data the {@link WorkBench} is manipulating
+   * @param definitions a list of tool windows associated with this {@link WorkBench}
+   * @param minimizedWindows whether the tool windows should be minimized by default.
+   */
+  public void init(@NotNull T context,
+                   @NotNull List<ToolWindowDefinition<T>> definitions,
+                   boolean minimizedWindows) {
     LOG.debug("init");
     if (ScreenReader.isActive()) {
       setFocusCycleRoot(true);
@@ -151,7 +166,6 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     }
     myLoadingPanel.stopLoading();
     myMainPanel.setVisible(true);
-    mySplitter.setInnerComponent(content);
     mySplitter.addDividerResizeListener(createWidthUpdater());
     myToolDefinitions.addAll(definitions);
     mySplitter.setFirstSize(getInitialSideWidth(Side.LEFT));

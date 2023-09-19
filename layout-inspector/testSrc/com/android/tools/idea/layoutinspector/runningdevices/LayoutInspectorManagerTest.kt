@@ -44,6 +44,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
@@ -222,7 +223,8 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
-    val workbench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    val workbench =
+      tab1.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
     val dataContext1 = DataManager.getInstance().getDataContext(workbench)
     val layoutInspector1 = dataContext1.getData(LAYOUT_INSPECTOR_DATA_KEY)
     assertThat(layoutInspector1).isEqualTo(layoutInspector1)
@@ -495,8 +497,9 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     var isWorkbenchDisposed = false
-    val workBench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
-    Disposer.register(workBench) { isWorkbenchDisposed = true }
+    val workbench =
+      tab1.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    Disposer.register(workbench) { isWorkbenchDisposed = true }
     var isRendererDisposed = false
     val renderer =
       tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
@@ -509,13 +512,15 @@ class LayoutInspectorManagerTest {
   }
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {
-    assertThat(tabInfo.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>())
-      .hasSize(1)
+    assertThat(tabInfo.content.allParents().filterIsInstance<Splitter>()).hasSize(1)
     assertThat(tabInfo.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
       .hasSize(1)
 
-    val workbench =
-      tabInfo.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    val splitter = tabInfo.content.allParents().filterIsInstance<Splitter>().first()
+
+    assertThat(splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
+
+    val workbench = splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
     assertThat(workbench.isFocusCycleRoot).isFalse()
 
     val toolbars =
@@ -538,8 +543,7 @@ class LayoutInspectorManagerTest {
   }
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
-    assertThat(tabInfo.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>())
-      .hasSize(0)
+    assertThat(tabInfo.content.allParents().filterIsInstance<Splitter>()).hasSize(0)
     assertThat(tabInfo.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
       .hasSize(0)
     assertThat(tabInfo.content.parent).isEqualTo(tabInfo.container)

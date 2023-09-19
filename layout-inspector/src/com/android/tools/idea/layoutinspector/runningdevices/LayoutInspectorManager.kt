@@ -49,6 +49,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.JBColor
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
@@ -62,6 +63,9 @@ private const val WORKBENCH_NAME = "Layout Inspector"
 const val SHOW_EXPERIMENTAL_WARNING_KEY =
   "com.android.tools.idea.layoutinspector.runningdevices.experimental.notification.show"
 const val EMBEDDED_EXPERIMENTAL_MESSAGE_KEY = "embedded.inspector.experimental.notification.message"
+
+const val SPLITTER_KEY =
+  "com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager.Splitter"
 
 /**
  * Object used to track tabs that have Layout Inspector enabled across multiple projects. Layout
@@ -362,7 +366,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       wrapLogic.wrapComponent { centerPanel ->
         val inspectorPanel = BorderLayoutPanel()
-        val mainPanel = BorderLayoutPanel()
+        val toolsPanel = BorderLayoutPanel()
 
         val toggleDeepInspectAction =
           ToggleDeepInspectAction(
@@ -378,22 +382,29 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
           )
         val toolbar =
           createLayoutInspectorMainToolbar(
-            mainPanel,
+            toolsPanel,
             layoutInspector,
             processPicker,
             listOf(toggleDeepInspectAction)
           )
-        mainPanel.add(toolbar.component, BorderLayout.NORTH)
-        mainPanel.add(centerPanel, BorderLayout.CENTER)
 
-        val workBench =
-          createLayoutInspectorWorkbench(project, disposable, layoutInspector, mainPanel)
+        val workBench = createLayoutInspectorWorkbench(project, disposable, layoutInspector)
         workBench.isFocusCycleRoot = false
+
+        toolsPanel.add(toolbar.component, BorderLayout.NORTH)
+        toolsPanel.add(workBench, BorderLayout.CENTER)
+        workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
+
+        val splitPanel =
+          OnePixelSplitter(true, SPLITTER_KEY, 0.5f).apply {
+            firstComponent = centerPanel
+            secondComponent = toolsPanel
+            setBlindZone { JBUI.insets(0, 1) }
+          }
 
         val inspectorBanner = InspectorBanner(disposable, layoutInspector.notificationModel)
         inspectorPanel.add(inspectorBanner, BorderLayout.NORTH)
-        inspectorPanel.add(workBench, BorderLayout.CENTER)
-        inspectorPanel.border = JBUI.Borders.customLineTop(JBColor.border())
+        inspectorPanel.add(splitPanel, BorderLayout.CENTER)
         inspectorPanel
       }
       tabComponents.displayView.add(layoutInspectorRenderer)
@@ -479,13 +490,12 @@ private fun createLayoutInspectorWorkbench(
   project: Project,
   parentDisposable: Disposable,
   layoutInspector: LayoutInspector,
-  centerPanel: JComponent
 ): WorkBench<LayoutInspector> {
   ApplicationManager.getApplication().assertIsDispatchThread()
   val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
   val toolsDefinition =
     listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
-  workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
+  workbench.init(layoutInspector, toolsDefinition, false)
   DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
 
   Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
