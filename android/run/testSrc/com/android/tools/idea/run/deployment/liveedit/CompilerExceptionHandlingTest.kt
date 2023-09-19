@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.progress.ProcessCanceledException
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -35,6 +36,7 @@ class CompilerExceptionHandlingTest {
   }
 
   @Test
+  @Ignore // CLASS DIFFER ONLY
   fun notDropProcessCancelException() {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
     val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
@@ -45,6 +47,7 @@ class CompilerExceptionHandlingTest {
   }
 
   @Test
+  @Ignore // CLASS DIFFER ONLY
   fun syntaxError() {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
     val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
@@ -62,6 +65,7 @@ class CompilerExceptionHandlingTest {
   class ExceptionUnknownToStudio : RuntimeException()
 
   @Test
+  @Ignore // CLASS DIFFER ONLY
   fun unknownException() {
     val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
     val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
