@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ex.ApplicationInfoEx
@@ -36,6 +37,10 @@ class ToggleResourceTraceAction : ToggleAction("Trace Resource Updates"), DumbAw
       ResourceUpdateTracer.stopTracing()
     }
     ResourceUpdateTraceSettings.getInstance().enabled = state
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 
   override fun update(event: AnActionEvent) {
