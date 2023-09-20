@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -53,6 +54,12 @@ final class SelectMultipleDevicesAction extends AnAction {
 
     boolean empty = myAsyncDevicesGetterGetInstance.apply(project).get().map(Collection::isEmpty).orElse(true);
     presentation.setEnabledAndVisible(!empty);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
