@@ -543,7 +543,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ideProject: DataNode<ProjectData>,
     ideLibraryTable: IdeUnresolvedLibraryTable
   ): IdeResolvedLibraryTable {
-    val artifactModuleIdMap = buildArtifactsModuleIdMap(ideProject)
+    val artifactModuleIdMap = buildArtifactsModuleIdMap()
     val kotlinMultiplatformAndroidSourceSetData = ExternalSystemApiUtil.find(
       ideProject,
       AndroidProjectKeys.KOTLIN_MULTIPLATFORM_ANDROID_SOURCE_SETS_TABLE
@@ -560,17 +560,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     ).buildResolvedLibraryTable(ideLibraryTable)
   }
 
-  private fun buildArtifactsModuleIdMap(ideProject: DataNode<ProjectData>): Map<String, Set<String>> =
-    mergeProjectResolvedArtifacts(
-      kmpArtifactToModuleIdMap = ideProject
-        .getUserData(KotlinMppGradleProjectResolver.MPP_CONFIGURATION_ARTIFACTS)
-        .orEmpty(),
-      platformArtifactToModuleIdMap = ideProject
-        .getUserData(GradleProjectResolver.CONFIGURATION_ARTIFACTS)
-        .orEmpty(),
-      project = project,
-      rootProjectPath = ideProject.data.linkedExternalProjectPath
-    )
+  private fun buildArtifactsModuleIdMap(): Map<String, Set<String>> {
+    val artifactsMap = resolverCtx.artifactsMap
+    return artifactsMap.keys.associateWith { path ->
+      artifactsMap.getModuleMapping(path)?.moduleIds?.toSet().orEmpty()
+    }
+  }
 
   private fun resolveArtifact(artifactToModuleIdMap: Map<String, Set<String>>, artifact: File) =
     artifactToModuleIdMap[ExternalSystemApiUtil.toCanonicalPath(artifact.path)]
@@ -1077,36 +1072,6 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
   exceptions.forEach { logger<AndroidGradleProjectResolver>().warn(it) }
 }
 
-@VisibleForTesting
-fun mergeProjectResolvedArtifacts(
-  kmpArtifactToModuleIdMap: Map<String, List<String>>,
-  platformArtifactToModuleIdMap: Map<String, String>,
-  project: Project?,
-  rootProjectPath: @SystemIndependent String
-): Map<String, Set<String>> =
-  (kmpArtifactToModuleIdMap.keys + platformArtifactToModuleIdMap.keys)
-    .associateBy({ it }, {
-      val kmpModuleIds = kmpArtifactToModuleIdMap[it]?.toSet()
-      val platformModuleId = platformArtifactToModuleIdMap[it]
-      when {
-        kmpModuleIds != null && platformModuleId != null -> {
-          if (platformModuleId !in kmpModuleIds) {
-            // TODO (b/250368030)
-            // error("Both artifact maps contains same key: $it with different values for kmp: $kmpIds and platform: $platformId")
-            project?.let {
-              logKmpIncorrectSourceSetsIssue(project, rootProjectPath)
-            }
-            kmpModuleIds + platformModuleId
-          } else {
-            kmpModuleIds
-          }
-        }
-        kmpModuleIds != null -> kmpModuleIds
-        platformModuleId != null -> setOf(platformModuleId)
-        else -> emptySet()
-      }
-    })
-
 private fun IdeaModule.matchesPath(buildPath: String?, modulePath: String?): Boolean {
   return projectIdentifier.buildIdentifier.rootDir.path == buildPath
          && projectIdentifier.projectPath?.equals(modulePath) == true
@@ -1118,15 +1083,3 @@ private fun IdeaModule.getHolderProjectPath(): GradleHolderProjectPath {
     projectIdentifier.projectPath)
 }
 
-private fun logKmpIncorrectSourceSetsIssue(
-  project: Project,
-  rootProjectPath: @SystemIndependent String
-) {
-  val issue = GradleSyncIssue.newBuilder()
-    .setType(GradleSyncIssueType.TYPE_KMP_INCORRECT_PLATFORM_SOURCE_SET)
-    .build()
-  val event = GradleSyncEventLogger()
-    .generateSyncEvent(project, rootProjectPath, EventKind.GRADLE_SYNC_ISSUES)
-    .addGradleSyncIssues(issue)
-  log(event)
-}
