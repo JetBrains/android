@@ -1448,7 +1448,7 @@ public final class StudioFlags {
       "direct.access.add.device",
       "Direct Access Add Device",
       "Enable the new FTL DirectAccess Add Device workflow.",
-      false);
+      true);
 
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     Flag.create(
