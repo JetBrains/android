@@ -24,4 +24,6 @@ public interface MemorySettingsToken<P extends AndroidProjectSystem> extends Tok
     EP_NAME = new ExtensionPointName<>("com.android.tools.idea.memorysettings.memorySettingsToken");
 
   BuildSystemComponent createBuildSystemComponent(P projectSystem);
+
+  int getRecommendedXmxFor(P projectSystem);
 }
