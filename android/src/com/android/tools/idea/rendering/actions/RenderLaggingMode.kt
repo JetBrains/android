@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.actions
 
 import com.android.tools.rendering.RenderService
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.diagnostic.Logger
@@ -112,6 +113,9 @@ class RenderLaggingMode : ToggleAction("Enable Layout Preview Lagging Mode") {
       builder.show()
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
 }
 
 private fun Panel.spinnerParamMs(@Nls label: String, prop: KMutableProperty0<Int>) {
