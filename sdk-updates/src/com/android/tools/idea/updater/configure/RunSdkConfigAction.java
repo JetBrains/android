@@ -21,6 +21,7 @@ import com.android.tools.sdk.AndroidSdkData;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.options.Configurable;
@@ -44,6 +45,12 @@ public class RunSdkConfigAction extends DumbAwareAction {
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
