@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module, test]",
     ],
 )
 
@@ -85,6 +86,7 @@ kotlin_test(
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
         "//tools/analytics-library/shared:tools.analytics-shared",
+        "//tools/base/apkparser/analyzer:tools.analyzer.maven",
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/resource-repository:tools.resource-repository",

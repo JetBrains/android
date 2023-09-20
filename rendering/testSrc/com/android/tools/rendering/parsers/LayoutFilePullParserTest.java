@@ -85,7 +85,7 @@ public class LayoutFilePullParserTest {
 
     PathString file = new PathString(resourceFile);
 
-    ILayoutPullParser parser = LayoutFilePullParser.create(file, ResourceNamespace.RES_AUTO);
+    ILayoutPullParser parser = LayoutFilePullParser.create(file, ResourceNamespace.RES_AUTO, null);
 
     assertNull(parser.getName());
 

@@ -33,6 +33,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/analytics[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
     ],
 )
 

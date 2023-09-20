@@ -16,5 +16,6 @@
     <orderEntry type="library" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="analytics-crash" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
+    <orderEntry type="module" module-name="android.sdktools.analyzer" />
   </component>
 </module>

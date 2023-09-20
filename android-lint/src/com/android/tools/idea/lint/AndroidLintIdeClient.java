@@ -32,6 +32,7 @@ import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.RemotePackage;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.tools.idea.editors.manifest.ManifestUtils;
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository;
 import com.android.tools.idea.lint.common.LintIdeClient;
@@ -132,7 +133,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @NotNull
   public byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
     ProgressManager.checkCanceled();
-    return FileResourceReader.readBytes(resourcePath);
+    return FileResourceReader.readBytes(resourcePath, ResourceIdResolver.NO_RESOLUTION);
   }
 
   @Nullable
@@ -469,7 +470,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Nullable
   public XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
     ProgressManager.checkCanceled();
-    return FileResourceReader.createXmlPullParser(resourcePath);
+    return FileResourceReader.createXmlPullParser(resourcePath, ResourceIdResolver.NO_RESOLUTION);
   }
 
   private class LocationHandle extends Location.ResourceItemHandle

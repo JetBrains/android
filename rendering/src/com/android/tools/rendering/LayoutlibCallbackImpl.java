@@ -531,7 +531,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // For included layouts, create a LayoutFilePullParser such that we get the
     // layout editor behavior in included layouts as well - which for example
     // replaces <fragment> tags with <include>.
-    return LayoutFilePullParser.create(xml, namespace);
+    return LayoutFilePullParser.create(xml, namespace, myRenderModule.getResourceIdManager());
   }
 
   /**

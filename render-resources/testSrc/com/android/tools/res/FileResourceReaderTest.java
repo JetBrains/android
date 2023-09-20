@@ -24,6 +24,7 @@ import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
 import com.android.resources.AarTestUtils;
 import com.android.testutils.TestUtils;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class FileResourceReaderTest {
     String resourcePath = resApkPath + "!/res/drawable-mdpi-v4/design_ic_visibility.png";
     PathString pathString = new PathString("apk", resourcePath);
 
-    byte[] bytes = FileResourceReader.readBytes(pathString);
+    byte[] bytes = FileResourceReader.readBytes(pathString, ResourceIdResolver.NO_RESOLUTION);
     assertNotNull(bytes);
     assertEquals(309, bytes.length);
 
@@ -54,7 +55,7 @@ public class FileResourceReaderTest {
     String resourcePath = resApkPath + "!/res/layout/design_bottom_navigation_item.xml";
     PathString pathString = new PathString("apk", resourcePath);
 
-    XmlPullParser parser = FileResourceReader.createXmlPullParser(pathString);
+    XmlPullParser parser = FileResourceReader.createXmlPullParser(pathString, ResourceIdResolver.NO_RESOLUTION);
     assertTrue(parser instanceof ProtoXmlPullParser);
   }
 
@@ -64,7 +65,7 @@ public class FileResourceReaderTest {
     String resourcePath = resApkPath + "!/res/drawable-anydpi-v24/ic_placeholder_default.xml";
     PathString pathString = new PathString("apk", resourcePath);
 
-    byte[] bytes = FileResourceReader.readBytes(pathString);
+    byte[] bytes = FileResourceReader.readBytes(pathString, ResourceIdResolver.NO_RESOLUTION);
     assertNotNull(bytes);
 
     assertEquals(

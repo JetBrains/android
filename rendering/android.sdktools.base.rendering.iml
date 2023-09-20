@@ -20,5 +20,6 @@
     <orderEntry type="module" module-name="android.sdktools.base.sdklib-base" />
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-loader" />
     <orderEntry type="library" name="http-client" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.base.apkparser.analyzer-base" />
   </component>
 </module>

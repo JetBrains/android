@@ -23,6 +23,8 @@ import com.android.SdkConstants;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
 import com.android.tools.apk.analyzer.BinaryXmlParser;
+import com.android.annotations.NonNull;
+import com.android.tools.apk.analyzer.ResourceIdResolver;
 import com.android.utils.XmlUtils;
 import com.android.zipflinger.ZipMap;
 import com.android.zipflinger.ZipRepo;
@@ -79,7 +81,10 @@ public class FileResourceReader {
    * @throws IOException in case of an I/O error
    */
   @NotNull
-  public static byte[] readBytes(@NotNull PathString resourcePath) throws IOException {
+  public static byte[] readBytes(
+    @NotNull PathString resourcePath,
+    @NonNull ResourceIdResolver resourceIdResolver
+  ) throws IOException {
     String scheme = resourcePath.getFilesystemUri().getScheme();
     switch (scheme) {
       case FILE_PROTOCOL:
@@ -95,7 +100,7 @@ public class FileResourceReader {
         }
         byte[] rawContent = readZipEntryBytes(path.substring(0, separatorPos), path.substring(separatorEnd));
         if (isBinaryEncoded(scheme, path, rawContent)) {
-          return BinaryXmlParser.decodeXml(rawContent);
+          return BinaryXmlParser.decodeXml(rawContent, resourceIdResolver);
         }
         return rawContent;
       }
@@ -194,9 +199,12 @@ public class FileResourceReader {
    * @throws IOException in case of an I/O error
    */
   @Nullable
-  public static XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
+  public static XmlPullParser createXmlPullParser(
+    @NotNull PathString resourcePath,
+    @NonNull ResourceIdResolver resIdResolver
+  ) throws IOException {
     try {
-      byte[] contents = readBytes(resourcePath);
+      byte[] contents = readBytes(resourcePath, resIdResolver);
       return createXmlPullParser(contents);
     }
     catch (FileNotFoundException e) {

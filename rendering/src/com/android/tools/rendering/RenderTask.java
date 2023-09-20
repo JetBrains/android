@@ -804,7 +804,7 @@ public class RenderTask {
       }
       else {
         // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-        topParser = LayoutFilePullParser.create(new PathString(myIncludedWithin.getFromPath()), ResourceNamespace.TODO());
+        topParser = LayoutFilePullParser.create(new PathString(myIncludedWithin.getFromPath()), ResourceNamespace.TODO(), myContext.getModule().getResourceIdManager());
         if (topParser == null) {
           myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), null, null, null);
         }

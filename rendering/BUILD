@@ -18,6 +18,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:asm-tools",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
     ],
 )
 
@@ -41,6 +42,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )
 
