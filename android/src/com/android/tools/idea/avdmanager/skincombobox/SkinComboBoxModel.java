@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager.skincombobox;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.diagnostic.Logger;
@@ -24,6 +25,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.AbstractListModel;
@@ -36,21 +39,47 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
   @NotNull
   private Object mySelectedSkin = NoSkin.INSTANCE;
 
-  public void load() {
-    var future = Futures.submit(new Collector()::collect, AppExecutorUtil.getAppExecutorService());
-    Futures.addCallback(future, new Merge(), EdtExecutorService.getInstance());
+  @NotNull
+  private final Callable<Collection<Skin>> myCollect;
+
+  @NotNull
+  private final Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> myNewMerge;
+
+  SkinComboBoxModel() {
+    this(new Collector()::collect, Merge::new);
   }
 
-  private final class Merge implements FutureCallback<Collection<Skin>> {
+  @VisibleForTesting
+  SkinComboBoxModel(@NotNull Callable<Collection<Skin>> collect,
+                    @NotNull Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> newMerge) {
+    myCollect = collect;
+    myNewMerge = newMerge;
+  }
+
+  public void load() {
+    var future = Futures.submit(myCollect, AppExecutorUtil.getAppExecutorService());
+    Futures.addCallback(future, myNewMerge.apply(this), EdtExecutorService.getInstance());
+  }
+
+  @VisibleForTesting
+  static final class Merge implements FutureCallback<Collection<Skin>> {
+    @NotNull
+    private final SkinComboBoxModel myModel;
+
+    @VisibleForTesting
+    Merge(@NotNull SkinComboBoxModel model) {
+      myModel = model;
+    }
+
     @Override
     public void onSuccess(@NotNull Collection<Skin> skins) {
-      var map = Stream.concat(mySkins.stream(), skins.stream()).collect(Collectors.toMap(Skin::path, skin -> skin, Skin::merge));
+      var map = Stream.concat(myModel.mySkins.stream(), skins.stream()).collect(Collectors.toMap(Skin::path, skin -> skin, Skin::merge));
 
-      mySkins = map.values().stream()
+      myModel.mySkins = map.values().stream()
         .sorted()
         .collect(Collectors.toList());
 
-      fireContentsChanged(SkinComboBoxModel.this, 0, mySkins.size() - 1);
+      myModel.fireContentsChanged(myModel, 0, myModel.mySkins.size() - 1);
     }
 
     @Override
@@ -65,6 +94,12 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
       .filter(skin -> skin.path().equals(path))
       .findFirst()
       .orElse(new DefaultSkin(path));
+  }
+
+  @VisibleForTesting
+  @NotNull
+  Object getSkins() {
+    return mySkins;
   }
 
   @Override
