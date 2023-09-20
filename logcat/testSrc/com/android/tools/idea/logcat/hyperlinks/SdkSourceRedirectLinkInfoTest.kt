@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.PositionManagerImpl
+import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.fileEditor.FileNavigator
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -128,6 +129,14 @@ class SdkSourceRedirectLinkInfoTest {
     assertThat(fakeFileNavigator.navigationRequests).containsExactly(
       NavigationRequest("/Foo.java", line = -1, offset = 7, requestFocus = true),
     )
+  }
+
+  /**
+   * [SdkSourceRedirectLinkInfo] must be a [FileHyperlinkInfo] in order for `LogcatOccurrenceNavigator` to work.
+   */
+  @Test
+  fun isFileHyperlinkInfo() {
+    assertThat(FileHyperlinkInfo::class.java.isAssignableFrom(SdkSourceRedirectLinkInfo::class.java)).isTrue()
   }
 
   @Suppress("SameParameterValue")

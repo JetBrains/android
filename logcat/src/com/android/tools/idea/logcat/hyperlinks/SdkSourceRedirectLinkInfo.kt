@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.hyperlinks
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
 import com.intellij.execution.ExecutionBundle
+import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.HyperlinkInfoBase
 import com.intellij.execution.filters.OpenFileHyperlinkInfo
 import com.intellij.ide.util.gotoByName.GotoFileCellRenderer
@@ -41,7 +42,7 @@ internal class SdkSourceRedirectLinkInfo(
   @VisibleForTesting val files: List<VirtualFile>,
   private val descriptor: OpenFileDescriptor,
   @VisibleForTesting val apiLevel: Int,
-) : HyperlinkInfoBase() {
+) : HyperlinkInfoBase(), FileHyperlinkInfo {
   override fun navigate(project: Project, hyperlinkLocationPoint: RelativePoint?) {
     val psiManager = PsiManager.getInstance(project)
     val psiFiles = files.mapNotNull { psiManager.findFile(it) }
@@ -97,4 +98,6 @@ internal class SdkSourceRedirectLinkInfo(
       else -> OpenFileDescriptor(project, newFile, offset)
     }
   }
+
+  override fun getDescriptor(): OpenFileDescriptor = descriptor
 }
