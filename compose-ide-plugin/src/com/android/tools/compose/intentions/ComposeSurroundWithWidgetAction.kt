@@ -123,8 +123,7 @@ private fun findNearestSurroundableElement(file: PsiFile, offset: Int): PsiEleme
       if (it.isLineBreak()) {
         file.findParentCallExpression(it.prevLeaf(true)?.startOffset ?: (offset - 1))
       } else it
-    }
-      ?: return null
+    } ?: return null
 
   return file.findParentCallExpression(nearestElement.startOffset)
 }

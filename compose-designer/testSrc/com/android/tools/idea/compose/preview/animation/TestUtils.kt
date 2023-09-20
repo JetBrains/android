@@ -57,6 +57,7 @@ object TestUtils {
     }
 
     override var height = TEST_ELEMENT_ROW_HEIGHT
+
     override fun paint(g: Graphics2D) {
       g.fillRect(x + offsetPx, y, TEST_ELEMENT_WIDTH, TEST_ELEMENT_HEIGHT)
     }

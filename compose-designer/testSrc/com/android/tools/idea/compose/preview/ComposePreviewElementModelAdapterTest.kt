@@ -69,6 +69,7 @@ class ComposePreviewElementModelAdapterTest {
     val adapter =
       object : ComposePreviewElementModelAdapter() {
         override fun toXml(previewElement: ComposePreviewElementInstance) = ""
+
         override fun createDataContext(previewElement: ComposePreviewElementInstance) =
           DataContext {}
       }

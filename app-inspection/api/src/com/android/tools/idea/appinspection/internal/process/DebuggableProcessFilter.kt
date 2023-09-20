@@ -47,6 +47,7 @@ fun IDevice.isPackageDebuggable(packageName: String): Boolean {
 private class SingleDebuggableProcessReceiver : MultiLineReceiver() {
   var isDebuggable = false
     private set
+
   var packageName = ""
     private set
 

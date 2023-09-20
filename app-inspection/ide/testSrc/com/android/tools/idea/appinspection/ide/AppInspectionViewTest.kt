@@ -352,6 +352,7 @@ class AppInspectionViewTest {
               override val messengers: Iterable<AppInspectorMessenger> =
                 listOf(StubTestAppInspectorMessenger())
               override val component = JPanel()
+
               override fun dispose() {
                 tabDisposedDeferred.complete(Unit)
               }
@@ -365,6 +366,7 @@ class AppInspectionViewTest {
       val offlineTabProvider =
         object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
           override fun supportsOffline() = true
+
           override fun createTab(
             project: Project,
             ideServices: AppInspectionIdeServices,
@@ -375,6 +377,7 @@ class AppInspectionViewTest {
             return object : AppInspectorTab, Disposable {
               override val messengers = listOf(StubTestAppInspectorMessenger())
               override val component = JPanel()
+
               override fun dispose() {
                 offlineTabDisposedDeferred.complete(Unit)
               }
@@ -730,6 +733,7 @@ class AppInspectionViewTest {
       Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
         val handler = TestAppInspectorCommandHandler(timer)
+
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
           if (!command.appInspectionCommand.hasCreateInspectorCommand()) {
             handler.handleCommand(command, events)

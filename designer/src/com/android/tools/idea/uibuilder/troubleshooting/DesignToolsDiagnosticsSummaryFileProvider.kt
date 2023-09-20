@@ -31,6 +31,7 @@ private const val outputLogFileName: String = "DesignTools.log"
  */
 class DesignToolsDiagnosticsSummaryFileProvider : DiagnosticsSummaryFileProvider {
   override val name: String = "Design Tools"
+
   override fun getFiles(project: Project?): List<FileInfo> {
     if (project == null) return emptyList()
 

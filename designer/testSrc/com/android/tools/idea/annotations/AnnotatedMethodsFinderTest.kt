@@ -41,6 +41,7 @@ class AnnotatedMethodsFinderTest {
 
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
 

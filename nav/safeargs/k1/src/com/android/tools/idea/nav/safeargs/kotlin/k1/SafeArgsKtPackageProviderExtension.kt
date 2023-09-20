@@ -47,8 +47,7 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
     val packageDescriptors =
       KtDescriptorCacheModuleService.getInstance(facet.module).getDescriptors(module).takeIf {
         it.isNotEmpty()
-      }
-        ?: return null
+      } ?: return null
     return SafeArgsSyntheticPackageProvider(packageDescriptors)
   }
 }

@@ -30,6 +30,7 @@ class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
   ) {
 
   private var isSwappingStates = false
+
   override fun actionPerformed(e: AnActionEvent) {
     isSwappingStates = true
     swapStates()

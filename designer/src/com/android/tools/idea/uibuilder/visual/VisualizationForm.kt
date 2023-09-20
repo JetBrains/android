@@ -129,6 +129,7 @@ class VisualizationForm(
   private val myProgressIndicator = EmptyProgressIndicator()
   private val analyticsManager: NlAnalyticsManager
     get() = surface.analyticsManager
+
   var editor: FileEditor?
     get() = myEditor
     private set(editor) {
@@ -138,6 +139,7 @@ class VisualizationForm(
         updateActionToolbar(myActionToolbarPanel)
       }
     }
+
   val component: JComponent = myRoot
 
   private val visualLintHandler: VisualizationFormVisualLintHandler

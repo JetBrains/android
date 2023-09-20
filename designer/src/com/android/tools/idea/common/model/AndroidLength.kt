@@ -24,9 +24,13 @@ import com.intellij.ui.scale.JBUIScale
 @JvmInline
 value class AndroidLength(val value: Float) {
   operator fun plus(rhs: AndroidLength) = AndroidLength(value + rhs.value)
+
   operator fun minus(rhs: AndroidLength) = AndroidLength(value - rhs.value)
+
   operator fun times(rhs: Int) = AndroidLength(value * rhs)
+
   operator fun times(rhs: Float) = AndroidLength(value * rhs)
+
   operator fun div(rhs: AndroidLength) = value / rhs.value
 
   fun toInt() = value.toInt()

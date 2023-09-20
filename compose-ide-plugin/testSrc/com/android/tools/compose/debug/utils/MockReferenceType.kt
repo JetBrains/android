@@ -35,16 +35,24 @@ sealed class MockReferenceType(
   private val methods = mutableListOf<Method>()
 
   override fun methods(): List<Method> = methods
+
   override fun name() = name
+
   override fun signature(): String = "L$name;"
+
   override fun isPrepared(): Boolean = true
+
   override fun nestedTypes(): List<ReferenceType> =
     debugProcess.virtualMachineProxy.allClasses().filter { it.name().startsWith("${name()}\$") }
 
   override fun allLineLocations(): List<Location> = methods().flatMap { it.allLineLocations() }
+
   override fun allMethods(): List<Method> = methods()
+
   override fun methodsByName(name: String): List<Method> = methods().filter { it.name() == name }
+
   override fun virtualMachine(): VirtualMachine = debugProcess.virtualMachineProxy.virtualMachine
+
   override fun sourceName(): String {
     return "$name.kt"
   }
@@ -78,11 +86,17 @@ class MockClassType(
   }
 
   override fun superclass(): ClassType? = superClass
+
   override fun interfaces(): List<InterfaceType> = interfaces
+
   override fun allInterfaces(): List<InterfaceType> = interfaces
+
   override fun subclasses(): List<ClassType> = emptyList()
+
   override fun isEnum() = false
+
   override fun setValue(field: Field?, value: Value?) {}
+
   override fun newInstance(
     thread: ThreadReference?,
     method: Method,

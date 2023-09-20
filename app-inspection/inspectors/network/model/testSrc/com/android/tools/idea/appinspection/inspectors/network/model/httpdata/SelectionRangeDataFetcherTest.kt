@@ -27,6 +27,7 @@ class SelectionRangeDataFetcherTest {
     val dataModel =
       object : HttpDataModel {
         val data = mutableListOf<HttpData>()
+
         override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
           return data.toList()
         }

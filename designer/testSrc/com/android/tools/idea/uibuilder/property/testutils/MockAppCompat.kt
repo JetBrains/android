@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.testutils
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.uibuilder.MOST_RECENT_API_LEVEL
 import com.google.common.collect.ImmutableList

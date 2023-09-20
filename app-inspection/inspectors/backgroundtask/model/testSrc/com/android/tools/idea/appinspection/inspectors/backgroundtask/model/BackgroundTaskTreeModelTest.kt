@@ -37,6 +37,7 @@ class BackgroundTaskTreeModelTest {
     override val scope: CoroutineScope,
   ) : AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = rawData
+
     override val eventFlow = emptyFlow<ByteArray>()
   }
 

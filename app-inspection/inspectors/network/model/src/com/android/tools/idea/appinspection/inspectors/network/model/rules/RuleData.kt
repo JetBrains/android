@@ -65,6 +65,7 @@ class RuleData(
 
   class CriteriaData {
     @get:Transient var listener: (() -> Unit)? = null
+
     private fun <T> delegate(initialValue: T) =
       Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
 
@@ -104,6 +105,7 @@ class RuleData(
     private constructor() : this(null, null, null)
 
     @get:Transient var listener: (() -> Unit)? = null
+
     private fun <T> delegate(initialValue: T) =
       Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
 

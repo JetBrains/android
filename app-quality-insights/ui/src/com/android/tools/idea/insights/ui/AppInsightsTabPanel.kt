@@ -42,12 +42,16 @@ class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
 
   // Start of stubbed overrides section.
   override fun add(comp: Component?): Component = throw UnsupportedOperationException(errorMsg)
+
   override fun add(name: String?, comp: Component?): Component =
     throw UnsupportedOperationException(errorMsg)
+
   override fun add(comp: Component?, index: Int): Component =
     throw UnsupportedOperationException(errorMsg)
+
   override fun add(comp: Component, constraints: Any?) =
     throw UnsupportedOperationException(errorMsg)
+
   override fun add(comp: Component?, constraints: Any?, index: Int) =
     throw UnsupportedOperationException(errorMsg)
 }

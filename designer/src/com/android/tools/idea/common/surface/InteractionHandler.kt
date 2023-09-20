@@ -395,24 +395,36 @@ object NopInteractionHandler : InteractionHandler {
     mouseY: Int,
     modifiersEx: Int
   ): Interaction? = null
+
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
     null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
+
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
     null
+
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
+
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
+
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
+
   override fun zoom(type: ZoomType, x: Int, y: Int) {}
+
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {}
+
   override fun stayHovering(mouseX: Int, mouseY: Int) {}
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
+
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
     null
+
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
+
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
+
   override fun mouseExited() {}
 }
 

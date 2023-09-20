@@ -82,8 +82,7 @@ internal class SpringPickerLineMarkerProviderTest {
     fixture.openFileInEditor(file)
     val springLineMarkerInfos = allowAnalysisOnEdt {
       fixture.doHighlighting()
-      DaemonCodeAnalyzerImpl.getLineMarkers(document, fixture.project).filter {
-        lineMarkerInfo ->
+      DaemonCodeAnalyzerImpl.getLineMarkers(document, fixture.project).filter { lineMarkerInfo ->
         lineMarkerInfo.lineMarkerTooltip == "SpringSpec configuration picker"
       }
     }

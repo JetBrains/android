@@ -42,13 +42,16 @@ class HttpArtifactResolverTest {
   private val fakeDownloader =
     object : Downloader {
       override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
+
       override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
+
       override fun downloadFully(
         url: URL,
         target: Path,
         checksum: Checksum?,
         indicator: ProgressIndicator
       ) {}
+
       override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
       override fun downloadFullyWithCaching(

@@ -84,9 +84,11 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       setTabDraggingEnabled(true)
-      setUiDecorator(object : UiDecorator {
-        override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
-      })
+      setUiDecorator(
+        object : UiDecorator {
+          override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
+        }
+      )
       addTabMouseListener(
         object : MouseAdapter() {
           override fun mousePressed(e: MouseEvent) {
@@ -291,8 +293,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
    * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is
    * only one tab.
    */
-  private class BorderedTabs(project: Project, parent: Disposable) :
-    JBTabsImpl(project, parent) {
+  private class BorderedTabs(project: Project, parent: Disposable) : JBTabsImpl(project, parent) {
     override fun createTabBorder() = JBEditorTabsBorder(this)
   }
 }

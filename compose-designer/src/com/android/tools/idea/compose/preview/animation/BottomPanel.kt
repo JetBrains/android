@@ -57,6 +57,7 @@ class BottomPanel(
     )
 
   private val resetListeners: MutableList<() -> Unit> = mutableListOf()
+
   fun addResetListener(listener: () -> Unit) {
     resetListeners.add(listener)
   }

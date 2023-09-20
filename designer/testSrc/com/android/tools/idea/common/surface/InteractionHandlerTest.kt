@@ -55,6 +55,7 @@ class InteractionHandlerTest {
           mouseY: Int,
           modifiersEx: Int
         ): Interaction? = null
+
         override fun createInteractionOnDrag(
           mouseX: Int,
           mouseY: Int,

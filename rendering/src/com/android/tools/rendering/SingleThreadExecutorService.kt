@@ -131,6 +131,7 @@ private class ProfilingSingleThreadExecutorImpl(
         profileThreadFuture.whenComplete { _, _ -> scheduledFuture.cancel(true) }
       }
   }
+
   private var profileThreadFuture: CompletableFuture<Unit>? = null
   private val threadPoolExecutor =
     object :
@@ -177,9 +178,13 @@ private class ProfilingSingleThreadExecutorImpl(
     val currentThread = theThread.getAndSet(null)
     currentThread?.interrupt()
   }
+
   override fun shutdownNow(): MutableList<Runnable> = threadPoolExecutor.shutdownNow()
+
   override fun isShutdown(): Boolean = threadPoolExecutor.isShutdown
+
   override fun isTerminated(): Boolean = threadPoolExecutor.isTerminated
+
   override fun awaitTermination(timeout: Long, unit: TimeUnit): Boolean =
     threadPoolExecutor.awaitTermination(timeout, unit)
 }

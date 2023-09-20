@@ -115,6 +115,7 @@ internal data class ProvidesMethodIndexValue(val classId: ClassId, val methodSim
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.PROVIDES_METHOD
+
     override fun read(input: DataInput) =
       ProvidesMethodIndexValue(input.readClassId(), input.readString())
   }
@@ -175,6 +176,7 @@ internal data class ProvidesMethodParameterIndexValue(
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.PROVIDES_METHOD_PARAMETER
+
     override fun read(input: DataInput) =
       ProvidesMethodParameterIndexValue(input.readClassId(), input.readString(), input.readString())
   }

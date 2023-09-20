@@ -118,6 +118,7 @@ internal data class AssistedFactoryClassIndexValue(val classId: ClassId) : Index
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_FACTORY_CLASS
+
     override fun read(input: DataInput) = AssistedFactoryClassIndexValue(input.readClassId())
   }
 
@@ -163,6 +164,7 @@ internal data class AssistedFactoryMethodIndexValue(
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_FACTORY_METHOD
+
     override fun read(input: DataInput) =
       AssistedFactoryMethodIndexValue(input.readClassId(), input.readString())
   }
@@ -215,6 +217,7 @@ internal data class AssistedFactoryMethodDaggerElement(
   internal constructor(
     psiElement: KtFunction
   ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
+
   internal constructor(
     psiElement: PsiMethod
   ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)

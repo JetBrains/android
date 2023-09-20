@@ -68,6 +68,7 @@ interface HtmlLinkManager {
   fun createClearCacheUrl(): String = URL_CLEAR_CACHE_AND_NOTIFY
 
   fun createAddDependencyUrl(artifactId: String): String = "$URL_ADD_DEPENDENCY$artifactId"
+
   fun createAddDebugDependencyUrl(artifactId: String): String =
     "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
@@ -124,7 +125,9 @@ interface HtmlLinkManager {
           hasRenderResult: Boolean,
           surface: RefreshableSurface
         ) {}
+
         override fun createCommandLink(command: CommandLink): String = ""
+
         override fun createRunnableLink(runnable: Runnable): String = ""
       }
 
@@ -132,6 +135,7 @@ interface HtmlLinkManager {
     val NOOP_SURFACE =
       object : RefreshableSurface {
         override fun handleRefreshRenderUrl() {}
+
         override fun requestRender() {}
       }
   }

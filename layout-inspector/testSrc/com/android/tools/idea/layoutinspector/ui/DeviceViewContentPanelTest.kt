@@ -1359,9 +1359,13 @@ class DeviceViewContentPanelTest {
     val popup: JPopupMenu = mock()
 
     override fun getComponent(): JPopupMenu = popup
+
     override fun getActionGroup(): ActionGroup = group
+
     override fun getPlace(): String = error("Not implemented")
+
     override fun setTargetComponent(component: JComponent) = error("Not implemented")
+
     override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
 
     fun assertSelectViewActionAndGotoDeclaration(vararg expected: Long) {

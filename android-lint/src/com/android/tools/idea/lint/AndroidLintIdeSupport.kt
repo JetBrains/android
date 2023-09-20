@@ -280,6 +280,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   override fun canRequestFeedback(): Boolean = ProvideLintFeedbackPanel.canRequestFeedback()
 
   override fun requestFeedbackFix(issue: Issue): LocalQuickFix = ProvideLintFeedbackFix(issue.id)
+
   override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction =
     ProvideLintFeedbackIntentionAction(issue.id)
 

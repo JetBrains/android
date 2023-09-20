@@ -32,8 +32,10 @@ class DesignInfoProvidersUtilsTest {
 
   private val project
     get() = rule.project
+
   private val module
     get() = rule.module
+
   private lateinit var testProjectSystem: TestProjectSystem
 
   @Before

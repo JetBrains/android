@@ -68,8 +68,7 @@ internal fun findPreviewModeManagersForContext(context: DataContext): List<Previ
 
   return FileEditorManager.getInstance(project)?.getAllEditors(file)?.mapNotNull {
     it.getPreviewModeManager()
-  }
-    ?: emptyList()
+  } ?: emptyList()
 }
 
 /**

@@ -280,8 +280,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       val defaultFile =
         previewElement.previewElementDefinitionPsi?.virtualFile?.let {
           getPsiFileSafely(project, it)
-        }
-          ?: psiFile
+        } ?: psiFile
       navigationHandler.setDefaultLocation(newModel, defaultFile, offset)
 
       withContext(AndroidDispatchers.workerThread) {

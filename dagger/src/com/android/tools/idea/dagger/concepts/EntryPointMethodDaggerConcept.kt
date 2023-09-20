@@ -100,6 +100,7 @@ internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodS
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ENTRY_POINT_METHOD
+
     override fun read(input: DataInput) =
       EntryPointMethodIndexValue(input.readClassId(), input.readString())
   }
@@ -152,6 +153,7 @@ internal data class EntryPointMethodDaggerElement(
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD

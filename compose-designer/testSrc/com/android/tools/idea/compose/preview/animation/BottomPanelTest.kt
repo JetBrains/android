@@ -184,6 +184,7 @@ class BottomPanelTest(
       BottomPanel(
         object : AnimationPreviewState {
           override fun isCoordinationAvailable() = withCoordination
+
           override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
         },
         surface,

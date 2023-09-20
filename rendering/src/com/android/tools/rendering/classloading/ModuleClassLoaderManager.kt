@@ -58,6 +58,7 @@ interface ModuleClassLoaderManager<T : ModuleClassLoader> {
     fun get(): ModuleClassLoaderManager<*> =
       ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
   }
+
   fun getShared(
     parent: ClassLoader?,
     moduleRenderContext: ModuleRenderContext,

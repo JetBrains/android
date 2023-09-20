@@ -91,6 +91,9 @@ class CreateFileQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     val virtualBinFile = LocalFileSystem.getInstance().findFileByIoFile(binFile)
     val contents = virtualBinFile?.contentsToByteArray()
-    assertEquals(Base64.getEncoder().encodeToString(binary), Base64.getEncoder().encodeToString(contents))
+    assertEquals(
+      Base64.getEncoder().encodeToString(binary),
+      Base64.getEncoder().encodeToString(contents)
+    )
   }
 }

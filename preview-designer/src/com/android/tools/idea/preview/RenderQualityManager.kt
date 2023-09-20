@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
  */
 interface RenderQualityManager {
   fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float
+
   fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean
 }
 
@@ -96,6 +97,7 @@ class DefaultRenderQualityManager(
               override fun zoomChanged(previousScale: Double, newScale: Double) {
                 trySend(Unit)
               }
+
               override fun panningChanged(adjustmentEvent: AdjustmentEvent?) {
                 trySend(Unit)
               }
@@ -160,6 +162,7 @@ class SimpleRenderQualityManager(private val qualityProvider: () -> Float) : Ren
   override fun getTargetQuality(sceneManager: LayoutlibSceneManager): Float {
     return qualityProvider()
   }
+
   override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean {
     return false
   }

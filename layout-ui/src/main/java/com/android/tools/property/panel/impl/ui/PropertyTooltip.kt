@@ -59,7 +59,8 @@ object PropertyTooltip {
       when (validation.first) {
         EditingErrorCategory.ERROR -> Pair("Error", validation.second)
         EditingErrorCategory.WARNING -> Pair("Warning", validation.second)
-        else -> property.tooltipForValue.nullize()?.let { Pair(null, it) }
+        else ->
+          property.tooltipForValue.nullize()?.let { Pair(null, it) }
             ?: return hideTooltip(component)
       }
     createTooltipWithContent(component, text, title)

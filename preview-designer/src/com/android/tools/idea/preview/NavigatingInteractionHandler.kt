@@ -49,6 +49,7 @@ class NavigatingInteractionHandler(
 ) : NlInteractionHandler(surface) {
 
   private val scope = AndroidCoroutineScope(surface)
+
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {
     // When the selection capabilities are enabled and a Shift-click (single or double) happens,
     // then

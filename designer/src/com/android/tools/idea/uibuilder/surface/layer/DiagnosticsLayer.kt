@@ -65,8 +65,7 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
         TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - it.lastAccessTimeMs)
       }s ago " +
           "hits=${it.bucketHits()} misses=${it.bucketMisses()} wasFull=${it.bucketWasFull()} hadSpace=${it.imageWasReturned()}"
-      }
-        ?: ""
+      } ?: ""
 
     return """
       |General

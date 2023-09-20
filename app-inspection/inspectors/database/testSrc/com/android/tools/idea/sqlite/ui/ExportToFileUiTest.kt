@@ -47,11 +47,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
-import org.mockito.AdditionalAnswers.answer
-import org.mockito.AdditionalAnswers.delegatesTo
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.anyString
-import org.mockito.Mockito
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.MouseEvent
@@ -61,6 +56,11 @@ import java.awt.event.MouseEvent.MOUSE_PRESSED
 import javax.swing.AbstractButton
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
+import org.mockito.AdditionalAnswers.answer
+import org.mockito.AdditionalAnswers.delegatesTo
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -163,14 +163,17 @@ class ExportToFileUiTest : LightPlatformTestCase() {
     expectedParams: ExportDialogParams
   ) {
     // Set up an ActionManager capturing pop-up menus
-    val testActionManager = mock(ActionManagerEx::class.java, delegatesTo<ActionManager>(ActionManager.getInstance()))
+    val testActionManager =
+      mock(ActionManagerEx::class.java, delegatesTo<ActionManager>(ActionManager.getInstance()))
     val popUpMenuActionGroupList = mutableListOf<ActionGroup>()
-    fun createActionPopupMenu(@Suppress("UNUSED_PARAMETER") place: String, group: ActionGroup): ActionPopupMenu {
+    fun createActionPopupMenu(
+      @Suppress("UNUSED_PARAMETER") place: String,
+      group: ActionGroup
+    ): ActionPopupMenu {
       popUpMenuActionGroupList.add(group)
       return FakeActionPopupMenu(group)
     }
-    Mockito
-      .doAnswer(answer(::createActionPopupMenu))
+    Mockito.doAnswer(answer(::createActionPopupMenu))
       .whenever(testActionManager)
       .createActionPopupMenu(anyString(), any())
     ApplicationManager.getApplication()

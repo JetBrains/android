@@ -51,8 +51,10 @@ object DaggerClasses {
 
   private fun dagger(className: String): DaggerClass =
     DaggerClass(ClassId(DAGGER_PACKAGE_FQNAME, Name.identifier(className)))
+
   private fun daggerAssisted(className: String): DaggerClass =
     DaggerClass(ClassId(DAGGER_ASSISTED_PACKAGE_FQNAME, Name.identifier(className)))
+
   private fun javaxInject(className: String): DaggerClass =
     DaggerClass(ClassId(JAVAX_INJECT_PACKAGE_FQNAME, Name.identifier(className)))
 

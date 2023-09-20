@@ -799,6 +799,7 @@ class DatabaseInspectorControllerImpl(
 
     class Table(@get:UiThread override val databasePath: String, val tableName: String) :
       TabDescription()
+
     class AdHocQuery(@get:UiThread override val databasePath: String?, val query: String) :
       TabDescription()
   }
@@ -858,5 +859,6 @@ interface DatabaseInspectorController : Disposable {
 
 sealed class TabId {
   data class TableTab(val databaseId: SqliteDatabaseId, val tableName: String) : TabId()
+
   data class AdHocQueryTab(val tabId: Int) : TabId()
 }

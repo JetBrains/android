@@ -100,6 +100,7 @@ class PairedDevicesPanelTest {
 
     assertThat(pairingTable.values).isEmpty()
   }
+
   @Test
   fun pairingGoesAway() = runTestWithFixture {
     val handle2 = createHandle("2")
@@ -180,6 +181,7 @@ class PairedDevicesPanelTest {
 
   private fun FakeDeviceHandle.pairingStatus(state: WearPairingManager.PairingState) =
     PairingStatus(name, name, state)
+
   private fun FakeDeviceHandle.pairedDeviceData(state: WearPairingManager.PairingState) =
     PairedDeviceData(this, name, null, null, state)
 

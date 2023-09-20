@@ -72,10 +72,15 @@ interface ModuleClassLoaderDiagnosticsWrite : ModuleClassLoaderDiagnosticsRead {
 @VisibleForTesting
 object NopModuleClassLoadedDiagnostics : ModuleClassLoaderDiagnosticsWrite {
   override fun classLoadStart(fqn: String) {}
+
   override fun classLoadedEnd(fqn: String, timeMs: Long) {}
+
   override fun classFindStart(fqn: String) {}
+
   override fun classFindEnd(fqn: String, wasFound: Boolean, timeMs: Long) {}
+
   override fun classRewritten(fqn: String, length: Int, timeMs: Long) {}
+
   override val classesFound: Long = 0
   override val accumulatedFindTimeMs: Long = 0
   override val accumulatedRewriteTimeMs: Long = 0
@@ -166,8 +171,10 @@ class ModuleClassLoadedDiagnosticsImpl : ModuleClassLoaderDiagnosticsWrite {
 
   override val classesFound: Long
     get() = totalClassesFound.sum()
+
   override val accumulatedFindTimeMs: Long
     get() = totalFindTimeMs.sum()
+
   override val accumulatedRewriteTimeMs: Long
     get() = totalRewriteTimeMs.sum()
 }

@@ -41,6 +41,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   private fun Container.findSceneViewPeerPanels(): Collection<SceneViewPeerPanel> =
     components.filterIsInstance<SceneViewPeerPanel>()
+
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
@@ -56,6 +57,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
     content: Collection<PositionableContent>,
     availableSize: Dimension
   ): Dimension = Dimension(0, 0)
+
   final override fun minimumLayoutSize(parent: Container): Dimension =
     minimumLayoutSize(
       parent.findSceneViewPeerPanels().map { it.positionableAdapter },
@@ -66,6 +68,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
     content: Collection<PositionableContent>,
     availableSize: Dimension
   ): Dimension
+
   final override fun preferredLayoutSize(parent: Container): Dimension =
     preferredLayoutSize(
       parent.findSceneViewPeerPanels().map { it.positionableAdapter },
@@ -73,6 +76,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
     )
 
   override fun addLayoutComponent(name: String?, comp: Component?) {}
+
   override fun removeLayoutComponent(comp: Component?) {}
 
   abstract fun getMeasuredPositionableContentPosition(

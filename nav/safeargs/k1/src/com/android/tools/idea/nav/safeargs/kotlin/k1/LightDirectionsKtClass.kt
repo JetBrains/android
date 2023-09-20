@@ -115,15 +115,19 @@ class LightDirectionsKtClass(
 
   private val LOG
     get() = Logger.getInstance(LightDirectionsKtClass::class.java)
+
   private val _companionObject = storageManager.createLazyValue { computeCompanionObject() }
   private val scope = storageManager.createLazyValue { DirectionsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+
   override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
     unsubstitutedMemberScope
 
   override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
+
   override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
+
   override fun getCompanionObjectDescriptor() = _companionObject()
 
   private fun computeCompanionObject(): ClassDescriptor {
@@ -141,10 +145,15 @@ class LightDirectionsKtClass(
       ) {
       private val companionScope = storageManager.createLazyValue { CompanionObjectScope() }
       private val companionObject = this
+
       override fun isCompanionObject() = true
+
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
+
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
+
       override fun getUnsubstitutedMemberScope() = companionScope()
+
       override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
         unsubstitutedMemberScope
 
@@ -211,8 +220,7 @@ class LightDirectionsKtClass(
                           companionObject.fqNameSafe.asString()
                         )
                       )
-                    }
-                    ?: directionsClassDescriptor.source
+                    } ?: directionsClassDescriptor.source
 
                 companionObject.createMethod(
                   name = methodName,

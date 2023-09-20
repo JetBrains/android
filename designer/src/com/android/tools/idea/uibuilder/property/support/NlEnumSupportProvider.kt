@@ -71,8 +71,8 @@ class NlEnumSupportProvider(model: NlPropertiesModel) : EnumSupportProvider<NlPr
     val support =
       cachedEnumSupport.get(property.namespace, property.name)
         ?: provideEnumSupportFromViewHandler(property.name, property.components)
-          ?: getDropDownValuesFromSpecialCases(property)
-          ?: property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
+        ?: getDropDownValuesFromSpecialCases(property)
+        ?: property.definition?.let { provideEnumSupportFromAttributeDefinition(it) }
     if (support is CachedEnumSupport) {
       cachedEnumSupport.put(property.namespace, property.name, support)
     }

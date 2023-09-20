@@ -158,6 +158,7 @@ class OverviewTabContent : TabContent() {
       // ignore the input color and explicitly set the color provided by UIUtil.getLabelBackground()
       super.setBackground(UIUtil.getLabelBackground())
     }
+
     override fun setFont(ignored: Font?) {
       // ignore the input font and explicitly set the label font provided by JBFont
       super.setFont(JBFont.label().asPlain())

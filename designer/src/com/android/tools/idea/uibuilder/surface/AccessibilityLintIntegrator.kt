@@ -95,12 +95,16 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 class NlATFIncludeIssue(private val include: NlComponent) : Issue() {
   override val summary: String
     get() = "Included layout may contain accessibility issues."
+
   override val description: String
     get() = "We found some potential accessibility issues that may have came from included layout."
+
   override val severity: HighlightSeverity
     get() = HighlightSeverity.WARNING
+
   override val source: IssueSource
     get() = IssueSource.fromNlComponent(include)
+
   override val category: String
     get() = Category.A11Y.name
 

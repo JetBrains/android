@@ -67,19 +67,29 @@ class SqliteCliArgs private constructor() {
     private val args = mutableListOf<SqliteCliArg>()
 
     fun database(path: Path) = apply { args.add(SqliteCliArg(".open '${path.toAbsolutePath()}'")) }
+
     fun output(path: Path) = apply {
       args.add(SqliteCliArg("$sqliteCliOutputArgPrefix ${path.toAbsolutePath()}"))
     }
+
     fun modeCsv() = apply { args.add(SqliteCliArg(".mode csv")) }
+
     fun dump() = apply { args.add(SqliteCliArg(".dump")) }
+
     fun dumpTable(tableName: String) = apply { args.add(SqliteCliArg(".dump '$tableName'")) }
+
     fun headersOn() = apply { args.add(SqliteCliArg(".headers on")) }
+
     fun separator(separator: Char) = apply { args.add(SqliteCliArg(".separator '$separator'")) }
+
     fun queryTableContents(tableName: String) = apply {
       args.add(SqliteCliArg("${selectTableContents(tableName)};"))
     }
+
     fun queryTableList() = apply { args.add(SqliteCliArg("$selectTableNames;")) }
+
     fun queryViewList() = apply { args.add(SqliteCliArg("$selectViewNames;")) }
+
     fun raw(rawArg: String) = apply { args.add(SqliteCliArg(rawArg)) }
     /**
      * Moves data from the WAL (write-ahead log) to the main DB file.
@@ -89,6 +99,7 @@ class SqliteCliArgs private constructor() {
     fun walCheckpointTruncate() = apply {
       args.add(SqliteCliArg("PRAGMA wal_checkpoint(TRUNCATE);"))
     }
+
     private fun quit() = apply {
       args.add(SqliteCliArg(".quit"))
     } // exits the sqlite3 interactive mode
@@ -102,6 +113,7 @@ object SqliteQueries {
     "select name from sqlite_master where type = 'table' AND name not like 'sqlite_%'"
   const val selectViewNames =
     "select name from sqlite_master where type = 'view' AND name not like 'sqlite_%'"
+
   fun selectTableContents(tableName: String) = "select * from '$tableName'"
 }
 

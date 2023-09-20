@@ -147,6 +147,7 @@ class AppInspectionInspectorClient(
     AppInspectionTreeLoader(notificationModel, logEvent = ::logEvent, skiaParser)
   override val provider: PropertiesProvider
     get() = propertiesProvider
+
   override val isCapturing: Boolean
     get() = inspectorClientSettings.isCapturingModeOn
 

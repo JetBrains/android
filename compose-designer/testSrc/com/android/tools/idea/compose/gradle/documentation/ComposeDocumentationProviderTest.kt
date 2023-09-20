@@ -72,7 +72,8 @@ class ComposeDocumentationProviderTest {
     // Check that we've correctly generated the preview tag
     assertTrue(
       generatedDoc.contains(
-        "<div class='content'><img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'></div>".toRegex()
+        "<div class='content'><img src='file://DefaultPreview' alt='preview:DefaultPreview' width='\\d+' height='\\d+'></div>"
+          .toRegex()
       )
     )
 

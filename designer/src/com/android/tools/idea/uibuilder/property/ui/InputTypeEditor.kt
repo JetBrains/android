@@ -123,7 +123,9 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
           variation.isVisible = variationModel.size > 1
           variationLabel.isVisible = variationModel.size > 1
         }
+
         override fun intervalAdded(event: ListDataEvent) {}
+
         override fun intervalRemoved(event: ListDataEvent) {}
       }
     )

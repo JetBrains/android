@@ -422,7 +422,9 @@ class RuleDetailsViewTest {
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       // Switches between add and replace mode
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
@@ -480,7 +482,9 @@ class RuleDetailsViewTest {
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
     val replaceValueText = "replaceValue"
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.editHeaderPanel
       assertThat(dialog.newAddedNameLabel.isVisibleToRoot(dialog.rootPane)).isFalse()
@@ -539,7 +543,9 @@ class RuleDetailsViewTest {
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.newAddedNameLabel.text = newAddedNameText
       dialog.newAddedValueLabel.text = newAddedValueText
@@ -556,7 +562,9 @@ class RuleDetailsViewTest {
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
     val replaceValueText = "replaceValue"
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
@@ -582,7 +590,9 @@ class RuleDetailsViewTest {
         .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
     }
 
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.editHeaderPanel)
@@ -734,7 +744,9 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       // Switches between add and replace mode
 
@@ -783,7 +795,9 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = false
       assertThat(dialog.findTextArea.isEnabled).isTrue()
@@ -833,7 +847,9 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = true
       dialog.replaceTextArea.text = "Test"
@@ -846,7 +862,9 @@ class RuleDetailsViewTest {
         .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
     }
     val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.replaceEntireBodyCheckBox.isSelected).isTrue()
       assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
@@ -861,7 +879,9 @@ class RuleDetailsViewTest {
       assertThat(it.ruleDetailUpdated.component)
         .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
     }
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.findTextArea.text).isEqualTo("Find")
       assertThat(dialog.replaceTextArea.text).isEqualTo("Test")

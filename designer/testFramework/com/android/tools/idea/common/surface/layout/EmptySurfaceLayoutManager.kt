@@ -31,6 +31,7 @@ class EmptySurfaceLayoutManager : SurfaceLayoutManager {
     availableHeight: Int,
     dimension: Dimension?
   ): Dimension = Dimension()
+
   override fun getRequiredSize(
     content: Collection<PositionableContent>,
     availableWidth: Int,

@@ -144,6 +144,7 @@ class ComposeStateReadAnnotatorTest {
         .isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.value|)"))
     }
   }
+
   @Test
   fun listPropertyRead() {
     val psiFile =

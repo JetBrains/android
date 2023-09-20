@@ -38,6 +38,7 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   Interaction() {
   /** The [Layer] drawn for the marquee. */
   private var overlay: MarqueeLayer? = null
+
   override fun begin(event: InteractionEvent) {
     assert(event is MouseDraggedEvent) {
       "The instance of event should be MouseDraggedEvent but it is ${event.javaClass}; The SceneView is $sceneView, start (x, y) = $myStartX, $myStartY, start mask is $myStartMask"

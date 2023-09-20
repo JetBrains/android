@@ -17,5 +17,6 @@ package com.android.tools.idea.common.scene
 
 class ConstantValue<T>(private val value: T) : AnimatedValue<T>() {
   override fun getValue(time: Long): T = value
+
   override fun isComplete(time: Long) = true
 }

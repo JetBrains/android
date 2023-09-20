@@ -51,16 +51,21 @@ interface DatabaseRepository {
     databaseId: SqliteDatabaseId,
     databaseConnection: DatabaseConnection
   )
+
   suspend fun closeDatabase(databaseId: SqliteDatabaseId)
+
   suspend fun fetchSchema(databaseId: SqliteDatabaseId): SqliteSchema
+
   fun runQuery(
     databaseId: SqliteDatabaseId,
     sqliteStatement: SqliteStatement
   ): ListenableFuture<SqliteResultSet>
+
   fun executeStatement(
     databaseId: SqliteDatabaseId,
     sqliteStatement: SqliteStatement
   ): ListenableFuture<Unit>
+
   fun updateTable(
     databaseId: SqliteDatabaseId,
     targetTable: SqliteTable,
@@ -68,11 +73,13 @@ interface DatabaseRepository {
     targetColumnName: String,
     newValue: SqliteValue
   ): ListenableFuture<Unit>
+
   fun selectOrdered(
     databaseId: SqliteDatabaseId,
     sqliteStatement: SqliteStatement,
     orderBy: OrderBy
   ): ListenableFuture<SqliteResultSet>
+
   suspend fun clear()
 }
 
@@ -268,14 +275,17 @@ class DatabaseRepositoryImpl(
       val databaseId: SqliteDatabaseId,
       val deferredConnection: CompletableDeferred<DatabaseConnection?>
     ) : RepositoryActions()
+
     data class AddConnection(
       val databaseId: SqliteDatabaseId,
       val databaseConnection: DatabaseConnection
     ) : RepositoryActions()
+
     data class CloseConnection(
       val databaseId: SqliteDatabaseId,
       val deferredDatabaseClosed: CompletableDeferred<Unit>
     ) : RepositoryActions()
+
     data class CloseAllConnections(val deferredAllClosed: CompletableDeferred<Unit>) :
       RepositoryActions()
   }

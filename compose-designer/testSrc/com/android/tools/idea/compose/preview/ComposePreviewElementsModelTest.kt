@@ -22,10 +22,10 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ComposePreviewElementTemplate
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.ModuleRenderContext
+import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class ComposePreviewElementsModelTest {
@@ -78,7 +78,8 @@ class ComposePreviewElementsModelTest {
         "AMethod",
         "Instance1",
         "Instance2"
-      ).inOrder()
+      )
+      .inOrder()
 
     // Set an instance filter
     filterFlow.value =
@@ -90,7 +91,8 @@ class ComposePreviewElementsModelTest {
     // Set the group filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
     assertThat(filteredInstancesFlow.first().map { it.methodFqn })
-      .containsExactly("PreviewMethod1", "SeparatePreview").inOrder()
+      .containsExactly("PreviewMethod1", "SeparatePreview")
+      .inOrder()
 
     // Remove instance filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
@@ -102,7 +104,8 @@ class ComposePreviewElementsModelTest {
         "AMethod",
         "Instance1",
         "Instance2"
-      ).inOrder()
+      )
+      .inOrder()
 
     // This should filter and keep the group
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
@@ -112,7 +115,8 @@ class ComposePreviewElementsModelTest {
       .containsExactly(
         "PreviewMethod1 (GroupA)",
         "SeparatePreview (GroupA)",
-      ).inOrder()
+      )
+      .inOrder()
   }
 
   @Test

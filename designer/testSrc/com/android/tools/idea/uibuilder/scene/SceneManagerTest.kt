@@ -61,9 +61,12 @@ class TestSceneManager(
 
   override fun requestRenderAsync(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
+
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
+
   override fun layout(animate: Boolean) {}
+
   override fun getSceneDecoratorFactory(): SceneDecoratorFactory =
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
@@ -71,6 +74,7 @@ class TestSceneManager(
 
   override fun getDefaultProperties():
     MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> = mutableMapOf()
+
   override fun getDefaultStyles(): MutableMap<Any, ResourceReference> = mutableMapOf()
 }
 

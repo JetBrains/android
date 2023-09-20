@@ -104,6 +104,7 @@ protected constructor(
     set(value) {
       _forceElapsedReset = value
     }
+
   private var _forceElapsedReset: Boolean = false
 
   /**

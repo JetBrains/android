@@ -32,6 +32,7 @@ class LayoutInspectorLoadingObserver(
 ) : Disposable {
   interface Listener {
     fun onStartLoading()
+
     fun onStopLoading()
   }
 

@@ -59,8 +59,10 @@ class PreviewPickerTests {
   @get:Rule val edtRule = EdtRule()
   private val fixture
     get() = projectRule.fixture
+
   private val project
     get() = projectRule.project
+
   private val module
     get() = projectRule.fixture.module
 
@@ -570,6 +572,8 @@ private class TestTracker : ComposePickerTracker {
   }
 
   override fun pickerShown() {} // Not tested
+
   override fun pickerClosed() {} // Not tested
+
   override fun logUsageData() {} // Not tested
 }

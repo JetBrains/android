@@ -137,8 +137,7 @@ class ComposeStateReadAnnotator : Annotator {
   private fun KtNameReferenceExpression.isAssignee(): Boolean {
     return parentOfType<KtBinaryExpression>()
       ?.takeIf { it.operationToken.toString() == "EQ" }
-      ?.let { it.left == this || it.left?.descendants()?.contains(this) == true }
-      ?: false
+      ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
   }
 
   private data class ComposeStateReadGutterIconRenderer(
@@ -146,6 +145,7 @@ class ComposeStateReadAnnotator : Annotator {
     private val functionName: String
   ) : GutterIconRenderer() {
     override fun getIcon() = StudioIcons.Common.INFO
+
     override fun getTooltipText() = createMessage(stateName, functionName)
   }
 

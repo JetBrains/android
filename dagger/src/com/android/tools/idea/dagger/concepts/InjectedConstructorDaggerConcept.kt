@@ -94,6 +94,7 @@ internal data class InjectedConstructorIndexValue(val classId: ClassId) : IndexV
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_CONSTRUCTOR
+
     override fun read(input: DataInput) = InjectedConstructorIndexValue(input.readClassId())
   }
 
@@ -123,8 +124,7 @@ internal data class InjectedConstructorIndexValue(val classId: ClassId) : IndexV
     JavaPsiFacade.getInstance(project)
       .findClass(classId.asFqNameString(), scope)
       ?.constructors
-      ?.toList()
-      ?: emptyList()
+      ?.toList() ?: emptyList()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -143,6 +143,7 @@ internal data class InjectedConstructorParameterIndexValue(
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_CONSTRUCTOR_PARAMETER
+
     override fun read(input: DataInput) =
       InjectedConstructorParameterIndexValue(input.readClassId(), input.readString())
   }

@@ -38,6 +38,7 @@ internal class ComposeSceneUpdateListenerTest {
   private val logTracker =
     object : AnimationToolingUsageTracker {
       val loggedEvents = mutableListOf<AnimationToolingEvent>()
+
       override fun logEvent(event: AnimationToolingEvent): AndroidStudioEvent.Builder {
         loggedEvents.add(event)
         return AndroidStudioEvent.newBuilder()

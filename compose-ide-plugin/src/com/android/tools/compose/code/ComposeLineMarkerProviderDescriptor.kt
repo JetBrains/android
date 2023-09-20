@@ -47,8 +47,11 @@ import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 class ComposeLineMarkerProviderDescriptor : LineMarkerProviderDescriptor() {
 
   override fun getName() = ComposeBundle.message("composable.line.marker.tooltip")
+
   override fun isEnabledByDefault() = false
+
   override fun getId() = "ComposeLineMarkerProviderDescriptor"
+
   override fun getIcon() = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {

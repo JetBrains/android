@@ -71,17 +71,18 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   }
 
   override fun getAllClassNames(): Array<String> = allClassNamesCache.value
+
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
     return lightClassesCache.value[name]
       ?.asSequence()
       ?.filter { PsiSearchScopeUtil.isInScope(scope, it) }
       ?.map { it as PsiClass }
       ?.toList()
-      ?.toTypedArray()
-      ?: PsiClass.EMPTY_ARRAY
+      ?.toTypedArray() ?: PsiClass.EMPTY_ARRAY
   }
 
   override fun getAllMethodNames() = arrayOf<String>()
+
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiMethod>()
 
   override fun getMethodsByNameIfNotMoreThan(
@@ -103,6 +104,7 @@ class DirectionsShortNamesCache(project: Project) : PsiShortNamesCache() {
   }
 
   override fun getAllFieldNames() = arrayOf<String>()
+
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiField>()
 
   override fun getFieldsByNameIfNotMoreThan(

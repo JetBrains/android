@@ -56,7 +56,8 @@ class LintInspectionDescriptionLinkHandler : TooltipLinkHandler() {
   override fun getDescription(refSuffix: String, editor: Editor): String? {
     val issue =
       BuiltinIssueRegistry().getIssue(refSuffix)
-        ?: AndroidLintInspectionBase.findIssueByShortName(editor.project, refSuffix) ?: return null
+        ?: AndroidLintInspectionBase.findIssueByShortName(editor.project, refSuffix)
+        ?: return null
     val html = issue.getExplanation(TextFormat.HTML)
 
     var description = buildString {

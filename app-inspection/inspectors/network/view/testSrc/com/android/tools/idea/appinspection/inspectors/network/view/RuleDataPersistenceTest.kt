@@ -137,9 +137,11 @@ class RuleDataPersistenceTest {
         override fun onRuleNameChanged(ruleData: RuleData) {
           /* scope is not used in this listener */
         }
+
         override fun onRuleIsActiveChanged(ruleData: RuleData) {
           scope.launch { isClientNotified = true }
         }
+
         override fun onRuleDataChanged(ruleData: RuleData) {
           scope.launch { isClientNotified = true }
         }

@@ -66,6 +66,7 @@ class TestComposePreviewView(
       .build()
   override val component: JComponent
     get() = this
+
   override var bottomPanel: JComponent? = null
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false

@@ -148,6 +148,7 @@ class GalleryTabs<Key : TitledKey>(
     AnActionButton(message("action.gallery.show.hidden"), AllIcons.General.ChevronDown) {
 
     var popup: ListPopup? = null
+
     override fun actionPerformed(e: AnActionEvent) {
       popup?.let {
         it.cancel()

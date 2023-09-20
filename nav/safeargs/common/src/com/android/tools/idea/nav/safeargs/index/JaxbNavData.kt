@@ -38,6 +38,7 @@ import org.w3c.dom.Element
 /** Adapter to handle serializing attributes that represent android IDs (e.g. "@id/asdf") */
 private class AndroidIdAdapter : XmlAdapter<String, String>() {
   override fun marshal(s: String) = "@id/$s"
+
   override fun unmarshal(s: String) = ResourceUrl.parse(s)?.name ?: ""
 }
 
@@ -49,6 +50,7 @@ private class OptionalAndroidIdAdapter : XmlAdapter<String?, String?>() {
   private val delegateAdapter = AndroidIdAdapter()
 
   override fun marshal(s: String?) = s?.let { delegateAdapter.marshal(it) }
+
   override fun unmarshal(s: String?) = s?.let { delegateAdapter.unmarshal(it) }
 }
 

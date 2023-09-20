@@ -67,8 +67,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
               UiMode.values().firstOrNull {
                 it.resolvedValue.toIntOrNull() == UI_MODE_TYPE_MASK and numberValue
               }
-            }
-              ?: return@uiMode EnumValue.item(stringValue, "Unknown") // Unknown uiMode type
+            } ?: return@uiMode EnumValue.item(stringValue, "Unknown") // Unknown uiMode type
 
           val supportsNightMode = initialResolvedValue and UI_MODE_NIGHT_MASK != 0
           if (supportsNightMode) {

@@ -35,8 +35,7 @@ class ShowInspectionTooltipsAction(private val composeContext: DataContext) : To
   override fun isSelected(e: AnActionEvent): Boolean {
     return e.withDataContext(composeContext)
       .getData(COMPOSE_PREVIEW_MANAGER)
-      ?.isInspectionTooltipEnabled
-      ?: false
+      ?.isInspectionTooltipEnabled ?: false
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {

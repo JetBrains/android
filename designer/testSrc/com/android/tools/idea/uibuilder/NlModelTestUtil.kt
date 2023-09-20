@@ -93,6 +93,7 @@ private class StubTagSnapshotTreeNode(private val component: NlComponent) :
 private class LightLayoutFile(xmlContent: String) :
   LightVirtualFile("layout.xml", XmlFileType.INSTANCE, xmlContent) {
   private val parent = LightVirtualFile("layout")
+
   override fun getParent(): VirtualFile {
     return parent
   }

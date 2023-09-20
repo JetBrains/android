@@ -329,8 +329,7 @@ class VisualLintService(val project: Project) : Disposable {
     val key = HighlightDisplayKey.find(type.shortName)
     return key?.let {
       InspectionProfileManager.getInstance(project).currentProfile.getErrorLevel(it, null).severity
-    }
-      ?: HighlightSeverity.WARNING
+    } ?: HighlightSeverity.WARNING
   }
 
   fun removeAllIssueProviders() {

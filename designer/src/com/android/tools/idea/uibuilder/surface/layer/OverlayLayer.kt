@@ -38,6 +38,7 @@ class OverlayLayer(
   private val overlayConfiguration: () -> OverlayConfiguration
 ) : Layer() {
   private var screenViewSize = Dimension()
+
   private fun paintPlaceholder(g: Graphics2D) {
     g.composite = AlphaComposite.SrcOver.derive(PLACEHOLDER_ALPHA)
     g.paint = JBColor.WHITE

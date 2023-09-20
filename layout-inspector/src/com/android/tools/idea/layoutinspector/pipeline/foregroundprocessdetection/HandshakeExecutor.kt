@@ -270,10 +270,14 @@ sealed class HandshakeState {
   data class UnknownSupported(
     val transportEvent: LayoutInspector.TrackingForegroundProcessSupported
   ) : HandshakeState()
+
   data class Supported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) :
     HandshakeState()
+
   data class NotSupported(val transportEvent: LayoutInspector.TrackingForegroundProcessSupported) :
     HandshakeState()
+
   object Connected : HandshakeState()
+
   object Disconnected : HandshakeState()
 }

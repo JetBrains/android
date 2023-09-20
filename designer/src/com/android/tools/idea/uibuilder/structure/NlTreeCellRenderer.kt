@@ -126,8 +126,7 @@ class NlTreeCellRenderer(private val myBadgeHandler: NlTreeBadgeHandler) :
         if (selected && treeFocused && !NewUI.isEnabled())
           ColoredIconGenerator.generateWhiteIcon(it)
         else it
-      }
-        ?: StudioIcons.LayoutEditor.Palette.VIEW
+      } ?: StudioIcons.LayoutEditor.Palette.VIEW
 
     val id = stripIdPrefix(value.id)
     var primaryLabelText = id.ifBlank { handler?.getTitle(value) }

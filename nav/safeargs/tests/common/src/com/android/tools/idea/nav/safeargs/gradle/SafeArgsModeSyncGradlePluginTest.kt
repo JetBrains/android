@@ -58,6 +58,7 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
 
   private val fixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
+
   private var modificationCountBaseline = Long.MIN_VALUE
 
   @Before

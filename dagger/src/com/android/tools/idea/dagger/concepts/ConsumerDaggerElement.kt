@@ -63,8 +63,11 @@ internal data class ConsumerDaggerElement(
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtParameter) : this(psiElement, psiElement.psiType!!.unboxed)
+
   internal constructor(psiElement: KtProperty) : this(psiElement, psiElement.psiType!!.unboxed)
+
   internal constructor(psiElement: PsiField) : this(psiElement, psiElement.type.unboxed)
+
   internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type.unboxed)
 
   override val metricsElementType = DaggerEditorEvent.ElementType.CONSUMER

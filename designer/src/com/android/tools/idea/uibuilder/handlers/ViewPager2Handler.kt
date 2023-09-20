@@ -22,5 +22,6 @@ import com.google.common.collect.ImmutableList
 
 class ViewPager2Handler : ViewGroupHandler() {
   override fun getInspectorProperties(): List<String> = ImmutableList.of(ATTR_VISIBILITY)
+
   override fun getGradleCoordinateId(tagName: String): String = ANDROIDX_VIEW_PAGER2_LIB_ARTIFACT
 }

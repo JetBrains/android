@@ -98,6 +98,5 @@ class LayoutInspectorExecutionListener : ExecutionListener {
       when {
         isEmulator -> avdName.takeIf { !it.isNullOrBlank() }
         else -> getProperty(IDevice.PROP_DEVICE_MODEL)?.let { StringUtil.capitalizeWords(it, true) }
-      }
-        ?: "Unknown"
+      } ?: "Unknown"
 }

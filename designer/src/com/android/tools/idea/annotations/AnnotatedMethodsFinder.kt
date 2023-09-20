@@ -195,6 +195,7 @@ fun findAnnotations(
  */
 private class PromiseModificationTracker(private val promise: Promise<*>) : ModificationTracker {
   private var modificationCount = 0L
+
   override fun getModificationCount(): Long =
     when {
       promise.isRejected -> ++modificationCount // The promise failed so we ensure it is not cached

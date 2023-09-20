@@ -11,6 +11,7 @@ import org.jetbrains.annotations.PropertyKey
 object AndroidDesignerBundle {
   @NonNls private const val BUNDLE = "messages.AndroidDesignerActionsBundle"
   private val INSTANCE = DynamicBundle(AndroidDesignerBundle::class.java, BUNDLE)
+
   @Nls
   fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
     return INSTANCE.getMessage(key, *params)

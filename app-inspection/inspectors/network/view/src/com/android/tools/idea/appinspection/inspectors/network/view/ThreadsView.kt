@@ -389,6 +389,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
     private val SELECTION_OUTLINE_BORDER = JBUI.scale(2)
     private val ROW_HEIGHT =
       STATE_HEIGHT + 2 * (SELECTION_OUTLINE_BORDER + SELECTION_OUTLINE_PADDING)
+
     private fun findHttpDataUnderCursor(table: JTable, range: Range, e: MouseEvent): HttpData? {
       val p = SwingUtilities.convertPoint(e.component, e.point, table)
       val row = table.rowAtPoint(p)

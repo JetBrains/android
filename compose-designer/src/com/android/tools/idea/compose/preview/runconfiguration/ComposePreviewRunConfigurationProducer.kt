@@ -138,8 +138,7 @@ private fun KtAnnotationEntry.providerClassName(): String? {
   val argument =
     annotationDescriptor.allValueArguments.entries
       .firstOrNull { it.key.asString() == "provider" }
-      ?.value
-      ?: return null
+      ?.value ?: return null
   return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 

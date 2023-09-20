@@ -62,11 +62,14 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
   // JAXB marshallers / unmarshallers are not thread-safe, so create a new one each time
   private val jaxbSerializer
     get() = jaxbContext.createMarshaller()
+
   private val jaxbDeserializer
     get() = jaxbContext.createUnmarshaller()
 
   override fun getVersion() = 11
+
   override fun dependsOnFileContent() = true
+
   override fun getName(): ID<Int, NavXmlData> = NAME
 
   override fun getInputFilter(): FileBasedIndex.InputFilter {

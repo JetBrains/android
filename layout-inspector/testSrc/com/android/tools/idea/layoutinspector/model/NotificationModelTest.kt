@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.model
 
-import com.intellij.testFramework.ProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 

@@ -27,7 +27,9 @@ data class Filters(
 ) {
   fun withVersions(value: Set<Version>) =
     copy(versions = versions.selectMatching { it.value in value })
+
   fun withTimeInterval(value: TimeIntervalFilter?) = copy(timeInterval = timeInterval.select(value))
+
   fun withFatalityToggle(vararg toggles: FailureType) =
     copy(
       failureTypeToggles =

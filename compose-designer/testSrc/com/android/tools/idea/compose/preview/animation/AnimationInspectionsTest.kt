@@ -180,6 +180,7 @@ class AnimationInspectionsTest {
       fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
     )
   }
+
   @Test
   fun animatedContentExtensionLabelIsNotExpected() {
     // language=kotlin
@@ -271,6 +272,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
   }
+
   @Test
   fun testQuickFixAnimationContent() {
     // language=kotlin
@@ -369,6 +371,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
   }
+
   @Test
   fun testQuickFixRememberInfiniteTransition() {
     // language=kotlin
@@ -520,6 +523,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
   }
+
   @Test
   fun testQuickFixInfiniteTransition() {
     // language=kotlin
@@ -694,6 +698,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
   }
+
   @Test
   fun testQuickFixAnimateAsState() {
     // language=kotlin
@@ -809,6 +814,7 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
   }
+
   @Test
   fun testQuickFixCrossfade() {
     // language=kotlin

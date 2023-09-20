@@ -74,8 +74,7 @@ fun cleanUpListenersFromEditorMouseHoverPopupManager() {
             it.javaClass.name.startsWith(
               "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$"
             )
-          } as? CaretListener
-            ?: return@onEach
+          } as? CaretListener ?: return@onEach
         editorEventMulticaster.removeCaretListener(listener)
       }
       VisibleAreaListener::class.java -> {
@@ -84,8 +83,7 @@ fun cleanUpListenersFromEditorMouseHoverPopupManager() {
             it.javaClass.name.startsWith(
               "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$"
             )
-          } as? VisibleAreaListener
-            ?: return@onEach
+          } as? VisibleAreaListener ?: return@onEach
         editorEventMulticaster.removeVisibleAreaListener(listener)
       }
     }

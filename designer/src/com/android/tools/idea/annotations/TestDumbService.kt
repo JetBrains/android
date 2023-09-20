@@ -95,7 +95,10 @@ class TestDumbService(
 
   override fun suspendIndexingAndRun(activityName: String, activity: Runnable) {}
 
-  override suspend fun suspendIndexingAndRun(activityName: @NlsContexts.ProgressText String, activity: suspend () -> Unit) {}
+  override suspend fun suspendIndexingAndRun(
+    activityName: @NlsContexts.ProgressText String,
+    activity: suspend () -> Unit
+  ) {}
 
   override fun runWithWaitForSmartModeDisabled(): AccessToken = error("Not implemented")
 

@@ -442,6 +442,7 @@ class AppInspectorConnectionTest {
         Commands.Command.CommandType.APP_INSPECTION,
         object : CommandHandler(timer) {
           var commandId: Int? = null
+
           override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
             if (command.appInspectionCommand.hasRawInspectorCommand()) {
               commandId = command.appInspectionCommand.commandId

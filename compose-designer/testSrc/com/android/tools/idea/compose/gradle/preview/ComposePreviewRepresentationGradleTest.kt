@@ -94,16 +94,22 @@ class ComposePreviewRepresentationGradleTest {
     )
   private val project: Project
     get() = projectRule.project
+
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
+
   private val logger: Logger
     get() = projectRule.logger
+
   private val composePreviewRepresentation: ComposePreviewRepresentation
     get() = projectRule.composePreviewRepresentation
+
   private val psiMainFile: PsiFile
     get() = projectRule.psiMainFile
+
   private val previewView: TestComposePreviewView
     get() = projectRule.previewView
+
   private val fakeUi: FakeUi
     get() = projectRule.fakeUi
 

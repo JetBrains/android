@@ -117,7 +117,9 @@ class LambdaParameterItemTest {
     val lookup =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
+
         override fun get(id: Long): ViewNode? = null
+
         override val selection: ViewNode? = null
       }
     return LambdaParameterItem(

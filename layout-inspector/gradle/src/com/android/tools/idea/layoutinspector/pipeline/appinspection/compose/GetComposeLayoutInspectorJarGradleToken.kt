@@ -39,6 +39,7 @@ import kotlinx.coroutines.runBlocking
 class GetComposeLayoutInspectorJarGradleToken :
   GetComposeLayoutInspectorJarToken<GradleProjectSystem>, GradleToken {
   override fun getRequiredCompatibility(): LibraryCompatibility = COMPOSE_INSPECTION_COMPATIBILITY
+
   override fun getAppInspectorJar(
     projectSystem: GradleProjectSystem,
     notificationModel: NotificationModel,

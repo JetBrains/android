@@ -36,6 +36,7 @@ import org.gradle.internal.impldep.org.eclipse.jgit.errors.NotSupportedException
 
 interface MockDebugProcessScope {
   val virtualMachineProxy: VirtualMachineProxyImpl
+
   fun classType(
     signature: String,
     superClass: ClassType? = null,
@@ -129,9 +130,13 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     }
 
   override fun getVirtualMachineProxy(): VirtualMachineProxyImpl = mockVirtualMachineProxy
+
   override fun getSearchScope(): GlobalSearchScope = GlobalSearchScope.allScope(project)
+
   override fun getRequestsManager(): RequestManagerImpl = mockRequestManager
+
   override fun isAttached() = true
+
   override fun invokeMethod(
     evaluationContext: EvaluationContext,
     objRef: ObjectReference,

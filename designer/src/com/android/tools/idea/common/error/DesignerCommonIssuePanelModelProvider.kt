@@ -39,5 +39,6 @@ class AsyncDesignerCommonIssuePanelModelProvider : DesignerCommonIssuePanelModel
  */
 class AsyncableDesignerCommonIssueModel : DesignerCommonIssueModel(), InvokerSupplier {
   private val invoker = Invoker.forBackgroundThreadWithReadAction(this)
+
   override fun getInvoker(): Invoker = invoker
 }

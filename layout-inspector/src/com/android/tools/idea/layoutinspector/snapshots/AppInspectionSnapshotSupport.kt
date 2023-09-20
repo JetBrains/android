@@ -51,6 +51,7 @@ val APP_INSPECTION_SNAPSHOT_VERSION = ProtocolVersion.Version4
 class AppInspectionSnapshotLoader : SnapshotLoader {
   override lateinit var propertiesProvider: AppInspectionPropertiesProvider
     private set
+
   override lateinit var metadata: SnapshotMetadata
     private set
 

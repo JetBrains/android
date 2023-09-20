@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.emptyFlow
 object BackgroundTaskViewTestUtils {
   class FakeAppInspectorMessenger(override val scope: CoroutineScope) : AppInspectorMessenger {
     var rawDataSent: ByteArray = ByteArray(0)
+
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       rawDataSent = rawData
       return rawDataSent

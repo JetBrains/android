@@ -112,8 +112,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       val uCallElement = callElement.toUElementOfType<UCallExpression>() ?: return null
       val resolvedType =
         (uCallElement.getExpressionType() as? PsiClassType)?.parameters?.firstOrNull()
-          as? PsiClassType
-          ?: return null
+          as? PsiClassType ?: return null
       val qualifiedName =
         (resolvedType as? PsiClassReferenceType)?.reference?.qualifiedName ?: return null
       if (!SpringTypesFqNames.contains(qualifiedName)) {

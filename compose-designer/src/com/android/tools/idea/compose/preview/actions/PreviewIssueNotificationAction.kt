@@ -335,8 +335,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
         e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
           it.status().isRefreshing
         }
-      }
-        ?: false
+      } ?: false
     presentation.isEnabled = !isRefreshing
     templateText?.let {
       presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)

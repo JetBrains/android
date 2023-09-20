@@ -35,7 +35,9 @@ private const val DEFAULT_WINDOW_WIDTH = 500
 interface VisualizationEditorChangeHandler {
 
   val visualizationContent: VisualizationContent?
+
   fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow)
+
   fun onFileClose(source: FileEditorManager, toolWindow: ToolWindow, file: VirtualFile)
 }
 

@@ -193,8 +193,7 @@ class ListenerForTracking(
         localFile =
           (hyperlinkInfo as? FileHyperlinkInfo)?.descriptor?.file?.let {
             ProjectFileIndex.getInstance(project).isInSourceContent(it)
-          }
-            ?: false
+          } ?: false
       }
 
     tracker.logStacktraceClicked(currentConnectionMode, metricsEventBuilder.build())

@@ -549,8 +549,7 @@ constructor(
     val inspectorTabIndex =
       inspectorTabs
         .indexOfFirst { tab -> tab.provider.launchConfigs.find { it.id == inspectorId } != null }
-        .takeUnless { it == -1 }
-        ?: return false
+        .takeUnless { it == -1 } ?: return false
     val pane = inspectorPanel.getComponent(0) as? CommonTabbedPane ?: return false
     return pane.selectedIndex == inspectorTabIndex
   }

@@ -275,7 +275,9 @@ class SkiaParserIntegrationTest {
     init {
       System.loadLibrary("skiaparser-test")
     }
+
     @JvmStatic private external fun generateBoxes(): ByteArray
+
     @JvmStatic private external fun runServer(port: Int)
   }
 }

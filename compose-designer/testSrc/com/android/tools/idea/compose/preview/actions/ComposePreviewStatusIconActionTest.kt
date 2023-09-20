@@ -70,6 +70,7 @@ class ComposePreviewStatusIconActionTest {
   private val renderLoggerMock = Mockito.mock(RenderLogger::class.java)
   private val resultMock = Mockito.mock(Result::class.java)
   private var renderError = false
+
   init {
     Mockito.`when`(sceneViewMock.sceneManager).then {
       return@then sceneManagerMock

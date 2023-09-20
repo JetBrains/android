@@ -21,5 +21,6 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 class StringTableImpl(strings: List<LayoutInspectorComposeProtocol.StringEntry>) : StringTable {
   private val table = strings.associateBy({ it.id }, { it.str })
   override val keys: Set<Int> = table.keys
+
   override operator fun get(id: Int): String = table[id].orEmpty()
 }

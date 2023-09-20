@@ -195,8 +195,8 @@ class ViewPropertiesDataGenerator(
       Property.Type.ANIM -> SOME_UNKNOWN_ANIM_VALUE
       Property.Type.ANIMATOR -> SOME_UNKNOWN_ANIMATOR_VALUE
       Property.Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE
-      Property.Type.INTERPOLATOR -> valueFromInterpolatorClass(className)
-          ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
+      Property.Type.INTERPOLATOR ->
+        valueFromInterpolatorClass(className) ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
       else -> null
     }
   }

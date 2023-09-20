@@ -55,6 +55,7 @@ class BoxedLabel(
       field = value
       value.alsoIfNull { boxRect = Rectangle(0, 0, 0, 0) }
     }
+
   private var boxRect = Rectangle(0, 0, 0, 0)
 
   /** Paint a label with a box on background. */

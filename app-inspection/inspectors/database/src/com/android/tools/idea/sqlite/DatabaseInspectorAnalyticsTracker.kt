@@ -29,7 +29,9 @@ interface DatabaseInspectorAnalyticsTracker {
   }
 
   fun trackErrorOccurred(errorKind: AppInspectionEvent.DatabaseInspectorEvent.ErrorKind)
+
   fun trackTableCellEdited()
+
   fun trackTargetRefreshed(targetType: AppInspectionEvent.DatabaseInspectorEvent.TargetType)
 
   fun trackStatementExecuted(
@@ -43,14 +45,19 @@ interface DatabaseInspectorAnalyticsTracker {
   )
 
   fun trackLiveUpdatedToggled(enabled: Boolean)
+
   fun trackEnterOfflineModeUserCanceled()
+
   fun trackOfflineDatabaseDownloadFailed()
+
   fun trackOfflineModeEntered(
     metadata: AppInspectionEvent.DatabaseInspectorEvent.OfflineModeMetadata
   )
+
   fun trackExportDialogOpened(
     actionOrigin: AppInspectionEvent.DatabaseInspectorEvent.ExportDialogOpenedEvent.Origin
   )
+
   fun trackExportCompleted(
     source: AppInspectionEvent.DatabaseInspectorEvent.ExportOperationCompletedEvent.Source,
     sourceFormat:

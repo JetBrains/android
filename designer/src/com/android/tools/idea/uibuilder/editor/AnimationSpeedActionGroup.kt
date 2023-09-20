@@ -87,6 +87,7 @@ private class SpeedIcon(var text: String) : Icon {
     g.font = originalFont
     g.color = originalColor
   }
+
   override fun getIconWidth(): Int = JBUI.scale(ICON_SIZE)
 
   override fun getIconHeight(): Int = JBUI.scale(ICON_SIZE)

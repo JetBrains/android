@@ -69,6 +69,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeActivationAction : ActivationAction {
     var invoked = 0
+
     override suspend fun activate() {
       invoked++
     }
@@ -79,6 +80,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeColdBootAction : com.android.sdklib.deviceprovisioner.ColdBootAction {
     var invoked = 0
+
     override suspend fun activate() {
       invoked++
     }
@@ -89,6 +91,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeDeactivationAction : DeactivationAction {
     var invoked = 0
+
     override suspend fun deactivate() {
       invoked++
     }
@@ -109,6 +112,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeShowAction : com.android.sdklib.deviceprovisioner.ShowAction {
     var invoked = 0
+
     override suspend fun show() {
       invoked++
     }
@@ -119,6 +123,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeWipeDataAction : com.android.sdklib.deviceprovisioner.WipeDataAction {
     var invoked = 0
+
     override suspend fun wipeData() {
       invoked++
     }
@@ -129,6 +134,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeDeleteAction : com.android.sdklib.deviceprovisioner.DeleteAction {
     var invoked = 0
+
     override suspend fun delete() {
       invoked++
     }
@@ -139,6 +145,7 @@ internal class FakeDeviceHandle(
 
   inner class FakeDuplicateAction : com.android.sdklib.deviceprovisioner.DuplicateAction {
     var invoked = 0
+
     override suspend fun duplicate() {
       invoked++
     }

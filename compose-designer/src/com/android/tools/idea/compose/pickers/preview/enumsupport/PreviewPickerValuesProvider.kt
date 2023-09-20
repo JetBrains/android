@@ -114,57 +114,56 @@ private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
   return groupDevices(studioDevices)
 }
 
-private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
-  uiModeProvider@{
-    val configurationClass =
-      findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
-    val uiModeValueParams =
-      configurationClass.fields
-        .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
-        .mapNotNull { uiMode ->
-          (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
-            val displayName =
-              if (UiMode.VR.resolvedValue == it.toString()) {
-                UiMode.VR.display
-              } else {
-                uiMode.name
-                  .substringAfter("UI_MODE_TYPE_")
-                  .replace('_', ' ')
-                  .toLowerCaseAsciiOnly()
-                  .capitalizeAsciiOnly()
-              }
-            ClassEnumValueParams(uiMode.name, displayName, it.toString())
-          }
+private fun createUiModeEnumProvider(module: Module): EnumValuesProvider = uiModeProvider@{
+  val configurationClass =
+    findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
+  val uiModeValueParams =
+    configurationClass.fields
+      .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
+      .mapNotNull { uiMode ->
+        (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
+          val displayName =
+            if (UiMode.VR.resolvedValue == it.toString()) {
+              UiMode.VR.display
+            } else {
+              uiMode.name
+                .substringAfter("UI_MODE_TYPE_")
+                .replace('_', ' ')
+                .toLowerCaseAsciiOnly()
+                .capitalizeAsciiOnly()
+            }
+          ClassEnumValueParams(uiMode.name, displayName, it.toString())
         }
-        .filter { params -> UiMode.NORMAL.resolvedValue != params.resolvedValue }
-        .sortedBy { params -> params.resolvedValue }
-
-    val uiModeNoNightValues =
-      uiModeValueParams.map { uiModeParams ->
-        UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
-          uiModeParams.value,
-          uiModeParams.displayName,
-          uiModeParams.resolvedValue
-        )
       }
+      .filter { params -> UiMode.NORMAL.resolvedValue != params.resolvedValue }
+      .sortedBy { params -> params.resolvedValue }
 
-    val uiModeNightValues =
-      uiModeValueParams.map { uiModeParams ->
-        UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
-          uiModeParams.value,
-          uiModeParams.displayName,
-          uiModeParams.resolvedValue
-        )
-      }
-    return@uiModeProvider listOf(
-      EnumValue.header(message("picker.preview.uimode.header.notnight")),
-      UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
-      *uiModeNoNightValues.toTypedArray(),
-      EnumValue.header(message("picker.preview.uimode.header.night")),
-      UiModeWithNightMaskEnumValue.NormalNightEnumValue,
-      *uiModeNightValues.toTypedArray(),
-    )
-  }
+  val uiModeNoNightValues =
+    uiModeValueParams.map { uiModeParams ->
+      UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
+        uiModeParams.value,
+        uiModeParams.displayName,
+        uiModeParams.resolvedValue
+      )
+    }
+
+  val uiModeNightValues =
+    uiModeValueParams.map { uiModeParams ->
+      UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
+        uiModeParams.value,
+        uiModeParams.displayName,
+        uiModeParams.resolvedValue
+      )
+    }
+  return@uiModeProvider listOf(
+    EnumValue.header(message("picker.preview.uimode.header.notnight")),
+    UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
+    *uiModeNoNightValues.toTypedArray(),
+    EnumValue.header(message("picker.preview.uimode.header.night")),
+    UiModeWithNightMaskEnumValue.NormalNightEnumValue,
+    *uiModeNightValues.toTypedArray(),
+  )
+}
 
 /**
  * Provides a list of targets within the appropriate range (by minimum sdk) and that are valid for
@@ -184,8 +183,7 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
         target.version.apiLevel.toString(),
         "${target.version.apiLevel} (Android ${target.versionName})"
       )
-    }
-    ?: emptyList()
+    } ?: emptyList()
 }
 
 private fun createGroupEnumProvider(
@@ -200,19 +198,18 @@ private fun createGroupEnumProvider(
     .map { group -> EnumValue.Companion.item(group) }
 }
 
-private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
-  localesProvider@{
-    val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
-    StudioResourceRepositoryManager.getInstance(module)
-      ?.localesInProject
-      ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
-      ?.forEach { locale ->
-        locale.qualifier.full.nullize()?.let {
-          enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
-        }
+private fun createLocaleEnumProvider(module: Module): EnumValuesProvider = localesProvider@{
+  val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
+  StudioResourceRepositoryManager.getInstance(module)
+    ?.localesInProject
+    ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
+    ?.forEach { locale ->
+      locale.qualifier.full.nullize()?.let {
+        enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
       }
-    return@localesProvider enumValueLocales
-  }
+    }
+  return@localesProvider enumValueLocales
+}
 
 private data class ClassEnumValueParams(
   val value: String,

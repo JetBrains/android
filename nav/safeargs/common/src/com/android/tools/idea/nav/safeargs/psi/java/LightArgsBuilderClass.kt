@@ -69,17 +69,25 @@ class LightArgsBuilderClass(
   private val _methods by lazy { computeMethods() }
 
   override fun getName() = name
+
   override fun getQualifiedName() = qualifiedName
+
   override fun getContainingFile() = argsClass.containingFile
+
   override fun getContainingClass() = argsClass
+
   override fun getParent() = argsClass
+
   override fun isValid() = true
+
   override fun getNavigationElement() = argsClass.navigationElement
 
   override fun getConstructors() = _constructors
 
   override fun getMethods() = _methods
+
   override fun getAllMethods() = methods
+
   override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
     return allMethods.filter { method -> method.name == name }.toTypedArray()
   }

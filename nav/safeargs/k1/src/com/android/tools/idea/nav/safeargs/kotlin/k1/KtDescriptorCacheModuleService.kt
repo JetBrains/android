@@ -111,8 +111,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
                 packageName.asString()
               )
             )
-          }
-            ?: sourceElement
+          } ?: sourceElement
 
         val packageDescriptor =
           KtDirectionsPackageDescriptor(
@@ -158,8 +157,7 @@ class KtDescriptorCacheModuleService(private val module: Module) : Disposable.De
                 packageName.asString()
               )
             )
-          }
-            ?: sourceElement
+          } ?: sourceElement
 
         val superTypesProvider = { packageDescriptor: PackageFragmentDescriptorImpl ->
           val ktType =

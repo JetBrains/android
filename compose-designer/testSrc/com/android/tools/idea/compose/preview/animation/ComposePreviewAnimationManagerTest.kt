@@ -520,6 +520,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       assertEquals(1, inspector.tabbedPane.tabCount)
     }
   }
+
   @Test
   fun `managers are created for each animation`() {
     val inspector = createAndOpenInspector()
@@ -539,6 +540,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[9])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[10])
   }
+
   @Test
   fun `preview inspector`() {
     val inspector = createAndOpenInspector()

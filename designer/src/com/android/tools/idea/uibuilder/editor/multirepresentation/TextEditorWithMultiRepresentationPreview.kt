@@ -122,6 +122,7 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     preview.component.addComponentListener(
       object : ComponentListener {
         override fun componentResized(e: ComponentEvent?) {}
+
         override fun componentMoved(e: ComponentEvent?) {}
 
         override fun componentShown(e: ComponentEvent?) {
@@ -215,6 +216,8 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   }
 
   override fun getShowEditorAction(): SplitEditorAction = showEditorAction
+
   override fun getShowEditorAndPreviewAction(): SplitEditorAction = showEditorAndPreviewAction
+
   override fun getShowPreviewAction(): SplitEditorAction = showPreviewAction
 }

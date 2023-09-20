@@ -191,8 +191,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
             (0 until drawable.numberOfFrames).sumOf { index ->
               drawable.getDuration(index).toLong()
             }
-          }
-            ?: 0L
+          } ?: 0L
         val oneShotString = animationDrawable?.isOneShot ?: false
         AnimationToolbar.createAnimationToolbar(
             this,

@@ -59,6 +59,7 @@ private fun Array<out UsageTarget>.containsComposable(): Boolean =
 class ComposeUsageGroupingRuleProvider : UsageGroupingRuleProviderEx {
   override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
     arrayOf(PreviewUsageGroupingRule)
+
   override fun getAllRules(project: Project, usageView: UsageView?): Array<UsageGroupingRule> =
     arrayOf(PreviewUsageGroupingRule)
 }

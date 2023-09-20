@@ -32,7 +32,9 @@ sealed class MockObjectReference(
   }
 
   override fun virtualMachine(): VirtualMachine = virtualMachine
+
   override fun type(): Type = referenceType
+
   override fun referenceType(): ReferenceType = referenceType
 }
 
@@ -60,5 +62,6 @@ class MockStringReference(
   vm: VirtualMachine
 ) : StringReference, MockObjectReference(referenceType, vm) {
   override fun value(): String = value
+
   override fun toString(): String = "\"$value\""
 }

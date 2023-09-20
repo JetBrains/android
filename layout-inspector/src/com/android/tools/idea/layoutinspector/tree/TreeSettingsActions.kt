@@ -158,5 +158,4 @@ fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boole
       .isConnected || // If not running, default to visible so user can modify selection when next
       // client is connected
       capabilities.all { client.capabilities.contains(it) }
-  }
-    ?: true
+  } ?: true

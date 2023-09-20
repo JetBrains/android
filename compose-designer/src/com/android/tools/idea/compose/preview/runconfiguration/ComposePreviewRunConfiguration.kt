@@ -65,6 +65,7 @@ open class ComposePreviewRunConfiguration(
    * configuration wouldn't be able to be executed in library projects.
    */
   override fun isTestConfiguration() = true
+
   override val testCompileMode: TestCompileType
     get() = TestCompileType.ANDROID_TESTS
 
@@ -119,8 +120,7 @@ open class ComposePreviewRunConfiguration(
 
   private fun updateActivityExtraFlags() {
     ACTIVITY_EXTRA_FLAGS =
-      (composableMethodFqn?.let { "--es composable $it" }
-        ?: "") +
+      (composableMethodFqn?.let { "--es composable $it" } ?: "") +
         (providerClassFqn?.let { " --es parameterProviderClassName $it" } ?: "") +
         (providerIndex.takeIf { it >= 0 }?.let { " --ei parameterProviderIndex $it" } ?: "")
   }

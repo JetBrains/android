@@ -327,8 +327,7 @@ private fun NlComponent.getLiveAndroidAttribute(androidAttribute: String) =
 private fun SceneComponent.retrieveAlignParentLeftAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(
     if (scene.isInRTL) ATTR_LAYOUT_ALIGN_PARENT_END else ATTR_LAYOUT_ALIGN_PARENT_START
-  )
-    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_PARENT_LEFT)
+  ) ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_PARENT_LEFT)
 
 private fun SceneComponent.retrieveAlignParentTopAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_PARENT_TOP)
@@ -336,8 +335,7 @@ private fun SceneComponent.retrieveAlignParentTopAttribute(): String? =
 private fun SceneComponent.retrieveAlignParentRightAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(
     if (scene.isInRTL) ATTR_LAYOUT_ALIGN_PARENT_START else ATTR_LAYOUT_ALIGN_PARENT_END
-  )
-    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_PARENT_RIGHT)
+  ) ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_PARENT_RIGHT)
 
 private fun SceneComponent.retrieveAlignParentBottomAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_PARENT_BOTTOM)
@@ -345,8 +343,7 @@ private fun SceneComponent.retrieveAlignParentBottomAttribute(): String? =
 private fun SceneComponent.retrieveAlignLeftAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(
     if (scene.isInRTL) ATTR_LAYOUT_ALIGN_END else ATTR_LAYOUT_ALIGN_START
-  )
-    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_LEFT)
+  ) ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_LEFT)
 
 private fun SceneComponent.retrieveAlignTopAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_TOP)
@@ -354,8 +351,7 @@ private fun SceneComponent.retrieveAlignTopAttribute(): String? =
 private fun SceneComponent.retrieveAlignRightAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(
     if (scene.isInRTL) ATTR_LAYOUT_ALIGN_START else ATTR_LAYOUT_ALIGN_END
-  )
-    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_RIGHT)
+  ) ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_RIGHT)
 
 private fun SceneComponent.retrieveAlignBottomAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ALIGN_BOTTOM)
@@ -363,8 +359,7 @@ private fun SceneComponent.retrieveAlignBottomAttribute(): String? =
 private fun SceneComponent.retrieveToLeftAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(
     if (scene.isInRTL) ATTR_LAYOUT_TO_END_OF else ATTR_LAYOUT_TO_START_OF
-  )
-    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_TO_LEFT_OF)
+  ) ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_TO_LEFT_OF)
 
 private fun SceneComponent.retrieveBelowAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_BELOW)
@@ -372,8 +367,7 @@ private fun SceneComponent.retrieveBelowAttribute(): String? =
 private fun SceneComponent.retrieveToRightAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(
     if (scene.isInRTL) ATTR_LAYOUT_TO_START_OF else ATTR_LAYOUT_TO_END_OF
-  )
-    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_TO_RIGHT_OF)
+  ) ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_TO_RIGHT_OF)
 
 private fun SceneComponent.retrieveAboveAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_ABOVE)
@@ -383,7 +377,7 @@ private fun SceneComponent.retrieveLeftMarginAttribute(): String? =
     ?: authoritativeNlComponent.getLiveAndroidAttribute(
       if (scene.isInRTL) ATTR_LAYOUT_MARGIN_END else ATTR_LAYOUT_MARGIN_START
     )
-      ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_MARGIN_LEFT)
+    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_MARGIN_LEFT)
 
 private fun SceneComponent.retrieveTopMarginAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_MARGIN)
@@ -394,7 +388,7 @@ private fun SceneComponent.retrieveRightMarginAttribute(): String? =
     ?: authoritativeNlComponent.getLiveAndroidAttribute(
       if (scene.isInRTL) ATTR_LAYOUT_MARGIN_START else ATTR_LAYOUT_MARGIN_END
     )
-      ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_MARGIN_RIGHT)
+    ?: authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_MARGIN_RIGHT)
 
 private fun SceneComponent.retrieveBottomMarginAttribute(): String? =
   authoritativeNlComponent.getLiveAndroidAttribute(ATTR_LAYOUT_MARGIN)

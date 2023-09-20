@@ -341,8 +341,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
           psiClass.qualifiedName ?: "",
           model,
           components
-        )
-          ?: return
+        ) ?: return
       if (
         ANDROID_URI == namespace &&
           apiLookup != null &&

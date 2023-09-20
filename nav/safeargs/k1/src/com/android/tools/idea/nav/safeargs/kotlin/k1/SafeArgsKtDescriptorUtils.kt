@@ -81,6 +81,5 @@ internal fun SourceElement.withFunctionIcon(
         containingClassName
       )
     )
-  }
-    ?: this
+  } ?: this
 }

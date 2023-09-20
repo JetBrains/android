@@ -66,7 +66,9 @@ class DetailsPanelHeader(
       init {
         ActionUtil.copyFrom(this, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS)
       }
+
       override fun getEditor(e: AnActionEvent) = editor
+
       override fun getActionUpdateThread() = ActionUpdateThread.EDT
     }
 

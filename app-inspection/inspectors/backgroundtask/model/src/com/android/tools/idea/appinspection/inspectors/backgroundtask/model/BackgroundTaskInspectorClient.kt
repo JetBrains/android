@@ -39,6 +39,7 @@ enum class EntryUpdateEventType {
 
 sealed class WmiMessengerTarget {
   class Resolved(val messenger: AppInspectorMessenger) : WmiMessengerTarget()
+
   class Unresolved(val error: String) : WmiMessengerTarget()
 }
 

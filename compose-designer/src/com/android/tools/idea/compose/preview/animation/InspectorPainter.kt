@@ -160,7 +160,9 @@ object InspectorPainter {
     // (x - size, y): left point
     // where (x, y) is the center of the diamond
     private fun xArray(size: Int) = intArrayOf(x, x + size, x, x - size)
+
     private fun yArray(size: Int) = intArrayOf(y - size, y, y + size, y)
+
     private val diamond = Polygon(xArray(diamondSize()), yArray(diamondSize()), 4)
     private val diamondOutline = Polygon(xArray(diamondSize() + 1), yArray(diamondSize() + 1), 4)
 

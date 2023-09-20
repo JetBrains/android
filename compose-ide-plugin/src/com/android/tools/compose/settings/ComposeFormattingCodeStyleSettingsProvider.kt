@@ -36,6 +36,7 @@ class ComposeFormattingCodeStyleSettingsProvider : CodeStyleSettingsProvider() {
   }
 
   override fun getConfigurableDisplayName(): String = ComposeBundle.message("compose")
+
   override fun getLanguage() = KotlinLanguage.INSTANCE
 
   override fun createConfigurable(

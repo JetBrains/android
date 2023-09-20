@@ -60,6 +60,7 @@ class MultiRepresentationPreviewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
   private val project: Project
     get() = projectRule.project
+
   private val myFixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
@@ -638,6 +639,7 @@ class MultiRepresentationPreviewTest {
     val provider =
       object : PreviewRepresentationProvider {
         override val displayName = "foo"
+
         override suspend fun accept(project: Project, psiFile: PsiFile) = enabled.get()
 
         @Synchronized
@@ -685,7 +687,9 @@ class MultiRepresentationPreviewTest {
     val provider =
       object : PreviewRepresentationProvider {
         override val displayName: RepresentationName = "Representation"
+
         override suspend fun accept(project: Project, psiFile: PsiFile) = true
+
         override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
           createRepresentationLatch.countDown()
           // Only return the representation when the parent is already disposed
@@ -725,12 +729,14 @@ class MultiRepresentationPreviewTest {
     val provider =
       object : PreviewRepresentationProvider {
         override val displayName: RepresentationName = "Representation"
+
         override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
           startLatch.countDown()
           busyLatch.await()
           delay(1) // Make this throw CancellationException
           return true
         }
+
         override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
           return TestPreviewRepresentation()
         }

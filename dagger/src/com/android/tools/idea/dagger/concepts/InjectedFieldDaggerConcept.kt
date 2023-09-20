@@ -82,6 +82,7 @@ internal data class InjectedFieldIndexValue(val classId: ClassId, val fieldName:
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_FIELD
+
     override fun read(input: DataInput) =
       InjectedFieldIndexValue(input.readClassId(), input.readString())
   }

@@ -221,6 +221,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         object : DataContext {
           private val delegate =
             previewElementModelAdapterDelegate.createDataContext(previewElement)
+
           override fun getData(dataId: String): Any? =
             when (dataId) {
               PREVIEW_ELEMENT_INSTANCE.name -> previewElement
@@ -262,8 +263,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         } else {
           element
         }
-      }
-        ?: return
+      } ?: return
 
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh
 

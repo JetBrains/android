@@ -321,8 +321,7 @@ class AnimationPreview(
         .mapNotNull { it.timelineMaximumMs }
         .maxOrNull()
         ?.toLong()
-        ?.let { max(it, maxDurationPerIteration) }
-        ?: maxDurationPerIteration
+        ?.let { max(it, maxDurationPerIteration) } ?: maxDurationPerIteration
     clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
     updateTimelineElements()
   }
@@ -475,8 +474,7 @@ class AnimationPreview(
           ?.let {
             it.isAccessible = true
             it.invoke(animationObject)
-          }
-          ?: states.firstOrNull()
+          } ?: states.firstOrNull()
       else -> states.firstOrNull()
     }
   }

@@ -25,9 +25,11 @@ import javax.swing.Icon
 abstract class OpenPopUpAction : AnActionButton {
 
   constructor(name: String, icon: Icon) : super(name, icon)
+
   constructor(name: String) : super(name)
 
   abstract val actions: List<PanelAction>
+
   override fun actionPerformed(e: AnActionEvent) {
     // Context should be set to actions in popup as otherwise it will use component which already
     // could be not available.

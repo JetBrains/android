@@ -22,7 +22,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class OfflineStatusLabelAction(text: String) : AnAction(text, null, null) {
   override fun actionPerformed(e: AnActionEvent) = Unit
+
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = false
     e.presentation.disabledIcon = offlineModeIcon

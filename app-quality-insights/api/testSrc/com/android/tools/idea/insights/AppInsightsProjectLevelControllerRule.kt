@@ -65,13 +65,16 @@ class AppInsightsProjectLevelControllerRule(
     projectRule: ProjectRule,
     onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
   ) : this({ projectRule.project }, onErrorAction)
+
   constructor(
     androidProjectRule: AndroidProjectRule,
     onErrorAction: (String, HyperlinkListener?) -> Unit = { _, _ -> }
   ) : this({ androidProjectRule.project }, onErrorAction)
+
   private val disposableRule = DisposableRule()
   val disposable: Disposable
     get() = disposableRule.disposable
+
   private lateinit var scope: CoroutineScope
   lateinit var clock: FakeClock
   lateinit var client: TestAppInsightsClient
@@ -185,28 +188,41 @@ class AppInsightsProjectLevelControllerRule(
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
+
   private suspend fun consumeLoading(): AppInsightsState {
     return internalState.receiveWithTimeout().also {
       assertThat(it.issues).isInstanceOf(LoadingState.Loading::class.java)
     }
   }
+
   suspend fun refreshAndConsumeLoadingState(): AppInsightsState {
     controller.refresh()
     return consumeLoading()
   }
+
   fun revertToSnapshot(state: AppInsightsState) = controller.revertToSnapshot(state)
+
   fun selectIssue(value: AppInsightsIssue?, source: IssueSelectionSource) =
     controller.selectIssue(value, source)
 
   fun selectVersions(values: Set<Version>) = controller.selectVersions(values)
+
   fun selectTimeInterval(value: TimeIntervalFilter) = controller.selectTimeInterval(value)
+
   fun selectSignal(value: SignalType) = controller.selectSignal(value)
+
   fun selectOsVersion(value: Set<OperatingSystemInfo>) = controller.selectOperatingSystems(value)
+
   fun selectDevices(values: Set<Device>) = controller.selectDevices(values)
+
   fun selectFirebaseConnection(value: Connection) = controller.selectConnection(value)
+
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)
+
   fun updateConnections(connections: List<Connection>) = this.connections.tryEmit(connections)
+
   fun enterOfflineMode() = controller.enterOfflineMode()
+
   fun selectVisibilityType(value: VisibilityType) = controller.selectVisibilityType(value)
 }
 
@@ -214,6 +230,7 @@ class AppInsightsProjectLevelControllerRule(
 class CallInProgress<T> {
   private val channel = Channel<T>()
   private val inProgress = AtomicBoolean()
+
   suspend fun initiateCall(): T {
     if (!inProgress.compareAndSet(false, true)) {
       throw IllegalStateException("A call is already in progress")
@@ -239,6 +256,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   private val listNotesCall = CallInProgress<LoadingState.Done<List<Note>>>()
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
+
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     listConnections.initiateCall()
 

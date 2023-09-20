@@ -88,6 +88,7 @@ enum class NavInfoChangeReason {
 @VisibleForTesting
 interface NavInfoFetcherBase : ModificationTracker {
   val isEnabled: Boolean
+
   fun getCurrentNavInfo(): NavInfo?
 }
 

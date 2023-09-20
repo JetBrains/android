@@ -162,6 +162,7 @@ class LayoutInspectorRule(
 
   lateinit var launcher: InspectorClientLauncher
     private set
+
   private val launcherDisposable = Disposer.newDisposable()
 
   private var runningThreadCount = AtomicInteger(0)
@@ -227,12 +228,16 @@ class LayoutInspectorRule(
 
   lateinit var inspector: LayoutInspector
     private set
+
   lateinit var fakeForegroundProcessDetection: FakeForegroundProcessDetection
     private set
+
   lateinit var inspectorClient: InspectorClient
     private set
+
   lateinit var inspectorModel: InspectorModel
     private set
+
   lateinit var notificationModel: NotificationModel
     private set
 

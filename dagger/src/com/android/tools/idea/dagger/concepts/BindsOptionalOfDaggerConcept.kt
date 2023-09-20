@@ -101,6 +101,7 @@ internal data class BindsOptionalOfIndexValue(val classId: ClassId, val methodSi
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.BINDS_OPTIONAL_OF_METHOD
+
     override fun read(input: DataInput) =
       BindsOptionalOfIndexValue(input.readClassId(), input.readString())
   }
@@ -155,6 +156,7 @@ internal data class BindsOptionalOfProviderDaggerElement(
 ) : ProviderDaggerElementBase() {
 
   constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+
   constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
   override val metricsElementType = DaggerEditorEvent.ElementType.PROVIDER

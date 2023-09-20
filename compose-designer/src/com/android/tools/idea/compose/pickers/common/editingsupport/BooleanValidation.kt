@@ -25,17 +25,16 @@ import com.android.tools.idea.compose.preview.message
 val BooleanValidator = createBooleanValidator()
 
 /** Creates a validator for a three state Boolean. */
-private fun createBooleanValidator(): EditingValidation =
-  validator@{ editedValue: String? ->
-    if (editedValue == null || editedValue.isBlank()) return@validator EDITOR_NO_ERROR
+private fun createBooleanValidator(): EditingValidation = validator@{ editedValue: String? ->
+  if (editedValue == null || editedValue.isBlank()) return@validator EDITOR_NO_ERROR
 
-    when (editedValue.trim()) {
-      SdkConstants.VALUE_TRUE,
-      SdkConstants.VALUE_FALSE -> return@validator EDITOR_NO_ERROR
-      else ->
-        return@validator Pair(
-          EditingErrorCategory.ERROR,
-          message("picker.preview.input.validation.boolean.nan")
-        )
-    }
+  when (editedValue.trim()) {
+    SdkConstants.VALUE_TRUE,
+    SdkConstants.VALUE_FALSE -> return@validator EDITOR_NO_ERROR
+    else ->
+      return@validator Pair(
+        EditingErrorCategory.ERROR,
+        message("picker.preview.input.validation.boolean.nan")
+      )
   }
+}

@@ -29,6 +29,7 @@ data class CrashFrame(val frame: Frame, val cause: Cause)
  */
 sealed class Cause {
   data class Frame(val frame: com.android.tools.idea.insights.Frame) : Cause()
+
   data class Throwable(val exceptionType: String) : Cause()
 }
 

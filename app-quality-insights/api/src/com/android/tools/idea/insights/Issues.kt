@@ -36,10 +36,14 @@ data class AppInsightsIssue(
   val pendingRequests: Int = 0
 ) {
   val id: IssueId = issueDetails.id
+
   fun incrementPendingRequests() = copy(pendingRequests = pendingRequests.inc())
+
   fun decrementPendingRequests() = copy(pendingRequests = pendingRequests.dec().coerceAtLeast(0))
+
   fun incrementNotesCount() =
     copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))
+
   fun decrementNotesCount() =
     copy(
       issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.dec().coerceAtLeast(0))

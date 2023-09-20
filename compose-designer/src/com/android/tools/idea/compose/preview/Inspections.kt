@@ -242,8 +242,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
           }
         }
         .drop(1)
-        .firstOrNull()
-        ?: return
+        .firstOrNull() ?: return
 
     // Flag the second annotation as the error
     holder.registerProblem(
@@ -516,8 +515,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
           ?.filter { it.isLayoutLibTarget }
           ?.map { it.version.apiLevel }
           ?.takeIf { it.isNotEmpty() }
-      }
-        ?: listOf(SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION, SdkVersionInfo.HIGHEST_SUPPORTED_API)
+      } ?: listOf(SdkVersionInfo.LOWEST_COMPILE_SDK_VERSION, SdkVersionInfo.HIGHEST_SUPPORTED_API)
 
     val (min, max) = supportedApiLevels.minOrNull()!! to supportedApiLevels.maxOrNull()!!
 

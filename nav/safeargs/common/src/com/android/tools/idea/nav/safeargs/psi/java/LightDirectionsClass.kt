@@ -73,6 +73,7 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
   SafeArgsLightBaseClass(navInfo, navEntry, destination, "Directions") {
   private val LOG
     get() = Logger.getInstance(LightDirectionsClass::class.java)
+
   private val actionClasses by lazy { computeInnerClasses() }
   private val _methods by lazy { computeMethods() }
   private val _navigationElement by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }
@@ -81,7 +82,9 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
   }
 
   override fun getMethods() = _methods
+
   override fun getAllMethods() = methods
+
   override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
     return allMethods.filter { method -> method.name == name }.toTypedArray()
   }
@@ -110,8 +113,7 @@ class LightDirectionsClass(navInfo: NavInfo, navEntry: NavEntry, destination: Na
         val resolvedNavDirectionsType =
           actionClasses
             .find { it.name!!.usLocaleDecapitalize() == methodName }
-            ?.let { PsiTypesUtil.getClassType(it) }
-            ?: navDirectionsType
+            ?.let { PsiTypesUtil.getClassType(it) } ?: navDirectionsType
         createMethod(
             name = methodName,
             navigationElement = resolvedNavigationElement,

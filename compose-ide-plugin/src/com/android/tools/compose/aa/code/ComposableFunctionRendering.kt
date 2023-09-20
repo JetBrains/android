@@ -53,8 +53,7 @@ fun KtAnalysisSession.getComposableFunctionRenderParts(
       inParens.isEmpty() && lastParamIsComposable ->
         null // Don't render an empty pair of parentheses if we're rendering a lambda afterwards.
       else -> ")"
-    }
-      ?: return ComposableFunctionRenderParts(null, tail)
+    } ?: return ComposableFunctionRenderParts(null, tail)
 
   val parameters = renderValueParameters(inParens, stringAfterValueParameters)
   return ComposableFunctionRenderParts(parameters, tail)

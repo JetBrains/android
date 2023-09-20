@@ -44,6 +44,8 @@ class LabelCard(override val state: ElementState) : Card, JPanel(TabularLayout("
   }
 
   override fun getCurrentHeight() = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
+
   override var expandedSize: Int = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
+
   override fun setDuration(durationMillis: Int?) {}
 }

@@ -111,6 +111,7 @@ class CustomViewPreviewRepresentation(
   companion object {
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
   }
+
   private val project = psiFile.project
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
@@ -119,10 +120,13 @@ class CustomViewPreviewRepresentation(
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
   override val preferredInitialVisibility: PreferredVisibility? = null
+
   private fun dimensionsPropertyNameForClass(className: String) =
     "${previewId}_${className}_DIMENSIONS"
+
   private fun wrapContentWidthPropertyNameForClass(className: String) =
     "${previewId}_${className}_WRAP_CONTENT_W"
+
   private fun wrapContentHeightPropertyNameForClass(className: String) =
     "${previewId}_${className}_WRAP_CONTENT_H"
 

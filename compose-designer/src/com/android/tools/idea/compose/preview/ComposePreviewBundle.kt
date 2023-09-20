@@ -18,8 +18,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.AbstractBundle
-import java.lang.ref.SoftReference
 import java.lang.ref.Reference
+import java.lang.ref.SoftReference
 import java.util.ResourceBundle
 import org.jetbrains.annotations.PropertyKey
 

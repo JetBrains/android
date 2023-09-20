@@ -68,6 +68,7 @@ class LintIdeTest : UsefulTestCase() {
 
   private lateinit var myFixture: JavaCodeInsightTestFixture
   private lateinit var myModule: Module
+
   override fun setUp() {
     super.setUp()
 
@@ -270,8 +271,7 @@ class LintIdeTest : UsefulTestCase() {
       myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
       doGlobalInspectionTest(AndroidLintStopShipInspection())
       assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isTrue()
-    }
-    finally {
+    } finally {
       CommentDetector.STOP_SHIP.setEnabledByDefault(wasEnabled)
     }
   }
@@ -514,6 +514,7 @@ class LintIdeTest : UsefulTestCase() {
     }
 
     private var myModuleRoot: File? = null
+
     override fun setModuleRoot(moduleRoot: String) {
       val file = File(moduleRoot)
       myModuleRoot = file

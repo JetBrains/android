@@ -24,6 +24,7 @@ import java.io.File
 
 sealed class LintResult {
   open fun getModule(): Module? = null
+
   abstract fun getIssues(): Set<Issue>
 }
 

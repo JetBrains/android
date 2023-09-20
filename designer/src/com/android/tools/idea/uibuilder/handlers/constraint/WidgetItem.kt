@@ -38,7 +38,8 @@ private class ConstraintWidgetItem(displayName: String, attribute: String, margi
       if (margin == null) null
       else
         it.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_MARGIN)
-          ?: it.getAndroidAttribute(margin) ?: "0dp"
+          ?: it.getAndroidAttribute(margin)
+          ?: "0dp"
     }
   )
 

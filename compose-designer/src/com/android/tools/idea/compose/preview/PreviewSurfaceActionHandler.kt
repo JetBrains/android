@@ -26,16 +26,25 @@ import java.awt.datatransfer.DataFlavor
 /** A [DesignSurfaceActionHandler] that disables the copy/paste and delete functionality. */
 class PreviewSurfaceActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
   override fun getPasteTarget(): NlComponent? = null
+
   override fun canHandleChildren(
     component: NlComponent,
     pasted: MutableList<NlComponent>
   ): Boolean = false
+
   override fun getFlavor(): DataFlavor = DESIGNER_FLAVOR
+
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun canDeleteElement(dataContext: DataContext): Boolean = false
+
   override fun isPasteEnabled(dataContext: DataContext): Boolean = false
+
   override fun isCopyEnabled(dataContext: DataContext): Boolean = false
+
   override fun isCopyVisible(dataContext: DataContext): Boolean = false
+
   override fun isCutVisible(dataContext: DataContext): Boolean = false
+
   override fun isPastePossible(dataContext: DataContext): Boolean = false
 }

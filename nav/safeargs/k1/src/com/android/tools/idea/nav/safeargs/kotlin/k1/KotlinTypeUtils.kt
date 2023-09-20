@@ -78,7 +78,7 @@ private fun KotlinBuiltIns.getKotlinClassType(
     ?: ClassId.topLevel(fqName).let {
       moduleDescriptor.findClassAcrossModuleDependencies(it)?.defaultType
     }
-      ?: fqName.getUnresolvedType()
+    ?: fqName.getUnresolvedType()
 }
 
 private fun FqName.getUnresolvedType(): KotlinType {

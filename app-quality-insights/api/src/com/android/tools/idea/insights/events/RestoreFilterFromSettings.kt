@@ -32,8 +32,7 @@ class RestoreFilterFromSettings(
     val selectConnection =
       transition.newState.connections.items.firstOrNull {
         settings.connection?.equalsConnection(it) ?: false
-      }
-        ?: return transition
+      } ?: return transition
     return transition.copy(
       newState =
         transition.newState.copy(

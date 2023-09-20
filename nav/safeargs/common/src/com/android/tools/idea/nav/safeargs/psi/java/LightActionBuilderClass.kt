@@ -69,20 +69,31 @@ class LightActionBuilderClass(
   }
 
   override fun getName() = name
+
   override fun getQualifiedName() = qualifiedName
+
   override fun getContainingFile() = directionsClass.containingFile
+
   override fun getContainingClass() = directionsClass
+
   override fun getParent() = directionsClass
+
   override fun isValid() = true
+
   override fun getNavigationElement() = _navigationElement ?: directionsClass.navigationElement
+
   override fun getConstructors() = _constructors
 
   override fun getImplementsListTypes() = arrayOf(navDirectionsType)
+
   override fun getSuperTypes() = arrayOf(navDirectionsType)
+
   override fun getSupers() = navDirectionsClass?.let { arrayOf(it) } ?: emptyArray()
 
   override fun getMethods() = _methods
+
   override fun getAllMethods() = methods
+
   override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
     return allMethods.filter { method -> method.name == name }.toTypedArray()
   }

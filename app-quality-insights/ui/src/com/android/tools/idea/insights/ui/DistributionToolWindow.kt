@@ -57,6 +57,8 @@ private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppIns
   }
 
   override fun dispose() = Unit
+
   override fun getComponent() = component
+
   override fun setToolContext(toolContext: AppInsightsToolWindowContext?) = Unit
 }

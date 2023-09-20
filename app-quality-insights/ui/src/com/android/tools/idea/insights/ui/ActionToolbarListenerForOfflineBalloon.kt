@@ -110,5 +110,6 @@ class ActionToolbarListenerForOfflineBalloon(
       }
     }
   }
+
   override fun componentRemoved(e: ContainerEvent?) = Unit
 }

@@ -56,7 +56,8 @@ fun NlModel.moduleDependsOnAppCompat(): Boolean {
 
 fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
   var activityClassName: String? =
-    configuration.activity ?: // The activity is not specified in the XML file.
+    configuration.activity
+      ?: // The activity is not specified in the XML file.
       // We cannot know if the activity is derived from AppCompatActivity.
       // Assume we are since this is how the default activities are created.
       return true

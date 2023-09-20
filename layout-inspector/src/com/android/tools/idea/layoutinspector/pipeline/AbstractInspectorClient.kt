@@ -155,6 +155,7 @@ abstract class AbstractInspectorClient(
   protected abstract suspend fun doConnect()
 
   private val disconnectStateLock = Any()
+
   final override fun disconnect() {
     coroutineScope.launch {
       synchronized(disconnectStateLock) {

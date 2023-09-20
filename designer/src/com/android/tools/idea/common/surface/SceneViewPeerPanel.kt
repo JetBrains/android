@@ -119,8 +119,10 @@ class SceneViewPeerPanel(
 
       override val x: Int
         get() = sceneView.x
+
       override val y: Int
         get() = sceneView.y
+
       override val isVisible: Boolean
         get() = sceneView.isVisible
 
@@ -281,8 +283,7 @@ class SceneViewPeerPanel(
                 }
               }
             }
-          }
-            ?: hideToolbar()
+          } ?: hideToolbar()
         }
 
         private fun JPanel.designSurfaceContains(p: Point): Boolean {

@@ -112,6 +112,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
     private val indeterminateLines: List<InspectorLineModel?>
   ) : ValueChangedListener {
     var previousState: Boolean? = null
+
     override fun valueChanged() {
       val determinateState = indeterminate.resolvedValue != VALUE_TRUE
       if (previousState == determinateState) return

@@ -35,9 +35,13 @@ interface DaggerAnalyticsTracker {
    * We use it for sampling logs for frequent events.
    */
   fun shouldLog(percentage: Int): Boolean
+
   fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long)
+
   fun trackGutterWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long)
+
   fun trackClickOnGutter(ownerElement: DaggerEditorEvent.ElementType)
+
   fun trackOpenLinkFromError()
 }
 

@@ -106,6 +106,7 @@ class SafeArgsKtCompletionContributor : CompletionContributor() {
           val lookupObject =
             object : DeclarationLookupObjectImpl(classDescriptor) {
               override val psiElement = classDescriptor.source.getPsi()
+
               override fun getIcon(flags: Int) =
                 KotlinDescriptorIconProvider.getIcon(classDescriptor, psiElement, flags)
             }

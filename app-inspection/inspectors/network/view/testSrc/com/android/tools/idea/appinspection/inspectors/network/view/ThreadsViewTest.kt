@@ -111,6 +111,7 @@ class ThreadsViewTest {
         scope,
         object : HttpDataModel {
           private val dataList = FAKE_DATA
+
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
             return dataList.filter {
               it.requestStartTimeUs >= timeCurrentRangeUs.min &&

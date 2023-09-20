@@ -71,7 +71,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -101,7 +103,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -140,7 +144,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -179,7 +185,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )
@@ -218,7 +226,9 @@ class NlTreeCellRendererTest {
     tree.setUI(
       object : BasicTreeUI() {
         override fun getLeftChildIndent() = 0
+
         override fun getRightChildIndent() = 0
+
         override fun getPathForRow(tree: JTree?, row: Int) = TreePath(arrayOf(button))
       }
     )

@@ -69,6 +69,7 @@ class NlDesignSurfaceZoomControlsTest {
 
   private val facet: AndroidFacet
     get() = androidProjectRule.module.androidFacet!!
+
   private lateinit var layout: PsiFile
   private lateinit var surface: DesignSurface<LayoutlibSceneManager>
   private lateinit var fakeUi: FakeUi

@@ -37,6 +37,7 @@ interface MultiPreviewUsageTracker {
    * is intended to be used to avoid logging a repeated Event when the graph hasn't changed.
    */
   val graphCache: Cache<String, Int>?
+
   fun logEvent(event: MultiPreviewEvent): AndroidStudioEvent.Builder
 
   companion object {
@@ -53,6 +54,7 @@ interface MultiPreviewUsageTracker {
  */
 private class MultiPreviewNopTracker : MultiPreviewUsageTracker {
   override val graphCache: Cache<String, Int>? = null
+
   override fun logEvent(event: MultiPreviewEvent) = event.createAndroidStudioEvent()
 }
 
@@ -140,6 +142,7 @@ class MultiPreviewNodeInfo(type: ComposeMultiPreviewEvent.ComposeMultiPreviewNod
   fun isPreviewType() =
     nodeInfoBuilder.nodeType ==
       ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.PREVIEW_NODE
+
   private fun isMultiPreviewType() =
     nodeInfoBuilder.nodeType ==
       ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType.MULTIPREVIEW_NODE

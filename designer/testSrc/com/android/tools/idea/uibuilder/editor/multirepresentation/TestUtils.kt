@@ -32,7 +32,9 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   override val preferredInitialVisibility: PreferredVisibility? = null
 
   override val component = JPanel()
+
   override fun updateNotifications(parentEditor: FileEditor) {}
+
   override fun dispose() {}
 
   override fun onActivate() {
@@ -68,5 +70,6 @@ open class TestPreviewRepresentationProvider(
   private val representation: PreviewRepresentation = TestPreviewRepresentation()
 ) : PreviewRepresentationProvider {
   override suspend fun accept(project: Project, psiFile: PsiFile) = isAccept
+
   override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
 }

@@ -108,6 +108,7 @@ class PreviewNavigationTest {
   @get:Rule val rule = RuleChain(projectRule, FlagRule(StudioFlags.COMPOSE_PREVIEW_SELECTION, true))
   private val project: Project
     get() = projectRule.project
+
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 

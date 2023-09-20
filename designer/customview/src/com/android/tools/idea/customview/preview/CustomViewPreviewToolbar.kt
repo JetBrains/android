@@ -54,6 +54,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         e.presentation.setText(previewEditor.currentView, false)
       }
     }
+
     override fun displayTextInToolbar() = true
   }
 
@@ -109,6 +110,5 @@ private fun findPreviewEditorsForContext(context: DataContext): List<CustomViewP
     ?.getAllEditors(file)
     ?.filterIsInstance<SeamlessTextEditorWithPreview<out FileEditor>>()
     ?.mapNotNull { it.preview.getCustomViewPreviewManager() }
-    ?.distinct()
-    ?: emptyList()
+    ?.distinct() ?: emptyList()
 }

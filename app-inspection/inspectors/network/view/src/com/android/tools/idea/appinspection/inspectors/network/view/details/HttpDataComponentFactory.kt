@@ -300,6 +300,7 @@ class HttpDataComponentFactory(
 
     companion object {
       private const val INVALID_SIZE = -1
+
       private fun getSize(
         parent: Container,
         componentSizeGetter: Function<Component, Dimension>,

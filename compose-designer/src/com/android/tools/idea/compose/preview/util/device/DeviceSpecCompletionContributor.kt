@@ -296,8 +296,7 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
       deviceSpecImplElement
         ?.getChildrenOfType<DeviceSpecParam>()
         ?.map { it.firstChild.text }
-        ?.toSet()
-        ?: emptySet()
+        ?.toSet() ?: emptySet()
 
     val createDimensionParameterFormat: (String) -> InsertionFormat = { defaultValue ->
       LiveTemplateFormat("=<$defaultValue>${expectedUnit.name}")

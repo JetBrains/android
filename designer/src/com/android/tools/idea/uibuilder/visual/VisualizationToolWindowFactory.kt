@@ -60,8 +60,7 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
         ToolWindowManager.getInstance(project)
           .getToolWindow(TOOL_WINDOW_ID)
           ?.contentManager
-          ?.component
-          ?: return null
+          ?.component ?: return null
       return DataManager.getInstance()
         .getDataContext(component)
         .getData(VisualizationContent.VISUALIZATION_CONTENT)

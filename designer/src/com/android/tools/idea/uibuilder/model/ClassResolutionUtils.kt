@@ -66,8 +66,7 @@ fun findClassesForViewTag(
   return getPotentialFqnClassNames(viewTag)
     .map { facade.findClasses(it, scope) }
     .filter { it.isNotEmpty() }
-    .firstOrNull()
-    ?: emptyArray()
+    .firstOrNull() ?: emptyArray()
 }
 
 /**

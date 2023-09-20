@@ -62,8 +62,11 @@ interface CodeOutOfDateTracker : ModificationTracker {
 /** A [CodeOutOfDateTracker] used when the [Module] is not available. It does not do tracking. */
 object NopCodeOutOfDateTrackerImpl : CodeOutOfDateTracker {
   override fun invalidateSavedBuildStatus() {}
+
   override fun needsRefreshOnSuccessfulBuild(): Boolean = false
+
   override fun buildWillTriggerRefresh(): Boolean = false
+
   override fun getModificationCount(): Long = 0
 }
 
@@ -199,6 +202,7 @@ constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: 
   override fun buildWillTriggerRefresh() =
     needsRefreshOnSuccessfulBuild ||
       kotlinJavaModificationCount != kotlinJavaModificationTracker.modificationCount
+
   override fun getModificationCount() = kotlinJavaModificationTracker.modificationCount
 
   override fun invalidateSavedBuildStatus() {

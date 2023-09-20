@@ -66,19 +66,24 @@ class AppInspectionToolWindowManagerListenerTest {
     override fun setAvailable(available: Boolean, runnable: Runnable?) {
       shouldBeAvailable = available
     }
+
     override fun isAvailable() = shouldBeAvailable
+
     override fun show(runnable: Runnable?) {
       visible = true
       listener.stateChanged(toolWindowManager)
     }
+
     override fun hide(runnable: Runnable?) {
       visible = false
       listener.stateChanged(toolWindowManager)
     }
+
     override fun isVisible(): Boolean {
       return visible
     }
   }
+
   private val ideServices =
     object : AppInspectionIdeServicesAdapter() {
       var notificationText: String? = null
@@ -96,6 +101,7 @@ class AppInspectionToolWindowManagerListenerTest {
   @get:Rule
   val ruleChain =
     RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
+
   @Test
   fun testShowBubbleWhenInspectionIsAndIsNotRunning() = runBlocking {
     transportService.setCommandHandler(

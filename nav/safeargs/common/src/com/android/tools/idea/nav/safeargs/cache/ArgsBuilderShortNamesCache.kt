@@ -70,7 +70,9 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   }
 
   override fun getAllMethodNames() = arrayOf<String>()
+
   override fun getMethodsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiMethod>()
+
   override fun getMethodsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,
@@ -90,7 +92,9 @@ class ArgsBuilderShortNamesCache(project: Project) : PsiShortNamesCache() {
   }
 
   override fun getAllFieldNames() = arrayOf<String>()
+
   override fun getFieldsByName(name: String, scope: GlobalSearchScope) = arrayOf<PsiField>()
+
   override fun getFieldsByNameIfNotMoreThan(
     name: String,
     scope: GlobalSearchScope,

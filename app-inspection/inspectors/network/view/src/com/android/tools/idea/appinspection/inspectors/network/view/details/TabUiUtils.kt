@@ -245,6 +245,7 @@ class NoWrapBoldLabel(text: String) : JBLabel(text) {
   init {
     withFont(JBFont.label().asBold())
   }
+
   override fun setFont(ignored: Font?) {
     // ignore the input font and explicitly set the label font provided by JBFont
     super.setFont(JBFont.label().asBold())

@@ -339,6 +339,7 @@ class NlPaletteModelTest {
     private const val CUSTOM_VIEW_GROUP_CLASS = "com.example.FakeCustomViewGroup"
     private val CUSTOM_VIEW = StringUtil.getShortName(CUSTOM_VIEW_CLASS)
     private val CUSTOM_VIEW_GROUP = StringUtil.getShortName(CUSTOM_VIEW_GROUP_CLASS)
+
     private fun getProjectGroup(palette: Palette): Palette.Group? {
       val groups = palette.items
       return groups

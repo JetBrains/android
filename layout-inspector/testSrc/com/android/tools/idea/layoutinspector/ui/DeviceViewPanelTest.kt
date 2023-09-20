@@ -822,6 +822,7 @@ class DeviceViewPanelTest {
   fun testDragWithMiddleButtonFromSnapshot() {
     testPan({ _, _ -> }, { _, _ -> }, Button.MIDDLE, fromSnapshot = true)
   }
+
   private fun testPan(
     startPan: (FakeUi, DeviceViewPanel) -> Unit,
     endPan: (FakeUi, DeviceViewPanel) -> Unit,

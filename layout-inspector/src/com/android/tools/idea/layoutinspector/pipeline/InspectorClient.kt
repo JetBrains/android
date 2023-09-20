@@ -221,19 +221,27 @@ interface InspectorClient : Disposable {
 
 object DisconnectedClient : InspectorClient {
   override suspend fun connect(project: Project) {}
+
   override fun updateProgress(state: AttachErrorState) {}
 
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
+
   override fun registerErrorCallback(errorListener: InspectorClient.ErrorListener) = Unit
+
   override fun registerRootsEventCallback(callback: (List<*>) -> Unit) = Unit
+
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
+
   override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit
 
   override suspend fun startFetching() {}
+
   override suspend fun stopFetching() {}
+
   override fun refresh() {}
+
   override fun saveSnapshot(path: Path) {}
 
   override val clientType: ClientType = ClientType.UNKNOWN_CLIENT_TYPE
@@ -267,6 +275,7 @@ object DisconnectedClient : InspectorClient {
         resourceLookup: ResourceLookup,
         process: ProcessDescriptor
       ): ComponentTreeData? = null
+
       override fun getAllWindowIds(data: Any?): List<*> = emptyList<Any>()
     }
   override val isCapturing = false
@@ -275,20 +284,35 @@ object DisconnectedClient : InspectorClient {
 
 private object DisconnectedSessionStatistics : SessionStatistics {
   override fun start() {}
+
   override fun save(data: DynamicLayoutInspectorSession.Builder) {}
+
   override fun selectionMadeFromImage(view: ViewNode?) {}
+
   override fun selectionMadeFromComponentTree(view: ViewNode?) {}
+
   override fun refreshButtonClicked() {}
+
   override fun gotoSourceFromPropertyValue(view: ViewNode?) {}
+
   override fun gotoSourceFromTreeActionMenu(event: AnActionEvent) {}
+
   override fun gotoSourceFromTreeDoubleClick() {}
+
   override fun gotoSourceFromRenderDoubleClick() {}
+
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {}
+
   override fun resetRecompositionCountsClick() {}
+
   override fun attachSuccess() {}
+
   override fun attachError(errorCode: AttachErrorCode) {}
+
   override fun composeAttachError(errorCode: AttachErrorCode) {}
+
   override fun frameReceived() {}
+
   override fun debuggerInUse(isPaused: Boolean) {}
 
   override var currentModeIsLive: Boolean = false

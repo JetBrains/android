@@ -40,6 +40,7 @@ interface CancellationToken {
     fun noop(action: Action): CancellationToken {
       return object : CancellationToken {
         override val action = action
+
         override fun cancel(reason: Action) = null
       }
     }
@@ -52,6 +53,7 @@ class CompositeCancellationToken(private val tokens: List<CancellationToken>) : 
     lazy(LazyThreadSafetyMode.PUBLICATION) {
       tokens.fold(Action.NONE) { acc, token -> acc and token.action }
     }
+
   override fun cancel(reason: Action): CancellationToken? {
     val result = tokens.mapNotNull { it.cancel(reason) }
     return when {

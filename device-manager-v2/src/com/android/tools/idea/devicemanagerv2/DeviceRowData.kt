@@ -111,6 +111,7 @@ internal data class DeviceRowData(
   enum class Status {
     OFFLINE,
     ONLINE;
+
     override fun toString() = name.titlecase()
   }
 

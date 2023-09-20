@@ -72,16 +72,21 @@ class LightArgsClass(
   }
 
   override fun getImplementsListTypes() = arrayOf(navArgsType)
+
   override fun getSuperTypes() = arrayOf(navArgsType)
+
   override fun getSupers() = navArgsClass?.let { arrayOf(it) } ?: emptyArray()
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
+
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
     return builderClass.takeIf { it.name == name }
   }
 
   override fun getMethods() = _methods
+
   override fun getAllMethods() = methods
+
   override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
     return allMethods.filter { method -> method.name == name }.toTypedArray()
   }

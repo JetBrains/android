@@ -97,8 +97,7 @@ class TestAppInspectorCommandHandler(
               it(command.appInspectionCommand.rawInspectorCommand)
                 .setCommandId(command.appInspectionCommand.commandId)
                 .build()
-            }
-              ?: getDefaultRawResponse(command)
+            } ?: getDefaultRawResponse(command)
           )
         )
       }
@@ -111,8 +110,7 @@ class TestAppInspectorCommandHandler(
               .setGetLibraryCompatibilityResponse(
                 getLibraryVersionsResponse?.let {
                   it(command.appInspectionCommand.getLibraryCompatibilityInfoCommand)
-                }
-                  ?: getDefaultLibraryVersionsResponse(command)
+                } ?: getDefaultLibraryVersionsResponse(command)
               )
               .build()
           )

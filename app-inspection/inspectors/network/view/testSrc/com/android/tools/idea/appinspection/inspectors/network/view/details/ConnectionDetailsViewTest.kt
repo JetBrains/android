@@ -103,6 +103,7 @@ class ConnectionDetailsViewTest {
 
   private class TestNetworkInspectorClient : NetworkInspectorClient {
     override suspend fun getStartTimeStampNs() = 0L
+
     override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
       Unit
   }
@@ -143,6 +144,7 @@ class ConnectionDetailsViewTest {
         scope,
         object : HttpDataModel {
           private val dataList = listOf(DEFAULT_DATA)
+
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
             return dataList.filter {
               it.requestStartTimeUs >= timeCurrentRangeUs.min &&

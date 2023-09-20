@@ -71,8 +71,10 @@ internal abstract class ParameterRule {
         override val name: String = name
         override val defaultValue: String = defaultValue
         override val expectedType: ExpectedValueType = expectedType
+
         override fun checkValue(value: String, dataProvider: DataProvider): Boolean =
           valueCheck(value)
+
         override fun attemptFix(value: String, dataProvider: DataProvider): String? = null
       }
   }

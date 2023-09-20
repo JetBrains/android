@@ -482,8 +482,7 @@ open class NlPropertiesModel(
         resourceReference,
         tag,
         folderConfiguration
-      )
-        ?: return
+      ) ?: return
     if (targetElement is Navigatable) {
       targetElement.navigate(true)
     }

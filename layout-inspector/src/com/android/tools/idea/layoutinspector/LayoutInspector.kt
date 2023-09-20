@@ -285,6 +285,7 @@ private constructor(
   companion object {
     fun get(component: Component): LayoutInspector? =
       DataManager.getInstance().getDataContext(component).getData(LAYOUT_INSPECTOR_DATA_KEY)
+
     fun get(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }
 }

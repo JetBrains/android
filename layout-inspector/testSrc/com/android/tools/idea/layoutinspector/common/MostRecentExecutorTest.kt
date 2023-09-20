@@ -26,6 +26,7 @@ class MostRecentExecutorTest {
     Runnable {
     var ran = false
       private set
+
     private val waitLatch = CountDownLatch(if (waitForProceed) 1 else 0)
     val finishedLatch = CountDownLatch(1)
 

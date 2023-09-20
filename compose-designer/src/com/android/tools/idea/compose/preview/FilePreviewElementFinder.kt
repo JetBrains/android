@@ -83,11 +83,13 @@ private fun languageModificationFlow(project: Project, languages: Set<Language>)
       PsiModificationTracker.TOPIC,
       object : PsiModificationTracker.Listener {
         private var lastTimeSeen = modificationTracker.modificationCount
+
         init {
           // After the flow is connected, emit a forced notification to ensure the listener
           // gets the latest change.
           trySend(lastTimeSeen)
         }
+
         override fun modificationCountChanged() {
           val now = modificationTracker.modificationCount
           if (lastTimeSeen != now) {

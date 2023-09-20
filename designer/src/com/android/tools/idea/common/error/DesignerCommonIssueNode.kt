@@ -123,7 +123,9 @@ interface NodeProvider {
 
 object EmptyNodeProvider : NodeProvider {
   override fun updateIssues(issueList: List<Issue>, nodeFactory: NodeFactory) = Unit
+
   override fun getFileNodes(): List<DesignerCommonIssueNode> = emptyList()
+
   override fun getIssueNodes(fileNode: DesignerCommonIssueNode): List<IssueNode> = emptyList()
 }
 
@@ -471,6 +473,7 @@ class VisualLintIssueNode(
       }
 
       override fun canNavigate(): Boolean = project != null
+
       override fun canNavigateToSource(): Boolean = project != null
     }
   }
@@ -527,6 +530,7 @@ private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :
    * duplications.
    */
   private var hasTracked: Boolean = false
+
   override fun navigate(requestFocus: Boolean) {
     trackOpenFileEvent()
     super.navigate(requestFocus)

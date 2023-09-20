@@ -92,6 +92,7 @@ class ActionDispatcher(
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
   private val actions = Channel<ActionContext>()
+
   suspend fun dispatch(ctx: ActionContext) {
     actions.send(ctx)
   }

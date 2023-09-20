@@ -32,6 +32,7 @@ object BackgroundTaskInspectorTestUtils {
   private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :
     AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = ByteArray(0)
+
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
@@ -125,8 +126,11 @@ object BackgroundTaskInspectorTestUtils {
   }
 
   fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")
+
   fun DefaultMutableTreeNode.getAlarmsCategoryNode() = getCategoryNode("Alarms")
+
   fun DefaultMutableTreeNode.getJobsCategoryNode() = getCategoryNode("Jobs")
+
   fun DefaultMutableTreeNode.getWakeLocksCategoryNode() = getCategoryNode("WakeLocks")
 
   fun createJobInfoExtraWithWorkerId(id: String) = "{EXTRA_WORK_SPEC_ID=$id}"

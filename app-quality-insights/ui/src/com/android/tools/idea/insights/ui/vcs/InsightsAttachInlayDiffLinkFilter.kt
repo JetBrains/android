@@ -207,6 +207,7 @@ class InsightsTextInlayPresentation(
   private var normalTextMetrics: InlayTextMetrics? = null
   override val width: Int
     get() = getOrCreateMetrics().getStringWidth(text)
+
   override val height: Int
     get() = getOrCreateMetrics().fontHeight
 

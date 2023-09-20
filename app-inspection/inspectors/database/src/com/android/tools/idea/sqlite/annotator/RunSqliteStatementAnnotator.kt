@@ -47,7 +47,9 @@ private const val ROOM_ENTITY_ARCH: String = "android.arch.persistence.room.Enti
  */
 internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   override fun getId(): String = "RunSqliteStatement"
+
   override fun getName(): String = message("gutter.name.run.sqlite.statement")
+
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
   override fun collectSlowLineMarkers(

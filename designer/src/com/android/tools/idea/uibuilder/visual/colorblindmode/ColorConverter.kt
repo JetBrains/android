@@ -30,6 +30,7 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   companion object {
     private var removeGammaCLut: DoubleArray? = null
   }
+
   private var cbmCLut: ColorLut? = null
 
   /**

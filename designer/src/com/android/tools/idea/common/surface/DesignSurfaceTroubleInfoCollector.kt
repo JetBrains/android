@@ -38,8 +38,7 @@ private fun collectSceneManagerInfo(sceneManagerInfo: SceneManager?): String =
       renderResult = ${(sceneManager as? LayoutlibSceneManager)?.renderResult}
   """
       .trimIndent()
-  }
-    ?: ""
+  } ?: ""
 
 private fun collectModelAndSceneManagerInfo(model: NlModel, sceneManager: SceneManager?): String =
   """

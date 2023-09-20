@@ -73,6 +73,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   ComposePreviewView {
   override val component: JComponent
     get() = JPanel()
+
   override var bottomPanel: JComponent? = null
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
@@ -98,6 +99,7 @@ class ComposePreviewRepresentationTest {
   @get:Rule val projectRule = ComposeProjectRule()
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
 

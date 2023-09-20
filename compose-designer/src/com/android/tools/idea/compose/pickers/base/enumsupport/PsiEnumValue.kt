@@ -74,5 +74,6 @@ internal data class DescriptionEnumValue(
   val description: String?
 ) : PsiEnumValue {
   override val indented: Boolean = true
+
   override fun toString(): String = value
 }

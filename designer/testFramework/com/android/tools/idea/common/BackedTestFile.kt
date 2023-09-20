@@ -24,5 +24,6 @@ import com.intellij.testFramework.LightVirtualFile
 class BackedTestFile(private val path: String, private val sourceFile: VirtualFile) :
   LightVirtualFile(), BackedVirtualFile {
   override fun getPath(): String = path
+
   override fun getOriginFile(): VirtualFile = sourceFile
 }

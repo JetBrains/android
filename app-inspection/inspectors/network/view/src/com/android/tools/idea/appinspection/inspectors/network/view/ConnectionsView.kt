@@ -191,8 +191,11 @@ class ConnectionsView(
     connectionsTable.columnModel.addColumnModelListener(
       object : TableColumnModelListener {
         override fun columnAdded(e: TableColumnModelEvent) = Unit
+
         override fun columnRemoved(e: TableColumnModelEvent) = Unit
+
         override fun columnMoved(e: TableColumnModelEvent) = Unit
+
         override fun columnSelectionChanged(e: ListSelectionEvent?) = Unit
 
         override fun columnMarginChanged(e: ChangeEvent) {

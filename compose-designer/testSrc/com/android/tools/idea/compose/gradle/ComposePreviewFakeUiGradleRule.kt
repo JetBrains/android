@@ -74,12 +74,16 @@ class ComposePreviewFakeUiGradleRule(
   // The logger must be initialized later since at this point the logger framework is not ready yet
   lateinit var logger: Logger
     private set
+
   lateinit var psiMainFile: PsiFile
     private set
+
   lateinit var composePreviewRepresentation: ComposePreviewRepresentation
     private set
+
   lateinit var previewView: TestComposePreviewView
     private set
+
   lateinit var fakeUi: FakeUi
     private set
 

@@ -136,8 +136,7 @@ open class InspectorPropertyItem(
         val location =
           lookup.resourceLookup
             .findFileLocations(this@InspectorPropertyItem, view, 1)
-            .singleOrNull()
-            ?: return
+            .singleOrNull() ?: return
         location.navigatable?.navigate(true)
       }
     }

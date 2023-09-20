@@ -215,6 +215,7 @@ private class AddImportAction(private val referenceName: String) : IntentionActi
       override fun isAutoSelectionEnabled() = false
 
       override fun isSpeedSearchEnabled() = true
+
       override fun onChosen(
         selectedValue: AutoImportVariant?,
         finalChoice: Boolean

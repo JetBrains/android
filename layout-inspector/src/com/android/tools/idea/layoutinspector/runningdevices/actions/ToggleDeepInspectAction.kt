@@ -34,6 +34,7 @@ class ToggleDeepInspectAction(
   ),
   TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
+
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
 
   override fun update(event: AnActionEvent) {

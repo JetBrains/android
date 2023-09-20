@@ -156,8 +156,7 @@ class CustomModelsProvider(
           config.deviceState?.name,
           config.locale,
           config.target
-        )
-          ?: currentFile
+        ) ?: currentFile
 
       val model =
         NlModel.builder(facet, betterFile, config)

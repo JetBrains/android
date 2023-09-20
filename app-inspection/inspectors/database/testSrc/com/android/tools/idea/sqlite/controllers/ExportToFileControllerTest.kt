@@ -841,6 +841,7 @@ private val ExportRequest.delimiter
 
 private sealed class DumpCommand(open val setOnBuilder: (SqliteCliArgs.Builder) -> Unit) {
   object DumpDatabase : DumpCommand({ it.dump() })
+
   data class DumpTable(val name: String) : DumpCommand({ it.dumpTable(name) })
 }
 

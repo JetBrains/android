@@ -295,8 +295,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   fun updateRecompositionColumnVisibility() {
     invokeLater {
       val show =
-        layoutInspector?.treeSettings?.showRecompositions
-          ?: false && layoutInspector?.currentClient?.isConnected ?: false
+        layoutInspector?.treeSettings?.showRecompositions ?: false &&
+          layoutInspector?.currentClient?.isConnected ?: false
       interactions.setHeaderVisibility(show)
       interactions.setColumnVisibility(1, show)
       interactions.setColumnVisibility(2, show)

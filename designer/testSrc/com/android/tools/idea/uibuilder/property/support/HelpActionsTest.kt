@@ -100,8 +100,7 @@ class HelpActionsTest {
     val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
     val doc =
       UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
-        .singleOrNull()
-        ?: error("No doc?")
+        .singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
     return doc.text
   }

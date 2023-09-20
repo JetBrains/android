@@ -130,7 +130,9 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
     cancelOnWindowDeactivation: Boolean
   ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
-  override fun setCancelOnOtherWindowOpen(cancelOnWindow: Boolean): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun setCancelOnOtherWindowOpen(
+    cancelOnWindow: Boolean
+  ): IPopupChooserBuilder<SqliteDatabaseId> = this
 
   override fun setSelectionMode(selection: Int): IPopupChooserBuilder<SqliteDatabaseId> = this
 
@@ -152,7 +154,8 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
   override fun setVisibleRowCount(visibleRowCount: Int): IPopupChooserBuilder<SqliteDatabaseId> =
     this
 
-  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> = this
+  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> =
+    this
 
   override fun getBackgroundUpdater(): GenericListComponentUpdater<SqliteDatabaseId>? = null
 }

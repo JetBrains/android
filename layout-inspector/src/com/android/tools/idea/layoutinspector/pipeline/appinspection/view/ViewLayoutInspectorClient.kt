@@ -458,8 +458,7 @@ class ViewLayoutInspectorClient(
                 composeInspector.getAllParameters(id)
               )
             }
-          }
-            ?: mapOf()
+          } ?: mapOf()
 
         saveAppInspectorSnapshot(
           path,
@@ -468,8 +467,7 @@ class ViewLayoutInspectorClient(
           snapshotMetadata,
           model.foldInfo
         )
-      }
-      ?: throw Exception()
+      } ?: throw Exception()
   }
 }
 

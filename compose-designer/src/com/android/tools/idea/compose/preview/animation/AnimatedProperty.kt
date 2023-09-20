@@ -72,6 +72,7 @@ private constructor(
     private val units: MutableMap<Int, ComposeUnit.NumberUnit<*>> = mutableMapOf()
     private var _startTimeMs: Int? = null
     private var _endTimeMs: Int? = null
+
     fun add(ms: Int, property: ComposeUnit.NumberUnit<*>): Builder {
       units[ms] = property
       return this

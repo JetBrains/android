@@ -38,6 +38,7 @@ class NavigationResourcesModificationListenerTest {
   private lateinit var myProjectNavResourcesTracker: ProjectNavigationResourceModificationTracker
   private val project: Project
     get() = safeArgsRule.project
+
   private val listener = mock<NavigationResourcesChangeListener>()
 
   private var lastModificationCount = 0L

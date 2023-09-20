@@ -40,12 +40,16 @@ private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElem
   override fun modelToElement(model: Any) = modelsToElements[model]
 
   override fun toXml(previewElement: TestPreviewElement) = ""
+
   override fun applyToConfiguration(
     previewElement: TestPreviewElement,
     configuration: Configuration
   ) {}
+
   override fun createDataContext(previewElement: TestPreviewElement) = DataContext {}
+
   override fun toLogString(previewElement: TestPreviewElement) = ""
+
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
     LightVirtualFile()
 }

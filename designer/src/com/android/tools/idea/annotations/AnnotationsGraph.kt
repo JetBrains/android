@@ -199,7 +199,7 @@ fun UElement.getUAnnotations() = runReadAction {
       ?: (this.tryResolve() as? PsiModifierListOwner)?.annotations?.mapNotNull {
         it.toUElementOfType() as? UAnnotation
       }
-        ?: emptyList()
+      ?: emptyList()
   annotations.flatMap { annotation ->
     annotation.extractFromContainer().ifEmpty { listOf(annotation) }
   }
@@ -216,6 +216,5 @@ fun UElement.getUAnnotations() = runReadAction {
 private fun UAnnotation.extractFromContainer() = runReadAction {
   findDeclaredAttributeValue(null)?.sourcePsi?.children?.mapNotNull {
     it.toUElement() as? UAnnotation
-  }
-    ?: emptyList()
+  } ?: emptyList()
 }

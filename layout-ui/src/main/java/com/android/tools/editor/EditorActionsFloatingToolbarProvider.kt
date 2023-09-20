@@ -83,6 +83,7 @@ abstract class EditorActionsFloatingToolbarProvider(
         anchor = GridBagConstraints.FIRST_LINE_END
         insets = VERTICAL_PANEL_MARGINS
       }
+
   private val zoomLabelConstraints
     get() =
       GridBagConstraints().apply {

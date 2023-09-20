@@ -105,6 +105,7 @@ private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePan
 
 private object DesignerCommonIssuePanelNoOpUsageTracker : DesignerCommonIssuePanelUsageTracker {
   override fun trackChangingCommonIssuePanelVisibility(visibility: Boolean, project: Project) = Unit
+
   override fun trackNavigationFromIssue(
     target: UniversalProblemsPanelEvent.IssueNavigated,
     project: Project

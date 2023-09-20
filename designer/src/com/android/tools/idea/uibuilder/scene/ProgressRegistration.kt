@@ -20,5 +20,6 @@ import com.intellij.openapi.progress.util.ProgressIndicatorBase
 /** Registration for [DesignSurfaceProgressIndicator]. */
 interface ProgressRegistration {
   fun registerIndicator(indicator: ProgressIndicatorBase)
+
   fun unregisterIndicator(indicator: ProgressIndicatorBase)
 }

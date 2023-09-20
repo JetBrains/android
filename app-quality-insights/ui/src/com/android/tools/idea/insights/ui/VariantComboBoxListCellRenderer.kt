@@ -52,6 +52,7 @@ data class VariantRow(
     )
     return rendererComponent
   }
+
   companion object {
     private val textLabel = JBLabel()
     private val eventCountLabel = JBLabel()
@@ -82,6 +83,7 @@ data class DisabledTextRow(val text: String) : Row {
     textComponent.text = text
     return textComponent
   }
+
   companion object {
     private val textComponent =
       JBLabel().apply {

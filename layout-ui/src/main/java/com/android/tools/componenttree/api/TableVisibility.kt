@@ -28,5 +28,6 @@ interface TableVisibility {
 /** A [TableVisibility] implementation that does nothing. */
 class NoOpTableVisibility : TableVisibility {
   override fun setHeaderVisibility(visible: Boolean) {}
+
   override fun setColumnVisibility(columnIndex: Int, visible: Boolean) {}
 }

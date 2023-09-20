@@ -319,6 +319,7 @@ class ComposeViewControlActionTest {
 private class TestZoomable : Zoomable {
   override val scale: Double = 1.0
   override val screenScalingFactor = 1.0
+
   override fun zoom(type: ZoomType): Boolean = true
 
   override fun canZoomIn(): Boolean = true

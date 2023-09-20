@@ -48,8 +48,7 @@ internal class KtAnnotationEntryWrapper(private val ktAnnotationEntry: KtAnnotat
     return argument
       ?.getArgumentExpression()
       ?.childrenOfType<KtClassLiteralExpression>()
-      ?.mapNotNull { it.lhs?.text }
-      ?: emptyList()
+      ?.mapNotNull { it.lhs?.text } ?: emptyList()
   }
 }
 

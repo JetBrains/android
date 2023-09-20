@@ -101,6 +101,7 @@ open class ComposeGradleProjectRule(
     delegate.apply(base, description)
 
   fun clean() = GradleBuildInvoker.getInstance(project).cleanProject()
+
   fun build(): GradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
 
   fun buildAndAssertIsSuccessful() {

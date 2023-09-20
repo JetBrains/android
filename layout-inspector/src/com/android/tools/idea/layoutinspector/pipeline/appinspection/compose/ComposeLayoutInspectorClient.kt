@@ -170,8 +170,8 @@ class ComposeLayoutInspectorClient(
             GetComposeLayoutInspectorJarToken.EP_NAME.getExtensions(project).firstOrNull {
               it.isApplicable(projectSystem)
             }
-            // TODO(xof): We need an APP_INSPECTION_UNSUPPORTED_BUILD_SYSTEM here, theoretically
-            ?: return handleError(
+              // TODO(xof): We need an APP_INSPECTION_UNSUPPORTED_BUILD_SYSTEM here, theoretically
+              ?: return handleError(
                 notificationModel,
                 logErrorToMetrics,
                 isRunningFromSourcesInTests,
@@ -185,8 +185,7 @@ class ComposeLayoutInspectorClient(
             process,
             logErrorToMetrics,
             isRunningFromSourcesInTests
-          )
-            ?: return null
+          ) ?: return null
         }
 
       // Set force = true, to be more aggressive about connecting the layout inspector if an old
@@ -531,6 +530,7 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
         "com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.getComposeLayoutInspectorJarToken"
       )
   }
+
   fun getAppInspectorJar(
     projectSystem: P,
     notificationModel: NotificationModel,
@@ -539,5 +539,6 @@ interface GetComposeLayoutInspectorJarToken<P : AndroidProjectSystem> : Token {
     logErrorToMetrics: (AttachErrorCode) -> Unit,
     isRunningFromSourcesInTests: Boolean?
   ): AppInspectorJar?
+
   fun getRequiredCompatibility(): LibraryCompatibility
 }

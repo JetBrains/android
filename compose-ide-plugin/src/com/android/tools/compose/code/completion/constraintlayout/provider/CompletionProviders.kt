@@ -269,8 +269,7 @@ internal object ClearOptionsProvider : BaseConstraintSetsCompletionProvider() {
         ?.valueList
         ?.filterIsInstance<JsonStringLiteral>()
         ?.map { it.value }
-        ?.toSet()
-        ?: emptySet()
+        ?.toSet() ?: emptySet()
     addEnumKeywords<ClearOption>(result, existing)
   }
 }

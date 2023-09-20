@@ -36,19 +36,34 @@ open class DesignFileEditor(private val virtualFile: VirtualFile) :
   private val previewPanel = JPanel(BorderLayout())
 
   override fun getComponent(): JComponent = previewPanel
+
   override fun getPreferredFocusedComponent(): JComponent = previewPanel
+
   override fun getName() = "Base File Editor"
+
   override fun setState(state: FileEditorState) {}
+
   override fun dispose() {}
+
   override fun selectNotify() {}
+
   override fun deselectNotify() {}
+
   override fun isValid() = file.isValid
+
   override fun isModified() = false
+
   override fun addPropertyChangeListener(listener: PropertyChangeListener) {}
+
   override fun removePropertyChangeListener(listener: PropertyChangeListener) {}
+
   override fun getBackgroundHighlighter(): BackgroundEditorHighlighter? = null
+
   override fun getCurrentLocation(): FileEditorLocation? = null
+
   override fun getStructureViewBuilder(): StructureViewBuilder? = null
+
   override fun getFile() = virtualFile
+
   override fun updateNotifications() {}
 }

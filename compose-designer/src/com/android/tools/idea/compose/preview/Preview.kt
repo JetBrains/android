@@ -684,6 +684,7 @@ class ComposePreviewRepresentation(
       else -> null
     }
   }
+
   private fun getSlowData(dataId: String): Any? {
     return when {
       // The Compose preview NlModels do not point to the actual file but to a synthetic file
@@ -1280,8 +1281,7 @@ class ComposePreviewRepresentation(
         } else {
           element
         }
-      }
-        ?: return
+      } ?: return
 
     // Restore
     onRestoreState?.invoke()
@@ -1503,8 +1503,7 @@ class ComposePreviewRepresentation(
             it.layoutManager
           )
         }
-        ?.displayName
-        ?: ""
+        ?.displayName ?: ""
     return mapOf(SELECTED_GROUP_KEY to selectedGroupName, LAYOUT_KEY to selectedLayoutName)
   }
 
@@ -1645,9 +1644,11 @@ class ComposePreviewRepresentation(
   sealed class UiCheckModeFilter {
     var modelsWithErrors: Set<NlModel> = emptySet()
     abstract val basePreviewInstance: ComposePreviewElementInstance?
+
     abstract fun filterPreviewInstances(
       previewInstances: Collection<ComposePreviewElementInstance>
     ): Collection<ComposePreviewElementInstance>
+
     abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
 
     object Disabled : UiCheckModeFilter() {
@@ -1656,6 +1657,7 @@ class ComposePreviewRepresentation(
       override fun filterPreviewInstances(
         previewInstances: Collection<ComposePreviewElementInstance>
       ): Collection<ComposePreviewElementInstance> = previewInstances
+
       override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
     }
 
@@ -1676,6 +1678,7 @@ class ComposePreviewRepresentation(
       override fun filterPreviewInstances(
         previewInstances: Collection<ComposePreviewElementInstance>
       ): Collection<ComposePreviewElementInstance> = uiCheckPreviews
+
       override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
         uiCheckPreviewGroups
 

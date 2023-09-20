@@ -32,6 +32,7 @@ class ArtifactResolverFactory(
 ) : ArtifactResolverFactory {
   private val httpArtifactResolver =
     HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
+
   override fun getArtifactResolver(project: Project): ArtifactResolver =
     if (getIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
       BlazeArtifactResolver(fileService, ModuleSystemArtifactFinder(project))

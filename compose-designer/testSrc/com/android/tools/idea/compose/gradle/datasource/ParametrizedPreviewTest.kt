@@ -114,8 +114,7 @@ class ParametrizedPreviewTest {
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
         ProjectRootManager.getInstance(project).contentRoots[0]
-      )
-        ?: throw RuntimeException("Cannot find relative file")
+      ) ?: throw RuntimeException("Cannot find relative file")
 
     run {
       val elements =
@@ -131,8 +130,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -151,8 +149,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -172,8 +169,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -222,8 +218,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -265,8 +260,7 @@ class ParametrizedPreviewTest {
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
         ProjectRootManager.getInstance(project).contentRoots[0]
-      )
-        ?: throw RuntimeException("Cannot find relative file")
+      ) ?: throw RuntimeException("Cannot find relative file")
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
     val elements =

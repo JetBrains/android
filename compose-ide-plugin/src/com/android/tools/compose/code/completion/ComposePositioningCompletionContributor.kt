@@ -124,8 +124,7 @@ private data class ClassWithDeclarationsToSuggest(
         .parentOfType<KtDotQualifiedExpression>()
         ?.receiverExpression
         ?.normalizedExpressionText()
-        ?.let { "$it." }
-        ?: ""
+        ?.let { "$it." } ?: ""
 
     if (!lookupStringWithClass.startsWith(alreadyCompletedPrefix)) return null
 
@@ -472,8 +471,7 @@ class ComposePositioningCompletionContributor : CompletionContributor() {
     // Add any suggested elements needed for this element.
     val lookupElements =
       PositioningInterface.forCompletionElement(elementToComplete)
-        ?.getSuggestedCompletions(elementToComplete)
-        ?: return
+        ?.getSuggestedCompletions(elementToComplete) ?: return
     result.addAllElements(lookupElements)
 
     // Run the remaining contributors, removing any duplicates of the items that have already been

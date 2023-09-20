@@ -38,6 +38,7 @@ internal class FakeDeviceTemplate(
   override val activationAction =
     object : TemplateActivationAction {
       override suspend fun activate(duration: Duration?) = throw UnsupportedOperationException()
+
       override val durationUsed = false
       override val presentation =
         MutableStateFlow(DeviceAction.Presentation("", StudioIcons.Avd.RUN, true))

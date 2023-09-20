@@ -32,12 +32,19 @@ interface NetworkInspectorTracker {
   }
 
   fun trackMigrationDialogSelected()
+
   fun trackConnectionDetailsSelected()
+
   fun trackRequestTabSelected()
+
   fun trackResponseTabSelected()
+
   fun trackCallstackTabSelected()
+
   fun trackRuleCreated()
+
   fun trackRuleUpdated(component: InterceptionCriteria)
+
   fun trackResponseIntercepted(
     statusCode: Boolean,
     headerAdded: Boolean,
@@ -50,12 +57,19 @@ interface NetworkInspectorTracker {
 /** A stubbed out [NetworkInspectorTracker] meant to be used by tests. */
 class StubNetworkInspectorTracker : NetworkInspectorTracker {
   override fun trackMigrationDialogSelected() = Unit
+
   override fun trackConnectionDetailsSelected() = Unit
+
   override fun trackRequestTabSelected() = Unit
+
   override fun trackResponseTabSelected() = Unit
+
   override fun trackCallstackTabSelected() = Unit
+
   override fun trackRuleCreated() = Unit
+
   override fun trackRuleUpdated(component: NetworkInspectorTracker.InterceptionCriteria) = Unit
+
   override fun trackResponseIntercepted(
     statusCode: Boolean,
     headerAdded: Boolean,

@@ -104,7 +104,7 @@ class HeaderRuleDialog(
     okAction.isEnabled =
       (tabs.selectedComponent == newHeaderPanel &&
         newAddedNameLabel.text.isNotBlank()) || // Blank value is fine
-      ((findNameCheckBox.isSelected || findValueCheckBox.isSelected) &&
+        ((findNameCheckBox.isSelected || findValueCheckBox.isSelected) &&
           (replaceNameCheckBox.isSelected || replaceValueCheckBox.isSelected))
     setOKButtonTooltip(
       if (okAction.isEnabled) null

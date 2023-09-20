@@ -202,6 +202,7 @@ class DeviceManagerPanelTest {
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
       )
+
     fun createTemplate(name: String) = FakeDeviceTemplate(name)
   }
 

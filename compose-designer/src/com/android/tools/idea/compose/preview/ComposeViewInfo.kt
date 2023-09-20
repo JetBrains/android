@@ -65,8 +65,7 @@ fun List<ComposeViewInfo>.findDeepestHits(
     .maxByOrNull { it.key }
     ?.value
     ?.map { it.second }
-    ?.toList()
-    ?: emptyList()
+    ?.toList() ?: emptyList()
 
 /** Pixel bounds. The model closely resembles how Compose Stack is returned. */
 data class PxBounds(val left: Int, val top: Int, val right: Int, val bottom: Int) {

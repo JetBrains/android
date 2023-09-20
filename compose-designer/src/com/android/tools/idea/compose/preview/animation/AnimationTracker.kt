@@ -38,6 +38,7 @@ class AnimationTracker(private val eventLogger: AnimationToolingUsageTracker) {
   fun triggerPauseAction() = logEvent(ComposeAnimationToolingEventType.TRIGGER_PAUSE_ACTION)
 
   fun enableLoopAction() = logEvent(ComposeAnimationToolingEventType.ENABLE_LOOP_ACTION)
+
   fun disableLoopAction() = logEvent(ComposeAnimationToolingEventType.DISABLE_LOOP_ACTION)
 
   fun changeAnimationSpeed(speedMultiplier: Float) {
@@ -54,7 +55,9 @@ class AnimationTracker(private val eventLogger: AnimationToolingUsageTracker) {
     logEvent(ComposeAnimationToolingEventType.TRIGGER_JUMP_TO_END_ACTION)
 
   fun changeStartState() = logEvent(ComposeAnimationToolingEventType.CHANGE_START_STATE)
+
   fun changeEndState() = logEvent(ComposeAnimationToolingEventType.CHANGE_END_STATE)
+
   fun triggerSwapStatesAction() =
     logEvent(ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
 
@@ -73,8 +76,12 @@ class AnimationTracker(private val eventLogger: AnimationToolingUsageTracker) {
   fun closeAnimationTab() = logEvent(ComposeAnimationToolingEventType.CLOSE_ANIMATION_TAB)
 
   fun lockAnimation() = logEvent(ComposeAnimationToolingEventType.LOCK_ANIMATION)
+
   fun unlockAnimation() = logEvent(ComposeAnimationToolingEventType.UNLOCK_ANIMATION)
+
   fun resetTimeline() = logEvent(ComposeAnimationToolingEventType.RESET_TIMELINE)
+
   fun dragTimelineLine() = logEvent(ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE)
+
   fun openPicker() = logEvent(ComposeAnimationToolingEventType.OPEN_PICKER)
 }

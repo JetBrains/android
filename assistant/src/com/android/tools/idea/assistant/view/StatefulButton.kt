@@ -106,7 +106,7 @@ class StatefulButton(
     val buttonPanel = JPanel(FlowLayout())
     add(buttonPanel, c)
     myButton = ActionButton(action, listener, this)
-    buttonPanel.isOpaque = false;
+    buttonPanel.isOpaque = false
     buttonPanel.add(myButton)
     if (myStateManager != null) {
       myButton.isEnabled = false
@@ -236,6 +236,7 @@ class StatefulButton(
 
     val actionData: ActionData
       get() = myButtonWrapper.actionData
+
     val project: Project
       get() = myButtonWrapper.project
 

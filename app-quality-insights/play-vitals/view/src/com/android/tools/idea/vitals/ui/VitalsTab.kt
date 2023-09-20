@@ -178,8 +178,11 @@ class VitalsTab(
           override fun actionPerformed(e: AnActionEvent) {
             projectController.refresh()
           }
+
           override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
           override fun displayTextInToolbar() = true
+
           override fun update(e: AnActionEvent) {
             e.presentation.text =
               if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null

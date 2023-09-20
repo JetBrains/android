@@ -50,6 +50,7 @@ class ComposeDebuggerSettings :
     } else listOf()
 
   override fun get() = this
+
   override fun getState() = this
 
   override fun loadState(state: ComposeDebuggerSettings) {

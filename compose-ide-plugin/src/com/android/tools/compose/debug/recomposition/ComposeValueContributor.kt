@@ -199,8 +199,7 @@ private fun KtCallExpression.isTargetComposable(): Boolean {
   val editor = findExistingEditor() ?: return false
   val target =
     TargetElementUtil.getInstance()
-      .findTargetElement(editor, REFERENCED_ELEMENT_ACCEPTED, startOffset)
-      ?: return false
+      .findTargetElement(editor, REFERENCED_ELEMENT_ACCEPTED, startOffset) ?: return false
   return target.isComposableFunction()
 }
 

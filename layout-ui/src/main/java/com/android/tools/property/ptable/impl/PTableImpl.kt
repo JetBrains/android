@@ -113,12 +113,16 @@ open class PTableImpl(
   private var initialized = false
   override val backgroundColor: Color
     get() = super.getBackground()
+
   override val foregroundColor: Color
     get() = super.getForeground()
+
   override val activeFont: Font
     get() = super.getFont()
+
   override val gridLineColor: Color
     get() = gridColor
+
   override var wrap = false
 
   init {
@@ -671,7 +675,7 @@ open class PTableImpl(
             if (
               !(row == editingRow &&
                 column.ordinal == editingColumn) && // this cell is not being edited
-              tableModel.hasCustomCursor(item(row), column)
+                tableModel.hasCustomCursor(item(row), column)
             )
               getRenderer(row, column)
             else null
@@ -688,8 +692,7 @@ open class PTableImpl(
                 // The property panel is using text editors to display text.
                 // Ignore the I-beam from those components.
                 if (component is JTextComponent) null else component?.cursor
-              }
-                ?: Cursor.getDefaultCursor()
+              } ?: Cursor.getDefaultCursor()
         }
       }
     )

@@ -354,6 +354,7 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     private val singleRawCommandResponse: ByteArray = ByteArray(0)
   ) : AppInspectorMessenger {
     lateinit var rawDataSent: ByteArray
+
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       rawDataSent = rawData
       return singleRawCommandResponse

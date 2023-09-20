@@ -46,6 +46,7 @@ interface OfflineModeManager {
     val filesDownloaded: List<DatabaseFileData>,
     val totalFiles: Int
   )
+
   enum class DownloadState {
     IN_PROGRESS,
     COMPLETED

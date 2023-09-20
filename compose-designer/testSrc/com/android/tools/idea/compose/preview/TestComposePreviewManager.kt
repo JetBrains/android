@@ -35,6 +35,7 @@ open class TestComposePreviewManager(
       isRefreshing = false,
       interactiveMode = initialInteractiveMode
     )
+
   override fun status(): ComposePreviewManager.Status = currentStatus
 
   override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
@@ -56,6 +57,7 @@ open class TestComposePreviewManager(
   override var atfChecksEnabled: Boolean = false
 
   override var mode: PreviewMode = PreviewMode.Default
+
   override fun setMode(newMode: PreviewMode.Settable) {
     mode = newMode
   }

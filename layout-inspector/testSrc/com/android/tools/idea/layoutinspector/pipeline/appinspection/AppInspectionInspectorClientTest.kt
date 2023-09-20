@@ -1691,9 +1691,13 @@ private val failingApiServices =
 
     override val processDiscovery
       get() = throw RuntimeException()
+
     override suspend fun disposeClients(project: String) = throw RuntimeException()
+
     override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String) =
       throw exception
+
     override suspend fun launchInspector(params: LaunchParameters) = throw RuntimeException()
+
     override suspend fun stopInspectors(process: ProcessDescriptor) = throw RuntimeException()
   }

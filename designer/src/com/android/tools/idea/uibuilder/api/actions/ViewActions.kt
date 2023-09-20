@@ -39,7 +39,9 @@ abstract class AbstractViewAction
 constructor(protected val myIcon: Icon?, protected val myLabel: String) : ViewAction {
 
   override fun getLabel(): String = myLabel
+
   override fun getIcon(): Icon? = myIcon
+
   override fun affectsUndo(): Boolean = true
 
   override fun updatePresentation(

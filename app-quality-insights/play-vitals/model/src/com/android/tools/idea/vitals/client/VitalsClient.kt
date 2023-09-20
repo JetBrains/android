@@ -283,8 +283,7 @@ class VitalsClient(
             val tracks =
               releases
                 .singleOrNull { release -> release.buildVersion == rawVersion.buildVersion }
-                ?.tracks
-                ?: emptySet()
+                ?.tracks ?: emptySet()
             rawVersion.copy(tracks = tracks)
           }
 

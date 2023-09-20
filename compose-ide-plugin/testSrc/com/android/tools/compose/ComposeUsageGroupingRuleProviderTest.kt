@@ -259,27 +259,44 @@ class ComposeUsageGroupingRuleProviderParameterizedTest(
 
   private class TestUsage(private val psiElement: PsiElement) : PsiElementUsage {
     override fun navigate(requestFocus: Boolean) {}
+
     override fun canNavigate() = false
+
     override fun canNavigateToSource() = false
+
     override fun getPresentation() = throw NotImplementedError()
+
     override fun isValid() = true
+
     override fun isReadOnly() = false
+
     override fun getLocation() = null
+
     override fun selectInEditor() {}
+
     override fun highlightInEditor() {}
+
     override fun getElement() = psiElement
+
     override fun isNonCodeUsage() = false
   }
 
   /** Test class so we can easily create instances of [PsiElementUsageTarget]. */
   private class TestUsageTarget(private val psiElement: PsiElement) : PsiElementUsageTarget {
     override fun navigate(requestFocus: Boolean) {}
+
     override fun canNavigate() = true
+
     override fun canNavigateToSource() = true
+
     override fun getName(): String = psiElement.text
+
     override fun getPresentation() = null
+
     override fun isValid() = true
+
     override fun findUsages() {}
+
     override fun getElement() = psiElement
   }
 }

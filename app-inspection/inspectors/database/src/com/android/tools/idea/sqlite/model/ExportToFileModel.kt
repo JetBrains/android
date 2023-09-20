@@ -22,7 +22,9 @@ import java.nio.file.Path
 
 sealed class ExportFormat {
   object DB : ExportFormat()
+
   object SQL : ExportFormat()
+
   data class CSV(val delimiter: Delimiter) : ExportFormat()
 }
 

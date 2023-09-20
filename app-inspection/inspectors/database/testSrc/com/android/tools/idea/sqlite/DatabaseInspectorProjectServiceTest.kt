@@ -152,8 +152,10 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
         object : DatabaseInspectorClientCommandsChannel {
           override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> =
             Futures.immediateFuture(null)
+
           override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
             Futures.immediateFuture(null)
+
           override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
             Futures.immediateFuture(null)
         }
@@ -249,8 +251,10 @@ class DatabaseInspectorProjectServiceTest : LightPlatformTestCase() {
       object : DatabaseInspectorClientCommandsChannel {
         override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> =
           Futures.immediateFuture(null)
+
         override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
           Futures.immediateFuture(null)
+
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
           Futures.immediateFuture(null)
       }

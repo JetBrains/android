@@ -309,6 +309,7 @@ constructor(
   }
 
   private fun CreateDeviceAction.toAnAction() = toAnAction(CreateDeviceAction::create)
+
   private fun CreateDeviceTemplateAction.toAnAction() =
     toAnAction(CreateDeviceTemplateAction::create)
 

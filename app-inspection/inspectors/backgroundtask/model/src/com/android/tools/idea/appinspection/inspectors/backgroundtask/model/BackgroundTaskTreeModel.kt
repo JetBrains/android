@@ -156,8 +156,7 @@ class BackgroundTaskTreeModel(
             }
           result
         }
-      }
-        ?: groupedByParentNode)
+      } ?: groupedByParentNode)
       .forEach { (parent, children) -> children.forEach { parent.add(it.value) } }
 
     nodeStructureChanged(root)

@@ -150,6 +150,7 @@ abstract class IndexValue {
 
   interface Reader {
     val supportedType: DataType
+
     fun read(input: DataInput): IndexValue
   }
 }

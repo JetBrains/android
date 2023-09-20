@@ -137,6 +137,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
 
   abstract val fqNameCheck: (String) -> Boolean
   abstract val animationType: String
+
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,

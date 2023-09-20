@@ -106,6 +106,7 @@ open class TimelinePanel(
     get() = ui as TimelineSliderUI
 
   var zoomValue = 1
+
   fun scale(z: Int) {
     zoomValue = z
   }

@@ -319,12 +319,19 @@ private class ForwardingMouseListener(
   private val shouldForward: () -> Boolean
 ) : MouseListener, MouseWheelListener, MouseMotionListener {
   override fun mouseClicked(e: MouseEvent) = forwardEvent(e)
+
   override fun mousePressed(e: MouseEvent) = forwardEvent(e)
+
   override fun mouseReleased(e: MouseEvent) = forwardEvent(e)
+
   override fun mouseEntered(e: MouseEvent) = forwardEvent(e)
+
   override fun mouseExited(e: MouseEvent) = forwardEvent(e)
+
   override fun mouseWheelMoved(e: MouseWheelEvent) = forwardEvent(e)
+
   override fun mouseDragged(e: MouseEvent) = forwardEvent(e)
+
   override fun mouseMoved(e: MouseEvent) = forwardEvent(e)
 
   private fun forwardEvent(e: MouseEvent) {

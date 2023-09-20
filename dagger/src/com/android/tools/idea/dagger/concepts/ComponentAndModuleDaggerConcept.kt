@@ -234,13 +234,11 @@ internal sealed class ClassDaggerElement : DaggerElement() {
         is PsiClass -> element
         is KtClassOrObject -> element.toLightClass()
         else -> null
-      }
-        ?: return false
+      } ?: return false
     val annotationArgument =
       resolveCandidateClassElement
         .getAnnotation(annotation.fqNameString)
-        ?.findAttributeValue(argumentName)
-        ?: return false
+        ?.findAttributeValue(argumentName) ?: return false
 
     // In Java, the annotation's array argument may be specified without the array syntax if there's
     // only a single value. Look for both variations. (In Kotlin, the list form is always used.)

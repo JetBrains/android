@@ -31,14 +31,18 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
   InteractableScenesSurface {
   var zoomCounter = 0
   var hoverCounter = 0
+
   override fun zoom(type: ZoomType): Boolean {
     zoomCounter++
     return true
   }
 
   override fun canZoomIn() = true
+
   override fun canZoomOut() = true
+
   override fun canZoomToFit() = true
+
   override fun canZoomToActual() = true
 
   override fun onHover(x: Int, y: Int) {
@@ -52,9 +56,12 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
   override val screenScalingFactor: Double = 1.0
 
   override fun getData(dataId: String) = null
+
   override fun getSceneViewAtOrPrimary(x: Int, y: Int) = sceneView
+
   override val scene: Scene? = null
   override val focusedSceneView = sceneView
+
   override fun getSceneViewAt(x: Int, y: Int) = sceneView
 }
 

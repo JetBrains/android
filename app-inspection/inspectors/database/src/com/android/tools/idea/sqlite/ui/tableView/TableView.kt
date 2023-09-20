@@ -32,8 +32,11 @@ interface TableView {
   fun showPageSizeValue(maxRowCount: Int)
 
   fun startTableLoading()
+
   fun showTableColumns(columns: List<ViewColumn>)
+
   fun stopTableLoading()
+
   fun reportError(message: String, t: Throwable?)
 
   /** Enables or disables the button to fetch the previous page of rows. */
@@ -46,6 +49,7 @@ interface TableView {
   fun setEditable(isEditable: Boolean)
 
   fun addListener(listener: Listener)
+
   fun removeListener(listener: Listener)
 
   /** Shows rows in the table, by applying the list of [RowDiffOperation]s. */
@@ -75,12 +79,19 @@ interface TableView {
 
   interface Listener {
     fun loadPreviousRowsInvoked()
+
     fun loadNextRowsInvoked()
+
     fun loadFirstRowsInvoked()
+
     fun loadLastRowsInvoked()
+
     fun refreshDataInvoked()
+
     fun toggleLiveUpdatesInvoked()
+
     fun showExportToFileDialogInvoked()
+
     fun updateCellInvoked(targetRowIndex: Int, targetColumn: ViewColumn, newValue: SqliteValue)
 
     /** Invoked when the user changes the number of rows to display per page. */
@@ -97,7 +108,9 @@ interface TableView {
 /** Class used to indicate how the table is sorted */
 sealed class OrderBy {
   data class Asc(val columnName: String) : OrderBy()
+
   data class Desc(val columnName: String) : OrderBy()
+
   object NotOrdered : OrderBy()
 
   /**

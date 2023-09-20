@@ -49,6 +49,7 @@ sealed class Action {
       is Single -> maybeDoCancel(listOf(other))
       is Multiple -> maybeDoCancel(other.actions)
     }
+
   protected abstract fun maybeDoCancel(reasons: List<Single>): Action?
 
   /** Refresh all data in App Insights. */
@@ -117,6 +118,7 @@ sealed class Action {
   data class AddNote(val note: Note) : IssueAction() {
     override val id = note.id.issueId
     override val supportsOfflineQueueing = true
+
     override fun maybeDoCancel(reasons: List<Single>) = this
   }
 
@@ -124,6 +126,7 @@ sealed class Action {
   data class DeleteNote(val noteId: NoteId) : IssueAction() {
     override val id = noteId.issueId
     override val supportsOfflineQueueing = true
+
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is DeleteNote && it.noteId == noteId }
   }
@@ -174,6 +177,7 @@ sealed class Action {
     }
 
     override fun equals(other: Any?): Boolean = (other as? Multiple)?.actions == actions
+
     override fun hashCode(): Int = actions.hashCode()
   }
 

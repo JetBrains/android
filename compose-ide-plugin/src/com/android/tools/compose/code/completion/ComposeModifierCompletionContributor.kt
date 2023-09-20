@@ -392,8 +392,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       when (element) {
         is KtNameReferenceExpression -> element
         else -> element.childrenOfType<KtNameReferenceExpression>().singleOrNull()
-      }
-        ?: return null
+      } ?: return null
     val reference = namedReferenceExpression.mainReference as? KtSimpleNameReference ?: return null
     return reference.resolveToSymbol() as? KtClassOrObjectSymbol
   }

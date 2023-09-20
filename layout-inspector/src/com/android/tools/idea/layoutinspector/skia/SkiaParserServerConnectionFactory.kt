@@ -146,8 +146,7 @@ object SkiaParserServerConnectionFactoryImpl : SkiaParserServerConnectionFactory
       var result = false
       invokeAndWaitIfNeeded {
         SdkQuickfixUtils.createDialogForPackages(null, listOf(updatablePackage), listOf(), false)
-          ?.show()
-          ?: return@invokeAndWaitIfNeeded
+          ?.show() ?: return@invokeAndWaitIfNeeded
         sdkManager.reloadLocalIfNeeded(progressIndicator)
         val newPackage =
           sdkManager.packages.consolidatedPkgs[packagePath] ?: return@invokeAndWaitIfNeeded

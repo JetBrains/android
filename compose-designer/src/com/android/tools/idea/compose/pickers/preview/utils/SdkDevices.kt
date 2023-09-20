@@ -32,6 +32,5 @@ internal fun getSdkDevices(module: Module): List<Device> {
       ?.deviceManager
       ?.getDevices(DeviceManager.ALL_DEVICES)
       ?.toList()
-  }
-    ?: emptyList()
+  } ?: emptyList()
 }

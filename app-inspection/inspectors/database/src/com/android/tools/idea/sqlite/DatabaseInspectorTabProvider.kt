@@ -131,6 +131,8 @@ fun createErrorSideChannel(project: Project): ErrorsSideChannel = { command, err
 /** Interface used to send commands to on-device inspector */
 interface DatabaseInspectorClientCommandsChannel {
   fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?>
+
   fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?>
+
   fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit>
 }

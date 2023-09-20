@@ -152,12 +152,15 @@ class NopComposePreviewManager : ComposePreviewManager {
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false
   override var mode: PreviewMode = PreviewMode.Default
+
   override fun setMode(newMode: PreviewMode.Settable) {
     mode = newMode
   }
 
   override fun invalidate() {}
+
   override fun restorePrevious() {}
+
   override fun dispose() {}
 }
 

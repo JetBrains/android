@@ -15,8 +15,8 @@
  */
 package com.android.tools.rendering
 
-import java.lang.ref.SoftReference
 import java.lang.ref.Reference
+import java.lang.ref.SoftReference
 import java.text.MessageFormat
 import java.util.ResourceBundle
 import org.jetbrains.annotations.NonNls

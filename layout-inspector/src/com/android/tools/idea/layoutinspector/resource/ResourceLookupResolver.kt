@@ -224,8 +224,7 @@ class ResourceLookupResolver(
     val isLayoutAttribute = attributeName.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val qualifiedTagName =
       (if (isLayoutAttribute) ViewNode.readAccess { view.parent?.qualifiedName }
-      else view.qualifiedName)
-        ?: return false
+      else view.qualifiedName) ?: return false
     var psiClass: PsiClass? =
       JavaPsiFacade.getInstance(project)
         .findClass(qualifiedTagName, GlobalSearchScope.allScope(project))
@@ -353,8 +352,7 @@ class ResourceLookupResolver(
     val styleItem =
       styleValue.getItem(attr(property))?.let {
         StyleItemResourceValueWithStyleReference(styleValue, it)
-      }
-        ?: return null
+      } ?: return null
     return resolveValue(property, view, styleItem)
   }
 
@@ -438,12 +436,12 @@ class ResourceLookupResolver(
         object : ResourceNamespace.Resolver {
           override fun uriToPrefix(namespaceUri: String): String? =
             tag.getPrefixByNamespace(namespaceUri)
+
           override fun prefixToUri(namespacePrefix: String): String? =
             tag.getNamespaceByPrefix(namespacePrefix).nullize()
         }
       )
-    }
-      ?: androidNamespaceContext
+    } ?: androidNamespaceContext
   }
 
   // Unfortunately a style item is not a ResourceItem, and we need the style value to locate this
@@ -622,8 +620,7 @@ class ResourceLookupResolver(
           item.originalSource.toVirtualFile()
         }
         else -> null
-      }
-        ?: return null
+      } ?: return null
 
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)

@@ -150,5 +150,6 @@ fun String.toEnumDimensionType(): DimensionType {
 
 sealed class DimensionValue {
   data class StringValue(val value: String) : DimensionValue()
+
   data class LongValue(val value: Long) : DimensionValue()
 }

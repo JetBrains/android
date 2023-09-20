@@ -475,6 +475,7 @@ class DeviceViewPanel(
     get() =
       contentPanel.width > scrollPane.viewport.width ||
         contentPanel.height > scrollPane.viewport.height
+
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
     set(_) {}

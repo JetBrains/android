@@ -71,6 +71,7 @@ class SeverityFilterAction(val project: Project, @Nls name: String, val severity
   DumbAwareToggleAction(name) {
   override fun isSelected(event: AnActionEvent) =
     !ProblemsViewState.getInstance(project).hideBySeverity.contains(severity)
+
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val state = ProblemsViewState.getInstance(project)
     val changed = with(state.hideBySeverity) { if (selected) remove(severity) else add(severity) }

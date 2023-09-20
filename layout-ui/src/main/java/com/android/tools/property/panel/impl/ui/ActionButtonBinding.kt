@@ -40,6 +40,7 @@ class ActionButtonBinding(
 
   private val actionButtonModel
     get() = model.property.browseButton
+
   private val actionButton = ButtonWithCustomTooltip(actionButtonModel?.action)
   private var initialized = false
 

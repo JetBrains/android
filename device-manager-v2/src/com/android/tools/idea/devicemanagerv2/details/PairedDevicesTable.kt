@@ -67,6 +67,7 @@ internal object PairedDevicesTable {
     override val attribute =
       object : Attribute<PairedDeviceData, Icon?> {
         override val sorter = null
+
         override fun value(t: PairedDeviceData) = t.icon
       }
 
@@ -74,6 +75,7 @@ internal object PairedDevicesTable {
       Column.SizeConstraint.exactly(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE.iconWidth + 5)
 
     override fun createUi(rowValue: PairedDeviceData) = IconLabel(null)
+
     override fun updateValue(rowValue: PairedDeviceData, component: IconLabel, value: Icon?) {
       component.baseIcon = value
     }
@@ -84,6 +86,7 @@ internal object PairedDevicesTable {
     override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
     override val attribute =
       Attribute.stringAttribute<PairedDeviceData>(isGroupable = false) { it.displayName }
+
     override fun createUi(rowValue: PairedDeviceData) =
       TwoLineLabel().apply { border = JBEmptyBorder(4) }
 

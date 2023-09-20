@@ -109,8 +109,10 @@ private fun searchRange(data: List<Event>, range: Range): List<Event> {
 private sealed class Intention {
   class QueryForSpeedData(val range: Range, val deferred: CompletableDeferred<List<Event>>) :
     Intention()
+
   class QueryForHttpData(val range: Range, val deferred: CompletableDeferred<List<Event>>) :
     Intention()
+
   class InsertData(val event: Event) : Intention()
 }
 
@@ -170,7 +172,9 @@ private fun intersectsRange(min: Long, max: Long, data: List<Event>): Boolean {
  */
 interface NetworkInspectorDataSource {
   val connectionEventFlow: Flow<HttpConnectionEvent>
+
   suspend fun queryForHttpData(range: Range): List<Event>
+
   suspend fun queryForSpeedData(range: Range): List<Event>
 }
 

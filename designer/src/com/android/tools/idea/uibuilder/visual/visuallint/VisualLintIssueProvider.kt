@@ -69,6 +69,7 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
 
     val models: Set<NlModel>
       get() = modelRefs.mapNotNull { it.get() }.toSet()
+
     val components: List<NlComponent>
       get() = componentRefs.mapNotNull { it.get() }.toList()
 
@@ -92,12 +93,14 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   private val _components = builder.components!!
   val components
     get() = _components.toList()
+
   val type: VisualLintErrorType = builder.type!!
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)
   override val summary = builder.summary!!
   override val severity = builder.severity!!
   override val category = "Visual Lint Issue"
   override val hyperlinkListener = builder.hyperlinkListener
+
   override fun shouldHighlight(model: NlModel): Boolean {
     return components
       .filterNot { it.isVisualLintErrorSuppressed(type) }
@@ -105,6 +108,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
       .distinct()
       .contains(model)
   }
+
   override val description: String
     get() =
       builder.contentDescriptionProvider!!.invoke(unsuppressedModelCount).stringBuilder.toString()
@@ -181,15 +185,21 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   ) {
 
     fun summary(summary: String) = apply { this.summary = summary }
+
     fun severity(severity: HighlightSeverity) = apply { this.severity = severity }
+
     fun contentDescriptionProvider(provider: (Int) -> HtmlBuilder) = apply {
       this.contentDescriptionProvider = provider
     }
+
     fun model(model: NlModel) = apply { this.model = model }
+
     fun components(components: MutableList<NlComponent>) = apply { this.components = components }
+
     fun hyperlinkListener(hyperlinkListener: HyperlinkListener?) = apply {
       this.hyperlinkListener = hyperlinkListener
     }
+
     fun type(type: VisualLintErrorType) = apply { this.type = type }
 
     fun build(): VisualLintRenderIssue {
@@ -227,6 +237,5 @@ fun NlComponent.isVisualLintErrorSuppressed(errorType: VisualLintErrorType): Boo
   return getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
     ?.split(",")
     ?.mapNotNull { VisualLintErrorType.getTypeByIgnoredAttribute(it) }
-    ?.contains(errorType)
-    ?: false
+    ?.contains(errorType) ?: false
 }

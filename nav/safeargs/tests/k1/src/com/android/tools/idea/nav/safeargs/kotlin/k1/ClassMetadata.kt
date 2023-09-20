@@ -83,6 +83,7 @@ internal class ClassMetadata(
 ) {
   companion object {
     private val visitor = MetadataVisitor()
+
     fun fromDescriptor(descriptor: ClassDescriptor): ClassMetadata {
       return ClassMetadata().apply {
         file = descriptor.source.containingFile.name.orEmpty()
@@ -168,32 +169,42 @@ private class MetadataVisitor : DeclarationDescriptorVisitor<Unit, ClassMetadata
   }
 
   override fun visitModuleDeclaration(descriptor: ModuleDescriptor, data: ClassMetadata) {}
+
   override fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, data: ClassMetadata) {}
+
   override fun visitPropertyGetterDescriptor(
     descriptor: PropertyGetterDescriptor,
     data: ClassMetadata
   ) {}
+
   override fun visitPropertySetterDescriptor(
     descriptor: PropertySetterDescriptor,
     data: ClassMetadata
   ) {}
+
   override fun visitReceiverParameterDescriptor(
     descriptor: ReceiverParameterDescriptor,
     data: ClassMetadata
   ) {}
+
   override fun visitPackageFragmentDescriptor(
     descriptor: PackageFragmentDescriptor,
     data: ClassMetadata
   ) {}
+
   override fun visitScriptDescriptor(scriptDescriptor: ScriptDescriptor, data: ClassMetadata) {}
+
   override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, data: ClassMetadata) {}
+
   override fun visitTypeParameterDescriptor(
     descriptor: TypeParameterDescriptor,
     data: ClassMetadata
   ) {}
+
   override fun visitValueParameterDescriptor(
     descriptor: ValueParameterDescriptor,
     data: ClassMetadata
   ) {}
+
   override fun visitVariableDescriptor(descriptor: VariableDescriptor, data: ClassMetadata) {}
 }

@@ -125,8 +125,7 @@ internal class DeviceParameterPropertyItem(
         newUnit?.let {
           config.dimUnit = newUnit
           newUnit.trackableValue
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_DENSITY,
@@ -138,8 +137,7 @@ internal class DeviceParameterPropertyItem(
         newDpi?.let {
           config.dpi = newDpi
           PickerTrackerHelper.densityBucketOfDeviceConfig(config)
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_ORIENTATION,
@@ -150,8 +148,7 @@ internal class DeviceParameterPropertyItem(
         newOrientation?.let {
           config.orientation = newOrientation
           newOrientation.trackableValue
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_IS_ROUND,
@@ -164,8 +161,7 @@ internal class DeviceParameterPropertyItem(
           config.shape = if (it) Shape.Round else Shape.Normal
           PreviewPickerValue
             .UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_CHIN_SIZE,
@@ -180,8 +176,7 @@ internal class DeviceParameterPropertyItem(
           }
           config.chinSize = newChinSize
           PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       }
     )
 
@@ -202,7 +197,7 @@ internal class DeviceParameterPropertyItem(
     val resolvedDeviceConfig =
       DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices)
         ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
-          ?: defaultDeviceValues
+        ?: defaultDeviceValues
 
     lastValueToDevice = Pair(currentValue, resolvedDeviceConfig)
     return resolvedDeviceConfig.toMutableConfig()

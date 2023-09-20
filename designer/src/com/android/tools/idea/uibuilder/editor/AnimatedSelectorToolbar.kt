@@ -205,6 +205,7 @@ private object EmptyModelUpdater : NlModel.NlModelUpdaterInterface {
     newRoot: XmlTag?,
     roots: MutableList<NlModel.TagSnapshotTreeNode>
   ) = Unit
+
   override fun updateFromViewInfo(model: NlModel, viewInfos: MutableList<ViewInfo>) = Unit
 }
 
@@ -283,8 +284,7 @@ class AnimatedSelectorModel(
       val animationTag =
         transition.subTags.firstOrNull {
           it.name == SdkConstants.TAG_ANIMATED_VECTOR || it.name == SdkConstants.TAG_ANIMATION_LIST
-        }
-          ?: continue
+        } ?: continue
       val transitionId = "$fromId to $toId"
       maps[transitionId] = animationTag
     }

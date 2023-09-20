@@ -26,5 +26,6 @@ data class TestConnection(
   val isPreferred: Boolean = true
 ) : Connection {
   override val clientId: String = "android:${appId}"
+
   override fun isPreferredConnection() = isPreferred
 }

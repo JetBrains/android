@@ -82,12 +82,15 @@ sealed class PreviewMode {
 
   /** Type if [LayoutMode] to be used with this [PreviewMode]. */
   open val layoutMode: LayoutMode = LayoutMode.Default
+
   sealed class Transitive : PreviewMode()
+
   open class Settable : PreviewMode()
 
   object Default : Settable()
 
   sealed class Focus<T : PreviewElement>(val selected: T) : Settable()
+
   class UiCheck(
     selected: PreviewElement,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
@@ -97,7 +100,9 @@ sealed class PreviewMode {
   class Gallery(selected: PreviewElement) : Focus<PreviewElement>(selected) {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
   }
+
   class Interactive(selected: PreviewElement) : Focus<PreviewElement>(selected)
+
   class AnimationInspection(selected: PreviewElement) : Focus<PreviewElement>(selected)
 
   /**

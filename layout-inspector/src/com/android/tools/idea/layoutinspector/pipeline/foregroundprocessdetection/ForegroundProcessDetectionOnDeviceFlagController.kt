@@ -39,14 +39,18 @@ class ForegroundProcessDetectionOnDeviceFlagController :
   }
 
   override fun onPreTransportDaemonStart(device: Common.Device) {}
+
   override fun onTransportDaemonException(device: Common.Device, exception: Exception) {}
+
   override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) {}
+
   override fun onStartTransportDaemonServerFail(
     device: Common.Device,
     exception: FailedToStartServerException
   ) {}
 
   override fun customizeProxyService(proxy: TransportProxy) {}
+
   override fun customizeAgentConfig(
     configBuilder: Agent.AgentConfig.Builder,
     runConfig: AndroidRunConfigurationBase?

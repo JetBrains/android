@@ -104,11 +104,14 @@ class LightArgsKtClass(
   private val scope = storageManager.createLazyValue { ArgsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+
   override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
     unsubstitutedMemberScope
 
   override fun getConstructors() = listOf(_primaryConstructor())
+
   override fun getUnsubstitutedPrimaryConstructor() = _primaryConstructor()
+
   override fun getCompanionObjectDescriptor() = _companionObject()
 
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
@@ -166,10 +169,15 @@ class LightArgsKtClass(
 
       private val companionObjectScope = storageManager.createLazyValue { CompanionScope() }
       private val companionObject = this
+
       override fun isCompanionObject() = true
+
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
+
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
+
       override fun getUnsubstitutedMemberScope() = companionObjectScope()
+
       override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope =
         unsubstitutedMemberScope
 
@@ -332,8 +340,7 @@ class LightArgsKtClass(
                     argsClassDescriptor.fqNameSafe.asString()
                   )
                 )
-              }
-                ?: argsClassDescriptor.source
+              } ?: argsClassDescriptor.source
 
             argsClassDescriptor.createMethod(
               name = methodName,
@@ -383,8 +390,7 @@ class LightArgsKtClass(
                     argsClassDescriptor.fqNameSafe.asString()
                   )
                 )
-              }
-                ?: argsClassDescriptor.source
+              } ?: argsClassDescriptor.source
             argsClassDescriptor.createProperty(pName, pType, resolvedSourceElement)
           }
           .toList()

@@ -108,10 +108,12 @@ class InspectorModel(
     HALF_OPEN,
     FLAT
   }
+
   enum class FoldOrientation {
     VERTICAL,
     HORIZONTAL
   }
+
   class FoldInfo(var angle: Int?, var posture: Posture?, var orientation: FoldOrientation) {
     fun toProto(): LayoutInspectorViewProtocol.FoldEvent =
       LayoutInspectorViewProtocol.FoldEvent.newBuilder()
@@ -354,8 +356,7 @@ class InspectorModel(
       val max =
         root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull {
           it.recompositions.decreaseHighlights()
-        }
-          ?: 0f
+        } ?: 0f
       if (max != 0f) {
         scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
       } else {
@@ -499,8 +500,7 @@ class InspectorModel(
       }
       return oldNode?.children?.indices?.all {
         oldNode.children[it].drawId == newNode?.children?.get(it)?.drawId
-      }
-        ?: true
+      } ?: true
     }
   }
 }

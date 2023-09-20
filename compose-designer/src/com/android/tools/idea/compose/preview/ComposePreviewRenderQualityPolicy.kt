@@ -30,6 +30,7 @@ object ComposePreviewRenderQualityPolicy : RenderQualityPolicy {
       (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
         .coerceAtLeast(0f)
         .coerceAtMost(1f)
+
   const val lowestQuality: Float = 0.001f
 
   override fun getTargetQuality(scale: Double, isVisible: Boolean): Float {

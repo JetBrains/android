@@ -303,6 +303,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     init {
       Disposer.register(disposable, this)
     }
+
     override fun dispose() {}
   }
 

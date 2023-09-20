@@ -147,6 +147,7 @@ internal data class ComponentProvisionMethodIndexValue(
 
   object Reader : IndexValue.Reader {
     override val supportedType: DataType = DataType.COMPONENT_PROVISION_METHOD
+
     override fun read(input: DataInput) =
       ComponentProvisionMethodIndexValue(input.readClassId(), input.readString())
   }
@@ -207,6 +208,7 @@ internal data class ComponentProvisionPropertyIndexValue(
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.COMPONENT_PROVISION_PROPERTY
+
     override fun read(input: DataInput) =
       ComponentProvisionPropertyIndexValue(input.readClassId(), input.readString())
   }
@@ -244,6 +246,7 @@ internal data class ComponentProvisionMethodDaggerElement(
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
   override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT_METHOD

@@ -271,8 +271,7 @@ abstract class SplitEditor<P : FileEditor>(
       val suffix =
         KeymapUtil.getFirstKeyboardShortcutText(shortcut)
           .takeIf { it.isNotEmpty() }
-          ?.let { " (${it})" }
-          ?: ""
+          ?.let { " (${it})" } ?: ""
       e.presentation.description = "$name$suffix"
     }
 

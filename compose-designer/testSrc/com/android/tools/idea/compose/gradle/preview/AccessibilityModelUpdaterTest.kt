@@ -54,6 +54,7 @@ class AccessibilityModelUpdaterTest {
 
   private val project: Project
     get() = projectRule.project
+
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 

@@ -53,8 +53,7 @@ private fun SourceLocation.toNavigatable(module: Module): Navigatable? {
   val psiFile =
     runReadAction {
       PsiManager.getInstance(project).findFile(sourceLocationWithVirtualFile.virtualFile)
-    }
-      ?: return null
+    } ?: return null
   // PsiFile.getLineStartOffset is 0 based, while the source information is 1 based so subtract 1
   val offset =
     runReadAction { psiFile.getLineStartOffset(sourceLocationWithVirtualFile.lineNumber - 1) } ?: 0

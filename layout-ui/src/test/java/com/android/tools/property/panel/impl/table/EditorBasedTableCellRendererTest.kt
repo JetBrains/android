@@ -205,7 +205,9 @@ class EditorBasedTableCellRendererTest {
       object : PTableModel {
         override val items = itemList
         override var editedItem: PTableItem? = null
+
         override fun addItem(item: PTableItem): PTableItem = error("Not supported")
+
         override fun removeItem(item: PTableItem) = error("Not supported")
       }
     val provider =
@@ -221,6 +223,7 @@ class EditorBasedTableCellRendererTest {
       init {
         setRowHeight(ROW_HEIGHT)
       }
+
       override fun createExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
         return if (withFakeHandler) FakeExpandableItemsHandler(this)
         else super.createExpandableItemsHandler()

@@ -119,6 +119,7 @@ internal data class AssistedInjectConstructorIndexValue(val classId: ClassId) : 
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_INJECT_CONSTRUCTOR
+
     override fun read(input: DataInput) = AssistedInjectConstructorIndexValue(input.readClassId())
   }
 
@@ -144,8 +145,7 @@ internal data class AssistedInjectConstructorIndexValue(val classId: ClassId) : 
     JavaPsiFacade.getInstance(project)
       .findClass(classId.asFqNameString(), scope)
       ?.constructors
-      ?.toList()
-      ?: emptyList()
+      ?.toList() ?: emptyList()
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -164,6 +164,7 @@ internal data class AssistedInjectConstructorUnassistedParameterIndexValue(
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ASSISTED_INJECT_CONSTRUCTOR_UNASSISTED_PARAMETER
+
     override fun read(input: DataInput) =
       AssistedInjectConstructorUnassistedParameterIndexValue(
         input.readClassId(),
@@ -223,6 +224,7 @@ internal data class AssistedInjectConstructorDaggerElement(
   internal constructor(
     psiElement: KtConstructor<*>
   ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
+
   internal constructor(
     psiElement: PsiMethod
   ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)

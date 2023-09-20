@@ -34,7 +34,9 @@ private class BufferedImageTransferable(val image: BufferedImage) : Transferable
       DataFlavor.imageFlavor -> image
       else -> throw UnsupportedFlavorException(flavor)
     }
+
   override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.imageFlavor)
+
   override fun isDataFlavorSupported(flavor: DataFlavor): Boolean =
     transferDataFlavors.contains(flavor)
 }

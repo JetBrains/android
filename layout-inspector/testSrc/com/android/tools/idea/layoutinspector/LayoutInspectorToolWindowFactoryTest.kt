@@ -245,8 +245,7 @@ class LayoutInspectorToolWindowFactoryTest {
     val toolWindow =
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
         it.id == "Layout Inspector"
-      }
-        ?: fail("Tool window not found")
+      } ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidFacetChecker::class.qualifiedName)
   }

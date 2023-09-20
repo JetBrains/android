@@ -42,8 +42,7 @@ class ComposeGalleryMode(rootComponent: JComponent) {
       ?.allPreviewElementsInFileFlow
       ?.value
       ?.map { element -> PreviewElementKey(element) }
-      ?.toSet()
-      ?: emptySet()
+      ?.toSet() ?: emptySet()
   }
 
   private val tabs: GalleryTabs<PreviewElementKey> =

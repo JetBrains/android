@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.psi.KtParameter
 interface DaggerIndexParameterWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the parameter. Eg: "someParameterName" */
   fun getSimpleName(): String
+
   fun getType(): DaggerIndexTypeWrapper
 }
 

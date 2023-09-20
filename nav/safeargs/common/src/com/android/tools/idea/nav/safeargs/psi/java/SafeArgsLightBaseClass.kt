@@ -65,10 +65,15 @@ abstract class SafeArgsLightBaseClass(
   }
 
   override fun getName() = name
+
   override fun getQualifiedName() = qualifiedName
+
   override fun getContainingFile() = backingFile
+
   override fun getContainingClass(): PsiClass? = null
+
   override fun isValid() = true
+
   override fun getNavigationElement(): PsiElement {
     return navEntry.backingXmlFile ?: return super.getNavigationElement()
   }

@@ -246,6 +246,7 @@ class AddTargetVersionCheckQuickFix(
   companion object {
     fun getVersionField(api: Int, fullyQualified: Boolean): String =
       ExtensionSdk.getAndroidVersionField(api, fullyQualified)
+
     fun getSdkExtensionField(project: Project, sdkId: Int, fullyQualified: Boolean): String {
       val apiLookup = LintIdeClient.getApiLookup(project)
       if (apiLookup != null) {

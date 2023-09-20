@@ -185,6 +185,7 @@ open class NlPropertyItem(
         override fun uriToPrefix(namespaceUri: String): String? = withTag { tag ->
           tag.getPrefixByNamespace(namespaceUri)
         }
+
         override fun prefixToUri(namespacePrefix: String): String? = withTag { tag ->
           tag.getNamespaceByPrefix(namespacePrefix).nullize()
         }
@@ -195,6 +196,7 @@ open class NlPropertyItem(
     object : HelpSupport {
       override val help = HelpActions.help
       override val secondaryHelp = HelpActions.secondaryHelp
+
       override fun browse() {
         model.browseToValue(this@NlPropertyItem)
       }
@@ -205,6 +207,7 @@ open class NlPropertyItem(
       override val completion: EditorCompletion = { getCompletionValues() }
       override val allowCustomValues: Boolean
         get() = type.allowCustomValues
+
       override val validation = { text: String? -> validate(text) }
       override val execution = { runnable: Runnable ->
         ApplicationManager.getApplication().executeOnPooledThread(runnable)

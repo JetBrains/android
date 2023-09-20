@@ -290,6 +290,7 @@ internal class ComposePreviewViewImpl(
 
   override val isPannable: Boolean
     get() = mainSurface.isPannable
+
   override var isPanning: Boolean
     get() = mainSurface.isPanning
     set(value) {
@@ -331,6 +332,7 @@ internal class ComposePreviewViewImpl(
         // the mouse is hovering the link
       }
     }
+
   private val actionsToolbar: ActionsToolbar
 
   val content = JPanel(BorderLayout())

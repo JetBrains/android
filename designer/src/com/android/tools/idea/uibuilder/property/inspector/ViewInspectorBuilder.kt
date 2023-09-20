@@ -111,7 +111,8 @@ class ViewInspectorBuilder(
     }
     // TODO: Handle other namespaces
     return properties.getOrNull(ANDROID_URI, attrName)
-      ?: properties.getOrNull(AUTO_URI, attrName) ?: properties.getOrNull("", attrName)
+      ?: properties.getOrNull(AUTO_URI, attrName)
+      ?: properties.getOrNull("", attrName)
   }
 
   private fun getFirstComponent(properties: PropertiesTable<NlPropertyItem>): NlComponent? {

@@ -22,7 +22,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.IconButton
-import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.tabs.TabInfo
@@ -32,7 +31,6 @@ import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.ui.tabs.impl.TabLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.Insets
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.MouseAdapter
@@ -42,15 +40,17 @@ import javax.swing.SwingUtilities
 import javax.swing.border.MatteBorder
 
 /** Tabs panel with enabled navigation. */
-class AnimationTabs(project: Project, disposable: Disposable) :
-  JBTabsImpl(project, disposable) {
+class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(project, disposable) {
 
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
     ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
-    setUiDecorator(object : UiDecorator {
-      override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10, 5, 2))
-    })
+    setUiDecorator(
+      object : UiDecorator {
+        override fun getDecoration() =
+          UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10, 5, 2))
+      }
+    )
   }
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
@@ -141,6 +141,7 @@ class AnimationTabs(project: Project, disposable: Disposable) :
     }
 
     var isCreated = false
+
     override fun isFocusable(): Boolean {
       // Make sure label is focusable until it's marked as created.
       return !isCreated || super.isFocusable()

@@ -29,7 +29,9 @@ import com.intellij.openapi.vfs.VirtualFile
 
 interface DesignerCommonIssueProvider<T> : Disposable {
   var viewOptionFilter: Filter
+
   fun getFilteredIssues(): List<Issue>
+
   fun registerUpdateListener(listener: Runnable)
 
   fun interface Filter : (Issue) -> Boolean

@@ -64,6 +64,7 @@ abstract class JdbcSqliteResultSet(
         .cancelOnDispose(this)
 
   abstract override val totalRowCount: ListenableFuture<Int>
+
   abstract override fun getRowBatch(
     rowOffset: Int,
     rowBatchSize: Int

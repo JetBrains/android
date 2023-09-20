@@ -49,6 +49,7 @@ private val PREVIEW_ELEMENT_INSTANCE =
 private class TestAdapter :
   MethodPreviewElementModelAdapter<TestMethodPreviewElement, TestModel>(PREVIEW_ELEMENT_INSTANCE) {
   override fun toXml(previewElement: TestMethodPreviewElement) = ""
+
   override fun applyToConfiguration(
     previewElement: TestMethodPreviewElement,
     configuration: Configuration
