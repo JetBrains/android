@@ -259,7 +259,7 @@ public final class SystemImageDescription {
 
     @Override
     public boolean hasPlayStore() {
-      if (SystemImage.PLAY_STORE_TAG.equals(myTag)) {
+      if (SystemImage.PLAY_STORE_TAG.equals(getTag()) || AUTOMOTIVE_PLAY_STORE_TAG.equals(getTag())) {
         return true;
       }
       // A Wear system image has Play Store if it is

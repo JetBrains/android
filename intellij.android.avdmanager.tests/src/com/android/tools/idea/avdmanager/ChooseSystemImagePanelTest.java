@@ -80,6 +80,21 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     return pkg;
   }
 
+  private static FakePackage.FakeRemotePackage createRemoteSysimgPackage(String sysimgPath, String abi, IdDisplay tag, IdDisplay vendor,
+                                                                         int apiLevel) {
+    FakePackage.FakeRemotePackage pkg = new FakePackage.FakeRemotePackage(
+      sysimgPath);
+    DetailsTypes.SysImgDetailsType sysimgDetails =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    sysimgDetails.getTags().add(tag);
+    sysimgDetails.setAbi(abi);
+    sysimgDetails.setVendor(vendor);
+    sysimgDetails.setApiLevel(apiLevel);
+    pkg.setTypeDetails((TypeDetails)sysimgDetails);
+
+    return pkg;
+  }
+
   /**
    * Generates a list of system images with a given abi to test with.
    */
@@ -125,6 +140,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     final FakePackage.FakeLocalPackage pkgCnWear;
     FakePackage.FakeLocalPackage pkgAutomotive;
     final FakePackage.FakeLocalPackage pkgAutomotivePs;
+    final FakePackage.FakeRemotePackage remotePkgAutomotive;
     final FakePackage.FakeLocalPackage pkgTv30;
     final FakePackage.FakeLocalPackage pkgTv31;
 
@@ -142,6 +158,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription automotivePsImageDescription;
     SystemImageDescription tv30ImageDescription;
     SystemImageDescription tv31ImageDescription;
+    SystemImageDescription remoteAutoDescription;
 
     SystemImageTestList(String abi, Path sdkRoot) {
       gapiPath += abi;
@@ -184,6 +201,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       pkgAutomotivePs = createSysimgPackage(automotivePsPath, abi, IdDisplay.create("android-automotive-playstore",
                                                                                     "Android Automotive with Google Play"),
                                             IdDisplay.create("google", "Google"), 28, sdkRoot);
+      remotePkgAutomotive = createRemoteSysimgPackage(automotivePsPath, abi, IdDisplay.create("android-automotive-playstore",
+                                                                                              "Android Automotive with Google Play"),
+                                                      IdDisplay.create("google", "Google"), 28);
       pkgAutomotive = createSysimgPackage(automotivePath, abi, IdDisplay.create("android-automotive", "Android Automotive"),
                                           IdDisplay.create("google", "Google"), 28, sdkRoot);
       pkgTv30 = createSysimgPackage(tv30Path, abi, IdDisplay.create("android-tv", "Television"),
@@ -230,6 +250,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       automotivePsImageDescription = new SystemImageDescription(automotivePsImage);
       tv30ImageDescription = new SystemImageDescription(tv30Image);
       tv31ImageDescription = new SystemImageDescription(tv31Image);
+      remoteAutoDescription = new SystemImageDescription(remotePkgAutomotive);
     }
   }
 
@@ -481,6 +502,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationForDevice(mSysImagesX86.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
                    getClassificationForDevice(mSysImagesX86.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationForDevice(mSysImagesX86.remoteAutoDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
@@ -503,6 +526,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       assertEquals(OTHER, getClassificationForDevice(mSysImagesArm64.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
       assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
                    getClassificationForDevice(mSysImagesArm64.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationForDevice(mSysImagesArm64.remoteAutoDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
