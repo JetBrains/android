@@ -17,6 +17,7 @@ package com.android.tools.idea
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.plugins.IdeaPluginDescriptor
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.extensions.PluginId
@@ -25,6 +26,7 @@ import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePlugin
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinIdePluginVersion
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinPluginLayout
 import org.junit.ClassRule
+import org.junit.Ignore
 import org.junit.Test
 
 class KotlinPluginTest {
@@ -68,5 +70,16 @@ class KotlinPluginTest {
     val apiVersion = ApplicationInfoEx.getInstanceEx().apiVersionAsNumber
     assertThat(apiVersion.asStringWithoutProductCode()).matches("\\d+\\.\\d+\\.\\d+")
     assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, apiVersion)).isNull()
+  }
+
+  @Test
+  @Ignore("Cannot accurately run in Bazel until b/270757509 is fixed")
+  fun testPluginCannotBeDisabled() {
+    val id = "org.jetbrains.kotlin"
+    val plugin = PluginManagerCore.getPlugin(PluginId.getId(id))
+    checkNotNull(plugin)
+    assertThat(plugin.isEnabled).isTrue()
+    PluginManager.disablePlugin(id)
+    assertThat(plugin.isEnabled).isTrue()
   }
 }
