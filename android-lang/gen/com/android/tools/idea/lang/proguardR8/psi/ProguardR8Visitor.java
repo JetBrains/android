@@ -144,6 +144,10 @@ public class ProguardR8Visitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitRuleWithClassFilter(@NotNull ProguardR8RuleWithClassFilter o) {
+    visitPsiElement(o);
+  }
+
   public void visitRuleWithClassSpecification(@NotNull ProguardR8RuleWithClassSpecification o) {
     visitPsiElement(o);
   }

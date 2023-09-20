@@ -21,6 +21,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8ClassMemberName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Flag
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8Visitor
+import com.android.tools.idea.lang.proguardR8.psi.impl.ProguardR8RuleWithClassFilterImpl
 import com.android.tools.idea.lang.proguardR8.psi.isParentClassKnown
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -51,7 +52,14 @@ class ProguardR8ReferenceInspection : LocalInspectionTool() {
 
       override fun visitQualifiedName(name: ProguardR8QualifiedName) {
         super.visitQualifiedName(name)
-        if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
+
+        // Class filters with a `-dontwarn` or `-dontnote` often don't exist.
+        if (name.parent?.parent is ProguardR8RuleWithClassFilterImpl) return
+
+        // Names with wildcards won't resolve.
+        if (name.containsWildcards()) return
+
+        if (name.resolveToPsiClass() == null) {
           holder.registerProblem(name, "Unresolved class name")
         }
       }
