@@ -875,15 +875,6 @@
     <option name="standard" path="ActionManager" hit="Toggle between Standard and Compact view" />
     <option name="toggle" path="ActionManager" hit="Toggle between Standard and Compact view" />
     <option name="view" path="ActionManager" hit="Toggle between Standard and Compact view" />
-    <option name="decorations" path="ActionManager" hit="Toggle literals decorations" />
-    <option name="literals" path="ActionManager" hit="Toggle literals decorations" />
-    <option name="toggle" path="ActionManager" hit="Toggle literals decorations" />
-    <option name="decorations" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="editor" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="in" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="literals" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="the" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="toggle" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="current" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="editor" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="in" path="ActionManager" hit="Toggle using soft wraps in current editor" />

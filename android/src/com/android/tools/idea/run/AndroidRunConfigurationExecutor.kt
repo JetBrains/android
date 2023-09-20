@@ -169,7 +169,6 @@ class AndroidRunConfigurationExecutor(
 
   private fun notifyLiveEditService(device: IDevice, applicationId: String) {
     try {
-      AndroidLiveLiteralDeployMonitor.startMonitor(project, applicationId, device)
       LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationId, apkProvider, device)
     } catch (e: Exception) {
 

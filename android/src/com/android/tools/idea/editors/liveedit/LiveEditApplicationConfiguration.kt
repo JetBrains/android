@@ -22,7 +22,6 @@ import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEdi
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
-import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
@@ -34,14 +33,13 @@ import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
 import com.intellij.openapi.project.ProjectManager
-import org.jetbrains.annotations.TestOnly
 
 @com.intellij.openapi.components.State(name = "LiveEditConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
 @Service
 class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEditApplicationConfiguration.State>(State()) {
   enum class LiveEditMode {
     DISABLED,
-    LIVE_LITERALS,
+    LIVE_LITERALS, // Legacy do not use.
     LIVE_EDIT
   }
 
@@ -63,7 +61,6 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
             LiveEditService.getInstance(it).toggleLiveEdit(state.mode, patchedValue)
           }
         state.mode = patchedValue
-        LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(patchedValue == LIVE_LITERALS)
 
         // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
         ActivityTracker.getInstance().inc()
@@ -87,21 +84,8 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
         state.leTriggerMode = value
     }
 
-  /**
-   * True if the Live Literals feature is enabled. This is an application wide property that allows the user to check if the feature
-   * is enabled. To set the underlying setting to enable Live Literals feature, change [mode] to [LIVE_LITERALS].
-   * This does not indicate if the current project has Live Literals available. For that, check [LiveLiteralsService.isAvailable].
-   */
-  val isLiveLiterals
-    get() = mode == LIVE_LITERALS
-
   val isLiveEdit
     get() = mode == LIVE_EDIT
-
-  @TestOnly
-  fun resetDefault() {
-    state.mode = LIVE_LITERALS
-  }
 
   companion object {
     @JvmStatic

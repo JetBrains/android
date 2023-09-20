@@ -65,7 +65,6 @@ class ProjectBuildStatusManagerTest {
 
   @After
   fun tearDown() {
-    LiveEditApplicationConfiguration.getInstance().resetDefault()
     FastPreviewConfiguration.getInstance().resetDefault()
   }
 

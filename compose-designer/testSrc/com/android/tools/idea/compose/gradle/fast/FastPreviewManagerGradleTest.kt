@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.editors.fast.toFileNameSet
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
@@ -141,7 +140,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   @After
   fun tearDown() {
     runBlocking { fastPreviewManager.stopAllDaemons().join() }
-    LiveEditApplicationConfiguration.getInstance().resetDefault()
   }
 
   @Test

@@ -1181,13 +1181,6 @@ public final class StudioFlags {
    false
   );
 
-  public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
-    COMPOSE, "deploy.live.literals.updaterate",
-    "Update rate of live literals edits",
-    "The rate of which live literals are updated in milliseconds",
-    50
-  );
-
   public static final Flag<Boolean> COMPOSE_DEBUG_BOUNDS = Flag.create(
     COMPOSE, "preview.debug.bounds",
     "Enable the debug bounds switch controls",
