@@ -182,7 +182,7 @@ public class AndroidPluginInfo {
     };
 
 
-    BuildFileProcessor.getInstance().processRecursively(project, settingsModelProcessor, buildModelProcessor);
+    BuildFileProcessor.processRecursively(project, settingsModelProcessor, buildModelProcessor);
 
     return result;
   }

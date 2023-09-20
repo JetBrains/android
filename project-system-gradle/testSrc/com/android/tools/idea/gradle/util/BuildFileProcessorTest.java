@@ -80,7 +80,7 @@ public class BuildFileProcessorTest extends AndroidGradleTestCase {
       VfsUtil.saveText(virtualFile, VfsUtilCore.loadText(virtualFile) + "\ninclude 'notamodule'");
       return null;
     });
-    new BuildFileProcessor().processRecursively(
+    BuildFileProcessor.processRecursively(
       getProject(),
       (settingsModel) -> {
         assertThat(settingsModel).isNotNull();

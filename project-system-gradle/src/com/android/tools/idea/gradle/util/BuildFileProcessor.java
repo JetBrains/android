@@ -37,11 +37,6 @@ import org.jetbrains.plugins.gradle.settings.GradleProjectSettings.CompositeBuil
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class BuildFileProcessor {
-  @NotNull
-  public static BuildFileProcessor getInstance() {
-    return ApplicationManager.getApplication().getService(BuildFileProcessor.class);
-  }
-
   /**
    * Attempts to find and process (using the supplied processors) all build files in the given project.
    *
@@ -50,9 +45,9 @@ public class BuildFileProcessor {
    * This method parses the settings file, processes it, then parses build files; as such it is not guaranteed to catch every file.
    * If finding every file is required look at getting the build files from the model, see {@link GradleModuleModel#getBuildFile()}.
    */
-  public void processRecursively(@NotNull Project project,
-                                 @NotNull Processor<? super GradleSettingsModel> settingsProcessor,
-                                 @NotNull Processor<? super GradleBuildModel> buildProcessor) {
+  public static void processRecursively(@NotNull Project project,
+                                        @NotNull Processor<? super GradleSettingsModel> settingsProcessor,
+                                        @NotNull Processor<? super GradleBuildModel> buildProcessor) {
     ApplicationManager.getApplication().runReadAction(() -> {
       VirtualFile projectRootFolder = ProjectUtil.guessProjectDir(project);
       // Unlikely to happen; if it does, most likely this is the default project.
