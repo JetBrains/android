@@ -23,6 +23,7 @@ import com.android.tools.idea.common.assistant.HelpPanelToolWindowListener
 import com.android.tools.idea.common.assistant.LayoutEditorHelpPanelAssistantBundleCreatorBase
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
@@ -65,6 +66,8 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
     updateInternalVariables(e)
     e.presentation.isEnabledAndVisible = type != Type.NONE
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val project = event.project ?: return
