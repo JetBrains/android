@@ -251,17 +251,17 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = Flag.create(
     NELE, "atf.for.compose", "Enable ATF checks for Compose",
     "Allow running accessibility checks for Compose using ATF.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_MODE = Flag.create(
     NELE, "compose.ui.check.mode", "Enable UI Check mode for Compose preview",
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_COMPOSE_VISUAL_LINT_RUN = Flag.create(
     NELE, "compose.visual.lint.run", "Enable visual lint for Compose Preview",
     "Enable so that visual lint runs on previews in the Compose Preview.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_CLASS_PRELOADING_DIAGNOSTICS = Flag.create(
     NELE, "preview.class.preloading.diagnostics", "Enable class preloading overlay",

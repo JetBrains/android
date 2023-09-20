@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
@@ -196,9 +197,10 @@ class RenderErrorTest {
     // The visible/invisible state before the update shouldn't affect the final result
     for (visibleBefore in listOf(true, false)) {
       // The animation preview action shouldn't be visible because the preview being used doesn't
-      // contain animations, but the interactive and deploy to device actions should be visible as
-      // there are no render errors.
-      assertEquals(2, countVisibleActions(actions, visibleBefore))
+      // contain animations, but the interactive, ui check and deploy to device actions should be
+      // visible as there are no render errors.
+      val visibleActionCount = if (StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()) 3 else 2
+      assertEquals(visibleActionCount, countVisibleActions(actions, visibleBefore))
     }
   }
 
