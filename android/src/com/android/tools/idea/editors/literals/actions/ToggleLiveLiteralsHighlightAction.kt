@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.literals.actions
 import com.android.tools.idea.editors.literals.LiveLiteralsService
 import com.intellij.ide.actions.ShowSettingsUtilImpl
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.keymap.KeyMapBundle
@@ -33,6 +34,8 @@ class ToggleLiveLiteralsHighlightAction : AnAction(message("live.literals.highli
     LiveLiteralsService.getInstance(project).showLiveLiteralsHighlights = !LiveLiteralsService.getInstance(
       project).showLiveLiteralsHighlights
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
