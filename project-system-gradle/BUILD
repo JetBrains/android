@@ -1,7 +1,8 @@
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_4")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_4", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -157,35 +158,39 @@ iml_module(
     ],
 )
 
-old_agp_test(
-    name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
-    timeout = "long",
-    agp_version = AGP_7_4,
-    data = [
-        "//prebuilts/studio/jdk/jdk11",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/android-32",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android/testData",
-        "//tools/adt/idea/project-system-gradle/testData",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:gradle-distrib-7.5",
-    ],
-    gradle_version = "7.5",
-    ignore_other_tests = True,
+generate_old_agp_tests_from_list(
     iml_module = ":intellij.android.projectSystem.gradle.tests",
-    maven_deps = [
-        "//tools/base/build-system/previous-versions:7.4.1",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-        ":test_deps",
+    tests_list = [
+        dict(
+            name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
+            timeout = "long",
+            agp_version = AGP_7_4,
+            data = [
+                "//prebuilts/studio/jdk/jdk11",
+                "//prebuilts/studio/sdk:build-tools/30.0.3",
+                "//prebuilts/studio/sdk:build-tools/latest",
+                "//prebuilts/studio/sdk:platforms/android-32",
+                "//prebuilts/studio/sdk:platforms/latest",
+                "//tools/adt/idea/android/testData",
+                "//tools/adt/idea/project-system-gradle/testData",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system:gradle-distrib-7.5",
+            ],
+            gradle_version = "7.5",
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.4.1",
+                "//tools/base/build-system/previous-versions:kgp1.3.72",
+                ":test_deps",
+            ],
+            tags = [
+                "block-network",
+                "no_test_mac",
+                "no_test_windows",
+            ],
+            test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemOldAgpTestSuite",
+        ),
     ],
-    tags = [
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemOldAgpTestSuite",
 )
 
 maven_repository(
@@ -278,8 +283,6 @@ maven_repository(
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
