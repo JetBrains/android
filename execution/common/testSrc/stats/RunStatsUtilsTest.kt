@@ -21,6 +21,7 @@ import com.android.adblib.CoroutineScopeCache
 import com.android.adblib.DeviceInfo
 import com.android.ddmlib.IDevice
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
@@ -57,6 +58,7 @@ class RunStatsUtilsTest {
     populateDeviceInfoProto("TestPlugin", "localhost:12345", emptyMap(), "connectionId")
   }
   private val deviceHandle = object : DeviceHandle {
+    override val id = DeviceId("", false, "")
     override val scope: CoroutineScope
       get() = TODO("Not yet implemented")
     override val stateFlow: StateFlow<DeviceState>

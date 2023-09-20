@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -167,6 +168,7 @@ class PairedDevicesPanelTest {
     override val scope: CoroutineScope,
     val name: String,
   ) : DeviceHandle {
+    override val id = DeviceId("Fake", false, name)
     override val stateFlow =
       MutableStateFlow<DeviceState>(
         DeviceState.Disconnected(

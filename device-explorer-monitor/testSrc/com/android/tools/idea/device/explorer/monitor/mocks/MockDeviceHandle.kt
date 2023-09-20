@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer.monitor.mocks
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.DeviceInfo
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.testutils.MockitoKt
 import kotlinx.coroutines.CoroutineScope
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.mockito.Mockito.mock
 
 class MockDeviceHandle(override val scope: CoroutineScope, serialNumber: String) : DeviceHandle {
+  override val id = DeviceId("TEST", false, "")
   private val mockDeviceState = mock(DeviceState::class.java)
   private val mockConnectedDevice = mock(ConnectedDevice::class.java)
   private val mockDeviceInfo = mock(DeviceInfo::class.java)

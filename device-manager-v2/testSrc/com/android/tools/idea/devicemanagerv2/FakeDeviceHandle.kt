@@ -21,6 +21,7 @@ import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -44,6 +45,7 @@ internal class FakeDeviceHandle(
   initialProperties: DeviceProperties =
     DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
 ) : DeviceHandle {
+  override val id = DeviceId("Fake", false, initialProperties.title)
   override val stateFlow =
     MutableStateFlow<DeviceState>(DeviceState.Disconnected(initialProperties))
   override val activationAction = FakeActivationAction()

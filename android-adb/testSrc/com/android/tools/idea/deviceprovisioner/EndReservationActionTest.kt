@@ -17,6 +17,7 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.Reservation
@@ -51,7 +52,9 @@ class EndReservationActionTest {
     override val scope: CoroutineScope,
     override val stateFlow: StateFlow<DeviceState>,
     override val reservationAction: ReservationAction?,
-  ) : DeviceHandle
+  ) : DeviceHandle {
+    override val id = DeviceId("TEST", false, "")
+  }
 
   @Test
   fun testAction() {

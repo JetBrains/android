@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.TemplateActivationAction
@@ -34,6 +35,8 @@ internal class FakeDeviceTemplate(
       icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
     }
   )
+
+  override val id = DeviceId("Fake", true, properties.title)
 
   override val activationAction =
     object : TemplateActivationAction {

@@ -19,6 +19,7 @@ import com.android.adblib.DevicePropertyNames
 import com.android.emulator.control.KeyboardEvent
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PaneEntry.PaneIndex
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -375,6 +376,7 @@ class StreamingToolWindowManagerTest {
     }
     val device = provisionerRule.deviceProvisionerPlugin.newDevice(properties = properties)
     device.sourceTemplate = object: DeviceTemplate {
+      override val id = DeviceId("TEST", true, "")
       override val properties = properties
       override val activationAction: TemplateActivationAction = mock()
       override val editAction = null

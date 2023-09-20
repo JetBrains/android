@@ -24,6 +24,7 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.MockitoKt.mock
@@ -201,6 +202,8 @@ class FakeScreenSharingAgentRule : TestRule {
   }
 
   private class FakeDeviceHandle(private val device: FakeDevice) : DeviceHandle {
+    override val id = DeviceId("Fake", false, device.serialNumber)
+
     override val scope = AndroidCoroutineScope(device.agent)
 
     override val stateFlow = MutableStateFlow(createConnectedDeviceState())
