@@ -38,7 +38,7 @@ public final class ProjectImportUtil {
   }
 
   @Nullable
-  public static VirtualFile findMatch(@NotNull VirtualFile location, @NotNull String... validNames) {
+  private static VirtualFile findMatch(@NotNull VirtualFile location, @NotNull String... validNames) {
     if (location.isDirectory()) {
       for (VirtualFile child : location.getChildren()) {
         for (String name : validNames) {
