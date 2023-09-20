@@ -23,6 +23,9 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canAddParcelable
 import org.jetbrains.kotlin.android.implementParcelable
 import com.android.tools.idea.kotlin.insideBody
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.android.isParcelize
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
@@ -42,4 +45,9 @@ class ImplementParcelableAction :
     }
 
     override fun startInWriteAction(): Boolean = true
+
+    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+        // Disable intention preview because ParcelableUtil.kt does not support running outside a write action.
+        return IntentionPreviewInfo.EMPTY
+    }
 }

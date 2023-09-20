@@ -20,6 +20,9 @@ import com.intellij.openapi.editor.Editor
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import com.android.tools.idea.kotlin.insideBody
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.isAbstract
@@ -50,5 +53,10 @@ abstract class AbstractRegisterComponentAction(text: String) : SelfTargetingInte
         AndroidFacet.getInstance(element.containingFile)?.let(Manifest::getMainManifest)?.let {
             applyTo(element, it)
         }
+    }
+
+    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+        // Disable intention preview because the fix goes in a separate file.
+        return IntentionPreviewInfo.EMPTY
     }
 }

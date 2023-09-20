@@ -24,6 +24,7 @@ import com.android.tools.idea.res.buildResourceNameFromStringValue
 import com.android.tools.idea.res.createValueResource
 import com.android.tools.idea.res.getRJavaFieldName
 import com.intellij.CommonBundle
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
@@ -39,11 +40,13 @@ import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.actions.CreateXmlResourceDialog
@@ -98,6 +101,11 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
     }
 
     override fun startInWriteAction(): Boolean = false
+
+    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+        // Disable intention preview because the fix goes in a separate file.
+        return IntentionPreviewInfo.EMPTY
+    }
 
     override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int) =
         AndroidFacet.getInstance(element.containingFile) != null
