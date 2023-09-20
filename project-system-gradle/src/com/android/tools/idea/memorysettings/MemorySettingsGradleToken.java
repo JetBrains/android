@@ -20,9 +20,11 @@ import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
 
 import com.android.tools.idea.projectsystem.GradleToken;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import java.util.Arrays;
 
 public class MemorySettingsGradleToken implements MemorySettingsToken<GradleProjectSystem>, GradleToken {
   public static final int LARGE_MODULE_COUNT = 100;
@@ -35,7 +37,7 @@ public class MemorySettingsGradleToken implements MemorySettingsToken<GradleProj
   @Override
   public int getRecommendedXmxFor(GradleProjectSystem projectSystem) {
     Project project = projectSystem.getProject();
-    int numberOfModules = ModuleManager.getInstance(project).getModules().length;
+    long numberOfModules = Arrays.stream(ModuleManager.getInstance(project).getModules()).filter(ModuleSystemUtil::isHolderModule).count();
     if (numberOfModules >= XLARGE_MODULE_COUNT) {
       return XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
     } else if (numberOfModules >= LARGE_MODULE_COUNT) {

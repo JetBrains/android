@@ -24,11 +24,13 @@ import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation
 import static com.android.tools.idea.memorysettings.MemorySettingsRecommendation.XLARGE_RAM_IN_GB;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
@@ -36,6 +38,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.ServiceContainerUtil;
+import java.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -98,6 +101,9 @@ public class MemorySettingsRecommendationTest {
 
     ModuleManager moduleManager = mock(ModuleManager.class);
     Module[] modules = new Module[moduleCount];
+    Module module = myRule.getModule();
+    assertTrue(ModuleSystemUtil.isHolderModule(module));
+    Arrays.fill(modules, module);
     when(moduleManager.getModules()).thenReturn(modules);
 
     stubHostData(machineMemInGB);
