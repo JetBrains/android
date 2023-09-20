@@ -133,7 +133,7 @@ class BlazeAndroidConfigurationExecutor(
           LiveEditHelper().invokeLiveEdit(
             liveEditService,
             env,
-            applicationIdProvider,
+            applicationId,
             apkProvider,
             device
           ) // Notify listeners of the deployment.
