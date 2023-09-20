@@ -41,7 +41,7 @@ import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.core.RunningDevicePanel.UiState
+import com.android.tools.idea.streaming.core.StreamingDevicePanel.UiState
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
@@ -136,7 +136,7 @@ private val TAB_COMPARATOR = compareBy<Content, Any?>(COLLATOR) { it.tabName ?: 
 
 /**
  * Manages contents of the Running Devices tool window. Listens to device connections and
- * disconnections and maintains [RunningDevicePanel]s, one per running AVD or a mirrored physical
+ * disconnections and maintains [StreamingDevicePanel]s, one per running AVD or a mirrored physical
  * device.
  */
 @UiThread
@@ -201,7 +201,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       if (Content.TEMPORARY_REMOVED_KEY.get(content, false)) {
         return
       }
-      val panel = content.component as? RunningDevicePanel ?: return
+      val panel = content.component as? StreamingDevicePanel ?: return
       when (panel) {
         is EmulatorToolWindowPanel -> panel.emulator.shutdown()
         is DeviceToolWindowPanel -> panelClosed(panel)
@@ -236,7 +236,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       properties.setValue(DEVICE_FRAME_VISIBLE_PROPERTY, value, DEVICE_FRAME_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
-          (contentManager.getContent(i)?.component as? RunningDevicePanel)?.setDeviceFrameVisible(value)
+          (contentManager.getContent(i)?.component as? StreamingDevicePanel)?.setDeviceFrameVisible(value)
         }
       }
     }
@@ -247,7 +247,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       properties.setValue(ZOOM_TOOLBAR_VISIBLE_PROPERTY, value, ZOOM_TOOLBAR_VISIBLE_DEFAULT)
       for (contentManager in contentManagers) {
         for (i in 0 until contentManager.contentCount) {
-          (contentManager.getContent(i)?.component as? RunningDevicePanel)?.zoomToolbarVisible = value
+          (contentManager.getContent(i)?.component as? StreamingDevicePanel)?.zoomToolbarVisible = value
         }
       }
     }
@@ -424,7 +424,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
       // Restore content of visible panels.
       for (content in contentManager.selectedContents) {
-        val panel = content.component as? RunningDevicePanel ?: continue
+        val panel = content.component as? StreamingDevicePanel ?: continue
         if (!panel.hasContent) {
           panel.createContent(deviceFrameVisible, savedUiState[panel.id])
         }
@@ -450,7 +450,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     recentEmulatorLaunches.invalidateAll()
 
     for (contentManager in contentManagers) {
-      val panel = contentManager.selectedContent?.component as? RunningDevicePanel ?: continue
+      val panel = contentManager.selectedContent?.component as? StreamingDevicePanel ?: continue
       savedUiState[panel.id] = panel.destroyContent()
     }
   }
@@ -471,7 +471,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator))
   }
 
-  private fun addPanel(panel: RunningDevicePanel) {
+  private fun addPanel(panel: StreamingDevicePanel) {
     val contentManager = toolWindow.contentManager
     val placeholderContent = contentManager.placeholderContent
 
@@ -593,7 +593,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       for (i in 0 until contentManager.contentCount) {
         val content = contentManager.getContent(i) ?: break
         val panel = content.component
-        if (panel is RunningDevicePanel) {
+        if (panel is StreamingDevicePanel) {
           if (content.isSelected) {
             if (!panel.hasContent) {
               // The panel became visible - create its content.

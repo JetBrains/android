@@ -19,8 +19,8 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
@@ -28,7 +28,6 @@ import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListene
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
-import com.android.utils.TraceUtils
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
@@ -46,7 +45,7 @@ internal class DeviceToolWindowPanel(
   disposableParent: Disposable,
   private val project: Project,
   val deviceClient: DeviceClient,
-) : RunningDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
+) : StreamingDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
 
   val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
