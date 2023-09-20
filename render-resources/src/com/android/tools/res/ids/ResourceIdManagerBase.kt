@@ -37,7 +37,10 @@ fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short): Int =
   (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
 
 /** Studio agnostic implementation of [ResourceIdManager]. */
-open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModule) : ResourceIdManager {
+open class ResourceIdManagerBase(
+  private val module: ResourceIdManagerModelModule,
+  private val searchFrameworkIds: Boolean = false,
+) : ResourceIdManager {
   private var generationCounter = 1L
 
   /**
@@ -107,7 +110,13 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
     }
 
   @Synchronized
-  override fun findById(id: Int): ResourceReference? = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
+  override fun findById(id: Int): ResourceReference? {
+    val ref = compiledIds?.findById(id) ?: dynamicFromIdMap[id]
+    if (ref == null && searchFrameworkIds) {
+      return frameworkIds.findById(id)
+    }
+    return ref
+  }
 
   /**
    * Returns the compiled id of the given resource, if known.
@@ -293,7 +302,7 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
   /**
    * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
    */
-  private class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
+  protected class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
     var toIdMap = EnumMap<ResourceType, TObjectIntHashMap<String>>(ResourceType::class.java)
     var fromIdMap = TIntObjectHashMap<Pair<ResourceType, String>>()
 
