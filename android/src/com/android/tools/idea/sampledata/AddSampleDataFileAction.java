@@ -16,6 +16,7 @@
 package com.android.tools.idea.sampledata;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -51,8 +52,13 @@ public class AddSampleDataFileAction extends AnAction {
 
   @Override
   public void update(@NotNull AnActionEvent e) {
-
     e.getPresentation().setEnabledAndVisible(getFacetFromAction(e) != null);
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @Override
