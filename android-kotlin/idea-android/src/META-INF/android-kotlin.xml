@@ -49,24 +49,6 @@
             <category>Kotlin Android</category>
         </intentionAction>
 
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.ImplementParcelableAction</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.RemoveParcelableAction</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.RedoParcelableAction</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
         <codeInsight.unresolvedReferenceQuickFixProvider
             implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixProvider"
             includeUnless="idea.kotlin.plugin.use.k2"/>
@@ -94,4 +76,6 @@
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
         <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
     </extensions>
+
+    <xi:include href="android-kotlin.k1.xml" includeUnless="idea.kotlin.plugin.use.k2" />
 </idea-plugin>

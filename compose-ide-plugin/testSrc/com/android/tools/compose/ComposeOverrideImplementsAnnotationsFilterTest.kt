@@ -21,6 +21,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -124,6 +125,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       intention.invoke(fixture.project, fixture.editor, file)
     }
 
+    val argumentType = if (isK2Plugin()) "@Composable (() -> Unit)" else "@Composable () -> Unit"
     fixture.checkResult(
       // language=kotlin
       """
@@ -136,7 +138,7 @@ class ComposeOverrideImplementsAnnotationsFilterTest {
       }
 
       class Implementation : Interface {
-          override fun Function(argument: @Composable () -> Unit) {
+          override fun Function(argument: $argumentType) {
               TODO("Not yet implemented")
           }
       }
