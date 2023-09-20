@@ -1461,6 +1461,15 @@ public final class StudioFlags {
       "The URL for FTL Direct Access to connect to, in host:port form (with no protocol specified).",
       "testing.googleapis.com"
     );
+
+  public static final Flag<String> DIRECT_ACCESS_MONITORING_ENDPOINT =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.monitoring.endpoint",
+      "FTL Direct Access Monitoring endpoint",
+      "The URL for FTL Direct Access to monitor quota usage and limit.",
+      "monitoring.googleapis.com"
+    );
   // endregion Firebase Test Lab
 
   // region App Insights
