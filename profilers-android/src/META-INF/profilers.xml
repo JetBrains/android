@@ -37,6 +37,8 @@
     </action>
     <action id="Android.StartSystemTrace" class="com.android.tools.idea.profilers.StartSystemTraceAction">
     </action>
+    <action id="Android.StartCallstackSample" class="com.android.tools.idea.profilers.StartCallstackSampleAction">
+    </action>
     <action id="Android.StopCpuCapture" class="com.android.tools.idea.profilers.StopCpuCaptureAction">
     </action>
   </actions>

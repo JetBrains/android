@@ -85,6 +85,25 @@ iml_studio_test(
     test_class = "com.android.tools.profilers.integration.SystemTraceTest",
 )
 
+iml_studio_test(
+    name = "CallstackSampleTest",
+    timeout = "long",
+    data = profilers_test_common_data + [
+        "@system_image_android-33PlayStore_default_x86_64//:x86_64-android-33PlayStore-images",
+    ],
+    module = ":intellij.android.profilers.integration",
+    tags_linux = [
+        "very_flaky",  # b/260867011
+        "block-network",
+    ],
+    tags_mac = ["manual"],  # b/260867011: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.profilers.integration.CallstackSampleTest",
+)
+
 maven_repository(
     name = "minapp_deps",
     # keep sorted: for buildifier
