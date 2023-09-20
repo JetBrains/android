@@ -70,6 +70,7 @@ import com.intellij.xdebugger.frame.XStackFrame
 import com.intellij.xdebugger.frame.XSuspendContext
 import com.android.tools.idea.sdk.AvdManagerCache
 import com.android.tools.idea.sdk.IdeAvdManagers
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
@@ -318,6 +319,8 @@ class FindEmulatorAndSetupRetention(private val avdManagerCache: AvdManagerCache
     val snapshotFile = event.dataContext.getData(EMULATOR_SNAPSHOT_FILE_KEY)
     event.presentation.isEnabledAndVisible = (snapshotId != null && snapshotFile != null)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 private fun bootEmulator(project: Project, avdInfo: AvdInfo, isManagedDevice: Boolean, parameters: List<String>): ListenableFuture<IDevice> {
