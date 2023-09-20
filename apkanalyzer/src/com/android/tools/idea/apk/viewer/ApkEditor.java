@@ -397,7 +397,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     }
 
     if (archive.isBinaryXml(p, content)) {
-      content = BinaryXmlParser.decodeXml(name.toString(), content);
+      content = BinaryXmlParser.decodeXml(content);
       return ApkVirtualFile.create(p, content);
     }
 

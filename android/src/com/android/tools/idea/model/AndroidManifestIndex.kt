@@ -269,7 +269,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         // than nothing and we've only ever seen files in this format coming from compressed
         // archives that don't change frequently.
         // TODO(b/143528395): Go back to using FileContentImpl#getContent once the upstream issue has been resolved.
-        val decoded = BinaryXmlParser.decodeXml(fileName, file.contentsToByteArray())
+        val decoded = BinaryXmlParser.decodeXml(file.contentsToByteArray())
         InputStreamReader(ByteArrayInputStream(decoded))
       }
       else {
