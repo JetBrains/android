@@ -93,7 +93,7 @@ class InspectionsTest {
       }
 
       class IntProvider: PreviewParameterProvider<Int> {
-          override val values: Sequence<String> = sequenceOf(1, 2)
+          override val values: Sequence<Int> = sequenceOf(1, 2)
       }
 
       @Preview
@@ -169,7 +169,7 @@ class InspectionsTest {
       import $COMPOSABLE_ANNOTATION_FQN
 
       class IntProvider: PreviewParameterProvider<Int> {
-          override val values: Sequence<String> = sequenceOf(1, 2)
+          override val values: Sequence<Int> = sequenceOf(1, 2)
       }
 
       @Preview
