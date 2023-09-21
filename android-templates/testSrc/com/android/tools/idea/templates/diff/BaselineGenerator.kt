@@ -52,20 +52,18 @@ class BaselineGenerator(template: Template, goldenDirName: String) :
       "The 'TEST_UNDECLARED_OUTPUTS_DIR' env. variable should already be set, because TemplateDiffTest#setUp checks for it"
     }
 
-    val outputDir = Paths.get(undeclaredOutputs).resolve(moduleName)
+    val outputDir = Paths.get(undeclaredOutputs).resolve("golden").resolve(moduleName)
 
     println("\n----------------------------------------")
     println(
       "Outputting generated golden files to $outputDir\n\n" +
-        "To update these files, unzip outputs.zip to the android-templates/testData/golden directory and remove idea.log.\n" +
-        "For a remote invocation, download and unzip outputs.zip:\n" +
-        "    unzip -d $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden -o outputs.zip\n" +
-        "    rm $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden/idea.log\n" +
+        "To update these files, unzip golden/ from outputs.zip to the android-templates/testData/golden directory.\n" +
+        "For a remote invocation, download and unzip golden/ from outputs.zip:\n" +
+        "    unzip outputs.zip \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\"\n" +
         "\n" +
         "For a local invocation, outputs.zip will be in bazel-testlogs:\n" +
-        "    unzip -d $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden -o \\\n" +
-        "    $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip\n" +
-        "    rm $(bazel info workspace)/tools/adt/idea/android-templates/testData/golden/idea.log"
+        "    unzip $(bazel info bazel-testlogs)/tools/adt/idea/android-templates/intellij.android.templates.tests_tests__TemplateDiffTest/test.outputs/outputs.zip \\\n" +
+        "    \"golden/*\" -d \"$(bazel info workspace)/tools/adt/idea/android-templates/testData/\""
     )
     println("----------------------------------------\n")
     return outputDir
