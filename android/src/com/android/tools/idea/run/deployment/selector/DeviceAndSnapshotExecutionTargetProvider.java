@@ -35,7 +35,7 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
   private final Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
 
   @SuppressWarnings("unused")
-  private DeviceAndSnapshotExecutionTargetProvider() {
+  public DeviceAndSnapshotExecutionTargetProvider() {
     this(DeviceAndSnapshotComboBoxAction::getInstance, AsyncDevicesGetter::getInstance);
   }
 

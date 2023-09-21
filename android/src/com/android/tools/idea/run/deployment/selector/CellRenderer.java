@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.tools.idea.run.deployment.Heading;
 import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
 import com.intellij.ui.popup.list.ListPopupImpl;
 import com.intellij.ui.popup.list.PopupListElementRenderer;

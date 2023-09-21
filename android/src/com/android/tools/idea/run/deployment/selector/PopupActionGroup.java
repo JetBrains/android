@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector;
 
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
+import com.android.tools.idea.run.deployment.Heading;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;

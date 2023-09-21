@@ -20,9 +20,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
 
-final class Heading extends AnAction {
-  static final String RUNNING_DEVICES_ID = "RunningDevices";
-  static final String AVAILABLE_DEVICES_ID = "AvailableDevices";
+public final class Heading extends AnAction {
+  public static final String RUNNING_DEVICES_ID = "RunningDevices";
+  public static final String AVAILABLE_DEVICES_ID = "AvailableDevices";
 
   private Heading() {
   }

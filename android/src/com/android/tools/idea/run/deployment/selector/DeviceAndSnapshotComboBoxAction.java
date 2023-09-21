@@ -136,7 +136,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @SuppressWarnings("unused")
-  private DeviceAndSnapshotComboBoxAction() {
+  public DeviceAndSnapshotComboBoxAction() {
     this(new Builder()
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)

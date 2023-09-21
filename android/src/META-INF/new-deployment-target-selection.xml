@@ -21,10 +21,10 @@
     <!--suppress PluginXmlCapitalization -->
     <action id="AvailableDevices" class="com.android.tools.idea.run.deployment.Heading" text="Available devices"/>
 
-    <action id="SelectMultipleDevices" class="com.android.tools.idea.run.deployment.SelectMultipleDevicesAction"
+    <action id="SelectMultipleDevices" class="com.android.tools.idea.run.deployment.legacyselector.SelectMultipleDevicesAction"
             text="Select Multiple Devices..." icon="StudioIcons.DeviceExplorer.MULTIPLE_DEVICES"/>
 
-    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
+    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.legacyselector.DeviceAndSnapshotComboBoxAction"
             text="Select Device">
       <add-to-group group-id="RunMenu" relative-to-action="editRunConfigurations" anchor="after"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
@@ -35,14 +35,22 @@
   </actions>
 
   <extensions defaultExtensionNs="com.android.run">
-    <deployTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.deployment.selector.DeviceAndSnapshotComboBoxTargetProvider"/>
+    <deployTargetProvider implementation="com.android.tools.idea.run.deployment.legacyselector.DeviceAndSnapshotComboBoxTargetProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <!-- Replace legacyselector actions with selector actions if enabled -->
+    <actionConfigurationCustomizer id="Startup.DeploymentTargetSelectorActionsInitializer" order="after Startup.AndroidStudioInitializer"
+                                   implementation="com.android.tools.idea.run.deployment.DeploymentTargetSelectorActionsInitializer"/>
+
     <executionTargetProvider implementation="com.android.tools.idea.run.deployment.DeviceAndSnapshotExecutionTargetProvider"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.AsyncDevicesGetter"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.DevicesSelectedService"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.ExecutionTargetService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.AsyncDevicesGetter"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.DevicesSelectedService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.ExecutionTargetService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.AsyncDevicesGetter"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.DevicesSelectedService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.ExecutionTargetService"/>
   </extensions>
 </idea-plugin>

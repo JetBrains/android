@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetConfigurable;
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
+public final class DeviceAndSnapshotComboBoxTargetProvider extends com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider {
   private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
   private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
 
@@ -57,6 +57,11 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
     myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
     mySelectedDevicesErrorDialog = selectedDevicesErrorDialog;
     myNewDeviceAndSnapshotComboBoxTarget = newDeviceAndSnapshotComboBoxTarget;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return StudioFlags.DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION.get();
   }
 
   @NotNull

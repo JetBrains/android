@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector;
 
 import com.android.tools.adtui.util.HelpTooltipForList;
+import com.android.tools.idea.run.deployment.Heading;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.actionSystem.ActionGroup;

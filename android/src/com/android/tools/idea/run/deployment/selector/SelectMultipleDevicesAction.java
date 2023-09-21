@@ -27,12 +27,11 @@ import java.util.Objects;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
-final class SelectMultipleDevicesAction extends AnAction {
+public final class SelectMultipleDevicesAction extends AnAction {
   static final String ID = "SelectMultipleDevices";
   private final @NotNull Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
 
-  @SuppressWarnings("unused")
-  private SelectMultipleDevicesAction() {
+  public SelectMultipleDevicesAction() {
     this(AsyncDevicesGetter::getInstance);
   }
 
