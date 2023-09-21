@@ -98,7 +98,7 @@ public class GradleProjectInfo {
 
   /**
    * Indicates whether Gradle is used to build at least one module in this project.
-   * Note: {@link AndroidProjectInfo#requiresAndroidModel())} indicates whether a project requires an {@link AndroidModel}.
+   * Note: {@link ProjectSystemUtil#requiresAndroidModel(Project))} indicates whether a project requires an {@link AndroidModel}.
    * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
    * Gradle-specific.
    */
