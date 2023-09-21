@@ -33,6 +33,7 @@ import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.idea.testing.saveAndDump
 import com.android.tools.idea.testing.verifySyncSkipped
+import com.android.tools.idea.testing.verifySyncSuccessful
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManagerEx
@@ -40,11 +41,14 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.getExternalConfigurationDir
 import com.intellij.openapi.roots.ModuleRootManagerEx
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.testFramework.utils.io.deleteRecursively
+import com.intellij.workspaceModel.ide.impl.WorkspaceModelCacheImpl
 import org.gradle.util.GradleVersion
 import org.junit.After
 import org.junit.Rule
@@ -52,6 +56,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.io.File
+import java.nio.file.Path
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -283,5 +288,26 @@ class OpenProjectIntegrationTest {
       }
     }
     assertThat(syncResult).isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
+  }
+
+  /** Regression tests for b/300512355. */
+  @Test
+  fun testReOpenWithCachesButNoModules() {
+    // Caching is disabled by default in unit tests, enable it for this test case
+    WorkspaceModelCacheImpl.forceEnableCaching(projectRule.testRootDisposable)
+
+    val preparedProject = projectRule.prepareTestProject(TestProject.PSD_SAMPLE_GROOVY)
+    val (before: String, externalConfigurationDir: Path) = preparedProject.open { project ->
+      Pair(project.saveAndDump(), project.getExternalConfigurationDir())
+    }
+
+    // Simulate corrupt external configuration caches
+    externalConfigurationDir.deleteRecursively()
+
+    val after = preparedProject.open { project ->
+      verifySyncSuccessful(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
   }
 }

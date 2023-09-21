@@ -2323,10 +2323,18 @@ fun JavaCodeInsightTestFixture.makeAutoIndexingOnCopy(): JavaCodeInsightTestFixt
 
 
 fun verifySyncSkipped(project: Project, disposable: Disposable) {
-  assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(ProjectSystemSyncManager.SyncResult.SKIPPED)
+  verifySyncResult(project, disposable, ProjectSystemSyncManager.SyncResult.SKIPPED)
+}
+
+fun verifySyncSuccessful(project: Project, disposable: Disposable) {
+  verifySyncResult(project, disposable, ProjectSystemSyncManager.SyncResult.SUCCESS)
+}
+
+private fun verifySyncResult(project: Project, disposable: Disposable, expectedSyncResult: ProjectSystemSyncManager.SyncResult) {
+  assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(expectedSyncResult)
   project.verifyModelsAttached()
   var completed = false
-  project.runWhenSmartAndSynced(disposable, callback = Consumer {
+  project.runWhenSmartAndSynced(disposable, callback = {
     completed = true
   })
   assertThat(completed).isTrue()
