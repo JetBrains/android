@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
@@ -97,7 +98,7 @@ class SceneViewPeerPanel(
   private val sceneViewLeftBar: JComponent?,
   private val sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
-) : JPanel() {
+) : JPanel(), PositionablePanel {
 
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -109,7 +110,7 @@ class SceneViewPeerPanel(
   private val cachedScaledContentSize = Dimension()
   private val cachedPreferredSize = Dimension()
 
-  val positionableAdapter =
+  override val positionableAdapter =
     object : PositionableContent {
       override val organizationGroup: String?
         get() = sceneView.sceneManager.model.organizationGroup

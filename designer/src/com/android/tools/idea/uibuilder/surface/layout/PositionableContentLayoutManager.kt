@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneViewPanel
-import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -25,8 +24,8 @@ import java.awt.LayoutManager
 import java.awt.Point
 
 /**
- * [LayoutManager] responsible for positioning and measuring all the [PositionableContent] in a
- * [DesignSurface]
+ * [LayoutManager] responsible for positioning and measuring all the [PositionablePanel] in a
+ * [DesignSurface]. [PositionablePanel] is accessed via [PositionableContent].
  *
  * For now, the PositionableContentLayoutManager does not contain actual Swing components so we do
  * not need to layout them, just calculate the size of the layout. Eventually, PositionableContent
@@ -39,18 +38,18 @@ abstract class PositionableContentLayoutManager : LayoutManager {
    */
   abstract fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension)
 
-  private fun Container.findSceneViewPeerPanels(): Collection<SceneViewPeerPanel> =
-    components.filterIsInstance<SceneViewPeerPanel>()
+  private fun Container.findPositionablePanels(): Collection<PositionablePanel> =
+    components.filterIsInstance<PositionablePanel>()
 
   private val Container.availableSize: Dimension
     get() = Dimension(size.width - insets.horizontal, size.height - insets.vertical)
 
   final override fun layoutContainer(parent: Container) {
-    val sceneViewPeerPanels = parent.findSceneViewPeerPanels()
+    val panels = parent.findPositionablePanels()
 
     // We lay out the [SceneView]s first, so we have the actual sizes available for setting the
     // bounds of the Swing components.
-    layoutContainer(sceneViewPeerPanels.map { it.positionableAdapter }, parent.availableSize)
+    layoutContainer(panels.map { it.positionableAdapter }, parent.availableSize)
   }
 
   open fun minimumLayoutSize(
@@ -60,7 +59,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   final override fun minimumLayoutSize(parent: Container): Dimension =
     minimumLayoutSize(
-      parent.findSceneViewPeerPanels().map { it.positionableAdapter },
+      parent.findPositionablePanels().map { it.positionableAdapter },
       parent.availableSize
     )
 
@@ -71,7 +70,7 @@ abstract class PositionableContentLayoutManager : LayoutManager {
 
   final override fun preferredLayoutSize(parent: Container): Dimension =
     preferredLayoutSize(
-      parent.findSceneViewPeerPanels().map { it.positionableAdapter },
+      parent.findPositionablePanels().map { it.positionableAdapter },
       parent.availableSize
     )
 
