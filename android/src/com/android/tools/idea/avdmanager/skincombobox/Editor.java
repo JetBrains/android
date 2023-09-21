@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.avdmanager.skincombobox;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.intellij.ui.components.fields.ExtendableTextField;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.function.Function;
 import javax.swing.JTextField;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
 import org.jetbrains.annotations.NotNull;
@@ -33,9 +38,24 @@ final class Editor extends BasicComboBoxEditor {
   @Nullable
   private final Project myProject;
 
+  @NotNull
+  private final Function<Project, Optional<Path>> myChoosePath;
+
   Editor(@NotNull SkinComboBoxModel model, @Nullable Project project) {
+    this(model, project, Editor::choosePath);
+  }
+
+  @VisibleForTesting
+  Editor(@NotNull SkinComboBoxModel model, @Nullable Project project, @NotNull Function<Project, Optional<Path>> choosePath) {
     myModel = model;
     myProject = project;
+    myChoosePath = choosePath;
+  }
+
+  @NotNull
+  private static Optional<Path> choosePath(@Nullable Project project) {
+    return Optional.ofNullable(FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), project, null))
+      .map(VirtualFile::toNioPath);
   }
 
   @NotNull
@@ -47,21 +67,18 @@ final class Editor extends BasicComboBoxEditor {
     textField.addExtension(ExtendableTextComponent.Extension.create(AllIcons.General.OpenDisk,
                                                                     AllIcons.General.OpenDiskHover,
                                                                     null,
-                                                                    this::chooseFile));
+                                                                    this::choosePath));
 
     return textField;
   }
 
-  private void chooseFile() {
-    var file = FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFolderDescriptor(), myProject, null);
-
-    if (file == null) {
-      return;
-    }
-
-    var skin = myModel.getSkin(file.toNioPath());
-
-    myModel.addElement(skin);
-    myModel.setSelectedItem(skin);
+  @VisibleForTesting
+  void choosePath() {
+    myChoosePath.apply(myProject)
+      .map(myModel::getSkin)
+      .ifPresent(skin -> {
+        myModel.addElement(skin);
+        myModel.setSelectedItem(skin);
+      });
   }
 }

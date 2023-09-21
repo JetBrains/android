@@ -34,10 +34,11 @@ import javax.swing.MutableComboBoxModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SkinComboBoxModel extends AbstractListModel<Skin> implements MutableComboBoxModel<Skin> {
-  private List<Skin> mySkins = new ArrayList<>(List.of(NoSkin.INSTANCE));
+  @NotNull
+  private List<Skin> mySkins;
 
   @NotNull
-  private Object mySelectedSkin = NoSkin.INSTANCE;
+  private Object mySelectedSkin;
 
   @NotNull
   private final Callable<Collection<Skin>> myCollect;
@@ -50,8 +51,21 @@ final class SkinComboBoxModel extends AbstractListModel<Skin> implements Mutable
   }
 
   @VisibleForTesting
+  SkinComboBoxModel(@NotNull Collection<Skin> skins) {
+    this(skins, List::of, model -> null);
+  }
+
+  @VisibleForTesting
   SkinComboBoxModel(@NotNull Callable<Collection<Skin>> collect,
                     @NotNull Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> newMerge) {
+    this(List.of(NoSkin.INSTANCE), collect, newMerge);
+  }
+
+  private SkinComboBoxModel(@NotNull Collection<Skin> skins,
+                            @NotNull Callable<Collection<Skin>> collect,
+                            @NotNull Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> newMerge) {
+    mySkins = new ArrayList<>(skins);
+    mySelectedSkin = NoSkin.INSTANCE;
     myCollect = collect;
     myNewMerge = newMerge;
   }
