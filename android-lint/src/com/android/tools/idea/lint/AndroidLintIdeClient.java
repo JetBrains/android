@@ -75,6 +75,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
+import com.intellij.util.TripleFunction;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -83,7 +84,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -452,18 +455,20 @@ public class AndroidLintIdeClient extends LintIdeClient {
     return super.getResources(project, scope);
   }
 
+  @FunctionalInterface
+  interface ResourceHandleProvider {
+    Location.ResourceItemHandle createResourceItemHandle(@NonNull ResourceItem item, boolean nameOnly, boolean valueOnly);
+  }
+
+
+
   @Override
   @NonNull
   public Location.ResourceItemHandle createResourceItemHandle(@NonNull ResourceItem item, boolean nameOnly, boolean valueOnly) {
-    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
-    if (tag != null) {
-      PathString source = item.getSource();
-      assert source != null : item;
-      File file = source.toFile();
-      assert file != null : item;
-      return new LocationHandle(file, item, tag, nameOnly, valueOnly);
-    }
-    return super.createResourceItemHandle(item, nameOnly, valueOnly);
+    Supplier<Location> defaultHandleProvider =
+      () -> AndroidLintIdeClient.super.createResourceItemHandle(item, nameOnly, valueOnly).resolve();
+
+    return new LocationHandle(item, nameOnly, valueOnly, defaultHandleProvider);
   }
 
   @Override
@@ -475,18 +480,12 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   private class LocationHandle extends Location.ResourceItemHandle
       implements Location.Handle, Computable<Location> {
-    private final File myFile;
-    private final XmlElement myNode;
-    private final boolean myNameOnly;
-    private final boolean myValueOnly;
+    private final Supplier<Location> myDefaultLocationProvider;
     private Object myClientData;
 
-    LocationHandle(File file, ResourceItem item, XmlElement node, boolean nameOnly, boolean valueOnly) {
+    LocationHandle(ResourceItem item, boolean nameOnly, boolean valueOnly, Supplier<Location> defaultLocationProvider) {
       super(AndroidLintIdeClient.this, item, nameOnly, valueOnly);
-      myNameOnly = nameOnly;
-      myValueOnly = valueOnly;
-      myFile = file;
-      myNode = node;
+      myDefaultLocationProvider = defaultLocationProvider;
     }
 
     @NonNull
@@ -495,23 +494,37 @@ public class AndroidLintIdeClient extends LintIdeClient {
       if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
         return ApplicationManager.getApplication().runReadAction(this);
       }
-      TextRange textRange = myNode.getTextRange();
+
+      ResourceItem item = getItem();
+      XmlTag node = IdeResourcesUtil.getItemTag(myProject, item);
+      if (node == null) {
+        return myDefaultLocationProvider.get();
+      }
+
+      PathString source = item.getSource();
+      assert source != null : item;
+      File file = source.toFile();
+      assert file != null : item;
+
+      TextRange textRange = node.getTextRange();
 
       // For elements, don't highlight the entire element range; instead, just
       // highlight the element name
-      if (myNode instanceof XmlTag) {
-        XmlTag element = (XmlTag)myNode;
-        if (myNameOnly) {
+      if (node instanceof XmlTag) {
+        XmlTag element = (XmlTag)node;
+        if (getNameOnly()) {
           XmlAttribute attribute = element.getAttribute(ATTR_NAME);
           if (attribute != null) {
             textRange = attribute.getValueTextRange();
           }
-        } else if (myValueOnly) {
+        }
+        else if (getValueOnly()) {
           XmlTagValue value = element.getValue();
           textRange = value.getTextRange();
-        } else {
+        }
+        else {
           String tag = element.getName();
-          int index = myNode.getText().indexOf(tag);
+          int index = node.getText().indexOf(tag);
           if (index != -1) {
             int start = textRange.getStartOffset() + index;
             textRange = new TextRange(start, start + tag.length());
@@ -521,7 +534,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
       Position start = new DefaultPosition(-1, -1, textRange.getStartOffset());
       Position end = new DefaultPosition(-1, -1, textRange.getEndOffset());
-      return Location.create(myFile, start, end);
+      return Location.create(file, start, end);
     }
 
     @Override
