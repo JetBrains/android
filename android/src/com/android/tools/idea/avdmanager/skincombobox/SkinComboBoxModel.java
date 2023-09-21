@@ -33,7 +33,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.MutableComboBoxModel;
 import org.jetbrains.annotations.NotNull;
 
-public final class SkinComboBoxModel extends AbstractListModel<Skin> implements MutableComboBoxModel<Skin> {
+final class SkinComboBoxModel extends AbstractListModel<Skin> implements MutableComboBoxModel<Skin> {
   private List<Skin> mySkins = new ArrayList<>(List.of(NoSkin.INSTANCE));
 
   @NotNull
@@ -56,7 +56,7 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
     myNewMerge = newMerge;
   }
 
-  public void load() {
+  void load() {
     var future = Futures.submit(myCollect, AppExecutorUtil.getAppExecutorService());
     Futures.addCallback(future, myNewMerge.apply(this), EdtExecutorService.getInstance());
   }
@@ -89,7 +89,7 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
   }
 
   @NotNull
-  public Skin getSkin(@NotNull Path path) {
+  Skin getSkin(@NotNull Path path) {
     return mySkins.stream()
       .filter(skin -> skin.path().equals(path))
       .findFirst()
