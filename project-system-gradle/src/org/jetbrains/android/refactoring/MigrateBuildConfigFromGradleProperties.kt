@@ -20,20 +20,19 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
+import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.tools.idea.project.getPackageName
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.lang.Language
+import com.intellij.lang.properties.psi.PropertiesFile
 import com.intellij.lang.properties.psi.impl.PropertiesFileImpl
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -48,17 +47,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.io.systemIndependentPath
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.findFile
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
@@ -74,11 +71,15 @@ private val LOG = Logger.getInstance("MigrateBuildConfigFromGradleProperties")
 
 private fun shouldEnable(project: Project): Boolean {
   val version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
-  val property = GradleProperties(project).properties.getProperty(BUILDCONFIG_PROPERTY)
+  val propertiesFile = project.baseDir?.findFile(FN_GRADLE_PROPERTIES) ?: return false
+  if (!propertiesFile.isValid) return false
+  val propertiesPsi = PsiManager.getInstance(project).findFile(propertiesFile) as? PropertiesFile ?: return false
+  val property = propertiesPsi.findPropertyByKey(BUILDCONFIG_PROPERTY)
+
   return when {
     version == null -> false
     // if the default for this AGP is true, we need to do work unless there is an explicit setting of false in gradle.properties.
-    version < CHANGED_DEFAULT_VERSION -> property?.lowercase(Locale.US) != "false"
+    version < CHANGED_DEFAULT_VERSION -> property?.value?.lowercase(Locale.US) != "false"
     // if the default for this AGP is false, we need to do work unless the setting is not present in gradle.properties.
     version >= CHANGED_DEFAULT_VERSION -> property != null
     // Kotlin does not know that the above three clauses are exhaustive.
@@ -178,7 +179,7 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
     val usages = mutableListOf<UsageInfo>()
     val baseDir = myProject.baseDir ?: return usages.toTypedArray()
     if (!baseDir.exists()) return usages.toTypedArray()
-    baseDir.findChild("gradle.properties")?.let { gradlePropertiesVirtualFile ->
+    baseDir.findChild(FN_GRADLE_PROPERTIES)?.let { gradlePropertiesVirtualFile ->
       gradlePropertiesFile = PsiManager.getInstance(myProject).findFile(gradlePropertiesVirtualFile) as? PropertiesFileImpl
     }
     val newSetting = if (agpVersion > CHANGED_DEFAULT_VERSION) null else false
@@ -300,7 +301,7 @@ class MigrateBuildConfigFromGradlePropertiesRefactoringProcessor(
 
   class NewGradlePropertiesUsageInfo(val element: PsiDirectory, val newSetting: Boolean): MigrateBuildPropertiesUsageInfo(element) {
     override fun doIt() {
-      val propertiesFile = element.createFile("gradle.properties") as? PropertiesFileImpl
+      val propertiesFile = element.createFile(FN_GRADLE_PROPERTIES) as? PropertiesFileImpl
       propertiesFile?.addProperty(BUILDCONFIG_PROPERTY, "$newSetting")
     }
   }
