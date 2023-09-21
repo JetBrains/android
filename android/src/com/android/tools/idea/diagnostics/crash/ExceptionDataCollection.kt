@@ -22,8 +22,8 @@ import com.android.tools.idea.serverflags.protos.ExceptionSeverity
 import com.android.tools.idea.serverflags.protos.LogFilter
 import com.google.common.base.Throwables
 import com.google.common.collect.ImmutableList
-import com.intellij.diagnostic.DebugLogManager
 import com.intellij.diagnostic.DialogAppender
+import com.intellij.diagnostic.logs.LogLevelConfigurationManager
 import com.intellij.idea.IdeaLogger
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -170,8 +170,8 @@ class ExceptionDataCollection {
       return emptyList()
     }
 
-    if (DebugLogManager.getInstance().getSavedCategories().isNotEmpty()) {
-      LOG.info("Cannot register appenders: debug/trace logging enabled through DebugLogManager.")
+    if (LogLevelConfigurationManager.getInstance().getCategories().isNotEmpty()) {
+      LOG.info("Cannot register appenders: debug/trace logging enabled through " + LogLevelConfigurationManager::class.java.simpleName + ".")
       return emptyList()
     }
 
@@ -248,8 +248,8 @@ class ExceptionDataCollection {
     }
 
   private fun tryReconfigureExistingHandlers(): Boolean {
-    if (DebugLogManager.getInstance().getSavedCategories().isNotEmpty()) {
-      LOG.info("Cannot register appenders: debug/trace logging enabled through DebugLogManager.")
+    if (LogLevelConfigurationManager.getInstance().getCategories().isNotEmpty()) {
+      LOG.info("Cannot register appenders: debug/trace logging enabled through " + LogLevelConfigurationManager::class.java.simpleName + ".")
       return false
     }
     val rootLogger = java.util.logging.Logger.getLogger("")
