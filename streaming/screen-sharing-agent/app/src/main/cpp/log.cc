@@ -18,27 +18,13 @@
 
 #include <android/log.h>
 
-#include <string>
-
 #include "agent.h"
 
 namespace screensharing {
 
 using namespace std;
 
-namespace {
-
-constexpr char TAG[] = "studio.screen.sharing";
-
-// Calls the System.exit method.
-[[noreturn]] void Exit(int exitCode) {
-  Jni jni = Jvm::GetJni();
-  JClass system = jni.GetClass("java/lang/System");
-  jmethodID exit_method = system.GetStaticMethod(jni, "exit", "(I)V");
-  system.CallStaticVoidMethod(exit_method, exitCode);
-}
-
-}
+static constexpr char TAG[] = "studio.screen.sharing";
 
 Log::Level Log::level_ = Log::Level::INFO;
 
@@ -94,7 +80,7 @@ void Log::Fatal(const char* message, ...) {
   vfprintf(stderr, message, args);
   va_end(args);
   Agent::Shutdown();
-  Exit(EXIT_FAILURE);
+  Jvm::Exit(EXIT_FAILURE);
 }
 
 void Log::Fatal(ExitCode exit_code, const char* message, ...) {
@@ -106,7 +92,7 @@ void Log::Fatal(ExitCode exit_code, const char* message, ...) {
   vfprintf(stderr, message, args);
   va_end(args);
   Agent::Shutdown();
-  Exit(exit_code);
+  Jvm::Exit(exit_code);
 }
 
 }  // namespace screensharing

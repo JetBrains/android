@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <assert.h>
+
 #include "casts.h"
 #include "jvm.h"
 #include "log.h"
@@ -412,4 +414,13 @@ Jni Jvm::AttachCurrentThread(const char* thread_name) {
 void Jvm::DetachCurrentThread() {
   jvm_->DetachCurrentThread();
 }
+
+[[noreturn]] void Jvm::Exit(int exitCode) {
+  Jni jni = GetJni();
+  JClass system = jni.GetClass("java/lang/System");
+  jmethodID exit_method = system.GetStaticMethod(jni, "exit", "(I)V");
+  system.CallStaticVoidMethod(exit_method, exitCode);
+  assert(false);
+}
+
 }  // namespace screensharing

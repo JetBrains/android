@@ -37,4 +37,5 @@ Java_com_android_tools_screensharing_Main_nativeMain(JNIEnv* jni_env, jclass thi
 
   Agent::Run(args);
   Log::I("Screen sharing agent stopped");
+  Jvm::Exit(EXIT_SUCCESS);
 }
