@@ -1816,7 +1816,6 @@ android-studio/plugins/cidr-clangConfig/lib/cidr-clangConfig.jar
 android-studio/plugins/cidr-clangFormat/lib/cidr-clangFormat.jar
 android-studio/plugins/cidr-debugger-plugin/lib/cidr-debugger-plugin.jar
 android-studio/plugins/completionMlRanking/lib/completionMlRanking.jar
-android-studio/plugins/completionMlRankingModels/lib/completionMlRankingModels.jar
 android-studio/plugins/configurationScript/lib/configurationScript.jar
 android-studio/plugins/copyright/lib/copyright.jar
 android-studio/plugins/design-tools/lib/design-tools.jar
@@ -2103,7 +2102,6 @@ android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
-android-studio/plugins/lombok/lib/lombok.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar

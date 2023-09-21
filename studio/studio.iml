@@ -38,7 +38,6 @@
     <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
     <orderEntry type="library" name="studio-plugin-junit" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-lombok" level="project" />
     <orderEntry type="library" name="studio-plugin-maven-model" level="project" />
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="library" name="studio-plugin-properties" level="project" />
@@ -55,7 +54,6 @@
     <orderEntry type="library" name="studio-plugin-cidr-debugger-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-completionMlRanking" level="project" />
     <orderEntry type="library" name="studio-plugin-c-clangdBridge" level="project" />
-    <orderEntry type="library" name="studio-plugin-completionMlRankingModels" level="project" />
     <orderEntry type="library" name="studio-plugin-dev" level="project" />
     <orderEntry type="library" name="studio-plugin-devkit" level="project" />
     <orderEntry type="library" name="studio-plugin-java-debugger-streams" level="project" />
