@@ -37,6 +37,8 @@ using namespace std::chrono;
 
 namespace {
 
+constexpr int CHANNEL_HEADER_LENGTH = 20;
+
 int CreateAndConnectSocket(const string& socket_name) {
   int socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (socket_fd < 0) {
@@ -64,6 +66,44 @@ int CreateAndConnectSocket(const string& socket_name) {
 
 void sighup_handler(int signal_number) {
   Agent::Shutdown();
+}
+
+CodecInfo* SelectVideoEncoder(const string& mime_type) {
+  Jni jni = Jvm::GetJni();
+  JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
+  jmethodID method = clazz.GetStaticMethod("selectVideoEncoderForType",
+                                           "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
+  JObject codec_info = clazz.CallStaticObjectMethod(method, JString(jni, mime_type).ref());
+  if (codec_info.IsNull()) {
+    Log::Fatal(VIDEO_ENCODER_NOT_FOUND, "No video encoder is available for %s", mime_type.c_str());
+  }
+  JString jname = JString(codec_info.GetObjectField(clazz.GetFieldId("name", "Ljava/lang/String;")));
+  string codec_name = jname.IsNull() ? "<unnamed>" : jname.GetValue();
+  int max_width = codec_info.GetIntField(clazz.GetFieldId("maxWidth", "I"));
+  int max_height = codec_info.GetIntField(clazz.GetFieldId("maxHeight", "I"));
+  int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
+  int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
+  int max_frame_rate = codec_info.GetIntField(clazz.GetFieldId("maxFrameRate", "I"));
+  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment), max_frame_rate);
+}
+
+void WriteChannelHeader(const string& codec_name, int socket_fd) {
+  string buf;
+  int buf_size = 1 + CHANNEL_HEADER_LENGTH;
+  buf.reserve(buf_size);  // Single-byte channel marker followed by header.
+  buf.append("V");  // Video channel marker.
+  buf.append(codec_name);
+  // Pad with spaces to the fixed length.
+  while (buf.length() < buf_size) {
+    buf.insert(buf.end(), ' ');
+  }
+  if (write(socket_fd, buf.c_str(), buf_size) != buf_size) {
+    if (errno != EBADF && errno != EPIPE) {
+      Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
+    }
+    TRACE;
+    Agent::Shutdown();
+  }
 }
 
 }  // namespace
@@ -138,9 +178,15 @@ void Agent::Run(const vector<string>& args) {
   assert(display_streamers_.empty());
   video_socket_fd_ = CreateAndConnectSocket(socket_name_);
   control_socket_fd_ = CreateAndConnectSocket(socket_name_);
+  string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
+  codec_info_ = SelectVideoEncoder(mime_type);
+  WriteChannelHeader(codec_name_, video_socket_fd_);
+
+  Log::D("Using %s video encoder with %dx%d max resolution",
+         codec_info_->name.c_str(), codec_info_->max_resolution.width, codec_info_->max_resolution.height);
   auto ret = display_streamers_.try_emplace(
       PRIMARY_DISPLAY_ID,
-      PRIMARY_DISPLAY_ID, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, video_socket_fd_);
+      PRIMARY_DISPLAY_ID, codec_info_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, video_socket_fd_);
   primary_display_streamer_ = &ret.first->second;
   controller_ = new Controller(control_socket_fd_);
   Log::D("Created video and control sockets");
@@ -159,8 +205,8 @@ void Agent::StartVideoStream(int32_t display_id, Size max_video_resolution) {
     created = false;
   } else {
     auto ret = display_streamers_.try_emplace(
-        PRIMARY_DISPLAY_ID,
-        PRIMARY_DISPLAY_ID, codec_name_, max_video_resolution, DisplayStreamer::CURRENT_DISPLAY_ORIENTATION,
+        display_id,
+        display_id, codec_info_, max_video_resolution, DisplayStreamer::CURRENT_DISPLAY_ORIENTATION,
         primary_display_streamer_->bit_rate(), video_socket_fd_);
     display_streamer = &ret.first->second;
     created = ret.second;
@@ -257,6 +303,7 @@ Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits
 int32_t Agent::initial_video_orientation_(-1);
 int32_t Agent::max_bit_rate_(0);
 string Agent::codec_name_("vp8");
+CodecInfo* Agent::codec_info_(nullptr);
 int32_t Agent::flags_(0);
 int Agent::video_socket_fd_(0);
 int Agent::control_socket_fd_(0);

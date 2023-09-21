@@ -76,6 +76,7 @@ private:
   static int32_t max_bit_rate_;  // Zero means no limit.
   static int32_t initial_video_orientation_;  // In quadrants counterclockwise.
   static std::string codec_name_;
+  static CodecInfo* codec_info_;
   static int32_t flags_;
   static int video_socket_fd_;
   static int control_socket_fd_;

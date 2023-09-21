@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.device
 
-import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -130,9 +129,10 @@ import kotlin.math.min
 internal class DeviceView(
   disposableParent: Disposable,
   val deviceClient: DeviceClient,
+  displayId: Int,
   private val initialDisplayOrientation: Int,
   private val project: Project,
-) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {
+) : AbstractDisplayView(displayId), Disposable, DeviceMirroringSettingsListener {
 
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
@@ -172,6 +172,7 @@ internal class DeviceView(
   private val frameListener = MyFrameListener()
   private val displayTransform = AffineTransform()
   private var disposed = false
+  private var maxVideoSize = Dimension()
 
   private var multiTouchMode = false
     set(value) {
@@ -229,26 +230,33 @@ internal class DeviceView(
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
     frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
-    val maxOutputSize = physicalSize
+    maxVideoSize = physicalSize
     AndroidCoroutineScope(this@DeviceView).launch {
-      connectToAgent(maxOutputSize, initialDisplayOrientation)
+      connectToAgent(maxVideoSize, initialDisplayOrientation)
     }
   }
 
   private suspend fun connectToAgent(maxOutputSize: Dimension, initialDisplayOrientation: Int) {
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
-      deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true)
-      val videoDecoder = deviceClient.videoDecoder ?: return
-      videoDecoder.addFrameListener(frameListener)
+      if (displayId == PRIMARY_DISPLAY_ID) {
+        deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true)
+      }
+      else {
+        deviceClient.waitUntilConnected()
+        val videoDecoder = deviceClient.videoDecoder
+        if (videoDecoder == null) {
+          disconnected(initialDisplayOrientation, null)
+          return
+        }
+        deviceClient.startVideoStream(displayId, maxOutputSize)
+      }
+
+      deviceClient.videoDecoder?.addFrameListener(displayId, frameListener)
 
       UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
         if (!disposed) {
           connected()
-          if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
-            startClipboardSynchronization()
-            clipboardSynchronizer = DeviceClipboardSynchronizer(this, deviceClient)
-          }
           repaint()
           updateVideoSize() // Update video size in case the view was resized during agent initialization.
         }
@@ -263,11 +271,11 @@ internal class DeviceView(
   }
 
   private fun updateVideoSize() {
-    val videoDecoder = deviceClient.videoDecoder ?: return
+    val deviceController = deviceClient.deviceController ?: return
     val maxSize = physicalSize
-    if (videoDecoder.maxOutputSize != maxSize) {
-      videoDecoder.maxOutputSize = maxSize
-      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(displayId, maxSize))
+    if (maxVideoSize != maxSize) {
+      maxVideoSize = maxSize
+      deviceController.sendControlMessage(SetMaxVideoResolutionMessage(displayId, maxSize))
     }
   }
 
@@ -276,11 +284,18 @@ internal class DeviceView(
     if (connectionState == ConnectionState.CONNECTING) {
       hideDisconnectedStateMessage()
       connectionState = ConnectionState.CONNECTED
+      if (displayId == PRIMARY_DISPLAY_ID) {
+        if (DeviceMirroringSettings.getInstance().synchronizeClipboard) {
+          startClipboardSynchronization()
+        }
+      }
     }
   }
 
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
-    deviceClient.streamingSessionTracker.streamingEnded()
+    if (displayId == PRIMARY_DISPLAY_ID) {
+      deviceClient.streamingSessionTracker.streamingEnded()
+    }
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     UIUtil.invokeLaterIfNeeded {
       if (disposed || connectionState == ConnectionState.DISCONNECTED) {
@@ -328,7 +343,7 @@ internal class DeviceView(
   }
 
   override fun dispose() {
-    deviceClient.streamingSessionTracker.streamingEnded()
+    deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
     deviceClient.stopVideoStream(PRIMARY_DISPLAY_ID)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     disposed = true
@@ -356,7 +371,7 @@ internal class DeviceView(
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
     // Draw device display.
-    decoder.consumeDisplayFrame { displayFrame ->
+    decoder.consumeDisplayFrame(displayId) { displayFrame ->
       if (frameNumber == 0u) {
         hideLongRunningOperationIndicatorInstantly()
       }
@@ -488,10 +503,14 @@ internal class DeviceView(
   private fun isInsideDisplay(event: MouseEvent) =
     displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
 
-  /** Adds a [listener] to receive callbacks when the state of the agent's connection changes. */
+  /**
+   * Adds a [listener] to receive callbacks when the state of the agent's connection changes.
+   * The added listener immediately receives a call with the current connection state.
+   */
   @UiThread
   fun addConnectionStateListener(listener: ConnectionStateListener) {
     connectionStateListeners.add(listener)
+    listener.connectionStateChanged(deviceSerialNumber, connectionState)
   }
 
   /** Removes a connection state listener. */
@@ -502,14 +521,10 @@ internal class DeviceView(
 
   enum class ConnectionState { INITIAL, CONNECTING, CONNECTED, DISCONNECTED }
 
-  /**
-   * Listener of connection state changes.
-   */
+  /** Listener of connection state changes. */
   interface ConnectionStateListener {
-    /**
-     * Called when the state of the device agent's connection changes.
-     */
-    @AnyThread
+    /** Called when the state of the device agent's connection changes. */
+    @UiThread
     fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState)
   }
 

@@ -26,6 +26,7 @@ import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
@@ -418,7 +419,7 @@ class ScreenSharingAgentTest {
 
       val deviceClient =
           DeviceClient(testRootDisposable, emulator.serialNumber, mock<DeviceHandle>(), emptyDeviceConfiguration, "x86_64", project)
-      deviceView = DeviceView(testRootDisposable, deviceClient, 0, project)
+      deviceView = DeviceView(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, 0, project)
 
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()

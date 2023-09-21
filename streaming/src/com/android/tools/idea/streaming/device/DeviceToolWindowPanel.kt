@@ -16,27 +16,44 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
+import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.LayoutNode
+import com.android.tools.idea.streaming.core.LeafNode
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.StreamingDevicePanel
+import com.android.tools.idea.streaming.core.SplitNode
+import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
+import com.android.tools.idea.streaming.core.sizeWithoutInsets
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
 import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOptions
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.android.utils.HashCodes
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
+import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
+import kotlinx.coroutines.launch
 import java.awt.EventQueue
+import java.util.function.IntFunction
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * Provides view of one physical device in the Running Devices tool window.
@@ -74,15 +91,18 @@ internal class DeviceToolWindowPanel(
   override var zoomToolbarVisible = false
     set(value) {
       field = value
-      displayPanel?.zoomToolbarVisible = value
+      for (displayPanel in displayPanels.values) {
+        displayPanel.zoomToolbarVisible = value
+      }
     }
 
-  private var displayPanel: DeviceDisplayPanel? = null
   private var contentDisposable: Disposable? = null
   override var primaryDisplayView: DeviceView? = null
     private set
   private val deviceConfig
     get() = deviceClient.deviceConfig
+  private val displayPanels = Int2ObjectRBTreeMap<DeviceDisplayPanel>()
+
   private val deviceStateListener = object : DeviceController.DeviceStateListener {
     override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
       updateMainToolbarLater()
@@ -122,26 +142,48 @@ internal class DeviceToolWindowPanel(
 
     val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
     val initialOrientation = uiState.orientation
-    val primaryDisplayPanel = DeviceDisplayPanel(disposable, deviceClient, initialOrientation, project, zoomToolbarVisible)
-    uiState.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
+    val primaryDisplayPanel =
+        DeviceDisplayPanel(disposable, deviceClient, PRIMARY_DISPLAY_ID, initialOrientation, project, zoomToolbarVisible)
+    displayPanels.put(primaryDisplayPanel.displayId, primaryDisplayPanel)
+    val zoomScrollState = uiState.zoomScrollState
+    for (displayPanel in displayPanels.values) {
+      zoomScrollState[displayPanel.displayId]?.let { displayPanel.zoomScrollState = it }
+    }
 
-    displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
     primaryDisplayView = deviceView
     mainToolbar.targetComponent = deviceView
     secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
+    val displayConfigurator = if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) DisplayConfigurator() else null
+
     deviceView.addConnectionStateListener(object : ConnectionStateListener {
-      @AnyThread
+      @UiThread
       override fun connectionStateChanged(deviceSerialNumber: String, connectionState: ConnectionState) {
+        when (connectionState) {
+          ConnectionState.CONNECTED -> {
+            deviceClient.deviceController?.apply {
+              if (displayConfigurator != null) {
+                addDisplayListener(displayConfigurator)
+                displayConfigurator.onDisplaysChanged()
+              }
+              addDeviceStateListener(deviceStateListener)
+            }
+          }
+          ConnectionState.DISCONNECTED -> {
+            deviceClient.deviceController?.apply {
+              if (displayConfigurator != null) {
+                removeDisplayListener(displayConfigurator)
+              }
+              removeDeviceStateListener(deviceStateListener)
+            }
+          }
+          else -> {}
+        }
+
         EventQueue.invokeLater {
           mainToolbar.updateActionsImmediately()
           secondaryToolbar.updateActionsImmediately()
-        }
-        when (connectionState) {
-          ConnectionState.CONNECTED -> deviceClient.deviceController?.addDeviceStateListener(deviceStateListener)
-          ConnectionState.DISCONNECTED -> deviceClient.deviceController?.removeDeviceStateListener(deviceStateListener)
-          else -> {}
         }
       }
     })
@@ -155,13 +197,15 @@ internal class DeviceToolWindowPanel(
   override fun destroyContent(): DeviceUiState {
     val uiState = DeviceUiState()
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
-    uiState.zoomScrollState = displayPanel?.zoomScrollState
+    for (displayPanel in displayPanels.values) {
+      uiState.zoomScrollState[displayPanel.displayId] = displayPanel.zoomScrollState
+    }
 
     contentDisposable?.let { Disposer.dispose(it) }
     contentDisposable = null
 
     centerPanel.removeAll()
-    displayPanel = null
+    displayPanels.clear()
     primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
@@ -184,8 +228,160 @@ internal class DeviceToolWindowPanel(
     }
   }
 
+  private inner class DisplayConfigurator : DeviceController.DisplayListener {
+
+    var displayDescriptors = emptyList<DisplayDescriptor>()
+
+    @AnyThread
+    override fun onDisplayAdded(displayId: Int) {
+      onDisplaysChanged()
+    }
+
+    @AnyThread
+    override fun onDisplayRemoved(displayId: Int) {
+      onDisplaysChanged()
+    }
+
+    @AnyThread
+    fun onDisplaysChanged() {
+      contentDisposable?.let {
+        AndroidCoroutineScope(it).launch {
+          val displays = deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
+          EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
+            if (contentDisposable != null) {
+              displayConfigurationReceived(displays)
+            }
+          }
+        }
+      }
+    }
+
+    private fun displayConfigurationReceived(newDisplays: List<DisplayDescriptor>) {
+      adjustDisplayDescriptors(newDisplays)
+      if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
+        return
+      }
+
+      displayPanels.int2ObjectEntrySet().removeIf { (displayId, displayPanel) ->
+        if (!newDisplays.any { it.displayId == displayId }) {
+          Disposer.dispose(displayPanel)
+          true
+        }
+        else {
+          false
+        }
+      }
+      val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
+      val rootPanel = buildLayout(layoutRoot, newDisplays)
+      displayDescriptors = newDisplays
+      setRootPanel(rootPanel)
+      mainToolbar.updateActionsImmediately()
+      secondaryToolbar.updateActionsImmediately()
+    }
+
+    fun buildLayout(multiDisplayState: MultiDisplayState) {
+      val newDisplays = multiDisplayState.displayDescriptors
+      val rootPanel = buildLayout(multiDisplayState.panelState, newDisplays)
+      displayDescriptors = newDisplays
+      setRootPanel(rootPanel)
+    }
+
+    private fun buildLayout(layoutNode: LayoutNode, displayDescriptors: List<DisplayDescriptor>): JPanel {
+      return when (layoutNode) {
+        is LeafNode -> {
+          val display = displayDescriptors[layoutNode.rectangleIndex]
+          val displayId = display.displayId
+          displayPanels.computeIfAbsent(displayId, IntFunction {
+            assert(it != PRIMARY_DISPLAY_ID)
+            DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.orientation, project, zoomToolbarVisible)
+          })
+        }
+        is SplitNode -> {
+          SplitPanel(layoutNode).apply {
+            firstComponent = buildLayout(layoutNode.firstChild, displayDescriptors)
+            secondComponent = buildLayout(layoutNode.secondChild, displayDescriptors)
+          }
+        }
+      }
+    }
+
+    private fun buildLayout(state: PanelState, displayDescriptors: List<DisplayDescriptor>): JPanel {
+      val splitPanelState = state.splitPanel
+      return if (splitPanelState != null) {
+        SplitPanel(splitPanelState.splitType, splitPanelState.proportion).apply {
+          firstComponent = buildLayout(splitPanelState.firstComponent, displayDescriptors)
+          secondComponent = buildLayout(splitPanelState.secondComponent, displayDescriptors)
+        }
+      }
+      else {
+        val displayId = state.displayId ?: throw IllegalArgumentException()
+        val display = displayDescriptors.find { it.displayId == displayId } ?: throw IllegalArgumentException()
+        displayPanels.computeIfAbsent(displayId, IntFunction {
+          assert(it != PRIMARY_DISPLAY_ID)
+          DeviceDisplayPanel(contentDisposable!!, deviceClient, displayId, display.orientation, project, zoomToolbarVisible)
+        })
+      }
+    }
+
+    private fun setRootPanel(rootPanel: JPanel) {
+      mainToolbar.updateActionsImmediately() // Rotation buttons are hidden in multi-display mode.
+      secondaryToolbar.updateActionsImmediately()
+      centerPanel.removeAll()
+      centerPanel.addToCenter(rootPanel)
+      centerPanel.validate()
+    }
+
+    private fun adjustDisplayDescriptors(displays: List<DisplayDescriptor>) {
+      for (display in displays) {
+        val displayView = displayPanels[display.displayId]?.displayView ?: continue
+        if (displayView.deviceDisplaySize.width != 0 && displayView.deviceDisplaySize.height != 0) {
+          display.width = displayView.deviceDisplaySize.width
+          display.height = displayView.deviceDisplaySize.height
+          display.orientation = displayView.displayOrientationQuadrants
+        }
+      }
+    }
+
+    fun getMultiDisplayState(): MultiDisplayState? {
+      if (centerPanel.componentCount > 0) {
+        val panel = centerPanel.getComponent(0)
+        if (panel is SplitPanel) {
+          return MultiDisplayState(displayDescriptors.toMutableList(), panel.getState())
+        }
+      }
+      return null
+    }
+  }
+
+  /**
+   * Persistent multi-display state corresponding to a single AVD.
+   * The no-argument constructor is used by the XML deserializer.
+   */
+  class MultiDisplayState() {
+
+    constructor(displayDescriptors: MutableList<DisplayDescriptor>, panelState: PanelState) : this() {
+      this.displayDescriptors = displayDescriptors
+      this.panelState = panelState
+    }
+
+    lateinit var displayDescriptors: MutableList<DisplayDescriptor>
+    lateinit var panelState: PanelState
+
+    override fun equals(other: Any?): Boolean {
+      if (this === other) return true
+      if (javaClass != other?.javaClass) return false
+
+      other as MultiDisplayState
+      return displayDescriptors == other.displayDescriptors && panelState == other.panelState
+    }
+
+    override fun hashCode(): Int {
+      return HashCodes.mix(displayDescriptors.hashCode(), panelState.hashCode())
+    }
+  }
+
   class DeviceUiState : UiState {
     var orientation = UNKNOWN_ORIENTATION
-    var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
+    val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
   }
 }

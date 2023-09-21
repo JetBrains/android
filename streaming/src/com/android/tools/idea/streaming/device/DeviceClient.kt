@@ -67,7 +67,6 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.min
 
@@ -135,7 +134,6 @@ internal class DeviceClient(
   private lateinit var controlChannel: SuspendingSocketChannel
   private lateinit var videoChannel: SuspendingSocketChannel
   private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
-  private var videoStreamActive = AtomicBoolean()
   private val logger = thisLogger()
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
 
@@ -147,7 +145,7 @@ internal class DeviceClient(
    * Asynchronously establishes connection to the screen sharing agent without activating the video stream.
    */
   fun establishAgentConnectionWithoutVideoStreamAsync() {
-    clientScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false)}
+    clientScope.launch { establishAgentConnection(Dimension(), UNKNOWN_ORIENTATION, false) }
   }
 
   /**
@@ -170,9 +168,17 @@ internal class DeviceClient(
     }
     connection.await()
 
-    if (startVideoStream && !videoStreamActive.get()) {
+    if (connection !== completion && startVideoStream) {
       startVideoStream(PRIMARY_DISPLAY_ID, maxVideoSize)
     }
+  }
+
+  /**
+   * Waits for the connection to the screen sharing agent to be established. Returns immediately
+   * if the connection hasn't been attempted yet or the connection attempt failed.
+   */
+  suspend fun waitUntilConnected() {
+    connectionState.get()?.await()
   }
 
   /**
@@ -207,8 +213,8 @@ internal class DeviceClient(
     catch (e: IncorrectOperationException) {
       return // Already disposed.
     }
-    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize, deviceConfig.deviceProperties, streamingSessionTracker).apply { start() }
-    videoStreamActive.set(startVideoStream)
+    videoDecoder =
+        VideoDecoder(videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker).apply { start(startVideoStream) }
   }
 
   fun addAgentTerminationListener(listener: AgentTerminationListener) {
@@ -219,15 +225,18 @@ internal class DeviceClient(
     agentTerminationListeners.remove(listener)
   }
 
-  private fun startVideoStream(displayId: Int, maxOutputSize: Dimension) {
-    if (videoStreamActive.compareAndSet(false, true)) {
+  fun startVideoStream(displayId: Int, maxOutputSize: Dimension) {
+    if (videoDecoder?.enableDecodingForDisplay(displayId) == true) {
       deviceController?.sendControlMessage(StartVideoStreamMessage(displayId, maxOutputSize))
     }
   }
 
   fun stopVideoStream(displayId: Int) {
-    if (videoStreamActive.compareAndSet(true, false)) {
+    if (videoDecoder?.disableDecodingForDisplay(displayId) == true) {
       deviceController?.sendControlMessage(StopVideoStreamMessage(displayId))
+      if (displayId == PRIMARY_DISPLAY_ID) {
+        streamingSessionTracker.streamingEnded()
+      }
     }
   }
 
@@ -301,6 +310,7 @@ internal class DeviceClient(
   }
 
   override fun dispose() {
+    streamingSessionTracker.streamingEnded()
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {

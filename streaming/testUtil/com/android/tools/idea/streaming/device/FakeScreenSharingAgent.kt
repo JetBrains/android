@@ -868,7 +868,7 @@ class FakeScreenSharingAgent(
 
   companion object {
     @JvmStatic
-    val defaultControlMessageFilter = ControlMessageFilter()
+    val defaultControlMessageFilter = ControlMessageFilter(DisplayConfigurationRequest.TYPE)
   }
 }
 

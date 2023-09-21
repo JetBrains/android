@@ -36,22 +36,6 @@ namespace screensharing {
 using namespace std;
 using namespace std::chrono;
 
-struct CodecInfo {
-  std::string mime_type;
-  std::string name;
-  Size max_resolution;
-  Size size_alignment;
-  int32_t max_frame_rate;
-
-  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment, int32_t max_frame_rate)
-      : mime_type(std::move(mime_type)),
-        name(std::move(name)),
-        max_resolution(max_resolution),
-        size_alignment(size_alignment),
-        max_frame_rate(max_frame_rate) {
-  }
-};
-
 namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 5;
@@ -62,7 +46,6 @@ constexpr int DEFAULT_BIT_RATE = 10000000;
 constexpr int MIN_BIT_RATE = 100000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
-constexpr int CHANNEL_HEADER_LENGTH = 20;
 constexpr char const* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // Introduced in API 28.
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
@@ -147,25 +130,6 @@ AMediaFormat* CreateMediaFormat(const string& mime_type) {
   return media_format;
 }
 
-CodecInfo* SelectVideoEncoder(const string& mime_type) {
-  Jni jni = Jvm::GetJni();
-  JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
-  jmethodID method = clazz.GetStaticMethod("selectVideoEncoderForType",
-                                           "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
-  JObject codec_info = clazz.CallStaticObjectMethod(method, JString(jni, mime_type).ref());
-  if (codec_info.IsNull()) {
-    Log::Fatal(VIDEO_ENCODER_NOT_FOUND, "No video encoder is available for %s", mime_type.c_str());
-  }
-  JString jname = JString(codec_info.GetObjectField(clazz.GetFieldId("name", "Ljava/lang/String;")));
-  string codec_name = jname.IsNull() ? "<unnamed>" : jname.GetValue();
-  int max_width = codec_info.GetIntField(clazz.GetFieldId("maxWidth", "I"));
-  int max_height = codec_info.GetIntField(clazz.GetFieldId("maxHeight", "I"));
-  int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
-  int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
-  int max_frame_rate = codec_info.GetIntField(clazz.GetFieldId("maxFrameRate", "I"));
-  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment), max_frame_rate);
-}
-
 string GetVideoEncoderDetails(const CodecInfo& codec_info, int32_t width, int32_t height) {
   string codec_name = codec_info.name;
   string mime_type = codec_info.mime_type;
@@ -177,31 +141,6 @@ string GetVideoEncoderDetails(const CodecInfo& codec_info, int32_t width, int32_
     return "Failed to obtain parameters of " + codec_info.name;
   }
   return details.ToString();
-}
-
-[[noreturn]] void FatalVideoEncoderError(const char* error_message, const char* video_encoder_details, int32_t bit_rate) {
-  if (bit_rate <= MIN_BIT_RATE) {
-    Log::Fatal(WEAK_VIDEO_ENCODER, "%s:\n%s", error_message, video_encoder_details);
-  }
-  Log::Fatal(REPEATED_VIDEO_ENCODER_ERRORS, "%s:\n%s", error_message, video_encoder_details);
-}
-
-void WriteChannelHeader(const string& codec_name, int socket_fd) {
-  string buf;
-  int buf_size = 1 + CHANNEL_HEADER_LENGTH;
-  buf.reserve(buf_size);  // Single-byte channel marker followed by header.
-  buf.append("V");  // Video channel marker.
-  buf.append(codec_name);
-  // Pad with spaces to the fixed length.
-  while (buf.length() < buf_size) {
-    buf.insert(buf.end(), ' ');
-  }
-  if (write(socket_fd, buf.c_str(), buf_size) != buf_size) {
-    if (errno != EBADF && errno != EPIPE) {
-      Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
-    }
-    Agent::Shutdown();
-  }
 }
 
 int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
@@ -248,35 +187,29 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
 
 }  // namespace
 
-DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max_video_resolution, int32_t initial_video_orientation,
-                                 int32_t max_bit_rate, int socket_fd)
+DisplayStreamer::DisplayStreamer(int32_t display_id, const CodecInfo* codec_info, Size max_video_resolution,
+                                 int32_t initial_video_orientation, int32_t max_bit_rate, int socket_fd)
     : display_rotation_watcher_(this),
       display_id_(display_id),
-      codec_name_(std::move(codec_name)),
+      codec_info_(codec_info),
       socket_fd_(socket_fd),
       bit_rate_(max_bit_rate > 0 ? max_bit_rate : DEFAULT_BIT_RATE),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
   assert(socket_fd > 0);
-  if (display_id_ == PRIMARY_DISPLAY_ID) {
-    string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
-    codec_info_ = SelectVideoEncoder(mime_type);
-    WriteChannelHeader(codec_name_, socket_fd_);
-  }
 }
 
 DisplayStreamer::~DisplayStreamer() {
   if (thread_.joinable()) {
     thread_.join();
   }
-  delete codec_info_;
 }
 
 void DisplayStreamer::Start() {
   if (streamer_stopped_.exchange(false)) {
-    Log::D("Starting video stream for display %d", display_id_);
+    Log::D("Display %d: starting video stream", display_id_);
     thread_ = thread([this]() {
-      Jvm::AttachCurrentThread("DisplayStreamer");
+      Jvm::AttachCurrentThread((string("DisplayStreamer ") + to_string(display_id_)).c_str());
       Run();
       Jvm::DetachCurrentThread();
     });
@@ -285,7 +218,7 @@ void DisplayStreamer::Start() {
 
 void DisplayStreamer::Stop() {
   if (!streamer_stopped_.exchange(true)) {
-    Log::D("Stopping video stream for display %d", display_id_);
+    Log::D("Display %d: stopping video stream", display_id_);
     StopCodec();
     if (thread_.joinable()) {
       thread_.join();
@@ -309,8 +242,6 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
 
-  Log::D("Using %s video encoder with %dx%d max resolution",
-         codec_info_->name.c_str(), codec_info_->max_resolution.width, codec_info_->max_resolution.height);
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
@@ -322,7 +253,8 @@ void DisplayStreamer::Run() {
   while (continue_streaming && !streamer_stopped_ && !Agent::IsShuttingDown()) {
     AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
     if (codec == nullptr) {
-      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Unable to create a %s video encoder", codec_info_->name.c_str());
+      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
+                 display_id_, codec_info_->name.c_str());
     }
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
@@ -335,7 +267,7 @@ void DisplayStreamer::Run() {
       bool secure = Agent::api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
       display_token = SurfaceControl::CreateDisplay(jni, "studio.screen.sharing", secure);
       if (display_token.IsNull()) {
-        Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Unable to create a virtual display");
+        Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Display %d: unable to create a virtual display", display_id_);
       }
     }
     ANativeWindow* surface = nullptr;
@@ -351,11 +283,11 @@ void DisplayStreamer::Run() {
       }
       Size video_size =
           ConfigureCodec(codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info);
-      Log::D("rotation=%d rotation_correction = %d video_size = %dx%d",
-             display_info.rotation, rotation_correction, video_size.width, video_size.height);
+      Log::D("Display %d: rotation=%d rotation_correction = %d video_size = %dx%d",
+             display_id_, display_info.rotation, rotation_correction, video_size.width, video_size.height);
       media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
-        Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "AMediaCodec_createInputSurface returned %d", status);
+        Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "Display %d: AMediaCodec_createInputSurface returned %d", display_id_, status);
       }
       if (virtual_display.HasDisplay()) {
         virtual_display.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
@@ -408,9 +340,9 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     CodecOutputBuffer codec_buffer(codec);
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
-        FatalVideoEncoderError("Too many video encoder errors",
-                               GetVideoEncoderDetails(*codec_info_, packet_header->display_width, packet_header->display_height).c_str(),
-                               bit_rate_);
+        ExitCode exitCode = bit_rate_ <= MIN_BIT_RATE ? WEAK_VIDEO_ENCODER : REPEATED_VIDEO_ENCODER_ERRORS;
+        Log::Fatal(exitCode, "Display %d: too many video encoder errors:\n%s", display_id_,
+                   GetVideoEncoderDetails(*codec_info_, packet_header->display_width, packet_header->display_height).c_str());
       }
       continue;
     }
@@ -450,7 +382,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     }
     packet_header->packet_size = codec_buffer.info.size;
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
-      Log::V("DisplayStreamer::ProcessFramesUntilCodecStopped: writing video packet %s", packet_header->ToDebugString().c_str());
+      Log::V("Display %d: writing video packet %s", display_id_, packet_header->ToDebugString().c_str());
     }
     iovec buffers[] = { { packet_header, VideoPacketHeader::SIZE }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
@@ -468,7 +400,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
 }
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
-  Log::D("DisplayStreamer::SetVideoOrientation(%d)", orientation);
+  Log::D("Display %d: setting video orientation %d", display_id_, orientation);
   if (orientation == CURRENT_DISPLAY_ORIENTATION) {
     scoped_lock lock(mutex_);
     if (video_orientation_ >= 0) {
@@ -522,7 +454,7 @@ void DisplayStreamer::StopCodec() {
 
 void DisplayStreamer::StopCodecUnlocked() {
   if (running_codec_ != nullptr) {
-    Log::D("DisplayStreamer::StopCodecUnlocked: stopping codec");
+    Log::D("Display %d: stopping codec", display_id_);
     AMediaCodec_stop(running_codec_);
     running_codec_ = nullptr;
     consequent_deque_error_count_ = 0;
@@ -541,7 +473,7 @@ bool DisplayStreamer::ReduceBitRate() {
   StopCodec();
   bit_rate_ = RoundToOneTwoFiveScale(bit_rate_ / 2);
   bit_rate_reduced_ = true;
-  Log::I("Bit rate reduced to %d", bit_rate_);
+  Log::I("Display %d: bit rate reduced to %d", display_id_, bit_rate_);
   return true;
 }
 

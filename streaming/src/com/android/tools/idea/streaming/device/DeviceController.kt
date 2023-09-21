@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
@@ -90,9 +91,9 @@ internal class DeviceController(
   }
 
   @Throws(StatusRuntimeException::class, TimeoutCancellationException::class)
-  suspend fun getDisplayConfigurations(): DisplayConfigurationResponse {
+  suspend fun getDisplayConfigurations(): List<DisplayDescriptor> {
     val request = DisplayConfigurationRequest(requestIdGenerator)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? DisplayConfigurationResponse ?:
+    return (sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? DisplayConfigurationResponse)?.displays ?:
            throw RuntimeException("Unexpected response")
   }
 
@@ -158,7 +159,7 @@ internal class DeviceController(
     deviceStateListeners.remove(listener)
   }
 
-  /** Adds a listener of that is called when device dispalys are added or removed. */
+  /** Adds a listener of that is called when device displays are added or removed. */
   internal fun addDisplayListener(listener: DisplayListener) {
     displayListeners.add(listener)
   }

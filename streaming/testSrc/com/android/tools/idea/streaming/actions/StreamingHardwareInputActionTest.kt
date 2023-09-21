@@ -20,6 +20,7 @@ import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.adtui.swing.popup.FakeJBPopup
 import com.android.tools.adtui.swing.popup.FakeJBPopupFactory
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceView
@@ -153,7 +154,7 @@ class StreamingHardwareInputActionTest {
   private fun createDeviceView(device: FakeDevice): DeviceView {
     val client =
         DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
-    return DeviceView(testRootDisposable, client, UNKNOWN_ORIENTATION, project)
+    return DeviceView(testRootDisposable, client, PRIMARY_DISPLAY_ID, UNKNOWN_ORIENTATION, project)
   }
 
   private fun showPopup(presentation: Presentation): FakeJBPopup<Unit> {

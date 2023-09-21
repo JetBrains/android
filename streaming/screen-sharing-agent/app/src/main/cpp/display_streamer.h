@@ -32,7 +32,21 @@
 
 namespace screensharing {
 
-struct CodecInfo;
+struct CodecInfo {
+  std::string mime_type;
+  std::string name;
+  Size max_resolution;
+  Size size_alignment;
+  int32_t max_frame_rate;
+
+  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment, int32_t max_frame_rate)
+      : mime_type(std::move(mime_type)),
+        name(std::move(name)),
+        max_resolution(max_resolution),
+        size_alignment(size_alignment),
+        max_frame_rate(max_frame_rate) {
+  }
+};
 
 // Processes control socket commands.
 class DisplayStreamer : private DisplayManager::DisplayListener {
@@ -42,7 +56,8 @@ public:
   };
 
   DisplayStreamer(
-      int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate, int socket_fd);
+      int display_id, const CodecInfo* codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate,
+      int socket_fd);
   virtual ~DisplayStreamer();
 
   // Starts the streamer's thread.
@@ -58,7 +73,7 @@ public:
   // Returns the cached version of DisplayInfo.
   DisplayInfo GetDisplayInfo();
 
-  CodecInfo* codec_info() const { return codec_info_; }
+  const CodecInfo* codec_info() const { return codec_info_; }
   int32_t bit_rate() const { return bit_rate_; }
 
 private:
@@ -88,8 +103,7 @@ private:
   std::thread thread_;
   DisplayRotationWatcher display_rotation_watcher_;
   int display_id_;
-  std::string codec_name_;
-  CodecInfo* codec_info_ = nullptr;
+  const CodecInfo* codec_info_ = nullptr;  // Not owned.
   int socket_fd_;
   int64_t presentation_timestamp_offset_ = 0;
   int32_t bit_rate_;
