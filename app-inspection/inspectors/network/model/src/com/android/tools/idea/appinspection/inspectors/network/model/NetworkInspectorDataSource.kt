@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.concurrency.createChildScope
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +34,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
+import java.util.concurrent.TimeUnit
 
 /**
  * Performs a binary search on the data using timestamp and returns the index at which a
@@ -154,14 +154,9 @@ private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intentio
 private fun intersectsRange(min: Long, max: Long, data: List<Event>): Boolean {
   val firstEventTimestamp = data.firstOrNull()?.timestamp ?: return false
   val lastEventTimestamp = data.last().timestamp
-  if (
-    firstEventTimestamp in min..max ||
-      lastEventTimestamp in min..max ||
-      (firstEventTimestamp < min && lastEventTimestamp > max)
-  ) {
-    return true
-  }
-  return false
+  return firstEventTimestamp in min..max ||
+    lastEventTimestamp in min..max ||
+    (firstEventTimestamp < min && lastEventTimestamp > max)
 }
 
 /**
@@ -185,7 +180,12 @@ class NetworkInspectorDataSourceImpl(
 ) : NetworkInspectorDataSource {
   val scope = parentScope.createChildScope()
   private val channel = Channel<Intention>()
-  override val connectionEventFlow: Flow<HttpConnectionEvent>
+  override val connectionEventFlow: Flow<HttpConnectionEvent> =
+    messenger.eventFlow
+      .map { data -> Event.parseFrom(data) }
+      .onEach { data -> channel.send(Intention.InsertData(data)) }
+      .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }
+      .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
 
   init {
     scope.coroutineContext[Job]!!.invokeOnCompletion { e -> channel.close(e) }
@@ -196,12 +196,6 @@ class NetworkInspectorDataSourceImpl(
         channel.close(e.cause)
       }
     }
-    connectionEventFlow =
-      messenger.eventFlow
-        .map { data -> Event.parseFrom(data) }
-        .onEach { data -> channel.send(Intention.InsertData(data)) }
-        .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }
-        .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
   }
 
   override suspend fun queryForHttpData(range: Range) =

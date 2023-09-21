@@ -19,7 +19,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
  * Aspects used for notifying UI events across the network inspector front end.
  *
  * When an aspect is changed, all dependent listeners receive a callback. This is useful for cases
- * such as when the user selects a connection in the details view and we want to notify the rest of
+ * such as when the user selects a connection in the details view, and we want to notify the rest of
  * the UI to react to it.
  */
 enum class NetworkInspectorAspect {
