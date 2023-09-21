@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.variables
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
@@ -37,10 +38,10 @@ const val VARIABLES_VIEW = "VariablesView"
 class VariablesConfigurable(private val project: Project, private val context: PsContext)
   : BaseConfigurable(), TrackedConfigurable, Disposable {
   private var uiDisposed = true
-  override fun getDisplayName(): String = "Variables"
+  override fun getDisplayName(): String = AndroidGradlePsdBundle.message("android.variables.configurable.display.name")
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
 
-  override fun createComponent(): JComponent? {
+  override fun createComponent(): JComponent {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
     val table = VariablesTable(project, context, context.project, this)

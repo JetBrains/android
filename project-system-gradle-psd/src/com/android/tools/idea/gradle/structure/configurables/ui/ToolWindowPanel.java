@@ -23,6 +23,7 @@ import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.toolWindow.StripeButtonUi;
@@ -45,7 +46,7 @@ public abstract class ToolWindowPanel extends JPanel implements Disposable {
   private JPanel myMinimizedPanel;
   private AnchoredToolWindowButton myAnchoredButton;
 
-  protected ToolWindowPanel(@NotNull String title, @NotNull Icon icon, @Nullable ToolWindowAnchor anchor) {
+  protected ToolWindowPanel(@NotNull @NlsContexts.TabTitle String title, @NotNull Icon icon, @Nullable ToolWindowAnchor anchor) {
     super(new BorderLayout());
     myHeader = ToolWindowHeader.createAndAdd(title, icon, this, anchor);
 

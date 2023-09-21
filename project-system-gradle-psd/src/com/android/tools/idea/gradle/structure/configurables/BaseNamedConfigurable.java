@@ -31,7 +31,7 @@ public abstract class BaseNamedConfigurable<T extends PsModule> extends NamedCon
 
   @NotNull private final T myModule;
 
-  private String myDisplayName;
+  @Nls private String myDisplayName;
   private History myHistory;
 
   protected BaseNamedConfigurable(@NotNull T module) {

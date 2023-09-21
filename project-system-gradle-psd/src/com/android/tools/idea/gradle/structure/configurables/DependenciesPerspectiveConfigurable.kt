@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.module.AndroidModuleDependenciesConfigurable
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.ProjectDependenciesConfigurable
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 
 const val DEPENDENCIES_VIEW = "DependenciesView"
-const val DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME = "Dependencies"
+@Nls val dependenciesPerspectiveDisplayName = AndroidGradlePsdBundle.message("android.dependencies.perspective.configurable.display.name")
 
 class DependenciesPerspectiveConfigurable(context: PsContext)
   : BasePerspectiveConfigurable(context, extraModules = listOf(PsAllModulesFakeModule(context.project))), TrackedConfigurable {
@@ -39,14 +40,14 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
   override fun getId(): String = "android.psd.dependencies"
 
   @Nls
-  override fun getDisplayName(): String = DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME
+  override fun getDisplayName(): String = dependenciesPerspectiveDisplayName
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when (module) {
       is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
       is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, this)
       is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
-      is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
+      is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = AndroidGradlePsdBundle.message("android.module.unsupported.configurable.label.empty.module"))
       else -> throw IllegalStateException()
     }
 

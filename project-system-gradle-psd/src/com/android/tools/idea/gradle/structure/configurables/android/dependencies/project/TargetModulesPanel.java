@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.structure.configurables.android.dependenci
 import static com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.setUp;
 import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModulesTreeBuilder;
@@ -56,7 +57,7 @@ class TargetModulesPanel extends ToolWindowPanel {
   @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
 
   TargetModulesPanel(@NotNull PsContext context) {
-    super("Target Modules/Artifacts", AllIcons.Nodes.ModuleGroup, ToolWindowAnchor.RIGHT);
+    super(AndroidGradlePsdBundle.message("tab.title.target.modules.artifacts"), AllIcons.Nodes.ModuleGroup, ToolWindowAnchor.RIGHT);
     myContext = context;
 
     DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());

@@ -19,6 +19,7 @@ import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.ide.common.gradle.Version
 import com.google.common.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
 import com.android.tools.idea.gradle.structure.model.helpers.parseGradleVersion
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
@@ -250,7 +251,8 @@ fun prepareArtifactVersionChoices(
     }
 
   val versions =
-    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.lowerBoundVersion!!, DslText.Literal).annotateWithError("not found") }) +
+    listOfNotNull(missingVersion?.let { ParsedValue.Set.Parsed(it.lowerBoundVersion!!, DslText.Literal)
+      .annotateWithError(AndroidGradlePsdBundle.message("android.error.required")) }) +
     artifact.versions.map { ParsedValue.Set.Parsed(it, DslText.Literal).annotated() }
 
   val suitableVariables =

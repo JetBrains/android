@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -47,7 +48,7 @@ import kotlin.reflect.KProperty
 object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildModel> {
   private const val AGP_GROUP_ID_NAME = "com.android.tools.build:gradle"
   override fun getResolved(model: PsProject): Nothing? = null
-  override fun getParsed(model: PsProject): ProjectBuildModel? = model.parsedModel
+  override fun getParsed(model: PsProject): ProjectBuildModel = model.parsedModel
   override fun prepareForModification(model: PsProject) = Unit
   override fun setModified(model: PsProject) {
     model.isModified = true
@@ -58,7 +59,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
     fun PluginModel.isAgp() = name().toString().startsWith("com.android.")
 
     property(
-      "Android Gradle Plugin Version",
+      AndroidGradlePsdBundle.message("property.android.gradle.plugin.version"),
       resolvedValueGetter = { null },
       parsedPropertyGetter = {
         val models: List<ResolvedPropertyModel>? =
@@ -115,7 +116,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       override fun bindContext(model: PsProject): ModelPropertyContext<String> =
         object : ModelPropertyContext<String> {
           override fun parse(value: String): Annotated<ParsedValue<String>> = when {
-            value.isBlank() -> ParsedValue.NotSet.annotateWithError("Required.")
+            value.isBlank() -> ParsedValue.NotSet.annotateWithError(AndroidGradlePsdBundle.message("android.error.required"))
             else -> ParsedValue.Set.Parsed(value, DslText.Literal).annotated()
           }
 
@@ -126,7 +127,7 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
           override fun getKnownValues(): ListenableFuture<KnownValues<String>> = versionValues()
         }
 
-      override val description: String = "Gradle Version"
+      override val description: String = AndroidGradlePsdBundle.message("property.android.gradle.version")
 
       override fun bind(model: PsProject): ModelPropertyCore<String> =
         object : ModelPropertyCore<String> {
@@ -140,15 +141,15 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
             value.maybeLiteralValue?.let { model.setGradleVersionValue(it) }
           }
 
-          override val isModified: Boolean?
+          override val isModified: Boolean
             get() =
               model.getGradleVersionValue(true) != model.getGradleVersionValue(false)
 
           override fun getResolvedValue(): ResolvedValue<String> = ResolvedValue.NotResolved()
 
-          override val description: String = "Gradle Version"
+          override val description: String = AndroidGradlePsdBundle.message("property.android.gradle.version")
           override val defaultValueGetter: (() -> String?)? = null
-          override val variableScope: (() -> PsVariablesScope?)? = { PsVariablesScope.NONE }
+          override val variableScope: () -> PsVariablesScope? = { PsVariablesScope.NONE }
           override fun annotateParsedResolvedMismatch(): ValueAnnotation? = null
         }
 

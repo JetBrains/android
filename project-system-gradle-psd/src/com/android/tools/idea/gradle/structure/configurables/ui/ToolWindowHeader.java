@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.util.EventDispatcher;
 import com.intellij.util.ui.ChildFocusWatcher;
@@ -52,7 +53,7 @@ public class ToolWindowHeader extends Header implements Disposable {
   private final EventDispatcher<MinimizeListener> myEventDispatcher = EventDispatcher.create(MinimizeListener.class);
 
   @NotNull
-  public static ToolWindowHeader createAndAdd(@NotNull String title,
+  public static ToolWindowHeader createAndAdd(@NotNull @NlsContexts.TabTitle String title,
                                               @NotNull Icon icon,
                                               @NotNull JComponent parent,
                                               @Nullable ToolWindowAnchor anchor) {
