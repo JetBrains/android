@@ -22,12 +22,12 @@ import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.ide.wizard.Step;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.BorderLayout;
@@ -325,7 +325,7 @@ public abstract class DynamicWizardStep extends ScopedDataBinder implements Step
   @Override
   @NotNull
   public final JComponent getComponent() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     if (myRootPane == null) {
       myRootPane = new JPanel(new BorderLayout());
       myHeader = WizardStepHeaderPanel.create(getDisposable(), getHeaderColor(), getWizardIcon(), getStepIcon(), getStepTitle(), getStepDescription());

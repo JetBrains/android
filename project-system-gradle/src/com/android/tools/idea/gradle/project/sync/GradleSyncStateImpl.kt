@@ -64,6 +64,7 @@ import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import org.gradle.util.GradleVersion
@@ -346,7 +347,7 @@ class GradleSyncStateHolder(private val project: Project)  {
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId).isShouldLog) return
 
     // Using the IdeSdks requires us to be on the dispatch thread
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
     if (gradleInstallation.isUsingJavaHomeJdk(project)) {

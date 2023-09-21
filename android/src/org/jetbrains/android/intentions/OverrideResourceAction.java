@@ -55,6 +55,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -148,7 +149,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
                                         @NotNull PsiFile file,
                                         @Nullable PsiDirectory dir,
                                         boolean open) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     XmlTag tag = getValueTag(editor, file);
     if (tag == null) {
       return; // shouldn't happen; we checked in isAvailable

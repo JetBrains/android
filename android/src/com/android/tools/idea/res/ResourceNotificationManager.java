@@ -54,6 +54,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlText;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.util.concurrency.SameThreadExecutor;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.messages.MessageBusConnection;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -359,7 +360,7 @@ public class ResourceNotificationManager {
   }
 
   private void notifyListeners(@NotNull ImmutableSet<Reason> reason) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     List<ModuleEventObserver> observers;
     synchronized (myObserverLock) {
@@ -448,7 +449,7 @@ public class ResourceNotificationManager {
       }
 
       myGeneration = generation;
-      ApplicationManager.getApplication().assertIsDispatchThread();
+      ThreadingAssertions.assertEventDispatchThread();
       List<ResourceChangeListener> listeners;
       synchronized (myListenersLock) {
         listeners = new ArrayList<>(myListeners);

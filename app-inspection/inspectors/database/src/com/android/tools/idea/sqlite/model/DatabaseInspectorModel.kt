@@ -16,7 +16,7 @@
 package com.android.tools.idea.sqlite.model
 
 import com.android.annotations.concurrency.UiThread
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.concurrency.ThreadingAssertions
 
 /** Class used to store and access [SqliteDatabase]s and their [SqliteSchema]s. */
 @UiThread
@@ -58,25 +58,25 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   private val closeDatabases = mutableSetOf<SqliteDatabaseId>()
 
   override fun getOpenDatabaseIds(): List<SqliteDatabaseId> {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     return openDatabases.keys.toList()
   }
 
   override fun getCloseDatabaseIds(): List<SqliteDatabaseId> {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     return closeDatabases.toList()
   }
 
   override fun getDatabaseSchema(databaseId: SqliteDatabaseId): SqliteSchema? {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     return openDatabases[databaseId]
   }
 
   override fun addDatabaseSchema(databaseId: SqliteDatabaseId, sqliteSchema: SqliteSchema) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     closeDatabases.remove(databaseId)
     openDatabases[databaseId] = sqliteSchema
@@ -86,7 +86,7 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   }
 
   override fun removeDatabaseSchema(databaseId: SqliteDatabaseId) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     openDatabases.remove(databaseId)
     // only add live databases to closed dbs
@@ -100,7 +100,7 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   }
 
   override fun updateSchema(databaseId: SqliteDatabaseId, newSchema: SqliteSchema) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     val oldSchema = openDatabases[databaseId] ?: return
     openDatabases[databaseId] = newSchema
@@ -109,7 +109,7 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   }
 
   override fun clearDatabases() {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     openDatabases.clear()
     closeDatabases.clear()
@@ -118,14 +118,14 @@ class DatabaseInspectorModelImpl : DatabaseInspectorModel {
   }
 
   override fun addListener(modelListener: DatabaseInspectorModel.Listener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     listeners.add(modelListener)
     modelListener.onDatabasesChanged(openDatabases.keys.toList(), closeDatabases.toList())
   }
 
   override fun removeListener(modelListener: DatabaseInspectorModel.Listener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     listeners.remove(modelListener)
   }

@@ -36,6 +36,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.WelcomeScreen;
 import com.intellij.openapi.wm.impl.welcomeScreen.WelcomeFrame;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -226,7 +227,7 @@ public class FirstRunWizardHost extends JPanel implements WelcomeScreen, Dynamic
   @Override
   public void runSensitiveOperation(@NotNull ProgressIndicator progressIndicator, boolean cancellable, @NotNull final Runnable operation) {
     final Application application = ApplicationManager.getApplication();
-    application.assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     if (!myCurrentProgressIndicator.compareAndSet(null, progressIndicator)) {
       throw new IllegalStateException("Submitting an operation while another is in progress.");
     }

@@ -29,6 +29,7 @@ import com.intellij.openapi.ui.DialogEarthquakeShaker;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.components.panels.OpaquePanel;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
@@ -160,7 +161,7 @@ public class DialogWrapperHost extends DialogWrapper implements DynamicWizardHos
   public void runSensitiveOperation(@NotNull final ProgressIndicator progressIndicator,
                                     boolean cancellable, @NotNull final Runnable operation) {
     final Application application = ApplicationManager.getApplication();
-    application.assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     if (!myCurrentProgressIndicator.compareAndSet(null, progressIndicator)) {
       throw new IllegalStateException("Submitting an operation while another is in progress.");
     }

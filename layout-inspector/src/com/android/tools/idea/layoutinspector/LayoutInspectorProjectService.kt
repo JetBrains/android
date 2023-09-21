@@ -36,10 +36,10 @@ import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineScope
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -74,7 +74,7 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
 
   @UiThread
   fun getLayoutInspector(): LayoutInspector {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (layoutInspector == null) {
       layoutInspector = createLayoutInspector(project, this)
@@ -84,7 +84,7 @@ class LayoutInspectorProjectService(private val project: Project): Disposable {
 
   @UiThread
   private fun createLayoutInspector(project: Project, disposable: Disposable): LayoutInspector  {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     val layoutInspectorCoroutineScope = AndroidCoroutineScope(disposable)
 

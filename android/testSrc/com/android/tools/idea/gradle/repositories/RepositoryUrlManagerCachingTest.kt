@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.concurrency.ThreadingAssertions
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -80,7 +81,7 @@ class RepositoryUrlManagerCachingTest {
   @Test
   @RunsInEdt
   fun calledFromDispatchThread() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     repositoryUrlManager.getLibraryRevision("com.android.support", "support-v4", null, true, fileSystem)
 
     // When called on the dispatch thread, we return the dependency value from the local cache and post a network request on background.

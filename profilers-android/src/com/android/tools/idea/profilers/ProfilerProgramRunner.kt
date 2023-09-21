@@ -38,13 +38,13 @@ import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ThreeState
+import com.intellij.util.concurrency.ThreadingAssertions
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import java.awt.BorderLayout
@@ -168,7 +168,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       isSwapExecution: Boolean = false,
       executorId: String? = null
     ) {
-      ApplicationManager.getApplication().assertIsDispatchThread()
+      ThreadingAssertions.assertEventDispatchThread()
 
       // Prevents the Run tool window from taking over the Profiler tool window.
       // TODO(b/251297822): find a better fix than overwriting this user configuration.

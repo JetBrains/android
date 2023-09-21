@@ -25,6 +25,7 @@ import com.intellij.analysis.AnalysisScope;
 import com.intellij.codeInspection.ui.InspectionResultsView;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
@@ -84,7 +85,7 @@ public class AndroidLintLintBaselineInspection extends AndroidLintInspectionBase
     // from there we can invoke it. There's one wrinkle: we need to persist the analysis scope. Luckily
     // we only need to do this very temporarily (from the rerun action to the LintGlobalInspectionContext
     // processes it.)
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     ApplicationManager.getApplication().runWriteAction(() -> {
       for (Frame frame : Frame.getFrames()) {
         InspectionResultsView view = findInspectionView(frame);

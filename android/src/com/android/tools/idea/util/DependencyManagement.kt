@@ -29,13 +29,13 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.util.concurrency.ThreadingAssertions
 
 typealias DependencyAnalysis = Triple<List<GradleCoordinate>, List<GradleCoordinate>, String>
 
@@ -120,7 +120,7 @@ fun Module.addDependenciesWithUiConfirmation(coordinates: List<GradleCoordinate>
                                              promptUserBeforeAdding: Boolean,
                                              requestSync: Boolean = true)
   : List<GradleCoordinate> {
-  ApplicationManager.getApplication().assertIsDispatchThread()
+  ThreadingAssertions.assertEventDispatchThread()
   if (coordinates.isEmpty()) {
     return listOf()
   }

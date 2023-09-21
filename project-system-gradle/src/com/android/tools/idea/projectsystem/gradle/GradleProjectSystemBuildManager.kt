@@ -13,14 +13,12 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.messages.Topic
-import java.util.concurrent.atomic.AtomicInteger
+import com.intellij.util.concurrency.ThreadingAssertions
 
 private fun BuildStatus.toProjectSystemBuildStatus(): ProjectSystemBuildManager.BuildStatus = when(this) {
   BuildStatus.SUCCESS -> ProjectSystemBuildManager.BuildStatus.SUCCESS
@@ -108,7 +106,7 @@ class GradleProjectSystemBuildManager(val project: Project): ProjectSystemBuildM
   @get:UiThread
   override val isBuilding: Boolean
     get() {
-      ApplicationManager.getApplication().assertIsDispatchThread()
+      ThreadingAssertions.assertEventDispatchThread()
       return project.getService(GradleProjectSystemBuildPublisher::class.java).isBuilding
     }
 

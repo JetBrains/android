@@ -19,10 +19,10 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.util.listenUntilNextSync
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.concurrency.ThreadingAssertions
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -151,7 +151,7 @@ fun setupBuildListener(
    * dispatcher thread.
    */
   fun setupListenerWhenSmartAndSynced(buildManager: ProjectSystemBuildManager) {
-    ApplicationManager.getApplication().assertIsDispatchThread() // To verify parentDisposable is not disposed during the method execution
+    ThreadingAssertions.assertEventDispatchThread() // To verify parentDisposable is not disposed during the method execution
     if (Disposer.isDisposed(parentDisposable)) return
 
     val lastResult = buildManager.getLastBuildResult()

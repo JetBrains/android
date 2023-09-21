@@ -25,12 +25,12 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.intellij.execution.RunManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.actions.AndroidConnectDebuggerAction
@@ -50,7 +50,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
   private val workerThreadDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread
 
   suspend fun fetchProcessList(device: AdbDevice): List<ProcessInfo> {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     // Run this in a worker thread in case the device/adb is not responsive
     val clients = device.device.clients ?: emptyArray()
@@ -95,7 +95,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
    * Kills the [process] on the [device][ProcessInfo.device]
    */
   suspend fun killProcess(process: ProcessInfo, device: IDevice) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
@@ -115,7 +115,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
    * Force stops the [process] on the [device][ProcessInfo.device]
    */
   suspend fun forceStopProcess(process: ProcessInfo, device: IDevice) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
@@ -130,7 +130,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
   }
 
   suspend fun debugProcess(project: Project, process: ProcessInfo, device: IDevice) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (process.device.serialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {

@@ -26,10 +26,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.DeviceService
 import com.android.tools.idea.device.explorer.monitor.DeviceServiceListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
+import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -74,13 +74,13 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
   }
 
   override fun addListener(listener: DeviceServiceListener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     listeners.add(listener)
   }
 
   override fun removeListener(listener: DeviceServiceListener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     listeners.remove(listener)
   }
@@ -97,7 +97,7 @@ class AdbDeviceService @NonInjectable constructor(private val adbSupplier: Suppl
   }
 
   override suspend fun start() {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
 
     if (state == State.SetupRunning || state == State.SetupDone) {
       return

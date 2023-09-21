@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SequentialTaskExecutor
+import com.intellij.util.concurrency.ThreadingAssertions
 import java.util.concurrent.Callable
 import java.util.concurrent.Future
 
@@ -129,7 +130,7 @@ class DeviceNamePropertiesFetcher @VisibleForTesting constructor(private val par
     val application = ApplicationManager.getApplication()
     if (application != null && !application.isUnitTestMode) {
       when (callBy) {
-        ThreadType.EDT -> application.assertIsDispatchThread()
+        ThreadType.EDT -> ThreadingAssertions.assertEventDispatchThread()
         ThreadType.TASK -> assert(!application.isDispatchThread) { "This operation is time consuming and must not be called on EDT" }
       }
     }

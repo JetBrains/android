@@ -30,10 +30,10 @@ import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.content.Content
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Container
@@ -161,13 +161,13 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   override fun addStateListener(listener: LayoutInspectorManager.StateListener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     updateListeners(listOf(listener))
     stateListeners.add(listener)
   }
 
   override fun enableLayoutInspector(tabId: TabId, enable: Boolean) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     if (enable) {
       if (tabsWithLayoutInspector.contains(tabId)) {
         // do nothing if Layout Inspector is already enabled
@@ -191,7 +191,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   }
 
   override fun isEnabled(tabId: TabId): Boolean {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    ThreadingAssertions.assertEventDispatchThread()
     return tabsWithLayoutInspector.contains(tabId)
   }
 

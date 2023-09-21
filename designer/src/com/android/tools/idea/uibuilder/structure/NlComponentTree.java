@@ -61,6 +61,7 @@ import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -296,7 +297,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private void updateHierarchy() {
     clearInsertionPoint();
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     myUpdateQueue.queue(new Update("updateComponentStructure") {
       @Override
       public void run() {

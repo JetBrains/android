@@ -17,9 +17,9 @@
 package org.jetbrains.android.sdk;
 
 import static com.android.SdkConstants.FN_ADB;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
-import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -55,6 +55,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -298,7 +299,7 @@ public final class AndroidSdkUtils {
 
   @Nullable
   public static AndroidDebugBridge getDebugBridge(@NotNull Project project) {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
 
     AndroidSdkData data = getProjectSdkData(project);
     if (data == null) {
