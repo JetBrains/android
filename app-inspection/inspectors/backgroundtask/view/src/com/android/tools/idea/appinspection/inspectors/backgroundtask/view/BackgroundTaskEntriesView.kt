@@ -154,6 +154,7 @@ class BackgroundTaskEntriesView(
       if (contentMode == Mode.GRAPH) {
         contentMode = Mode.TABLE
         tableView.component.requestFocusInWindow()
+        client.tracker.trackTableModeSelected()
       }
     }
 
@@ -177,6 +178,10 @@ class BackgroundTaskEntriesView(
       if (contentMode == Mode.TABLE && selectedWork != null) {
         contentMode = Mode.GRAPH
         graphView.requestFocusInWindow()
+        client.tracker.trackGraphModeSelected(
+          AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+          client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo()
+        )
       }
     }
 
@@ -233,17 +238,6 @@ class BackgroundTaskEntriesView(
     addContentModeChangedListener {
       ActivityTracker.getInstance().inc()
       cardLayout.show(contentPanel, contentMode.name)
-      when (contentMode) {
-        Mode.TABLE -> {
-          client.tracker.trackTableModeSelected()
-        }
-        Mode.GRAPH -> {
-          client.tracker.trackGraphModeSelected(
-            AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-            client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo()
-          )
-        }
-      }
       contentPanel.revalidate()
     }
   }
