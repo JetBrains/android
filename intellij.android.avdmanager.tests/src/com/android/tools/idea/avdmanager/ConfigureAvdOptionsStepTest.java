@@ -47,12 +47,14 @@ import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.NoErrorsOrWarningsLogger;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.idea.avdmanager.skincombobox.Skin;
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel;
 import com.android.tools.idea.observable.BatchInvoker;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBLabel;
@@ -60,6 +62,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import javax.swing.Icon;
@@ -71,6 +74,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class ConfigureAvdOptionsStepTest {
@@ -214,7 +218,7 @@ public final class ConfigureAvdOptionsStepTest {
     var model = new AvdOptionsModel(myQAvdInfo);
     model.device().setNullableValue(myManager.getDevice("pixel_tablet", "Google"));
 
-    var step = new ConfigureAvdOptionsStep(myRule.getProject(), model, newSkinChooser());
+    var step = new ConfigureAvdOptionsStep(myRule.getProject(), model, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), step);
 
     // Act
@@ -240,7 +244,7 @@ public final class ConfigureAvdOptionsStepTest {
   public void automotiveDevice() {
     //Device without SdCard
     AvdOptionsModel optionsModelNoSdCard = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStepNoSdCard = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModelNoSdCard, newSkinChooser());
+    var optionsStepNoSdCard = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModelNoSdCard, newSkinComboBox());
     optionsStepNoSdCard.addListeners();
     Disposer.register(myRule.getTestRootDisposable(), optionsStepNoSdCard);
     optionsModelNoSdCard.device().setNullableValue(myAutomotive);
@@ -250,8 +254,7 @@ public final class ConfigureAvdOptionsStepTest {
 
     // Device with SdCard
     AvdOptionsModel optionsModelWithSdCard = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStepWithSdCard =
-      new ConfigureAvdOptionsStep(myRule.getProject(), optionsModelWithSdCard, newSkinChooser());
+    var optionsStepWithSdCard = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModelWithSdCard, newSkinComboBox());
     optionsStepWithSdCard.addListeners();
     Disposer.register(myRule.getTestRootDisposable(), optionsStepWithSdCard);
     optionsModelWithSdCard.device().setNullableValue(myFoldable);
@@ -263,7 +266,7 @@ public final class ConfigureAvdOptionsStepTest {
   @Test
   public void foldedDevice() {
     AvdOptionsModel optionsModel = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     optionsStep.addListeners();
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsModel.device().setNullableValue(myFoldable);
@@ -275,14 +278,13 @@ public final class ConfigureAvdOptionsStepTest {
     JCheckBox box = optionsStep.getDeviceFrameCheckbox();
     assertFalse(box.isEnabled());
     assertFalse(box.isSelected());
-    SkinChooser skinChooser = optionsStep.getSkinComboBox();
-    assertFalse(skinChooser.isEnabled());
+    assertFalse(optionsStep.getSkinComboBox().isEnabled());
   }
 
   @Test
   public void desktopDevice() {
     AvdOptionsModel optionsModel = new AvdOptionsModel(myQAvdInfo);
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     optionsStep.addListeners();
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsModel.device().setNullableValue(myDesktop);
@@ -294,15 +296,14 @@ public final class ConfigureAvdOptionsStepTest {
     JCheckBox box = optionsStep.getDeviceFrameCheckbox();
     assertFalse(box.isEnabled());
     assertFalse(box.isSelected());
-    SkinChooser skinChooser = optionsStep.getSkinComboBox();
-    assertTrue(skinChooser.isEnabled());
+    assertTrue(optionsStep.getSkinComboBox().isEnabled());
   }
 
   @Test
   public void updateSystemImageData() {
     AvdOptionsModel optionsModel = new AvdOptionsModel(myMarshmallowAvdInfo);
 
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
 
     optionsStep.updateSystemImageData();
@@ -313,7 +314,7 @@ public final class ConfigureAvdOptionsStepTest {
 
     optionsModel = new AvdOptionsModel(myPreviewAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     icon = optionsStep.getSystemImageIcon();
@@ -323,7 +324,7 @@ public final class ConfigureAvdOptionsStepTest {
 
     optionsModel = new AvdOptionsModel(myZuluAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     assertEquals("Android API 99 x86", optionsStep.getSystemImageDetailsText());
@@ -334,7 +335,7 @@ public final class ConfigureAvdOptionsStepTest {
 
     optionsModel = new AvdOptionsModel(myExtensionsAvdInfo);
 
-    optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
     optionsStep.updateSystemImageData();
     assertEquals("Android 12L x86 (Extension Level 3)", optionsStep.getSystemImageDetailsText());
@@ -347,7 +348,7 @@ public final class ConfigureAvdOptionsStepTest {
       new AvdInfo("snapAvd", Paths.get("ini"), snapAvdDir, mySnapshotSystemImage, myPropertiesMap);
     AvdOptionsModel optionsModel = new AvdOptionsModel(snapshotAvdInfo);
 
-    ConfigureAvdOptionsStep optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinChooser());
+    var optionsStep = new ConfigureAvdOptionsStep(myRule.getProject(), optionsModel, newSkinComboBox());
     Disposer.register(myRule.getTestRootDisposable(), optionsStep);
 
     Path snapshotDir = snapAvdDir.resolve("snapshots");
@@ -398,7 +399,11 @@ public final class ConfigureAvdOptionsStepTest {
     assertEquals(List.of("snapSelected", "snapOldest", "snapNewest"), optionsStep.getSnapshotNamesList("snapSelected"));
   }
 
-  private @NotNull SkinChooser newSkinChooser() {
-    return new SkinChooser(myRule.getProject(), () -> Futures.immediateFuture(List.of()), MoreExecutors.directExecutor());
+  @NotNull
+  private SkinComboBox newSkinComboBox() {
+    @SuppressWarnings("unchecked")
+    var callback = (FutureCallback<Collection<Skin>>)Mockito.mock(FutureCallback.class);
+
+    return new SkinComboBox(myRule.getProject(), new SkinComboBoxModel(List::of, model -> callback));
   }
 }

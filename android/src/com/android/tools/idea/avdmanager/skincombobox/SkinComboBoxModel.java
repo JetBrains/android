@@ -33,7 +33,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.MutableComboBoxModel;
 import org.jetbrains.annotations.NotNull;
 
-final class SkinComboBoxModel extends AbstractListModel<Skin> implements MutableComboBoxModel<Skin> {
+public final class SkinComboBoxModel extends AbstractListModel<Skin> implements MutableComboBoxModel<Skin> {
   @NotNull
   private List<Skin> mySkins;
 
@@ -56,8 +56,8 @@ final class SkinComboBoxModel extends AbstractListModel<Skin> implements Mutable
   }
 
   @VisibleForTesting
-  SkinComboBoxModel(@NotNull Callable<Collection<Skin>> collect,
-                    @NotNull Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> newMerge) {
+  public SkinComboBoxModel(@NotNull Callable<Collection<Skin>> collect,
+                           @NotNull Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> newMerge) {
     this(List.of(NoSkin.INSTANCE), collect, newMerge);
   }
 

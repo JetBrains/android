@@ -39,6 +39,7 @@ import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
@@ -58,13 +59,10 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.ui.deprecated.StudioWizardStepPanel;
-import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingProcessHandler;
@@ -88,10 +86,10 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.JBUI;
 import icons.AndroidIcons;
 import icons.StudioIcons;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
@@ -170,7 +168,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JComboBox<Integer> myCoreCount;
   private JComboBox<AvdNetworkSpeed> mySpeedCombo;
   private JComboBox<AvdNetworkLatency> myLatencyCombo;
-  private SkinChooser mySkinComboBox;
+  private SkinComboBox mySkinComboBox;
   private JComboBox<AvdCamera> myBackCameraCombo;
   private JComboBox<AvdCamera> myFrontCameraCombo;
   private JCheckBox myQemu2CheckBox;
@@ -261,11 +259,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ArrayList<SnapshotListItem> mySnapshotList;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
-    this(project, model, new SkinChooser(project, true));
+    this(project, model, new SkinComboBox(project));
   }
 
   @VisibleForTesting
-  ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model, @NotNull SkinChooser skinComboBox) {
+  ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model, @NotNull SkinComboBox skinComboBox) {
     super(model, "Android Virtual Device (AVD)");
     myModel = model;
     initSkinComboBox(skinComboBox);
@@ -301,24 +299,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myLatencyCombo.setModel(new DefaultComboBoxModel<>(AvdNetworkLatency.values()));
   }
 
-  private void initSkinComboBox(@NotNull SkinChooser skinComboBox) {
-    OptionalProperty<File> optionalSkin = myModel.getAvdDeviceData().customSkinFile();
-    File skin = optionalSkin.getValueOrNull();
-
-    FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(skinComboBox, skin) {
-      @Override
-      public void onSuccess(@NotNull List<File> skins) {
-        super.onSuccess(skins);
-
-        if (skin != null) {
-          optionalSkin.setValue(skin);
-        }
-
-        skinComboBox.setEnabled(true);
-      }
-    };
-
-    Futures.addCallback(skinComboBox.loadSkins(), callback, EdtExecutorService.getInstance());
+  private void initSkinComboBox(@NotNull SkinComboBox skinComboBox) {
+    skinComboBox.load();
     mySkinComboBox = skinComboBox;
 
     GridConstraints constraints = new GridConstraints();
@@ -668,9 +650,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       ObservableOptional<SystemImageDescription> systemImageProperty = model.systemImage();
       Optional<File> optionalCustomSkinFile = customSkinFileProperty.get();
 
-      if (systemImageProperty.get().isPresent() &&
-          optionalCustomSkinFile.isPresent() &&
-          !FileUtils.isSameFile(optionalCustomSkinFile.get(), SkinChooser.LOADING_SKINS)) {
+      if (systemImageProperty.get().isPresent() && optionalCustomSkinFile.isPresent()) {
         File skin = AvdWizardUtils.pathToUpdatedSkins(customSkinFileProperty.getValue().toPath(), systemImageProperty.getValue());
         customSkinFileProperty.setValue(skin);
         myDeviceFrameCheckbox.setSelected(!FileUtil.filesEqual(skin, AvdWizardUtils.NO_SKIN));
@@ -760,7 +740,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   @VisibleForTesting
-  SkinChooser getSkinComboBox() {
+  @NotNull
+  Component getSkinComboBox() {
     return mySkinComboBox;
   }
 
@@ -974,7 +955,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
     myBindings.bindTwoWay(new SelectedProperty(myChooseBootRadioButton), getModel().useChosenSnapshotBoot());
 
-    myBindings.bindTwoWay(new SelectedItemProperty<>(mySkinComboBox.getComboBox()), getModel().getAvdDeviceData().customSkinFile());
+    myBindings.bindTwoWay(new CustomSkinDefinition(mySkinComboBox), getModel().getAvdDeviceData().customSkinFile());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myChosenSnapshotComboBox), getModel().getAvdDeviceData().selectedSnapshotFile());
     myOrientationToggle.addListSelectionListener(event -> {
       var orientation = Objects.requireNonNullElse(myOrientationToggle.getSelectedElement(), ScreenOrientation.PORTRAIT);
@@ -1385,7 +1366,6 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myDeviceFrameCheckbox.setEnabled(shouldEnableDeviceFrameCheckbox());
 
     if (customSkin != null) {
-      mySkinComboBox.getComboBox().setSelectedItem(customSkin);
       getModel().getAvdDeviceData().customSkinFile().setValue(customSkin);
     }
 

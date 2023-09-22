@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager.skincombobox;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import java.nio.file.Path;
@@ -26,7 +27,8 @@ public final class SkinComboBox extends ComboBox<Skin> {
     this(project, new SkinComboBoxModel());
   }
 
-  private SkinComboBox(@Nullable Project project, @NotNull SkinComboBoxModel model) {
+  @VisibleForTesting
+  public SkinComboBox(@Nullable Project project, @NotNull SkinComboBoxModel model) {
     super(model);
 
     setEditable(true);
