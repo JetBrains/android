@@ -83,11 +83,11 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   private ComboBox<IdDisplay> myDeviceTypeComboBox;
   private JTextField myDiagonalScreenSize;
   private StorageField myRamField;
-  private JComboBox myNavigationControlsCombo;
+  private JComboBox<Navigation> myNavigationControlsCombo;
   private TooltipLabel myHelpAndErrorLabel;
   private JCheckBox myIsScreenRound;
   private JBScrollPane myScrollPane;
-  private StringToDoubleAdapterProperty myDiagScreenSizeAdapter;
+  private StringToDoubleAdapterProperty myDiagonalScreenSizeAdapter;
   private StringToIntAdapterProperty myScreenResWidthAdapter;
   private StringToIntAdapterProperty myScreenResHeightAdapter;
 
@@ -140,7 +140,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
 
     myHelpAndErrorLabel.setBorder(BorderFactory.createEmptyBorder(15, 15, 10, 10));
 
-    myDiagScreenSizeAdapter = new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
+    myDiagonalScreenSizeAdapter = new StringToDoubleAdapterProperty(new TextProperty(myDiagonalScreenSize), 1, 2);
     myScreenResWidthAdapter = new StringToIntAdapterProperty(new TextProperty(myScreenResolutionWidth));
     myScreenResHeightAdapter = new StringToIntAdapterProperty(new TextProperty(myScreenResolutionHeight));
 
@@ -150,7 +150,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   @Override
   protected void onEntering() {
     final AvdDeviceData deviceModel = getModel().getDeviceData();
-    myDiagScreenSizeAdapter.set(deviceModel.diagonalScreenSize());
+    myDiagonalScreenSizeAdapter.set(deviceModel.diagonalScreenSize());
     myScreenResWidthAdapter.set(deviceModel.screenResolutionWidth());
     myScreenResHeightAdapter.set(deviceModel.screenResolutionHeight());
   }
@@ -166,7 +166,8 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     if (isRound) {
       myScreenResHeightAdapter.set(myScreenResWidthAdapter.get());
       myListeners.listen(myScreenResWidthAdapter, width -> myScreenResHeightAdapter.set(width));
-    } else {
+    }
+    else {
       myListeners.release((ObservableValue<?>)myScreenResWidthAdapter);
     }
   }
@@ -175,7 +176,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     final AvdDeviceData deviceModel = getModel().getDeviceData();
     myBindings.bindTwoWay(new TextProperty(myDeviceName), deviceModel.name());
 
-    myBindings.bind(deviceModel.diagonalScreenSize(), myDiagScreenSizeAdapter);
+    myBindings.bind(deviceModel.diagonalScreenSize(), myDiagonalScreenSizeAdapter);
     myBindings.bind(deviceModel.screenResolutionWidth(), myScreenResWidthAdapter);
     myBindings.bind(deviceModel.screenResolutionHeight(), myScreenResHeightAdapter);
 
@@ -224,7 +225,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
                                   "Please write a name for the new device.");
 
     myValidatorPanel.registerTest(
-      myDiagScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagScreenSizeAdapter)),
+      myDiagonalScreenSizeAdapter.inSync().and(deviceModel.diagonalScreenSize().isEqualTo(myDiagonalScreenSizeAdapter)),
       "Please enter a non-zero positive floating point value for the screen size.");
 
     myValidatorPanel.registerTest(
@@ -251,7 +252,7 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
   }
 
   private void createUIComponents() {
-    myNavigationControlsCombo = new ComboBox(new EnumComboBoxModel<>(Navigation.class));
+    myNavigationControlsCombo = new ComboBox<>(new EnumComboBoxModel<>(Navigation.class));
     myNavigationControlsCombo.setRenderer(SimpleListCellRenderer.create("", Navigation::getShortDisplayValue));
 
     myHardwareSkinHelpLabel = new BrowserLink("How do I create a custom hardware skin?", AvdWizardUtils.CREATE_SKIN_HELP_LINK);
