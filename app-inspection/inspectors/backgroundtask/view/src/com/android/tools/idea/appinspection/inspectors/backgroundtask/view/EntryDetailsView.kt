@@ -467,7 +467,7 @@ class EntryDetailsView(
             else -> null
           }
         }
-      // Layout the stack trace views in a vertical layout so they can have the same width.
+      // Layout the stack trace views in a vertical layout, so they can have the same width.
       val containerPanel = JPanel(VerticalLayout(6))
       stackTraceComponents.forEach { containerPanel.add(it) }
       add(buildCategoryPanel("Callstacks", listOf(containerPanel)))

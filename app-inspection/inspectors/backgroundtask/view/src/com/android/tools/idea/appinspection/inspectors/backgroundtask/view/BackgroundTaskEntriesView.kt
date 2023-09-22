@@ -30,6 +30,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -74,6 +75,8 @@ class BackgroundTaskEntriesView(
       AllIcons.Actions.Suspend
     ) {
 
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = selectionModel.selectedWork?.state?.isFinished() == false
     }
@@ -98,6 +101,8 @@ class BackgroundTaskEntriesView(
       null
     ) {
     private var selectedTag: String? = null
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(event: AnActionEvent) {
       if (selectedTag != tableView.treeModel.filterTag) {
@@ -128,6 +133,9 @@ class BackgroundTaskEntriesView(
   /** ToggleAction that filters works with a specific [tag]. */
   private inner class FilterWithTagToggleAction(private val tag: String?) :
     ToggleAction(tag ?: "All tags") {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return tag == tableView.treeModel.filterTag
     }
@@ -139,6 +147,8 @@ class BackgroundTaskEntriesView(
 
   private inner class TableViewAction :
     AnAction(BackgroundTaskInspectorBundle.message("action.show.list"), "", AllIcons.Graph.Grid) {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       if (contentMode == Mode.GRAPH) {
@@ -159,6 +169,8 @@ class BackgroundTaskEntriesView(
       "",
       AllIcons.Graph.Layout
     ) {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       val selectedWork = selectionModel.selectedEntry
@@ -251,7 +263,7 @@ class BackgroundTaskEntriesView(
       }
     val leftToolbar =
       ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
-    leftToolbar.setTargetComponent(this)
+    leftToolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
     toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
 
@@ -262,14 +274,14 @@ class BackgroundTaskEntriesView(
       }
     val rightToolbar =
       ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
-    rightToolbar.setTargetComponent(this)
+    rightToolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(rightToolbar)
     toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
 
     return toolbarPanel
   }
 
-  /** @return a list of actions from the drop down menu that filter works with a tag. */
+  /** @return a list of actions from the drop-down menu that filter works with a tag. */
   @TestOnly
   fun getFilterActionList(): List<ToggleAction> {
     val toolbar =

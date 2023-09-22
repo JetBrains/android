@@ -18,9 +18,6 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.view
 import com.intellij.ui.JBColor
 
 object BackgroundTaskInspectorColors {
-  // Table View
-  @JvmField val ENTRY_SECTION_BACKGROUND_COLOR = JBColor(0xF2F2F2, 0x2B2B2B)
-
   // Details View
   val DATA_VALUE_TEXT_COLOR = JBColor(0x58AB5C, 0x65BB69)
   val DATA_TEXT_NULL_COLOR = JBColor(0x0033B3, 0xCC7832)
