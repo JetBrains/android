@@ -109,7 +109,6 @@ class DesignerCommonIssuePanel(
         if (SELECTED_ISSUES.`is`(dataId)) {
           return when (node) {
             is IssuedFileNode -> node.getChildren().map { it.issue }.toList()
-            is NoFileNode -> node.getChildren().map { it.issue }.toList()
             is IssueNode -> listOf(node.issue)
             is NavigatableFileNode -> listOfNotNull((node.parentDescriptor as? IssueNode)?.issue)
             else -> emptyList()

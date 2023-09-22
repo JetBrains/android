@@ -252,7 +252,7 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<NoFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(noFileIssue, visualLintIssue), context.getData(SELECTED_ISSUES))
+      assertEquals(emptyList<Issue>(), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
