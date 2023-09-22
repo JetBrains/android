@@ -63,25 +63,12 @@ class AndroidStudioHelpTest : AndroidTestCase() {
       lastUrl = url
     }
 
-    override fun browse(file: File) {
-    }
+    override fun browse(file: File) { }
 
-    override fun browse(file: Path) {
-    }
+    override fun browse(file: Path) { }
 
     override fun browse(url: String, browser: WebBrowser?, project: Project?) {
       lastUrl = url
-    }
-
-    override fun browseUsingPath(
-      url: String?,
-      browserPath: String?,
-      browser: WebBrowser?,
-      project: Project?,
-      openInNewWindow: Boolean,
-      additionalParameters: Array<String>
-    ): Boolean {
-      return false
     }
   }
 }
