@@ -296,6 +296,11 @@
                  defaultValue="false"
                  restartRequired="false"/>
 
+    <registryKey key="profiler.trace.open.mode.web"
+                 description="Opens Perfetto traces in http://ui.perfetto.dev (in the browser) as opposed to the Profiler UI"
+                 defaultValue="false"
+                 restartRequired="true"/>
+
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
               fieldName="INSTANCE"

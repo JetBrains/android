@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
@@ -38,6 +39,7 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.transporteventutils.TransportUtils;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -77,6 +79,11 @@ public class CpuProfiler implements StudioProfiler {
       captureStage -> {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
+        }
+        else if (captureStage == null && Registry.is("profiler.trace.open.mode.web", false)) {
+          // special case when [PerfettoTraceWebLoader] had intercepted [captureStage] creation and opened the trace in the browser
+          // TODO(297379481): add verification that the trace was successfully loaded by [PerfettoTraceWebLoader]
+          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(new NullMonitorStage(profilers)));
         }
         else {
           profilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);

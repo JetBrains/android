@@ -48,6 +48,8 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.FramesAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
+import com.android.tools.profilers.cpu.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
@@ -86,6 +88,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -228,6 +231,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (captureFile == null) {
       return null;
     }
+
+    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
+    if (Registry.is("profiler.trace.open.mode.web", false)) {
+      var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
+      if (traceType == TraceType.PERFETTO) {
+        PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile);
+        return null; // prevent Profiler UI from opening the trace
+      }
+    }
+
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
     return new CpuCaptureStage(profilers, configuration, entryPoint, captureFile, traceId, captureProcessNameHint,
                                profilers.getSession().getPid());
