@@ -129,8 +129,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   }
 
   @Override
-  public boolean getSupportsPrivacySandbox() {
-    return getVersion().isGreaterOrEqualThan(33, 4);
+  public boolean getSupportsSdkRuntime() {
+    return getVersion().isGreaterOrEqualThan(34);
   }
 
   @NotNull

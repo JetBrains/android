@@ -46,11 +46,11 @@ data class AndroidDeviceSpecImpl @JvmOverloads constructor (
   override val minVersion: AndroidVersion?,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
-  val supportsPrivacySandboxSdkProvider: () -> Boolean = { false },
+  val supportsSdkRuntimeProvider: () -> Boolean = { false },
   override val deviceSerials: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() }
 ) : AndroidDeviceSpec {
-  override val supportsPrivacySandbox: Boolean get() = supportsPrivacySandboxSdkProvider()
+  override val supportsSdkRuntime: Boolean get() = supportsSdkRuntimeProvider()
   override val languages: List<String> get() = languagesProvider()
 }
 
@@ -105,8 +105,8 @@ fun createSpec(
   }
 
   val deviceSerials = devices.map { it.serial }
-  val allDevicesSupportPrivacySandbox =  devices.all { it.supportsPrivacySandbox }
-  if (allDevicesSupportPrivacySandbox) {
+  val allDevicesSupportSdkRuntime =  devices.all { it.supportsSdkRuntime }
+  if (allDevicesSupportSdkRuntime) {
     log.info("Creating spec for privacy sandbox enabled device.")
   } else {
     log.info("Creating spec for device without privacy sandbox support.")
@@ -114,7 +114,7 @@ fun createSpec(
 
   return AndroidDeviceSpecImpl(
     version, minVersion, density, abis,
-    supportsPrivacySandboxSdkProvider = { allDevicesSupportPrivacySandbox },
+    supportsSdkRuntimeProvider = { allDevicesSupportSdkRuntime },
     languagesProvider = { combineDeviceLanguages(devices, timeout, unit) },
     deviceSerials = deviceSerials
   )
@@ -192,11 +192,11 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
       }
       writer.endArray()
     }
-    if (supportsPrivacySandbox) {
+    if (supportsSdkRuntime) {
       writer.name("sdk_runtime")
         .beginObject()
         .name("supported")
-        .value(supportsPrivacySandbox)
+        .value(supportsSdkRuntime)
         .endObject()
     }
     if (writeLanguages) {
@@ -219,7 +219,9 @@ fun IDevice.createSpec(): AndroidDeviceSpec {
     version,
     Density.create(density),
     abis,
-    supportsPrivacySandboxSdkProvider =  { services().containsKey("sdk_sandbox") },
+    supportsSdkRuntimeProvider =  {
+      services().containsKey("sdk_sandbox") && version.isGreaterOrEqualThan(34)
+    },
     languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
   )
 }

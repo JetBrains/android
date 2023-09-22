@@ -211,7 +211,8 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
       .getApks(
         emptyList(),
         AndroidVersion(30),
-        this.supportsProfilingMode(),
+        false,
+        false,
         androidModel,
         androidModel.selectedVariant,
         when (assembleResult.buildMode) {

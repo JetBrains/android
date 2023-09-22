@@ -649,7 +649,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
-        device = AndroidVersion(21)
+        device = AndroidVersion(24)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
@@ -670,14 +670,29 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
-         ApplicationId: com.myrbsdk_10000
-         Files:
-            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
-         RequiredInstallationOptions: []
-
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+        viaBundle = true,
+        device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+           base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+           commyrbsdk -> project/app/build/intermediates/extracted_apks/debug/commyrbsdk-master.apk
          RequiredInstallationOptions: []
       """.trimIndent())
     ),
@@ -686,7 +701,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
-        device = AndroidVersion(21)
+        device = AndroidVersion(24)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
@@ -708,14 +723,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
-         ApplicationId: com.myrbsdk_10000
-         Files:
-            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
-         RequiredInstallationOptions: []
-
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
            project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
          RequiredInstallationOptions: []
       """.trimIndent())
@@ -737,7 +749,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        viaBundle = true,
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         device = AndroidVersion(33)
@@ -746,17 +757,34 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
-           base -> project/app/build/intermediates/extracted_apks/debug/base-master_2.apk
-           base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
-           comexamplerubidumconsumer-injected-privacy-sandbox -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
-           commyrbsdk -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+           project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
          RequiredInstallationOptions: []
       """.trimIndent())
     ),
     def(
       stackMarker = { it() },
       TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         viaBundle = true,
+        device = AndroidVersion(33),
+      ),
+      // [DELETE_BEFORE_MERGING] Once bundletool 1.15.5 is checked in this test will pass.
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+           base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+           commyrbsdk -> project/app/build/intermediates/extracted_apks/debug/commyrbsdk-master.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
         device = AndroidVersion(33)
@@ -765,11 +793,92 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
-           base -> project/app-with-dynamic-feature/build/intermediates/extracted_apks/debug/base-master_2.apk
-           base -> project/app-with-dynamic-feature/build/intermediates/extracted_apks/debug/base-mdpi.apk
-           feature -> project/app-with-dynamic-feature/build/intermediates/extracted_apks/debug/feature-master.apk
-           comexamplerubidumconsumer-injected-privacy-sandbox -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
-           commyrbsdk -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/comexamplerubidumconsumer-injected-privacy-sandbox-compat.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+           project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+        device = AndroidVersion(34)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
+        device = AndroidVersion(34)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
+           project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+        device = AndroidVersion(34, "UpsideDownCakePrivacySandbox", 4, true)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
+        device = AndroidVersion(34, "UpsideDownCakePrivacySandbox", 4, true)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
+           project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
          RequiredInstallationOptions: []
       """.trimIndent())
     ),

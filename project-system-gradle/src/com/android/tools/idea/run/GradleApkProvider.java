@@ -156,19 +156,28 @@ public final class GradleApkProvider implements ApkProvider {
       return Collections.emptyList();
     }
 
-    boolean supportsPrivacySandbox = device.services().containsKey("sdk_sandbox");
+    boolean supportsPrivacySandbox = supportsPrivacySandbox(device);
+    boolean supportsSdkRuntime = supportsSdkRuntime(device, supportsPrivacySandbox);
 
     return getApks(
       device.getAbis(),
       device.getVersion(),
       supportsPrivacySandbox,
+      supportsSdkRuntime,
       androidModel,
-      androidModel.getSelectedVariant(),
-      getOutputKind(
+      androidModel.getSelectedVariant(), getOutputKind(
         myFacet.getModule(),
         myAlwaysDeployApkFromBundle,
         myTest,
         device.getVersion()));
+  }
+
+  private static boolean supportsPrivacySandbox(@NotNull IDevice device) {
+    return device.getVersion().isGreaterOrEqualThan(34);
+  }
+
+  private static boolean supportsSdkRuntime(@NotNull IDevice device, @NotNull boolean supportsPrivacySandbox) {
+    return supportsPrivacySandbox && device.services().containsKey("sdk_sandbox");
   }
 
   @NotNull
@@ -176,6 +185,7 @@ public final class GradleApkProvider implements ApkProvider {
     @NotNull List<String> deviceAbis,
     @NotNull AndroidVersion deviceVersion,
     @NotNull boolean deviceSupportsPrivacySandbox,
+    @NotNull boolean deviceSupportsSdkRuntime,
     @NotNull GradleAndroidModel androidModel,
     @NotNull IdeVariant variant,
     @NotNull OutputKind outputKind)
@@ -221,7 +231,7 @@ public final class GradleApkProvider implements ApkProvider {
                   variant.getMainArtifact().getAbiFilters(),
                   deviceAbis));
             }
-            else {
+            if (!deviceSupportsSdkRuntime) {
               // Legacy Privacy Sandbox APKs need to be installed together and with
               // the base APK.
               apkFileList.addAll(
@@ -264,14 +274,11 @@ public final class GradleApkProvider implements ApkProvider {
                     deviceAbis));
               }
 
-              ApkInfo apkInfo =
-                collectAppBundleOutput(
+              ApkInfo apkInfo = collectAppBundleOutput(
                   baseAndroidModel,
                   baseAppModule,
                   myOutputModelProvider,
-                  pkgName,
-                  deviceAbis,
-                  deviceSupportsPrivacySandbox);
+                  pkgName);
               if (apkInfo != null) {
                 apkList.add(apkInfo);
               }
@@ -671,10 +678,7 @@ public final class GradleApkProvider implements ApkProvider {
     @NotNull GradleAndroidModel androidModel,
     @NotNull Module module,
     @NotNull PostBuildModelProvider outputModelProvider,
-    @NotNull String pkgName,
-    List<String> deviceAbis,
-    boolean supportPrivacySandboxCompat)
-    throws ApkProvisionException {
+    @NotNull String pkgName) {
     List<File> apkFiles;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       String outputListingFile = BuildOutputUtil
@@ -692,20 +696,7 @@ public final class GradleApkProvider implements ApkProvider {
       getLogger().warn("Could not find apk files.");
       return null;
     }
-
     // List all files in the folder
-
-    if (!supportPrivacySandboxCompat && androidModel.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-      apkFiles.addAll(
-        getApksFromLegacyPrivacySandboxSdks(
-          androidModel.getModuleName(),
-          androidModel
-            .getMainArtifact()
-            .getPrivacySandboxSdkInfo()
-            .getOutputListingLegacyFile()
-            .getAbsoluteFile()
-        ).stream().map(ApkFileUnit::getApkFile).toList());
-    }
 
     List<ApkFileUnit> apks =
       apkFiles.stream()

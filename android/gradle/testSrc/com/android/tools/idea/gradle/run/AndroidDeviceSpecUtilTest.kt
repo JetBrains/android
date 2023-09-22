@@ -160,7 +160,7 @@ class AndroidDeviceSpecUtilTest {
     assertThat(myFile!!.readText()).isEqualTo(
       "{\"sdk_version\":33,\"screen_density\":640,\"supported_abis\":[\"x86_64\"],\"sdk_runtime\":{\"supported\":true},\"supported_locales\":[\"es\",\"fr\"]}")
     val privacySandboxSupportedDeviceSpec = createSpec(listOf(privacySandboxSupportedDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)
-    assertThat(privacySandboxSupportedDeviceSpec!!.supportsPrivacySandbox).isTrue()
+    assertThat(privacySandboxSupportedDeviceSpec!!.supportsSdkRuntime).isTrue()
   }
 
   @Test
@@ -172,7 +172,7 @@ class AndroidDeviceSpecUtilTest {
     val unSupportedPrivacySandboxDevice = mockDevice(version33, Density.XXXHIGH, listOf(Abi.X86_64), supportsPrivacySandbox = false)
 
     val deviceSpec = createSpec(listOf(supportedPrivacySandboxDevice, unSupportedPrivacySandboxDevice))
-    assertThat(deviceSpec!!.supportsPrivacySandbox).isFalse()
+    assertThat(deviceSpec!!.supportsSdkRuntime).isFalse()
   }
 
   @Test
@@ -244,7 +244,7 @@ class AndroidDeviceSpecUtilTest {
     whenever(device.density).thenReturn(density.dpiValue)
     whenever(device.abis).thenReturn(abis)
     whenever(device.supportsMultipleScreenFormats()).thenReturn(resizeable)
-    whenever(device.supportsPrivacySandbox).thenReturn(supportsPrivacySandbox)
+    whenever(device.supportsSdkRuntime).thenReturn(supportsPrivacySandbox)
     val launchedDevice = mock(IDevice::class.java)
     whenever(launchedDevice.version).thenReturn(version)
     if (config.isNotEmpty()) {

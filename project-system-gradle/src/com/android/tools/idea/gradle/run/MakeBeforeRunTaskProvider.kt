@@ -379,7 +379,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           properties.add(injectedProperty)
         }
         if (configuration.supportsPrivacySandbox) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, deviceSpec.supportsPrivacySandbox))
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, deviceSpec.supportsSdkRuntime))
         }
       }
       return properties
