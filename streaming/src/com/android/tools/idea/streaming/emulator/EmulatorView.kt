@@ -190,7 +190,7 @@ class EmulatorView(
   displayId: Int,
   private val displaySize: Dimension?,
   deviceFrameVisible: Boolean
-) : AbstractDisplayView(displayId), ConnectionStateListener, Disposable {
+) : AbstractDisplayView(displayId), ConnectionStateListener {
 
   override var displayOrientationQuadrants: Int
     get() = screenshotShape.orientation

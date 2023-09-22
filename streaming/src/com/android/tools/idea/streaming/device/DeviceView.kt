@@ -132,7 +132,7 @@ internal class DeviceView(
   displayId: Int,
   private val initialDisplayOrientation: Int,
   private val project: Project,
-) : AbstractDisplayView(displayId), Disposable, DeviceMirroringSettingsListener {
+) : AbstractDisplayView(displayId), DeviceMirroringSettingsListener {
 
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
