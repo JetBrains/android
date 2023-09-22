@@ -176,7 +176,7 @@
     <action id="AndroidFindStyleApplicationsAction" class="org.jetbrains.android.refactoring.AndroidFindStyleApplicationsAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction">
+    <action id="Android.AddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
