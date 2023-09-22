@@ -32,7 +32,7 @@ public final class DeployTargetContextTest {
 
   @Before
   public void initProviders() {
-    myDeviceAndSnapshotComboBoxTargetProvider = new DeviceAndSnapshotComboBoxTargetProvider();
+    myDeviceAndSnapshotComboBoxTargetProvider = DeviceAndSnapshotComboBoxTargetProvider.getInstance();
     myCloudTestMatrixTargetProvider = new CloudTestMatrixTargetProvider();
   }
 

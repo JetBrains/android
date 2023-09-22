@@ -96,7 +96,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   }
 
   private fun getExecutor(environment: ExecutionEnvironment): AndroidConfigurationExecutor {
-    val provider = DeviceAndSnapshotComboBoxTargetProvider()
+    val provider = DeviceAndSnapshotComboBoxTargetProvider.getInstance()
     val deployTarget = if (provider.requiresRuntimePrompt(project)) {
       invokeAndWaitIfNeeded { provider.showPrompt(project) }
     } else {

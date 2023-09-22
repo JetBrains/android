@@ -173,7 +173,7 @@ class AndroidRunConfigurationEditorTest {
   }
 
   fun getTargetProviders(provider: DeployTargetProvider): List<DeployTargetProvider> {
-    return listOf(DeviceAndSnapshotComboBoxTargetProvider(), provider)
+    return listOf(DeviceAndSnapshotComboBoxTargetProvider.getInstance(), provider)
   }
 
   fun getAndroidRunConfigurationEditor(provider: DeployTargetProvider,

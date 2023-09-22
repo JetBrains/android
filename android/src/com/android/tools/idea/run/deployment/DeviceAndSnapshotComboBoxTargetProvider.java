@@ -39,11 +39,15 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @NotNull
   private final Supplier<DeployTarget> myNewDeviceAndSnapshotComboBoxTarget;
 
-  // TODO This should not be used in tests
-  public DeviceAndSnapshotComboBoxTargetProvider() {
+  private DeviceAndSnapshotComboBoxTargetProvider() {
     this(DeviceAndSnapshotComboBoxAction::getInstance,
          SelectedDevicesErrorDialog::new,
          () -> new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance()::getSelectedTargets));
+  }
+
+  // TODO This should not be used in tests
+  public static DeviceAndSnapshotComboBoxTargetProvider getInstance() {
+    return new DeviceAndSnapshotComboBoxTargetProvider();
   }
 
   @VisibleForTesting
@@ -119,6 +123,10 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @Override
   public DeployTarget getDeployTarget(@NotNull Project project) {
     return myNewDeviceAndSnapshotComboBoxTarget.get();
+  }
+
+  public int getNumberOfSelectedDevices(@NotNull Project project) {
+    return myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(project).size();
   }
 
   @Override

@@ -188,14 +188,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     setActiveExecutionTarget(project, Collections.singleton(target));
   }
 
-  public boolean isMultipleTargetsSelectedInComboBox(@NotNull Project project) {
-    return myDevicesSelectedServiceGetInstance.apply(project).isMultipleDevicesSelectedInComboBox();
-  }
-
-  public int getNumberOfSelectedDevices(@NotNull Project project) {
-    return getSelectedDevices(project).size();
-  }
-
   @NotNull
   List<Device> getSelectedDevices(@NotNull Project project) {
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
