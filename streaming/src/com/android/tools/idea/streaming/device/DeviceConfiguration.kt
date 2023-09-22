@@ -18,7 +18,6 @@ package com.android.tools.idea.streaming.device
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Characteristics of a mirrored Android device.
@@ -58,7 +57,7 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
     if (!model.startsWith("Pixel")) {
       val manufacturer = manufacturer
       if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-        name.append(StringUtil.capitalize(manufacturer)).append(' ')
+        name.append(manufacturer).append(' ')
       }
     }
     name.append(model)
