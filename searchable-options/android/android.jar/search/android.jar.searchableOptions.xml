@@ -336,8 +336,6 @@
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
-    <option name="check-in" path="ActionManager" hit="Force Check-in" />
-    <option name="force" path="ActionManager" hit="Force Check-in" />
     <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
@@ -713,6 +711,10 @@
     <option name="logcat" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="monitoring" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="restart" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="and" path="ActionManager" hit="Return and Erase Device" />
+    <option name="device" path="ActionManager" hit="Return and Erase Device" />
+    <option name="erase" path="ActionManager" hit="Return and Erase Device" />
+    <option name="return" path="ActionManager" hit="Return and Erase Device" />
     <option name="left" path="ActionManager" hit="Rotate Left" />
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />
