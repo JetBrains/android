@@ -545,7 +545,7 @@ class ComposePreviewRepresentation(
     }
 
   override var isUiCheckFilterEnabled: Boolean by
-    Delegates.observable(false) { _, oldValue, newValue ->
+    Delegates.observable(true) { _, oldValue, newValue ->
       if (oldValue == newValue) return@observable
       launch(uiThread) {
         if (newValue) {
