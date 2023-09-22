@@ -25,6 +25,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.AarTestUtils;
 import com.android.testutils.TestUtils;
 import com.android.tools.apk.analyzer.ResourceIdResolver;
+import com.android.tools.res.apk.ApkTestUtil;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import org.junit.Test;
@@ -61,7 +62,7 @@ public class FileResourceReaderTest {
 
   @Test
   public void testReadBytes_forBinaryEncodedApkEntries() throws Exception {
-    Path resApkPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/apk_resources/apk-for-local-test.ap_");
+    Path resApkPath = TestUtils.resolveWorkspacePath(ApkTestUtil.TEST_DATA_DIR + "apk-for-local-test.ap_");
     String resourcePath = resApkPath + "!/res/drawable-anydpi-v24/ic_placeholder_default.xml";
     PathString pathString = new PathString("apk", resourcePath);
 

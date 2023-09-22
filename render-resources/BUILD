@@ -50,6 +50,7 @@ iml_module(
     iml_files = ["intellij.android.render-resources.tests.iml"],
     # keep sorted
     test_data = [
+        "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],
     test_srcs = ["testSrc"],
@@ -76,6 +77,7 @@ kotlin_test(
     ]),
     # keep sorted
     data = [
+        "//tools/adt/idea/render-resources/testData",
         "//tools/base/resource-repository/test/resources",
     ],
     jvm_flags = ["-Dtest.suite.jar=tools.render-resources.tests.jar"],
