@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.settings.STUDIO_RELEASE_NOTES_EMBE
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -68,6 +69,10 @@ class ToggleLayoutInspectorAction :
     val deviceId = DEVICE_ID_KEY.getData(e.dataContext) ?: return
 
     LayoutInspectorManager.getInstance(project).enableLayoutInspector(deviceId, state)
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.EDT
   }
 
   override fun update(e: AnActionEvent) {
