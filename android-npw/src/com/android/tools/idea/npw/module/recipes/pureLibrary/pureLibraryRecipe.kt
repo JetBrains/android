@@ -58,6 +58,4 @@ fun RecipeExecutor.generatePureLibrary(
     addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.api)
     applyPlugin("org.jetbrains.kotlin.jvm", projectData.kotlinVersion)
   }
-
-  createDirectory(moduleOut.resolve(LIBS_FOLDER))
 }

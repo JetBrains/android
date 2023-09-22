@@ -279,8 +279,3 @@ fun RecipeExecutor.addTestDependencies() {
   addDependency("com.android.support.test:runner:+", "androidTestCompile")
   addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
 }
-
-fun RecipeExecutor.createDefaultDirectories(moduleOut: File, srcOut: File) {
-  createDirectory(srcOut)
-  createDirectory(moduleOut.resolve("libs"))
-}
