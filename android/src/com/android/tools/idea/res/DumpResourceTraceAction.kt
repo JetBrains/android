@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ex.ApplicationInfoEx
@@ -27,6 +28,8 @@ class DumpResourceTraceAction : AnAction("Dump Resource Trace"), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
     ResourceUpdateTracer.dumpTrace(null)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
