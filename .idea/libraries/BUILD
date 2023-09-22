@@ -316,3 +316,24 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:google-api-services-sourcerepo_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "compose-desktop",
+    jars = ["//prebuilts/tools/common/m2:compose-desktop_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "jewel",
+    jars = ["//prebuilts/tools/common/m2:jewel_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "compose-desktop-test",
+    jars = ["//prebuilts/tools/common/m2:compose-desktop-test_files"],
+    visibility = ["//visibility:public"],
+)

@@ -9,23 +9,18 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
-        "//prebuilts/tools/common/m2:compose-desktop-animation",
-        "//prebuilts/tools/common/m2:compose-desktop-material",
-        "//prebuilts/tools/common/m2:compose-desktop-runtime",
-        "//prebuilts/tools/common/m2:compose-desktop-foundation",
-        "//prebuilts/tools/common/m2:compose-desktop-ui",
-        "//prebuilts/tools/common/m2:skiko",
+        "//tools/adt/idea/.idea/libraries:jewel",
+        "//tools/adt/idea/.idea/libraries:compose-desktop",
+        "//tools/adt/idea/.idea/libraries:compose-desktop-test",
     ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//prebuilts/tools/common/m2:compose-desktop-animation",
-        "//prebuilts/tools/common/m2:compose-desktop-material",
-        "//prebuilts/tools/common/m2:compose-desktop-runtime",
-        "//prebuilts/tools/common/m2:compose-desktop-foundation",
-        "//prebuilts/tools/common/m2:compose-desktop-ui",
-        "//prebuilts/tools/common/m2:skiko",
+        "//tools/adt/idea/.idea/libraries:jewel",
+        "//tools/adt/idea/.idea/libraries:compose-desktop",
+        "//tools/adt/idea/.idea/libraries:compose-desktop-test[test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module]",
     ],
 )
