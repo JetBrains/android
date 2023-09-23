@@ -59,10 +59,10 @@ import com.google.common.io.Files;
 import com.intellij.analysis.AnalysisScope;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
@@ -676,13 +676,13 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Nullable
   @Override
   public String getClientDisplayRevision() {
-    return ApplicationInfoEx.getInstanceEx().getFullVersion();
+    return ApplicationInfo.getInstance().getFullVersion();
   }
 
   @Nullable
   @Override
   public String getClientRevision() {
-    return ApplicationInfoEx.getInstanceEx().getStrictVersion();
+    return ApplicationInfo.getInstance().getStrictVersion();
   }
 
   @NonNull
