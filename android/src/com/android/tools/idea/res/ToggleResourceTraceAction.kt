@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.application.ex.ApplicationInfoEx
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.DumbAware
 
 /**
@@ -40,6 +40,6 @@ class ToggleResourceTraceAction : ToggleAction("Trace Resource Updates"), DumbAw
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = ApplicationInfoEx.getInstanceEx().isEAP
+    event.presentation.isVisible = ApplicationInfo.getInstance().isEAP
   }
 }

@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ex.ApplicationInfoEx
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.DumbAware
 
 /**
@@ -30,7 +30,7 @@ class DumpResourceTraceAction : AnAction("Dump Resource Trace"), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = ApplicationInfoEx.getInstanceEx().isEAP
+    event.presentation.isVisible = ApplicationInfo.getInstance().isEAP
     event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive()
   }
 }

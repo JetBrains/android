@@ -21,6 +21,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -106,7 +107,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       StringBuilder sb = new StringBuilder(com.intellij.ide.actions.SendFeedbackAction.getDescription(null));
       // Add Android Studio custom information we want to see prepopulated in the bug reports
       sb.append("\n\n");
-      sb.append(String.format("AS: %1$s\n", ApplicationInfoEx.getInstanceEx().getFullVersion()));
+      sb.append(String.format("AS: %1$s\n", ApplicationInfo.getInstance().getFullVersion()));
       sb.append(String.format("Kotlin plugin: %1$s\n", safeCall(SendFeedbackAction::getKotlinPluginDetails)));
 
       for (SendFeedbackDescriptionProvider provider : SendFeedbackDescriptionProvider.getProviders()) {
@@ -172,7 +173,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       For more information on how to get your bug routed quickly, see https://developer.android.com/studio/report-bugs.html
       """;
 
-    ApplicationInfoEx app = ApplicationInfoEx.getInstanceEx();
+    ApplicationInfo app = ApplicationInfo.getInstance();
     String buildNumber = app.getBuild().asString();
     Date date = app.getBuildDate().getTime();
     DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
