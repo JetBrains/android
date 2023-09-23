@@ -293,7 +293,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val newDisplays = ArrayList<DisplayConfiguration>(secondaryDisplays.size + 1)
       newDisplays.add(displays[0])
       for (display in secondaryDisplays) {
-        if (display.display > 0) {
+        if (display.display != PRIMARY_DISPLAY_ID) {
           newDisplays.add(display)
         }
       }
