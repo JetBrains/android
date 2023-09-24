@@ -17,13 +17,18 @@
 package com.android.build.attribution.ui
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.android.util.AndroidUtils
 
-class OpenBuildAnalyzerAction : AnAction("Analyze Build Performance") {
+class OpenBuildAnalyzerAction : AnAction() {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     val project = e.project
-    if(project == null) {
+    if (project == null || !AndroidUtils.hasAndroidFacets(project)) {
       e.presentation.isEnabledAndVisible = false
     }
     else {
