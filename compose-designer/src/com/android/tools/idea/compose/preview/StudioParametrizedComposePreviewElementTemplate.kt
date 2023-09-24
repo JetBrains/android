@@ -31,5 +31,5 @@ class StudioParametrizedComposePreviewElementTemplate(
   ParametrizedComposePreviewElementTemplate(
     basePreviewElement,
     parameterProviders,
-    { forFile(it!!) },
+    { file -> file?.let { forFile(it) } },
   )
