@@ -50,13 +50,19 @@ import org.jetbrains.kotlin.lexer.KtTokens
  */
 class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
 
+  override fun collectNavigationMarkers(elements: MutableList<out PsiElement>,
+                                        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
+                                        forNavigation: Boolean) {
+    if (!isDaggerWithIndexEnabled()) return // check once per line markers run
+
+    super.collectNavigationMarkers(elements, result, forNavigation)
+  }
+
   @WorkerThread
   override fun collectNavigationMarkers(
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
-    if (!isDaggerWithIndexEnabled()) return
-
     val metricsType: DaggerEditorEvent.ElementType
     val lineMarkerInfo: RelatedItemLineMarkerInfo<PsiElement>
 
