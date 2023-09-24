@@ -24,6 +24,7 @@ import com.intellij.psi.JavaTokenType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.java.IJavaElementType
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.lexer.KtToken
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -39,6 +40,8 @@ class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
         && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)) {
       return null
     }
+
+    if (!AndroidUtils.hasAndroidFacets(e.project)) return null
 
     val psiClass = e.getPsiClass() ?: return null
     if (psiClass.isValidWatchFaceService() || psiClass.isValidTileService() || psiClass.isValidComplicationService()) {
