@@ -92,8 +92,10 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
   @Override
   public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
                                                                                                                  @NotNull VirtualFile file) {
+    NotificationPanel.Type newPanelType = notificationPanelType(project);
+    if (newPanelType == NotificationPanel.Type.NONE) return null;
+
     return fileEditor -> {
-      NotificationPanel.Type newPanelType = notificationPanelType(project);
       return newPanelType.create(project, file, myProjectInfo);
     };
   }
