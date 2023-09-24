@@ -37,6 +37,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethodCallExpression
+import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.InheritanceUtil
@@ -70,10 +71,31 @@ import javax.swing.Icon
  * declarations. It also provides the corresponding activities and fragments for layout and menu files. These items are displayed as line
  * markers in the gutter of a file, as well as accessible via "Go to related symbol" action.
  */
-class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
+internal class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
-  override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
-    val facet = element.androidFacet ?: return
+  override fun collectNavigationMarkers(elements: List<PsiElement>,
+                                        result: MutableCollection<in RelatedItemLineMarkerInfo<*>>,
+                                        forNavigation: Boolean) {
+    val firstElement = elements.firstOrNull() ?: return
+    val facet = firstElement.androidFacet ?: return
+
+    var i = 0
+    val size = elements.size
+    while (i < size) {
+      val element = elements[i]
+      collectNavigationMarkers(element, facet, result)
+
+      if (forNavigation && element is PsiNameIdentifierOwner) {
+        val nameIdentifier = element.getNameIdentifier()
+        if (nameIdentifier != null && !elements.contains(nameIdentifier)) {
+          collectNavigationMarkers(nameIdentifier, facet, result)
+        }
+      }
+      i++
+    }
+  }
+
+  private fun collectNavigationMarkers(element: PsiElement, facet: AndroidFacet, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
     when (element) {
       is PsiClass -> {
         val gotoList = Handler.getItemsForClass(element) ?: return
