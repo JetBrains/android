@@ -227,11 +227,12 @@ class GroupedGridSurfaceLayoutManager(
     @SwingCoordinate widthFunc: PositionableContent.() -> Int
   ): List<List<PositionableContent>> {
     val visibleContent = group.content.filter { it.isVisible }
-    if (visibleContent.isEmpty()) {
-      return listOf(emptyList())
-    }
     val gridList = mutableListOf<List<PositionableContent>>()
-
+    // Add header if it exists and visible.
+    group.header?.takeIf { it.isVisible }?.let { gridList.add(listOf(it)) }
+    if (visibleContent.isEmpty()) {
+      return gridList
+    }
     val firstView = visibleContent.first()
     val firstPreviewFramePadding = previewFramePaddingProvider(scaleFunc(firstView))
     var nextX =

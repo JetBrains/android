@@ -15,5 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
-/** [PositionableGroup] organizes [PositionableContent] into groups. */
-class PositionableGroup(val content: List<PositionableContent>)
+/**
+ * [PositionableGroup] organizes [PositionableContent] into groups.
+ *
+ * @param content list of content
+ * @param header an optional header preceding the content.
+ */
+class PositionableGroup(
+  val content: List<PositionableContent>,
+  val header: PositionableContent? = null
+)

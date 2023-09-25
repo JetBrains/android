@@ -137,6 +137,100 @@ class GroupedGridSurfaceLayoutManagerTest {
   }
 
   @Test
+  fun testLayoutSingleGroupWithHeader() {
+    val manager =
+      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+        listOf(PositionableGroup(contents.drop(1), contents.first()))
+      }
+
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 30),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
+
+    run {
+      // test all content can be put in a same row: (1, 4)
+      val width = 1000
+      manager.layout(contents, width, 100000, false)
+      assertEquals(0, contents[0].x)
+      assertEquals(0, contents[0].y)
+      // Second row.
+      assertEquals(0, contents[1].x)
+      assertEquals(30, contents[1].y)
+      assertEquals(100, contents[2].x)
+      assertEquals(30, contents[2].y)
+      assertEquals(200, contents[3].x)
+      assertEquals(30, contents[3].y)
+      assertEquals(300, contents[4].x)
+      assertEquals(30, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(400, 130), size)
+    }
+
+    run {
+      // test when available width is 300: (1, 3, 1)
+      val width = 300
+      manager.layout(contents, width, 100000, false)
+      assertEquals(0, contents[0].x)
+      assertEquals(0, contents[0].y)
+      // Second row.
+      assertEquals(0, contents[1].x)
+      assertEquals(30, contents[1].y)
+      assertEquals(100, contents[2].x)
+      assertEquals(30, contents[2].y)
+      assertEquals(200, contents[3].x)
+      assertEquals(30, contents[3].y)
+      // Third row.
+      assertEquals(0, contents[4].x)
+      assertEquals(130, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(300, 230), size)
+    }
+
+    run {
+      // test when available width is 200: (1, 2, 2)
+      val width = 200
+      manager.layout(contents, width, 100000, false)
+      assertEquals(0, contents[0].x)
+      assertEquals(0, contents[0].y)
+      // Second row.
+      assertEquals(0, contents[1].x)
+      assertEquals(30, contents[1].y)
+      assertEquals(100, contents[2].x)
+      assertEquals(30, contents[2].y)
+      // Third row
+      assertEquals(0, contents[3].x)
+      assertEquals(130, contents[3].y)
+      assertEquals(100, contents[4].x)
+      assertEquals(130, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(200, 230), size)
+    }
+
+    run {
+      val width = 50
+      // test when available width is 50: (1, 1, 1, 1, 1)
+      manager.layout(contents, width, 100000, false)
+      assertEquals(0, contents[0].x)
+      assertEquals(0, contents[0].y)
+      assertEquals(0, contents[1].x)
+      assertEquals(30, contents[1].y)
+      assertEquals(0, contents[2].x)
+      assertEquals(130, contents[2].y)
+      assertEquals(0, contents[3].x)
+      assertEquals(230, contents[3].y)
+      assertEquals(0, contents[4].x)
+      assertEquals(330, contents[4].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(100, 430), size)
+    }
+  }
+
+  @Test
   fun testLayoutDifferentSizeContent() {
     val manager =
       GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
@@ -250,6 +344,32 @@ class GroupedGridSurfaceLayoutManagerTest {
       assertEquals(100, contents[4].y)
       val size = manager.getRequiredSize(contents, width, 100000, null)
       assertEquals(Dimension(300, 200), size)
+    }
+  }
+
+  @Test
+  fun testLayoutGroupWithEmptyContent() {
+    val manager =
+      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { contents ->
+        listOf(
+          PositionableGroup(emptyList(), contents.first()),
+          PositionableGroup(contents.drop(1))
+        )
+      }
+
+    val contents =
+      listOf(TestPositionableContent(0, 0, 100, 30), TestPositionableContent(0, 0, 100, 100))
+
+    run {
+      // 1 rows for each group: ((1), (1))
+      val width = 1000
+      manager.layout(contents, width, 100000, false)
+      assertEquals(0, contents[0].x)
+      assertEquals(0, contents[0].y)
+      assertEquals(0, contents[1].x)
+      assertEquals(30, contents[1].y)
+      val size = manager.getRequiredSize(contents, width, 100000, null)
+      assertEquals(Dimension(100, 130), size)
     }
   }
 
