@@ -34,7 +34,7 @@ final class NoSkin implements Skin {
   @NotNull
   @Override
   public Path path() {
-    return Path.of(SkinUtils.NO_SKIN);
+    return SkinUtils.noSkin();
   }
 
   @NotNull

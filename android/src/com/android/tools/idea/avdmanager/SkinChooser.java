@@ -32,7 +32,6 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -160,7 +159,7 @@ final class SkinChooser extends ComboboxWithBrowseButton implements ItemSelectab
 
   private static @NotNull List<File> transform(@NotNull Collection<Path> paths) {
     List<File> transformed = new ArrayList<>(1 + paths.size());
-    transformed.add(Paths.get(SkinUtils.NO_SKIN).toFile());
+    transformed.add(SkinUtils.noSkin().toFile());
 
     paths.stream()
       .filter(Files::exists)

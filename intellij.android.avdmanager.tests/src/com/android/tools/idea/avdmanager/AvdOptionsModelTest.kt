@@ -39,7 +39,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
-import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import org.jetbrains.android.AndroidTestCase
@@ -263,19 +262,21 @@ class AvdOptionsModelTest : AndroidTestCase() {
 
   fun testAvdOptionsModelEnableDeviceFrameCheckboxIsntSelected() {
     // Arrange
-    val avd = Mockito.mock(AvdInfo::class.java)
+    val noSkin = SkinUtils.noSkin()
 
+    val avd = Mockito.mock(AvdInfo::class.java)
     whenever(avd.deviceManufacturer).thenReturn("Google")
     whenever(avd.deviceName).thenReturn("pixel_3")
     whenever(avd.displayName).thenReturn("Pixel 3 API 30")
+
     whenever(avd.properties)
-      .thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to SkinUtils.NO_SKIN))
+      .thenReturn(hashMapOf(AvdWizardUtils.CUSTOM_SKIN_FILE_KEY to noSkin.toString()))
 
     // Act
     val model = AvdOptionsModel(avd)
 
     // Assert
-    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(File(SkinUtils.NO_SKIN))
+    assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(noSkin.toFile())
   }
 
   fun testAvdCommandLineOptions_StudioFlagEnabled() {

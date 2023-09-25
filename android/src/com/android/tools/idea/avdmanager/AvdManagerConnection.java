@@ -955,7 +955,7 @@ public class AvdManagerConnection {
       File skin = getRoundSkin(systemImageDescription);
       skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
     }
-    if (skinFolder != null && skinFolder.toString().equals(SkinUtils.NO_SKIN)) {
+    if (skinFolder != null && skinFolder.toString().equals(SkinUtils.noSkin().toString())) {
       skinFolder = null;
     }
     if (skinFolder == null) {
