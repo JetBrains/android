@@ -70,14 +70,13 @@ private val CHANGED_DEFAULT_VERSION = AgpVersion.parse("8.0.0-beta01")
 private val LOG = Logger.getInstance("MigrateBuildConfigFromGradleProperties")
 
 private fun shouldEnable(project: Project): Boolean {
-  val version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
   val propertiesFile = project.baseDir?.findFile(FN_GRADLE_PROPERTIES) ?: return false
   if (!propertiesFile.isValid) return false
+  val version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project) ?: return false
   val propertiesPsi = PsiManager.getInstance(project).findFile(propertiesFile) as? PropertiesFile ?: return false
   val property = propertiesPsi.findPropertyByKey(BUILDCONFIG_PROPERTY)
 
   return when {
-    version == null -> false
     // if the default for this AGP is true, we need to do work unless there is an explicit setting of false in gradle.properties.
     version < CHANGED_DEFAULT_VERSION -> property?.value?.lowercase(Locale.US) != "false"
     // if the default for this AGP is false, we need to do work unless the setting is not present in gradle.properties.
