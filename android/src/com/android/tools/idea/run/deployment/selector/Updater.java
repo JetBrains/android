@@ -230,7 +230,7 @@ final class Updater {
       .orElseThrow(AssertionError::new);
 
     myPresentation.setIcon(device.getIcon());
-    myPresentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, device.launchCompatibility());
+    myPresentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, device.getLaunchCompatibility());
     myPresentation.setText(getText(device, target), false);
   }
 

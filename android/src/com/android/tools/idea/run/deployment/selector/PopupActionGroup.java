@@ -74,7 +74,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     Collection<Device> availableDevices = new ArrayList<>(size);
 
     for (Device device : myDevices) {
-      if (device.connected()) {
+      if (device.isConnected()) {
         runningDevices.add(device);
         continue;
       }
@@ -111,7 +111,7 @@ final class PopupActionGroup extends DefaultActionGroup {
   }
 
   private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
-    if (!device.snapshots().isEmpty()) {
+    if (!device.getSnapshots().isEmpty()) {
       return new SnapshotActionGroup(device, myComboBoxAction);
     }
 

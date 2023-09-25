@@ -84,8 +84,8 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public Collection<IDevice> getRunningDevices() {
     return deviceStream()
-      .filter(Device::connected)
-      .map(Device::ddmlibDeviceAsync)
+      .filter(Device::isConnected)
+      .map(Device::getDdmlibDeviceAsync)
       .map(Futures::getUnchecked)
       .collect(Collectors.toList());
   }
@@ -95,7 +95,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   private @NotNull Stream<Device> filteredStream(@NotNull Collection<Device> devices) {
-    return devices.stream().filter(device -> myKeys.contains(device.key()));
+    return devices.stream().filter(device -> myKeys.contains(device.getKey()));
   }
 
   @NotNull
@@ -114,7 +114,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
     return switch (devices.size()) {
       case 0 -> "No Devices";
-      case 1 -> devices.get(0).name();
+      case 1 -> devices.get(0).getName();
       default -> "Multiple Devices";
     };
   }
@@ -125,7 +125,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     var devices = deviceStream().toList();
 
     if (devices.size() == 1) {
-      return devices.get(0).icon();
+      return devices.get(0).getIcon();
     }
 
     return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;

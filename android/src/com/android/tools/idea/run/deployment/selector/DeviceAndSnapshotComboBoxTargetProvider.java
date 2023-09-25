@@ -98,7 +98,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends com.android.t
     }
 
     var anyDeviceHasError = devicesWithError.stream()
-      .map(Device::launchCompatibility)
+      .map(Device::getLaunchCompatibility)
       .map(LaunchCompatibility::getState)
       .anyMatch(state -> state.equals(State.ERROR));
 
@@ -109,7 +109,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends com.android.t
   @NotNull
   private List<Device> selectedDevicesWithError(@NotNull Project project) {
     List<Device> selectedDevices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(project);
-    return selectedDevices.stream().filter(device -> !device.launchCompatibility().getState().equals(State.OK)).toList();
+    return selectedDevices.stream().filter(device -> !device.getLaunchCompatibility().getState().equals(State.OK)).toList();
   }
 
   @Override
