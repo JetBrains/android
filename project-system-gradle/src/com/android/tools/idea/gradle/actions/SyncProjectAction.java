@@ -33,12 +33,8 @@ import org.jetbrains.annotations.NotNull;
 public class SyncProjectAction extends AndroidStudioGradleAction implements DumbAware {
   private final NotNullLazyValue<GradleSyncInvoker> mySyncInvoker;
 
-  public SyncProjectAction() {
-    this("Sync Project with _Gradle Files");
-  }
-
-  protected SyncProjectAction(@NotNull String text) {
-    super(text);
+  protected SyncProjectAction() {
+    super();
     mySyncInvoker = NotNullLazyValue.createValue(() -> GradleSyncInvoker.getInstance());
   }
 

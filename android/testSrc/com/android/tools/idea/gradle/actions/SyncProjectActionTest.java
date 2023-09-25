@@ -22,21 +22,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import java.awt.event.KeyEvent;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link SyncProjectAction}.
  */
-public class SyncProjectActionTest extends PlatformTestCase {
+public class SyncProjectActionTest extends LightPlatformTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock GradleSyncState mySyncState;
   @Mock private AnActionEvent myEvent;
@@ -56,9 +59,14 @@ public class SyncProjectActionTest extends PlatformTestCase {
   }
 
   public void testTitleTextAndMnemonic() {
-    SyncProjectAction action = new SyncProjectAction();
-    assertThat(action.getTemplateText()).isEqualTo("Sync Project with Gradle Files");
-    assertThat(action.getTemplatePresentation().getMnemonic()).isEqualTo(KeyEvent.VK_G);
+    AnAction action = ActionManager.getInstance().getAction("Android.SyncProject");
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertThat(action.getTemplateText()).isEqualTo("Sync Project with Gradle Files");
+      assertThat(action.getTemplatePresentation().getMnemonic()).isEqualTo(KeyEvent.VK_G);
+    }
+    else {
+      assertThat(action == null);
+    }
   }
 
   public void testDoPerform() {

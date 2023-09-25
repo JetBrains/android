@@ -25,9 +25,6 @@ import org.jetbrains.annotations.NotNull;
  * Action that allows users to edit build flavors for the selected module, if the module is an Android Gradle module.
  */
 public class EditFlavorsAction extends AbstractProjectStructureAction {
-  public EditFlavorsAction() {
-    super("Edit Flavors...");
-  }
 
   @Override
   protected Module getTargetModule(@NotNull AnActionEvent e) {
