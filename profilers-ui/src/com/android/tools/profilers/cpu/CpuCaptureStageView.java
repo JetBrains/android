@@ -371,7 +371,18 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
         if (AdtUiUtils.isActionKeyDown(e)) {
-          if (e.getWheelRotation() > 0) {
+          if (e.isShiftDown()) {
+            // Horizontal scrolling. Ignore the event. On a trackpad, it's very easy to mix a slight
+            // horizontal scroll while scrolling vertically. If not filtered out, these extra events
+            // cause unexpected zoom in/out/in/out flakiness in the UI.
+            return;
+          }
+
+          int wheelRotation = e.getWheelRotation();
+          if (wheelRotation == 0) {
+            // Ignore wheelRotation == 0. For partial rotations, the getWheelRotation() API returns 0
+            // until the sum of fractional rotations reaches a full rotation.
+          } else if (wheelRotation > 0) {
             getStage().getTimeline().zoomOut();
             getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomOut();
           }
