@@ -52,7 +52,7 @@ import kotlin.math.sqrt
 class GroupedGridSurfaceLayoutManager(
   @SwingCoordinate private val canvasTopPadding: Int,
   @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
-  private val transform: (Collection<PositionableContent>) -> List<List<PositionableContent>>
+  private val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
 ) : SurfaceLayoutManager {
 
   override fun getPreferredSize(
@@ -210,17 +210,17 @@ class GroupedGridSurfaceLayoutManager(
   }
 
   /**
-   * Arrange [PositionableContent]s into a 2-dimension list which represent a list of row of
+   * Arrange [PositionableGroup]s into a 2-dimension list which represent a list of row of
    * [PositionableContent]. The [widthFunc] is for getting the preferred widths of
    * [PositionableContent]s when filling the horizontal spaces.
    */
   private fun layoutGroup(
-    content: List<PositionableContent>,
+    group: PositionableGroup,
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate availableWidth: Int,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int
   ): List<List<PositionableContent>> {
-    val visibleContent = content.filter { it.isVisible }
+    val visibleContent = group.content.filter { it.isVisible }
     if (visibleContent.isEmpty()) {
       return listOf(emptyList())
     }

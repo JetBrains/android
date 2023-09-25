@@ -34,7 +34,7 @@ import kotlin.math.max
 class GroupedListSurfaceLayoutManager(
   @SwingCoordinate private val canvasTopPadding: Int,
   @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
-  private val transform: (Collection<PositionableContent>) -> List<List<PositionableContent>>
+  private val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
 ) : SurfaceLayoutManager {
 
   override fun getPreferredSize(
@@ -120,7 +120,7 @@ class GroupedListSurfaceLayoutManager(
   ): Dimension {
     val dim = dimension ?: Dimension()
 
-    val verticalList = transform(content).flatten()
+    val verticalList = transform(content).flatMap { it.content }
 
     if (verticalList.isEmpty()) {
       dim.setSize(0, 0)
@@ -152,7 +152,7 @@ class GroupedListSurfaceLayoutManager(
     availableHeight: Int,
     keepPreviousPadding: Boolean
   ): Map<PositionableContent, Point> {
-    val verticalList = transform(content).flatten()
+    val verticalList = transform(content).flatMap { it.content }
     if (verticalList.isEmpty()) {
       return emptyMap()
     }

@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
+import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager
 import com.android.tools.rendering.RenderAsyncActionExecutor
@@ -55,15 +56,12 @@ private val PREVIEW_FRAME_PADDING_PROVIDER: (Double) -> Int = { scale ->
   }.toInt()
 }
 
-private val NO_GROUP_TRANSFORM:
-  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
-  {
-    // FIXME(b/258718991): we decide not group the previews for now.
-    listOf(it.toList())
-  }
+private val NO_GROUP_TRANSFORM: (Collection<PositionableContent>) -> List<PositionableGroup> = {
+  // FIXME(b/258718991): we decide not group the previews for now.
+  listOf(PositionableGroup(it.toList()))
+}
 
-private val GROUP_BY_BASE_COMPONENT:
-  (Collection<PositionableContent>) -> List<List<PositionableContent>> =
+private val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<PositionableGroup> =
   { contents ->
     val groups = mutableMapOf<String?, MutableList<PositionableContent>>()
     for (content in contents) {
@@ -73,7 +71,8 @@ private val GROUP_BY_BASE_COMPONENT:
     // Put previews which are the only preview in a group last as one group.
     val singles = groups.filter { it.value.size == 1 }
     singles.forEach { groups.remove(it.key) }
-    groups.values.toList() + listOf(singles.values.flatten())
+    groups.values.map { PositionableGroup(it) } +
+      listOf(PositionableGroup(singles.values.flatten()))
   }
 
 /** Toolbar option to select [LayoutMode.Gallery] layout. */
