@@ -17,3 +17,8 @@ allprojects {
         // This will be populated by AndroidGradleTestCase
     }
 }
+
+project(":app").repositories.maven {
+  // Add repository that has the same Gradle metadata as AndroidX KMP libs from http://b/301481563
+  url { new File(rootDir, "repo") }
+}

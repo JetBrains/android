@@ -30,8 +30,10 @@ import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeCompatibilityRule
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.component.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -75,6 +77,9 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     try {
       val idToPomFile = getPomFiles(parameter, project)
       val (idToJavadoc, idToSources) = if (useArtifactViews) {
+        project.dependencies.attributesSchema.attribute(DocsType.DOCS_TYPE_ATTRIBUTE) {
+          it.compatibilityRules.add(SourcesCompatibilityRule::class.java)
+        }
         Pair(getArtifacts(project, DocsType.JAVADOC, parameter.artifactIdentifiers),
              getArtifacts(project, DocsType.SOURCES, parameter.artifactIdentifiers))
       } else {
@@ -198,5 +203,24 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     return result.getArtifacts(clazz)
       .filterIsInstance(ResolvedArtifactResult::class.java).firstOrNull()
       ?.file
+  }
+}
+
+/**
+ * Because of http://b/272214715, some AndroidX KMP libraries have their sources published as
+ * `"org.gradle.docstype=fake-sources"`. Except for this attribute, these are valid source variants,
+ * and we should fetch them.
+ */
+class SourcesCompatibilityRule : AttributeCompatibilityRule<DocsType> {
+  override fun execute(details: CompatibilityCheckDetails<DocsType>) {
+    val producer = details.producerValue?.name
+    val consumer = details.consumerValue?.name
+    if (producer == consumer) {
+      details.compatible()
+    } else if (consumer == DocsType.SOURCES && producer == "fake-sources") {
+      details.compatible()
+    } else {
+      details.incompatible()
+    }
   }
 }
