@@ -32,7 +32,7 @@ class OldAgpTestTargetsCheckerTest {
         OldAgpSuiteTest.ParametrizedAgpTest::class.java,
       )
     )
-    Truth.assertThat(testInstances).containsExactlyEntriesIn(mapOf(
+    Truth.assertThat(testInstances.toTestString()).isEqualTo(mapOf(
       OldAgpTestTargetsChecker.OldAgpTestVersionsPair("4.1", "4.1") to listOf(
         "com.android.testutils.junit4.OldAgpSuiteTest\$OverrideAgpTest"
       ),
@@ -52,6 +52,12 @@ class OldAgpTestTargetsCheckerTest {
         "com.android.testutils.junit4.OldAgpSuiteTest\$OverrideAgpTest#shouldRunAgpOnly42",
         "com.android.testutils.junit4.OldAgpSuiteTest\$MethodOnly#shouldRun"
       ),
-    ))
+    ).toTestString())
   }
 }
+
+private fun Map<OldAgpTestTargetsChecker.OldAgpTestVersionsPair, List<String>>.toTestString() = toList()
+  .sortedBy { it.first.toString() }
+  .map { pair ->
+  "${pair.first}:\n${pair.second.sorted().joinToString(separator = "\n") { " $it" }}"
+}.joinToString(separator = "\n")
