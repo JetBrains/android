@@ -41,9 +41,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -114,6 +114,9 @@ final class DevicesSelectedService {
     return project.getService(DevicesSelectedService.class);
   }
 
+  /**
+   * Given the current set of devices, return the currently selected single target.
+   */
   @NotNull Optional<Target> getTargetSelectedWithComboBox(@NotNull List<Device> devices) {
     if (devices.isEmpty()) {
       return Optional.empty();
@@ -121,27 +124,7 @@ final class DevicesSelectedService {
 
     var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
 
-    TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices,
-                                                                       state.getRunningDeviceTargetSelectedWithDropDown(),
-                                                                       state.getTargetSelectedWithDropDown());
-
-    // The user selected a running target, but it's no longer running. Clear it from the persisted state.
-    //
-    // If targetSelectedWithDropDown is null, then timeTargetWasSelectedWithDropDown is the time that running target was selected, so clear
-    // it as well
-    //
-    // If targetSelectedWithDropDown isn't null, then they selected an available target, launched it, and selected the same target again. Do
-    // not clear the time because the following code expects selections to always have times associated with them and the first selection is
-    // still referred to by targetSelectedWithDropDown.
-    if (supplier.getDropDownRunningDeviceTargetToRemove().isPresent()) {
-      state.runningDeviceTargetSelectedWithDropDown = null;
-
-      if (state.targetSelectedWithDropDown == null) {
-        state.timeTargetWasSelectedWithDropDown = null;
-      }
-    }
-
-    Target target = supplier.getDropDownTarget().orElse(null);
+    Target target = state.getTargetSelectedWithDropDown();
 
     if (target == null) {
       return Optional.of(devices.get(0).getDefaultTarget());
@@ -181,10 +164,7 @@ final class DevicesSelectedService {
     var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
     state.multipleDevicesSelectedInDropDown = false;
 
-    TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetSelectedWithDropDown(), targetSelectedWithComboBox);
-
-    state.setRunningDeviceTargetSelectedWithDropDown(supplier.getDropDownRunningDeviceTarget().orElse(null));
-    state.setTargetSelectedWithDropDown(supplier.getDropDownTarget().orElse(null));
+    state.setTargetSelectedWithDropDown(targetSelectedWithComboBox);
 
     state.timeTargetWasSelectedWithDropDown = targetSelectedWithComboBox == null ? null : myClock.instant();
   }
@@ -201,33 +181,17 @@ final class DevicesSelectedService {
   @NotNull Set<Target> getTargetsSelectedWithDialog(@NotNull List<Device> devices) {
     var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
 
-    Collection<RunningDeviceTarget> runningDeviceTargets = state.getRunningDeviceTargetsSelectedWithDialog();
-    TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices, runningDeviceTargets, state.getTargetsSelectedWithDialog());
-
-    runningDeviceTargets.removeAll(supplier.getDialogRunningDeviceTargetsToRemove());
-    state.setRunningDeviceTargetsSelectedWithDialog(runningDeviceTargets);
-
-    return supplier.getDialogTargets();
+    // TODO: Remove any non-bootable targets that are not running now?
+    
+    return new HashSet<>(state.getTargetsSelectedWithDialog());
   }
 
   /**
    * Updates the currently-persisted selected device state with the new set of selected targets.
-   *
-   * RunningDeviceTargets will be replaced first by any pre-existing launchable targets with the same device key, and alternatively by
-   * defaultLaunchTargets.
    */
-  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog, @NotNull List<Target> defaultLaunchTargets) {
-    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
-
-    TargetsForWritingSupplier supplier =
-      new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog, defaultLaunchTargets);
-
-    state.setRunningDeviceTargetsSelectedWithDialog(supplier.getDialogRunningDeviceTargets());
-    state.setTargetsSelectedWithDialog(supplier.getDialogTargets());
-  }
-
   void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
-    setTargetsSelectedWithDialog(targetsSelectedWithDialog, Collections.emptyList());
+    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
+    state.setTargetsSelectedWithDialog(targetsSelectedWithDialog);
   }
 
   @Nullable
@@ -239,8 +203,8 @@ final class DevicesSelectedService {
     return configurationAndSettings.getConfiguration();
   }
 
-  @com.intellij.openapi.components.State(name = "deploymentTargetDropDown", storages = @Storage("deploymentTargetDropDown.xml"))
-  @Service
+  @com.intellij.openapi.components.State(name = "deploymentTargetSelector", storages = @Storage("deploymentTargetSelector.xml"))
+  @Service(Service.Level.PROJECT)
   @VisibleForTesting
   static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<MapState> {
     @NotNull
@@ -309,9 +273,6 @@ final class DevicesSelectedService {
 
   @VisibleForTesting
   static final class State {
-    @OptionTag(tag = "runningDeviceTargetSelectedWithDropDown", nameAttribute = "")
-    public @Nullable TargetState runningDeviceTargetSelectedWithDropDown;
-
     @OptionTag(tag = "targetSelectedWithDropDown", nameAttribute = "")
     public @Nullable TargetState targetSelectedWithDropDown;
 
@@ -322,23 +283,7 @@ final class DevicesSelectedService {
     public boolean multipleDevicesSelectedInDropDown;
 
     @XCollection(style = Style.v2)
-    public @NotNull Collection<TargetState> runningDeviceTargetsSelectedWithDialog = Collections.emptyList();
-
-    @XCollection(style = Style.v2)
     public @NotNull Collection<TargetState> targetsSelectedWithDialog = Collections.emptyList();
-
-    private @Nullable RunningDeviceTarget getRunningDeviceTargetSelectedWithDropDown() {
-      return (RunningDeviceTarget)getTargetSelectedWithDropDown(runningDeviceTargetSelectedWithDropDown);
-    }
-
-    private void setRunningDeviceTargetSelectedWithDropDown(@Nullable RunningDeviceTarget runningDeviceTargetSelectedWithDropDown) {
-      if (runningDeviceTargetSelectedWithDropDown == null) {
-        this.runningDeviceTargetSelectedWithDropDown = null;
-        return;
-      }
-
-      this.runningDeviceTargetSelectedWithDropDown = new TargetState(runningDeviceTargetSelectedWithDropDown);
-    }
 
     private @Nullable Target getTargetSelectedWithDropDown() {
       return getTargetSelectedWithDropDown(targetSelectedWithDropDown);
@@ -365,14 +310,6 @@ final class DevicesSelectedService {
         Logger.getInstance(DevicesSelectedService.class).warn(exception);
         return null;
       }
-    }
-
-    private @NotNull Collection<RunningDeviceTarget> getRunningDeviceTargetsSelectedWithDialog() {
-      return getTargetsSelectedWithDialog(runningDeviceTargetsSelectedWithDialog, RunningDeviceTarget.class);
-    }
-
-    private void setRunningDeviceTargetsSelectedWithDialog(@NotNull Collection<RunningDeviceTarget> runningDeviceTargetsSelectedWithDialog) {
-      this.runningDeviceTargetsSelectedWithDialog = asTargetStates(runningDeviceTargetsSelectedWithDialog);
     }
 
     private @NotNull Collection<Target> getTargetsSelectedWithDialog() {
@@ -405,32 +342,6 @@ final class DevicesSelectedService {
         .map(TargetState::new)
         .collect(Collectors.toList());
     }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(runningDeviceTargetSelectedWithDropDown,
-                          targetSelectedWithDropDown,
-                          timeTargetWasSelectedWithDropDown,
-                          multipleDevicesSelectedInDropDown,
-                          runningDeviceTargetsSelectedWithDialog,
-                          targetsSelectedWithDialog);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object object) {
-      if (!(object instanceof State)) {
-        return false;
-      }
-
-      State state = (State)object;
-
-      return Objects.equals(runningDeviceTargetSelectedWithDropDown, state.runningDeviceTargetSelectedWithDropDown) &&
-             Objects.equals(targetSelectedWithDropDown, state.targetSelectedWithDropDown) &&
-             Objects.equals(timeTargetWasSelectedWithDropDown, state.timeTargetWasSelectedWithDropDown) &&
-             multipleDevicesSelectedInDropDown == state.multipleDevicesSelectedInDropDown &&
-             runningDeviceTargetsSelectedWithDialog.equals(state.runningDeviceTargetsSelectedWithDialog) &&
-             targetsSelectedWithDialog.equals(state.targetsSelectedWithDialog);
-    }
   }
 
   @Tag("Target")
@@ -449,22 +360,8 @@ final class DevicesSelectedService {
     }
 
     private TargetState(@NotNull Target target) {
-      if (target instanceof RunningDeviceTarget) {
-        type = TargetType.RUNNING_DEVICE_TARGET;
-      }
-      else if (target instanceof ColdBootTarget) {
-        type = TargetType.COLD_BOOT_TARGET;
-      }
-      else if (target instanceof QuickBootTarget) {
-        type = TargetType.QUICK_BOOT_TARGET;
-      }
-      else if (target instanceof BootWithSnapshotTarget) {
-        type = TargetType.BOOT_WITH_SNAPSHOT_TARGET;
-        snapshotKey = ((BootWithSnapshotTarget)target).getSnapshotKey();
-      }
-      else {
-        assert false : target;
-      }
+      // TODO: Add target serialization
+      assert false : target;
 
       deviceKey = new KeyState(target.getDeviceKey());
     }
@@ -479,36 +376,10 @@ final class DevicesSelectedService {
       }
 
       switch (type) {
-        case RUNNING_DEVICE_TARGET:
-          return new RunningDeviceTarget(deviceKey.asKey());
-        case COLD_BOOT_TARGET:
-          return new ColdBootTarget(deviceKey.asKey());
-        case QUICK_BOOT_TARGET:
-          return new QuickBootTarget(deviceKey.asKey());
-        case BOOT_WITH_SNAPSHOT_TARGET:
-          assert snapshotKey != null;
-          return new BootWithSnapshotTarget(deviceKey.asKey(), snapshotKey);
+        // TODO: Add target deserialization
         default:
           throw new DevicesSelectedServiceException(type.toString());
       }
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(type, deviceKey, snapshotKey);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object object) {
-      if (!(object instanceof TargetState)) {
-        return false;
-      }
-
-      TargetState target = (TargetState)object;
-
-      return Objects.equals(type, target.type) &&
-             Objects.equals(deviceKey, target.deviceKey) &&
-             Objects.equals(snapshotKey, target.snapshotKey);
     }
   }
 
@@ -516,9 +387,6 @@ final class DevicesSelectedService {
 
   @Tag("Key")
   private static final class KeyState {
-    @OptionTag(tag = "type", nameAttribute = "")
-    public @Nullable KeyType type;
-
     @OptionTag(tag = "value", nameAttribute = "")
     public @Nullable String value;
 
@@ -527,60 +395,17 @@ final class DevicesSelectedService {
     }
 
     private KeyState(@NotNull Key key) {
-      if (key instanceof VirtualDevicePath) {
-        type = KeyType.VIRTUAL_DEVICE_PATH;
-      }
-      else if (key instanceof VirtualDeviceName) {
-        type = KeyType.VIRTUAL_DEVICE_NAME;
-      }
-      else if (key instanceof SerialNumber) {
-        type = KeyType.SERIAL_NUMBER;
-      }
-      else {
-        assert false : key;
-      }
+      // TODO: Add Key serialization
+      assert false : key;
 
       value = key.toString();
     }
 
     private @NotNull Key asKey() throws DevicesSelectedServiceException {
-      if (type == null) {
-        throw new DevicesSelectedServiceException();
-      }
-
-      if (value == null) {
-        throw new DevicesSelectedServiceException();
-      }
-
-      switch (type) {
-        case VIRTUAL_DEVICE_PATH:
-          return new VirtualDevicePath(Path.of(value));
-        case VIRTUAL_DEVICE_NAME:
-          return new VirtualDeviceName(value);
-        case SERIAL_NUMBER:
-          return new SerialNumber(value);
-        default:
-          throw new DevicesSelectedServiceException(type.toString());
-      }
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(type, value);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object object) {
-      if (!(object instanceof KeyState)) {
-        return false;
-      }
-
-      KeyState key = (KeyState)object;
-      return Objects.equals(type, key.type) && Objects.equals(value, key.value);
+      // TODO: Add Key deserialization
+      throw new DevicesSelectedServiceException();
     }
   }
-
-  private enum KeyType {VIRTUAL_DEVICE_PATH, VIRTUAL_DEVICE_NAME, SERIAL_NUMBER}
 
   private static final class PathConverter extends Converter<Path> {
     private final @NotNull FileSystem myFileSystem = FileSystems.getDefault();

@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import javax.swing.Action;
@@ -108,9 +109,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
 
     assert myTable != null;
 
-    List<Target> defaultLaunchTargets =
-      myDevices.stream().filter(VirtualDevice.class::isInstance).<Target>map(device -> new QuickBootTarget(device.key())).toList();
-    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(myTable.getSelectedTargets(), defaultLaunchTargets);
+    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(myTable.getSelectedTargets());
   }
 
   @VisibleForTesting

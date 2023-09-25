@@ -79,8 +79,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
 
     selectedDevices.stream()
       .filter(device -> !device.isConnected())
-      .map(VirtualDevice.class::cast)
-      .forEach(virtualDevice -> map.get(virtualDevice.getKey()).boot(virtualDevice, project));
+      .forEach(device -> map.get(device.getKey()).boot(device, project));
   }
 
   private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<Device> selectedDevices) {

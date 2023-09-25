@@ -194,10 +194,11 @@ final class Updater {
       .collect(Collectors.toSet());
 
     if (selectedTargets.retainAll(targets)) {
-      myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets, Collections.emptyList());
+      myDevicesSelectedService.setTargetsSelectedWithDialog(selectedTargets);
     }
 
     if (selectedTargets.isEmpty()) {
+      // Our multiple targets all went away; revert back to single-target mode.
       myDevicesSelectedService.setMultipleDevicesSelectedInComboBox(false);
 
       Target selectedTarget = myDevicesSelectedService.getTargetSelectedWithComboBox(myDevices).orElse(null);

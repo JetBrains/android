@@ -175,8 +175,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     if (optionalDevices.isPresent()) {
       List<Device> devices = optionalDevices.get();
-      devices.sort(new DeviceComparator());
-
       return Optional.of(devices);
     }
 

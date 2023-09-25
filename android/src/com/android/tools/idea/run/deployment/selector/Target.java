@@ -56,5 +56,5 @@ abstract class Target {
    */
   abstract @NotNull String getText(@NotNull Device device);
 
-  abstract void boot(@NotNull VirtualDevice device, @NotNull Project project);
+  abstract void boot(@NotNull Device device, @NotNull Project project);
 }

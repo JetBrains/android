@@ -39,7 +39,6 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   private final Multiset<String> myDeviceNameMultiset;
 
   SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
-    devices.sort(new DeviceComparator());
     myRows = new ArrayList<>();
 
     for (Device device : devices) {
@@ -148,10 +147,7 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
 
   @NotNull
   private Object getSerialNumber(@NotNull Device device) {
-    if (!(device instanceof PhysicalDevice)) {
-      return "";
-    }
-
+    // TODO: Use device disambiguator when we have devices with the same name
     if (myDeviceNameMultiset.count(device.getName()) != 1) {
       return device.getKey().toString();
     }

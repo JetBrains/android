@@ -20,9 +20,5 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A device identifier
  */
-public abstract class Key implements Comparable<Key> {
-  @Override
-  public final int compareTo(@NotNull Key key) {
-    return toString().compareTo(key.toString());
-  }
+public abstract class Key {
 }
