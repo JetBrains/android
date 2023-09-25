@@ -133,11 +133,11 @@ class SceneViewPeerPanel(
           sceneView.margin.also {
             // Extend top to account for the top toolbar
             it.top += sceneViewTopPanel.preferredSize.height
+            it.bottom += sceneViewBottomPanel.preferredSize.height
+            it.left += sceneViewLeftPanel.preferredSize.width
+            it.right += sceneViewRightPanel.preferredSize.width
             if (sceneViewErrorsPanel?.isVisible == true) {
-              // Calculating panel margins to always keep shown the error panel when zooming
               it.bottom += sceneViewCenterPanel.preferredSize.height
-              it.left += sceneViewLeftPanel.preferredSize.width
-              it.right += sceneViewRightPanel.preferredSize.width
             }
           }
 
@@ -409,7 +409,7 @@ class SceneViewPeerPanel(
       centerPanelHeight
     )
     sceneViewRightPanel.setBounds(
-      sceneViewLeftPanel.preferredSize.width + sceneViewCenterPanel.width,
+      sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
       sceneViewTopPanel.preferredSize.height,
       sceneViewRightPanel.preferredSize.width,
       centerPanelHeight

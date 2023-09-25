@@ -22,6 +22,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.editor.NlActionManager
@@ -34,6 +35,8 @@ import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
 import java.awt.BorderLayout
 import java.awt.Color
+import javax.swing.BoxLayout
+import javax.swing.BoxLayout.Y_AXIS
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -81,28 +84,39 @@ class VisualizationActionManager(
   }
 
   override fun getSceneViewRightBar(sceneView: SceneView): JComponent {
-    return object :
-      JBLabel(
-        ColoredIconGenerator.generateColoredIcon(
-          StudioIcons.Common.WARNING_INLINE,
-          JBColor.background()
-        )
-      ) {
-      init {
-        isOpaque = true
-        background = Color.ORANGE
-        isVisible = false
-        sceneView.surface.addIssueListener(
-          object : IssueListener {
-            override fun onIssueSelected(issue: Issue?) {
-              isVisible =
-                (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
-                  sceneView.sceneManager.model
-                ) ?: false
-            }
-          }
-        )
+    val warningIcon =
+      object :
+        JBLabel(
+          ColoredIconGenerator.generateColoredIcon(
+            StudioIcons.Common.WARNING_INLINE,
+            JBColor.background(),
+          ),
+        ) {
+        init {
+          isOpaque = true
+          background = Color.ORANGE
+          isVisible = false
+          sceneView.surface.addIssueListener(
+            object : IssueListener {
+              override fun onIssueSelected(issue: Issue?) {
+                isVisible =
+                  (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
+                    sceneView.sceneManager.model,
+                  ) ?: false
+              }
+            },
+          )
+        }
+
+        override fun isVisible(): Boolean {
+          return super.isVisible() &&
+            IssuePanelService.getInstance(sceneView.surface.project).isIssuePanelVisible()
+        }
       }
+    return JPanel().apply {
+      layout = BoxLayout(this, Y_AXIS)
+      isOpaque = false
+      add(warningIcon)
     }
   }
 }
