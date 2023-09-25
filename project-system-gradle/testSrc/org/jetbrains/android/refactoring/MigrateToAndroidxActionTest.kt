@@ -15,56 +15,36 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.testutils.MockitoKt
-import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.project.DefaultProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
+import com.intellij.ide.DataManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.testFramework.TestActionEvent.createTestEvent
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
 
 class MigrateToAndroidxActionTest {
-
   @get:Rule
-  var myRule = AndroidProjectRule.inMemory()
+  var projectRule = AndroidProjectRule.inMemory()
 
-  private var myProject: Project? = null
-  private var myPresentation: Presentation? = null
-  private var myEvent: AnActionEvent? = null
-
-  private var myContext: DataContext? = null
-
-  @Before
-  fun mockEvent() {
-    myProject = myRule.project
-    myPresentation = Presentation()
-
-    myEvent = Mockito.mock(AnActionEvent::class.java)
-
-    whenever(myEvent!!.project).thenReturn(myProject)
-    whenever(myEvent!!.presentation).thenReturn(myPresentation)
-  }
-
-  @Before
-  fun mockContext() {
-    myContext = Mockito.mock(DataContext::class.java)
-    whenever(myContext!!.getData(CommonDataKeys.PROJECT)).thenReturn(myRule.project)
-  }
+  private val project get() = projectRule.project
+  private val fixture get() = projectRule.fixture
 
   @Test
   fun `check action is enabled when kts detected`() {
-    myProject?.putUserData(Key("gradle.has.kts.files"), true)
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+    val file = fixture.addFileToProject("build.gradle.kts", "plugins { id(\"com.android.application\") }")
 
+    ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
     val action = MigrateToAndroidxAction()
-    val event = myEvent!!
-    action.update(event)
+    val event = createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
+    ApplicationManager.getApplication().runReadAction {
+      action.update(event)
+    }
 
     assertTrue("Action should be visible", event.presentation.isVisible)
     assertTrue("Action should be enabled if kts build files detected", event.presentation.isEnabled)
@@ -72,23 +52,33 @@ class MigrateToAndroidxActionTest {
 
   @Test
   fun `check action is enabled when kts not detected`() {
-    myProject?.putUserData(Key("gradle.has.kts.files"), false)
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
+    val file = fixture.addFileToProject("build.gradle", "plugins { id 'com.android.application' }")
 
+    ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
     val action = MigrateToAndroidxAction()
-    val event = myEvent!!
-    action.update(event)
+    val event = createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
+    ApplicationManager.getApplication().runReadAction {
+      action.update(event)
+    }
 
     assertTrue("Action should be visible", event.presentation.isVisible)
     assertTrue("Action should be enabled if no kts build files detected", event.presentation.isEnabled)
   }
 
   @Test
-  fun `check action is enabled when no value from kts detection`() {
-    val action = MigrateToAndroidxAction()
-    val event = myEvent!!
-    action.update(event)
+  fun `check action is disabled in non-gradle project`() {
+    ProjectSystemService.getInstance(project).replaceProjectSystemForTests(DefaultProjectSystem(project))
+    val file = fixture.addFileToProject("BUILD", "load(\"//tools/base/bazel:bazel.bzl\", \"iml_module\")")
 
-    assertTrue("Action should be visible", event.presentation.isVisible)
-    assertTrue("Action should be disabled by default", event.presentation.isEnabled)
+    ApplicationManager.getApplication().invokeAndWait { fixture.openFileInEditor(file.virtualFile) }
+    val action = MigrateToAndroidxAction()
+    val event = createTestEvent(action, DataManager.getInstance().getDataContext(fixture.editor.component))
+    ApplicationManager.getApplication().runReadAction {
+      action.update(event)
+    }
+
+    assertFalse("Action should not be visible", event.presentation.isVisible)
+    assertFalse("Action should not be enabled", event.presentation.isEnabled)
   }
 }

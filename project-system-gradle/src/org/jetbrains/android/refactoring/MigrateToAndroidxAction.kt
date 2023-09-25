@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.intellij.lang.Language
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
@@ -37,10 +36,9 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
-import com.intellij.refactoring.actions.BaseRefactoringAction
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
 
-class MigrateToAndroidxAction : BaseRefactoringAction() {
+class MigrateToAndroidxAction : AndroidGradleBaseRefactoringAction() {
 
   override fun isAvailableInEditorOnly() = false
 
@@ -49,10 +47,6 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
   override fun isEnabledOnElements(elements: Array<out PsiElement>) = true
 
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
-
-  override fun update(anActionEvent: AnActionEvent) {
-    anActionEvent.presentation.description = "Migrates to AndroidX package names"
-  }
 
   override fun isAvailableForLanguage(language: Language) = true
 }

@@ -16,18 +16,16 @@
 package org.jetbrains.android.refactoring;
 
 import com.intellij.lang.Language;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
-import com.intellij.refactoring.actions.BaseRefactoringAction;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MigrateToAppCompatAction extends BaseRefactoringAction {
+public final class MigrateToAppCompatAction extends AndroidGradleBaseRefactoringAction {
   public MigrateToAppCompatAction() {
   }
 
@@ -37,19 +35,13 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
   }
 
   @Override
-  public void update(@NotNull AnActionEvent anActionEvent) {
-    final Project project = anActionEvent.getData(CommonDataKeys.PROJECT);
-    anActionEvent.getPresentation().setEnabledAndVisible(isEnabled(project));
-  }
-
-  @Override
   protected boolean isEnabledOnDataContext(@NotNull DataContext dataContext) {
-    return isEnabled(CommonDataKeys.PROJECT.getData(dataContext));
+    return true;
   }
 
   @Override
   protected boolean isEnabledOnElements(@NotNull PsiElement[] elements) {
-    return elements.length > 0 && isEnabled(elements[0].getProject());
+    return true;
   }
 
   @Nullable
@@ -61,10 +53,5 @@ public class MigrateToAppCompatAction extends BaseRefactoringAction {
   @Override
   protected boolean isAvailableForLanguage(Language language) {
     return true;
-  }
-
-  private static boolean isEnabled(@Nullable Project project) {
-    if (project == null) return false;
-    return AndroidUtils.hasAndroidFacets(project);
   }
 }

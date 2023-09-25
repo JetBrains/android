@@ -58,7 +58,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
-import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import java.io.File
@@ -86,7 +85,7 @@ private fun shouldEnable(project: Project): Boolean {
   }
 }
 
-class MigrateBuildConfigFromGradlePropertiesAction : BaseRefactoringAction() {
+class MigrateBuildConfigFromGradlePropertiesAction : AndroidGradleBaseRefactoringAction() {
   override fun isHidden() = StudioFlags.MIGRATE_BUILDCONFIG_FROM_GRADLE_PROPERTIES_REFACTORING_ENABLED.get().not()
 
   override fun getHandler(dataContext: DataContext) = MigrateBuildConfigFromGradlePropertiesHandler()
