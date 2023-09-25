@@ -77,8 +77,6 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
-import com.intellij.ui.content.ContentManagerEvent;
-import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -121,7 +119,6 @@ import javax.swing.JViewport;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.TreeSelectionListener;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -287,18 +284,12 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   private final AWTEventListener myOnHoverListener;
 
   @NotNull
-  private final IssueListener myIssueListener;
+  private final List<IssueListener> myIssueListeners = new ArrayList<>();
 
   @NotNull
-  private final TreeSelectionListener myIssuePanelSelectionListener = e -> repaint();
+  private final IssueListener myIssueListener = issue -> myIssueListeners.forEach(listener -> listener.onIssueSelected(issue));
 
-  @NotNull
-  private final ContentManagerListener myIssuePanelTabListener = new ContentManagerListener() {
-    @Override
-    public void selectionChanged(@NotNull ContentManagerEvent event) {
-      repaint();
-    }
-  };
+  private boolean myIssueTabSelected = false;
 
   public DesignSurface(
     @NotNull Project project,
@@ -409,8 +400,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
     myLayeredPane.add(myProgressPanel, LAYER_PROGRESS);
     myLayeredPane.add(myMouseClickDisplayPanel, LAYER_MOUSE_CLICK);
-
-    myIssueListener = new DesignSurfaceIssueListenerImpl(this);
 
     add(myLayeredPane);
 
@@ -1957,18 +1946,21 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     UIUtil.invokeLaterIfNeeded(() -> EditorNotifications.getInstance(myProject).updateNotifications(file));
   }
 
+  public void addIssueListener(@NotNull IssueListener listener) {
+    myIssueListeners.add(listener);
+  }
+
   @NotNull
   public IssueListener getIssueListener() {
     return myIssueListener;
   }
 
-  @NotNull
-  public TreeSelectionListener getIssuePanelSelectionListener() {
-    return myIssuePanelSelectionListener;
+  public void setIssueTabSelected(boolean selected) {
+    myIssueTabSelected = selected;
+    repaint();
   }
 
-  @NotNull
-  public ContentManagerListener getIssuePanelTabListener() {
-    return myIssuePanelTabListener;
+  public boolean isIssueTabSelected() {
+    return myIssueTabSelected;
   }
 }

@@ -19,7 +19,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -67,7 +66,6 @@ class VisualizationFormTest {
   fun testNotInitWithTextEditor() {
     val form =
       VisualizationForm(rule.project, rule.testRootDisposable, TestVisualizationFormInitializer)
-    assertEmpty(form.surface.models)
 
     val file = rule.fixture.addFileToProject("test.txt", "")
     rule.fixture.openFileInEditor(file.virtualFile)

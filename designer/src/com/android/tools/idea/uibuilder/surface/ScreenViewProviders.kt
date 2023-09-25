@@ -229,7 +229,9 @@ internal fun visualizationProvider(
           add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
           add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
           add(
-            WarningLayer(it) { IssuePanelService.getInstance(surface.project).getSelectedIssues() }
+            WarningLayer(it) {
+              IssuePanelService.getInstance(surface.project).isIssuePanelVisible()
+            }
           )
         }
         .build()

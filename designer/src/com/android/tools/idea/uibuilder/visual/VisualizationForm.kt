@@ -25,8 +25,10 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
@@ -90,7 +92,7 @@ class VisualizationForm(
   parentDisposable: Disposable,
   private val initializer: ContentInitializer
 ) : VisualizationContent, ConfigurationSetListener, ResourceChangeListener, PanZoomListener {
-  val surface: NlDesignSurface
+  private val surface: NlDesignSurface
   private val myWorkBench: WorkBench<DesignSurface<*>>
   private val myRoot = JPanel(BorderLayout())
   private var myFile: VirtualFile? = null
@@ -180,6 +182,7 @@ class VisualizationForm(
         .build()
     surface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
+    surface.addIssueListener(DesignSurfaceIssueListenerImpl(surface))
     updateScreenMode()
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
@@ -624,6 +627,9 @@ class VisualizationForm(
     surface.activate()
     analyticsManager.trackVisualizationToolWindow(true)
     visualLintHandler.onActivate()
+    IssuePanelService.getInstance(project)
+      .getSharedIssuePanel()
+      ?.addIssueSelectionListener(surface.issueListener, surface)
   }
 
   /**
@@ -644,6 +650,9 @@ class VisualizationForm(
     }
     analyticsManager.trackVisualizationToolWindow(false)
     visualLintHandler.onDeactivate()
+    IssuePanelService.getInstance(project)
+      .getSharedIssuePanel()
+      ?.removeIssueSelectionListener(surface.issueListener)
   }
 
   override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) {

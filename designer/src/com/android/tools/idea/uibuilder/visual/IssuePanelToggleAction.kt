@@ -19,6 +19,7 @@ import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.trackLayoutValidationToggleIssuePanel
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -30,7 +31,7 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) :
   ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return IssuePanelService.getInstance(surface.project).isShowingIssuePanel()
+    return IssuePanelService.getInstance(surface.project).isIssuePanelVisible()
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -51,4 +52,6 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) :
         IssuePanelService.getInstance(project).getSharedPanelIssues()?.size != 0
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

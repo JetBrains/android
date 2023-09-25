@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.scene
 
 import com.android.flags.ifEnabled
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
@@ -75,15 +74,7 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
                 }
               }
             )
-            add(
-              WarningLayer(it) {
-                if (previewManager.isUiCheckPreview) {
-                  IssuePanelService.getInstance(surface.project).getSelectedIssues()
-                } else {
-                  emptyList()
-                }
-              }
-            )
+            add(WarningLayer(it) { previewManager.isUiCheckPreview && surface.isIssueTabSelected })
             StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
               add(ClassLoadingDebugLayer(surface.models.first().facet.module))
             }

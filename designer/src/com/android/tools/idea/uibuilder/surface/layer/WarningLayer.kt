@@ -16,7 +16,9 @@
 package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.error.Issue
+import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.model.Coordinates
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.h
@@ -24,7 +26,6 @@ import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.surface.ScreenView
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.intellij.ui.JBColor
 import java.awt.Graphics2D
@@ -32,22 +33,31 @@ import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.geom.Area
 
-class WarningLayer(
-  private val screenView: ScreenView,
-  private val issuesProvider: () -> List<Issue>
-) : Layer() {
+class WarningLayer(private val screenView: ScreenView, private val shouldDisplay: () -> Boolean) :
+  Layer() {
+
+  private var componentsToHighlight: List<NlComponent> = emptyList()
+
+  init {
+    screenView.surface.addIssueListener(
+      object : IssueListener {
+        override fun onIssueSelected(issue: Issue?) {
+          componentsToHighlight =
+            (issue?.source as? VisualLintIssueProvider.VisualLintIssueSource)
+              ?.components
+              ?.filter { it.model == screenView.sceneManager.model }
+              ?.toList() ?: emptyList()
+          screenView.surface.repaint()
+        }
+      }
+    )
+  }
 
   override fun paint(gc: Graphics2D) {
     val screenShape: Shape? = screenView.screenShape
     gc.color = JBColor.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
-    val selectedIssueSources = getSelectedIssues().map { it.source }
-    val relevantComponents =
-      selectedIssueSources
-        .filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
-        .flatMap { it.components }
-        .filter { it.model == screenView.sceneManager.model }
-    relevantComponents.forEach {
+    componentsToHighlight.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
@@ -71,7 +81,7 @@ class WarningLayer(
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
       gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
     }
-    relevantComponents.forEach {
+    componentsToHighlight.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
@@ -83,14 +93,5 @@ class WarningLayer(
   }
 
   override val isVisible: Boolean
-    get() {
-      val selectedIssues = getSelectedIssues()
-      return selectedIssues.filterIsInstance<VisualLintHighlightingIssue>().any {
-        it.shouldHighlight(screenView.sceneManager.model)
-      }
-    }
-
-  private fun getSelectedIssues(): List<Issue> {
-    return issuesProvider()
-  }
+    get() = componentsToHighlight.isNotEmpty() && shouldDisplay()
 }

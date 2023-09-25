@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -225,7 +224,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<IssuedFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(file.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(fileIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -236,7 +234,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<IssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(file.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(fileIssue), context.getData(SELECTED_ISSUES))
 
       val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
       assertInstanceOf<OpenFileDescriptor>(navigatable)
@@ -252,7 +249,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<NoFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(emptyList<Issue>(), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -263,7 +259,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<IssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -274,7 +269,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<VisualLintIssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
     }
 
     run {
@@ -284,7 +278,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<NavigatableFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(composeFile.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
       val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
       assertInstanceOf<OpenFileDescriptor>(navigatable)
       val descriptor = navigatable as OpenFileDescriptor

@@ -21,7 +21,7 @@ import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.error.IssuePanelService
+import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.editor.NlActionManager
@@ -91,18 +91,18 @@ class VisualizationActionManager(
       init {
         isOpaque = true
         background = Color.ORANGE
+        isVisible = false
+        sceneView.surface.addIssueListener(
+          object : IssueListener {
+            override fun onIssueSelected(issue: Issue?) {
+              isVisible =
+                (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
+                  sceneView.sceneManager.model
+                ) ?: false
+            }
+          }
+        )
       }
-
-      override fun isVisible() = sceneView.visualLintWarning() != null
     }
   }
-}
-
-fun SceneView.visualLintWarning(): Issue? {
-  val issue =
-    IssuePanelService.getInstance(surface.project)
-      .getSelectedIssues()
-      .filterIsInstance<VisualLintHighlightingIssue>()
-      .firstOrNull { it.shouldHighlight(sceneManager.model) }
-  return issue as? Issue
 }
