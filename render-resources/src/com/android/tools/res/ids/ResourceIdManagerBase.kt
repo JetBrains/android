@@ -302,7 +302,7 @@ open class ResourceIdManagerBase(
   /**
    * Keeps a bidirectional mapping between type+name and a numeric id, for a known namespace.
    */
-  protected class SingleNamespaceIdMapping(val namespace: ResourceNamespace) {
+  protected class SingleNamespaceIdMapping(private val namespace: ResourceNamespace) {
     var toIdMap = EnumMap<ResourceType, TObjectIntHashMap<String>>(ResourceType::class.java)
     var fromIdMap = TIntObjectHashMap<Pair<ResourceType, String>>()
 

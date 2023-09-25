@@ -37,8 +37,12 @@ iml_module(
 kotlin_library(
     name = "tools.layoutlib",
     srcs = glob(
-        ["src/**/*.java"],
+        [
+            "src/**/*.java",
+            "src/**/*.kt",
+        ],
     ),
+    visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/studio/layoutlib/data:layoutlib",
         "//prebuilts/tools/common/lint-psi/intellij-core",

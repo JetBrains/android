@@ -19,17 +19,44 @@ import com.android.ide.common.rendering.api.AttrResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
+import com.android.layoutlib.LayoutlibProvider
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
+import com.android.tools.idea.layoutlib.LayoutLibraryLoader
+import com.android.tools.res.ids.apk.ApkResourceIdManager
+import com.intellij.mock.MockApplication
+import com.intellij.openapi.extensions.ExtensionPoint
+import com.intellij.openapi.extensions.Extensions
+import com.intellij.openapi.util.Disposer
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class ApkResourceRepositoryTest {
+  private val disposable = Disposer.newDisposable()
+
+  @Before
+  fun setUp() {
+    MockApplication(disposable)
+    Extensions.getRootArea().registerExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.name, LayoutLibraryLoader.LayoutLibraryProvider::class.java.name, ExtensionPoint.Kind.INTERFACE)
+    val ep = Extensions.getRootArea().getExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME)
+
+    val layoutlibProvider = LayoutlibProvider()
+    ep.registerExtension(layoutlibProvider, disposable)
+  }
+
+  @After
+  fun tearDown() {
+    Disposer.dispose(disposable)
+  }
+
   @Test
   fun testResourceValues() {
     val path = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "apk-for-local-test.ap_")
-    val apkRes = ApkResourceRepository(path.toString()) { null }
+    val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
+    val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
     val animRes = apkRes.getResources(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ANIM, "fragment_fast_out_extra_slow_in")
@@ -55,7 +82,8 @@ class ApkResourceRepositoryTest {
   @Test
   fun testAttrValues() {
     val path = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "apk-for-local-test.ap_")
-    val apkRes = ApkResourceRepository(path.toString()) { null }
+    val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
+    val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
     val attrRes = apkRes.getResources(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "buttonSize")
@@ -63,18 +91,33 @@ class ApkResourceRepositoryTest {
 
     val attrVals = (attrRes.resourceValue as AttrResourceValue).attributeValues
     assertEquals(3, attrVals.size)
+    assertEquals(
+      """
+        icon_only
+        standard
+        wide
+      """.trimIndent(),
+      attrVals.keys.sorted().joinToString("\n")
+      )
+    assertEquals(0, attrVals["standard"])
+    assertEquals(1, attrVals["wide"])
+    assertEquals(2, attrVals["icon_only"])
   }
 
   @Test
   fun testStyleValues() {
     val path = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "apk-for-local-test.ap_")
-    val apkRes = ApkResourceRepository(path.toString()) { null }
+    val idManager = ApkResourceIdManager().apply { this.loadApkResources(path.toString()) }
+    val apkRes = ApkResourceRepository(path.toString()) { idManager.findById(it) }
 
     val styleRes = apkRes.getResources(
       ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLE, "DialogWindowTheme")
     )[0]
 
-    val styleItems = (styleRes.resourceValue as StyleResourceValue).definedItems
+
+    val styleItems = (styleRes.resourceValue as StyleResourceValue).definedItems.toList()
     assertEquals(1, styleItems.size)
+    assertEquals("android:windowClipToOutline", styleItems[0].attrName)
+    assertEquals("false", styleItems[0].value)
   }
 }

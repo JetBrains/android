@@ -135,13 +135,13 @@ private fun TypeChunk.Entry.createResValue(
       styleValue
     }
     else -> {
-      val binResVal = this.value() ?: throw Exception("Unexpected null value for ${resRef.resourceType}")
+      val binResVal = this.value() ?: throw IllegalArgumentException("Unexpected null value for ${resRef.resourceType}")
       ResourceValueImpl(resRef, convertToApkRefIfNeeded(formatVal(binResVal, stringPool, resLookUp), resRef.resourceType, apkPath))
     }
   }
 }
 
-private fun extractNameAndNamespace(namespacedName: String): Pair<ResourceNamespace, String> {
+internal fun extractNameAndNamespace(namespacedName: String): Pair<ResourceNamespace, String> {
   // In the namespaced case the namespace and the name are separated by $ symbol
   val separatorIdx = namespacedName.indexOf('$')
   // If it is the first character, there is still no namespace
@@ -153,8 +153,8 @@ private fun extractNameAndNamespace(namespacedName: String): Pair<ResourceNamesp
 }
 
 private fun formatVal(binResVal: BinaryResourceValue, stringPool: StringPoolChunk, resLookUp: (Int) -> ResourceReference?): String {
-  return BinaryXmlParser.formatValue(binResVal, stringPool) {
-    resLookUp(it)?.resourceUrl.toString()
+  return BinaryXmlParser.formatValue(binResVal, stringPool) { resId ->
+    resLookUp(resId)?.resourceUrl?.toString() ?: throw IllegalArgumentException("Could not resolve resource id $resId")
   }
 }
 
