@@ -45,12 +45,14 @@ import kotlin.math.sqrt
  * ---------
  * |A A A | |B B B B| |B | |C C |
  * ---------
- * [canvasTopPadding] is the top padding from the surface. [previewFramePaddingProvider] is to
- * provide the horizontal and vertical paddings of every "preview frame"s. The "preview frame" is a
- * preview with its toolbars.
+ * @param canvasTopPadding the top padding from the surface.
+ * @param canvasLeftPadding the left padding from the surface.
+ * @param previewFramePaddingProvider provides the horizontal and vertical paddings of every
+ *   "preview frame"s. The "preview frame" is a preview with its toolbars.
  */
 class GroupedGridSurfaceLayoutManager(
   @SwingCoordinate private val canvasTopPadding: Int,
+  @SwingCoordinate private val canvasLeftPadding: Int,
   @SwingCoordinate private val previewFramePaddingProvider: (scale: Double) -> Int,
   private val transform: (Collection<PositionableContent>) -> List<PositionableGroup>
 ) : SurfaceLayoutManager {
@@ -90,7 +92,10 @@ class GroupedGridSurfaceLayoutManager(
     val requiredWidth = groupSizes.maxOf { it.width }
     val requiredHeight = groupSizes.sumOf { it.height }
 
-    dim.setSize(requiredWidth, max(0, canvasTopPadding + requiredHeight))
+    dim.setSize(
+      max(0, canvasLeftPadding + requiredWidth),
+      max(0, canvasTopPadding + requiredHeight)
+    )
     return dim
   }
 
@@ -146,7 +151,8 @@ class GroupedGridSurfaceLayoutManager(
       // This happens when the contents perfectly full-fill the available space.
       // It is not possible that the zoom-to-fit scale is larger than this value.
       val contentAreas = rawSizes.sumOf { it.width * it.height }
-      val availableArea = availableWidth * (availableHeight - canvasTopPadding)
+      val availableArea =
+        (availableWidth - canvasLeftPadding) * (availableHeight - canvasTopPadding)
       // The zoom-to-fit value cannot be smaller than 1%.
       maxOf(0.01, sqrt(availableArea.toDouble() / contentAreas))
     }
@@ -161,7 +167,7 @@ class GroupedGridSurfaceLayoutManager(
       maxOf(
         0.01,
         minOf(
-          availableWidth / totalWidth.toDouble(),
+          (availableWidth - canvasLeftPadding) / totalWidth.toDouble(),
           (availableHeight - canvasTopPadding) / totalHeight.toDouble()
         )
       )
@@ -274,7 +280,7 @@ class GroupedGridSurfaceLayoutManager(
 
     val groupedViews = transform(content)
 
-    val startX: Int = 0
+    val startX: Int = canvasLeftPadding
     val startY: Int = canvasTopPadding
 
     var nextGroupY = startY

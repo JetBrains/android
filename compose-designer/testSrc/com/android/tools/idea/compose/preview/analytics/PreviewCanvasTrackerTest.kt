@@ -34,10 +34,14 @@ class PreviewCanvasTrackerTest {
   @Test
   fun testSetLayout() {
     val groupedGridLayout =
-      GroupedGridSurfaceLayoutManager(0, { 0 }) { content -> listOf(PositionableGroup(content.toList())) }
+      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { content ->
+        listOf(PositionableGroup(content.toList()))
+      }
     previewCanvasTracker.logSwitchLayout(groupedGridLayout)
     val groupedListLayout =
-      GroupedListSurfaceLayoutManager(0, { 0 }) { content -> listOf(PositionableGroup(content.toList())) }
+      GroupedListSurfaceLayoutManager(0, { 0 }) { content ->
+        listOf(PositionableGroup(content.toList()))
+      }
     previewCanvasTracker.logSwitchLayout(groupedListLayout)
 
     assertEquals(2, trackedEvents.size)

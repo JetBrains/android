@@ -79,7 +79,7 @@ private val GROUP_BY_BASE_COMPONENT: (Collection<PositionableContent>) -> List<P
 internal val PREVIEW_LAYOUT_GALLERY_OPTION =
   SurfaceLayoutManagerOption(
     message("gallery.mode.title"),
-    GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+    GroupedGridSurfaceLayoutManager(5, 0, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
     DesignSurface.SceneViewAlignment.LEFT,
   )
 
@@ -95,7 +95,12 @@ internal val BASE_LAYOUT_MANAGER_OPTIONS =
       SurfaceLayoutManagerOption(
         // TODO(b/289994157) Change name to "Grid"
         message("grid.groups"),
-        GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, GROUP_BY_BASE_COMPONENT),
+        GroupedGridSurfaceLayoutManager(
+          5,
+          25,
+          PREVIEW_FRAME_PADDING_PROVIDER,
+          GROUP_BY_BASE_COMPONENT
+        ),
         DesignSurface.SceneViewAlignment.LEFT,
       )
     )
@@ -131,7 +136,7 @@ internal val BASE_LAYOUT_MANAGER_OPTIONS =
       ),
       SurfaceLayoutManagerOption(
         message("new.grid.layout.title"),
-        GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+        GroupedGridSurfaceLayoutManager(5, 0, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
         DesignSurface.SceneViewAlignment.LEFT,
       )
     )
