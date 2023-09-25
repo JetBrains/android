@@ -81,7 +81,12 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
-    moduleFixtureBuilder.setProjectDescriptor(AdtTestProjectDescriptors.kotlin());
+    moduleFixtureBuilder.setProjectDescriptor(
+      AdtTestProjectDescriptors.kotlin()
+        // Higher language levels trigger JavaPlatformModuleSystem checks which fail for our light PSI classes. For now set the language
+        // level to what real AS actually uses.
+        // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light classes are not accessible.
+        .withJavaVersion(LanguageLevel.JDK_1_8));
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
 
     myFixture.setUp();
@@ -95,14 +100,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     myFacet = addAndroidFacetAndSdk(myModule);
 
     AndroidTestCase.removeFacetOn(myFixture.getProjectDisposable(), myFacet);
-
-    LanguageLevel languageLevel = getLanguageLevel();
-    if (languageLevel != null) {
-      LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
-      if (extension != null) {
-        extension.setLanguageLevel(languageLevel);
-      }
-    }
 
     mySettings = CodeStyleSettingsManager.getSettings(getProject()).clone();
     // Note: we apply the Android Studio code style so that tests running as the Android plugin in IDEA behave the same.
@@ -162,18 +159,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     } else {
       throw new RuntimeException("Could not find resource directory for test");
     }
-  }
-
-  /**
-   * Defines the project level to set for the test project, or null to get the default language
-   * level associated with the test project.
-   */
-  @Nullable
-  protected LanguageLevel getLanguageLevel() {
-    // Higher language levels trigger JavaPlatformModuleSystem checks which fail for our light PSI classes. For now set the language level
-    // to what real AS actually uses.
-    // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light classes are not accessible.
-    return LanguageLevel.JDK_1_8;
   }
 
   protected static AndroidXmlCodeStyleSettings getAndroidCodeStyleSettings() {
