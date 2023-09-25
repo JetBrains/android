@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.AdtUiUtils.isActionKeyDown
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range.Aspect.RANGE
 import com.android.tools.adtui.model.StreamingTimeline
+import com.android.tools.adtui.model.Timeline
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBScrollBar
 import java.awt.Graphics
@@ -45,10 +46,11 @@ private val MS_TO_US = TimeUnit.MILLISECONDS.toMicros(1)
 private const val STREAMING_POSITION_THRESHOLD_PX = 10f
 
 /**
- * A custom toolbar that synchronizes with the data+view ranges from the [StreamingTimeline]. This
- * control sets the timeline into streaming mode if users drags the thumb all the way to the right.
+ * A custom toolbar that synchronizes with the data+view ranges from the [Timeline].
+ *
+ * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the thumb all the way to the right.
  */
-class StreamingScrollbar(val timeline: StreamingTimeline, zoomPanComponent: JComponent) :
+class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
   JBScrollBar(HORIZONTAL) {
 
   private val aspectObserver = AspectObserver()
@@ -111,7 +113,8 @@ class StreamingScrollbar(val timeline: StreamingTimeline, zoomPanComponent: JCom
   }
 
   private fun updateModel() {
-    timeline.setStreaming(false)
+    (timeline as? StreamingTimeline)?.setStreaming(false)
+
     val dataRangeUs = timeline.dataRange
     val viewRangeUs = timeline.viewRange
     val valueMs = value
@@ -128,10 +131,14 @@ class StreamingScrollbar(val timeline: StreamingTimeline, zoomPanComponent: JCom
     // which is why this code snippet
     // is here instead of animate/postAnimate - we wouldn't get the most current size in those
     // places.
-    if (checkStream) {
-      if (!timeline.isStreaming && isCloseToMax() && timeline.canStream()) {
-        timeline.setStreaming(true)
-      }
+    if (
+      checkStream &&
+        timeline is StreamingTimeline &&
+        !timeline.isStreaming &&
+        isCloseToMax() &&
+        timeline.canStream()
+    ) {
+      timeline.setStreaming(true)
     }
     checkStream = false
   }

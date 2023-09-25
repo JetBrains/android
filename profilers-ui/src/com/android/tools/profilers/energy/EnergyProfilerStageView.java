@@ -32,7 +32,7 @@ import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.model.StreamingTimeline;
-import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TimelineScrollbar;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
@@ -98,7 +98,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    StreamingScrollbar scrollbar = new StreamingScrollbar(timeline, panel);
+    TimelineScrollbar scrollbar = new TimelineScrollbar(timeline, panel);
     panel.add(scrollbar, new TabularLayout.Constraint(4, 0));
 
     JComponent timeAxis = buildTimeAxis(profilers);

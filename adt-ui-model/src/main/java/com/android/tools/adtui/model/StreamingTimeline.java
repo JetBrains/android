@@ -36,7 +36,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   public static final double DEFAULT_ZOOM_PERCENT = 0.25;
 
   /**
-   * The mid point of our view used for zooming.
+   * The mid-point of our view used for zooming.
    */
   public static final double ZOOM_MIDDLE_FOCAL_POINT = 0.5;
 
@@ -45,20 +45,14 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    */
   public static final float ZOOM_LERP_THRESHOLD_NS = 10;
 
-  /**
-   * In order to prevent attempts to zoom larger than the current view range, this cap serves to limit the delta range to a fixed number
-   * proportional to the current view range.
-   */
-  public static final double ZOOM_IN_DELTA_RANGE_US_MAX_RATIO = 0.90;
-
   @VisibleForTesting
   public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
 
   @NotNull private final Updater myUpdater;
-  @NotNull private final Range myDataRangeUs;
-  @NotNull private final Range myViewRangeUs;
-  @NotNull private final Range mySelectionRangeUs;
-  @NotNull private final Range myTooltipRangeUs;
+  private final Range myDataRangeUs = new Range(0, 0);
+  private final Range myViewRangeUs = new Range(0, 0);
+  private final Range mySelectionRangeUs = new Range(); // Empty range
+  private final Range myTooltipRangeUs = new Range(); // Empty range
 
   private boolean myStreaming;
 
@@ -77,7 +71,9 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    * delta we resolve this by allowing the go live set the view to its requested value
    * then adjusting the min / max values by their computed adjusted amounts.
    */
-  private Range myZoomLeft;
+  private final Range myZoomLeft = new Range(0, 0);
+
+  private final TimelineZoomHelper myZoomHelper = new TimelineZoomHelper(myDataRangeUs, myViewRangeUs, myZoomLeft);
 
   private boolean myCanStream = true;
   private long myDataStartTimeNs;
@@ -98,12 +94,6 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   private float myJumpFactor;
 
   public StreamingTimeline(@NotNull Updater updater) {
-    myDataRangeUs = new Range(0, 0);
-    myViewRangeUs = new Range(0, 0);
-    myZoomLeft = new Range(0, 0);
-    mySelectionRangeUs = new Range(); // Empty range
-    myTooltipRangeUs = new Range(); // Empty range
-
     myUpdater = updater;
     myUpdater.register(this);
   }
@@ -120,6 +110,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     if (myStreaming == isStreaming) {
       return;
     }
+    //noinspection ConstantValue
     assert myCanStream || !isStreaming;
 
     myStreaming = isStreaming;
@@ -332,48 +323,13 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     myTargetRangeMaxUs = Math.min(targetMax, myDataRangeUs.getMax());
   }
 
-  /**
-   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
-   *
-   * @param deltaUs the amount of time request to change the view by.
-   * @param percent a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
-   *                the full delta to the max.
-   */
   public void zoom(double deltaUs, double percent) {
-    if (deltaUs == 0.0) {
-      return;
-    }
+    myZoomHelper.zoom(deltaUs, percent);
     if (deltaUs < 0.0) {
-      double zoomMax = -ZOOM_IN_DELTA_RANGE_US_MAX_RATIO * myViewRangeUs.getLength();
-      deltaUs = Math.max(zoomMax, deltaUs);
-
       if (percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
         setStreaming(false);
       }
     }
-    myZoomLeft.clear();
-    double minUs = myViewRangeUs.getMin() - deltaUs * percent;
-    double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
-    // When the view range is not fully covered, reset minUs to data range could change zoomLeft from zero to a large number.
-    boolean isDataRangeFullyCoveredByViewRange = myDataRangeUs.getMin() <= myViewRangeUs.getMin();
-    if (isDataRangeFullyCoveredByViewRange && minUs < myDataRangeUs.getMin()) {
-      maxUs += myDataRangeUs.getMin() - minUs;
-      minUs = myDataRangeUs.getMin();
-    }
-    // If our new view range is less than our data range then lock our max view so we
-    // don't expand it beyond the data range max.
-    if (!isDataRangeFullyCoveredByViewRange && minUs < myDataRangeUs.getMin()) {
-      maxUs = myDataRangeUs.getMax();
-    }
-    if (maxUs > myDataRangeUs.getMax()) {
-      minUs -= maxUs - myDataRangeUs.getMax();
-      maxUs = myDataRangeUs.getMax();
-    }
-    // minUs could have gone past again.
-    if (isDataRangeFullyCoveredByViewRange) {
-      minUs = Math.max(minUs, myDataRangeUs.getMin());
-    }
-    myZoomLeft.set(minUs - myViewRangeUs.getMin(), maxUs - myViewRangeUs.getMax());
   }
 
   /**
@@ -428,15 +384,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     }
 
     setStreaming(false);
-    Range finalRange = new Range(targetRangeUs.getMin() - targetRangeUs.getLength() * leftRightPaddingPercent,
-                                 targetRangeUs.getMax() + targetRangeUs.getLength() * leftRightPaddingPercent);
-
-    // Cap requested view to max data.
-    if (finalRange.getMax() > myDataRangeUs.getMax()) {
-      finalRange.setMax(myDataRangeUs.getMax());
-    }
-    myZoomLeft.set(finalRange.getMin() - myViewRangeUs.getMin(),
-                   finalRange.getMax() - myViewRangeUs.getMax());
+    myZoomHelper.updateZoomLeft(targetRangeUs, leftRightPaddingPercent);
   }
 
   @Override

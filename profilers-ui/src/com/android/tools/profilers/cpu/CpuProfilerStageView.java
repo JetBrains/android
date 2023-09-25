@@ -22,7 +22,7 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TimelineScrollbar;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.DismissibleMessage;
 import com.android.tools.profilers.ProfilerFonts;
@@ -92,7 +92,7 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
       details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
     }
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
-    details.add(new StreamingScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
+    details.add(new TimelineScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the recording options, the 2nd component is the L2 components.
     myRecordingOptionsView = new RecordingOptionsView(getStage().getRecordingModel(), this::editConfigurations);

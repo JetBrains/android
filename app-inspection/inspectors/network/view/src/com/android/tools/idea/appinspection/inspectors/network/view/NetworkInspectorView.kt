@@ -42,7 +42,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.stdui.CommonTabbedPane
-import com.android.tools.adtui.stdui.StreamingScrollbar
+import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
@@ -347,7 +347,7 @@ class NetworkInspectorView(
     // The scrollbar can modify the view range - so it should be registered to the Choreographer
     // before all other Animatables
     // that attempts to read the same range instance.
-    val sb = StreamingScrollbar(timeline, panel)
+    val sb = TimelineScrollbar(timeline, panel)
     panel.add(sb, TabularLayout.Constraint(3, 0))
     val viewAxis =
       ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)

@@ -23,7 +23,7 @@ import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.chart.linechart.OverlayComponent
 import com.android.tools.adtui.model.DurationDataModel
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter
-import com.android.tools.adtui.stdui.StreamingScrollbar
+import com.android.tools.adtui.stdui.TimelineScrollbar
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN
 import com.android.tools.profilers.StageView
@@ -89,7 +89,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
   protected open fun shouldShowTooltip() = true
 
   protected open fun makeScrollbar(): JComponent? =
-    StreamingScrollbar(stage.timeline, this)
+    TimelineScrollbar(stage.timeline, this)
 
   protected fun registerRenderer(renderer: AbstractDurationDataRenderer) = detailedMemoryChart.registerRenderer(renderer)
 

@@ -20,7 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
-import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TimelineScrollbar;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.profilers.cpu.CpuMonitor;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
@@ -88,7 +88,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
     // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
     // that attempts to read the same range instance.
-    StreamingScrollbar sb = new StreamingScrollbar(getStage().getTimeline(), getComponent());
+    TimelineScrollbar sb = new TimelineScrollbar(getStage().getTimeline(), getComponent());
     getComponent().add(sb, BorderLayout.SOUTH);
 
     // Create a 2-row panel. First row, all monitors; second row, the timeline. This way, the

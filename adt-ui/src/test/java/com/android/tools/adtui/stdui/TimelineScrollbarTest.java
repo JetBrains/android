@@ -29,15 +29,14 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JPanel;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class StreamingScrollbarTest {
+public class TimelineScrollbarTest {
 
   public static final float EPSILON = 0.0001f;
   private StreamingTimeline myTimeline;
-  private StreamingScrollbar myScrollbar;
+  private TimelineScrollbar myScrollbar;
   private JPanel myPanel;
   private FakeUi myUi;
   private FakeTimer myTimer;
@@ -49,7 +48,7 @@ public class StreamingScrollbarTest {
     myTimeline = new StreamingTimeline(updater);
     myPanel = new JPanel();
     myPanel.setSize(100, 100);
-    myScrollbar = new StreamingScrollbar(myTimeline, myPanel);
+    myScrollbar = new TimelineScrollbar(myTimeline, myPanel);
     myScrollbar.setSize(100, 10);
     JPanel panel = new JPanel(new BorderLayout());
     panel.add(myPanel, BorderLayout.CENTER);
@@ -63,7 +62,7 @@ public class StreamingScrollbarTest {
 
   @Test
   public void testInitialization() {
-    StreamingScrollbar scrollbar = new StreamingScrollbar(myTimeline, myPanel);
+    TimelineScrollbar scrollbar = new TimelineScrollbar(myTimeline, myPanel);
 
     // Scrollbar's model should be correct without an explicit update.
     // Note: model units are kept in 1000th of a range unit
