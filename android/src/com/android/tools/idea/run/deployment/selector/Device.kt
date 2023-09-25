@@ -13,62 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.LaunchCompatibility;
-import com.google.common.util.concurrent.ListenableFuture;
-import java.time.Instant;
-import java.util.Collection;
-import javax.swing.Icon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.run.AndroidDevice
+import com.android.tools.idea.run.LaunchCompatibility
+import com.google.common.util.concurrent.ListenableFuture
+import java.time.Instant
+import javax.swing.Icon
 
-interface Device {
+internal interface Device {
   /**
-   * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
-   * know about the virtual device (it's outside the scope of the AVD Manager because it uses a locally built system image, for example) it
-   * can return a virtual device path (probably not but I'm not going to assume), virtual device name, or serial number depending on what
-   * the IDevice returned.
+   * A physical device will always return a serial number. A virtual device will usually return a
+   * virtual device path. But if Studio doesn't know about the virtual device (it's outside the
+   * scope of the AVD Manager because it uses a locally built system image, for example) it can
+   * return a virtual device path (probably not but I'm not going to assume), virtual device name,
+   * or serial number depending on what the IDevice returned.
    */
-  @NotNull
-  Key getKey();
-
-  @NotNull
-  Icon getIcon();
-
-  @NotNull
-  LaunchCompatibility getLaunchCompatibility();
-
-  boolean isConnected();
-
-  @Nullable
-  Instant getConnectionTime();
-
-  @NotNull
-  String getName();
-
-  @NotNull
-  Collection<Snapshot> getSnapshots();
-
-  @NotNull
-  Target getDefaultTarget();
-
-  @NotNull
-  Collection<Target> getTargets();
-
-  @NotNull
-  AndroidDevice getAndroidDevice();
-
-  @NotNull
-  default ListenableFuture<IDevice> getDdmlibDeviceAsync() {
-    AndroidDevice device = getAndroidDevice();
-
-    if (!device.isRunning()) {
-      throw new RuntimeException(device + " is not running");
+  val key: Key
+  val icon: Icon
+  val launchCompatibility: LaunchCompatibility
+  val isConnected: Boolean
+  val connectionTime: Instant?
+  val name: String
+  val snapshots: Collection<Snapshot>
+  val defaultTarget: Target
+  val targets: Collection<Target>
+  val androidDevice: AndroidDevice
+  val ddmlibDeviceAsync: ListenableFuture<IDevice>
+    get() {
+      val device = androidDevice
+      if (!device.isRunning()) {
+        throw RuntimeException("$device is not running")
+      }
+      return device.getLaunchedDevice()
     }
-
-    return device.getLaunchedDevice();
-  }
 }
