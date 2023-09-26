@@ -44,7 +44,7 @@ import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.util.indexing.UnindexedFilesUpdater;
+import com.intellij.util.indexing.UnindexedFilesScanner;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -251,7 +251,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     updateContent(navigator, newContent);
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     DumbService dumbService = DumbService.getInstance(getProject());
-    new UnindexedFilesUpdater(getProject()).queue();
+    new UnindexedFilesScanner(getProject()).queue();
     dumbService.completeJustSubmittedTasks();
     assertEquals(doesValidate, schema.quickValidate());
   }
@@ -292,7 +292,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(getProject(), () -> navigator.getContainingFile().delete());
     WriteAction.runAndWait(() -> PsiDocumentManager.getInstance(myModule.getProject()).commitAllDocuments());
     DumbService dumbService = DumbService.getInstance(getProject());
-    new UnindexedFilesUpdater(getProject(), "Test").queue();
+    new UnindexedFilesScanner(getProject(), "Test").queue();
     dumbService.completeJustSubmittedTasks();
 
     assertFalse(schema.quickValidate());

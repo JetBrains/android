@@ -52,7 +52,7 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.util.indexing.UnindexedFilesUpdater
+import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -545,7 +545,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     })
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)
-    UnindexedFilesUpdater(project).queue()
+    UnindexedFilesScanner(project).queue()
     dumbService.completeJustSubmittedTasks()
     return result
   }
@@ -562,7 +562,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     WriteAction.runAndWait<RuntimeException> { PsiDocumentManager.getInstance(myModule.project).commitAllDocuments() }
     val dumbService = DumbService.getInstance(project)
-    UnindexedFilesUpdater(project).queue()
+    UnindexedFilesScanner(project).queue()
     dumbService.completeJustSubmittedTasks()
   }
 
