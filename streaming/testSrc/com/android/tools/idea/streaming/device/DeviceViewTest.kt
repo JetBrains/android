@@ -174,7 +174,6 @@ internal class DeviceViewTest {
   fun setUp() {
     BitRateManager.getInstance().clear()
     device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
-    StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.override(true, testRootDisposable)
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
   }

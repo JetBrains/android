@@ -47,14 +47,8 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
   }
 
   override fun update(event: AnActionEvent) {
-    val presentation = event.presentation
-    val enabled = StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.get()
-    presentation.isEnabledAndVisible = enabled
-    if (!enabled) {
-      return
-    }
     super.update(event)
-    enableRichTooltip(presentation)
+    enableRichTooltip(event.presentation)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

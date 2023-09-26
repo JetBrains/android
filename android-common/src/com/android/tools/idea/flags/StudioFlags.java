@@ -814,14 +814,6 @@ public final class StudioFlags {
     false);
   //endregion
 
-  //region Streaming
-  private static final FlagGroup STREAMING = new FlagGroup(FLAGS, "streaming", "Streaming");
-  public static final Flag<Boolean> STREAMING_HARDWARE_INPUT_BUTTON = Flag.create(
-    STREAMING, "hardware.input.button", "Show Hardware Input Button",
-    "Shows the hardware input button on the running device toolbar", true);
-
-  //endregion
-
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS = Flag.create(

@@ -145,7 +145,6 @@ class EmulatorViewTest {
 
   @Before
   fun setUp() {
-    StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.override(true, testRootDisposable)
     mouseInfo = mockStatic(testRootDisposable)
     mouseInfo.whenever<PointerInfo> { MouseInfo.getPointerInfo() }.thenReturn(mock<PointerInfo>())
     focusManager = FakeKeyboardFocusManager(testRootDisposable)

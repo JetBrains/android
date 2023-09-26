@@ -74,7 +74,6 @@ class StreamingHardwareInputActionTest {
 
   @Before
   fun setUp() {
-    StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.override(true, testRootDisposable)
     application.replaceService(JBPopupFactory::class.java, popupFactory, testRootDisposable)
     Registry.get("ide.tooltip.initialReshowDelay").setValue(0, testRootDisposable)
   }
