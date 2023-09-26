@@ -165,7 +165,7 @@ class DeviceController(
    * ```
    */
   private fun parseDeviceStates(text: String): List<FoldingState> {
-    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(, app_accessible=(?<accessible>true|false))?}")
+    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(, app_accessible=(?<accessible>true|false))?(, .*)?}")
     return regex.findAll(text).map {
       val groups = it.groups
       val id = groups["id"]?.value?.toInt() ?: throw IllegalArgumentException()
