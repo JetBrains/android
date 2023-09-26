@@ -16,7 +16,7 @@
 package com.android.tools.idea.sdk.extensions
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
@@ -24,7 +24,9 @@ import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.projectRoots.SimpleJavaSdkType
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.OrderRootType
-import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.testFramework.DisposableRule
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.junit.Rule
@@ -34,8 +36,13 @@ import kotlin.test.assertTrue
 
 class SdkExtensionsTest {
 
-  @get:Rule
+  @Rule
+  @JvmField
   val projectRule = AndroidProjectRule.inMemory()
+
+  @Rule
+  @JvmField
+  val disposableRule = DisposableRule()
 
   @Test
   fun `Given Sdks with different naming When compare They are different`() {
@@ -118,12 +125,24 @@ class SdkExtensionsTest {
   ): Sdk {
     val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkTpe)
     val sdkModificator = sdk.sdkModificator
-    sdkModificator.versionString = version
     sdkModificator.homePath = path
-    roots.forEach { (rootType, name) ->
-      sdkModificator.addRoot(MockVirtualFile(name), rootType)
+    sdkModificator.versionString = version
+
+    val application = ApplicationManager.getApplication()
+    application.invokeAndWait {
+      application.runWriteAction {
+        val virtualFileManager = VirtualFileManager.getInstance()
+        roots.forEach { (rootType, name) ->
+          val tmpVirtualFile = virtualFileManager.findFileByUrl("temp:///")!!
+          val virtualFile = tmpVirtualFile.findOrCreateChildData(null, name)
+          sdkModificator.addRoot(virtualFile, rootType)
+        }
+        sdkModificator.commitChanges()
+      }
     }
-    runInEdtAndWait { ApplicationManager.getApplication().runWriteAction { sdkModificator.commitChanges() } }
+    (sdk as? Disposable)?.let {
+      Disposer.register(disposableRule.disposable, it)
+    }
     return sdk
   }
 }
