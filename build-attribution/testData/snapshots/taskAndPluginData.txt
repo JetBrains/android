@@ -40,10 +40,6 @@ Task                          : :app:createDebugCompatibleScreenManifests
     PrimaryTaskCategory           : MANIFEST
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:createDebugVariantModel
-    TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
-    PrimaryTaskCategory           : SYNC
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:expandDebugArtProfileWildcards
     TaskType                      : com.android.build.gradle.internal.tasks.ExpandArtProfileWildcardsTask
     PrimaryTaskCategory           : ART_PROFILE
@@ -229,10 +225,6 @@ Task                          : :lib:copyDebugJniLibsProjectAndLocalJars
 Task                          : :lib:copyDebugJniLibsProjectOnly
     TaskType                      : com.android.build.gradle.internal.tasks.LibraryJniLibsTask
     PrimaryTaskCategory           : NATIVE
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:createDebugVariantModel
-    TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
-    PrimaryTaskCategory           : SYNC
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:exportDebugConsumerProguardFiles
     TaskType                      : com.android.build.gradle.internal.tasks.ExportConsumerProguardFilesTask
