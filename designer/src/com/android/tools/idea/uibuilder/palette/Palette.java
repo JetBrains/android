@@ -91,8 +91,8 @@ public class Palette {
   }
 
   @NotNull
-  public Set<String> getGradleCoordinateIds() {
-    Set<String> gradleCoordinateIds = new HashSet<>();
+  public Set<GoogleMavenArtifactId> getGoogleMavenArtifactIds() {
+    Set<GoogleMavenArtifactId> gradleCoordinateIds = new HashSet<>();
     accept(item -> item.addGradleCoordinateId(gradleCoordinateIds));
     return gradleCoordinateIds;
   }
@@ -237,12 +237,6 @@ public class Palette {
     @Nullable
     private String myGradleCoordinateId;
 
-    /**
-     * A special value returned from {@link #getGradleCoordinateId} to indicate that this
-     * component is included in the SDK platform.
-     */
-    public static final String IN_PLATFORM = "";
-
     @XmlAttribute(name = "handler-class")
     @Nullable
     private String myHandlerClass;
@@ -316,13 +310,13 @@ public class Palette {
       return myHandler.getIcon(myTagName);
     }
 
-    @NotNull
-    public String getGradleCoordinateId() {
+    @Nullable
+    public GoogleMavenArtifactId getGradleCoordinateId() {
       if (myGradleCoordinateId != null) {
-        return myGradleCoordinateId;
+        GoogleMavenArtifactId id = GoogleMavenArtifactId.find(myGradleCoordinateId);
+        if (id != null) return id;
       }
-      GoogleMavenArtifactId id = myHandler.getGradleCoordinateId(myTagName);
-      return id == null ? IN_PLATFORM : id.toString();
+      return myHandler.getGradleCoordinateId(myTagName);
     }
 
     @NotNull
@@ -415,10 +409,10 @@ public class Palette {
       }
     }
 
-    private void addGradleCoordinateId(@NotNull Set<String> coordinateIds) {
-      String coordinateId = getGradleCoordinateId();
+    private void addGradleCoordinateId(@NotNull Set<GoogleMavenArtifactId> coordinateIds) {
+      GoogleMavenArtifactId coordinateId = getGradleCoordinateId();
 
-      if (!coordinateId.isEmpty()) {
+      if (coordinateId != null) {
         coordinateIds.add(coordinateId);
       }
     }

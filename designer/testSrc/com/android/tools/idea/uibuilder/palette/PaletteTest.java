@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import com.android.AndroidXConstants;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -40,7 +41,6 @@ import java.util.List;
 import static com.android.SdkConstants.*;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
-import static com.android.tools.idea.uibuilder.palette.Palette.Item.IN_PLATFORM;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -91,7 +91,7 @@ public class PaletteTest extends AndroidTestCase {
   }
 
   private void assertTextViewItem(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, TEXT_VIEW, IN_PLATFORM);
+    assertStandardTextView(item, TEXT_VIEW, null);
   }
 
   @Language("XML")
@@ -104,7 +104,7 @@ public class PaletteTest extends AndroidTestCase {
 
   private void assertLinearLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ,
-              HORIZONTAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM);
+              HORIZONTAL_LINEAR_LAYOUT_XML, NO_PREVIEW, null);
     checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
   }
 
@@ -118,7 +118,7 @@ public class PaletteTest extends AndroidTestCase {
 
   private void assertNormalProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
-              IN_PLATFORM);
+              null);
     checkComponent(createMockComponent("ProgressBar"), "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR);
   }
 
@@ -127,7 +127,7 @@ public class PaletteTest extends AndroidTestCase {
   }
 
   private void assertIncludeItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, IN_PLATFORM
+    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, null
     );
     checkComponent(createMockComponent(VIEW_INCLUDE), "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE);
   }
@@ -171,7 +171,7 @@ public class PaletteTest extends AndroidTestCase {
                                 @NotNull Icon expectedIcon,
                                 @NotNull @Language("XML") String expectedXml,
                                 @NotNull @Language("XML") String expectedDragPreviewXml,
-                                @NotNull String expectedGradleCoordinateId) {
+                                @Nullable String expectedGradleCoordinateId) {
     assertTrue(base instanceof Palette.Item);
     Palette.Item item = (Palette.Item)base;
 
@@ -180,7 +180,8 @@ public class PaletteTest extends AndroidTestCase {
     assertEquals(expectedTag + ".Icon", expectedIcon, item.getIcon());
     assertEquals(expectedTag + ".XML", formatXml(expectedXml), formatXml(item.getXml()));
     assertEquals(expectedTag + ".DragPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
-    assertEquals(expectedTag + ".GradleCoordinateId", expectedGradleCoordinateId, item.getGradleCoordinateId());
+    GoogleMavenArtifactId expectedId = expectedGradleCoordinateId == null ? null : GoogleMavenArtifactId.find(expectedGradleCoordinateId);
+    assertEquals(expectedTag + ".GradleCoordinateId", expectedId, item.getGradleCoordinateId());
   }
 
   private void checkComponent(@NotNull NlComponent component, @NotNull String expectedTitle, @NotNull Icon expectedIcon) {

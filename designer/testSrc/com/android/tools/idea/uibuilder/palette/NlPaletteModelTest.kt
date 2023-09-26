@@ -136,13 +136,13 @@ class NlPaletteModelTest {
     assertThat(item1.tagName).isEqualTo(CUSTOM_VIEW_CLASS)
     assertThat(item1.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item1.title).isEqualTo(CUSTOM_VIEW)
-    assertThat(item1.gradleCoordinateId).isEmpty()
+    assertThat(item1.gradleCoordinateId).isNull()
     assertThat(item1.xml.trim()).isEqualTo(expectedViewXml)
     val item2 = items[1]
     assertThat(item2.tagName).isEqualTo(CUSTOM_VIEW_GROUP_CLASS)
     assertThat(item2.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item2.title).isEqualTo(CUSTOM_VIEW_GROUP)
-    assertThat(item2.gradleCoordinateId).isEmpty()
+    assertThat(item2.gradleCoordinateId).isNull()
     assertThat(item2.xml.trim()).isEqualTo(expectedViewGroupXml)
     val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(handler).isNotNull()
@@ -258,7 +258,7 @@ class NlPaletteModelTest {
     assertThat(item.tagName).isEqualTo(CUSTOM_VIEW_CLASS)
     assertThat(item.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item.title).isEqualTo(CUSTOM_VIEW)
-    assertThat(item.gradleCoordinateId).isEmpty()
+    assertThat(item.gradleCoordinateId).isNull()
     assertThat(item.xml.trim())
       .isEqualTo(
         """
