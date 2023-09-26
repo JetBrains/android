@@ -109,7 +109,6 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
-        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/adt/idea/compose-designer/testData",
         "//tools/adt/idea/compose-ide-plugin/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
@@ -163,14 +162,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
-)
-
-filegroup(
-    name = "kotlin-compiler-daemon-libs",
-    # We only include the 1.2.0 version as part of the distribution as it is the only one needed
-    # for tests and canary.
-    srcs = ["lib/kotlin-compiler-daemon-1.2.0-fallback.jar"],
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build
