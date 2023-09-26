@@ -25,21 +25,14 @@ import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.Service;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
 
 public final class AndroidLowMemoryNotifier implements Disposable {
+  static final String NOTIFICATION_DISPLAY_ID = "android.low.memory.notification";
   private LowMemoryWatcher myWatcher;
   private final AtomicBoolean myNotificationShown = new AtomicBoolean();
-
-  public static AndroidLowMemoryNotifier getInstance() {
-    return ApplicationManager.getApplication().getService(AndroidLowMemoryNotifier.class);
-  }
 
   private AndroidLowMemoryNotifier() {
     myWatcher = LowMemoryWatcher.register(AndroidLowMemoryNotifier.this::onLowMemorySignalReceived, ONLY_AFTER_GC);
@@ -48,13 +41,16 @@ public final class AndroidLowMemoryNotifier implements Disposable {
   private void onLowMemorySignalReceived() {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int xmxCap = MemorySettingsRecommendation.XLARGE_HEAP_SIZE_RECOMMENDATION_IN_MB;
-    if (myNotificationShown.compareAndSet(false, true) && currentXmx < xmxCap) {
+    boolean notShownYet = myNotificationShown.compareAndSet(false, true);
+    boolean isUnitTest = ApplicationManager.getApplication().isUnitTestMode();
+    if (notShownYet && currentXmx < xmxCap || isUnitTest) {
       String content = AndroidBundle.message("low.memory.notification.content");
       new Notification("Low Memory", AndroidBundle.message("low.memory.notification.title"), content, NotificationType.WARNING)
         .addAction(NotificationAction.createExpiring(IdeBundle.message("low.memory.notification.action"), (e, n) -> {
           MemorySettingsUtil.log(MemorySettingsEvent.EventKind.CONFIGURE, currentXmx, -1, -1, -1, -1, -1, -1, -1, -1);
           ShowSettingsUtilImpl.showSettingsDialog(e.getProject(), "memory.settings", "");
         }))
+        .setDisplayId(NOTIFICATION_DISPLAY_ID)
         .notify(null);
     }
   }
