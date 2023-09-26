@@ -18,7 +18,7 @@ package com.android.tools.idea.streaming.core
 import java.awt.Dimension
 
 /** XML-serializable descriptor of a device display. */
-internal data class DisplayDescriptor(
+data class DisplayDescriptor(
   var displayId: Int,
   var width: Int,
   var height: Int,

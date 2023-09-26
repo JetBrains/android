@@ -26,13 +26,19 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
+import com.android.tools.adtui.swing.findDescendant
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
+import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
+import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -43,7 +49,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -104,10 +109,10 @@ class DeviceToolWindowPanelTest {
   @Test
   fun testAppearanceAndToolbarActions() {
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    assertThat(panel.deviceView).isNull()
+    assertThat(panel.primaryDisplayView).isNull()
 
     panel.createContent(false)
-    assertThat(panel.deviceView).isNotNull()
+    assertThat(panel.primaryDisplayView).isNotNull()
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
@@ -117,7 +122,7 @@ class DeviceToolWindowPanelTest {
     fakeUi.updateToolbars()
     waitForFrame()
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
-    assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
+    assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat(panel.icon).isNotNull()
 
     // Check push button actions.
@@ -140,7 +145,7 @@ class DeviceToolWindowPanelTest {
     // Check DevicePowerButtonAction invoked by a keyboard shortcut.
     var action = ActionManager.getInstance().getAction("android.device.power.button")
     var keyEvent = KeyEvent(panel, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_P, KeyEvent.CHAR_UNDEFINED)
-    val dataContext = DataManager.getInstance().getDataContext(panel.deviceView)
+    val dataContext = DataManager.getInstance().getDataContext(panel.primaryDisplayView)
     action.actionPerformed(AnActionEvent.createFromAnAction(action, keyEvent, ActionPlaces.KEYBOARD_SHORTCUT, dataContext))
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, AKEYCODE_POWER, 0))
 
@@ -158,7 +163,7 @@ class DeviceToolWindowPanelTest {
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Palm" }).isNull()
 
     panel.destroyContent()
-    assertThat(panel.deviceView).isNull()
+    assertThat(panel.primaryDisplayView).isNull()
     waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
@@ -167,7 +172,7 @@ class DeviceToolWindowPanelTest {
     device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454),
                                      additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     panel.createContent(false)
-    assertThat(panel.deviceView).isNotNull()
+    assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
@@ -176,7 +181,7 @@ class DeviceToolWindowPanelTest {
     fakeUi.updateToolbars()
     fakeUi.layoutAndDispatchEvents()
     waitForFrame()
-    assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
+    assertThat(panel.preferredFocusableComponent).isEqualTo(panel.primaryDisplayView)
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
     // Check push button actions.
@@ -213,16 +218,16 @@ class DeviceToolWindowPanelTest {
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
 
     // Check that the actions not applicable to Wear OS 3 cannot be invoked by keyboard shortcuts.
-    assertThat(updateAndGetActionPresentation("android.device.power.button", panel.deviceView!!, project).isEnabled).isFalse()
-    assertThat(updateAndGetActionPresentation("android.device.volume.up.button", panel.deviceView!!, project).isEnabled).isFalse()
-    assertThat(updateAndGetActionPresentation("android.device.volume.down.button", panel.deviceView!!, project).isEnabled).isFalse()
-    assertThat(updateAndGetActionPresentation("android.device.rotate.left", panel.deviceView!!, project).isEnabled).isFalse()
-    assertThat(updateAndGetActionPresentation("android.device.rotate.right", panel.deviceView!!, project).isEnabled).isFalse()
-    assertThat(updateAndGetActionPresentation("android.device.home.button", panel.deviceView!!, project).isEnabled).isFalse()
-    assertThat(updateAndGetActionPresentation("android.device.overview.button", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.power.button", panel.primaryDisplayView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.volume.up.button", panel.primaryDisplayView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.volume.down.button", panel.primaryDisplayView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.rotate.left", panel.primaryDisplayView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.rotate.right", panel.primaryDisplayView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.home.button", panel.primaryDisplayView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.overview.button", panel.primaryDisplayView!!, project).isEnabled).isFalse()
 
     panel.destroyContent()
-    assertThat(panel.deviceView).isNull()
+    assertThat(panel.primaryDisplayView).isNull()
     waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
@@ -231,7 +236,7 @@ class DeviceToolWindowPanelTest {
     device = agentRule.connectDevice("Pixel Fold", 33, Dimension(2208, 1840), foldedSize = Dimension(1080, 2092))
 
     panel.createContent(false)
-    val deviceView = panel.deviceView!!
+    val deviceView = panel.primaryDisplayView!!
 
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
@@ -242,18 +247,18 @@ class DeviceToolWindowPanelTest {
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible }
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
     assertThat(foldingActions).asList().containsExactly(
-        DeviceFoldingAction(FoldingState(0, "Closed", true)),
-        DeviceFoldingAction(FoldingState(1, "Tent", true)),
-        DeviceFoldingAction(FoldingState(2, "Half-Open", true)),
-        DeviceFoldingAction(FoldingState(3, "Open", true)),
-        DeviceFoldingAction(FoldingState(4, "Rear Display", true)),
-        DeviceFoldingAction(FoldingState(5, "Both Displays", true)),
-        DeviceFoldingAction(FoldingState(6, "Flipped", true)))
+      DeviceFoldingAction(FoldingState(0, "Closed", true)),
+      DeviceFoldingAction(FoldingState(1, "Tent", true)),
+      DeviceFoldingAction(FoldingState(2, "Half-Open", true)),
+      DeviceFoldingAction(FoldingState(3, "Open", true)),
+      DeviceFoldingAction(FoldingState(4, "Rear Display", true)),
+      DeviceFoldingAction(FoldingState(5, "Both Displays", true)),
+      DeviceFoldingAction(FoldingState(6, "Flipped", true)))
     for (action in foldingActions) {
       action.update(event)
       assertThat(event.presentation.isEnabled).isTrue()
@@ -261,21 +266,22 @@ class DeviceToolWindowPanelTest {
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
 
-    val nextFrameNumber = panel.frameNumber + 1u
+    val nextFrameNumber = panel.primaryDisplayView!!.frameNumber + 1u
     val closingAction = foldingActions[0]
     closingAction.actionPerformed(event)
-    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
-    waitForFrame(nextFrameNumber)
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)" }
+    waitForFrame(minFrameNumber = nextFrameNumber)
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
   }
 
   @Test
-  fun testZoom() {
-    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    assertThat(panel.deviceView).isNull()
+  fun testMultipleDisplays() {
+    StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.override(true, testRootDisposable)
+    device = agentRule.connectDevice("Pixel 7 Pro", 33, Dimension(1440, 3120))
+    assertThat(panel.primaryDisplayView).isNull()
 
     panel.createContent(false)
-    assertThat(panel.deviceView).isNotNull()
+    assertThat(panel.primaryDisplayView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
@@ -284,7 +290,40 @@ class DeviceToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     waitForFrame()
 
-    var deviceView = panel.deviceView!!
+    val externalDisplayId = 1
+    agent.addDisplay(DisplayDescriptor(externalDisplayId, Dimension(1080, 1920), 0, DisplayDescriptor.Type.EXTERNAL))
+    waitForCondition(2, SECONDS) { fakeUi.findAllComponents<DeviceView>().size == 2 }
+    waitForFrame(PRIMARY_DISPLAY_ID)
+    waitForFrame(externalDisplayId)
+    assertAppearance("MultipleDisplays1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
+
+    agent.clearCommandLog()
+    // Rotating the device. Only the internal display should rotate.
+    executeStreamingAction("android.device.rotate.left", panel.primaryDisplayView!!, project)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(orientation=1))
+    waitForFrame(externalDisplayId)
+    assertAppearance("MultipleDisplays2", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
+
+    agent.removeDisplay(externalDisplayId)
+    waitForCondition(2, SECONDS) { fakeUi.findAllComponents<DeviceView>().size == 1 }
+  }
+
+  @Test
+  fun testZoom() {
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    assertThat(panel.primaryDisplayView).isNull()
+
+    panel.createContent(false)
+    assertThat(panel.primaryDisplayView).isNotNull()
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
+
+    fakeUi.updateToolbars()
+    fakeUi.layoutAndDispatchEvents()
+    waitForFrame()
+
+    var deviceView = panel.primaryDisplayView!!
     // Zoom in.
     deviceView.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
@@ -298,11 +337,11 @@ class DeviceToolWindowPanelTest {
 
     // Recreate panel content.
     val uiState = panel.destroyContent()
-    assertThat(panel.deviceView).isNull()
+    assertThat(panel.primaryDisplayView).isNull()
     waitForCondition(2, SECONDS) { !agent.videoStreamActive }
     panel.createContent(false, uiState)
-    assertThat(panel.deviceView).isNotNull()
-    deviceView = panel.deviceView!!
+    assertThat(panel.primaryDisplayView).isNotNull()
+    deviceView = panel.primaryDisplayView!!
     fakeUi.layoutAndDispatchEvents()
     waitForCondition(5, SECONDS) { agent.videoStreamActive && panel.isConnected }
     waitForFrame()
@@ -313,7 +352,7 @@ class DeviceToolWindowPanelTest {
     assertThat(viewport.viewPosition).isEqualTo(scrollPosition)
 
     panel.destroyContent()
-    assertThat(panel.deviceView).isNull()
+    assertThat(panel.primaryDisplayView).isNull()
     waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
@@ -343,22 +382,24 @@ class DeviceToolWindowPanelTest {
     return panel
   }
 
-  private fun getNextControlMessageAndWaitForFrame(): ControlMessage {
+  private fun getNextControlMessageAndWaitForFrame(displayId: Int = PRIMARY_DISPLAY_ID): ControlMessage {
     val message = agent.getNextControlMessage(2, SECONDS)
-    waitForFrame()
+    waitForFrame(displayId)
     return message
   }
 
   /** Waits for all video frames to be received after the given one. */
-  private fun waitForFrame(minFrameNumber: UInt = 1u) {
+  private fun waitForFrame(displayId: Int = PRIMARY_DISPLAY_ID, minFrameNumber: UInt = 1u) {
     waitForCondition(2, SECONDS) {
-      panel.isConnected && agent.frameNumber >= minFrameNumber && renderAndGetFrameNumber() == agent.frameNumber
+      panel.isConnected &&
+      agent.getFrameNumber(displayId) >= minFrameNumber &&
+      renderAndGetFrameNumber(displayId) == agent.getFrameNumber(displayId)
     }
   }
 
-  private fun renderAndGetFrameNumber(): UInt {
+  private fun renderAndGetFrameNumber(displayId: Int = PRIMARY_DISPLAY_ID): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
-    return panel.frameNumber
+    return panel.findDisplayView(displayId)!!.frameNumber
   }
 
   @Suppress("SameParameterValue")
@@ -381,12 +422,11 @@ class DeviceToolWindowPanelTest {
     return TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
   }
 
-  private val DeviceToolWindowPanel.deviceView
-    get() = getData(DEVICE_VIEW_KEY.name) as DeviceView?
   private val DeviceToolWindowPanel.isConnected
     get() = (getData(DEVICE_VIEW_KEY.name) as? DeviceView)?.isConnected ?: false
-  private val DeviceToolWindowPanel.frameNumber
-    get() = deviceView!!.frameNumber
+
+  private fun DeviceToolWindowPanel.findDisplayView(displayId: Int): DeviceView? =
+    if (displayId == PRIMARY_DISPLAY_ID) primaryDisplayView else findDescendant<DeviceView> { it.displayId == displayId }
 }
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceToolWindowPanelTest/golden"
