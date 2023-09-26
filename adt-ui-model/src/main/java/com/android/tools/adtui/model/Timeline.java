@@ -64,12 +64,10 @@ public interface Timeline {
    * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
    *
    * @param deltaUs the amount of time request to change the view by.
-   * @param percent a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
+   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
    *                the full delta to the max.
-   *
-   * TODO(aalbert): Replace all `percent` names that are actually a `ratio` to `ratio`.
    */
-  void zoom(double deltaUs, double percent);
+  void zoom(double deltaUs, double ratio);
 
   /**
    * Set view range to the given range.

@@ -33,7 +33,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   /**
    * The view range is multiplied by this value to determine the new view range when zooming.
    */
-  public static final double DEFAULT_ZOOM_PERCENT = 0.25;
+  public static final double DEFAULT_ZOOM_RATIO = 0.25;
 
   /**
    * The mid-point of our view used for zooming.
@@ -323,21 +323,21 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     myTargetRangeMaxUs = Math.min(targetMax, myDataRangeUs.getMax());
   }
 
-  public void zoom(double deltaUs, double percent) {
-    myZoomHelper.zoom(deltaUs, percent);
+  public void zoom(double deltaUs, double ratio) {
+    myZoomHelper.zoom(deltaUs, ratio);
     if (deltaUs < 0.0) {
-      if (percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
+      if (ratio < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
         setStreaming(false);
       }
     }
   }
 
   /**
-   * Zooms out by {@link StreamingTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms out by {@link StreamingTimeline#DEFAULT_ZOOM_RATIO} of the current view range length.
    */
   @Override
   public void zoomOut() {
-    zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
+    zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_RATIO);
   }
 
   /**
@@ -348,11 +348,11 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   }
 
   /**
-   * Zooms in by {@link StreamingTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms in by {@link StreamingTimeline#DEFAULT_ZOOM_RATIO} of the current view range length.
    */
   @Override
   public void zoomIn() {
-    zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
+    zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_RATIO);
   }
 
   @Override
@@ -374,9 +374,9 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    * Zoom and pans the view range to the specified target range if the range is not point, otherwise center the view range only.
    *
    * @param targetRangeUs target range to lerp view to.
-   * @param leftRightPaddingPercent how much space to leave on both sides of the range to leave as padding.
+   * @param leftRightPaddingRatio how much space to leave on both sides of the range to leave as padding.
    */
-  public void frameViewToRange(Range targetRangeUs, double leftRightPaddingPercent) {
+  public void frameViewToRange(Range targetRangeUs, double leftRightPaddingRatio) {
     // Zoom to view when the selection range is not point, otherwise adjust the view range only.
     if (targetRangeUs.isEmpty() || targetRangeUs.isPoint()) {
       adjustRangeCloseToMiddleView(targetRangeUs);
@@ -384,7 +384,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     }
 
     setStreaming(false);
-    myZoomHelper.updateZoomLeft(targetRangeUs, leftRightPaddingPercent);
+    myZoomHelper.updateZoomLeft(targetRangeUs, leftRightPaddingRatio);
   }
 
   @Override

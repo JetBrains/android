@@ -86,7 +86,7 @@ public class EnergyProfilerStage extends StreamingStage {
       public void selectionCreated() {
         trackRangeSelection(profilers, myRangeSelectionModel.getSelectionRange());
         profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
-        myInstructionsEaseOutModel.setCurrentPercentage(1);
+        myInstructionsEaseOutModel.setCurrentRatio(1);
       }
     });
 

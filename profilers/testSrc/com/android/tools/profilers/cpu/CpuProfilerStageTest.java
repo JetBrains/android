@@ -734,10 +734,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testHasUserUsedCapture() throws InterruptedException {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    assertThat(myStage.getInstructionsEaseOutModel().getRatioComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedCpuCapture()).isFalse();
     CpuProfilerTestUtils.startCapturing(myStage, myTransportService, true);
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    assertThat(myStage.getInstructionsEaseOutModel().getRatioComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
   }
 

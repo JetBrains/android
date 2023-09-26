@@ -342,7 +342,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback, null);
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
-    getInstructionsEaseOutModel().setCurrentPercentage(1);
+    getInstructionsEaseOutModel().setCurrentRatio(1);
   }
 
   private void startCapturingCallback(@NotNull Trace.TraceStartStatus status) {

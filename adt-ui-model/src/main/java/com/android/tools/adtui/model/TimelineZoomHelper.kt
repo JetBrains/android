@@ -53,10 +53,10 @@ internal class TimelineZoomHelper(
    * over is applied to the view minimum.
    *
    * @param amountUs the amount of time request to change the view by.
-   * @param percent a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies
+   * @param ratio a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies
    *   the full delta to the min while 0 applies the full delta to the max.
    */
-  fun zoom(amountUs: Double, percent: Double) {
+  fun zoom(amountUs: Double, ratio: Double) {
     var deltaUs = amountUs
     if (deltaUs == 0.0) {
       return
@@ -66,8 +66,8 @@ internal class TimelineZoomHelper(
       deltaUs = max(zoomMax, deltaUs)
     }
     zoomLeft.clear()
-    var minUs = viewRange.min - deltaUs * percent
-    var maxUs = viewRange.max + deltaUs * (1 - percent)
+    var minUs = viewRange.min - deltaUs * ratio
+    var maxUs = viewRange.max + deltaUs * (1 - ratio)
     // When the view range is not fully covered, reset minUs to data range could change zoomLeft
     // from zero to a large number.
     val isDataRangeFullyCoveredByViewRange: Boolean = dataRange.min <= viewRange.min
@@ -94,11 +94,11 @@ internal class TimelineZoomHelper(
   /**
    * Updates [zoomLeft] after a timeline `frameViewToRange` call
    */
-  fun updateZoomLeft(targetRange: Range, paddingPercent: Double) {
+  fun updateZoomLeft(targetRange: Range, paddingRatio: Double) {
     val finalRange =
       Range(
-        targetRange.min - targetRange.length * paddingPercent,
-        targetRange.max + targetRange.length * paddingPercent
+        targetRange.min - targetRange.length * paddingRatio,
+        targetRange.max + targetRange.length * paddingRatio
       )
 
     // Cap requested view to max data.

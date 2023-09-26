@@ -34,7 +34,7 @@ public class EaseOutModel extends AspectModel<EaseOutModel.Aspect> implements Up
   @NotNull private final Updater myUpdater;
   private final long myEaseOutStartTimeNs;
   private long myTimeRemainingUntilEaseOut;
-  private float myPercentage;
+  private float myRatio;
 
   /**
    * @param updater            The updater that animates the easing effect.
@@ -44,18 +44,18 @@ public class EaseOutModel extends AspectModel<EaseOutModel.Aspect> implements Up
     assert easeOutStartTimeNs >= 0;
 
     myUpdater = updater;
-    myPercentage = 0f;
+    myRatio = 0f;
     myEaseOutStartTimeNs = easeOutStartTimeNs;
     myTimeRemainingUntilEaseOut = myEaseOutStartTimeNs;
     myUpdater.register(this);
   }
 
-  public void setCurrentPercentage(float percentage) {
-    assert percentage >= 0 && percentage <= 1;
-    myPercentage = percentage;
+  public void setCurrentRatio(float ratio) {
+    assert ratio >= 0 && ratio <= 1;
+    myRatio = ratio;
     changed(Aspect.EASING);
 
-    if (myPercentage >= 1) {
+    if (myRatio >= 1) {
       myUpdater.unregister(this);
     }
   }
@@ -64,11 +64,11 @@ public class EaseOutModel extends AspectModel<EaseOutModel.Aspect> implements Up
   public void update(long elapsedNs) {
     myTimeRemainingUntilEaseOut -= elapsedNs;
     if (myTimeRemainingUntilEaseOut < 0) {
-      myPercentage = Updater.lerp(myPercentage, 1, DEFAULT_LERP_FRACTION, elapsedNs, 0.01f);
+      myRatio = Updater.lerp(myRatio, 1, DEFAULT_LERP_FRACTION, elapsedNs, 0.01f);
     }
     changed(Aspect.EASING);
 
-    if (myPercentage >= 1) {
+    if (myRatio >= 1) {
       // Stops updating completely after we have reached full fade out.
       myUpdater.unregister(this);
     }
@@ -77,7 +77,7 @@ public class EaseOutModel extends AspectModel<EaseOutModel.Aspect> implements Up
   /**
    * @return a [0,1] value indicating the current easing progress. A value of 1 means the easing has completed.
    */
-  public float getPercentageComplete() {
-    return myPercentage;
+  public float getRatioComplete() {
+    return myRatio;
   }
 }

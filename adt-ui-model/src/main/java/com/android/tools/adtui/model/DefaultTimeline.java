@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DefaultTimeline implements Timeline {
   private static final double DEFAULT_ZOOM_RATIO = 0.75;
-  public static final double PADDING_PERCENT = 0.1;
+  public static final double PADDING_RATIO = 0.1;
 
   private final Range myDataRange = new Range();
   private final Range myViewRange = new Range();
@@ -93,13 +93,13 @@ public class DefaultTimeline implements Timeline {
   }
 
   @Override
-  public void zoom(double deltaUs, double percent) {
-    myZoomHelper.zoom(deltaUs, percent);
+  public void zoom(double deltaUs, double ratio) {
+    myZoomHelper.zoom(deltaUs, ratio);
   }
 
   @Override
   public void frameViewToRange(@NotNull Range targetRange) {
     myViewRange.set(targetRange.getIntersection(myDataRange));
-    myZoomHelper.updateZoomLeft(targetRange, PADDING_PERCENT);
+    myZoomHelper.updateZoomLeft(targetRange, PADDING_RATIO);
   }
 }

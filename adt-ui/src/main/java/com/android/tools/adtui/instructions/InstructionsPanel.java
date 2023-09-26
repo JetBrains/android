@@ -95,7 +95,7 @@ public class InstructionsPanel extends JPanel {
     }
 
     assert myEaseOutModel != null;
-    if (myEaseOutModel.getPercentageComplete() >= 1) {
+    if (myEaseOutModel.getRatioComplete() >= 1) {
       myEaseOutCompletionCallback.accept(this);
       myEaseOutCompletionCallback = null;
     }
@@ -294,7 +294,7 @@ public class InstructionsPanel extends JPanel {
 
       // this method should only be called if myEaseOutModel is not null.
       assert myEaseOutModel != null;
-      myAlpha = 1 - myEaseOutModel.getPercentageComplete();
+      myAlpha = 1 - myEaseOutModel.getRatioComplete();
       opaqueRepaint();
     }
 
