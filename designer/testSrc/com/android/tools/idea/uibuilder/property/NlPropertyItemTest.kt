@@ -39,6 +39,7 @@ import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.SdkConstants.ATTR_TEXT_SIZE
+import com.android.SdkConstants.ATTR_THEME
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
@@ -274,6 +275,23 @@ class NlPropertyItemTest {
       .isEqualTo("@style/stdButton")
     assertThat(resolvedValue(util, NlPropertyType.LAYOUT, "@layout/my_layout"))
       .isEqualTo("@layout/my_layout")
+  }
+
+  /** Regression test for b/301922960. */
+  @Test
+  fun testResolveOverlayValues() {
+    projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    projectRule.fixture.addFileToProject("res/values/styles.xml", STYLES)
+    val util =
+      SupportTestUtil(
+        projectRule,
+        createLinearLayoutWithThemeOverlay("@style/ThemeOverlay.Overlay")
+      )
+
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenBackgroundColor"))
+      .isEqualTo("#123456")
+    assertThat(resolvedValue(util, NlPropertyType.COLOR, "?attr/fullscreenTextColor"))
+      .isEqualTo("#ABCDEF")
   }
 
   @Test
@@ -817,6 +835,14 @@ class NlPropertyItemTest {
           .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
       )
 
+  /** Creates a simple `LinearLayout` with an optional `theme` overlay. */
+  private fun createLinearLayoutWithThemeOverlay(themeOverlay: String): ComponentDescriptor =
+    ComponentDescriptor(LINEAR_LAYOUT)
+      .withBounds(0, 0, 2000, 2000)
+      .matchParentWidth()
+      .matchParentHeight()
+      .withAttribute(ANDROID_URI, ATTR_THEME, themeOverlay)
+
   private fun createTextViewAndButtonWithDifferentTextValue(): ComponentDescriptor =
     ComponentDescriptor(LINEAR_LAYOUT)
       .withBounds(0, 0, 2000, 2000)
@@ -979,6 +1005,17 @@ class NlPropertyItemTest {
       <string name="demo">Demo String</string>
       <string name="design">Design Demo</string>
       <dimen name="lineSpacing">13sp</dimen>
+    </resources>
+  """
+
+  @Language("XML")
+  private val STYLES =
+    """<?xml version="1.0" encoding="utf-8"?>
+    <resources>
+        <style name="ThemeOverlay.Overlay" parent="">
+          <item name="fullscreenBackgroundColor">#123456</item>
+          <item name="fullscreenTextColor">#ABCDEF</item>
+      </style>
     </resources>
   """
 
