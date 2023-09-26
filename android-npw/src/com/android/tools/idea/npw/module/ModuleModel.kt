@@ -169,7 +169,7 @@ abstract class ModuleModel(
       } else null
 
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
-        DefaultRecipeExecutor(context, useVersionCatalog = useVersionCatalog.get())
+        DefaultRecipeExecutor(context)
 
       if (StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject && useVersionCatalog.get()) {
         // Create a conventional default toml file for the new project because GradleVersionCatalogModel expects

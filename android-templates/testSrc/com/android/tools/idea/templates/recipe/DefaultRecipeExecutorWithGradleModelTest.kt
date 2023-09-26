@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.annotations.SystemDependent
 import org.junit.Before
 import org.junit.Test
@@ -44,13 +45,32 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
     )
   }
   private val recipeExecutor by lazy {
-    DefaultRecipeExecutor(renderingContext, useVersionCatalog = true)
+    DefaultRecipeExecutor(renderingContext)
   }
 
   @Before
   fun init() {
     MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
     MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(AgpVersion.parse("8.0.0"))
+  }
+
+  private fun deleteVersionCatalogFile() {
+    ApplicationManager.getApplication().runWriteAction {
+      myVersionCatalogFile.delete("test")
+    }
+  }
+
+  /**
+   * Tests that a project which did not already use Version Catalog can still have a dependency added to it.
+   */
+  @Test
+  fun testAddDependencyWithoutVersionCatalog() {
+    deleteVersionCatalogFile()
+    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myBuildFile, TestFile.NO_VERSION_CATALOG_ADD_DEPENDENCY)
   }
 
   @Test
@@ -296,6 +316,28 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     val version = recipeExecutor.getExtVar("fake_variable", "1.0.0")
 
     assertEquals("1.0.0", version)
+  }
+
+  /**
+   * Tests that a project which did not already use Version Catalog can still have a plugin added to it.
+   */
+  @Test
+  fun testApplyKotlinPluginWithoutVersionCatalog() {
+    deleteVersionCatalogFile()
+
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+
+    recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(mySettingsFile, TestFile.NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE)
   }
 
   @Test
@@ -602,6 +644,7 @@ androidLibrary = { id = "com.android.library", version.ref = "agp2" }
   }
 
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
+    NO_VERSION_CATALOG_ADD_DEPENDENCY("noVersionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_WITH_GROUP("versionCatalogAddDependencyAvoidSameNameWithGroup"),
@@ -609,6 +652,8 @@ androidLibrary = { id = "com.android.library", version.ref = "agp2" }
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     GET_EXT_VAR_INITIAL("getExtVarInitial"),
+    NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_BUILD_FILE("noVersionCatalogApplyKotlinPlugin"),
+    NO_VERSION_CATALOG_APPLY_KOTLIN_PLUGIN_SETTING_FILE("noVersionCatalogApplyKotlinPlugin.settings"),
     APPLY_KOTLIN_PLUGIN_BUILD_FILE("versionCatalogApplyKotlinPlugin"),
     APPLY_KOTLIN_PLUGIN_SETTING_FILE("versionCatalogApplyKotlinPlugin.settings"),
     APPLY_NOT_COMMON_PLUGIN_BUILD_FILE("versionCatalogApplyNotCommonPlugin"),
