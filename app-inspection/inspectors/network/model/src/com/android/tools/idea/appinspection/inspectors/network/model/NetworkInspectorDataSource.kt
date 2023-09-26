@@ -139,7 +139,7 @@ private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intentio
       is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
       is InsertData -> {
         when {
-          command.event.hasSpeedEvent() -> speedData.addOrReplaceLast(command.event)
+          command.event.hasSpeedEvent() -> speedData.add(command.event)
           command.event.hasHttpConnectionEvent() -> httpData.processEvent(command.event)
         }
       }
@@ -199,20 +199,6 @@ class NetworkInspectorDataSourceImpl(
       channel.send(QueryForSpeedData(range, deferred))
       deferred.await()
     }
-}
-
-/**
- * Add an `Event` unless it's a `zero` event and the 2 last events are also zero.
- *
- * In that case, replace the last zero event with the current event.
- *
- * TODO(b/301437959): Try to make the agent side not send us consecutive `zero` samples
- */
-private fun MutableList<Event>.addOrReplaceLast(event: Event) {
-  if (event.isZero() && size >= 2 && get(size - 2).isZero() && last().isZero()) {
-    removeLast()
-  }
-  add(event)
 }
 
 private fun Event.isZero() = speedEvent.rxSpeed == 0L && speedEvent.txSpeed == 0L

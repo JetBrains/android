@@ -135,49 +135,6 @@ class NetworkInspectorDataSourceTest {
   }
 
   @Test
-  fun speedData_dropsConsecutiveZeroData(): Unit = runBlocking {
-    val speedEvent1 = speedEvent(timestampNanos = 1000, rxSpeed = 0, txSpeed = 0)
-    val speedEvent2 = speedEvent(timestampNanos = 2000, rxSpeed = 0, txSpeed = 0)
-    val speedEvent3 = speedEvent(timestampNanos = 2000, rxSpeed = 0, txSpeed = 0)
-    val speedEvent4 = speedEvent(timestampNanos = 3000, rxSpeed = 10, txSpeed = 10)
-    val speedEvent5 = speedEvent(timestampNanos = 3000, rxSpeed = 10, txSpeed = 10)
-    val speedEvent6 = speedEvent(timestampNanos = 3000, rxSpeed = 0, txSpeed = 0)
-    val speedEvent7 = speedEvent(timestampNanos = 3001, rxSpeed = 0, txSpeed = 0)
-    val speedEvent8 = speedEvent(timestampNanos = 6000, rxSpeed = 0, txSpeed = 0)
-
-    val testMessenger =
-      TestMessenger(
-        scope,
-        flowOf(
-          speedEvent1.toByteArray(),
-          speedEvent2.toByteArray(),
-          speedEvent3.toByteArray(),
-          speedEvent4.toByteArray(),
-          speedEvent5.toByteArray(),
-          speedEvent6.toByteArray(),
-          speedEvent7.toByteArray(),
-          speedEvent8.toByteArray()
-        )
-      )
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
-    testMessenger.await()
-
-    // basic inclusive search
-    run {
-      val speedEvents = dataSource.queryForSpeedData(Range(0.0, 10.0))
-      assertThat(speedEvents)
-        .containsExactly(
-          speedEvent1,
-          speedEvent3,
-          speedEvent4,
-          speedEvent5,
-          speedEvent6,
-          speedEvent8
-        )
-    }
-  }
-
-  @Test
   fun searchHttpData(): Unit = runBlocking {
     // Request that starts in the selection range but ends outside of it.
     val srart1 = requestStarted(id = 1, timestampNanos = 1002, url = "www.url1.com")
