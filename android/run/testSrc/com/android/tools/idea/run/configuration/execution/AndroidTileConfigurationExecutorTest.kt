@@ -116,14 +116,13 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     // Verify commands sent to device.
 
-    // Force stop
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
+
     // Check version
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set Tile.
-    assertThat(receivedAmCommands[2]).isEqualTo(addTile)
+    assertThat(receivedAmCommands[1]).isEqualTo(addTile)
     // Showing Tile.
-    assertThat(receivedAmCommands[3]).isEqualTo(showTile)
+    assertThat(receivedAmCommands[2]).isEqualTo(showTile)
 
     // Verify that a warning was raised in console.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
@@ -292,21 +291,19 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     // Verify commands sent to device.
 
-    // force stop
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // Check version
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppAm)
-    assertThat(receivedAmCommands[3]).isEqualTo(setDebugAppBroadcast)
+    assertThat(receivedAmCommands[1]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppBroadcast)
     // Set Tile.
-    assertThat(receivedAmCommands[4]).isEqualTo(addTile)
+    assertThat(receivedAmCommands[3]).isEqualTo(addTile)
     // Showing Tile.
-    assertThat(receivedAmCommands[5]).isEqualTo(showTile)
+    assertThat(receivedAmCommands[4]).isEqualTo(showTile)
     // Unset tile
-    assertThat(receivedAmCommands[6]).isEqualTo(removeTile)
+    assertThat(receivedAmCommands[5]).isEqualTo(removeTile)
     // Clear debug app
-    assertThat(receivedAmCommands[7]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(receivedAmCommands[8]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[6]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[7]).isEqualTo(clearDebugAppAm)
   }
 }

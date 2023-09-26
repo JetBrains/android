@@ -76,8 +76,6 @@ abstract class AndroidConfigurationExecutorBase(
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
 
-      terminatePreviousAppInstance(device, applicationId)
-
       val result = try {
         // ApkProvider provides multiple ApkInfo only for instrumented tests.
         val app = apkProvider.getApks(device).single()
@@ -106,8 +104,6 @@ abstract class AndroidConfigurationExecutorBase(
 
     val console = createConsole()
     val device = devices.single()
-
-    terminatePreviousAppInstance(device, applicationId)
 
     // ApkProvider provides multiple ApkInfo only for instrumented tests.
     val app = apkProvider.getApks(device).single()
@@ -149,15 +145,8 @@ abstract class AndroidConfigurationExecutorBase(
   abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
   protected abstract suspend fun startDebugSession(
-    device: IDevice, applicationId: String,
-                                                   console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
+    device: IDevice, applicationId: String, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
 
-  private fun terminatePreviousAppInstance(device: IDevice, applicationId: String) {
-    val terminator = ApplicationTerminator(device, applicationId)
-    if (!terminator.killApp()) {
-      throw ExecutionException("Could not terminate running app $applicationId")
-    }
-  }
 
   private fun createConsole(): ConsoleView {
     val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console

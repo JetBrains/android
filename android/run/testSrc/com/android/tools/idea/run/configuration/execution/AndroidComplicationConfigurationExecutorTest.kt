@@ -60,7 +60,6 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
   }
 
   // Expected am commands
-  private val forceStop = "force-stop com.example.app"
   private val checkVersion = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation version"
   private val setComplicationSlot1 = "broadcast -a com.google.android.wearable.app.DEBUG_SURFACE --es operation set-complication" +
                                      " --ecn component 'com.example.app/com.example.app.Component'" +
@@ -142,15 +141,13 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     // Verify commands sent to device.
 
     // Check version
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
-    // Check version
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
-    assertThat(receivedAmCommands[2]).isEqualTo(setComplicationSlot1)
+    assertThat(receivedAmCommands[1]).isEqualTo(setComplicationSlot1)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
-    assertThat(receivedAmCommands[3]).isEqualTo(setComplicationSlot3)
+    assertThat(receivedAmCommands[2]).isEqualTo(setComplicationSlot3)
     // Show watch face.
-    assertThat(receivedAmCommands[4]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[3]).isEqualTo(showWatchFace)
 
     // Verify that a warning was raised.
     val consoleViewImpl = runContentDescriptor.executionConsole as ConsoleViewImpl
@@ -243,29 +240,27 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
 
     // Verify receivedAmCommands sent to device.
 
-    //Force stop
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
     // Check version
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppAm)
-    assertThat(receivedAmCommands[3]).isEqualTo(setDebugAppBroadcast)
+    assertThat(receivedAmCommands[1]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppBroadcast)
     // ChosenSlot(1, Complication.ComplicationType.SHORT_TEXT).
-    assertThat(receivedAmCommands[4]).isEqualTo(setComplicationSlot1)
+    assertThat(receivedAmCommands[3]).isEqualTo(setComplicationSlot1)
     // Set debug app.
-    assertThat(receivedAmCommands[5]).isEqualTo(setDebugAppAm)
-    assertThat(receivedAmCommands[6]).isEqualTo(setDebugAppBroadcast)
+    assertThat(receivedAmCommands[4]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[5]).isEqualTo(setDebugAppBroadcast)
     // ChosenSlot(3, Complication.ComplicationType.RANGED_VALUE).
-    assertThat(receivedAmCommands[7]).isEqualTo(setComplicationSlot3)
+    assertThat(receivedAmCommands[6]).isEqualTo(setComplicationSlot3)
     // Show watch face
-    assertThat(receivedAmCommands[8]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[7]).isEqualTo(showWatchFace)
     // Unset complication
-    assertThat(receivedAmCommands[9]).isEqualTo(unsetComplication)
+    assertThat(receivedAmCommands[8]).isEqualTo(unsetComplication)
     // Unset debug watchFace
-    assertThat(receivedAmCommands[10]).isEqualTo(unsetWatchFace)
+    assertThat(receivedAmCommands[9]).isEqualTo(unsetWatchFace)
     // Clear debug app
-    assertThat(receivedAmCommands[11]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(receivedAmCommands[12]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[10]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[11]).isEqualTo(clearDebugAppAm)
   }
 
   @Test

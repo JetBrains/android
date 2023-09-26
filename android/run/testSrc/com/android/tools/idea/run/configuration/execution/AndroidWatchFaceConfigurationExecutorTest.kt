@@ -107,14 +107,13 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Verify commands sent to device.
 
-    // force-stop running app
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
+
     // check WatchFace API version.
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set WatchFace.
-    assertThat(receivedAmCommands[2]).isEqualTo(setWatchFace)
+    assertThat(receivedAmCommands[1]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(receivedAmCommands[3]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[2]).isEqualTo(showWatchFace)
   }
 
   @Test
@@ -177,21 +176,20 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Verify commands sent to device.
 
-    // force-stop running app
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
+
     // check WatchFace API version.
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[1]).isEqualTo(setDebugAppAm)
     // Set WatchFace.
-    assertThat(receivedAmCommands[3]).isEqualTo(setWatchFace)
+    assertThat(receivedAmCommands[2]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(receivedAmCommands[4]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[3]).isEqualTo(showWatchFace)
     // Unset watch face
-    assertThat(receivedAmCommands[5]).isEqualTo(unsetWatchFace)
+    assertThat(receivedAmCommands[4]).isEqualTo(unsetWatchFace)
     // Clear debug app
-    assertThat(receivedAmCommands[6]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(receivedAmCommands[7]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[5]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[6]).isEqualTo(clearDebugAppAm)
   }
 
   @Test
@@ -246,7 +244,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(ExecutionException("Exception on debug start"))
 
-    val processTerminatedLatch = CountDownLatch(4) // force-stop x2, unsetWatchFace, clearDebugAppAm
+    val processTerminatedLatch = CountDownLatch(3) // force-stop, unsetWatchFace, clearDebugAppAm
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
