@@ -73,7 +73,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.Consumer;
 import com.intellij.util.indexing.IndexingFlag;
-import com.intellij.util.indexing.UnindexedFilesUpdater;
+import com.intellij.util.indexing.UnindexedFilesScanner;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryNotEmptyException;
@@ -296,7 +296,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
         // TODO: [VD] a dirty hack to reindex created android project
         IndexingFlag.cleanupProcessedFlag();
         DumbService dumbService = DumbService.getInstance(project);
-        new UnindexedFilesUpdater(project).queue();
+        new UnindexedFilesScanner(project).queue();
         dumbService.completeJustSubmittedTasks();
       }
     });
