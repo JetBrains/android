@@ -102,8 +102,10 @@ public class MemorySettingsUtil {
     Project result = null;
     Window activeWindow = WindowManagerEx.getInstanceEx().getMostRecentFocusedWindow();
     if (activeWindow != null) {
-      result = CommonDataKeys.PROJECT
-        .getData(DataManager.getInstance().getDataContext(activeWindow));
+      Project project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(activeWindow));
+      if (project != null && !project.isDefault()) {
+        result = project;
+      }
     }
     return result;
   }
