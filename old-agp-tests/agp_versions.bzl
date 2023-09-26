@@ -1,3 +1,5 @@
+"""Definitions of dependencies required for old agp tests of different versions and helper macro to set them up."""
+
 load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
 
 COMMON_DATA = [
@@ -158,7 +160,6 @@ def _local_old_agp_test_update_kwargs(
         jdk_data.append("//prebuilts/studio/jdk/jdk11")
 
     kwargs.update(
-        name = "OldAgpTests",
         agp_version = agp_version,
         data = COMMON_DATA + GRADLE_DISTRIBUTIONS[gradle_version] + AGP_DATA[agp_version] + jdk_data,
         gradle_version = gradle_version,
@@ -169,8 +170,9 @@ def _local_old_agp_test_update_kwargs(
     )
     return kwargs
 
-def local_generate_old_agp_tests_from_list(tests_list):
+def local_generate_old_agp_tests_from_list(name, tests_list):
     generate_old_agp_tests_from_list(
+        name = name,
         iml_module = ":intellij.android.old-agp-tests",
         tests_list = [_local_old_agp_test_update_kwargs(**test_kwargs) for test_kwargs in tests_list],
     )

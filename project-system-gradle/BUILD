@@ -159,10 +159,10 @@ iml_module(
 )
 
 generate_old_agp_tests_from_list(
+    name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
     iml_module = ":intellij.android.projectSystem.gradle.tests",
     tests_list = [
         dict(
-            name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
             timeout = "long",
             agp_version = AGP_7_4,
             data = [

@@ -16,6 +16,7 @@
 package com.android.testutils.junit4
 
 import com.google.common.truth.Truth
+import org.junit.After
 import org.junit.Test
 
 class OldAgpTestTargetsCheckerTest {
@@ -53,6 +54,40 @@ class OldAgpTestTargetsCheckerTest {
         "com.android.testutils.junit4.OldAgpSuiteTest\$MethodOnly#shouldRun"
       ),
     ).toTestString())
+  }
+
+  @Test
+  fun testCheckPassesWhenAllCovered() {
+    System.setProperty("agp.gradle.version.pair.targets", "4.2@4.2:4.1@4.2")
+    OldAgpTestTargetsChecker(
+      OldAgpTestTargetsChecker.OldAgpTestVersionsPair("4.2", "4.2"),
+      listOf("com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple")
+    ).check()
+  }
+
+  @Test(expected = AssertionError::class)
+  fun testCheckFailsWhenMissed() {
+    System.setProperty("agp.gradle.version.pair.targets", "4.1@4.2")
+    OldAgpTestTargetsChecker(
+      OldAgpTestTargetsChecker.OldAgpTestVersionsPair("4.2", "4.2"),
+      listOf("com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple")
+    ).check()
+  }
+
+  @Test
+  fun testCheckPassesWhenMissedIgnored() {
+    System.setProperty("agp.gradle.version.pair.targets", "4.1@4.2")
+    System.setProperty("old.agp.tests.check.ignore.list", "com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple")
+    OldAgpTestTargetsChecker(
+      OldAgpTestTargetsChecker.OldAgpTestVersionsPair("4.2", "4.2"),
+      listOf("com.android.testutils.junit4.OldAgpSuiteTest\$AgpTestMultiple")
+    ).check()
+  }
+
+  @After
+  fun cleanup() {
+    System.clearProperty("agp.gradle.version.pair.targets")
+    System.clearProperty("old.agp.tests.check.ignore.list")
   }
 }
 

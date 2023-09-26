@@ -91,9 +91,11 @@ class OldAgpTestTargetsChecker(
 
   @Test
   fun check() {
-    val definedVersionPairTargets = System.getProperty("agp.gradle.version.pair.targets")
+    val definedVersionPairTargets = System.getProperty("agp.gradle.version.pair.targets")?.split(":") ?: emptyList()
+    val ignoreLocations = System.getProperty("old.agp.tests.check.ignore.list")?.split(":") ?: emptyList()
 
-    if (!definedVersionPairTargets.contains("${versionsPair.agpVersion}@${versionsPair.gradleVersion}")) {
+    if (definedVersionPairTargets.none { it == "${versionsPair.agpVersion}@${versionsPair.gradleVersion}"}
+        && appliedLocations.any { !ignoreLocations.contains(it) }) {
       Assert.fail("$versionsPair is not covered by old_agp_test targets but requested in:\n" + appliedLocations.joinToString(separator = "\n"))
     }
   }
