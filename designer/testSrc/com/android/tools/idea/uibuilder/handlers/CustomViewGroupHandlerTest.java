@@ -72,7 +72,7 @@ public class CustomViewGroupHandlerTest extends AndroidTestCase {
   public void testGetXml() throws Exception {
     setUpMyClasses(MY_ABSOLUTE_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                     null, null, "", null, emptyList(), emptyList());
+                                                     null, null, null, emptyList(), emptyList());
     @Language("XML")
     String expected =
       "<p1.p2.MyAbsoluteLayout\n" +
@@ -86,14 +86,14 @@ public class CustomViewGroupHandlerTest extends AndroidTestCase {
   public void testGetSpecifiedXml() throws Exception {
     setUpMyClasses(MY_LINEAR_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                     "<myxml/>", null, "", null, emptyList(), emptyList());
+                                                     "<myxml/>", null, null, emptyList(), emptyList());
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo("<myxml/>");
   }
 
   public void testGetXmlOfInnerClass() throws Exception {
     setUpMyClasses(MY_LINEAR_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                     null, null, "", null, emptyList(), emptyList());
+                                                     null, null, null, emptyList(), emptyList());
 
     @Language("XML")
     String expected =

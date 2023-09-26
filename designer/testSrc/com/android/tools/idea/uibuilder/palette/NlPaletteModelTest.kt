@@ -88,7 +88,6 @@ class NlPaletteModelTest {
         SdkConstants.LINEAR_LAYOUT,
         null,
         null,
-        SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
         null,
         emptyList(),
         emptyList()
@@ -172,7 +171,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_CLASS,
         getXml(CUSTOM_VIEW_CLASS),
         getPreviewXml(CUSTOM_VIEW_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -188,7 +186,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_CLASS,
         getXml(CUSTOM_VIEW_CLASS),
         getPreviewXml(CUSTOM_VIEW_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -214,7 +211,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_GROUP_CLASS,
         getXml(CUSTOM_VIEW_GROUP_CLASS),
         getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -230,7 +226,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_GROUP_CLASS,
         getXml(CUSTOM_VIEW_GROUP_CLASS),
         getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()

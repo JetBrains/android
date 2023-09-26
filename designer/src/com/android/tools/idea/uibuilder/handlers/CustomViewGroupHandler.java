@@ -38,7 +38,6 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
   private final String myXml;
   @Language("XML")
   private final String myPreviewXml;
-  private final String myLibraryCoordinate;
   private final String myPreferredProperty;
   private final List<String> myProperties;
   private final List<String> myLayoutProperties;
@@ -49,7 +48,6 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
                                 @NotNull String className,
                                 @Nullable @Language("XML") String xml,
                                 @Nullable @Language("XML") String previewXml,
-                                @NotNull String libraryCoordinate,
                                 @Nullable String preferredProperty,
                                 @NotNull List<String> properties,
                                 @NotNull List<String> layoutProperties) {
@@ -59,7 +57,6 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
     myClassName = className;
     myXml = xml;
     myPreviewXml = previewXml;
-    myLibraryCoordinate = libraryCoordinate;
     myPreferredProperty = preferredProperty;
     myProperties = properties;
     myLayoutProperties = layoutProperties;
@@ -81,7 +78,7 @@ public class CustomViewGroupHandler extends DelegatingViewGroupHandler {
   @Override
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.equals(myTagName) ? myLibraryCoordinate : super.getGradleCoordinateId(tagName);
+    return tagName.equals(myTagName) ? "" : super.getGradleCoordinateId(tagName);
   }
 
   @Override

@@ -271,7 +271,7 @@ public class NlPaletteModel implements Disposable {
 
     viewInfos.forEach(viewInfo ->
       addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             viewInfo.tagName, viewInfo.className, null, null, "",
+                             viewInfo.tagName, viewInfo.className, null, null,
                              null, Collections.emptyList(), Collections.emptyList())
     );
 
@@ -291,7 +291,6 @@ public class NlPaletteModel implements Disposable {
                                  @NotNull String className,
                                  @Nullable @Language("XML") String xml,
                                  @Nullable @Language("XML") String previewXml,
-                                 @NotNull String libraryCoordinate,
                                  @Nullable String preferredProperty,
                                  @NotNull List<String> properties,
                                  @NotNull List<String> layoutProperties) {
@@ -302,7 +301,7 @@ public class NlPaletteModel implements Disposable {
       return false;
     }
 
-    ViewHandler handler = findOrCreateCustomHandler(tagName, icon16, className, xml, previewXml, libraryCoordinate,
+    ViewHandler handler = findOrCreateCustomHandler(tagName, icon16, className, xml, previewXml,
                                                     preferredProperty, properties, layoutProperties);
     // For now only support layouts
     if (type != LayoutFileType.INSTANCE ||
@@ -339,7 +338,6 @@ public class NlPaletteModel implements Disposable {
                                                 @NotNull String className,
                                                 @Nullable @Language("XML") String xml,
                                                 @Nullable @Language("XML") String previewXml,
-                                                @NotNull String libraryCoordinate,
                                                 @Nullable String preferredProperty,
                                                 @NotNull List<String> properties,
                                                 @NotNull List<String> layoutProperties) {
@@ -365,11 +363,11 @@ public class NlPaletteModel implements Disposable {
 
     if (handler instanceof ViewGroupHandler) {
       handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
-                                           libraryCoordinate, preferredProperty, properties, layoutProperties);
+                                           preferredProperty, properties, layoutProperties);
     }
     else {
       handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
-                                      libraryCoordinate, preferredProperty, properties);
+                                      preferredProperty, properties);
     }
     manager.registerHandler(tagName, handler);
     return handler;

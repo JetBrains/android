@@ -71,7 +71,7 @@ public class CustomViewHandlerTest extends AndroidTestCase {
   public void testGetXml() throws Exception {
     setUpMyClasses(MY_TEXT_VIEW);
     ViewHandler handler = new CustomViewHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                null, null, "", null, emptyList());
+                                                null, null, null, emptyList());
     @Language("XML")
     String expected =
       "<p1.p2.MyTextView\n" +
@@ -85,14 +85,14 @@ public class CustomViewHandlerTest extends AndroidTestCase {
   public void testGetSpecifiedXml() throws Exception {
     setUpMyClasses(MY_CHECKBOX);
     ViewHandler handler = new CustomViewHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                "<myxml/>", null, "", null, emptyList());
+                                                "<myxml/>", null, null, emptyList());
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo("<myxml/>");
   }
 
   public void testGetXmlOfInnerClass() throws Exception {
     setUpMyClasses(MY_CHECKBOX);
     ViewHandler handler = new CustomViewHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                null, null, "", null, emptyList());
+                                                null, null, null, emptyList());
 
     @Language("XML")
     String expected =

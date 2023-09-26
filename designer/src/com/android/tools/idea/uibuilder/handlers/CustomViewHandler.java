@@ -37,7 +37,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
   private final String myXml;
   @Language("XML")
   private final String myPreviewXml;
-  private final String myLibraryCoordinate;
   private final String myPreferredProperty;
   private final List<String> myProperties;
 
@@ -47,7 +46,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
                            @NotNull String className,
                            @Nullable @Language("XML") String xml,
                            @Nullable @Language("XML") String previewXml,
-                           @NotNull String libraryCoordinate,
                            @Nullable String preferredProperty,
                            @NotNull List<String> properties) {
     super(handler);
@@ -56,7 +54,6 @@ public class CustomViewHandler extends DelegatingViewHandler {
     myClassName = className;
     myXml = xml;
     myPreviewXml = previewXml;
-    myLibraryCoordinate = libraryCoordinate;
     myPreferredProperty = preferredProperty;
     myProperties = properties;
   }
@@ -77,7 +74,7 @@ public class CustomViewHandler extends DelegatingViewHandler {
   @Override
   @NotNull
   public String getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.equals(myTagName) ? myLibraryCoordinate : super.getGradleCoordinateId(tagName);
+    return tagName.equals(myTagName) ? "" : super.getGradleCoordinateId(tagName);
   }
 
   @Override
