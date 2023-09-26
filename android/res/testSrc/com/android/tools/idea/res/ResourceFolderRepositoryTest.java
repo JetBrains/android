@@ -206,7 +206,8 @@ public class ResourceFolderRepositoryTest {
     ResourceNamespace namespace = StudioResourceRepositoryManager.getInstance(myFacet).getNamespace();
     ResourceFolderRepositoryCachingData cachingData =
         ResourceFolderRepositoryFileCacheService.get().getCachingData(myProject, dir, createCache ? directExecutor() : null);
-    return ResourceFolderRepository.create(myFacet, dir, namespace, cachingData);
+
+    return ResourceFolderRepository.create(myFacet, dir, namespace, cachingData).ensureLoaded();
   }
 
   private @NotNull ResourceFolderRepository createRegisteredRepository() {

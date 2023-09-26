@@ -67,13 +67,8 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
     })
   }
 
-  operator fun get(facet: AndroidFacet, dir: VirtualFile): ResourceFolderRepository {
-    // ResourceFolderRepository.create may require the IDE read lock. To avoid deadlocks it is
-    // always obtained first, before the caches locks.
-    return ReadAction.nonBlocking(Callable {
-      get(facet, dir, StudioResourceRepositoryManager.getInstance(facet).namespace)
-    }).executeSynchronously()
-  }
+  operator fun get(facet: AndroidFacet, dir: VirtualFile) =
+    get(facet, dir, StudioResourceRepositoryManager.getInstance(facet).namespace)
 
   @VisibleForTesting
   operator fun get(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
@@ -83,7 +78,8 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
 
     // TODO(b/80179120): figure out why this is not always true.
     // assert repository.getFacet().equals(facet);
-    return repository
+
+    return repository.ensureLoaded()
   }
 
   /**
