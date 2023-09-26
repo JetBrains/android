@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import java.util.Collection;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -51,11 +52,11 @@ final class Devices {
     return getText(device, null);
   }
 
-  static @NotNull String getText(@NotNull Device device, @Nullable Key key) {
+  static @NotNull String getText(@NotNull Device device, @Nullable DeviceId key) {
     return getText(device, key, null);
   }
 
-  static @NotNull String getText(@NotNull Device device, @Nullable Key key, @Nullable String bootOption) {
+  static @NotNull String getText(@NotNull Device device, @Nullable DeviceId key, @Nullable String bootOption) {
     return getText(device.getName(), key == null ? null : key.toString(), bootOption);
   }
 

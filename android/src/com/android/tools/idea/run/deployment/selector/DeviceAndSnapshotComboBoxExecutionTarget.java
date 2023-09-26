@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector;
 
 import com.android.ddmlib.IDevice;
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
  * (but <em>not</em> the apply changes) toolbar buttons.
  */
 final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTarget {
-  private final @NotNull Collection<Key> myKeys;
+  private final @NotNull Collection<DeviceId> myKeys;
   private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
   @NotNull
@@ -102,8 +103,8 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   @Override
   public String getId() {
     return myKeys.stream()
+      .map(DeviceId::toString)
       .sorted()
-      .map(Key::toString)
       .collect(Collectors.joining(", ", "device_and_snapshot_combo_box_target[", "]"));
   }
 

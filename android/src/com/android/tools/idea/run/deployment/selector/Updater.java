@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -245,7 +246,7 @@ final class Updater {
    * @param target responsible for the boot option text if it's appropriate to display it
    */
   private @NotNull String getText(@NotNull Device device, @NotNull Target target) {
-    Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
+    DeviceId key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
     var bootOption = Devices.getBootOption(device, target).orElse(null);
 
     return Devices.getText(device, key, bootOption);

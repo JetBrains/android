@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.editor.DeployTarget;
@@ -75,7 +76,7 @@ final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
   private static void bootAvailableDevices(@NotNull Collection<Target> selectedTargets,
                                            @NotNull Collection<Device> selectedDevices,
                                            @NotNull Project project) {
-    Map<Key, Target> map = selectedTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
+    Map<DeviceId, Target> map = selectedTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
 
     selectedDevices.stream()
       .filter(device -> !device.isConnected())

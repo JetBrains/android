@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.Set;
@@ -26,14 +27,14 @@ import org.jetbrains.annotations.NotNull;
  * subclasses for virtual devices boot them differently.
  */
 abstract class Target {
-  private final @NotNull Key myDeviceKey;
+  private final @NotNull DeviceId myDeviceKey;
 
-  Target(@NotNull Key deviceKey) {
+  Target(@NotNull DeviceId deviceKey) {
     myDeviceKey = deviceKey;
   }
 
   static @NotNull List<Device> filterDevices(@NotNull Set<Target> targets, @NotNull List<Device> devices) {
-    Set<Key> keys = targets.stream()
+    Set<DeviceId> keys = targets.stream()
       .map(Target::getDeviceKey)
       .collect(Collectors.toSet());
 
@@ -42,7 +43,7 @@ abstract class Target {
       .collect(Collectors.toList());
   }
 
-  final @NotNull Key getDeviceKey() {
+  final @NotNull DeviceId getDeviceKey() {
     return myDeviceKey;
   }
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
@@ -31,7 +32,7 @@ internal interface Device {
    * return a virtual device path (probably not but I'm not going to assume), virtual device name,
    * or serial number depending on what the IDevice returned.
    */
-  val key: Key
+  val key: DeviceId
   val icon: Icon
   val launchCompatibility: LaunchCompatibility
   val isConnected: Boolean

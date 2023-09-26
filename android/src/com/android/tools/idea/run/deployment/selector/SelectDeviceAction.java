@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -50,7 +51,7 @@ public final class SelectDeviceAction extends AnAction {
     presentation.setIcon(myDevice.getIcon());
 
     Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject())).orElseThrow(AssertionError::new);
-    Key key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
+    DeviceId key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
 
     presentation.setText(Devices.getText(myDevice, key), false);
   }

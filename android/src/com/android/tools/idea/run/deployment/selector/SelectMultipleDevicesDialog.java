@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
@@ -24,7 +25,6 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import javax.swing.Action;
@@ -140,7 +140,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
     assert myTable != null;
     Collection<Target> targets = myTable.getSelectedTargets();
 
-    Collection<Key> keys = Sets.newHashSetWithExpectedSize(targets.size());
+    Collection<DeviceId> keys = Sets.newHashSetWithExpectedSize(targets.size());
 
     boolean duplicateKeys = targets.stream()
       .map(Target::getDeviceKey)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.google.common.annotations.VisibleForTesting;
 import java.time.Clock;
 import java.time.Instant;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 final class KeyToConnectionTimeMap {
   @NotNull
-  private final Map<Key, Instant> myMap;
+  private final Map<DeviceId, Instant> myMap;
 
   @NotNull
   private final Clock myClock;
@@ -41,11 +42,11 @@ final class KeyToConnectionTimeMap {
   }
 
   @NotNull
-  Instant get(@NotNull Key key) {
+  Instant get(@NotNull DeviceId key) {
     return myMap.computeIfAbsent(key, k -> myClock.instant());
   }
 
-  void retainAll(@NotNull Collection<Key> keys) {
+  void retainAll(@NotNull Collection<DeviceId> keys) {
     myMap.keySet().retainAll(keys);
   }
 }

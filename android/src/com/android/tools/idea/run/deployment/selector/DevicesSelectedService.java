@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector;
 
+import com.android.sdklib.deviceprovisioner.DeviceId;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.util.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
@@ -394,14 +395,14 @@ final class DevicesSelectedService {
     private KeyState() {
     }
 
-    private KeyState(@NotNull Key key) {
+    private KeyState(@NotNull DeviceId key) {
       // TODO: Add Key serialization
       assert false : key;
 
       value = key.toString();
     }
 
-    private @NotNull Key asKey() throws DevicesSelectedServiceException {
+    private @NotNull DeviceId asKey() throws DevicesSelectedServiceException {
       // TODO: Add Key deserialization
       throw new DevicesSelectedServiceException();
     }
