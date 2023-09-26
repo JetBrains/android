@@ -82,7 +82,7 @@ void Log::Fatal(const char* message, ...) {
   vfprintf(stderr, message, args);
   va_end(args);
   Agent::RestoreEnvironment();
-  exit(EXIT_FAILURE);
+  Jvm::Exit(EXIT_FAILURE);
 }
 
 void Log::Fatal(ExitCode exit_code, const char* message, ...) {
@@ -94,7 +94,7 @@ void Log::Fatal(ExitCode exit_code, const char* message, ...) {
   vfprintf(stderr, message, args);
   va_end(args);
   Agent::RestoreEnvironment();
-  exit(exit_code);
+  Jvm::Exit(exit_code);
 }
 
 }  // namespace screensharing
