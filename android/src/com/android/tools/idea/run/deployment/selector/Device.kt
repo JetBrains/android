@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.deviceprovisioner.Snapshot
 import com.android.tools.idea.run.AndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.google.common.util.concurrent.ListenableFuture
