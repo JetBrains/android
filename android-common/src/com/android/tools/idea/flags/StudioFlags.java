@@ -860,7 +860,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> DEVICE_MIRRORING_MULTIPLE_DISPLAYS = Flag.create(
     DEVICE_MIRRORING, "multiple.displays", "Mirror All Displays",
     "Mirror all device displays",
-    false);
+    true);
   public static final Flag<Boolean> DEVICE_MIRRORING_TAB_DND = Flag.create(
     DEVICE_MIRRORING, "tab.dnd", "Drag and Drop of Device Tabs",
     "Allow drag and drop of device tabs",
