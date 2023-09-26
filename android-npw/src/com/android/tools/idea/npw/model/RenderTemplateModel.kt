@@ -228,7 +228,7 @@ class RenderTemplateModel private constructor(
       )
 
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
-        DefaultRecipeExecutor(context, useVersionCatalog = useVersionCatalog.get())
+        DefaultRecipeExecutor(context)
 
       return newTemplate.render(context, executor, metrics).also {
         if (!dryRun) {
