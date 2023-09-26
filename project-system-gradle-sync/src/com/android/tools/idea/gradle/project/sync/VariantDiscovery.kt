@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
-import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.ignoreExceptionsAndGet
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatching
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapNull

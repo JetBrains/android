@@ -42,6 +42,7 @@ import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
 import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ManifestOverrides
@@ -358,7 +359,8 @@ class GradleModuleSystem(
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
     val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
-      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders + sourceProviders.currentAndroidTestSourceProviders)
+      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders +
+          sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST].orEmpty())
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 

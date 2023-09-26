@@ -17,6 +17,7 @@ package com.android.tools.idea.execution.common.debug.utils
 
 import com.android.ddmlib.ClientData
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -145,7 +146,7 @@ object FacetFinder {
           }
         }
       }
-      for (sourceProvider in facet.sourceProviders.currentAndroidTestSourceProviders) {
+      for (sourceProvider in facet.sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST] ?: emptyList()) {
         for (manifestFile in sourceProvider.manifestFiles) {
           val globalProcessNames = ProcessNameReader.readGlobalProcessNames(project, manifestFile)
           if (globalProcessNames.contains(processName)) {

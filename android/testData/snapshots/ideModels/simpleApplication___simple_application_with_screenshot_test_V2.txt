@@ -938,6 +938,20 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+            ExtraSourceProvider
+                ArtifactName                  : _screenshot_test_
+                SourceProvider
+                    Name                          : screenshotTest
+                    Manifest                      : <ROOT>/app/src/screenshotTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/screenshotTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/screenshotTest/resources [-]
+                    ResDirectories                : <ROOT>/app/src/screenshotTest/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/screenshotTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/screenshotTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/screenshotTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/screenshotTest/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -990,6 +1004,21 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _screenshot_test_
+                SourceProvider
+                    Name                          : screenshotTestDebug
+                    Manifest                      : <ROOT>/app/src/screenshotTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/screenshotTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTestDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/screenshotTestDebug/resources [-]
+                    ResDirectories                : <ROOT>/app/src/screenshotTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/screenshotTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/screenshotTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/screenshotTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/screenshotTestDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-<AGP_VERSION> [-]
@@ -1028,6 +1057,21 @@ MODULE                        : project.app
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
                     BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _screenshot_test_
+                SourceProvider
+                    Name                          : screenshotTestRelease
+                    Manifest                      : <ROOT>/app/src/screenshotTestRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/screenshotTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTestRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/screenshotTestRelease/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/screenshotTestRelease/resources [-]
+                    ResDirectories                : <ROOT>/app/src/screenshotTestRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/screenshotTestRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/screenshotTestRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/screenshotTestRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/screenshotTestRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug

@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
@@ -42,6 +43,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
@@ -54,10 +56,12 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
+import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.scopeTypeByName
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -365,7 +369,7 @@ open class GradleProjectSystem(override val project: Project) : AndroidProjectSy
 
 }
 
-private val IdeAndroidArtifact.scopeType: ScopeType
+private val IdeBaseArtifactCore.scopeType: ScopeType
   get() = when (this.name) {
     IdeArtifactName.ANDROID_TEST -> ScopeType.ANDROID_TEST
     IdeArtifactName.MAIN -> ScopeType.MAIN
@@ -376,13 +380,19 @@ private val IdeAndroidArtifact.scopeType: ScopeType
 
 fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   val all =
-    (
-      model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) } +
-      model.allUnitTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.UNIT_TEST) } +
-        // TODO(karimai): add support for screenshotTest
-      model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) } +
-      model.allTestFixturesSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES) }
-    )
+    mutableMapOf<IdeSourceProvider, NamedIdeaSourceProvider>().apply {
+      putAll(model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) })
+      model.allHostTestSourceProviders.forEach { (k, v) ->
+        putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, k.scopeTypeByName()) })
+      }
+      model.allDeviceTestSourceProviders.map { (k, v) ->
+        putAll(v.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, k.scopeTypeByName()) })
+      }
+      putAll(model.allTestFixturesSourceProviders.associateWith {
+        createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.TEST_FIXTURES)
+      })
+      }
+
 
   fun IdeSourceProvider.toIdeaSourceProvider(): NamedIdeaSourceProvider {
     if (!all.containsKey(this)) {
@@ -419,7 +429,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
-      ScopeType.UNIT_TEST,
+      scopeType,
       object : IdeaSourceProviderImpl.Core {
         override val manifestFileUrls: Sequence<String> = emptySequence()
         override val manifestDirectoryUrls: Sequence<String> = emptySequence()
@@ -443,8 +453,8 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
     currentSourceProviders = model.activeSourceProviders.map { it.toIdeaSourceProvider() },
-    currentUnitTestSourceProviders = model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
-    currentAndroidTestSourceProviders = model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentHostTestSourceProviders = model.hostTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
+    currentDeviceTestSourceProviders = model.deviceTestSourceProviders.mapValues { (_, v) -> v.map { it.toIdeaSourceProvider() } },
     currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
@@ -454,13 +464,10 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     }.orEmpty(),
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
-    //TODO(karimai): refactor sourceProviders into host and device ones.
-    generatedUnitTestSources =
-    model.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.toGeneratedIdeaSourceProvider()
-      ?: emptySourceProvider(ScopeType.UNIT_TEST),
-    generatedAndroidTestSources =
-    model.selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.toGeneratedIdeaSourceProvider()
-      ?: emptySourceProvider(ScopeType.ANDROID_TEST),
+    generatedHostTestSources =
+    model.selectedVariant.hostTestArtifacts.associate { it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider() },
+    generatedDeviceTestSources =
+    model.selectedVariant.deviceTestArtifacts.associate { it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider() },
     generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider()
       ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
   )
@@ -498,6 +505,15 @@ fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: Androi
                       ?: error("The supplied facet does not represent a project managed by the Gradle project system. " +
                                "Module: ${androidFacet.module.name}")
   return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, forTests)
+}
+
+private fun IdeArtifactName.toSourceProviderNames(): TestComponentType {
+  return when (this) {
+    IdeArtifactName.UNIT_TEST -> CommonTestType.UNIT_TEST
+    IdeArtifactName.ANDROID_TEST -> CommonTestType.ANDROID_TEST
+    IdeArtifactName.SCREENSHOT_TEST -> CommonTestType.SCREENSHOT_TEST
+    else -> error("Unknown testArtifact name $this")
+  }
 }
 
 /**

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -105,11 +106,11 @@ data class GradleAndroidModelDataImpl(
 
   override fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {
     return when (artifactName) {
-      IdeArtifactName.ANDROID_TEST -> androidTestSourceProviders
-      IdeArtifactName.UNIT_TEST -> unitTestSourceProviders
+      IdeArtifactName.ANDROID_TEST -> deviceTestSourceProviders[CommonTestType.ANDROID_TEST] ?: emptyList()
+      IdeArtifactName.UNIT_TEST -> hostTestSourceProviders[CommonTestType.UNIT_TEST] ?: emptyList()
       IdeArtifactName.MAIN -> emptyList()
       IdeArtifactName.TEST_FIXTURES -> emptyList()
-      IdeArtifactName.SCREENSHOT_TEST -> emptyList() // TODO(karimai): support ScreenshotTest sourceProviders.
+      IdeArtifactName.SCREENSHOT_TEST -> hostTestSourceProviders[CommonTestType.SCREENSHOT_TEST] ?: emptyList()
     }
   }
 

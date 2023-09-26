@@ -194,6 +194,7 @@ internal fun BuildController.findKotlinModelsForAndroidProject(root: Model, vari
   return AllKotlinModels(kotlinModel, kaptModel)
 }
 
+// TODO(karimai): Rework this to have host tests and device tests dependencies.
 sealed class VariantDependenciesCompat(
   val mainArtifact: ArtifactDependenciesCompat,
   val androidTestArtifact: ArtifactDependenciesCompat?,

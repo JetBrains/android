@@ -41,6 +41,7 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
+import com.android.tools.idea.projectsystem.TestComponentType
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
 import com.android.utils.usLocaleCapitalize
@@ -123,13 +124,12 @@ class GradleAndroidModel(
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
   val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultSourceProvider.sourceProvider!!
   val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
-  val unitTestSourceProviders: List<IdeSourceProvider> get() = data.unitTestSourceProviders
-  val androidTestSourceProviders: List<IdeSourceProvider> get() = data.androidTestSourceProviders
+  val hostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.hostTestSourceProviders
+  val deviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.deviceTestSourceProviders
   val testFixturesSourceProviders: List<IdeSourceProvider> get() = data.testFixturesSourceProviders
-
   val allSourceProviders: List<IdeSourceProvider> get() = data.allSourceProviders
-  val allUnitTestSourceProviders: List<IdeSourceProvider> get() = data.allUnitTestSourceProviders
-  val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
+  val allHostTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.allHostTestSourceProviders
+  val allDeviceTestSourceProviders: Map<TestComponentType, List<IdeSourceProvider>> get() = data.allDeviceSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
   /**

@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
@@ -339,12 +340,11 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
 
   val testGenResources = gradleAndroidModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
   // Why don't we include the standard unit tests source providers here?
-  val testSourceProviders = gradleAndroidModel.androidTestSourceProviders
   androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = when {
     module.isAndroidTestModule() ->
-      (testSourceProviders.flatMap { provider ->
+      ((gradleAndroidModel.deviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { provider ->
         provider.resDirectories
-      } + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
+      } ?: listOf()) + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
         VfsUtilCore.pathToUrl(file.absolutePath)
       }
     else -> ""

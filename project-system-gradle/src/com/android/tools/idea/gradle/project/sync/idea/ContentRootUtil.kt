@@ -19,12 +19,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.activeSourceProviders
-import com.android.tools.idea.gradle.project.model.androidTestSourceProviders
 import com.android.tools.idea.gradle.project.model.testFixturesSourceProviders
-import com.android.tools.idea.gradle.project.model.unitTestSourceProviders
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGeneratedSourceFoldersToUse
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -68,26 +65,25 @@ private fun IdeSourceProvider.processAll(
   }
 }
 
-private typealias ArtifactSelector = (IdeVariantCore) -> IdeBaseArtifactCore?
-private typealias SourceProviderSelector = (GradleAndroidModelData) -> List<IdeSourceProvider>
-
 fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: GradleAndroidModelData) {
   val variant = androidModel.selectedVariantCore
 
   fun populateContentEntries(
     artifact: IdeBaseArtifactCore?,
-    sourceProviderSelector: SourceProviderSelector
+    sourceProviders: List<IdeSourceProvider>
   ): List<DataNode<ContentRootData>> {
     val sourceSetDataNode = findSourceSetDataForArtifact(artifact ?: return emptyList())
-    val contentRoots = collectContentRootDataForArtifact(artifact, sourceProviderSelector, androidModel)
+    val contentRoots = collectContentRootDataForArtifact(artifact, sourceProviders, androidModel)
     return contentRoots.map { sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, it) }
   }
 
   val sourceSetContentRoots =
-    populateContentEntries(variant.mainArtifact,  GradleAndroidModelData::activeSourceProviders) +
-    populateContentEntries(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }, GradleAndroidModelData::unitTestSourceProviders) +
-    populateContentEntries(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }, GradleAndroidModelData::androidTestSourceProviders) +
-    populateContentEntries(variant.testFixturesArtifact, GradleAndroidModelData::testFixturesSourceProviders)
+    populateContentEntries(variant.mainArtifact,  androidModel.activeSourceProviders) +
+    populateContentEntries(
+      variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }, androidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) +
+    populateContentEntries(
+      variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }, androidModel.getTestSourceProviders(IdeArtifactName.ANDROID_TEST)) +
+    populateContentEntries(variant.testFixturesArtifact, androidModel.testFixturesSourceProviders)
     // TODO(karimai): add screenshot test source provider
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
@@ -115,7 +111,7 @@ private fun maybeMoveDuplicateHolderContentRootsToSourceSets(
 
 private fun collectContentRootDataForArtifact(
   artifact: IdeBaseArtifactCore?,
-  sourceProviderSelector: SourceProviderSelector,
+  sourceProviders: List<IdeSourceProvider>,
   androidModel: GradleAndroidModelData
 ) : Collection<ContentRootData> {
   checkNotNull(artifact) { "Couldn't find artifact for descriptor" }
@@ -137,7 +133,7 @@ private fun collectContentRootDataForArtifact(
   val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(
     artifact, androidModel.androidProject
   ).map(File::getAbsolutePath).toSet()
-  sourceProviderSelector(androidModel).forEach { sourceProvider ->
+  sourceProviders.forEach { sourceProvider ->
     sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
       // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.
       // In order to prevent duplicate root warnings and to ensure this kapt path is marked generated we ensure it is not added as

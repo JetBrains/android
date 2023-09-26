@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.androidProjectType
@@ -206,11 +207,11 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
         sourceProviders.sources to sourceProviders.generatedSources
       }
       else {
-        sourceProviders.androidTestSources to sourceProviders.generatedAndroidTestSources
+        sourceProviders.deviceTestSources[CommonTestType.ANDROID_TEST] to sourceProviders.generatedDeviceTestSources[CommonTestType.ANDROID_TEST]
     }
     if (
-      !androidTestSources.containsFile(virtualFile) && !androidTestSources.isContainedBy(virtualFile) &&
-      !generatedAndroidTestSources.containsFile(virtualFile) && !generatedAndroidTestSources.isContainedBy(virtualFile)
+      androidTestSources?.containsFile(virtualFile) == false && !androidTestSources.isContainedBy(virtualFile) &&
+      generatedAndroidTestSources?.containsFile(virtualFile) == false && !generatedAndroidTestSources.isContainedBy(virtualFile)
     ) {
       return false
     }

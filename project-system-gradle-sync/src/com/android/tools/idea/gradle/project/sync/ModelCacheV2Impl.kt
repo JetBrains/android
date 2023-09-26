@@ -330,13 +330,12 @@ internal fun modelCacheV2Impl(
     return IdeExtraSourceProviderImpl(
       // As we no longer have ArtifactMetaData, we use hardcoded values for androidTests, unitTests and testFixtures artifacts.
 
-      artifactName = if (container.name.startsWith("androidTest")) {
-        "_android_test_"
-      }
-      else if (container.name.startsWith("testFixtures")) {
-        "_test_fixtures_"
-      }
-      else "_unit_test_",
+      artifactName = when {
+        container.name.startsWith("androidTest") -> "_android_test_"
+        container.name.startsWith("testFixtures") -> "_test_fixtures_"
+        container.name.startsWith("screenshotTest") -> "_screenshot_test_"
+        else -> "_unit_test_"
+      },
       sourceProvider = sourceProviderFrom(container)
     )
   }
@@ -348,11 +347,16 @@ internal fun modelCacheV2Impl(
     return IdeProductFlavorContainerImpl(
       productFlavor = productFlavorFrom(productFlavor),
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
-      extraSourceProviders = listOfNotNull(
-        container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
-        container?.unitTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
-        container?.testFixturesSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) }
-      )
+      extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
+        if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        } else {
+          container?.androidTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.unitTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        }
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+      }
     )
   }
 
@@ -361,11 +365,16 @@ internal fun modelCacheV2Impl(
   ): IdeSourceProviderContainerImpl {
     return IdeSourceProviderContainerImpl(
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
-      extraSourceProviders = listOfNotNull(
-        container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
-        container?.unitTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
-        container?.testFixturesSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) }
-      )
+      extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
+        if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        } else {
+          container?.androidTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.unitTestSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        }
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+      }
     )
   }
 
@@ -402,11 +411,16 @@ internal fun modelCacheV2Impl(
     return IdeBuildTypeContainerImpl(
       buildType = buildTypeFrom(buildType),
       sourceProvider = container?.sourceProvider?.let { sourceProviderFrom(it) },
-      extraSourceProviders = listOfNotNull(
-        container?.androidTestSourceProvider?.let { sourceProviderContainerFrom(it) },
-        container?.unitTestSourceProvider?.let { sourceProviderContainerFrom(it) },
-        container?.testFixturesSourceProvider?.let { sourceProviderContainerFrom(it) }
-      )
+      extraSourceProviders = mutableListOf<IdeExtraSourceProviderImpl>().apply {
+        if (modelVersions[ModelFeature.HAS_SCREENSHOT_TESTS_SUPPORT]) {
+          container?.deviceTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+          container?.hostTestSourceProviders?.values?.forEach { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+        } else {
+          container?.androidTestSourceProvider?.let { this.add(sourceProviderContainerFrom(it)) }
+          container?.unitTestSourceProvider?.let { this.add(sourceProviderContainerFrom(it)) }
+        }
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> this.add(sourceProviderContainerFrom(it)) }
+      }
     )
   }
 

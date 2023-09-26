@@ -26,6 +26,7 @@ import com.android.testutils.TestUtils.getSdk
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_MAIN
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_SCREENSHOT_TEST
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
 import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -342,6 +343,7 @@ interface AndroidProjectStubBuilder {
   val mainSourceProvider: IdeSourceProviderImpl
   val androidTestSourceProviderContainer: IdeExtraSourceProviderImpl?
   val unitTestSourceProviderContainer: IdeExtraSourceProviderImpl?
+  val screenshotTestSouceProviderContainer: IdeExtraSourceProviderImpl?
   val debugSourceProvider: IdeSourceProviderImpl?
   val androidTestDebugSourceProvider: IdeSourceProviderImpl?
   val testDebugSourceProvider: IdeSourceProviderImpl?
@@ -404,6 +406,8 @@ data class AndroidProjectBuilder(
     { buildAndroidTestSourceProviderContainerStub() },
   val unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
     { buildUnitTestSourceProviderContainerStub() },
+  val screenshotTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
+    { buildScreenshotTestSourceProviderContainerStub() },
   val testFixturesSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl? =
     { buildTestFixturesSourceProviderContainerStub() },
   val debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl? = { buildDebugSourceProviderStub() },
@@ -474,6 +478,9 @@ data class AndroidProjectBuilder(
 
   fun withUnitTestSourceProvider(unitTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl?) =
     copy(unitTestSourceProvider = unitTestSourceProvider)
+
+  fun withScreenshotTestSourceProvider(screenshotTestSourceProvider: AndroidProjectStubBuilder.() -> IdeExtraSourceProviderImpl?) =
+    copy(screenshotTestSourceProvider = screenshotTestSourceProvider)
 
   fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> IdeSourceProviderImpl?) =
     copy(debugSourceProvider = debugSourceProvider)
@@ -566,6 +573,7 @@ data class AndroidProjectBuilder(
         override val mainSourceProvider: IdeSourceProviderImpl get() = mainSourceProvider()
         override val androidTestSourceProviderContainer: IdeExtraSourceProviderImpl? get() = androidTestSourceProvider()
         override val unitTestSourceProviderContainer: IdeExtraSourceProviderImpl? get() = unitTestSourceProvider()
+        override val screenshotTestSouceProviderContainer: IdeExtraSourceProviderImpl? get() = screenshotTestSourceProvider()
         override val debugSourceProvider: IdeSourceProviderImpl? get() = debugSourceProvider()
         override val androidTestDebugSourceProvider: IdeSourceProviderImpl? get() = androidTestDebugSourceProvider()
         override val testDebugSourceProvider: IdeSourceProviderImpl? get() = testDebugSourceProvider()
@@ -628,6 +636,7 @@ fun createAndroidProjectBuilderForDefaultTestProjectStructure(
     mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
     androidTestSourceProvider = { null },
     unitTestSourceProvider = { null },
+    screenshotTestSourceProvider = { null },
     releaseSourceProvider = { null }
   )
 
@@ -671,6 +680,12 @@ fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeExt
     artifactName = ARTIFACT_NAME_UNIT_TEST,
     sourceProvider = sourceProvider(
       ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
+
+fun AndroidProjectStubBuilder.buildScreenshotTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
+  IdeExtraSourceProviderImpl(
+    artifactName = ARTIFACT_NAME_SCREENSHOT_TEST,
+    sourceProvider = sourceProvider(
+      ARTIFACT_NAME_SCREENSHOT_TEST, moduleBasePath.resolve("src/screenshotTest"), includeRenderScriptSources, includeAidlSources))
 
 fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
   sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
@@ -752,7 +767,7 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContain
     isDefault = null
   ),
   sourceProvider = mainSourceProvider,
-  extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer)
+  extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer, screenshotTestSouceProviderContainer)
 )
 
 fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerImpl? =
@@ -1732,7 +1747,7 @@ private fun createAndroidModuleDataNode(
   selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.setup()
   selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.setup()
   selectedVariant.testFixturesArtifact?.setup()
-  // TODO(karimai): Add support for ScreenshotTest once the support for sourceSet is available.
+  // TODO(karimai): Add support for ScreenshotTest once the support for module is available.
 
   return moduleDataNode
 }

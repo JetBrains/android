@@ -978,6 +978,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         val artifact: IdeBaseArtifactCore? = variant?.hostTestArtifacts?.find { it.name == IdeArtifactName.UNIT_TEST }
         return if (artifact == null) null else Pair.create(variant, moduleNode.findSourceSetDataForArtifact(artifact))
       }
+
+      // Check if it's a screenshot test source set.
+      val screenshotTest = "ScreenshotTest"
+      if (sourceSetName.endsWith(screenshotTest)) {
+        val variantName = sourceSetName.substring(0, sourceSetName.length - screenshotTest.length)
+        val variant = androidModel.findVariantCoreByName(variantName)
+        val artifact = variant?.hostTestArtifacts?.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+        return if (artifact == null) null else Pair.create(variant, moduleNode.findSourceSetDataForArtifact(artifact))
+      }
+
       return null
     }
 

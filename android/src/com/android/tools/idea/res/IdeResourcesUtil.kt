@@ -74,6 +74,7 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
@@ -1536,10 +1537,10 @@ private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
   val sourceProviders = SourceProviders.getInstance(facet)
   val namedIdeaSourceProviders =
     if (module.isLinkedAndroidModule() && module.isAndroidTestModule())
-      sourceProviders.currentAndroidTestSourceProviders
+      sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]
     else sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
 
-  return namedIdeaSourceProviders.any { it.resDirectories.contains(vf) } ||
+  return namedIdeaSourceProviders?.any { it.resDirectories.contains(vf) } == true ||
     AndroidRootUtil.getResourceOverlayDirs(facet).contains(vf)
 }
 

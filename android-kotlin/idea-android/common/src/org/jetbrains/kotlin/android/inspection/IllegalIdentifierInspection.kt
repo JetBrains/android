@@ -69,7 +69,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
                 if (unquotedName.isEmpty()) return
 
                 if (!isValidDalvikIdentifier(unquotedName) && checkAndroidFacet(element)) {
-                    if (element.isInUnitTests() || element.isInBuildKtsFile()) {
+                    if (element.isInHostTests() || element.isInBuildKtsFile()) {
                         return
                     }
 
@@ -92,17 +92,17 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
                 return language == KotlinLanguage.INSTANCE && (containingFile?.name?.endsWith(KOTLIN_DSL_SCRIPT_EXTENSION) ?: false)
             }
 
-            private fun PsiElement.isInUnitTests(): Boolean {
+            private fun PsiElement.isInHostTests(): Boolean {
                 val containingFile = containingFile?.virtualFile?.let { getIoFile(it) }
                 val module = AndroidPsiUtils.getModuleSafely(this)
 
                 if (module != null && containingFile != null) {
                     val currentGenerationId = ProjectRootModificationTracker.getInstance(module.project).modificationCount
-                    val junitTestPaths = module.getUserData(JunitPaths)
+                    val hostTestPaths = module.getUserData(JunitPaths)
                         ?.takeIf { it.generationId == currentGenerationId }
-                            ?: JunitPaths(getJunitTestPaths(module), currentGenerationId).also { module.putUserData(JunitPaths, it) }
+                                        ?: JunitPaths(getHostTestsPaths(module), currentGenerationId).also { module.putUserData(JunitPaths, it) }
 
-                    if (junitTestPaths.paths.any { containingFile.startsWith(it) }) {
+                    if (hostTestPaths.paths.any { containingFile.startsWith(it) }) {
                         return true
                     }
                 }
@@ -116,10 +116,15 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
         }
     }
 
-    private fun getJunitTestPaths(module: Module): List<File> {
+    private fun getHostTestsPaths(module: Module): List<File> {
         val androidFacet = AndroidFacet.getInstance(module) ?: return emptyList()
-        val unitTestSources = SourceProviders.getInstance(androidFacet).unitTestSources
-        return (unitTestSources.javaDirectories + unitTestSources.kotlinDirectories).map { it.toIoFile() }
+        val hostTestSources = SourceProviders.getInstance(androidFacet).hostTestSources.values
+        return mutableListOf<VirtualFile>().apply {
+            hostTestSources.forEach {
+                this.addAll(it.javaDirectories)
+                this.addAll(it.kotlinDirectories)
+            }
+        }.map { it.toIoFile() }
     }
 
     private fun getIoFile(virtualFile: VirtualFile): File? {
