@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -227,8 +228,8 @@ public class DelegatingViewGroupHandler extends ViewGroupHandler {
   }
 
   @Override
-  @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
+  @Nullable
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
     return myHandler.getGradleCoordinateId(tagName);
   }
 

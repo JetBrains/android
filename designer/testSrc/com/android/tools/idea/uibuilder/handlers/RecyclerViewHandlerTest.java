@@ -16,8 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_ARTIFACT;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.AndroidXConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.common.SyncNlModel;
@@ -71,6 +73,12 @@ public class RecyclerViewHandlerTest extends LayoutTestCase {
 
     // Should not able to drag into RecyclerView
     assertEmpty(screen.get("@id/myView").getSceneComponent().getChildren());
+  }
+
+  public void testGetGradleCoordinateId() {
+    RecyclerViewHandler handler = new RecyclerViewHandler();
+    assertThat(handler.getGradleCoordinateId(RECYCLER_VIEW.oldName()).toString()).isEqualTo(RECYCLER_VIEW_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(RECYCLER_VIEW.newName()).toString()).isEqualTo(ANDROIDX_RECYCLER_VIEW_ARTIFACT);
   }
 
   @NotNull

@@ -48,7 +48,6 @@ import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager
 import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
@@ -568,8 +567,8 @@ class NlComponentMixin(component: NlComponent) : NlComponent.XmlModelComponentMi
     val artifacts = mutableSetOf<String>()
     val handler = component.getViewHandler {} ?: return emptySet()
     val artifactId = handler.getGradleCoordinateId(component.tagDeprecated.name)
-    if (artifactId != PaletteComponentHandler.IN_PLATFORM) {
-      artifacts.add(artifactId)
+    if (artifactId != null) {
+      artifacts.add(artifactId.toString())
     }
     component.children.flatMap { it.dependencies }.toCollection(artifacts)
 

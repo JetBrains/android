@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.common.model.NlComponent;
@@ -72,9 +73,9 @@ public class CustomViewHandler extends DelegatingViewHandler {
   }
 
   @Override
-  @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.equals(myTagName) ? "" : super.getGradleCoordinateId(tagName);
+  @Nullable
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
+    return tagName.equals(myTagName) ? null : super.getGradleCoordinateId(tagName);
   }
 
   @Override

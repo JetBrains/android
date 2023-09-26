@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -237,6 +237,12 @@ public class Palette {
     @Nullable
     private String myGradleCoordinateId;
 
+    /**
+     * A special value returned from {@link #getGradleCoordinateId} to indicate that this
+     * component is included in the SDK platform.
+     */
+    public static final String IN_PLATFORM = "";
+
     @XmlAttribute(name = "handler-class")
     @Nullable
     private String myHandlerClass;
@@ -310,12 +316,13 @@ public class Palette {
       return myHandler.getIcon(myTagName);
     }
 
-    @NonNull
+    @NotNull
     public String getGradleCoordinateId() {
       if (myGradleCoordinateId != null) {
         return myGradleCoordinateId;
       }
-      return myHandler.getGradleCoordinateId(myTagName);
+      GoogleMavenArtifactId id = myHandler.getGradleCoordinateId(myTagName);
+      return id == null ? IN_PLATFORM : id.toString();
     }
 
     @NotNull

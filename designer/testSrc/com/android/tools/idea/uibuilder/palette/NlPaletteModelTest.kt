@@ -149,7 +149,7 @@ class NlPaletteModelTest {
     assertThat(handler!!.getTitle(CUSTOM_VIEW_CLASS)).isEqualTo(CUSTOM_VIEW)
     assertThat(handler.getIcon(CUSTOM_VIEW_CLASS))
       .isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
-    assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isEmpty()
+    assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isNull()
     assertThat(handler.getPreviewScale(CUSTOM_VIEW_CLASS)).isWithin(0.0).of(1.0)
     assertThat(handler.inspectorProperties).isEmpty()
     assertThat(handler.layoutInspectorProperties).isEmpty()

@@ -22,11 +22,12 @@ import static com.android.SdkConstants.ATTR_CLIP_TO_PADDING;
 import static com.android.SdkConstants.ATTR_ITEM_COUNT;
 import static com.android.SdkConstants.ATTR_LISTITEM;
 import static com.android.SdkConstants.ATTR_SCROLLBARS;
-import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_RECYCLERVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.RECYCLERVIEW_V7;
 
-import com.android.support.AndroidxNameUtils;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -81,10 +82,8 @@ public class RecyclerViewHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
-    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ?
-           AndroidxNameUtils.getCoordinateMapping(RECYCLER_VIEW_LIB_ARTIFACT) :
-           RECYCLER_VIEW_LIB_ARTIFACT;
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
+    return tagName.startsWith(ANDROIDX_PKG_PREFIX) ? ANDROIDX_RECYCLERVIEW_V7 : RECYCLERVIEW_V7;
   }
 
   @Nullable

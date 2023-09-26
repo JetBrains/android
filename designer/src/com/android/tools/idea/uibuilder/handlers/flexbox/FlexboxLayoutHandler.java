@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.uibuilder.handlers.flexbox;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.FLEXBOX_LAYOUT;
 
 /**
  * Handles interactions for the FlexboxLayout.
@@ -56,8 +58,8 @@ public class FlexboxLayoutHandler extends ViewGroupHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinateId(@NotNull String viewTag) {
-    return FLEXBOX_LAYOUT_LIB_ARTIFACT;
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String viewTag) {
+    return FLEXBOX_LAYOUT;
   }
 
   // TODO: Override createDragHandler

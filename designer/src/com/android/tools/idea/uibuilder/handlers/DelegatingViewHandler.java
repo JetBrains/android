@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
@@ -140,8 +141,8 @@ public class DelegatingViewHandler extends ViewHandler {
   }
 
   @Override
-  @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
+  @Nullable
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
     return myHandler.getGradleCoordinateId(tagName);
   }
 

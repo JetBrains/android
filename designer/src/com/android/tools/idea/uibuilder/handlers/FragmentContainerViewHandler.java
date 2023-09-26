@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.SdkConstants;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_FRAGMENT;
+
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -24,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 public final class FragmentContainerViewHandler extends BaseFragmentHandler {
   @Override
   @NotNull
-  public String getGradleCoordinateId(@NotNull String tagName) {
-    return SdkConstants.FRAGMENT_LIB_ARTIFACT;
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String tagName) {
+    return ANDROIDX_FRAGMENT;
   }
 }
