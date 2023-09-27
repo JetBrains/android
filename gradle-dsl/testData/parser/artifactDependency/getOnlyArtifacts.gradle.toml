@@ -1,0 +1,7 @@
+[dependencies]
+compile = [
+  {notation = "com.android.support:appcompat-v7:22.1.1"},
+  {name = "guava", group = "com.google.guava", version = "18.0" },
+  {project= ":javaLib"},
+  {files = ["lib.jar"]}
+]

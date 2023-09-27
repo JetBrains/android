@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -76,7 +77,85 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                @NotNull List<? super T> dest);
   }
 
-  private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<ArtifactDependencyModel>() {
+  private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<>() {
+
+    private final static Fetcher<ArtifactDependencyModel> scriptArtifactFetcher =
+      (configurationName, element, resolved, configurationElement, maintainer, dest) -> {
+        // We can only create ArtifactDependencyModels from expressions -- if for some reason we don't have an expression here (e.g. from a
+        // parser bug) then don't create anything.
+        if (!(element instanceof GradleDslExpression)) {
+          return;
+        }
+
+        String methodName = null;
+
+        if (element instanceof GradleDslMethodCall) {
+          List<GradleDslExpression> arguments = ((GradleDslMethodCall)element).getArguments();
+          methodName = ((GradleDslMethodCall)element).getMethodName();
+          // We can handle single-argument method calls to specific functions, for example
+          // `implementation platform('org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE')
+          // or
+          // `implementation enforcedPlatform([group: 'org.springframework.boot', name: 'spring-boot-dependencies', version: '1.5.8.RELEASE'])
+          if (arguments.size() == 1 && Arrays.asList("platform", "enforcedPlatform").contains(methodName)) {
+            element = arguments.get(0);
+            resolved = resolveElement(element);
+          }
+          // Can't do anything else with method calls.
+          else {
+            return;
+          }
+        }
+        if (element instanceof GradleDslSimpleExpression || resolved instanceof GradleDslExpressionMap) {
+          ArtifactDependencyModel notation = ArtifactDependencyModelImpl.DynamicNotation.create(
+            configurationName, (GradleDslExpression)element, configurationElement, maintainer, methodName);
+          if (notation != null) {
+            dest.add(notation);
+            // cannot do extract variables for version catalog dependencies for now
+            if(isInVersionCatalogFile(resolved)) {
+              notation.markAsVersionCatalogDependency();
+              notation.enableSetThrough();
+            }
+          }
+        }
+      };
+
+    private final static Fetcher<ArtifactDependencyModel> declarativeArtifactFetcher =
+      (configurationName, element, resolved, configurationElement, maintainer, dest) -> {
+        if (!(element instanceof GradleDslExpression)) {
+          return;
+        }
+
+        if (element instanceof GradleDslExpressionMap expressionMap) {
+          // Declarative map notation
+          Map<String, GradleDslElement> map = expressionMap.getElements();
+
+          if (map.get("notation") instanceof GradleDslLiteral literal) {
+            ArtifactDependencyModel notation = ArtifactDependencyModelImpl.DynamicNotation.create(
+              configurationName, literal, configurationElement, maintainer, null);
+            if (notation != null) {
+              dest.add(notation);
+            }
+          }
+          else if (map.get("alias") instanceof GradleDslLiteral literal) {
+            ArtifactDependencyModel notation = ArtifactDependencyModelImpl.DynamicNotation.create(
+              configurationName, literal, configurationElement, maintainer, null);
+            if (notation != null) { // TODO add version catalog check
+              dest.add(notation);
+              // having reference to catalog require additional settings
+              notation.markAsVersionCatalogDependency();
+              notation.enableSetThrough();
+            }
+          }
+          else {
+            ArtifactDependencyModel notation = ArtifactDependencyModelImpl.DynamicNotation.create(
+              configurationName, (GradleDslExpression)element, configurationElement, maintainer, null);
+            if (notation != null) {
+              dest.add(notation);
+            }
+          }
+        }
+      };
+
     @Override
     public void fetch(@NotNull String configurationName,
                       @NotNull GradleDslElement element,
@@ -84,42 +163,14 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @Nullable GradleDslClosure configurationElement,
                       @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
-      // We can only create ArtifactDependencyModels from expressions -- if for some reason we don't have an expression here (e.g. from a
-      // parser bug) then don't create anything.
-      if (!(element instanceof GradleDslExpression)) {
-        return;
+
+      if (element.getDslFile().getParser().getKind() == DECLARATIVE_TOML) {
+        declarativeArtifactFetcher.fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
+      }
+      else {
+        scriptArtifactFetcher.fetch(configurationName,element,resolved,configurationElement,maintainer,dest);
       }
 
-      String methodName = null;
-
-      if (element instanceof GradleDslMethodCall) {
-        List<GradleDslExpression> arguments = ((GradleDslMethodCall)element).getArguments();
-        methodName = ((GradleDslMethodCall)element).getMethodName();
-        // We can handle single-argument method calls to specific functions, for example
-        // `implementation platform('org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE')
-        // or
-        // `implementation enforcedPlatform([group: 'org.springframework.boot', name: 'spring-boot-dependencies', version: '1.5.8.RELEASE'])
-        if (arguments.size() == 1 && Arrays.asList("platform", "enforcedPlatform").contains(methodName)) {
-          element = arguments.get(0);
-          resolved = resolveElement(element);
-        }
-        // Can't do anything else with method calls.
-        else {
-          return;
-        }
-      }
-      if (element instanceof GradleDslSimpleExpression || resolved instanceof GradleDslExpressionMap) {
-        ArtifactDependencyModel notation = ArtifactDependencyModelImpl.DynamicNotation.create(
-            configurationName, (GradleDslExpression)element, configurationElement, maintainer, methodName);
-        if (notation != null) {
-          dest.add(notation);
-          // cannot do extract variables for version catalog dependencies for now
-          if(isInVersionCatalogFile(resolved)) {
-            notation.markAsVersionCatalogDependency();
-            notation.enableSetThrough();
-          }
-        }
-      }
     }
   };
 

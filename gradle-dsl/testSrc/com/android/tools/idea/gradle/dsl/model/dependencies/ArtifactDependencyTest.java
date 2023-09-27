@@ -41,6 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assume.assumeTrue;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
@@ -78,26 +79,44 @@ import org.jetbrains.kotlin.psi.KtCallExpression;
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.toml.lang.psi.TomlLiteral;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.
  */
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
+
+  @Before
+  public void before() throws Exception {
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true);
+    super.before();
+  }
+
+  @After
+  public void onAfter() {
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride();
+  }
+
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_parens() throws IOException {
+    isIrrelevantForDeclarative("Do not support this notation for declarative yet");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_noParens() throws IOException {
     isIrrelevantForKotlinScript("No paren-less dependency configuration form in KotlinScript");
+    isIrrelevantForDeclarative("Do not support this notation for declarative yet");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_NO_PARENS);
   }
 
   @Test
   public void testParsingWithCompactNotationAndConfigurationClosure_withinParens() throws IOException {
     assumeTrue("KotlinScript handling of closure as internal argument" , !isKotlinScript()); // TODO(b/155168291)
+    isIrrelevantForDeclarative("Do not support this notation for declarative yet");
     doTestParsingConfigurationVersion(TestFile.CONFIGURE_CLOSURE_WITH_PARENS);
   }
 
@@ -471,6 +490,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   @Test
   public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
+    isIrrelevantForDeclarative("No inline comments for declarative");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_COMPACT_NOTATION_IN_SINGLE_LINE_WITH_COMMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -506,6 +526,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseDependenciesWithMapNotationUsingSingleConfigNoParentheses() throws IOException {
+    isIrrelevantForDeclarative("No such syntax in declarative");
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     writeToBuildFile(TestFile.PARSE_DEPENDENCIES_WITH_MAP_NOTATION_USING_SINGLE_CONFIGURATION_NAME_NO_PARENTHESES);
 
@@ -716,6 +737,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables in declarative");
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -748,6 +770,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationWithQuotedIdentifierVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for declarative");
+
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_WITH_QUOTED_IDENTIFIER_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -772,6 +796,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No variables for declarative");
     writeToBuildFile(TestFile.PARSE_MAP_NOTATION_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -804,6 +829,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseCompactNotationClosureWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No closure for declarative");
+
     writeToBuildFile(TestFile.PARSE_COMPACT_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -837,6 +864,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseMapNotationClosureWithVariables() throws IOException {
+    isIrrelevantForDeclarative("No closure for declarative");
+
     writeToBuildFile(TestFile.PARSE_MAP_NOTATION_CLOSURE_WITH_VARIABLES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -873,6 +902,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testNonDependencyCodeInDependenciesSection() throws IOException {
+    isIrrelevantForDeclarative("Not relevant for declarative");
+
     writeToBuildFile(TestFile.NON_DEPENDENCY_CODE_IN_DEPENDENCIES_SECTION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1273,8 +1304,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
       assertThat(psiElement).isInstanceOf(GrLiteral.class);
       assertThat(psiElement.getText()).isEqualTo("'org.gradle.test.classifiers:service:1.0'");
     }
-    else {
+    else if (isKotlinScript()) {
       assertThat(psiElement).isInstanceOf(KtStringTemplateExpression.class);
+      assertThat(psiElement.getText()).isEqualTo("\"org.gradle.test.classifiers:service:1.0\"");
+    }
+    else {
+      assertThat(psiElement).isInstanceOf(TomlLiteral.class);
       assertThat(psiElement.getText()).isEqualTo("\"org.gradle.test.classifiers:service:1.0\"");
     }
   }
@@ -1683,6 +1718,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFullReferencesCompactApplication() throws IOException {
+    isIrrelevantForDeclarative("No references for declarative");
+
     writeToBuildFile(TestFile.PARSE_FULL_REFERENCES_COMPACT_APPLICATION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1788,6 +1825,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseFullReferenceMap() throws IOException {
+    isIrrelevantForDeclarative("No references for declarative");
     writeToBuildFile(TestFile.PARSE_FULL_REFERENCE_MAP);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2382,6 +2420,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParsePlatformDependencies() throws IOException {
+    isIrrelevantForDeclarative("So far there is no platform in declarative");
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();

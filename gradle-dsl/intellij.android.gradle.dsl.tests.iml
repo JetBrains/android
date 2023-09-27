@@ -24,5 +24,6 @@
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="library" name="mockito" level="project" />
+    <orderEntry type="library" name="studio-plugin-toml" level="project" />
   </component>
 </module>

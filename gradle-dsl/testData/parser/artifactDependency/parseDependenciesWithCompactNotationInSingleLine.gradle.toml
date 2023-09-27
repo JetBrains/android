@@ -1,0 +1,2 @@
+[dependencies]
+runtime = [{ notation = 'org.springframework:spring-core:2.5' }, { notation = 'org.springframework:spring-aop:2.5' }]
