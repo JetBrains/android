@@ -18,9 +18,13 @@ package com.android.tools.idea.gradle.service.notification
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.util.toIoFile
 import com.google.wireless.android.sdk.stats.GradleSyncStats
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -68,10 +72,25 @@ class ProjectJarFileTracker(val project: Project) {
         }
       }
 
+      private fun existInsideExcludedDirectory(file: VirtualFile): Boolean {
+        val filePath = file.toIoFile().toPath()
+        project.modules.forEach { module ->
+          val excludedPaths = ExternalSystemApiUtil.getExternalProjectContentRoots(module, ExternalSystemSourceType.EXCLUDED)
+          excludedPaths?.forEach { contentRoot ->
+            if (filePath.normalize().startsWith(contentRoot.path.normalize())) {
+              return true
+            }
+          }
+        }
+        return false
+      }
+
       private fun onChanged(file: VirtualFile?) {
-        if (file?.name?.endsWith(JAR_EXT) == true) {
-          jarFilesChanged = true
-          editorNotifications.updateAllNotifications()
+        file?.let {
+          if (it.name.endsWith(JAR_EXT) && !existInsideExcludedDirectory(it)) {
+            jarFilesChanged = true
+            editorNotifications.updateAllNotifications()
+          }
         }
       }
     })

@@ -15,49 +15,86 @@
  */
 package com.android.tools.idea.gradle.service.notification;
 
+import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.service.notification.ProjectJarFileTracker;
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
 import com.android.tools.idea.gradle.service.notification.ProjectJarFileTracker.JarFileNotificationProvider;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
+import com.android.tools.idea.testing.TestModuleUtil;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ModuleRootModel;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import java.io.IOException;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
-public class ProjectJarFileTrackerTest extends LightPlatformTestCase {
+@RunsInEdt
+public class ProjectJarFileTrackerTest {
+
+  @Rule
+  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
+
   @Mock private FileEditor myFileEditor;
   @Mock private EditorNotifications myEditorNotifications;
   private JarFileNotificationProvider myNotificationProvider;
 
   private ProjectJarFileTracker myProjectJarFileTracker;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  private PreparedTestProject preparedProject;
+
+  @Before
+  public void setUp() throws Exception {
     initMocks(this);
-
-    new IdeComponents(getProject(), getTestRootDisposable()).replaceProjectService(EditorNotifications.class, myEditorNotifications);
-
-    myProjectJarFileTracker = ProjectJarFileTracker.getInstance(getProject());
     myNotificationProvider = new JarFileNotificationProvider();
   }
 
   @Test
   public void testAddFile() throws IOException {
-    VirtualFile projectDir = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
-    VirtualFile jarFile =  WriteAction.computeAndWait(() -> projectDir.createChildData(projectDir, "test.jar"));
-    assertTrue(myProjectJarFileTracker.getJarFilesChanged());
-    EditorNotificationPanel panel = myNotificationProvider.collectNotificationData(getProject(), jarFile).apply(myFileEditor);
-    assertEquals(panel.getText(), "Jar files have been added/removed since last project sync. Sync may be necessary for the IDE to work properly.");
+    preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
+    preparedProject.open(it -> it, project -> {
+      new IdeComponents(project).replaceProjectService(EditorNotifications.class, myEditorNotifications);
+      myProjectJarFileTracker = ProjectJarFileTracker.getInstance(project);
+      VirtualFile projectDir = PlatformTestUtil.getOrCreateProjectBaseDir(project);
+      VirtualFile jarFile = WriteAction.computeAndWait(() -> projectDir.createChildData(projectDir, "test.jar"));
+      assertTrue(myProjectJarFileTracker.getJarFilesChanged());
+      EditorNotificationPanel panel = myNotificationProvider.collectNotificationData(project, jarFile).apply(myFileEditor);
+      assertEquals(panel.getText(),
+                   "Jar files have been added/removed since last project sync. Sync may be necessary for the IDE to work properly.");
+    });
   }
 
-
-
+  @Test
+  public void testAddFileInExcludedDirectory() throws IOException {
+    preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION);
+    preparedProject.open(it -> it, project -> {
+      new IdeComponents(project).replaceProjectService(EditorNotifications.class, myEditorNotifications);
+      myProjectJarFileTracker = ProjectJarFileTracker.getInstance(project);
+      Module appModule = TestModuleUtil.findAppModule(project);
+      var moduleRootModel = (ModuleRootModel)ModuleRootManager.getInstance(appModule);
+      var moduleDir = moduleRootModel.getContentRoots()[0];
+      VirtualFile jarFile = WriteAction.computeAndWait(() -> moduleDir.createChildDirectory(this, "build")
+        .createChildData(moduleDir, "test.jar"));
+      assertFalse(myProjectJarFileTracker.getJarFilesChanged());
+      assertNull(myNotificationProvider.collectNotificationData(project, jarFile));
+    });
+  }
 }
