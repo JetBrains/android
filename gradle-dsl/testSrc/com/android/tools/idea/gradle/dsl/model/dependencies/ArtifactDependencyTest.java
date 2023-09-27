@@ -347,6 +347,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyWithConfigurationClosure() throws IOException {
+    isIrrelevantForDeclarative("Declarative does not have closures");
     writeToBuildFile(TestFile.ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();

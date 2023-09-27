@@ -62,7 +62,8 @@ class DeclarativeTomlDslWriter(context: BuildModelContext): TomlDslWriter(contex
     val project = parentPsiElement.project
     val factory = TomlPsiFactory(project)
 
-    if (element.parent is GradleDslElementList) {
+    // we write dependencies in a different way so need to jump over
+    if (element.parent is GradleDslElementList && element.parent !is DependenciesDslElement) {
       // Inside the list we can have GradleDslLiteral, infix notation element, GradleDslMethodCall with reference
       return createArrayTable(element, factory)
     }
@@ -79,6 +80,11 @@ class DeclarativeTomlDslWriter(context: BuildModelContext): TomlDslWriter(contex
                   is GradleDslExpressionMap, is GradleDslBlockElement -> factory.createTable(name)
                   is GradleDslElementList, is GradleDslExpressionList -> factory.createArrayTable(name)
                   else -> factory.createKeyValue(name, "\"placeholder\"")
+                }
+
+                is DependenciesDslElement -> when (element) {
+                  is GradleDslExpressionList -> factory.createKeyValue(name, "[]")
+                  else -> factory.createLiteral("\"placeholder\"")
                 }
 
                 is GradleDslElementList, is GradleDslExpressionList -> when (element) {
@@ -255,7 +261,7 @@ class DeclarativeTomlDslWriter(context: BuildModelContext): TomlDslWriter(contex
   private fun PsiElement.deleteRecursive() {
     val grandParentPsi = this.parent
     val sib = this.nextSibling
-    if(sib is LeafPsiElement && sib.elementType == TomlElementTypes.COMMA) this.nextSibling.delete()
+    if (sib is LeafPsiElement && sib.elementType == TomlElementTypes.COMMA) this.nextSibling.delete()
     this.delete()
     if (grandParentPsi != null) deleteEmptyParent(grandParentPsi)
   }

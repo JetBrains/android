@@ -560,12 +560,12 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
 
   @Override
   public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference) {
-    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, Collections.emptyList());
+    new ArtifactDependencyModelImpl.Factory(myDslElement).createNew(configurationName, reference, Collections.emptyList());
   }
 
   @Override
   public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, @NotNull List<ArtifactDependencySpec> excludes) {
-    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, excludes);
+    new ArtifactDependencyModelImpl.Factory(myDslElement).createNew(configurationName, reference, excludes);
   }
 
   @Override
@@ -577,7 +577,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   public void addArtifact(@NotNull String configurationName,
                           @NotNull ArtifactDependencySpec dependency,
                           @NotNull List<ArtifactDependencySpec> excludes) {
-    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, excludes);
+    new ArtifactDependencyModelImpl.Factory(myDslElement).createNew(configurationName, dependency, excludes);
   }
 
   @Override
