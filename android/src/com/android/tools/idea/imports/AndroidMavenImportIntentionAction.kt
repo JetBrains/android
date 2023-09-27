@@ -50,7 +50,12 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
 import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
@@ -466,6 +471,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun PsiElement.findElementAtAbsoluteOffset(targetOffset: Int): PsiElement? =
     findElementAt(targetOffset - textRange.startOffset)
 
+  @OptIn(KtAllowAnalysisOnEdt::class)
   private fun KtDotQualifiedExpression.formText(): Pair<String, String>? {
     val referenceNameElement =
       when (val selector = selectorExpression) {
@@ -479,9 +485,19 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     }
     val receiverExpr =
       (receiverExpression as? KtDotQualifiedExpression)?.selectorExpression ?: receiverExpression
-    val receiverType = receiverExpr.resolveExprType()?.takeUnless { it is ErrorType }
-    receiverType?.fqName?.asString()?.let {
-      return left.text to it
+    if (isK2Plugin()) {
+      allowAnalysisOnEdt {
+        analyze(receiverExpr) {
+          (receiverExpr.getKtType() as? KtNonErrorClassType)?.classId?.asFqNameString()?.let {
+            return left.text to it
+          }
+        }
+      }
+    } else {
+      val receiverType = receiverExpr.resolveExprType()?.takeUnless { it is ErrorType }
+      receiverType?.fqName?.asString()?.let {
+        return left.text to it
+      }
     }
 
     return "${receiverExpression.text}.${left.text}" to ALL_RECEIVER_TYPES
