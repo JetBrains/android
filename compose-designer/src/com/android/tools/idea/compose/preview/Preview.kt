@@ -53,6 +53,7 @@ import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
@@ -1485,7 +1486,11 @@ class ComposePreviewRepresentation(
       }
 
       launch(uiThread) {
-        if (!composeWorkBench.isMessageBeingDisplayed) {
+        if (
+          !composeWorkBench.isMessageBeingDisplayed &&
+            (refreshRequest.type != RefreshType.QUALITY ||
+              COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME.get())
+        ) {
           // Only notify the preview refresh time if there are previews to show.
           val durationString =
             Duration.ofMillis((System.nanoTime() - startTime) / 1_000_000).toDisplayString()

@@ -1299,6 +1299,11 @@ public final class StudioFlags {
     COMPOSE, "compose.preview.render.quality.visibility.threshold", "Render quality zoom visibility threshold",
     "When the zoom level is lower than this value, all previews will be rendered at low quality",
     20);
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME = Flag.create(
+    COMPOSE, "compose.preview.render.quality.notify.time", "Notify refresh time for render quality refreshes",
+    "If enabled, the time taken in render quality refreshes will be notified each time",
+    false);
   //endregion
 
   // region Wear surfaces
