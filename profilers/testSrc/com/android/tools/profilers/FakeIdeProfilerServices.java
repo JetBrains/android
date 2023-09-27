@@ -377,6 +377,12 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
+    // System Trace(Perfetto/Atrace) config is excluded since it doesn't have any editable config fields in task-based UX.
+    return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG);
+  }
+
+  @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     if (apiLevel >= AndroidVersion.VersionCodes.P) {
       return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_CONFIG);

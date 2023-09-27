@@ -149,6 +149,13 @@ interface IdeProfilerServices {
   fun getUserCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
 
   /**
+   * Returns the profiling configurations saved by the user for a project in task-based UX.
+   * apiLevel is the Android API level for the selected device, and the apiLevel is used to return only
+   * the appropriate configurations that are available to run on a particular device.
+   */
+  fun getTaskCpuProfilerConfigs(apiLevel: Int): List<ProfilingConfiguration>
+
+  /**
    * Returns the default profiling configurations.
    * apiLevel is the Android API level for the selected device, so that it return only
    * the appropriate configurations that are available to run on a particular device.
