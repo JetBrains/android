@@ -1196,13 +1196,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     // Enable if NOT Play Store
     boolean enable = !myModel.isPlayStoreCompatible();
 
+    boolean isAutomotive = myModel.getAvdDeviceData().isAutomotive().get();
+
     // Enforce the restrictions
     myChangeDeviceButton.setEnabled(enable);
     myChangeSystemImageButton.setEnabled(enable && deviceIsPresent);
 
     myHostGraphics.setEnabled(enable);
     myQemu2CheckBox.setEnabled(enable);
-    myRamStorage.setEnabled(enable);
+    // Do not enforce ram restriction if it is automotive
+    myRamStorage.setEnabled(enable | isAutomotive);
     myVmHeapStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
