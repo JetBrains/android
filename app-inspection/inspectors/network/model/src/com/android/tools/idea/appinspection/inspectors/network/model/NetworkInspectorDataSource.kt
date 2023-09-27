@@ -42,6 +42,86 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 
 /**
+ * The data backend of network inspector.
+ *
+ * It collects all the events sent by the inspector and makes them available for queries based on
+ * time ranges.
+ */
+interface NetworkInspectorDataSource {
+  val connectionEventFlow: Flow<HttpConnectionEvent>
+
+  suspend fun queryForHttpData(range: Range): List<HttpData>
+
+  suspend fun queryForSpeedData(range: Range): List<Event>
+}
+
+class NetworkInspectorDataSourceImpl(
+  messenger: AppInspectorMessenger,
+  parentScope: CoroutineScope,
+  replayCacheSize: Int = 1
+) : NetworkInspectorDataSource {
+  val scope = parentScope.createChildScope()
+  private val channel = Channel<Intention>()
+  override val connectionEventFlow: Flow<HttpConnectionEvent> =
+    messenger.eventFlow
+      .map { data -> Event.parseFrom(data) }
+      .onEach { data -> channel.send(InsertData(data)) }
+      .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }
+      .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
+
+  init {
+    scope.coroutineContext[Job]!!.invokeOnCompletion { e -> channel.close(e) }
+    scope.launch {
+      try {
+        processEvents(channel)
+      } catch (e: CancellationException) {
+        channel.close(e.cause)
+      }
+    }
+  }
+
+  override suspend fun queryForHttpData(range: Range) =
+    withContext(scope.coroutineContext) {
+      val deferred = CompletableDeferred<List<HttpData>>()
+      channel.send(QueryForHttpData(range, deferred))
+      deferred.await()
+    }
+
+  override suspend fun queryForSpeedData(range: Range) =
+    withContext(scope.coroutineContext) {
+      val deferred = CompletableDeferred<List<Event>>()
+      channel.send(QueryForSpeedData(range, deferred))
+      deferred.await()
+    }
+}
+
+/**
+ * An actor that is used to maintain synchronization of the data collected from network inspector
+ * against the frequent updates and queried performed against it.
+ *
+ * It performs two types of work:
+ * 1. Collects events sent from the network inspector and accumulates them.
+ * 2. Performs queries from UI frontend on the collected data.
+ */
+private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intention>) = launch {
+  val speedData = mutableListOf<Event>()
+  val httpData = HttpDataCollector()
+
+  commandChannel.consumeEach { command ->
+    when (command) {
+      is QueryForSpeedData -> command.deferred.complete(searchRange(speedData, command.range))
+      is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
+      is InsertData -> {
+        when {
+          command.event.hasSpeedEvent() -> speedData.add(command.event)
+          command.event.hasHttpConnectionEvent() -> httpData.processEvent(command.event)
+        }
+      }
+    }
+  }
+}
+
+/**
  * Performs a binary search on the data using timestamp and returns the index at which a
  * hypothetical event with [timestamp] should be inserted. Or return the index of the event that
  * matches [timestamp].
@@ -120,85 +200,3 @@ private sealed class Intention {
 
   class InsertData(val event: Event) : Intention()
 }
-
-/**
- * An actor that is used to maintain synchronization of the data collected from network inspector
- * against the frequent updates and queried performed against it.
- *
- * It performs two types of work:
- * 1. Collects events sent from the network inspector and accumulates them.
- * 2. Performs queries from UI frontend on the collected data.
- */
-private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intention>) = launch {
-  val speedData = mutableListOf<Event>()
-  val httpData = HttpDataCollector()
-
-  commandChannel.consumeEach { command ->
-    when (command) {
-      is QueryForSpeedData -> command.deferred.complete(searchRange(speedData, command.range))
-      is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
-      is InsertData -> {
-        when {
-          command.event.hasSpeedEvent() -> speedData.add(command.event)
-          command.event.hasHttpConnectionEvent() -> httpData.processEvent(command.event)
-        }
-      }
-    }
-  }
-}
-
-/**
- * The data backend of network inspector.
- *
- * It collects all the events sent by the inspector and makes them available for queries based on
- * time ranges.
- */
-interface NetworkInspectorDataSource {
-  val connectionEventFlow: Flow<HttpConnectionEvent>
-
-  suspend fun queryForHttpData(range: Range): List<HttpData>
-
-  suspend fun queryForSpeedData(range: Range): List<Event>
-}
-
-class NetworkInspectorDataSourceImpl(
-  messenger: AppInspectorMessenger,
-  parentScope: CoroutineScope,
-  replayCacheSize: Int = 1
-) : NetworkInspectorDataSource {
-  val scope = parentScope.createChildScope()
-  private val channel = Channel<Intention>()
-  override val connectionEventFlow: Flow<HttpConnectionEvent> =
-    messenger.eventFlow
-      .map { data -> Event.parseFrom(data) }
-      .onEach { data -> channel.send(InsertData(data)) }
-      .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }
-      .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
-
-  init {
-    scope.coroutineContext[Job]!!.invokeOnCompletion { e -> channel.close(e) }
-    scope.launch {
-      try {
-        processEvents(channel)
-      } catch (e: CancellationException) {
-        channel.close(e.cause)
-      }
-    }
-  }
-
-  override suspend fun queryForHttpData(range: Range) =
-    withContext(scope.coroutineContext) {
-      val deferred = CompletableDeferred<List<HttpData>>()
-      channel.send(QueryForHttpData(range, deferred))
-      deferred.await()
-    }
-
-  override suspend fun queryForSpeedData(range: Range) =
-    withContext(scope.coroutineContext) {
-      val deferred = CompletableDeferred<List<Event>>()
-      channel.send(QueryForSpeedData(range, deferred))
-      deferred.await()
-    }
-}
-
-private fun Event.isZero() = speedEvent.rxSpeed == 0L && speedEvent.txSpeed == 0L
