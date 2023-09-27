@@ -50,6 +50,7 @@ import static com.android.tools.rendering.HtmlLinkManagerKt.URL_SHOW_TAG;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_SYNC;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.DependencyType;
@@ -886,16 +887,16 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       return;
     }
 
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
-    if (coordinate == null) {
+    GoogleMavenArtifactId id = GoogleMavenArtifactId.find(coordinateStr);
+    if (id == null) {
       Logger.getInstance(StudioHtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false,
+    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(id.getCoordinate("+")), false,
                                                                    false, dependencyType)
       .isEmpty()) {
       return;
     }
-    Logger.getInstance(StudioHtmlLinkManager.class).warn("Could not add dependency " + coordinate);
+    Logger.getInstance(StudioHtmlLinkManager.class).warn("Could not add dependency " + id);
   }
 }

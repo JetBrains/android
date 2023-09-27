@@ -15,6 +15,7 @@
  */
 package com.android.tools.rendering
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -67,9 +68,10 @@ interface HtmlLinkManager {
 
   fun createClearCacheUrl(): String = URL_CLEAR_CACHE_AND_NOTIFY
 
-  fun createAddDependencyUrl(artifactId: String): String = "$URL_ADD_DEPENDENCY$artifactId"
+  fun createAddDependencyUrl(artifactId: GoogleMavenArtifactId): String =
+    "$URL_ADD_DEPENDENCY$artifactId"
 
-  fun createAddDebugDependencyUrl(artifactId: String): String =
+  fun createAddDebugDependencyUrl(artifactId: GoogleMavenArtifactId): String =
     "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
   fun createReplaceAttributeValueUrl(

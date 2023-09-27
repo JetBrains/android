@@ -1005,19 +1005,19 @@ public class RenderErrorContributor {
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(artifact.toString()));
+                        myLinkManager.createAddDependencyUrl(artifact));
         builder.add(", ");
       }
       else if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT.toString()));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
         builder.add(", ");
       }
       else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add ui-tooling-preview library dependency to the project",
-                        myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING.toString()));
+                        myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
         builder.add(", ");
       }
 

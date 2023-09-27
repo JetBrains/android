@@ -58,21 +58,12 @@ public class StudioHtmlLinkManagerTest extends LightPlatformTestCase {
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
     testProjectSystem.useInTests();
 
-    final String[] dialogMessage = new String[1]; // Making it an array to be accessible from an inner class.
-    TestDialog testDialog = message -> {
-      dialogMessage[0] = message.trim(); // Remove line break in the end of the message.
-      return Messages.OK;
-    };
-    TestDialogManager.setTestDialog(testDialog);
-
     // try multiple invalid links
     StudioHtmlLinkManager.handleAddDependency("addDependency:", getModule());
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support", getModule());
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:", getModule());
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", getModule());
-    assertThat(dialogMessage[0]).isEqualTo("Can't find com.google.android.gms:palette-v7:+");
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", getModule());
-    assertThat(dialogMessage[0]).isEqualTo("Can't find com.android.support:palette-v7-broken:+");
     assertThat(testProjectSystem.getAddedDependencies(getModule())).isEmpty();
 
     StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", getModule());
