@@ -1346,7 +1346,7 @@ class ComposePreviewRepresentation(
   private fun refresh(refreshRequest: ComposePreviewRefreshRequest): Job {
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug(
-      "Refresh triggered editor=${psiFilePointer.containingFile?.name}. quickRefresh: ${refreshRequest.type}"
+      "Refresh triggered editor=${psiFilePointer.containingFile?.name}. Refresh type: ${refreshRequest.type}"
     )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
@@ -1465,7 +1465,7 @@ class ComposePreviewRepresentation(
       }
 
     refreshJob.invokeOnCompletion {
-      log.debug("Completed")
+      requestLogger.debug("Completed")
       launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       if (it is CancellationException) {
         if (invalidateIfCancelled) invalidate()
