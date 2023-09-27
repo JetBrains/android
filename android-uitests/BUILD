@@ -1642,12 +1642,8 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.ImportSampleProjectTest"],
     tags = [
-        "cpu:3",
-        "no_mac",
         "no_windows",
         "qa_smoke",
-        "qa_smoke_unreliable",  # b/76023451
-        "qa_unreliable",  # b/76023451
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
