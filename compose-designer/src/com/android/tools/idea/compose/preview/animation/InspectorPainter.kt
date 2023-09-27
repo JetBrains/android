@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -28,25 +26,16 @@ import java.awt.Polygon
 import javax.swing.JComponent
 import javax.swing.JSlider
 
-/** [ActionToolbarImpl] with enabled navigation. */
-open class DefaultToolbarImpl(rootComponent: JComponent, place: String, actions: List<AnAction>) :
-  ActionToolbarImpl(place, DefaultActionGroup(actions), true) {
-  init {
-    targetComponent = rootComponent
-    ActionToolbarUtil.makeToolbarNavigable(this)
-    layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
-    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+/** Create [ActionToolbar] with enabled navigation. */
+fun createToolbarWithNavigation(rootComponent: JComponent, place: String, action: AnAction) =
+  createToolbarWithNavigation(rootComponent, place, listOf(action)).apply {
+    // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by
+    // default.
+    // Set the preferred size of the
+    // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a
+    // margin
+    component.preferredSize = JBUI.size(30, 30)
   }
-}
-
-internal class SingleButtonToolbar(rootComponent: JComponent, place: String, action: AnAction) :
-  DefaultToolbarImpl(rootComponent, place, listOf(action)) {
-  // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default.
-  // Set the preferred size of the
-  // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a
-  // margin
-  override fun getPreferredSize() = JBUI.size(30, 30)
-}
 
 /** Graphics elements corresponding to painting the inspector in [AnimationPreview]. */
 object InspectorPainter {

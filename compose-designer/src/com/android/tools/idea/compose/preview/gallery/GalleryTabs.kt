@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.preview.Colors
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -31,7 +30,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
@@ -195,7 +193,7 @@ class GalleryTabs<Key : TitledKey>(
   private val centerPanel = JPanel(BorderLayout())
   private val scrollBar = JBThinOverlappingScrollBar(Adjustable.HORIZONTAL)
   private val allTabToolbar: JComponent =
-    createToolbar("More Tabs", DefaultActionGroup(listOf(allTabDropdown))).apply {
+    createToolbarWithNavigation(root, "More Tabs", listOf(allTabDropdown)).component.apply {
       background = Colors.DEFAULT_BACKGROUND_COLOR
     }
   private var previousToolbar: JComponent? = null
@@ -218,10 +216,12 @@ class GalleryTabs<Key : TitledKey>(
 
   private fun createEmptyToolbar() {
     previousToolbar =
-      createToolbar("Gallery Tabs", GalleryActionGroup(emptyList())).apply {
-        background = Colors.DEFAULT_BACKGROUND_COLOR
-        centerPanel.add(this, BorderLayout.CENTER)
-      }
+      createToolbarWithNavigation(root, "Gallery Tabs", GalleryActionGroup(emptyList()))
+        .component
+        .apply {
+          background = Colors.DEFAULT_BACKGROUND_COLOR
+          centerPanel.add(this, BorderLayout.CENTER)
+        }
   }
 
   /**
@@ -244,9 +244,13 @@ class GalleryTabs<Key : TitledKey>(
       previousToolbar?.let { centerPanel.remove(it) }
       // Create new toolbar.
       val toolbar =
-        createToolbar("Gallery Tabs", GalleryActionGroup(labelActions.values.toList())).apply {
-          background = Colors.DEFAULT_BACKGROUND_COLOR
-        }
+        createToolbarWithNavigation(
+            root,
+            "Gallery Tabs",
+            GalleryActionGroup(labelActions.values.toList())
+          )
+          .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
+          .component
 
       updateToolbarExecutor.execute {
         centerPanel.add(toolbar, BorderLayout.CENTER)
@@ -278,15 +282,6 @@ class GalleryTabs<Key : TitledKey>(
   fun setUpdateToolbarExecutorForTests(executor: Executor) {
     updateToolbarExecutor = executor
   }
-
-  /** Creates [ActionToolbarImpl] with [actions]. */
-  private fun createToolbar(place: String, actionGroup: ActionGroup) =
-    ActionToolbarImpl(place, actionGroup, true).apply {
-      targetComponent = root
-      ActionToolbarUtil.makeToolbarNavigable(this)
-      layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
-      setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
-    }
 
   private inner class GalleryActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions) {
     override fun update(e: AnActionEvent) {

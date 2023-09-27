@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Segment
+import javax.swing.JComponent
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
@@ -38,3 +45,16 @@ fun SceneView.getRootComponent(): NlComponent? {
 /** Returns true if the ComposeViewAdapter component of this SceneView is currently selected. */
 fun SceneView.isRootComponentSelected() =
   getRootComponent()?.let { surface.selectionModel.isSelected(it) } == true
+
+/** Create [ActionToolbar] with enabled navigation. */
+fun createToolbarWithNavigation(rootComponent: JComponent, place: String, actions: List<AnAction>) =
+  createToolbarWithNavigation(rootComponent, place, DefaultActionGroup(actions))
+
+/** Create [ActionToolbar] with enabled navigation. */
+fun createToolbarWithNavigation(rootComponent: JComponent, place: String, actions: ActionGroup) =
+  ActionManager.getInstance().createActionToolbar(place, actions, true).apply {
+    targetComponent = rootComponent
+    layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    ActionToolbarUtil.makeToolbarNavigable(this)
+    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+  }

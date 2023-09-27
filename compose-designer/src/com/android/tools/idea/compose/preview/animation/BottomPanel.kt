@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -48,7 +49,7 @@ class BottomPanel(
     }
 
   private val westToolbar =
-    DefaultToolbarImpl(
+    createToolbarWithNavigation(
       rootComponent,
       "ResetCoordinationTimeline",
       listOf(ClockTimeLabel(), Separator()) +
@@ -63,7 +64,7 @@ class BottomPanel(
   }
 
   init {
-    add(westToolbar, BorderLayout.WEST)
+    add(westToolbar.component, BorderLayout.WEST)
     border = MatteBorder(1, 0, 0, 0, JBColor.border())
     preferredSize = Dimension(width, InspectorLayout.BOTTOM_PANEL_HEIGHT)
   }
