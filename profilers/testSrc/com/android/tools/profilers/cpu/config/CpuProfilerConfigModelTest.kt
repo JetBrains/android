@@ -21,12 +21,12 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common.Device
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerAspect
 import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +47,34 @@ class CpuProfilerConfigModelTest {
     myProfilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myServices, myTimer)
     myProfilerStage = CpuProfilerStage(myProfilers!!)
     model = CpuProfilerConfigModel(myProfilers!!, myProfilerStage!!)
+  }
+
+  @Test
+  fun taskProfilingConfigValueAfterUpdateProfilingConfigForP() {
+    setDevice(AndroidVersion.VersionCodes.P)
+    // Before updateProfilingConfigurations
+    assertThat(model!!.taskProfilingConfigurations).hasSize(0)
+
+    // After updateProfilingConfigurations
+    model!!.updateProfilingConfigurations()
+    assertThat(model!!.taskProfilingConfigurations).hasSize(3)
+    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_SAMPLED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
+  }
+
+  @Test
+  fun taskProfilingConfigValueAfterUpdateProfilingConfigForM() {
+    setDevice(AndroidVersion.VersionCodes.M)
+    // Before updateProfilingConfigurations
+    assertThat(model!!.taskProfilingConfigurations).hasSize(0)
+
+    // After updateProfilingConfigurations
+    model!!.updateProfilingConfigurations()
+    assertThat(model!!.taskProfilingConfigurations).hasSize(3)
+    assertThat(model!!.taskProfilingConfigurations[0].name).isEqualTo(FakeIdeProfilerServices.ART_SAMPLED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[1].name).isEqualTo(FakeIdeProfilerServices.ART_INSTRUMENTED_CONFIG.name)
+    assertThat(model!!.taskProfilingConfigurations[2].name).isEqualTo(FakeIdeProfilerServices.SIMPLEPERF_CONFIG.name)
   }
 
   @Test
