@@ -22,9 +22,9 @@
                         doNotActivateOnStart="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>
   </extensions>
-  <actions>
+  <actions resource-bundle="messages.AndroidProfilerBundle">
     <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction"
-            text="Profile..." description="Choose and profile configuration" icon="StudioIcons.Shell.Toolbar.PROFILER">
+            icon="StudioIcons.Shell.Toolbar.PROFILER">
       <add-to-group group-id="RunMenu" anchor="after" relative-to-action="ChooseDebugConfiguration" />
     </action>
     <action id="Android.ProfileWithLowOverhead" class="com.android.tools.idea.profilers.ProfileProfileableAction">
