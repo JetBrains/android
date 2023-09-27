@@ -157,7 +157,7 @@ class NlDependencyManager private constructor() {
   private fun collectDependencies(components: Iterable<NlComponent>): Iterable<GradleCoordinate> {
     return components
       .flatMap { it.dependencies }
-      .mapNotNull { artifact -> GradleCoordinate.parseCoordinateString("$artifact:+") }
+      .map { artifact -> artifact.getCoordinate("+") }
       .toList()
   }
 }

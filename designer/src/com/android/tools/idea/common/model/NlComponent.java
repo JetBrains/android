@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
@@ -997,7 +998,7 @@ public class NlComponent implements NlAttributesHolder {
     }
   }
 
-  public Set<String> getDependencies() {
+  public Set<GoogleMavenArtifactId> getDependencies() {
     XmlModelComponentMixin mixin = getMixin();
     if (mixin != null) {
       return mixin.getDependencies();
@@ -1036,7 +1037,7 @@ public class NlComponent implements NlAttributesHolder {
       return true;
     }
 
-    public Set<String> getDependencies() {
+    public Set<GoogleMavenArtifactId> getDependencies() {
       return ImmutableSet.of();
     }
 
