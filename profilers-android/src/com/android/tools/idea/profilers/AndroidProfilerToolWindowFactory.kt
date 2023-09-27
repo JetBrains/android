@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.IdeInfo
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -29,6 +30,13 @@ import icons.StudioIcons
 import org.jetbrains.annotations.Nls
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
+
+  override val icon = if (IdeInfo.getInstance().isAndroidStudio) {
+    StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+  } else {
+    AllIcons.Toolwindows.ToolWindowProfilerAndroid
+  }
+
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
       override fun stateChanged(toolWindowManager: ToolWindowManager) {
@@ -68,7 +76,6 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       val content = contentFactory.createContent(view.component, "", false)
       Disposer.register(project, view)
       toolWindow.contentManager.addContent(content)
-      toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
 
       PROJECT_PROFILER_MAP[content] = view
       Disposer.register(content) { PROJECT_PROFILER_MAP.remove(content) }
