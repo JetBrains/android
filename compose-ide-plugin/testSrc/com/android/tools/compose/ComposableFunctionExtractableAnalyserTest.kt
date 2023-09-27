@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.Extracti
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorConfiguration
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorOptions
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionResult
+import org.jetbrains.kotlin.idea.refactoring.introduce.introduceConstant.KotlinIntroduceConstantHandler
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -158,6 +159,50 @@ class ComposableFunctionExtractableAnalyserTest {
       @Composable
       private fun newComposableFunction() {
           print(true)
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  @RunsInEdt
+  @Test
+  fun testConstantInComposableFunction() {
+    // Regression test for b/301481575
+
+    myFixture.loadNewFile(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun sourceFunction() {
+        print(<selection>"foo"</selection>)
+      }
+      """
+        .trimIndent()
+    )
+
+    KotlinIntroduceConstantHandler(
+        helper = KotlinIntroduceConstantHandler.InteractiveExtractionHelper
+      )
+      .invoke(myFixture.project, myFixture.editor, myFixture.file!!, null)
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      private const val s = "foo"
+
+      @Composable
+      fun sourceFunction() {
+        print(s)
       }
       """
         .trimIndent()

@@ -57,6 +57,10 @@ class ComposableFunctionExtractableAnalyser : AdditionalExtractableAnalyser {
       return descriptor
     }
 
+    // When a property is being extracted (as in, "Extract constant"), the @Composable annotation
+    // does not apply.
+    if (descriptor.extractionData.options.extractAsProperty) return descriptor
+
     val bindingContext = descriptor.extractionData.bindingContext ?: return descriptor
     val sourceFunction = descriptor.extractionData.targetSibling
     if (sourceFunction is KtAnnotated) {
