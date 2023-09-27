@@ -989,7 +989,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(dependencies).hasSize(2);
 
     ArtifactDependencySpec newDep = ArtifactDependencySpec.create("com.google.guava:guava:18.0");
-    boolean result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(0).getPsiElement().getParent().getParent(), newDep);
+    PsiElement element = dependenciesModel.getPsiElement(); // taking wrong element deliberately
+
+    boolean result = dependenciesModel.replaceArtifactByPsiElement(element, newDep);
     assertFalse(result);
 
     result = dependenciesModel.replaceArtifactByPsiElement(dependencies.get(1).getPsiElement().getContainingFile(), newDep);
@@ -1122,6 +1124,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testReplaceMethodDependencyWithClosure() throws IOException {
+    isIrrelevantForDeclarative("No closures for declarative");
     writeToBuildFile(TestFile.REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -1227,6 +1230,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeleteInMethodCallWithProperties() throws IOException {
+    isIrrelevantForDeclarative("No method calls in declarative");
     writeToBuildFile(TestFile.DELETE_IN_METHOD_CALL_WITH_PROPERTIES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2290,6 +2294,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testInsertionOrderWithExcludes() throws IOException {
+    isIrrelevantForDeclarative("No closures for declarative");
     writeToBuildFile(TestFile.INSERTION_ORDER_WITH_EXCLUDES);
 
     GradleBuildModel buildModel = getGradleBuildModel();

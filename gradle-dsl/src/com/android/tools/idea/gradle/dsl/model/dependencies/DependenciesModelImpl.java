@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followElement;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -28,6 +27,10 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.BuildFileType;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.BuildTypeRunnable;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.DeclarativeBuildType;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.ScriptBuildType;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
@@ -77,9 +80,26 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                @NotNull List<? super T> dest);
   }
 
+  // this is an attempt to make Declarative and Script runnables type safe
+  private interface InternalFetcher<T extends DependencyModel, B extends BuildFileType> extends Fetcher<T> {
+    default BuildTypeRunnable<B> getBuildTypeRunnable(@NotNull String configurationName,
+                                                      @NotNull GradleDslElement element,
+                                                      @NotNull GradleDslElement resolved,
+                                                      @Nullable GradleDslClosure configurationElement,
+                                                      @NotNull DependencyModelImpl.Maintainer maintainer,
+                                                      @NotNull List<? super T> dest) {
+      return new BuildTypeRunnable<B>() {
+        @Override
+        public void run() {
+          fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
+        }
+      };
+    }
+  }
+
   private final static Fetcher<ArtifactDependencyModel> ourArtifactFetcher = new Fetcher<>() {
 
-    private final static Fetcher<ArtifactDependencyModel> scriptArtifactFetcher =
+    private final static InternalFetcher<ArtifactDependencyModel, ScriptBuildType> scriptArtifactFetcher =
       (configurationName, element, resolved, configurationElement, maintainer, dest) -> {
         // We can only create ArtifactDependencyModels from expressions -- if for some reason we don't have an expression here (e.g. from a
         // parser bug) then don't create anything.
@@ -119,7 +139,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         }
       };
 
-    private final static Fetcher<ArtifactDependencyModel> declarativeArtifactFetcher =
+    private final static InternalFetcher<ArtifactDependencyModel, DeclarativeBuildType> declarativeArtifactFetcher =
       (configurationName, element, resolved, configurationElement, maintainer, dest) -> {
         if (!(element instanceof GradleDslExpression)) {
           return;
@@ -164,13 +184,20 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                       @NotNull DependencyModelImpl.Maintainer maintainer,
                       @NotNull List<? super ArtifactDependencyModel> dest) {
 
-      if (element.getDslFile().getParser().getKind() == DECLARATIVE_TOML) {
-        declarativeArtifactFetcher.fetch(configurationName, element, resolved, configurationElement, maintainer, dest);
-      }
-      else {
-        scriptArtifactFetcher.fetch(configurationName,element,resolved,configurationElement,maintainer,dest);
-      }
-
+      BuildTypeProcessor.run(element,
+                             declarativeArtifactFetcher.getBuildTypeRunnable(configurationName,
+                                                                             element,
+                                                                             resolved,
+                                                                             configurationElement,
+                                                                             maintainer,
+                                                                             dest),
+                             scriptArtifactFetcher.getBuildTypeRunnable(configurationName,
+                                                                        element,
+                                                                        resolved,
+                                                                        configurationElement,
+                                                                        maintainer,
+                                                                        dest)
+      );
     }
   };
 
@@ -270,7 +297,13 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
-        GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
+        GradleDslExpressionList parentList;
+        if (dslElement.getParent() instanceof GradleDslExpressionList list) {
+          parentList = list;
+        }
+        else {
+          parentList = (GradleDslExpressionList)dslElement.getParent().getParent();
+        }
         List<GradleDslExpression> expressions = parentList.getExpressions();
         GradleDslElement nameHolder = parentList;
 
@@ -608,7 +641,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
       return false;
     }
 
-    performDependencyReplace(psiElement, element, dependency);
+    new MainDependencyReplacer().performDependencyReplace(psiElement, element, dependency);
     return true;
   }
 
@@ -749,28 +782,74 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     return resolved;
   }
 
-  private static void performDependencyReplace(@NotNull PsiElement psiElement,
-                                               @NotNull GradleDslElement element,
-                                               @NotNull ArtifactDependencySpec dependency) {
-    if (element instanceof GradleDslLiteral) {
-      ((GradleDslLiteral)element).setValue(dependency.compactNotation());
+  private interface DependencyReplacer{
+    void performDependencyReplace(@NotNull PsiElement psiElement,
+      @NotNull GradleDslElement element,
+      @NotNull ArtifactDependencySpec dependency);
+  }
+
+  private static class MainDependencyReplacer implements DependencyReplacer {
+    @Override
+    public void performDependencyReplace (@NotNull PsiElement psiElement,
+      @NotNull GradleDslElement element,
+      @NotNull ArtifactDependencySpec dependency){
+      BuildTypeProcessor.run(element,
+                             new BuildTypeRunnable<DeclarativeBuildType>() {
+                               @Override
+                               public void run() {
+                                 new DeclarativeDependencyReplacer().performDependencyReplace(psiElement, element, dependency);
+                               }
+                             },
+                             new BuildTypeRunnable<ScriptBuildType>() {
+                               @Override
+                               public void run() {
+                                 new DefaultDependencyReplacer().performDependencyReplace(psiElement, element, dependency);
+                               }
+                             });
     }
-    else if (element instanceof GradleDslExpressionMap) {
-      updateGradleExpressionMapWithDependency((GradleDslExpressionMap)element, dependency);
-    }
-    else if (element instanceof GradleDslMethodCall) {
-      // There may be multiple arguments here, check find the one with correct PsiElement.
-      GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
-      for (GradleDslElement e : methodCall.getArguments()) {
-        if (e.getPsiElement() == psiElement) {
-          performDependencyReplace(psiElement, e, dependency);
+  }
+
+  private static class DefaultDependencyReplacer implements DependencyReplacer {
+    @Override
+    public void performDependencyReplace(@NotNull PsiElement psiElement,
+                             @NotNull GradleDslElement element,
+                             @NotNull ArtifactDependencySpec dependency) {
+      if (element instanceof GradleDslLiteral) {
+        ((GradleDslLiteral)element).setValue(dependency.compactNotation());
+      }
+      else if (element instanceof GradleDslExpressionMap) {
+        updateGradleExpressionMapWithDependency((GradleDslExpressionMap)element, dependency);
+      }
+      else if (element instanceof GradleDslMethodCall) {
+        // There may be multiple arguments here, check find the one with correct PsiElement.
+        GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
+        for (GradleDslElement e : methodCall.getArguments()) {
+          if (e.getPsiElement() == psiElement) {
+            performDependencyReplace(psiElement, e, dependency);
+          }
+        }
+      }
+      else if (element instanceof GradleDslExpressionList) {
+        for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getSimpleExpressions()) {
+          if (element.getPsiElement() == psiElement) {
+            performDependencyReplace(psiElement, expression, dependency);
+          }
         }
       }
     }
-    else if (element instanceof GradleDslExpressionList) {
-      for (GradleDslSimpleExpression expression : ((GradleDslExpressionList)element).getSimpleExpressions()) {
-        if (element.getPsiElement() == psiElement) {
-          performDependencyReplace(psiElement, expression, dependency);
+  }
+
+  public static class DeclarativeDependencyReplacer implements DependencyReplacer {
+    @Override
+    public void performDependencyReplace(@NotNull PsiElement psiElement,
+                                         @NotNull GradleDslElement element,
+                                         @NotNull ArtifactDependencySpec dependency) {
+      if (element instanceof GradleDslExpressionMap map) {
+        GradleDslElement notation = map.getPropertyElement("notation");
+        if(notation instanceof GradleDslLiteral literal)
+          literal.setValue(dependency.compactNotation());
+        else {
+          updateGradleExpressionMapWithDependency((GradleDslExpressionMap)element, dependency);
         }
       }
     }
@@ -852,8 +931,13 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
             }
           }
         }
-        else if (element instanceof GradleDslExpressionList) {
-          for (GradleDslSimpleExpression e : ((GradleDslExpressionList)element).getSimpleExpressions()) {
+        else if (element instanceof GradleDslExpressionList list) {
+          for (GradleDslSimpleExpression e : list.getSimpleExpressions()) {
+            if (e.getPsiElement() != null && isChildOfParent(child, e.getPsiElement())) {
+              return e;
+            }
+          }
+          for (GradleDslExpression e : list.getExpressions()) { // for declarative syntax children are Maps
             if (e.getPsiElement() != null && isChildOfParent(child, e.getPsiElement())) {
               return e;
             }

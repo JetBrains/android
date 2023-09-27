@@ -28,6 +28,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyConfigurationModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.BuildTypeRunnable;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.DeclarativeBuildType;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.ScriptBuildType;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.CompactToMapCatalogDependencyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.FakeElementTransform;
@@ -201,29 +204,39 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     void createNew(@NotNull String configurationName,
                    @NotNull ReferenceTo reference,
                    @NotNull List<ArtifactDependencySpec> excludes) {
-      create(
-        () -> { // declarative
-          GradleDslExpressionMap map = createMap(configurationName);
-          initializeMap(map, reference, excludes);
-        },
-        () -> {
-          GradleDslLiteral literal = createLiteral(configurationName);
-          initializeLiteral(literal, reference, excludes);
-        });
+      create(new BuildTypeRunnable<DeclarativeBuildType>() {
+               @Override
+               public void run() {
+                 GradleDslExpressionMap map = createMap(configurationName);
+                 initializeMap(map, reference, excludes);
+               }
+             },
+             new BuildTypeRunnable<ScriptBuildType>() {
+               @Override
+               public void run() {
+                 GradleDslLiteral literal = createLiteral(configurationName);
+                 initializeLiteral(literal, reference, excludes);
+               }
+             });
     }
 
-    void createNew(@NotNull String configurationName,
+      void createNew(@NotNull String configurationName,
                    @NotNull ArtifactDependencySpec dependency,
                    @NotNull List<ArtifactDependencySpec> excludes) {
-      create(() -> { //declarative
-               GradleDslExpressionMap map = createMap(configurationName);
-               initializeMap(map, createCompactNotationForLiterals(map, dependency), excludes);
-             },
-             () -> {
-               GradleDslLiteral literal = createLiteral(configurationName);
-               initializeLiteral(literal, createCompactNotationForLiterals(literal, dependency), excludes);
-             });
-
+        create(new BuildTypeRunnable<DeclarativeBuildType>() {
+                 @Override
+                 public void run() {
+                   GradleDslExpressionMap map = createMap(configurationName);
+                   initializeMap(map, createCompactNotationForLiterals(map, dependency), excludes);
+                 }
+               },
+               new BuildTypeRunnable<ScriptBuildType>() {
+                 @Override
+                 public void run() {
+                   GradleDslLiteral literal = createLiteral(configurationName);
+                   initializeLiteral(literal, createCompactNotationForLiterals(literal, dependency), excludes);
+                 }
+               });
     }
 
     private static void addExcludes(@NotNull GradleDslLiteral literal, @NotNull List<ArtifactDependencySpec> excludes) {

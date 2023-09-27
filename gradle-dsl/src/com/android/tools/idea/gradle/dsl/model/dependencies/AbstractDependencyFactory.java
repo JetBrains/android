@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML;
-
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.BuildTypeRunnable;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.DeclarativeBuildType;
+import com.android.tools.idea.gradle.dsl.model.dependencies.BuildTypeProcessor.ScriptBuildType;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,12 +28,9 @@ abstract public class AbstractDependencyFactory {
   public AbstractDependencyFactory(GradlePropertiesDslElement parent){
     myParent = parent;
   }
-  protected void create(Runnable createDeclarative, Runnable createScript) {
-    if (myParent.getDslFile().getParser().getKind() == DECLARATIVE_TOML) {
-      createDeclarative.run();
-    }
-    else {
-      createScript.run();
-    }
+
+  protected void create(BuildTypeRunnable<DeclarativeBuildType> runForDeclarative,
+                        BuildTypeRunnable<ScriptBuildType> runForScript) {
+    BuildTypeProcessor.run(myParent, runForDeclarative, runForScript);
   }
 }
