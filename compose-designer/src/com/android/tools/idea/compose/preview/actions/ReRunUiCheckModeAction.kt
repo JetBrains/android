@@ -29,8 +29,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 
-private const val DISABLED_TEXT =
-  "UI Check is running in the background for this composable. Stop UI Check mode."
+private const val DISABLED_TEXT = "UI Check is already running in the background."
 private const val ENABLED_TEXT = "Restart UI Check and background linting for this composable."
 
 class ReRunUiCheckModeAction : AnAction() {
