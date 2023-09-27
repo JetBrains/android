@@ -17,7 +17,9 @@ package com.android.tools.compose.code
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -36,12 +38,15 @@ import org.jetbrains.kotlin.resolve.source.getPsi
  */
 data class ComposableFunctionRenderParts(val parameters: String?, val tail: String?)
 
+@OptIn(KtAllowAnalysisOnEdt::class)
 fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderParts? {
   return if (isK2Plugin()) {
-    analyze(this) {
-      val functionLikeSymbol =
-        this@getComposableFunctionRenderParts.getSymbol() as? KtFunctionLikeSymbol ?: return null
-      getComposableFunctionRenderParts(functionLikeSymbol)
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val functionLikeSymbol =
+          this@getComposableFunctionRenderParts.getSymbol() as? KtFunctionLikeSymbol ?: return null
+        getComposableFunctionRenderParts(functionLikeSymbol)
+      }
     }
   } else {
     val descriptor = this.descriptor as? FunctionDescriptor ?: return null
