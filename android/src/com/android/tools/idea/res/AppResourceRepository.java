@@ -46,8 +46,10 @@ class AppResourceRepository extends MultiResourceRepository {
   @Nullable private Collection<VirtualFile> myResourceDirs;
 
   @NotNull
-  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories) {
-    AppResourceRepository repository = new AppResourceRepository(facet, computeLocalRepositories(facet), libraryRepositories);
+  static AppResourceRepository create(@NotNull AndroidFacet facet, @NotNull Collection<AarResourceRepository> libraryRepositories,
+                                      @NotNull LocalResourceRepository sampleDataResourceRepository) {
+    AppResourceRepository repository =
+        new AppResourceRepository(facet, computeLocalRepositories(facet, sampleDataResourceRepository), libraryRepositories);
     AndroidProjectRootListener.ensureSubscribed(facet.getModule().getProject());
 
     return repository;
@@ -67,8 +69,9 @@ class AppResourceRepository extends MultiResourceRepository {
     }
   }
 
-  private static List<LocalResourceRepository> computeLocalRepositories(@NotNull AndroidFacet facet) {
-    return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), SampleDataResourceRepository.getInstance(facet));
+  private static List<LocalResourceRepository> computeLocalRepositories(
+      @NotNull AndroidFacet facet, @NotNull LocalResourceRepository sampleDataResourceRepository) {
+    return ImmutableList.of(StudioResourceRepositoryManager.getProjectResources(facet), sampleDataResourceRepository);
   }
 
   private AppResourceRepository(@NotNull AndroidFacet facet,
@@ -79,8 +82,9 @@ class AppResourceRepository extends MultiResourceRepository {
     setChildren(localResources, libraryResources, ImmutableList.of(PredefinedSampleDataResourceRepository.getInstance()));
   }
 
-  void updateRoots(@NotNull Collection<? extends AarResourceRepository> libraryResources) {
-    List<LocalResourceRepository> localResources = computeLocalRepositories(myFacet);
+  void updateRoots(@NotNull Collection<? extends AarResourceRepository> libraryResources,
+                   @NotNull LocalResourceRepository sampleDataResourceRepository) {
+    List<LocalResourceRepository> localResources = computeLocalRepositories(myFacet, sampleDataResourceRepository);
     updateRoots(localResources, libraryResources);
   }
 

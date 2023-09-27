@@ -17,18 +17,20 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
-
-import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager
+import com.android.tools.idea.res.SampleDataListener.Companion.ensureSubscribed
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.toPathString
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.*
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileEvent
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
+import org.jetbrains.android.AndroidPluginDisposable
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Project-wide listener which invalidates the [SampleDataResourceRepository] corresponding to
@@ -48,19 +50,13 @@ class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(pr
 
     @JvmStatic
     fun ensureSubscribed(project: Project) {
-      project.getService(SampleDataListener.Subscriber::class.java)!!.ensureSubscribed()
-    }
-
-    @JvmStatic
-    private fun SampleDataResourceRepository.invalidateBecauseOf(modifiedPath: PathString) {
-      LOG.info("Invalidating SampleDataResourceRepository because $modifiedPath was modified.")
-      reload()
+      project.getService(Subscriber::class.java)!!.ensureSubscribed()
     }
   }
 
   /** Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS and PSI changes. */
   class Subscriber(val project: Project) :
-    LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), project) {
+      LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), AndroidPluginDisposable.getProjectInstance(project)) {
 
     override fun subscribe() {
       VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
@@ -75,8 +71,11 @@ class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(pr
    *   2. The file is actually in the module's sample data directory (as opposed
    *      to just having FD_SAMPLE_DATA in its path somewhere).
    */
-  override fun isRelevant(file: VirtualFile, facet: AndroidFacet) =
-    !facet.isDisposed && SampleDataRepositoryManager.getInstance(facet).hasRepository() && facet.module.isSampleDataFile(file)
+  override fun isRelevant(file: VirtualFile, facet: AndroidFacet): Boolean {
+    return !facet.isDisposed &&
+           StudioResourceRepositoryManager.getInstance(facet).cachedSampleDataResources != null
+           && facet.module.isSampleDataFile(file)
+  }
 
   /**
    * Java and XML files have nothing to do with sample data.
@@ -84,7 +83,8 @@ class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(pr
   override fun isPossiblyRelevant(file: VirtualFile) = file.extension.let { it != "java" && it != "xml" }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    SampleDataResourceRepository.getInstance(facet).invalidateBecauseOf(path)
+    LOG.info("Invalidating SampleDataResourceRepository because $path was modified.")
+    StudioResourceRepositoryManager.getInstance(facet).reloadSampleResources()
   }
 
   // We don't need to respond to VirtualFile content changes, as these will

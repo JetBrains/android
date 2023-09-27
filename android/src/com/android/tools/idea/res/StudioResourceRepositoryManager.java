@@ -24,16 +24,17 @@ import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.resources.aar.AarResourceRepository;
-import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.concurrency.AndroidIoManager;
+import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.LocalResourceRepository.EmptyRepository;
-import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.res.ResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -56,7 +57,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -65,9 +65,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,6 +100,10 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   @GuardedBy("TEST_RESOURCES_LOCK")
   private LocalResourceRepository myTestModuleResources;
+
+  @GuardedBy("mySampleDataLock")
+  private SampleDataResourceRepository mySampleDataResources;
+  private final Object mySampleDataLock = new Object();
 
   @GuardedBy("PROJECT_RESOURCES_LOCK")
   private CachedValue<LocalesAndLanguages> myLocalesAndLanguages;
@@ -267,7 +269,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    *     and the framework resources cannot be determined for the module
    * @see #getAppResources()
    * @see #getFrameworkResources(Set)
-   * @see #getCachedResourcesForNamespace(ResourceNamespace)
    */
   @Slow
   @Nullable
@@ -307,7 +308,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
           if (myFacet.isDisposed()) {
             return new EmptyRepository(getNamespace());
           }
-          myAppResources = AppResourceRepository.create(myFacet, getLibraryResources());
+          myAppResources = AppResourceRepository.create(myFacet, getLibraryResources(), getSampleDataResources());
           Disposer.register(this, myAppResources);
         }
         return myAppResources;
@@ -469,6 +470,51 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     return TestAppResourceRepository.create(myFacet, moduleTestResources);
   }
 
+  @Slow
+  @NotNull
+  public LocalResourceRepository getSampleDataResources() {
+    LocalResourceRepository sampleDataResources = getCachedSampleDataResources();
+    if (sampleDataResources != null) {
+      return sampleDataResources;
+    }
+
+    return ApplicationManager.getApplication().runReadAction((Computable<LocalResourceRepository>)() -> {
+      synchronized (mySampleDataLock) {
+        if (mySampleDataResources == null) {
+          if (myFacet.isDisposed()) {
+            return new EmptyRepository(getNamespace());
+          }
+          mySampleDataResources = new SampleDataResourceRepository(myFacet);
+          Disposer.register(this, mySampleDataResources);
+        }
+        return mySampleDataResources;
+      }
+    });
+  }
+
+  @Nullable
+  public LocalResourceRepository getCachedSampleDataResources() {
+    synchronized (mySampleDataLock) {
+      return mySampleDataResources;
+    }
+  }
+
+  public void reloadSampleResources() {
+    synchronized (mySampleDataLock) {
+      if (mySampleDataResources == null) {
+        return;
+      }
+    }
+
+    ApplicationManager.getApplication().runReadAction(() -> {
+      synchronized (mySampleDataLock) {
+        if (mySampleDataResources != null) {
+          mySampleDataResources.reload();
+        }
+      }
+    });
+  }
+
   /**
    * Returns the resource repository with Android framework resources, for the module's compile SDK.
    *
@@ -494,7 +540,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.
   public void resetResources() {
     resetLibraries();
-    SampleDataRepositoryManager.getInstance(myFacet).reset();
 
     synchronized (MODULE_RESOURCES_LOCK) {
       if (myModuleResources != null) {
@@ -512,6 +557,13 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     }
 
     synchronized (APP_RESOURCES_LOCK) {
+      synchronized (mySampleDataLock) {
+        if (mySampleDataResources != null) {
+          Disposer.dispose(mySampleDataResources);
+          mySampleDataResources = null;
+        }
+      }
+
       if (myAppResources != null) {
         Disposer.dispose(myAppResources);
         myAppResources = null;
@@ -545,7 +597,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   @Override
   public void dispose() {
     // There's nothing to dispose in this object, but the actual resource repositories may need to do
-    // clean-up and they are children of this object in the Disposer hierarchy.
+    // clean-up, and they are children of this object in the Disposer hierarchy.
   }
 
   public void resetAllCaches() {
@@ -581,7 +633,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
         myLibraryResourceMap = null;
       }
       if (appResources != null) {
-        appResources.updateRoots(getLibraryResources());
+        appResources.updateRoots(getLibraryResources(), getSampleDataResources());
       }
 
       // Access oldLibraryResourceMap to make sure that it is still in scope at this point.
@@ -631,7 +683,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
 
   /**
    * Returns the {@link ResourceNamespace} used by test resources of the current module.
-   *
+   * <p>
    * TODO(namespaces): figure out semantics of test resources with namespaces.
    */
   @NotNull
@@ -782,13 +834,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     }
   }
 
-  private static class LocalesAndLanguages {
-    @NotNull final ImmutableList<Locale> locales;
-    @NotNull final ImmutableSortedSet<String> languages;
-
-    LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {
-      this.locales = locales;
-      this.languages = languages;
-    }
+  private record LocalesAndLanguages(@NotNull ImmutableList<Locale> locales, @NotNull ImmutableSortedSet<String> languages) {
   }
 }

@@ -33,10 +33,12 @@ import com.intellij.util.application
 class AndroidPluginDisposable private constructor() : Disposable {
 
   companion object {
+    @JvmStatic
     fun getApplicationInstance(): AndroidPluginDisposable {
       return application.getService(AndroidPluginDisposable::class.java)
     }
 
+    @JvmStatic
     fun getProjectInstance(project: Project): AndroidPluginDisposable {
       return project.getService(AndroidPluginDisposable::class.java)
     }
