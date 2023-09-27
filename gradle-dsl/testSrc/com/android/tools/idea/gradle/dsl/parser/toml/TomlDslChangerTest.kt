@@ -115,17 +115,6 @@ class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase()
   }
 
   @Test
-  fun testDeleteSingleLiteralInInlineTable() {
-    val toml = """
-      foo = { bar = "baz" }
-    """.trimIndent()
-    val expected = """
-      foo = { }
-    """.trimIndent()
-    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("bar") }
-  }
-
-  @Test
   fun testRenameInInlineTable() {
     val toml = """
       foo = { bar = "baz" }
@@ -169,17 +158,6 @@ class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase()
       foo = { one = "one", two = "two" }
     """.trimIndent()
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("three") }
-  }
-
-  @Test
-  fun testDeleteSingleLiteralInArray() {
-    val toml = """
-      foo = ["bar"]
-    """.trimIndent()
-    val expected = """
-      foo = []
-    """.trimIndent()
-    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(0)) } }
   }
 
   @Test

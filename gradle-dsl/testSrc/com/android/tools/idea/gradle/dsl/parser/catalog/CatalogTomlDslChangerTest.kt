@@ -62,6 +62,28 @@ class CatalogTomlDslChangerTest : LightPlatformTestCase() {
     }
   }
 
+  @Test
+  fun testDeleteSingleLiteralInInlineTable() {
+    val toml = """
+      foo = { bar = "baz" }
+    """.trimIndent()
+    val expected = """
+      foo = { }
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("bar") }
+  }
+
+  @Test
+  fun testDeleteSingleLiteralInArray() {
+    val toml = """
+      foo = ["bar"]
+    """.trimIndent()
+    val expected = """
+      foo = []
+    """.trimIndent()
+    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(0)) } }
+  }
+
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val libsTomlFile = writeLibsTomlFile(toml)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}

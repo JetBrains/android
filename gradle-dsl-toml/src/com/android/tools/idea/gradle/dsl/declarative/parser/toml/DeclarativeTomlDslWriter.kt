@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.declarative.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.TomlDslWriter
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
@@ -38,6 +39,7 @@ import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlFile
+import org.toml.lang.psi.TomlHeaderOwner
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
@@ -240,14 +242,23 @@ class DeclarativeTomlDslWriter(context: BuildModelContext): TomlDslWriter(contex
 
   private fun deleteEmptyParent(parentPsi: PsiElement?) {
     when (parentPsi) {
-      is TomlArrayTable -> if (parentPsi.entries.isEmpty()) parentPsi.delete()
+      is TomlArrayTable -> if (parentPsi.entries.isEmpty()) parentPsi.deleteRecursive()
       // we want to stay with [libraries] section for version catalog so empty table is Ok there
       // but for declarative we want to clean up empty tables
-      is TomlTable -> if (parentPsi.entries.isEmpty() && !parentPsi.containingFile.isGradleCatalog()) parentPsi.delete()
+      is TomlTable -> if (parentPsi.entries.isEmpty()) parentPsi.deleteRecursive()
+      is TomlInlineTable -> if (parentPsi.entries.isEmpty()) parentPsi.deleteRecursive()
+      is TomlArray -> if (parentPsi.elements.isEmpty()) parentPsi.deleteRecursive()
+      is TomlKeyValue -> if (parentPsi.value == null) parentPsi.deleteRecursive()
     }
   }
 
-  private fun PsiFile.isGradleCatalog() = this.name.endsWith("versions.toml")
+  private fun PsiElement.deleteRecursive() {
+    val grandParentPsi = this.parent
+    val sib = this.nextSibling
+    if(sib is LeafPsiElement && sib.elementType == TomlElementTypes.COMMA) this.nextSibling.delete()
+    this.delete()
+    if (grandParentPsi != null) deleteEmptyParent(grandParentPsi)
+  }
 
   private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     var anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
