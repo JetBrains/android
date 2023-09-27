@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
@@ -172,7 +171,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       .map((sampleDataDir) -> sampleDataDir.isDirectory() ? psiManager.findDirectory(sampleDataDir) : psiManager.findFile(sampleDataDir))
       .filter(Objects::nonNull)
       .flatMap((psiElement) -> loadItemsFromFile(psiElement).stream())
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
 
     synchronized (ITEM_MAP_LOCK) {
       myResourceTable.clear();
