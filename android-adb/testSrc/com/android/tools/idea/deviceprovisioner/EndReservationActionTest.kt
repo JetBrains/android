@@ -92,7 +92,7 @@ class EndReservationActionTest {
 
     // Reservation with ERROR state.
     stateFlow.update {
-      it.copy(reservation = Reservation(ReservationState.ERROR, "", Instant.now(), Instant.now()))
+      it.copy(reservation = Reservation(ReservationState.ERROR, "", Instant.now(), Instant.now(), null))
     }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isFalse()
@@ -101,7 +101,7 @@ class EndReservationActionTest {
     // Reservation with COMPLETE state.
     stateFlow.update {
       it.copy(
-        reservation = Reservation(ReservationState.COMPLETE, "", Instant.now(), Instant.now())
+        reservation = Reservation(ReservationState.COMPLETE, "", Instant.now(), Instant.now(), null)
       )
     }
     endReservationAction.update(event)
@@ -110,7 +110,7 @@ class EndReservationActionTest {
 
     // Active reservation.
     stateFlow.update {
-      it.copy(reservation = Reservation(ReservationState.PENDING, "", Instant.now(), Instant.MAX))
+      it.copy(reservation = Reservation(ReservationState.PENDING, "", Instant.now(), Instant.MAX, null))
     }
     endReservationAction.update(event)
     assertThat(event.presentation.isEnabled).isTrue()

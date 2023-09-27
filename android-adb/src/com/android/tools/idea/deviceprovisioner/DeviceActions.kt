@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.ReservationAction
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.logger
@@ -83,3 +84,9 @@ fun <DeviceTemplateT : DeviceTemplate> DeviceTemplateT.launchCatchingDeviceActio
  * component related to the event implementing [DataProvider] and supplying the handle.
  */
 fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
+
+/**
+ * Returns the [ReservationAction] for [DeviceHandle]; null if the handle does not have
+ * [ReservationAction]
+ */
+internal fun AnActionEvent.reservationAction() = deviceHandle()?.reservationAction

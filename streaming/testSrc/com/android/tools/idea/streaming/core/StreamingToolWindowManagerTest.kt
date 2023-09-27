@@ -382,7 +382,7 @@ class StreamingToolWindowManagerTest {
       override val editAction = null
     }
     device.stateFlow.value = DeviceState.Disconnected(
-      properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null))
+      properties, false, "offline", Reservation(ReservationState.ACTIVE, "active", null, null, null))
     provisionerRule.deviceProvisionerPlugin.addDevice(device)
 
     val provisionerService: DeviceProvisionerService = mock()
