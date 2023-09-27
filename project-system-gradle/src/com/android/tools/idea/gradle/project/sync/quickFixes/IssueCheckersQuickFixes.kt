@@ -49,12 +49,14 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.net.HttpProxyConfigurable
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.settings.DistributionType
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -332,6 +334,19 @@ class ToggleOfflineModeQuickFix(private val myEnableOfflineMode: Boolean) : Buil
       GradleSettings.getInstance(project).isOfflineWork = myEnableOfflineMode
       val trigger = GradleSyncStats.Trigger.TRIGGER_QF_OFFLINE_MODE_DISABLED
       GradleSyncInvoker.getInstance().requestProjectSync(project, trigger)
+      future.complete(null)
+    }
+    return future
+  }
+}
+
+class OpenStudioProxySettingsQuickFix: BuildIssueQuickFix {
+  override val id = "open.proxy.settings"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    val future = CompletableFuture<Any>()
+    invokeLater {
+      ShowSettingsUtil.getInstance().editConfigurable(project, HttpProxyConfigurable())
       future.complete(null)
     }
     return future
