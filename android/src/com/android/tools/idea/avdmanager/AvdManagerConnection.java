@@ -121,6 +121,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
@@ -955,7 +956,7 @@ public class AvdManagerConnection {
       File skin = getRoundSkin(systemImageDescription);
       skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
     }
-    if (skinFolder != null && skinFolder.toString().equals(SkinUtils.noSkin().toString())) {
+    if (Objects.equals(skinFolder, SkinUtils.noSkin())) {
       skinFolder = null;
     }
     if (skinFolder == null) {
