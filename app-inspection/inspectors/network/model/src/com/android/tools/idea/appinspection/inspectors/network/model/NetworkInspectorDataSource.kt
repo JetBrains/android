@@ -23,12 +23,9 @@ import com.android.tools.idea.appinspection.inspectors.network.model.Intention.Q
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.concurrency.createChildScope
 import java.util.concurrent.TimeUnit.MICROSECONDS
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -70,14 +67,7 @@ class NetworkInspectorDataSourceImpl(
       .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
 
   init {
-    scope.coroutineContext[Job]!!.invokeOnCompletion { e -> channel.close(e) }
-    scope.launch {
-      try {
-        processEvents(channel)
-      } catch (e: CancellationException) {
-        channel.close(e.cause)
-      }
-    }
+    scope.launch { processEvents() }
   }
 
   override suspend fun queryForHttpData(range: Range) =
@@ -93,28 +83,28 @@ class NetworkInspectorDataSourceImpl(
       channel.send(QueryForSpeedData(range, deferred))
       deferred.await()
     }
-}
 
-/**
- * An actor that is used to maintain synchronization of the data collected from network inspector
- * against the frequent updates and queried performed against it.
- *
- * It performs two types of work:
- * 1. Collects events sent from the network inspector and accumulates them.
- * 2. Performs queries from UI frontend on the collected data.
- */
-private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intention>) = launch {
-  val speedData = mutableListOf<Event>()
-  val httpData = HttpDataCollector()
+  /**
+   * An actor that is used to maintain synchronization of the data collected from network inspector
+   * against the frequent updates and queried performed against it.
+   *
+   * It performs two types of work:
+   * 1. Collects events sent from the network inspector and accumulates them.
+   * 2. Performs queries from UI frontend on the collected data.
+   */
+  private suspend fun processEvents() {
+    val speedData = mutableListOf<Event>()
+    val httpData = HttpDataCollector()
 
-  commandChannel.consumeEach { command ->
-    when (command) {
-      is QueryForSpeedData -> command.deferred.complete(searchRange(speedData, command.range))
-      is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
-      is InsertData -> {
-        when {
-          command.event.hasSpeedEvent() -> speedData.add(command.event)
-          command.event.hasHttpConnectionEvent() -> httpData.processEvent(command.event)
+    channel.consumeEach { command ->
+      when (command) {
+        is QueryForSpeedData -> command.deferred.complete(searchRange(speedData, command.range))
+        is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
+        is InsertData -> {
+          when {
+            command.event.hasSpeedEvent() -> speedData.add(command.event)
+            command.event.hasHttpConnectionEvent() -> httpData.processEvent(command.event)
+          }
         }
       }
     }
