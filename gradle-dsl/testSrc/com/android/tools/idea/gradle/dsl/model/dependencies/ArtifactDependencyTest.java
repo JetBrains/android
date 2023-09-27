@@ -83,6 +83,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.toml.lang.psi.TomlLiteral;
+import org.toml.lang.psi.impl.TomlInlineTableImpl;
 
 /**
  * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.
@@ -1404,10 +1405,15 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
       assertThat(psiElement.getText())
         .isEqualTo("group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'");
     }
-    else {
+    else if (isKotlinScript()) {
       assertThat(psiElement).isInstanceOf(KtCallExpression.class);
       assertThat(psiElement.getText())
         .isEqualTo("compile(group=\"com.google.code.guice\", name=\"guice\", version=\"1.0\", classifier=\"high\", ext=\"bleh\")");
+    } else {
+      assertThat(psiElement).isInstanceOf(TomlInlineTableImpl.class);
+      assertThat(psiElement.getText())
+        .isEqualTo("{ group=\"com.google.code.guice\", name=\"guice\", version=\"1.0\", classifier=\"high\", ext=\"bleh\" }");
+
     }
   }
 
@@ -2008,6 +2014,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testFollowMultipleReferences() throws IOException {
+    isIrrelevantForDeclarative("No reference in declarative");
+
     writeToBuildFile(TestFile.FOLLOW_MULTIPLE_REFERENCES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2306,6 +2314,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyReference() throws IOException {
+    isIrrelevantForDeclarative("No reference in declarative");
+
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2324,6 +2334,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddDependencyReferenceWithExclusions() throws IOException {
+    isIrrelevantForDeclarative("No reference in declarative");
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_WITH_EXCLUDES);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2351,6 +2362,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddPlatformDependencyReference() throws IOException {
+    isIrrelevantForDeclarative("No reference in declarative");
+
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE);
 
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -2445,6 +2458,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetPlatformDependencyVersions() throws IOException {
+    isIrrelevantForDeclarative("No platform dependencies in declarative so far");
+
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
@@ -2464,6 +2479,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testDeletePlatformDependencies() throws IOException {
+    isIrrelevantForDeclarative("No platform dependencies in declarative so far");
+
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     // TODO(b/199871443): there is currently no way to delete an artifact dependency with a map reference argument.
@@ -2477,6 +2494,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddPlatformDependencies() throws IOException {
+    isIrrelevantForDeclarative("No platform dependencies in declarative so far");
+
     writeToBuildFile(TestFile.PARSE_PLATFORM_DEPENDENCIES);
     GradleBuildModel buildModel = getGradleBuildModel();
     buildModel.dependencies().addPlatformArtifact("implementation", "androidx.compose:compose-bom:2022.10.0", false);
