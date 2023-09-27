@@ -22,6 +22,7 @@ import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.putUInt
@@ -185,7 +186,7 @@ class FakeScreenSharingAgent(
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var startVideoStream = false
   private var deviceOrientation = 0
-  private var displays = listOf(DisplayDescriptor(PRIMARY_DISPLAY_ID, displaySize, 0, DisplayDescriptor.Type.INTERNAL))
+  private var displays = listOf(DisplayDescriptor(PRIMARY_DISPLAY_ID, displaySize, 0, DisplayType.INTERNAL))
 
   private var shellProtocol: ShellV2Protocol? = null
 
@@ -272,14 +273,14 @@ class FakeScreenSharingAgent(
   }
 
   /** Adds a device display. */
-  fun addDisplay(display: DisplayDescriptor) {
+  fun addDisplay(displayId: Int, width: Int, height: Int, displayType: DisplayType) {
     executor.execute {
-      if (displays.find { it.displayId == display.displayId } == null) {
-        displays = (displays + display).sortedBy { it.displayId }
-        sendNotificationOrResponse(DisplayAddedNotification(display.displayId))
+      if (displays.find { it.displayId == displayId } == null) {
+        displays = (displays + DisplayDescriptor(displayId, width, height, 0, displayType)).sortedBy { it.displayId }
+        sendNotificationOrResponse(DisplayAddedNotification(displayId))
       }
       else {
-        thisLogger().error("Display ${display.displayId} already exists")
+        thisLogger().error("Display $displayId already exists")
       }
     }
   }
@@ -480,7 +481,7 @@ class FakeScreenSharingAgent(
   private suspend fun setDeviceOrientation(message: SetDeviceOrientationMessage) {
     deviceOrientation = message.orientation
     for (display in displays) {
-      if (display.type == DisplayDescriptor.Type.INTERNAL) {
+      if (display.type == DisplayType.INTERNAL) {
         displayStreamers[display.displayId]?.renderDisplay()
       }
     }
@@ -504,7 +505,7 @@ class FakeScreenSharingAgent(
     val displayStreamer = displayStreamers.computeIfAbsent(
         displayId,
         Int2ObjectFunction {
-          dispId -> DisplayStreamer(dispId, message.maxVideoSize, rotatedWithDevice = display.type == DisplayDescriptor.Type.INTERNAL,
+          dispId -> DisplayStreamer(dispId, message.maxVideoSize, rotatedWithDevice = display.type == DisplayType.INTERNAL,
                                     bitRate, videoChannel!!)
         })
     displayStreamer.renderDisplay()
@@ -940,7 +941,7 @@ private fun ByteBuffer.fill(b: Byte, count: Int) {
 }
 
 private fun DisplayDescriptor.withDeviceOrientation(orientation: Int): DisplayDescriptor {
-  return if (type != DisplayDescriptor.Type.INTERNAL || orientation == this.orientation) this
+  return if (type != DisplayType.INTERNAL || orientation == this.orientation) this
          else DisplayDescriptor(displayId, size, orientation, type)
 }
 

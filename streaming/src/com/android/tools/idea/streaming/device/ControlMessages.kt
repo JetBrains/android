@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.device.RequestDeviceStateMessage.Companion.PHYSICAL_STATE
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
@@ -481,10 +482,10 @@ internal class DisplayConfigurationResponse(override val requestId: Int, val dis
         val height = stream.readInt()
         val orientation = stream.readInt()
         val type = try {
-          DisplayDescriptor.Type.values()[stream.readInt()]
+          DisplayType.values()[stream.readInt()]
         }
         catch (e: ArrayIndexOutOfBoundsException) {
-          DisplayDescriptor.Type.UNKNOWN
+          DisplayType.UNKNOWN
         }
         displays.add(DisplayDescriptor(displayId, width, height, orientation, type))
       }

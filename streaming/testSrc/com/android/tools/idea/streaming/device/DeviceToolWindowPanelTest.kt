@@ -29,6 +29,7 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.DisplayDescriptor
+import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
@@ -291,7 +292,7 @@ class DeviceToolWindowPanelTest {
     waitForFrame()
 
     val externalDisplayId = 1
-    agent.addDisplay(DisplayDescriptor(externalDisplayId, Dimension(1080, 1920), 0, DisplayDescriptor.Type.EXTERNAL))
+    agent.addDisplay(externalDisplayId, 1080, 1920, DisplayType.EXTERNAL)
     waitForCondition(2, SECONDS) { fakeUi.findAllComponents<DeviceView>().size == 2 }
     waitForFrame(PRIMARY_DISPLAY_ID)
     waitForFrame(externalDisplayId)

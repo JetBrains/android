@@ -18,15 +18,15 @@ package com.android.tools.idea.streaming.core
 import java.awt.Dimension
 
 /** XML-serializable descriptor of a device display. */
-data class DisplayDescriptor(
+internal data class DisplayDescriptor(
   var displayId: Int,
   var width: Int,
   var height: Int,
   var orientation: Int = 0,
-  var type: Type = Type.UNKNOWN
+  var type: DisplayType = DisplayType.UNKNOWN
 ) : Comparable<DisplayDescriptor> {
 
-  constructor(displayId: Int, size: Dimension, orientation: Int = 0, type: Type = Type.UNKNOWN) :
+  constructor(displayId: Int, size: Dimension, orientation: Int = 0, type: DisplayType = DisplayType.UNKNOWN) :
       this(displayId, size.width, size.height, orientation, type)
 
   @Suppress("unused") // Used by XML deserializer.
@@ -38,7 +38,4 @@ data class DisplayDescriptor(
   override fun compareTo(other: DisplayDescriptor): Int {
     return displayId - other.displayId
   }
-
-  /** Values correspond to the TYPE_* constants in android.view.Display */
-  enum class Type { UNKNOWN, INTERNAL, EXTERNAL, WIFI, OVERLAY, VIRTUAL }
 }
