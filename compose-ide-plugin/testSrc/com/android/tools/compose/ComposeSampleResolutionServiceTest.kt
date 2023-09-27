@@ -56,20 +56,10 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
     loadProject(TestProjectPaths.APP_WITH_LIB_WITH_SAMPLES)
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
-    // Make sure that sample sources are from maven, not from local directory.
-    val samples = libraryFilePaths.getCachedPathsForArtifact("com.example:lib:3.0")?.sampleSource
-    // We download samples only for androidx libraries.
-    assume().that(samples).isNull()
 
     val androidxSamples =
-      libraryFilePaths.getCachedPathsForArtifact("androidx.ui:lib:3.0")?.sampleSource
-    assume().that(androidxSamples).isNotNull()
-    // Note: the classifer here is not the same as what is required by the Gradle metadata, this was
-    // an accident but we leave
-    // as is to also test that this actually correctly picks up the name of the artifact by relying
-    // on the Gradle module metadata rather
-    // than just the classifer.
-    assertThat(androidxSamples!!.name).isEqualTo("lib-3.0-samplesources.jar")
+      libraryFilePaths.getCachedPathsForArtifact("androidx.ui:lib:3.0")?.sources!!
+    assertThat(androidxSamples.map { it.name }).containsExactly("lib-3.0-samplesources.jar")
   }
 
   fun testResolveSampleReference() {

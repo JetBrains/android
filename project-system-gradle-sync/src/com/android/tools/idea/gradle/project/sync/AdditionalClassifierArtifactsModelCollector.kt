@@ -28,7 +28,6 @@ internal fun getAdditionalClassifierArtifactsModel(
   inputModules: List<AndroidModule>,
   libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary,
   cachedLibraries: Collection<String>,
-  downloadAndroidxUISamplesSources: Boolean,
   useMultiVariantAdditionalArtifactSupport: Boolean,
 ) {
   actionRunner.runActions(
@@ -54,7 +53,6 @@ internal fun getAdditionalClassifierArtifactsModel(
             AdditionalClassifierArtifactsModelParameter::class.java
           ) { parameter ->
             parameter.artifactIdentifiers = identifiers
-            parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
           }
       })  // No known incompatibilities if Gradle is compatible.
     }

@@ -19,7 +19,6 @@ import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
-import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsImpl
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsModelImpl
 import org.gradle.api.Project
@@ -85,16 +84,14 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
       } else {
         getJavadocAndSourcesWithArtifactResolutionQuery(parameter, project)
       }
-      val idToSampleLocation = getSampleSources(parameter, project)
 
       val artifacts = parameter.artifactIdentifiers.map {
         val artifactId = ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
         AdditionalClassifierArtifactsImpl(
           id = artifactId,
           javadoc = idToJavadoc[artifactId],
-          sources = idToSources[artifactId],
+          sources = listOfNotNull(idToSources[artifactId]),
           mavenPom = idToPomFile[artifactId],
-          sampleSources = idToSampleLocation[artifactId],
         )
       }
       return AdditionalClassifierArtifactsModelImpl(artifacts, null)
@@ -161,16 +158,6 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
       val id = it.id.componentIdentifier as ModuleComponentIdentifier
       ArtifactIdentifierImpl(id.group, id.module, id.version) to it.file
     }
-  }
-
-  private fun getSampleSources(parameter: AdditionalClassifierArtifactsModelParameter, project: Project): Map<ArtifactIdentifierImpl, File> {
-    if (!parameter.downloadAndroidxUISamplesSources) return emptyMap()
-
-    // Only androidx.ui and androidx.compose use the @Sampled annotation as of today (January 2020).
-    val artifactsWithSamples = parameter.artifactIdentifiers
-      .filter { it.groupId.startsWith("androidx.ui") || it.groupId.startsWith("androidx.compose") }
-
-    return getArtifacts(project, SAMPLE_SOURCE_CLASSIFIER, artifactsWithSamples)
   }
 
   private fun Collection<ArtifactIdentifier>.asDependencies(project: Project): Sequence<Dependency> {

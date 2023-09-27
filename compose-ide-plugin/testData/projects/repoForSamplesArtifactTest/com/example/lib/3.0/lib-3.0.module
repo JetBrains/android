@@ -111,26 +111,6 @@
           "md5": "6eff76fae3d4a40fbebd8fd7c52b0e2b"
         }
       ]
-    },
-    {
-      "name": "samplessources",
-      "attributes": {
-        "org.gradle.category": "documentation",
-        "org.gradle.dependency.bundling": "external",
-        "org.gradle.docstype": "samplessources",
-        "org.gradle.usage": "java-runtime"
-      },
-      "files": [
-        {
-          "name": "lib-3.0-samplesources.jar",
-          "url": "lib-3.0-samplesources.jar",
-          "size": 706,
-          "sha512": "df874a3b57e78291fa7832028795d33617a08f8e4cf2607aa4bb704ee68ae67542d780f4d28da50a53813f823d1a4425f0c862783e52f6779bad13ccc89b864d",
-          "sha256": "44b980f2f33d2303a035818d8c120a4ac180d62786566094482a6fb837b89bf8",
-          "sha1": "83d14763d328fb33d717cd1d5b20487652a5c191",
-          "md5": "741c40832492c371c300f013c3bf2f60"
-        }
-      ]
     }
   ]
 }

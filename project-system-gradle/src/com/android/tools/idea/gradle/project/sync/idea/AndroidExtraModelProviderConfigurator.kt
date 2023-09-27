@@ -73,7 +73,6 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(
     LibraryFilePaths.getInstance(project).retrieveCachedLibs(),
-    StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
   )
 
   val syncOptions = when (projectResolutionMode) {

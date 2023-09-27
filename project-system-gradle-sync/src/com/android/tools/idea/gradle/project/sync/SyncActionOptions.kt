@@ -57,7 +57,6 @@ class NativeVariantsSyncActionOptions(
 
 class AdditionalClassifierArtifactsActionOptions(
   val cachedLibraries: Collection<String>,
-  val downloadAndroidxUISamplesSources: Boolean
 ) : Serializable
 
 data class GradleSyncStudioFlags(

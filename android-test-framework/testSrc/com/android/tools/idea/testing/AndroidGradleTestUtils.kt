@@ -2396,9 +2396,8 @@ private fun setupDataNodesForSelectedVariant(
     val libraryFilePaths = LibraryFilePaths.getInstance(project)
     moduleNode.setupAndroidDependenciesForMpss({ path: GradleSourceSetProjectPath -> moduleIdToDataMap[path] }, { lib ->
       AdditionalArtifactsPaths(
-        lib.srcJar,
+        listOfNotNull(lib.srcJar, lib.samplesJar),
         lib.docJar,
-        lib.samplesJar
       )
     }, newVariant)
     moduleNode.setupAndroidContentEntriesPerSourceSet(gradleAndroidModel)

@@ -36,12 +36,5 @@ public interface AdditionalClassifierArtifactsModelParameter {
    * @param ids the list of component ids to download sources and javadoc for.
    */
   void setArtifactIdentifiers(@NotNull Collection<ArtifactIdentifier> ids);
-
-  /**
-   * If true try to download sample sources for libraries in group androidx.compose.ui
-   */
-  boolean getDownloadAndroidxUISamplesSources();
-
-  void setDownloadAndroidxUISamplesSources(boolean value);
 }
 

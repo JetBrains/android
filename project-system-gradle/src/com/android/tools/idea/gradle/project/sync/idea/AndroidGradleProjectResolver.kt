@@ -507,7 +507,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val artifactLookup = Function { library: IdeArtifactLibrary ->
       // Attempt to find the source/doc/samples jars within the library if we haven't injected the additional artifacts model builder
       if (additionalArtifacts == null) {
-        return@Function AdditionalArtifactsPaths(library.srcJar, library.docJar, library.samplesJar)
+        return@Function AdditionalArtifactsPaths(listOfNotNull(library.srcJar, library.samplesJar), library.docJar)
       }
 
       // Otherwise fall back to using the model from the injected model builder.
@@ -516,14 +516,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       // or contain an incomplete set of entries. In order to complete this set we need to obtain the reminder from LibraryFilePaths cache.
       val artifacts = additionalArtifactsMap[artifactId]
       if (artifacts != null) {
-        return@Function AdditionalArtifactsPaths(artifacts.sources, artifacts.javadoc, artifacts.sampleSources)
+        return@Function AdditionalArtifactsPaths(artifacts.sources, artifacts.javadoc)
       }
 
       // Then check to see whether we already have the library cached.
       if (libraryFilePaths != null) {
         val cachedPaths = libraryFilePaths.getCachedPathsForArtifact(artifactId)
         if (cachedPaths != null) {
-          return@Function AdditionalArtifactsPaths(cachedPaths.sources, cachedPaths.javaDoc, cachedPaths.sampleSource)
+          return@Function AdditionalArtifactsPaths(cachedPaths.sources, cachedPaths.javaDoc)
         }
       }
       null

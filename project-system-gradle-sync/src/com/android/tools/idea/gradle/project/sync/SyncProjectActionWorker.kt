@@ -85,8 +85,7 @@ internal class SyncProjectActionWorker(
         androidModules,
         internedModels::lookup,
         syncOptions.additionalClassifierArtifactsAction.cachedLibraries,
-        syncOptions.additionalClassifierArtifactsAction.downloadAndroidxUISamplesSources,
-        syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport
+        syncOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport,
       )
     }
 
