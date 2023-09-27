@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.profiler
 
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class CpuProfilerConfigsStateTest {
@@ -30,6 +30,67 @@ class CpuProfilerConfigsStateTest {
         CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(),
         CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(),
     ).inOrder()
+  }
+
+  @Test
+  fun testTaskConfigWhenItsEmpty() {
+    val result = myConfigsState.taskConfigs
+    // Default task configs added when task config is empty
+    assertThat(result.size).isEqualTo(3)
+    assertThat(result[0].name).isEqualTo("Callstack Sample")
+    assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
+    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+  }
+
+  @Test
+  fun testTaskConfigWhenNotEmpty() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    myConfigsState.taskConfigs = configsToSave
+    // Verify set task configs
+    val result = myConfigsState.taskConfigs;
+    assertThat(result.size).isEqualTo(3)
+    assertThat(result[0].name).isEqualTo("HelloTest1")
+    assertThat(result[1].name).isEqualTo("HelloTest2")
+    assertThat(result[2].name).isEqualTo("HelloTest3")
+  }
+
+  @Test
+  fun testTaskConfigAfterEmptyAssign() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    // Set task configs to be empty
+    myConfigsState.taskConfigs = configsToSave
+    // Verify task config
+    val result = myConfigsState.taskConfigs
+    assertThat(result.size).isEqualTo(3)
+    assertThat(result[0].name).isEqualTo("Callstack Sample")
+    assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
+    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+  }
+
+  @Test
+  fun testTaskConfigSaveWillSetNewValues() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    myConfigsState.taskConfigs = configsToSave
+    var result = myConfigsState.taskConfigs
+    assertThat(result.size).isEqualTo(3)
+    assertThat(result[0].name).isEqualTo("HelloTest1")
+    assertThat(result[1].name).isEqualTo("HelloTest2")
+    assertThat(result[2].name).isEqualTo("HelloTest3")
+
+    val configsToSaveNew: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSaveNew.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    // Task config is reassigned
+    myConfigsState.taskConfigs = configsToSaveNew
+    result = myConfigsState.taskConfigs
+    // Config reflects latest update
+    assertThat(result.size).isEqualTo(1)
+    assertThat(result[0].name).isEqualTo("HelloTest4")
   }
 
   @Test

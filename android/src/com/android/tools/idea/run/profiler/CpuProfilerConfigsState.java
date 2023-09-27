@@ -36,6 +36,10 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   @NotNull
   private List<CpuProfilerConfig> myUserConfigs;
 
+  // Default/updated configs for Task-based UX
+  @NotNull
+  private List<CpuProfilerConfig> myTaskConfigs;
+
   /**
    * Default constructor is required and used by {@link PersistentStateComponent}.
    *
@@ -43,6 +47,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
    */
   public CpuProfilerConfigsState() {
     myUserConfigs = new ArrayList<>();
+    myTaskConfigs = new ArrayList<>();
   }
 
   @NotNull
@@ -57,6 +62,18 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
 
   public void setUserConfigs(@NotNull List<CpuProfilerConfig> configs) {
     myUserConfigs = configs;
+  }
+
+  @NotNull
+  public List<CpuProfilerConfig> getTaskConfigs() {
+    if (myTaskConfigs.isEmpty()) {
+      return getTaskDefaultConfigs();
+    }
+    return myTaskConfigs;
+  }
+
+  public void setTaskConfigs(@NotNull List<CpuProfilerConfig> configs) {
+    myTaskConfigs = configs;
   }
 
   /**
@@ -77,6 +94,16 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
     ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
+    return configs.build();
+  }
+
+  @NotNull
+  public static List<CpuProfilerConfig> getTaskDefaultConfigs() {
+    //Exclude System Trace config since it doesn't have any updatable attribute
+    ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
     return configs.build();
