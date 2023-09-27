@@ -334,6 +334,9 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
           myBuildSystemPanel = new JPanel();
         }
       }
+      else {
+        myBuildSystemPanel = new JPanel();
+      }
     }
 
     /**
