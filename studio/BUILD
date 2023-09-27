@@ -1054,6 +1054,16 @@ iml_studio_test(
     test_class = "com.android.tools.idea.UpdateTest",
 )
 
+iml_studio_test(
+    name = "WebpSupportTest",
+    module = ":intellij.android.studio.integration",
+    # TODO(b/302730760) enable test when WebP support is fully fixed
+    tags = ["manual"],
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.WebpSupportTest",
+)
+
 exports_files(
     ["sdk_version_test.py"],
     visibility = ["//visibility:public"],
