@@ -47,7 +47,7 @@ private val defaultPresentation = DeviceAction.Presentation("", EmptyIcon.ICON_0
 
 class ExtendReservationActionTest {
 
-  @JvmField @Rule val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private class FakeDeviceHandle(
     override val scope: CoroutineScope,
@@ -108,14 +108,18 @@ class ExtendReservationActionTest {
 
     assertThat(totalDuration).isEqualTo(Duration.ZERO)
     // Extend 30 minutes.
-    val updateAction1 = AnActionEvent.createFromAnAction(actions[1], null, "", dataContext)
+    val updateAction1 = AnActionEvent.createFromAnAction(actions[1], null, "", dataContext).apply {
+      presentation.isEnabledAndVisible = false
+    }
     extendHalfHourAction.update(updateAction1)
     assertThat(updateAction1.presentation.isEnabledAndVisible).isTrue()
     extendHalfHourAction.actionPerformed(extendAction)
     assertThat(totalDuration).isEqualTo(Duration.ofMinutes(30))
     // Extend 1 hour.
-    val updateAction2 = AnActionEvent.createFromAnAction(extendOneHourAction, null, "", dataContext)
-    extendOneHourAction.update(updateAction1)
+    val updateAction2 = AnActionEvent.createFromAnAction(extendOneHourAction, null, "", dataContext).apply {
+      presentation.isEnabledAndVisible = false
+    }
+    extendOneHourAction.update(updateAction2)
     assertThat(updateAction2.presentation.isEnabledAndVisible).isTrue()
     extendOneHourAction.actionPerformed(extendAction)
     assertThat(totalDuration).isEqualTo(Duration.ofMinutes(90))
