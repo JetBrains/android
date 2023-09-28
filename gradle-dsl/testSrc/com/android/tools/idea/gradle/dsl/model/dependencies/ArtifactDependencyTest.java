@@ -86,7 +86,7 @@ import org.toml.lang.psi.TomlLiteral;
 import org.toml.lang.psi.impl.TomlInlineTableImpl;
 
 /**
- * Tests for {@link DependenciesModelImpl} and {@link ArtifactDependencyModelImpl}.
+ * Tests for subclasses of {@link AbstractDependenciesModel} and {@link ArtifactDependencyModelImpl}.
  */
 public class ArtifactDependencyTest extends GradleFileModelTestCase {
 

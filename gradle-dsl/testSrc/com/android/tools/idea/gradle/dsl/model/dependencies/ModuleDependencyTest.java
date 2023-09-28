@@ -42,7 +42,7 @@ import org.jetbrains.kotlin.psi.KtFile;
 import org.junit.Test;
 
 /**
- * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
+ * Tests for subclasses of {@link AbstractDependenciesModel} and {@link ModuleDependencyModelImpl}.
  */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
   @Test

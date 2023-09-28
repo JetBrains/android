@@ -46,7 +46,7 @@ public class FileTreeDependencyModelImpl extends DependencyModelImpl implements 
                                            @Nullable List<String> includes,
                                            @Nullable List<String> excludes) {
     GradleDslMethodCall newElement = new GradleDslMethodCall(parent, GradleNameElement.create(configurationName), FILE_TREE);
-    FileTreeDependencyModel fileTreeModel = create(newElement, configurationName, DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
+    FileTreeDependencyModel fileTreeModel = create(newElement, configurationName, ScriptDependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
     // Since we just created the method call with the FILE_TREE name, create should never return null.
     assert fileTreeModel != null;
     fileTreeModel.dir().setValue(dir);

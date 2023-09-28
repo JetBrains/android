@@ -182,11 +182,6 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
 
     return null
   }
-
-  private fun findVersionCatalog(element: PsiElement?): TomlFile? {
-    val project = element?.project ?: return null
-    return findVersionCatalog(element.text, project)
-  }
 }
 
 private fun TomlLiteral.getString(): String =

@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.google.common.base.Joiner;
@@ -82,7 +81,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
       methodCall.addNewArgument(mapArguments);
     }
     parent.setNewElement(methodCall);
-    return new ModuleDependencyModelImpl(configurationName, methodCall, DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
+    return new ModuleDependencyModelImpl(configurationName, methodCall, ScriptDependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
   }
 
   ModuleDependencyModelImpl(@NotNull String configurationName,

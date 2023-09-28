@@ -46,14 +46,14 @@ public class FileDependencyModelImpl extends DependencyModelImpl implements File
                                                 @NotNull Maintainer maintainer) {
     List<FileDependencyModel> result = new ArrayList<>();
     Maintainer argumentMaintainer;
-    if (maintainer == DependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER) {
-      argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_SINGLE_ITEM_MAINTAINER;
+    if (maintainer == ScriptDependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER) {
+      argumentMaintainer = ScriptDependenciesModelImpl.Maintainers.DEEP_SINGLE_ITEM_MAINTAINER;
     }
-    else if (maintainer == DependenciesModelImpl.Maintainers.ARGUMENT_LIST_MAINTAINER) {
-      argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_ARGUMENT_LIST_MAINTAINER;
+    else if (maintainer == ScriptDependenciesModelImpl.Maintainers.ARGUMENT_LIST_MAINTAINER) {
+      argumentMaintainer = ScriptDependenciesModelImpl.Maintainers.DEEP_ARGUMENT_LIST_MAINTAINER;
     }
-    else if (maintainer == DependenciesModelImpl.Maintainers.EXPRESSION_LIST_MAINTAINER) {
-      argumentMaintainer = DependenciesModelImpl.Maintainers.DEEP_EXPRESSION_LIST_MAINTAINER;
+    else if (maintainer == ScriptDependenciesModelImpl.Maintainers.EXPRESSION_LIST_MAINTAINER) {
+      argumentMaintainer = ScriptDependenciesModelImpl.Maintainers.DEEP_EXPRESSION_LIST_MAINTAINER;
     }
     else {
       LOG.warn(new IllegalStateException("No argument maintainer found for " + maintainer));

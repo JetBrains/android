@@ -17,11 +17,13 @@ package com.android.tools.idea.gradle.dsl.declarative.parser.toml
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
+import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.TomlDslParser
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.LITERAL
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral.LiteralType.REFERENCE
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
@@ -30,7 +32,9 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescr
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlArrayTable
+import org.toml.lang.psi.TomlElement
 import org.toml.lang.psi.TomlFile
+import org.toml.lang.psi.TomlHeaderOwner
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
@@ -74,7 +78,8 @@ class DeclarativeTomlDslParser(
       }
 
       override fun visitLiteral(element: TomlLiteral) {
-        val literal = GradleDslLiteral(context, element, name, element, LITERAL)
+        val type = if (element.isDependenciesAlias()) REFERENCE else LITERAL
+        val literal = GradleDslLiteral(context, element, name, element, type)
         literal.externalSyntax = ExternalNameSyntax.ASSIGNMENT
         context.addParsedElement(literal)
       }
@@ -152,12 +157,50 @@ class DeclarativeTomlDslParser(
     }
   }
 
+  private fun PsiElement.isDependenciesAlias(): Boolean {
+    if (this is TomlLiteral &&
+      parent is TomlKeyValue &&
+      (parent as TomlKeyValue).key.segments.last().text == "alias"
+    ) {
+      val path = parent.getPathToRoot()
+      return path.size == 3 && path.firstOrNull() == "dependencies"
+    }
+    return false
+  }
+
+  override fun getInjections(context: GradleDslSimpleExpression, psiElement: PsiElement): MutableList<GradleReferenceInjection> {
+    val parent = psiElement.parent
+    if (psiElement is TomlLiteral && parent is TomlKeyValue && parent.key.segments.last().text == "alias") {
+      val referenceString = psiElement.text.removeSurrounding("\"")
+      return mutableListOf(GradleReferenceInjection(context, null, psiElement, referenceString))
+    }
+    return mutableListOf();
+  }
 }
 
 
-fun GradlePropertiesDslElement.createChildDslElement(elementName: GradleNameElement,
-                                                     psiElement: PsiElement,
-                                                     defaultConstructor: () -> GradlePropertiesDslElement): GradlePropertiesDslElement {
+fun PsiElement.getPathToRoot():List<String>{
+
+  fun bubbleUp(element: PsiElement, list: MutableList<String>){
+    if(element is TomlFile) return
+    when(element){
+      is TomlKeyValue -> element.key.segments.reversed().forEach { list.add(it.text) }
+      is TomlHeaderOwner -> element.header.key?.segments?.reversed()?.forEach { list.add(it.text) }
+      else -> Unit
+    }
+    bubbleUp(element.parent, list)
+  }
+
+  val result = mutableListOf<String>()
+  bubbleUp(this, result)
+  return result.reversed()
+}
+
+fun GradlePropertiesDslElement.createChildDslElement(
+  elementName: GradleNameElement,
+  psiElement: PsiElement,
+  defaultConstructor: () -> GradlePropertiesDslElement
+): GradlePropertiesDslElement {
   val result = when (val description = getChildPropertiesElementDescription(elementName.name())) {
     null -> defaultConstructor.invoke()
     else -> {
@@ -172,9 +215,11 @@ fun GradlePropertiesDslElement.createChildDslElement(elementName: GradleNameElem
 }
 
 fun GradlePropertiesDslElement.getMapDescription(name: String): PropertiesElementDescription<*> {
-  var description = getChildPropertiesElementDescription(name) ?: PropertiesElementDescription(name,
-                                                                                               GradleDslExpressionMap::class.java,
-                                                                                               ::GradleDslExpressionMap)
+  var description = getChildPropertiesElementDescription(name) ?: PropertiesElementDescription(
+    name,
+    GradleDslExpressionMap::class.java,
+    ::GradleDslExpressionMap
+  )
   if (description.name == null) {
     // null means all names are acceptable, but we need to search for our particular name in order to update if it's there
     description = description.copyWithName(name)

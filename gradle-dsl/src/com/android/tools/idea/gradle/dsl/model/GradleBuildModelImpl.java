@@ -29,6 +29,7 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
+import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.EXT_DECLARATIVE_TOML;
 
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
@@ -52,7 +53,8 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl;
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl;
+import com.android.tools.idea.gradle.dsl.model.dependencies.DeclarativeDependenciesModelImpl;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
@@ -321,7 +323,12 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public DependenciesModel dependencies() {
     DependenciesDslElement dependenciesDslElement = myGradleDslFile.ensurePropertyElement(DEPENDENCIES);
-    return new DependenciesModelImpl(dependenciesDslElement);
+    if (myGradleDslFile.getFile().getName().endsWith(EXT_DECLARATIVE_TOML)) {
+      return new DeclarativeDependenciesModelImpl(dependenciesDslElement);
+    }
+    else {
+      return new ScriptDependenciesModelImpl(dependenciesDslElement);
+    }
   }
 
   @Override
