@@ -59,7 +59,8 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
 
     val androidxSamples =
       libraryFilePaths.getCachedPathsForArtifact("androidx.ui:lib:3.0")?.sources!!
-    assertThat(androidxSamples.map { it.name }).containsExactly("lib-3.0-samplesources.jar")
+    assertThat(androidxSamples.map { it.name })
+      .containsExactly("lib-3.0-sources.jar", "lib-3.0-samplesources.jar")
   }
 
   fun testResolveSampleReference() {

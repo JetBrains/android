@@ -74,24 +74,26 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     }
 
     try {
-      val idToPomFile = getPomFiles(parameter, project)
-      val (idToJavadoc, idToSources) = if (useArtifactViews) {
+      val artifactsCollector = ArtifactsCollector()
+      getPomFiles(parameter, project) { id, file -> artifactsCollector.setPom(id, file) }
+      if (useArtifactViews) {
         project.dependencies.attributesSchema.attribute(DocsType.DOCS_TYPE_ATTRIBUTE) {
           it.compatibilityRules.add(SourcesCompatibilityRule::class.java)
         }
-        Pair(getArtifacts(project, DocsType.JAVADOC, parameter.artifactIdentifiers),
-             getArtifacts(project, DocsType.SOURCES, parameter.artifactIdentifiers))
+        getArtifacts(project, DocsType.JAVADOC, parameter.artifactIdentifiers) { id, file -> artifactsCollector.setJavadoc(id, file) }
+        getArtifacts(project, DocsType.SOURCES, parameter.artifactIdentifiers) { id, file -> artifactsCollector.addSources(id, file) }
       } else {
-        getJavadocAndSourcesWithArtifactResolutionQuery(parameter, project)
+        getJavadocAndSourcesWithArtifactResolutionQuery(parameter, project, artifactsCollector)
       }
 
       val artifacts = parameter.artifactIdentifiers.map {
         val artifactId = ArtifactIdentifierImpl(it.groupId, it.artifactId, it.version)
+        val paths = artifactsCollector.getAdditionalPaths(artifactId)
         AdditionalClassifierArtifactsImpl(
           id = artifactId,
-          javadoc = idToJavadoc[artifactId],
-          sources = listOfNotNull(idToSources[artifactId]),
-          mavenPom = idToPomFile[artifactId],
+          javadoc = paths?.javaDoc,
+          sources = paths?.sources ?: emptyList(),
+          mavenPom = paths?.pomFile,
         )
       }
       return AdditionalClassifierArtifactsModelImpl(artifacts, null)
@@ -104,10 +106,9 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     }
   }
 
-  private fun getPomFiles(
-    parameter: AdditionalClassifierArtifactsModelParameter,
-    project: Project
-  ): Map<ArtifactIdentifierImpl, File?> {
+  private fun getPomFiles(parameter: AdditionalClassifierArtifactsModelParameter,
+                          project: Project,
+                          collector: (ArtifactIdentifierImpl, File) -> Unit) {
     // Create query for Maven Pom File.
     val ids = getComponentIds(parameter)
 
@@ -121,10 +122,10 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
         ?.file
     }
 
-    // Map from component id to Pom File.
-    return pomQuery.execute().resolvedComponents.associate {
+    pomQuery.execute().resolvedComponents.forEach {
       val id = it.id as ModuleComponentIdentifier
-      ArtifactIdentifierImpl(id.group, id.module, id.version) to getFile(it, MavenPomArtifact::class.java)
+      val pomFile = getFile(it, MavenPomArtifact::class.java) ?: return@forEach
+      collector(ArtifactIdentifierImpl(id.group, id.module, id.version), pomFile)
     }
   }
 
@@ -140,7 +141,8 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
 
   private fun getArtifacts(project: Project,
                            docsType: String,
-                           artifactIdentifiers: Collection<ArtifactIdentifier>): Map<ArtifactIdentifierImpl, File> {
+                           artifactIdentifiers: Collection<ArtifactIdentifier>,
+                           collector: (ArtifactIdentifierImpl, File) -> Unit) {
     val resolvableConfiguration = project.configurations.detachedConfiguration().also {
       it.attributes.run<AttributeContainer, Unit> {
         attribute(Category.CATEGORY_ATTRIBUTE, project.objects.named(Category::class.java, Category.DOCUMENTATION))
@@ -151,12 +153,14 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     artifactIdentifiers.asDependencies(project).forEach {
       resolvableConfiguration.dependencies.add(it)
     }
-    return resolvableConfiguration.incoming.artifactView { view ->
+    resolvableConfiguration.incoming.artifactView { view ->
       view.lenient(true)
       view.componentFilter { it is ModuleComponentIdentifier }
-    }.artifacts.associate {
+    }.artifacts.forEach {
       val id = it.id.componentIdentifier as ModuleComponentIdentifier
-      ArtifactIdentifierImpl(id.group, id.module, id.version) to it.file
+      val identifier = ArtifactIdentifierImpl(id.group, id.module, id.version)
+
+      collector(identifier, it.file)
     }
   }
 
@@ -166,30 +170,57 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
 
   /**
    * Use this with older Gradle versions, when [useArtifactViews] is false.
-   *
-   * @return a pair where the first map is
    */
   private fun getJavadocAndSourcesWithArtifactResolutionQuery(parameter: AdditionalClassifierArtifactsModelParameter,
-                                                              project: Project): Pair<Map<ArtifactIdentifierImpl, File>, Map<ArtifactIdentifierImpl, File>> {
+                                                              project: Project,
+                                                              collector: ArtifactsCollector) {
     val docQuery = project.dependencies.createArtifactResolutionQuery()
       .forComponents(getComponentIds(parameter))
       .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java, JavadocArtifact::class.java)
 
-    val javadocArtifacts = mutableMapOf<ArtifactIdentifierImpl, File>()
-    val sourcesArtifacts = mutableMapOf<ArtifactIdentifierImpl, File>()
     docQuery.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.forEach {
       val id = it.id as ModuleComponentIdentifier
-      val artifactid = ArtifactIdentifierImpl(id.group, id.module, id.version)
-      getFile(it, JavadocArtifact::class.java)?.let { javadocArtifacts[artifactid] = it}
-      getFile(it, SourcesArtifact::class.java)?.let { sourcesArtifacts[artifactid] = it}
+      val artifactId = ArtifactIdentifierImpl(id.group, id.module, id.version)
+
+      getFile(it, JavadocArtifact::class.java)?.let { collector.setJavadoc(artifactId, it) }
+      getFile(it, SourcesArtifact::class.java)?.let { collector.addSources(artifactId, it) }
     }
-    return Pair(javadocArtifacts, sourcesArtifacts)
   }
 
   private fun getFile(result: ComponentArtifactsResult, clazz: Class<out Artifact>): File? {
     return result.getArtifacts(clazz)
       .filterIsInstance(ResolvedArtifactResult::class.java).firstOrNull()
       ?.file
+  }
+
+  private class ArtifactsCollector {
+    private val index = mutableMapOf<ArtifactIdentifierImpl, ArtifactsPaths>()
+
+    fun setJavadoc(id: ArtifactIdentifierImpl, file: File) {
+      val paths = index[id] ?: ArtifactsPaths()
+      paths.javaDoc = file
+      index[id] = paths
+    }
+
+    fun addSources(id: ArtifactIdentifierImpl, file: File) {
+      val paths = index[id] ?: ArtifactsPaths()
+      paths.sources.add(file)
+      index[id] = paths
+    }
+
+    fun setPom(id: ArtifactIdentifierImpl, file: File) {
+      val paths = index[id] ?: ArtifactsPaths()
+      paths.pomFile = file
+      index[id] = paths
+    }
+
+    fun getAdditionalPaths(id: ArtifactIdentifierImpl): ArtifactsPaths? = index[id]
+  }
+
+  private class ArtifactsPaths {
+    var pomFile: File? = null
+    var javaDoc: File? = null
+    val sources: MutableList<File> = mutableListOf()
   }
 }
 
