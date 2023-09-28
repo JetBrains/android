@@ -199,7 +199,17 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     assert artifact instanceof ExportableArtifact;
     ExportableArtifact exportableArtifact = (ExportableArtifact) artifact;
 
-    ExportArtifactUtils.exportArtifact(exportableArtifact, artifact::export, getSessionsView().getIdeProfilerComponents(),
+    String exportableName = exportableArtifact.getExportableName();
+    String exportExtension = exportableArtifact.getExportExtension();
+    // The name of the backing file/capture of this SessionItem (with the file extension) is used as the session name. If the capture name
+    // has a file extension, then we can break the name and extension and reuse them as the exportable file name and extension respectively.
+    String fullCaptureName = artifact.getSessionMetaData().getSessionName();
+    int indexOfDot = fullCaptureName.lastIndexOf('.');
+    if (indexOfDot != -1) {
+      exportableName = fullCaptureName.substring(0, indexOfDot);
+      exportExtension = fullCaptureName.substring(indexOfDot + 1);
+    }
+    ExportArtifactUtils.exportArtifact(exportableName, exportExtension, artifact::export, getSessionsView().getIdeProfilerComponents(),
                                        getProfilers().getIdeServices());
   }
 

@@ -273,10 +273,11 @@ public abstract class SessionArtifactView<T extends SessionArtifact> extends JPa
   protected abstract JComponent buildComponent();
 
   protected void exportArtifact() {
-    if (getArtifact() instanceof ExportableArtifact) {
+    if (getArtifact() instanceof ExportableArtifact exportableArtifact) {
       assert !getArtifact().isOngoing();
-      ExportArtifactUtils.exportArtifact((ExportableArtifact)getArtifact(), getArtifact()::export,
-                                         getSessionsView().getIdeProfilerComponents(), getProfilers().getIdeServices());
+      ExportArtifactUtils.exportArtifact(exportableArtifact.getExportableName(), exportableArtifact.getExportExtension(),
+                                         getArtifact()::export, getSessionsView().getIdeProfilerComponents(),
+                                         getProfilers().getIdeServices());
     }
   }
 

@@ -29,14 +29,15 @@ object ExportArtifactUtils {
    * Opens an export file dialog and prompts user to export/save artifact as a file to disk.
    */
   @JvmStatic
-  fun exportArtifact(artifact: ExportableArtifact,
+  fun exportArtifact(exportableName: String,
+                     exportExtension: String,
                      exportAction: Consumer<OutputStream>,
                      ideProfilerComponents: IdeProfilerComponents,
                      ideServices: IdeProfilerServices) {
     ideProfilerComponents.createExportDialog().open(
       { "Export As" },
-      { artifact.exportableName },
-      { artifact.exportExtension },
+      { exportableName },
+      { exportExtension },
       { file: File -> ideServices.saveFile(file, { outputStream: FileOutputStream -> exportAction.accept(outputStream) }, null) }
     )
   }
