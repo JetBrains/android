@@ -141,7 +141,8 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     };
     Common.Device selectedDevice = myStage.getStudioProfilers().getDevice();
     int deviceFeatureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
-    getIdeComponents().openCpuProfilingConfigurationsDialog(myStage.getProfilerConfigModel(), deviceFeatureLevel, dialogCallback);
+    getIdeComponents().openCpuProfilingConfigurationsDialog(myStage.getProfilerConfigModel(), deviceFeatureLevel, dialogCallback,
+                                                            getProfilersView().getStudioProfilers().getIdeServices());
     myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
     return Unit.INSTANCE;
   }

@@ -77,5 +77,6 @@ public interface IdeProfilerComponents {
    *                       that was selected on the configurations list when the dialog was closed.
    */
   void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel profilerModel, int deviceLevel,
-                                            @NotNull Consumer<ProfilingConfiguration> dialogCallback);
+                                            @NotNull Consumer<ProfilingConfiguration> dialogCallback,
+                                            @NotNull IdeProfilerServices ideProfilerServices);
 }

@@ -21,8 +21,11 @@ import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
 import com.android.tools.adtui.ui.options.OptionsPanel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
+import com.android.tools.idea.profilers.IntellijProfilerServices;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.profilers.FeatureConfig;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
@@ -88,8 +91,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
                                           int deviceLevel,
                                           @NotNull CpuProfilerConfigModel model,
                                           @NotNull Consumer<ProfilingConfiguration> onCloseCallback,
-                                          @NotNull FeatureTracker featureTracker) {
-    super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker), IdeModalityType.IDE);
+                                          @NotNull FeatureTracker featureTracker,
+                                          @NotNull IdeProfilerServices ideProfilerServices) {
+    super(project, new ProfilingConfigurable(project, model, deviceLevel, featureTracker, ideProfilerServices), IdeModalityType.IDE);
     myProfilerModel = model;
     myOnCloseCallback = onCloseCallback;
     myDeviceLevel = deviceLevel;
@@ -146,6 +150,11 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
     @NotNull
     private final DefaultListModel<ProfilingConfiguration> myConfigurationsModel;
 
+    @VisibleForTesting
+    DefaultListModel<ProfilingConfiguration> getConfigurationModel() {
+      return this.myConfigurationsModel;
+    }
+
     private int myDefaultConfigurationsCount;
 
     private final Project myProject;
@@ -161,10 +170,13 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     private int myDeviceLevel;
 
+    private boolean isTaskBasedUxEnabled;
+
     public ProfilingConfigurable(Project project,
                                  CpuProfilerConfigModel model,
                                  int deviceLevel,
-                                 FeatureTracker featureTracker) {
+                                 FeatureTracker featureTracker,
+                                 IdeProfilerServices ideProfilerServices) {
       myProject = project;
       myFeatureTracker = featureTracker;
       myProfilerModel = model;
@@ -172,6 +184,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myProfilersPanel = new OptionsPanel();
       myConfigurationsModel = new DefaultListModel<>();
       myConfigurations = new JBList<>(myConfigurationsModel);
+      isTaskBasedUxEnabled = ideProfilerServices.getFeatureConfig().isTaskBasedUxEnabled();
       setUpConfigurationsList();
       selectConfiguration(myProfilerModel.getProfilingConfiguration());
     }
@@ -187,19 +200,26 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myConfigurations.setCellRenderer(new ProfilingConfigurationsListCellRenderer());
       myConfigurations.addListSelectionListener((e) -> {
         int index = myConfigurations.getSelectedIndex();
-        myProfilersPanel.setOption(index < 0 ? null : myConfigurationsModel.get(index), index >= getCustomConfigurationCount());
+        boolean isReadOnlyConfig = !isTaskBasedUxEnabled && (index >= getCustomConfigurationCount());
+        myProfilersPanel.setOption(index < 0 ? null : myConfigurationsModel.get(index), isReadOnlyConfig);
       });
+      if (isTaskBasedUxEnabled) {
+        // Restore saved/default configurations
+        for (ProfilingConfiguration configuration : myProfilerModel.getTaskProfilingConfigurations()) {
+          myConfigurationsModel.addElement(configuration);
+        }
+      } else {
+        // Restore saved configurations
+        for (ProfilingConfiguration configuration : myProfilerModel.getCustomProfilingConfigurations()) {
+          myConfigurationsModel.addElement(configuration);
+        }
 
-      // Restore saved configurations
-      for (ProfilingConfiguration configuration : myProfilerModel.getCustomProfilingConfigurations()) {
-        myConfigurationsModel.addElement(configuration);
+        // Add default configurations
+        for (ProfilingConfiguration configuration : myProfilerModel.getDefaultProfilingConfigurations()) {
+          myConfigurationsModel.addElement(configuration);
+        }
+        myDefaultConfigurationsCount = myProfilerModel.getDefaultProfilingConfigurations().size();
       }
-
-      // Add default configurations
-      for (ProfilingConfiguration configuration : myProfilerModel.getDefaultProfilingConfigurations()) {
-        myConfigurationsModel.addElement(configuration);
-      }
-      myDefaultConfigurationsCount = myProfilerModel.getDefaultProfilingConfigurations().size();
     }
 
     private int getCustomConfigurationCount() {
@@ -290,12 +310,18 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         }
         configNames.add(configName);
 
-        if (!isDefaultConfig(config)) {
+        // Default configs are editable(except name) in task based ux and hence always save to reflect latest update when task-based flag
+        // is enabled
+        if (!isDefaultConfig(config) || isTaskBasedUxEnabled) {
           configsToSave.add(CpuProfilerConfigConverter.fromProfilingConfiguration(config));
         }
       }
 
-      CpuProfilerConfigsState.getInstance(myProject).setUserConfigs(configsToSave);
+      if (isTaskBasedUxEnabled) {
+        CpuProfilerConfigsState.getInstance(myProject).setTaskConfigs(configsToSave);
+      } else {
+        CpuProfilerConfigsState.getInstance(myProject).setUserConfigs(configsToSave);
+      }
     }
 
     @Override

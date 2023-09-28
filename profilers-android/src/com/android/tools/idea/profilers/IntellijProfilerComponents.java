@@ -23,6 +23,7 @@ import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.profilers.ExportDialog;
 import com.android.tools.profilers.IdeProfilerComponents;
+import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ImportDialog;
 import com.android.tools.profilers.UiMessageHandler;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -125,12 +126,13 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
-                                                   @NotNull Consumer<ProfilingConfiguration> dialogCallback) {
+                                                   @NotNull Consumer<ProfilingConfiguration> dialogCallback,
+                                                   @NotNull IdeProfilerServices ideProfilerServices) {
     CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
                                                                                    deviceLevel,
                                                                                    model,
                                                                                    dialogCallback,
-                                                                                   myFeatureTracker);
+                                                                                   myFeatureTracker, ideProfilerServices);
     dialog.show();
   }
 }

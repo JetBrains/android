@@ -187,7 +187,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
 
   @Override
   public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
-                                                   @NotNull Consumer<ProfilingConfiguration> callbackDialog) {
+                                                   @NotNull Consumer<ProfilingConfiguration> callbackDialog,
+                                                   @NotNull IdeProfilerServices ideProfilerServices) {
     myCpuConfigModel = model;
     myDialogCloseCallback = callbackDialog;
   }
