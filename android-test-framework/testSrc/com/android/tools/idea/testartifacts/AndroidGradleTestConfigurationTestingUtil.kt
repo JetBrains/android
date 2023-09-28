@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts
 
+import com.android.tools.idea.run.configuration.BaselineProfileAction
 import com.intellij.execution.RunManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -48,7 +49,11 @@ fun createGradleConfigurationFromPsiElement(project: Project, psiElement: PsiEle
   // Save run configuration in the project.
   val runManager = RunManager.getInstance(project)
   runManager.addConfiguration(settings)
-
+  // There might be multiple matching configurations, we don't want the baseline profile generator
+  //val configuration = runManager.allConfigurationsList.firstOrNull {
+  //  it is GradleRunConfiguration && it.name != "Generate Baseline Profile"
+  //}
+  //if (configuration == null)
   val configuration = settings.configuration
   if (configuration !is GradleRunConfiguration) return null
   val tasksToRun = configuration.settings.taskNames
