@@ -640,6 +640,15 @@ class ComposePreviewRepresentation(
     forceRefresh().join()
   }
 
+  private suspend fun onUiCheckPreviewStop() {
+    uiCheckFilterFlow.value.basePreviewInstance?.let {
+      IssuePanelService.getInstance(project).stopUiCheck(it.instanceId, surface)
+    }
+    uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
+    withContext(uiThread) { surface.updateSceneViewVisibilities { true } }
+    forceRefresh().join()
+  }
+
   private suspend fun onInteractivePreviewStop() {
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
@@ -1795,10 +1804,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.UiCheck -> {
         log.debug("Stopping UI check")
-        uiCheckFilterFlow.value.basePreviewInstance?.let {
-          IssuePanelService.getInstance(project).stopUiCheck(it.instanceId, surface)
-        }
-        uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
+        onUiCheckPreviewStop()
       }
       is PreviewMode.AnimationInspection -> {
         onInteractivePreviewStop()
