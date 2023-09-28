@@ -559,6 +559,22 @@ class ComposePreviewRepresentation(
       }
     }
 
+  private val postIssueUpdateListenerForUiCheck = {
+    val models = mutableSetOf<NlModel>()
+    surface.visualLintIssueProvider
+      .getIssues()
+      .map { it.source }
+      .filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
+      .filter { models.addAll(it.models) }
+    uiCheckFilterFlow.value.modelsWithErrors = models
+    if (isUiCheckFilterEnabled) {
+      ApplicationManager.getApplication().invokeLater {
+        surface.updateSceneViewVisibilities { it.sceneManager.model in models }
+        surface.repaint()
+      }
+    }
+  }
+
   private val previewElementModelAdapter =
     object : ComposePreviewElementModelAdapter() {
       override fun createDataContext(previewElement: ComposePreviewElementInstance) =
@@ -613,21 +629,7 @@ class ComposePreviewRepresentation(
         instance.instanceId,
         instance.displaySettings.name,
         surface,
-        {
-          val models = mutableSetOf<NlModel>()
-          surface.visualLintIssueProvider
-            .getIssues()
-            .map { it.source }
-            .filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
-            .filter { models.addAll(it.models) }
-          uiCheckFilterFlow.value.modelsWithErrors = models
-          if (isUiCheckFilterEnabled) {
-            ApplicationManager.getApplication().invokeLater {
-              surface.updateSceneViewVisibilities { it.sceneManager.model in models }
-              surface.repaint()
-            }
-          }
-        }
+        postIssueUpdateListenerForUiCheck
       ) {
         // Pass preview manager and instance to the tab created for this UI Check preview.
         // This enables restarting the UI Check mode from an action inside the tab.
@@ -643,7 +645,8 @@ class ComposePreviewRepresentation(
 
   private suspend fun onUiCheckPreviewStop() {
     uiCheckFilterFlow.value.basePreviewInstance?.let {
-      IssuePanelService.getInstance(project).stopUiCheck(it.instanceId, surface)
+      IssuePanelService.getInstance(project)
+        .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
     }
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
     withContext(uiThread) { surface.updateSceneViewVisibilities { true } }

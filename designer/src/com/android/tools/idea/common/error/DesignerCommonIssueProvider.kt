@@ -32,7 +32,9 @@ interface DesignerCommonIssueProvider<T> : Disposable {
 
   fun getFilteredIssues(): List<Issue>
 
-  fun registerUpdateListener(listener: Runnable)
+  fun registerUpdateListener(listener: () -> Unit)
+
+  fun removeUpdateListener(listener: () -> Unit)
 
   fun interface Filter : (Issue) -> Boolean
 }
@@ -84,7 +86,7 @@ class DesignToolsIssueProvider(
 
   @GuardedBy("mapLock") private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 
-  private val listeners = mutableListOf<Runnable>()
+  private val listeners = mutableListOf<() -> Unit>()
   private val messageBusConnection = project.messageBus.connect(parentDisposable)
 
   private var _viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
@@ -92,7 +94,7 @@ class DesignToolsIssueProvider(
     get() = _viewOptionFilter
     set(value) {
       _viewOptionFilter = value
-      listeners.forEach { it.run() }
+      listeners.forEach { it() }
     }
 
   init {
@@ -116,7 +118,7 @@ class DesignToolsIssueProvider(
             sourceToIssueMap[source] = issues
           }
         }
-        listeners.forEach { it.run() }
+        listeners.forEach { it() }
       }
     )
 
@@ -128,11 +130,11 @@ class DesignToolsIssueProvider(
       FileEditorManagerListener.FILE_EDITOR_MANAGER,
       object : FileEditorManagerListener {
         override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-          listeners.forEach { it.run() }
+          listeners.forEach { it() }
         }
 
         override fun selectionChanged(event: FileEditorManagerEvent) {
-          listeners.forEach { it.run() }
+          listeners.forEach { it() }
         }
       }
     )
@@ -143,8 +145,12 @@ class DesignToolsIssueProvider(
     return values.flatten().filter(issueFilter).filter(viewOptionFilter)
   }
 
-  override fun registerUpdateListener(listener: Runnable) {
+  override fun registerUpdateListener(listener: () -> Unit) {
     listeners.add(listener)
+  }
+
+  override fun removeUpdateListener(listener: () -> Unit) {
+    listeners.remove(listener)
   }
 
   override fun dispose() {

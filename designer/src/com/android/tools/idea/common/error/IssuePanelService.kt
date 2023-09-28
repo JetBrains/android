@@ -557,7 +557,6 @@ class IssuePanelService(private val project: Project) {
           { "UI Check did not find any issues to report" },
           additionalDataProvider
         )
-      issueProvider.registerUpdateListener(postIssueUpdateListener)
 
       val tab =
         contentManager.factory
@@ -589,12 +588,14 @@ class IssuePanelService(private val project: Project) {
       nameToTabMap[name] = Pair(uiCheckIssuePanel, tab)
       surface.isIssueTabSelected = true
     }
+    uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListener)
     uiCheckIssuePanel.addIssueSelectionListener(surface.issueListener, surface)
     surface.visualLintIssueProvider.uiCheckInstanceId = name
   }
 
-  fun stopUiCheck(name: String, surface: NlDesignSurface) {
+  fun stopUiCheck(name: String, surface: NlDesignSurface, postIssueUpdateListener: () -> Unit) {
     nameToTabMap[name]?.first?.removeIssueSelectionListener(surface.issueListener)
+    nameToTabMap[name]?.first?.issueProvider?.removeUpdateListener(postIssueUpdateListener)
     surface.visualLintIssueProvider.uiCheckInstanceId = null
   }
 

@@ -29,9 +29,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 
 class DesignerCommonIssueProviderTest {
 
@@ -43,15 +40,16 @@ class DesignerCommonIssueProviderTest {
     val provider =
       DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
 
-    val listener = mock(Runnable::class.java)
+    var count = 0
+    val listener: () -> Unit = { count++ }
     provider.registerUpdateListener(listener)
 
     val source = Any()
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
-    verify(listener).run()
+    assertEquals(1, count)
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
-    verify(listener, times(2)).run()
+    assertEquals(2, count)
   }
 
   @Test

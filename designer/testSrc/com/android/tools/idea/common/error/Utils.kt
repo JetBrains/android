@@ -57,7 +57,9 @@ internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) 
 
   override fun getFilteredIssues(): List<Issue> = issues.filter(viewOptionFilter)
 
-  override fun registerUpdateListener(listener: Runnable) = Unit
+  override fun registerUpdateListener(listener: () -> Unit) = Unit
+
+  override fun removeUpdateListener(listener: () -> Unit) = Unit
 
   override fun dispose() = Unit
 }
