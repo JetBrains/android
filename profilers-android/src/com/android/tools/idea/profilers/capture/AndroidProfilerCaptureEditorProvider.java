@@ -41,7 +41,7 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
     FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(file);
 
     // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-    if (Registry.is("profiler.trace.open.mode.web", false)) {
+    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
       var nioFile = file.toNioPath().toFile();
       var traceType = CpuCaptureParserUtil.getFileTraceType(nioFile, TraceType.UNSPECIFIED);
       if (traceType == TraceType.PERFETTO) {

@@ -41,6 +41,8 @@ private const val traceFilePath = "traceFile" // we only serve one file at a tim
  * See [https://github.com/google/perfetto/blob/49ef5c5916fc1304549b681a1129a7a85c82db9f/tools/open_trace_in_ui] for more information.
  */
 object PerfettoTraceWebLoader {
+  const val FEATURE_REGISTRY_KEY = "profiler.trace.open.mode.web" // determines whether the feature is enabled via Registry.is(<this key>)
+
   private var server: HttpServer? = null
   fun loadTrace(traceFile: File) {
     server?.stop() // TODO(297379481): close the server automatically once it fully serves one request

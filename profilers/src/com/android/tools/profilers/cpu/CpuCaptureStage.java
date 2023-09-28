@@ -233,7 +233,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     }
 
     // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-    if (Registry.is("profiler.trace.open.mode.web", false)) {
+    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
       var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
       if (traceType == TraceType.PERFETTO) {
         PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile);

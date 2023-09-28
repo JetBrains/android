@@ -34,6 +34,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TraceConfigOptionsUtils;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
+import com.android.tools.profilers.cpu.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.transporteventutils.TransportUtils;
@@ -80,7 +81,7 @@ public class CpuProfiler implements StudioProfiler {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
         }
-        else if (captureStage == null && Registry.is("profiler.trace.open.mode.web", false)) {
+        else if (captureStage == null && Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
           // special case when [PerfettoTraceWebLoader] had intercepted [captureStage] creation and opened the trace in the browser
           // TODO(297379481): add verification that the trace was successfully loaded by [PerfettoTraceWebLoader]
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(new NullMonitorStage(profilers)));
