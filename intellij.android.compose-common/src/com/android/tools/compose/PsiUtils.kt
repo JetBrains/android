@@ -99,6 +99,6 @@ private fun KtAnnotationEntry.isDeprecatedAnnotation() =
   shortName?.identifier == DEPRECATED_ANNOTATION_NAME && fqNameMatches(DEPRECATED_FQ_NAMES)
 
 fun PsiElement.isInsideComposableCode(): Boolean {
-  // TODO: also handle composable lambdas.
+  // TODO(b/268536237): also handle composable lambdas.
   return language == KotlinLanguage.INSTANCE && parentOfType<KtNamedFunction>()?.isComposableFunction() == true
 }
