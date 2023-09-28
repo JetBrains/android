@@ -2698,7 +2698,6 @@ android-studio/plugins/design-tools/resources/layoutlib/data/icu/icudt72l.dat
 android-studio/plugins/design-tools/resources/layoutlib/data/keyboards/Generic.kcm
 android-studio/plugins/design-tools/resources/layoutlib/data/layoutlib-extensions.jar
 android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libandroid_runtime.so
-android-studio/plugins/design-tools/resources/layoutlib/data/linux/lib64/libc++.so
 android-studio/plugins/dev/lib/dev.jar
 android-studio/plugins/devkit/lib/devkit-jps.jar
 android-studio/plugins/devkit/lib/devkit-runtimeModuleRepository-jps.jar
