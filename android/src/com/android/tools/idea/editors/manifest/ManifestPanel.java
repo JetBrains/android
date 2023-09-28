@@ -18,6 +18,7 @@ package com.android.tools.idea.editors.manifest;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplayName;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+import static com.android.utils.SdkUtils.parseDecoratedFileUrlString;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.SdkConstants;
@@ -41,15 +42,16 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
-import com.android.tools.idea.rendering.StudioHtmlLinkManager;
-import com.android.tools.rendering.HtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
+import com.android.utils.SdkUtils;
+import com.android.utils.SdkUtils.FileLineColumnUrlData;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.browsers.BrowserLauncher;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -99,6 +101,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -130,6 +133,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -174,7 +178,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private boolean myManifestEditable;
   private final List<ManifestFileWithMetadata> myFiles = new ArrayList<>();
   private final List<ManifestFileWithMetadata> myOtherFiles = new ArrayList<>();
-  private final StudioHtmlLinkManager myHtmlLinkManager = new StudioHtmlLinkManager();
+  private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
   private Map<PathString, ExternalAndroidLibrary> myLibrariesByManifestDir;
@@ -230,7 +234,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HyperlinkListener hyperLinkListener = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         String url = e.getDescription();
-        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, false, HtmlLinkManager.NOOP_SURFACE);
+        myHtmlLinkManager.handleUrl(url, facet.getModule(), null);
       }
     };
     details.addHyperlinkListener(hyperLinkListener);
@@ -1061,13 +1065,13 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     if (manifestFile instanceof InjectedBuildDotGradleFile injectedFile) {
       if (injectedFile.getFile() != null) {
         sb.addHtml("<a href=\"");
-        sb.add(injectedFile.getFile() .toURI().toString());
+        sb.add(injectedFile.getFile().toURI().toString());
         sb.addHtml("\">");
-        sb.add(injectedFile.getFile() .getName());
+        sb.add(injectedFile.getFile().getName());
         sb.addHtml("</a>");
         sb.add(" injection");
       } else {
-        sb.add("build.gradle injection (source location unknown)");
+        sb.add("Injection from Gradle build file (source location unknown)");
       }
       return;
     }
@@ -1322,6 +1326,46 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     @Override
     public Color getFileColorFor(Object object) {
       return object == null? null : getNodeColor((Node)object);
+    }
+  }
+
+  @VisibleForTesting
+  public static class HtmlLinkManager {
+    ArrayList<Runnable> runnables = new ArrayList<>(5);
+
+    private static final String URL_SCHEME_RUNNABLE = "runnable:";
+
+    public void handleUrl(@NotNull String url, @NotNull Module module, @Nullable PsiFile file) {
+      if (url.startsWith("http:") || url.startsWith("https:")) {
+        BrowserLauncher.getInstance().browse(url, null, module.getProject());
+      }
+      else if (url.startsWith("file:")) {
+        Project project = module.getProject();
+        FileLineColumnUrlData data = parseDecoratedFileUrlString(url);
+        int line = data.line == null ? -1 : data.line;
+        int column = data.column == null ? 0 : data.column;
+        try {
+          File ioFile = SdkUtils.urlToFile(data.urlString);
+          VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
+          if (virtualFile != null) {
+            OpenFileDescriptor descriptor = new OpenFileDescriptor(project, virtualFile, line, column);
+            FileEditorManager manager = FileEditorManager.getInstance(project);
+            manager.openTextEditor(descriptor, true);
+          }
+        }
+        catch (MalformedURLException e) { // Ignore
+        }
+      }
+      else if (url.startsWith(URL_SCHEME_RUNNABLE)) {
+        String idString = url.substring(URL_SCHEME_RUNNABLE.length());
+        int id = Integer.decode(idString);
+        runnables.get(id).run();
+      }
+    }
+
+    public String createRunnableLink(Runnable runnable) {
+      runnables.add(runnable);
+      return URL_SCHEME_RUNNABLE + (runnables.size() - 1);
     }
   }
 }
