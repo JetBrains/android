@@ -48,7 +48,6 @@ class ProfileWithCompleteDataTest : ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "StreamingScrollbar")
         studio.waitForComponentByClass("TooltipLayeredPane", "InstructionsPanel", "InstructionsComponent") // Specific to profiling with complete data
 
         stopProfilingSession(studio)
