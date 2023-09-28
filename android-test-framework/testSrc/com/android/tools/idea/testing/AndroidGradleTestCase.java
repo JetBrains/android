@@ -294,7 +294,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
       @Override
       public void run() {
         // TODO: [VD] a dirty hack to reindex created android project
-        IndexingFlag.cleanupProcessedFlag();
+        IndexingFlag.cleanupProcessedFlag("com.android.tools.idea.testing.AndroidGradleTestCase.prepareProjectForTest");
         DumbService dumbService = DumbService.getInstance(project);
         new UnindexedFilesScanner(project).queue();
         dumbService.completeJustSubmittedTasks();
