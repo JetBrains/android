@@ -24,36 +24,52 @@ import com.android.tools.idea.avdmanager.DeviceSkinUpdaterService;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.Streams;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Collects the platform skins, the system image skins, and the rest; and wraps them in {@link Skin} instances
  */
-final class Collector {
+public final class Collector {
   @NotNull
-  private final AndroidSdkHandler myHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-
-  private final ProgressIndicator myIndicator = new StudioLoggerProgressIndicator(Collector.class);
+  private final AndroidSdkHandler myHandler;
 
   @NotNull
-  Collection<Skin> collect() {
+  private final ProgressIndicator myIndicator;
+
+  /**
+   * Injected behavior that differs between the virtual device creation/editing and hardware profile creation flows. The skins are run
+   * through {@link DeviceSkinUpdater#updateSkins(Path)} in the first case and {@link Path#getFileName} in the second.
+   */
+  @NotNull
+  private final UnaryOperator<Path> myMap;
+
+  public Collector(@NotNull UnaryOperator<Path> map) {
+    myHandler = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    myIndicator = new StudioLoggerProgressIndicator(Collector.class);
+    myMap = map;
+  }
+
+  @NotNull
+  public Collection<Skin> collect() {
     return Streams.concat(platformSkins(), skins(), systemImageSkins()).toList();
   }
 
   @NotNull
   private Stream<Skin> platformSkins() {
-    return myHandler.getAndroidTargetManager(myIndicator).getTargets(myIndicator).stream().flatMap(Collector::platformSkins);
+    return myHandler.getAndroidTargetManager(myIndicator).getTargets(myIndicator).stream().flatMap(this::platformSkins);
   }
 
   @NotNull
-  private static Stream<Skin> platformSkins(@NotNull IAndroidTarget platform) {
+  private Stream<Skin> platformSkins(@NotNull IAndroidTarget platform) {
     var version = platform.getVersion();
 
     return Arrays.stream(platform.getSkins())
-      .map(DeviceSkinUpdater::updateSkins)
+      .map(myMap)
       .map(path -> new PlatformSkin(path, version));
   }
 
@@ -64,16 +80,16 @@ final class Collector {
 
   @NotNull
   private Stream<Skin> systemImageSkins() {
-    return myHandler.getSystemImageManager(myIndicator).getImages().stream().flatMap(Collector::systemImageSkins);
+    return myHandler.getSystemImageManager(myIndicator).getImages().stream().flatMap(this::systemImageSkins);
   }
 
   @NotNull
-  private static Stream<Skin> systemImageSkins(@NotNull ISystemImage image) {
+  private Stream<Skin> systemImageSkins(@NotNull ISystemImage image) {
     var version = image.getAndroidVersion();
     var abi = image.getAbiType();
 
     return Arrays.stream(image.getSkins())
-      .map(DeviceSkinUpdater::updateSkins)
+      .map(myMap)
       .map(path -> new SystemImageSkin(path, version, abi));
   }
 }
