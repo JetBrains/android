@@ -52,7 +52,7 @@ class MergedManifestSnapshot internal constructor(
   val isRtlSupported: Boolean,
   val applicationDebuggable: Boolean?,
   val document: Document?,
-  val manifestFiles: List<VirtualFile>?,
+  val manifestFiles: List<VirtualFile>,
   val permissionHolder: ImmutablePermissionHolder,
   val applicationHasCode: Boolean,
   val activities: List<Element>,

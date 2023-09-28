@@ -322,7 +322,7 @@ public final class InstantAppUrlFinder {
 
     private AttributesResolver(@NotNull Module module) {
       List<VirtualFile> manifestFiles = MergedManifestManager.getSnapshot(module).getManifestFiles();
-      myResourceResolver = manifestFiles == null || manifestFiles.isEmpty()
+      myResourceResolver = manifestFiles.isEmpty()
                            ? null
                            : ConfigurationManager.getOrCreateInstance(module).getConfiguration(manifestFiles.get(0)).getResourceResolver();
     }
