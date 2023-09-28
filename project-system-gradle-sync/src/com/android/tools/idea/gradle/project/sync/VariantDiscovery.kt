@@ -220,8 +220,7 @@ internal class VariantDiscovery(
             unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
             ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
             ideVariant.testFixturesArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
-            // TODO(karimai):add support for screenshotTest dependencies.
-            ideVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+            ideVariant.hostTestArtifacts.forEach { unresolvedDependencies.addAll(it.unresolvedDependencies) }
             return unresolvedDependencies
           }
 

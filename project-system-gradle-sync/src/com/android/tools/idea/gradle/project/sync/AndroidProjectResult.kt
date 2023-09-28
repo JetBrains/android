@@ -55,7 +55,14 @@ sealed class AndroidProjectResult {
     val skipRuntimeClasspathForLibraries: Boolean,
     val useNewDependencyGraphModel: Boolean,
   ) : AndroidProjectResult() {
-    override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants, skipRuntimeClasspathForLibraries, useNewDependencyGraphModel)
+    override fun createVariantFetcher(): IdeVariantFetcher =
+      v2VariantFetcher(
+        modelCache,
+        modelVersions,
+        v2Variants,
+        skipRuntimeClasspathForLibraries,
+        useNewDependencyGraphModel
+      )
   }
 
   companion object {
@@ -201,6 +208,7 @@ private fun v1VariantFetcher(modelCache: ModelCache.V1, legacyAndroidGradlePlugi
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
 private fun v2VariantFetcher(
   modelCache: ModelCache.V2,
+  modelVersions: ModelVersions,
   v2Variants: List<IdeVariantCoreImpl>,
   skipRuntimeClasspathForLibraries: Boolean,
   useNewDependencyGraphModel: Boolean
@@ -218,6 +226,7 @@ private fun v2VariantFetcher(
     // Request VariantDependencies model for the variant's dependencies.
     val variantDependencies = controller.findVariantDependenciesV2Model(
       module.gradleProject,
+      modelVersions,
       configuration.variant,
       useNewDependencyGraphModel,
       getClasspathConfigForProject(skipRuntimeClasspathForLibraries, module.projectType, configuration.isRoot)

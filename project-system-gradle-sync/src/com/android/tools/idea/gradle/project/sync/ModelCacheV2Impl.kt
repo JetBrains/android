@@ -58,6 +58,7 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toPrintableName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
@@ -864,13 +865,14 @@ internal fun modelCacheV2Impl(
     buildId: BuildId,
     projectPath: String,
     artifact: IdeJavaArtifactCoreImpl,
-    variantDependencies: ArtifactDependenciesCompat,
+    variantDependencies: ArtifactDependenciesCompat?,
     libraries: Map<String, Library>,
     bootClasspath: Collection<String>,
     androidProjectPathResolver: AndroidProjectPathResolver,
     buildPathMap: Map<String, BuildId>,
     artifactName: IdeModuleWellKnownSourceSet,
-  ): ModelResult<IdeModelWithPostProcessor<IdeJavaArtifactCoreImpl>> {
+  ): ModelResult<IdeModelWithPostProcessor<IdeJavaArtifactCoreImpl>>? {
+    if (variantDependencies == null) return null
     return ModelResult.create {
       val compileClasspathCore = dependenciesFrom(
         ClasspathIdentifier(buildId, projectPath, artifactName, ClasspathType.COMPILE),
@@ -1059,18 +1061,18 @@ internal fun modelCacheV2Impl(
         }
 
       val hostTestArtifacts =
-        variant.hostTestArtifacts.map {
+        variant.hostTestArtifacts.mapNotNull {
            javaArtifactFrom(
-            buildId = ownerBuildId,
-            projectPath = ownerProjectPath,
-            artifact = it,
-            variantDependencies = variantDependencies.unitTestArtifact!!,  // TODO(karimai): replace with each artifact dependencies
-            libraries = variantDependencies.libraries,
-            bootClasspath = bootClasspath,
-            androidProjectPathResolver = androidProjectPathResolver,
-            buildPathMap = buildPathMap,
-            artifactName = it.name.toWellKnownSourceSet(),
-          ).recordAndGet()
+             buildId = ownerBuildId,
+             projectPath = ownerProjectPath,
+             artifact = it,
+             variantDependencies = variantDependencies.hostTestArtifacts[it.name],
+             libraries = variantDependencies.libraries,
+             bootClasspath = bootClasspath,
+             androidProjectPathResolver = androidProjectPathResolver,
+             buildPathMap = buildPathMap,
+             artifactName = it.name.toWellKnownSourceSet(),
+          )?.recordAndGet()
         }
 
       val deviceTestArtifacts =
@@ -1079,7 +1081,8 @@ internal fun modelCacheV2Impl(
             ownerBuildId = ownerBuildId,
             ownerProjectPath = ownerProjectPath,
             artifact = it,
-            artifactDependencies = variantDependencies.androidTestArtifact!!,    // TODO(karimai): replace with each artifact dependencies
+            artifactDependencies = variantDependencies.deviceTestArtifacts[it.name] ?:
+            error("Missing Artifact dependencies for ${it.name.toPrintableName()} artifact."),
             libraries = variantDependencies.libraries,
             bootClasspath = bootClasspath,
             androidProjectPathResolver = androidProjectPathResolver,

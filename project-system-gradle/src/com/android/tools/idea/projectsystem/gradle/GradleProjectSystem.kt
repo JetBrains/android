@@ -401,7 +401,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     return all.getValue(this)
   }
 
-  fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
+  fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,
@@ -426,7 +426,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     )
   }
 
-  fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
+  fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,
@@ -463,12 +463,16 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
       multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
     }.orEmpty(),
-    generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
+    generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(ScopeType.MAIN),
     generatedHostTestSources =
-    model.selectedVariant.hostTestArtifacts.associate { it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider() },
+    model.selectedVariant.hostTestArtifacts.associate {
+      it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+                                                      },
     generatedDeviceTestSources =
-    model.selectedVariant.deviceTestArtifacts.associate { it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider() },
-    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider()
+    model.selectedVariant.deviceTestArtifacts.associate {
+      it.name.toSourceProviderNames() to it.toGeneratedIdeaSourceProvider(it.name.toKnownScopeType())
+                                                        },
+    generatedTestFixturesSources = model.selectedVariant.testFixturesArtifact?.toGeneratedIdeaSourceProvider(ScopeType.TEST_FIXTURES)
       ?: emptySourceProvider(ScopeType.TEST_FIXTURES)
   )
 }
@@ -515,6 +519,15 @@ private fun IdeArtifactName.toSourceProviderNames(): TestComponentType {
     else -> error("Unknown testArtifact name $this")
   }
 }
+
+private fun IdeArtifactName.toKnownScopeType() =
+  when (this) {
+    IdeArtifactName.MAIN -> ScopeType.MAIN
+    IdeArtifactName.UNIT_TEST -> ScopeType.UNIT_TEST
+    IdeArtifactName.SCREENSHOT_TEST -> ScopeType.SCREENSHOT_TEST
+    IdeArtifactName.ANDROID_TEST -> ScopeType.ANDROID_TEST
+    IdeArtifactName.TEST_FIXTURES -> ScopeType.TEST_FIXTURES
+  }
 
 /**
  * An [ApplicationProjectContextProvider] for the Gradle project system.
