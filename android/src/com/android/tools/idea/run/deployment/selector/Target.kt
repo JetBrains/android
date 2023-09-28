@@ -13,49 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.intellij.openapi.project.Project;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.intellij.openapi.project.Project
 
 /**
- * A deployment target for an app. A user actually selects these (and not devices) with the drop down or Select Multiple Devices dialog. The
- * subclasses for virtual devices boot them differently.
+ * A deployment target for an app. A user actually selects these (and not devices) with the drop
+ * down or Select Multiple Devices dialog. The subclasses for virtual devices boot them differently.
  */
-abstract class Target {
-  private final @NotNull DeviceId myDeviceKey;
-
-  Target(@NotNull DeviceId deviceKey) {
-    myDeviceKey = deviceKey;
-  }
-
-  static @NotNull List<Device> filterDevices(@NotNull Set<Target> targets, @NotNull List<Device> devices) {
-    Set<DeviceId> keys = targets.stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
-    return devices.stream()
-      .filter(device -> keys.contains(device.getKey()))
-      .collect(Collectors.toList());
-  }
-
-  final @NotNull DeviceId getDeviceKey() {
-    return myDeviceKey;
-  }
-
-  boolean matches(@NotNull Device device) {
-    return device.getKey().equals(myDeviceKey);
+internal abstract class Target(val deviceKey: DeviceId, val templateKey: DeviceId?) {
+  fun matches(device: Device): Boolean {
+    return device.key == deviceKey
   }
 
   /**
-   * @return the text for this target. It's used for the items in a virtual device's submenu and in the drop down button when a user selects
-   * a target.
+   * @return the text for this target. It's used for the items in a virtual device's submenu and in
+   *   the drop down button when a user selects a target.
    */
-  abstract @NotNull String getText(@NotNull Device device);
+  abstract fun getText(device: Device): String
 
-  abstract void boot(@NotNull Device device, @NotNull Project project);
+  abstract fun boot(device: Device, project: Project)
+
+  companion object {
+    @JvmStatic
+    fun filterDevices(targets: Collection<Target>, devices: List<Device>): List<Device> {
+      val keys = targets.map { it.deviceKey }.toSet()
+      return devices.filter { it.key in keys }
+    }
+  }
 }
