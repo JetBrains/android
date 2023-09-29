@@ -15,6 +15,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
@@ -25,7 +26,9 @@ import com.intellij.refactoring.RefactoringBundle
 import com.intellij.refactoring.migration.MigrationUtil
 import org.jetbrains.android.dom.resources.Style
 import org.jetbrains.android.refactoring.errorreporter.ErrorReporter
+import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.annotations.Nls
 import javax.swing.JCheckBox
 
 val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
@@ -105,26 +108,20 @@ private const val RESULT_MIGRATE_WITH_BACKUP = 0
 private const val RESULT_MIGRATE = 1
 private const val RESULT_CANCEL = 2
 
-private const val ACTION_WARNING_TEXT = """
-Before proceeding, we recommend that you make a backup of your project.
-
-Depending on your project dependencies, you might need to manually fix
-some errors after the refactoring in order to successfully compile your project.
-
-Do you want to proceed with the migration?
-"""
+@Nls
+private val ACTION_WARNING_TEXT = AndroidBundle.message("androidx.migrate.dialog.warning.before.migration")
 
 /**
  * Shows a dialog offering to create a zip file with the project contents.
  *
  * Depending on the user action choice it then may run refactoring, optionally invoking [ExportProjectZip] first.
  */
-fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: () -> Unit) {
+fun offerToCreateBackupAndRun(project: Project, @NlsContexts.DialogTitle title: String, runRefactoring: () -> Unit) {
   val okCancelResult = Messages.showCheckboxMessageDialog(
     ACTION_WARNING_TEXT.trim(),
     title,
-    arrayOf("Migrate", "Cancel"),
-    "Backup project as Zip file",
+    arrayOf(AndroidBundle.message("androidx.migrate.dialog.migrate"), AndroidBundle.message("androidx.migrate.dialog.cancel")),
+    AndroidBundle.message("androidx.migrate.dialog.checkbox.backup.project.zip"),
     true,
     0, 0,
     Messages.getWarningIcon()

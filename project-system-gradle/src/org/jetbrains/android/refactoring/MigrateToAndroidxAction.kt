@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
+import com.android.tools.idea.AndroidGradleBundle
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
@@ -91,7 +92,7 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
     }
 
     if (showWarningDialog) {
-      offerToCreateBackupAndRun(project, "Migrate to AndroidX", runProcessor)
+      offerToCreateBackupAndRun(project, AndroidGradleBundle.message("androidx.migrate.dialog.title"), runProcessor)
     }
     else {
       runProcessor()
