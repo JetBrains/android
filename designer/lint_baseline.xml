@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.3.0-dev">
+<issues format="5" by="lint 8.2.0-dev">
 
     <issue
         id="DefaultLocale"
@@ -30,7 +30,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
-            line="302"/>
+            line="304"/>
     </issue>
 
     <issue
@@ -38,7 +38,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/common/scene/target/CommonDragTarget.kt"
-            line="303"/>
+            line="305"/>
     </issue>
 
     <issue
@@ -118,7 +118,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationToolWindowFactory.kt"
-            line="173"/>
+            line="171"/>
     </issue>
 
     <issue
@@ -398,7 +398,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="282"/>
+            line="277"/>
     </issue>
 
     <issue
@@ -406,7 +406,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="283"/>
+            line="278"/>
     </issue>
 
     <issue
@@ -414,15 +414,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
-            line="284"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This class should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/common/analytics/CommonUsageTracker.kt"
-            line="84"/>
+            line="279"/>
     </issue>
 
     <issue
@@ -430,7 +422,7 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="108"/>
+            line="109"/>
     </issue>
 
     <issue
@@ -438,7 +430,7 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="108"/>
+            line="109"/>
     </issue>
 
     <issue
@@ -446,7 +438,7 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="111"/>
+            line="112"/>
     </issue>
 
     <issue
@@ -454,7 +446,7 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/uibuilder/editor/DesignFilesPreviewEditor.kt"
-            line="111"/>
+            line="112"/>
     </issue>
 
     <issue
@@ -462,7 +454,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
-            line="39"/>
+            line="40"/>
     </issue>
 
     <issue
@@ -470,7 +462,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/common/surface/notifications/DesignSurfaceNotificationProvider.kt"
-            line="39"/>
+            line="40"/>
     </issue>
 
     <issue
@@ -534,7 +526,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/surface/NlDesignSurface.java"
-            line="725"/>
+            line="724"/>
     </issue>
 
     <issue
@@ -558,7 +550,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="580"/>
+            line="613"/>
     </issue>
 
     <issue
@@ -566,7 +558,7 @@
         message="This method should only be accessed from tests or within protected scope">
         <location
             file="src/com/android/tools/idea/uibuilder/visual/VisualizationForm.kt"
-            line="580"/>
+            line="613"/>
     </issue>
 
     <issue
