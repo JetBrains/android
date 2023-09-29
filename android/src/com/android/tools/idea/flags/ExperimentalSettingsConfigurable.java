@@ -19,8 +19,8 @@ import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.Trac
 import static com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem.SPECIFIED_LOCATION;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.compose.ComposeExperimentalConfiguration;
-import com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.sync.idea.TraceSyncUtil;
 import com.android.tools.idea.rendering.RenderSettings;
@@ -28,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
-import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
@@ -88,8 +87,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
-    qualityLabels.put(0, new JLabel("Fastest"));
-    qualityLabels.put(100, new JLabel("Slowest"));
+    qualityLabels.put(0, new JLabel(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.slider.quality.setting.fastest")));
+    qualityLabels.put(100, new JLabel(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.slider.quality.setting.slowest")));
     myLayoutEditorQualitySlider.setLabelTable(qualityLabels);
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
@@ -109,7 +108,9 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @Override
   @Nls
   public String getDisplayName() {
-    return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name");
+    return IdeInfo.getInstance().isAndroidStudio()
+           ? AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name.studio")
+           : AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name.plugin");
   }
 
   @Override
@@ -235,12 +236,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     myTraceProfileComboBox.addActionListener(e -> {
       myTraceProfilePathField.setEnabled(SPECIFIED_LOCATION.equals(myTraceProfileComboBox.getSelectedItem()));
       if (isTraceProfileInvalid()) {
-        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING, "Invalid profile location");
+        ExternalSystemUiUtil.showBalloon(myTraceProfilePathField, MessageType.WARNING,
+                                         AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.error.invalid.profile.location"));
       }
     });
 
-    myTraceProfilePathField.addBrowseFolderListener("Trace Profile", "Please select trace profile",
-                                                    null, createSingleFileDescriptor("profile"));
+    myTraceProfilePathField.addBrowseFolderListener(
+      AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.dialog.title.trace"),
+      AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.label.select.trace.profile"),
+      null, createSingleFileDescriptor("profile"));
     myTraceProfileComboBox.addItem(DEFAULT);
     myTraceProfileComboBox.addItem(SPECIFIED_LOCATION);
   }
@@ -275,12 +279,14 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
         !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation())) {
       // Restart of studio is required to apply the changes, because the jvm args are specified at startup of studio.
       boolean canRestart = app.isRestartCapable();
-      String okText = canRestart ? "Restart" : "Exit";
-      String message = "A restart of " +
-                       ApplicationNamesInfo.getInstance().getFullProductName() +
-                       " is required to apply changes related to tracing.\n\n" +
-                       "Do you want to proceed?";
-      int result = Messages.showOkCancelDialog(message, "Restart", okText, "Cancel", Messages.getQuestionIcon());
+      String okText = canRestart ? AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.restart")
+                                 : AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.exit");
+      String message = AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.dialog.trace.restart.required",
+                                             ApplicationNamesInfo.getInstance().getFullProductName());
+      int result = Messages.showOkCancelDialog(message,
+                                               AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.restart"), okText,
+                                               AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.cancel"),
+                                               Messages.getQuestionIcon());
 
       if (result == Messages.OK) {
         saveTraceSettings();
@@ -323,12 +329,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   }
 
   public enum TraceProfileItem {
-    DEFAULT("Default profile"),
-    SPECIFIED_LOCATION("Specified location");
+    DEFAULT(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.combobox.trace.default")),
+    SPECIFIED_LOCATION(AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.combobox.trace.specified"));
 
+    @Nls
     private final String displayValue;
 
-    TraceProfileItem(@NotNull String value) {
+    TraceProfileItem(@Nls @NotNull String value) {
       displayValue = value;
     }
 

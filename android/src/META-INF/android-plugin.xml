@@ -313,10 +313,12 @@
     <projectService serviceImplementation="com.android.tools.idea.testartifacts.instrumented.testsuite.view.state.AndroidTestResultsUserPreferences"/>
     <projectConfigurable provider="com.android.tools.idea.flags.StudioExperimentalConfigurableProvider"
                          id ="experimental"
-                         key="configurable.ExperimentalSettingsConfigurable.display.name"
+                         key="configurable.ExperimentalSettingsConfigurable.display.name.studio"
                          groupId="root" groupWeight="-999"/>
     <projectConfigurable provider="com.android.tools.idea.flags.PluginExperimentalConfigurableProvider"
-                         id ="experimentalPlugin" displayName="Android (Experimental)" groupId="language"/>
+                         id="experimentalPlugin"
+                         key="configurable.ExperimentalSettingsConfigurable.display.name.plugin"
+                         groupId="language"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.GradleExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.StudioSettingsController"/>
 
