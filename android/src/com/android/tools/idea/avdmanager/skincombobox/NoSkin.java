@@ -19,8 +19,8 @@ import com.android.tools.idea.avdmanager.SkinUtils;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-final class NoSkin implements Skin {
-  static final Skin INSTANCE = new NoSkin();
+public final class NoSkin implements Skin {
+  public static final Skin INSTANCE = new NoSkin();
 
   private NoSkin() {
   }

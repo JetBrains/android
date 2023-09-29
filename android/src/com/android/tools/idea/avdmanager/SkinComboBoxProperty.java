@@ -15,24 +15,28 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import com.android.tools.idea.avdmanager.skincombobox.NoSkin;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import java.io.File;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
-final class CustomSkinDefinition extends OptionalProperty<File> {
+final class SkinComboBoxProperty extends OptionalProperty<File> {
   @NotNull
   private final SkinComboBox myComboBox;
 
-  CustomSkinDefinition(@NotNull SkinComboBox comboBox) {
+  SkinComboBoxProperty(@NotNull SkinComboBox comboBox) {
     comboBox.addActionListener(event -> notifyInvalidated());
     myComboBox = comboBox;
   }
 
   @Override
   protected void setDirectly(@NotNull Optional<File> file) {
-    var skin = myComboBox.getSkin(file.orElseThrow().toPath());
+    var skin = file
+      .map(File::toPath)
+      .map(myComboBox::getSkin)
+      .orElse(NoSkin.INSTANCE);
 
     myComboBox.addItem(skin);
     myComboBox.setSelectedItem(skin);

@@ -957,7 +957,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myFastBootRadioButton), getModel().useFastBoot());
     myBindings.bindTwoWay(new SelectedProperty(myChooseBootRadioButton), getModel().useChosenSnapshotBoot());
 
-    myBindings.bindTwoWay(new CustomSkinDefinition(mySkinComboBox), getModel().getAvdDeviceData().customSkinFile());
+    myBindings.bindTwoWay(new SkinComboBoxProperty(mySkinComboBox), getModel().getAvdDeviceData().customSkinFile());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myChosenSnapshotComboBox), getModel().getAvdDeviceData().selectedSnapshotFile());
     myOrientationToggle.addListSelectionListener(event -> {
       var orientation = Objects.requireNonNullElse(myOrientationToggle.getSelectedElement(), ScreenOrientation.PORTRAIT);
