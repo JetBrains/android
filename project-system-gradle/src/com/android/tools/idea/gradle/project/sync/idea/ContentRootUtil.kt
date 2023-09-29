@@ -78,13 +78,13 @@ fun DataNode<ModuleData>.setupAndroidContentEntriesPerSourceSet(androidModel: Gr
   }
 
   val sourceSetContentRoots =
-    populateContentEntries(variant.mainArtifact,  androidModel.activeSourceProviders) +
-    populateContentEntries(
-      variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }, androidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) +
-    populateContentEntries(
-      variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }, androidModel.getTestSourceProviders(IdeArtifactName.ANDROID_TEST)) +
-    populateContentEntries(variant.testFixturesArtifact, androidModel.testFixturesSourceProviders)
-    // TODO(karimai): add screenshot test source provider
+    mutableSetOf(populateContentEntries (variant.mainArtifact,  androidModel.activeSourceProviders)).apply {
+      variant.hostTestArtifacts.forEach { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
+      variant.deviceTestArtifacts
+        .find { it.name == IdeArtifactName.ANDROID_TEST }
+        ?.let { add(populateContentEntries(it, androidModel.getTestSourceProviders(it.name))) }
+      add(populateContentEntries(variant.testFixturesArtifact, androidModel.testFixturesSourceProviders))
+    }.flatten()
 
   val holderModuleRoots = findAll(ProjectKeys.CONTENT_ROOT)
 

@@ -30,6 +30,7 @@ import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.util.containers.addIfNotNull
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
@@ -349,11 +350,12 @@ private fun ModuleAndMode.getTasksBy(
 ): ModuleTasks {
   val tasks: Set<String> = androidModel?.selectedVariant?.let { variant ->
     val artifacts =
-      listOfNotNull(
-        variant.mainArtifact.takeUnless { implicitMain && (testCompileMode.compileAndroidTests || testCompileMode.compileUnitTests) },
-        // TODO(karimai): We need to also consider providing ScreenshotTest tasks when we support ST modules.
-        variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { testCompileMode.compileUnitTests },
-        variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { testCompileMode.compileAndroidTests })
+      mutableListOf<IdeBaseArtifact>().apply {
+        addIfNotNull(variant.mainArtifact.takeUnless { implicitMain && (testCompileMode.compileAndroidTests || testCompileMode.compileUnitTests) })
+        // TODO(karimai): Add support ofr Screenshot testCompileType.
+        addIfNotNull(variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }.takeIf { testCompileMode.compileUnitTests })
+        addIfNotNull(variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }.takeIf { testCompileMode.compileAndroidTests })
+      }
       artifacts.flatMap { by.invoke(it) }.toSet()
   }.orEmpty()
   return ModuleTasks(module, tasks.takeIf { isClean }.orEmpty(), tasks.takeUnless { isClean }.orEmpty())

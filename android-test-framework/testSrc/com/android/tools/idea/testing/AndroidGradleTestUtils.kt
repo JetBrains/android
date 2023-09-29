@@ -343,7 +343,6 @@ interface AndroidProjectStubBuilder {
   val mainSourceProvider: IdeSourceProviderImpl
   val androidTestSourceProviderContainer: IdeExtraSourceProviderImpl?
   val unitTestSourceProviderContainer: IdeExtraSourceProviderImpl?
-  val screenshotTestSouceProviderContainer: IdeExtraSourceProviderImpl?
   val debugSourceProvider: IdeSourceProviderImpl?
   val androidTestDebugSourceProvider: IdeSourceProviderImpl?
   val testDebugSourceProvider: IdeSourceProviderImpl?
@@ -433,7 +432,7 @@ data class AndroidProjectBuilder(
   val deviceTestArtifactsStub: AndroidProjectStubBuilder.(variant: String, applicationId: String?) -> List<IdeAndroidArtifactCoreImpl> =
     { variant, applicationId -> listOf(buildAndroidTestArtifactStub(variant, applicationId)) },
   val hostTestArtifactsStub: AndroidProjectStubBuilder.(variant: String) -> List<IdeJavaArtifactCoreImpl> =
-    { variant -> listOf(buildUnitTestArtifactStub(variant), buildScreenshotTestArtifactStub(variant)) },
+    { variant -> listOf(buildUnitTestArtifactStub(variant)) },
   val testFixturesArtifactStub: AndroidProjectStubBuilder.(variant: String) -> IdeAndroidArtifactCoreImpl? =
     { variant -> null },
   val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
@@ -573,7 +572,6 @@ data class AndroidProjectBuilder(
         override val mainSourceProvider: IdeSourceProviderImpl get() = mainSourceProvider()
         override val androidTestSourceProviderContainer: IdeExtraSourceProviderImpl? get() = androidTestSourceProvider()
         override val unitTestSourceProviderContainer: IdeExtraSourceProviderImpl? get() = unitTestSourceProvider()
-        override val screenshotTestSouceProviderContainer: IdeExtraSourceProviderImpl? get() = screenshotTestSourceProvider()
         override val debugSourceProvider: IdeSourceProviderImpl? get() = debugSourceProvider()
         override val androidTestDebugSourceProvider: IdeSourceProviderImpl? get() = androidTestDebugSourceProvider()
         override val testDebugSourceProvider: IdeSourceProviderImpl? get() = testDebugSourceProvider()
@@ -767,7 +765,7 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContain
     isDefault = null
   ),
   sourceProvider = mainSourceProvider,
-  extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer, screenshotTestSouceProviderContainer)
+  extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer)
 )
 
 fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerImpl? =
@@ -1745,10 +1743,8 @@ private fun createAndroidModuleDataNode(
   val selectedVariant = gradleAndroidModel.selectedVariantCore
   selectedVariant.mainArtifact.setup()
   selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.setup()
-  selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.setup()
+  selectedVariant.hostTestArtifacts.forEach { it.setup() }
   selectedVariant.testFixturesArtifact?.setup()
-  // TODO(karimai): Add support for ScreenshotTest once the support for module is available.
-
   return moduleDataNode
 }
 

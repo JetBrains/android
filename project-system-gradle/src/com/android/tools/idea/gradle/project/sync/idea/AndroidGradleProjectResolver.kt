@@ -385,8 +385,10 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       if (testFixtures != null) {
         createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, testFixtures.name, prodModule)
       }
-
-      // TODO(karimai): add support for ScreenshotTest DataNode.
+      val screenshotTest: IdeBaseArtifactCore? = variant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
+      if (screenshotTest != null) {
+        createAndSetupGradleSourceSetDataNode(moduleNode, gradleModule, screenshotTest.name, prodModule)
+      }
 
       // Setup testData nodes for testing sources used by Gradle test runners.
       createAndSetupTestDataNode(moduleNode, androidModel)

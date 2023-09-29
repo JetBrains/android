@@ -35,9 +35,11 @@ data class LinkedAndroidModuleGroup(
   val main: Module,
   val unitTest: Module?,
   val androidTest: Module?,
-  val testFixtures: Module?
+  val testFixtures: Module?,
+  val screenshotTest: Module?
   ) {
-  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures)
+  fun getModules() = listOfNotNull(holder, main, unitTest, androidTest, testFixtures, screenshotTest)
   override fun toString(): String =
-    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}"
+    "holder=${holder.name}, main=${main.name}, unitTest=${unitTest?.name}, " +
+    "androidTest=${androidTest?.name}, testFixtures=${testFixtures?.name}, screenshotTest=${screenshotTest?.name}"
 }

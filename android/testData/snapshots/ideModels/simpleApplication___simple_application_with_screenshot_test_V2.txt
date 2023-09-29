@@ -2136,4 +2136,5 @@ MODULE                        : project.app
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
 MODULE                        : project.app.main
+MODULE                        : project.app.screenshotTest
 MODULE                        : project.app.unitTest

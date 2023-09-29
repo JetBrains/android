@@ -73,8 +73,7 @@ internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
 
   fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
     return (ideVariant.mainArtifact.compileClasspathCore.dependencies
-            + ideVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspathCore?.dependencies.orEmpty()
-            // TODO(karimai): add support for ScreenshotTest modules.
+            + ideVariant.hostTestArtifacts.map { it.compileClasspathCore.dependencies }.flatten()
             + ideVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspathCore?.dependencies.orEmpty()
             + ideVariant.testFixturesArtifact?.compileClasspathCore?.dependencies.orEmpty()
       )

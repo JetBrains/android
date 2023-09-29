@@ -405,7 +405,7 @@ enum class DependencyScopeType {
   UNIT_TEST,
   ANDROID_TEST,
   TEST_FIXTURES,
-  // TODO(karimai): add support for ScreenshotTest
+  // TODO(karimai): add support for ScreenshotTest dependencies
 }
 
 /**
@@ -467,11 +467,14 @@ fun Module.getUnitTestModule() : Module?  {
   return linkedGroup.unitTest
 }
 
-// TODO(karimai) : add utility for screenshot test.
-
 fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
 
-// TODO(karimai): add utility to check for screenshot test.
+fun Module.getScreenshotTestModule() : Module?  {
+  val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
+  return linkedGroup.screenshotTest
+}
+
+fun Module.isScreenshotTestModule() : Boolean = getScreenshotTestModule() == this
 
 fun Module.getAndroidTestModule() : Module? {
   val linkedGroup = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) ?: return this
@@ -489,7 +492,7 @@ fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
 
 /**
  * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest) or the
+ * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest) or the
  * holder module used as the parent of these source set modules.
  */
 fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null

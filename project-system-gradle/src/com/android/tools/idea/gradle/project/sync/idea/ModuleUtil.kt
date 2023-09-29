@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeArtifactName.Companion.toWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getModuleName
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
@@ -63,13 +64,14 @@ object ModuleUtil {
     var androidTestModule : Module? = null
     var testFixturesModule : Module? = null
     var mainModule : Module? = null
+    var screenshotTestModule: Module? = null
     ExternalSystemApiUtil.findAll(this, GradleSourceSetData.KEY).forEach {
       when(val sourceSetName = it.data.externalName.substringAfterLast(":")) {
         getModuleName(IdeArtifactName.MAIN) -> mainModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.UNIT_TEST) -> unitTestModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.ANDROID_TEST) -> androidTestModule = dataToModuleMap(it.data)
         getModuleName(IdeArtifactName.TEST_FIXTURES) -> testFixturesModule = dataToModuleMap(it.data)
-        // TODO(karimai): add support for ScreenshotTest mapping.
+        getModuleName(IdeArtifactName.SCREENSHOT_TEST) -> screenshotTestModule = dataToModuleMap(it.data)
         else -> logger<ModuleUtil>().warn("Unknown artifact name: $sourceSetName")
       }
     }
@@ -84,8 +86,8 @@ object ModuleUtil {
 
       return
     }
-    // TODO(karimai): add ScreenshotTest module
-    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
+    val androidModuleGroup = LinkedAndroidModuleGroup(
+      holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule, screenshotTestModule)
     androidModuleGroup.getModules().forEach { module ->
       module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
     }
@@ -129,7 +131,7 @@ object ModuleUtil {
       logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
       return
     }
-    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, null)
+    val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, null, null)
     androidModuleGroup.getModules().forEach { module ->
       module.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
     }
