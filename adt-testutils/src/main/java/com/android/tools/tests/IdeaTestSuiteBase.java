@@ -53,10 +53,14 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.force.use.core.classloader", "true");
-    System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
-    System.setProperty("idea.log.config.properties.file", resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.properties").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
+
+    // Configure logging.
+    System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
+    System.setProperty("idea.log.config.properties.file", resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.properties").toString());
+    System.setProperty("idea.split.test.logs", "true"); // For each failing test, write info-level logs to a file instead of stderr.
+    System.out.println("See Bazel test outputs for idea.log");
 
     // Run in headless mode by default. This property is set by the IntelliJ test framework too,
     // but we want to set it sooner before any test initializers have run.
