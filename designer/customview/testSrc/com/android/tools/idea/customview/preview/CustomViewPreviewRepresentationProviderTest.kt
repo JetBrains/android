@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.customview.preview
 
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureTestCase() {
+class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureAdtTestCase() {
   private lateinit var provider: CustomViewPreviewRepresentationProvider
 
   override fun setUp() {
