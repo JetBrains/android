@@ -16,8 +16,8 @@
 
 package com.android.tools.compose
 
-import com.android.tools.compose.code.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
-import com.android.tools.compose.code.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME
+import com.android.tools.compose.code.state.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
+import com.android.tools.compose.code.state.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter

@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.compose.code
+package com.android.tools.compose.code.state
 
-import com.android.tools.compose.code.state.createMessage
-import com.android.tools.compose.code.state.getStateReadElement
 import com.android.tools.compose.hasComposableAnnotation
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.lang.annotation.AnnotationHolder
