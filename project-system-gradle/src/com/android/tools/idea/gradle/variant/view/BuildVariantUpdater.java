@@ -134,7 +134,6 @@ public class BuildVariantUpdater {
 
     if (data != null && variantProjectDataNode != null) {
       VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantProjectDataNode);
-      disableKotlinCompilerPluginImportHandlers(myProject); // TODO(b/215522894)
       setupCachedVariant(myProject, variantProjectDataNode);
       return;
     }
@@ -142,19 +141,6 @@ public class BuildVariantUpdater {
     // Build file is not changed, the cached variants should be cached and reused.
     AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(myProject);
     requestGradleSync(myProject, variantAndAbi, false);
-  }
-
-  // TODO(b/215522894): Unfortunately, some Kotlin resolvers stash non-persisted data into the user data of data notes.
-  //  The non-persisted data disappears when switching cached build variants, leading to NPEs in the corresponding data importers.
-  //  This currently only affects certain Kotlin compiler plugins, e.g. the all-open plugin. For now we disable them.
-  private static void disableKotlinCompilerPluginImportHandlers(Project project) {
-    ExtensionPoint<GradleProjectImportHandler> importHandlerEP =
-      project.getExtensionArea().getExtensionPoint(GradleProjectImportHandler.Companion.getExtensionPointName());
-    for (GradleProjectImportHandler importHandler : importHandlerEP.getExtensionList()) {
-      if (importHandler instanceof AbstractAnnotationBasedCompilerPluginGradleImportHandler) {
-        importHandlerEP.unregisterExtension(importHandler.getClass());
-      }
-    }
   }
 
   @NotNull
