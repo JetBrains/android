@@ -28,6 +28,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
@@ -137,14 +138,16 @@ abstract class AbstractInspectorClient(
     } catch (t: Throwable) {
       launchMonitor.stop()
       disconnect()
-      Logger.getInstance(AbstractInspectorClient::class.java)
-        .warn(
-          "Connection failure with " +
-            "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
-            "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
-            "cause:",
-          t
-        )
+      if (t !is CancellationException) {
+        Logger.getInstance(AbstractInspectorClient::class.java)
+          .warn(
+            "Connection failure with " +
+              "'use.dev.jar=${StudioFlags.APP_INSPECTION_USE_DEV_JAR.get()}' " +
+              "'use.snapshot.jar=${StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()}' " +
+              "cause:",
+            t
+          )
+      }
     }
   }
 
