@@ -327,8 +327,7 @@ private fun AndroidModules.validateVariants(moduleId: GradleProjectPath, selecte
         head.module.androidModel.selectedVariant(libraryResolver)
           .let {
             it.mainArtifact.compileClasspath.libraries +
-            it.hostTestArtifacts.find { v -> v.name == IdeArtifactName.UNIT_TEST }?.compileClasspath?.libraries.orEmpty() +
-            // TODO(karimai): add support for screenshot test in modules.
+            it.hostTestArtifacts.map { v -> v.compileClasspath.libraries }.flatten() +
             it.deviceTestArtifacts.find { v -> v.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath?.libraries.orEmpty() +
             it.testFixturesArtifact?.compileClasspath?.libraries.orEmpty()
           }.filterIsInstance<IdeModuleLibrary>()

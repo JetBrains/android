@@ -60,6 +60,7 @@ import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
 import com.android.tools.idea.projectsystem.getForFile
 import com.android.tools.idea.projectsystem.getMainModule
+import com.android.tools.idea.projectsystem.getScreenshotTestModule
 import com.android.tools.idea.projectsystem.getTestFixturesModule
 import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.getUnitTestModule
@@ -273,7 +274,8 @@ class GradleModuleSystem(
       DependencyScopeType.UNIT_TEST ->
         gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspath
       DependencyScopeType.TEST_FIXTURES -> gradleModel.selectedVariant.testFixturesArtifact?.compileClasspath
-      // TODO(karimai): Add support for ScreenshotTest.
+      DependencyScopeType.SCREENSHOT_TEST ->
+        gradleModel.selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }?.compileClasspath
     }
   }
 
@@ -292,7 +294,7 @@ class GradleModuleSystem(
         DependencyScopeType.ANDROID_TEST -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
         DependencyScopeType.UNIT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }
         DependencyScopeType.TEST_FIXTURES -> selectedVariant.testFixturesArtifact
-        // TODO(karimai): Add support for ScreenshotTest.
+        DependencyScopeType.SCREENSHOT_TEST -> selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
       }
       if (artifact != null) yield(artifact.runtimeClasspath)
 
@@ -470,12 +472,13 @@ class GradleModuleSystem(
     val androidTestModule = if (type == AndroidModuleSystem.Type.TYPE_TEST) module.getMainModule() else module.getAndroidTestModule()
     val unitTestModule = module.getUnitTestModule()
     val fixturesModule = module.getTestFixturesModule()
+    val screenshotTestModule = module.getScreenshotTestModule()
     return when (scopeType) {
       ScopeType.MAIN -> mainModule?.getModuleWithDependenciesAndLibrariesScope(false)
       ScopeType.UNIT_TEST -> unitTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.ANDROID_TEST -> androidTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
       ScopeType.TEST_FIXTURES -> fixturesModule?.getModuleWithDependenciesAndLibrariesScope(false)
-      ScopeType.SCREENSHOT_TEST -> GlobalSearchScope.EMPTY_SCOPE // TODO(karimai): Add support for ScreenshotTest module.
+      ScopeType.SCREENSHOT_TEST -> screenshotTestModule?.getModuleWithDependenciesAndLibrariesScope(true)
     } ?: GlobalSearchScope.EMPTY_SCOPE
   }
 

@@ -405,7 +405,7 @@ enum class DependencyScopeType {
   UNIT_TEST,
   ANDROID_TEST,
   TEST_FIXTURES,
-  // TODO(karimai): add support for ScreenshotTest dependencies
+  SCREENSHOT_TEST,
 }
 
 /**

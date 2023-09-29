@@ -348,12 +348,14 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         matchedLibrary = findMatchedLibrary(library, artifact);
       }
     }
-    // TODO(karimai): add support for fetching screenshot test artifacts once we support modules.
     if (matchedLibrary == null) {
-      matchedLibrary = findMatchedLibrary(library, selectedVariant.getMainArtifact());
+      artifact = selectedVariant.getHostTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.SCREENSHOT_TEST).toList().get(0);
+      if (artifact != null) {
+        matchedLibrary = findMatchedLibrary(library, artifact);
+      }
     }
     if (matchedLibrary == null) {
-      return null;
+      matchedLibrary = findMatchedLibrary(library, selectedVariant.getMainArtifact());
     }
 
     return matchedLibrary;

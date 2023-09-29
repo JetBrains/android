@@ -297,8 +297,7 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForMpss(
   variant.testFixturesArtifact?.also {
     populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.COMPILE)
   }
-  variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST}?.also {
-    // TODO(karimai): add support for ScreenshotTest sourceSet here.
+  variant.hostTestArtifacts.forEach {
     populateDependenciesFromArtifact(findSourceSetDataForArtifact(it), it, DependencyScope.TEST)
   }
   variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.also {

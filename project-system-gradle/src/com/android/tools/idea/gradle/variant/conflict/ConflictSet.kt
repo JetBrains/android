@@ -122,8 +122,7 @@ class ConflictSet private constructor(
       val allModuleLibraries = variant.mainArtifact.compileClasspath.libraries.asSequence() +
                                variant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }?.compileClasspath?.libraries?.asSequence().orEmpty() +
                                variant.testFixturesArtifact?.compileClasspath?.libraries?.asSequence().orEmpty() +
-                               variant.hostTestArtifacts.find { it.name == IdeArtifactName.UNIT_TEST }?.compileClasspath?.libraries?.asSequence().orEmpty()
-                                // TODO(karimai): add screenshot test compile claspptah libraries be part of the module libraries.
+                               variant.hostTestArtifacts.map { it.compileClasspath.libraries }.flatten().asSequence()
       return allModuleLibraries.filterIsInstance<IdeModuleLibrary>().distinct()
     }
   }
