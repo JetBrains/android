@@ -121,12 +121,7 @@ fun isKotlinPluginBundled() =
 
 internal fun ReadActionPrebuildChecks(file: PsiFile) {
   ApplicationManager.getApplication().assertReadAccessAllowed()
-  if (file.module != null) {
-    if (TestArtifactSearchScopes.getInstance(file.module!!)?.isUnitTestSource(file.virtualFile) == true) {
-      throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
-    }
-    if (TestArtifactSearchScopes.getInstance(file.module!!)?.isAndroidTestSource(file.virtualFile) == true) {
-      throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
-    }
+  if (file.module != null && TestArtifactSearchScopes.getInstance(file.module!!)?.isTestSource(file.virtualFile) == true) {
+    throw LiveEditUpdateException.unsupportedTestSrcChange(file.name)
   }
 }

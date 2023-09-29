@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.scopes;
 import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
+import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APP_WITH_SCREENSHOT_TEST;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
 import static com.android.utils.FileUtils.toSystemDependentPath;
@@ -83,17 +84,30 @@ public class GradleTestArtifactSearchScopesTest extends AndroidGradleTestCase {
   }
 
   public void testSrcFolderIncluding() throws Exception {
-    TestArtifactSearchScopes scopes = loadMultiProjectAndGetTestScopesForModule("module1");
+    loadProject(SIMPLE_APP_WITH_SCREENSHOT_TEST);
+    Module module1 = ModuleSystemUtil.getMainModule(TestModuleUtil.findModule(getProject(), "app"));
+    TestArtifactSearchScopes testArtifactSearchScopes = TestArtifactSearchScopes.getInstance(module1);
+    assertNotNull(testArtifactSearchScopes);
 
-    VirtualFile unitTestSource = createFileIfNotExists("module1/src/test/java/Test.java");
-    VirtualFile androidTestSource = createFileIfNotExists("module1/src/androidTest/java/Test.java");
+    VirtualFile unitTestSource = createFileIfNotExists("app/src/test/java/Test.java");
+    VirtualFile androidTestSource = createFileIfNotExists("app/src/androidTest/java/Test.java");
+    VirtualFile screenshotTestSource = createFileIfNotExists("app/src/screenshotTest/java/Test.java");
 
-    assertTrue(scopes.isUnitTestSource(unitTestSource));
-    assertFalse(scopes.isUnitTestSource(androidTestSource));
+    assertTrue(testArtifactSearchScopes.isUnitTestSource(unitTestSource));
+    assertFalse(testArtifactSearchScopes.isUnitTestSource(androidTestSource));
+    assertFalse(testArtifactSearchScopes.isUnitTestSource(screenshotTestSource));
 
-    assertTrue(scopes.isAndroidTestSource(androidTestSource));
-    assertFalse(scopes.isAndroidTestSource(unitTestSource));
+
+    assertTrue(testArtifactSearchScopes.isAndroidTestSource(androidTestSource));
+    assertFalse(testArtifactSearchScopes.isAndroidTestSource(unitTestSource));
+    assertFalse(testArtifactSearchScopes.isAndroidTestSource(screenshotTestSource));
+
+    assertFalse(testArtifactSearchScopes.isScreenshotTestSource(unitTestSource));
+    assertFalse(testArtifactSearchScopes.isScreenshotTestSource(androidTestSource));
+    assertTrue(testArtifactSearchScopes.isScreenshotTestSource(screenshotTestSource));
   }
+
+
 
   public void testProjectRootFolderOfTestProjectType() throws Exception {
     // Module4 is an android test project (applied plugin com.android.test).

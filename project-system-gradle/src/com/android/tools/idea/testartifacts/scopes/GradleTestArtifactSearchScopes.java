@@ -17,6 +17,7 @@ package com.android.tools.idea.testartifacts.scopes;
 
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getAndroidTestModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getMainModule;
+import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getScreenshotTestModule;
 import static com.android.tools.idea.projectsystem.ModuleSystemUtil.getUnitTestModule;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
@@ -28,8 +29,8 @@ import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Gradle implementation of {@link TestArtifactSearchScopes}, differentiates {@code test/} and {@code androidTest/} sources based on
- * information from the model.
+ * Gradle implementation of {@link TestArtifactSearchScopes}, differentiates {@code test/}, {@code screenshotTest/},
+ * and {@code androidTest/} sources based on information from the model.
  */
 public final class GradleTestArtifactSearchScopes implements TestArtifactSearchScopes {
   @NotNull private final Module myModule;
@@ -46,6 +47,16 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @Override
   public boolean isUnitTestSource(@NotNull VirtualFile file) {
     return getUnitTestSourceScope().accept(file);
+  }
+
+  @Override
+  public boolean isScreenshotTestSource(@NotNull VirtualFile file) {
+    return getScreenshotTestSourceScope().accept(file);
+  }
+
+  @Override
+  public boolean isTestSource(@NotNull VirtualFile file) {
+    return isAndroidTestSource(file) || isUnitTestSource(file) || isScreenshotTestSource(file);
   }
 
   @Override
@@ -69,5 +80,12 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   public GlobalSearchScope getUnitTestSourceScope() {
     Module unitTestModule = getUnitTestModule(myModule);
     return unitTestModule != null ? unitTestModule.getModuleContentScope() : GlobalSearchScope.EMPTY_SCOPE;
+  }
+
+  @Override
+  @NotNull
+  public GlobalSearchScope getScreenshotTestSourceScope() {
+    Module screenshotTestModule = getScreenshotTestModule(myModule);
+    return screenshotTestModule != null ? screenshotTestModule.getModuleContentScope() : GlobalSearchScope.EMPTY_SCOPE;
   }
 }
