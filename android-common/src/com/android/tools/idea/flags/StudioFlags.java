@@ -1620,6 +1620,10 @@ public final class StudioFlags {
   private static final FlagGroup STUDIOBOT = new FlagGroup(FLAGS, "studiobot", "Studio Bot");
   public static final Flag<Boolean> STUDIOBOT_ENABLED =
     Flag.create(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
+
+  public static final Flag<Boolean> STUDIOBOT_INLINE_CODE_COMPLETION_ENABLED =
+    Flag.create(STUDIOBOT, "inline.code.completion.enabled", "Enable inline code completion",
+                "When enabled, inline code completion suggestions will be shown.", false);
   // endregion STUDIO_BOT
 
   // region EXPERIMENTAL_UI
