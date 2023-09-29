@@ -1,0 +1,9 @@
+[dependencies]
+compile = [
+    { notation = "" },
+    { notation = " " },
+    { notation = """
+  """ },
+    { notation = """\t\t
+  """ }
+]

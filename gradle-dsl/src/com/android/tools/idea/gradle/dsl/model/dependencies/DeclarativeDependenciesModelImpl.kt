@@ -74,15 +74,15 @@ class DeclarativeDependenciesModelImpl(dslElement: DependenciesDslElement) : Abs
   }
 
   override fun getModuleFetcher(): Fetcher<ModuleDependencyModel> {
-    throw NotImplementedError()
+    return Fetcher<ModuleDependencyModel> { configurationName, element, resolved, configurationElement, maintainer, dest -> }
   }
 
   override fun getFileTreeFetcher(): Fetcher<FileTreeDependencyModel> {
-    throw NotImplementedError()
+    return Fetcher<FileTreeDependencyModel> { configurationName, element, resolved, configurationElement, maintainer, dest -> }
   }
 
   override fun getFileFetcher(): Fetcher<FileDependencyModel> {
-    throw NotImplementedError()
+    return Fetcher<FileDependencyModel> { configurationName, element, resolved, configurationElement, maintainer, dest -> }
   }
 
   override fun findByPsiElement(child: PsiElement): GradleDslElement? {
