@@ -16,7 +16,8 @@
 
 package com.android.tools.compose
 
-import com.android.tools.compose.code.ComposeStateReadAnnotator
+import com.android.tools.compose.code.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
+import com.android.tools.compose.code.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
@@ -39,8 +40,7 @@ class ComposeColorSettingsPage : ColorSettingsPage {
     attributes[ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME] =
       ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
     if (StudioFlags.COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED.get()) {
-      attributes[ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME] =
-        ComposeStateReadAnnotator.COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
+      attributes[COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME] = COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY
     }
     attributes["ANNOTATION"] = KotlinHighlightingColors.ANNOTATION
     attributes["KEYWORD"] = KotlinHighlightingColors.KEYWORD

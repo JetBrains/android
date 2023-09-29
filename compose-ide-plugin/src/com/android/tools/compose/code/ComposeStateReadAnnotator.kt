@@ -15,6 +15,8 @@
  */
 package com.android.tools.compose.code
 
+import com.android.tools.compose.code.state.createMessage
+import com.android.tools.compose.code.state.getStateReadElement
 import com.android.tools.compose.hasComposableAnnotation
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.lang.annotation.AnnotationHolder
@@ -24,33 +26,18 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.descendants
 import com.intellij.psi.util.parentOfType
 import icons.StudioIcons
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
-import org.jetbrains.kotlin.analysis.api.types.KtType
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
-import org.jetbrains.kotlin.idea.caches.resolve.resolveMainReference
-import org.jetbrains.kotlin.idea.structuralsearch.resolveExprType
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.supertypes
 
-const val FQNAME = "androidx.compose.runtime.State"
+const val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME = "ComposeStateReadTextAttributes"
 
-private val CLASS_ID_OF_STATE = ClassId.topLevel(FqName(FQNAME))
+val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
+  TextAttributesKey.createTextAttributesKey(
+    COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME,
+    DefaultLanguageHighlighterColors.FUNCTION_CALL
+  )
 
 /**
  * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside
@@ -59,8 +46,7 @@ private val CLASS_ID_OF_STATE = ClassId.topLevel(FqName(FQNAME))
  * TODO(b/225218822): Before productionizing this, depending on whether we want a gutter icon,
  *   highlighting, or both, we must change this to use `KotlinHighlightingVisitorExtension` (to
  *   avoid race conditions), or use a `RelatedItemLineMarkerProvider` for the gutter icon so it can
- *   be disabled with a setting. If we do both, we will need to share the logic and store result on
- *   the `PsiElement` to avoid computing it twice.
+ *   be disabled with a setting.
  */
 class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -78,68 +64,6 @@ class ComposeStateReadAnnotator : Annotator {
     }
   }
 
-  private fun KtNameReferenceExpression.getStateReadElement(): PsiElement? {
-    if (isAssignee()) return null
-    if (isImplicitStateRead()) return this
-    return getExplicitStateReadElement()
-  }
-
-  /**
-   * Returns the element representing the State variable being read, if any.
-   *
-   * e.g. for `foo.bar.baz.value`, will return the [PsiElement] for `baz`.
-   */
-  private fun KtNameReferenceExpression.getExplicitStateReadElement(): PsiElement? {
-    if (text != "value") return null
-    return (parent as? KtDotQualifiedExpression)
-      ?.takeIf { it.selectorExpression == this }
-      ?.receiverExpression
-      ?.takeIf { it.isStateType() }
-      ?.let {
-        when (it) {
-          is KtDotQualifiedExpression -> it.selectorExpression
-          else -> it
-        }
-      }
-  }
-
-  /**
-   * Returns whether the expression represents an implicit call to `State#getValue`, i.e. if the
-   * expression is for a delegated property where the delegate is of type `State`.
-   *
-   * E.g. for a name reference expression `foo` if `foo` is defined as:
-   *
-   * `val foo by stateOf(...)`
-   */
-  private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean {
-    return (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType() ?: false
-  }
-
-  private fun KotlinType.isStateType() =
-    (fqName?.asString() == FQNAME || supertypes().any { it.fqName?.asString() == FQNAME })
-
-  private fun KtAnalysisSession.isStateType(type: KtType): Boolean =
-    if (type is KtNonErrorClassType) {
-      type.classId == CLASS_ID_OF_STATE ||
-        type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == CLASS_ID_OF_STATE }
-    } else {
-      false
-    }
-
-  @OptIn(KtAllowAnalysisOnEdt::class)
-  private fun KtExpression.isStateType(): Boolean =
-    if (isK2Plugin()) {
-      allowAnalysisOnEdt { analyze(this) { getKtType()?.let { isStateType(it) } ?: false } }
-    } else {
-      resolveExprType()?.isStateType() ?: false
-    }
-
-  private fun KtNameReferenceExpression.isAssignee(): Boolean {
-    return parentOfType<KtBinaryExpression>()
-      ?.takeIf { it.operationToken.toString() == "EQ" }
-      ?.let { it.left == this || it.left?.descendants()?.contains(this) == true } ?: false
-  }
-
   private data class ComposeStateReadGutterIconRenderer(
     private val stateName: String,
     private val functionName: String
@@ -147,17 +71,5 @@ class ComposeStateReadAnnotator : Annotator {
     override fun getIcon() = StudioIcons.Common.INFO
 
     override fun getTooltipText() = createMessage(stateName, functionName)
-  }
-
-  companion object {
-    const val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME = "ComposeStateReadTextAttributes"
-    val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-      TextAttributesKey.createTextAttributesKey(
-        COMPOSE_STATE_READ_TEXT_ATTRIBUTES_NAME,
-        DefaultLanguageHighlighterColors.FUNCTION_CALL
-      )
-
-    private fun createMessage(stateVariable: String, composable: String) =
-      "State read: when the value of \"$stateVariable\" changes, \"$composable\" will recompose."
   }
 }
