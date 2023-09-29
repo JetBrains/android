@@ -255,6 +255,7 @@ class AndroidJavaDebuggerTest {
       EmptyProgressIndicator()
     )
 
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
     Mockito.verify(spyClient).notifyVmMirrorExited()
