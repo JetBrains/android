@@ -15,15 +15,20 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.IdeInfo
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.DumbAware
+import org.jetbrains.android.util.AndroidUtils
 
 /**
  * Enables/disables resource update trace.
  */
-class ToggleResourceTraceAction : ToggleAction("Trace Resource Updates"), DumbAware {
+class ToggleResourceTraceAction : ToggleAction(), DumbAware {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun isSelected(event: AnActionEvent): Boolean =
     ResourceUpdateTracer.isTracingActive()
@@ -40,6 +45,8 @@ class ToggleResourceTraceAction : ToggleAction("Trace Resource Updates"), DumbAw
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isVisible = ApplicationInfo.getInstance().isEAP
+    val project = event.project
+    event.presentation.isVisible = ApplicationInfo.getInstance().isEAP && project != null
+                                   && (IdeInfo.getInstance().isAndroidStudio || AndroidUtils.hasAndroidFacets(project))
   }
 }

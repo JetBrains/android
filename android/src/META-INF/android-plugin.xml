@@ -123,8 +123,8 @@
     </group>
     <group id="Android.Diagnostics">
       <separator/>
-      <action class="com.android.tools.idea.res.ToggleResourceTraceAction"/>
-      <action class="com.android.tools.idea.res.DumpResourceTraceAction"/>
+      <action id="Android.ToggleResourceTraceAction" class="com.android.tools.idea.res.ToggleResourceTraceAction"/>
+      <action id="Android.DumpResourceTraceAction" class="com.android.tools.idea.res.DumpResourceTraceAction"/>
       <separator/>
       <add-to-group group-id="HelpDiagnosticTools" anchor="last"/>
     </group>
