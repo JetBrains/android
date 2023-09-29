@@ -39,8 +39,14 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 
-private const val FQNAME = "androidx.compose.runtime.State"
-private val CLASS_ID_OF_STATE = ClassId.topLevel(FqName(FQNAME))
+private val STATE_TYPES = setOf("", "Int", "Long", "Float", "Double")
+private val STATE_CLASSES_BY_ACCESSOR =
+  STATE_TYPES.associate {
+    "${it}Value".replaceFirstChar(Char::lowercase) to
+      ClassId.topLevel(FqName("androidx.compose.runtime.${it}State"))
+  }
+private val GENERIC_STATE_CLASS_ID =
+  checkNotNull(STATE_CLASSES_BY_ACCESSOR["value"]) { "No class ID for generic State class!" }
 
 internal fun createMessage(stateVariable: String, composable: String) =
   "State read: when the value of \"$stateVariable\" changes, \"$composable\" will recompose."
@@ -60,11 +66,11 @@ private fun KtNameReferenceExpression.computeStateReadElement(): PsiElement? {
  * e.g. for `foo.bar.baz.value`, will return the [PsiElement] for `baz`.
  */
 private fun KtNameReferenceExpression.getExplicitStateReadElement(): PsiElement? {
-  if (text != "value") return null
+  val stateClassId = STATE_CLASSES_BY_ACCESSOR[text] ?: return null
   return (parent as? KtDotQualifiedExpression)
     ?.takeIf { it.selectorExpression == this }
     ?.receiverExpression
-    ?.takeIf { it.isStateType() }
+    ?.takeIf { it.isStateType(stateClassId) }
     ?.let {
       when (it) {
         is KtDotQualifiedExpression -> it.selectorExpression
@@ -81,27 +87,27 @@ private fun KtNameReferenceExpression.getExplicitStateReadElement(): PsiElement?
  *
  * `val foo by stateOf(...)`
  */
-private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean {
-  return (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType() ?: false
-}
+private fun KtNameReferenceExpression.isImplicitStateRead(): Boolean =
+  (resolveMainReference() as? KtProperty)?.delegateExpression?.isStateType(GENERIC_STATE_CLASS_ID)
+    ?: false
 
-private fun KotlinType.isStateType() =
-  (fqName?.asString() == FQNAME || supertypes().any { it.fqName?.asString() == FQNAME })
+private fun KotlinType.isStateType(stateTypeFqName: String) =
+  (fqName?.asString() == stateTypeFqName ||
+    supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
-private fun KtAnalysisSession.isStateType(type: KtType): Boolean =
-  if (type is KtNonErrorClassType) {
-    type.classId == CLASS_ID_OF_STATE ||
-      type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == CLASS_ID_OF_STATE }
-  } else {
-    false
-  }
+private fun KtAnalysisSession.isStateType(type: KtType, stateClassId: ClassId): Boolean =
+  type is KtNonErrorClassType &&
+    (type.classId == stateClassId ||
+      type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == stateClassId })
 
 @OptIn(KtAllowAnalysisOnEdt::class)
-private fun KtExpression.isStateType(): Boolean =
+private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
   if (isK2Plugin()) {
-    allowAnalysisOnEdt { analyze(this) { getKtType()?.let { isStateType(it) } ?: false } }
+    allowAnalysisOnEdt {
+      analyze(this) { getKtType()?.let { isStateType(it, stateClassId) } ?: false }
+    }
   } else {
-    resolveExprType()?.isStateType() ?: false
+    resolveExprType()?.isStateType(stateClassId.asFqNameString()) ?: false
   }
 
 private fun KtNameReferenceExpression.isAssignee(): Boolean {

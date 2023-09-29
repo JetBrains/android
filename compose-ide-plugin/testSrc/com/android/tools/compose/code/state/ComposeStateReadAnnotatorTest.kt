@@ -230,6 +230,70 @@ class ComposeStateReadAnnotatorTest {
     }
   }
 
+  @Test
+  fun primitivePropertyRead() {
+    val psiFile =
+      fixture.loadNewFile(
+        "src/com/example/Test.kt",
+        // language=kotlin
+        """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.runtime.mutableIntStateOf
+      import androidx.compose.runtime.mutableLongStateOf
+      import androidx.compose.runtime.mutableFloatStateOf
+      import androidx.compose.runtime.mutableDoubleStateOf
+      import androidx.compose.runtime.saveable.rememberSaveable
+
+      @Composable
+      fun HelloScreen() {
+        val intContainer = rememberSaveable { mutableIntStateOf(42) }
+        val longContainer = rememberSaveable { mutableLongStateOf(8675309L) }
+        val floatContainer = rememberSaveable { mutableFloatStateOf(3.14159F) }
+        val doubleContainer = rememberSaveable { mutableDoubleStateOf(2.71828) }
+        HelloContent(
+          intVal = intContainer.intValue,
+          longVal = longContainer.longValue,
+          floatVal = floatContainer.floatValue,
+          doubleVal = doubleContainer.doubleValue,
+        ) { i, l, f, d ->
+          intContainer.intValue = i
+          longContainer.longValue = l
+          floatContainer.floatValue = f
+          doubleContainer.doubleValue = d
+        }
+      }
+
+      @Composable
+      fun HelloContent(intVal: Int, longVal: Long, floatVal: Float, doubleVal: Double,
+        onNameChange: (Int, Long, Float, Double) -> Unit) { }
+
+      class StateHolder(val name: MutableState<String>)
+      """
+          .trimIndent()
+      )
+
+    val allElements = psiFile.collectDescendantsOfType<PsiElement>()
+    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
+
+    val foo = listOf("int", "long", "float", "double")
+    assertThat(annotations).hasSize(foo.size)
+    for ((annotation, type) in annotations.zip(foo)) {
+      with(annotation) {
+        assertThat(message).isEqualTo(createMessage("${type}Container", "HelloScreen"))
+        assertThat(gutterIconRenderer).isNotNull()
+        assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
+        assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
+        assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
+        assertThat(startOffset)
+          .isEqualTo(fixture.offsetForWindow("${type}Val = ${type}Container.|${type}Value"))
+        assertThat(endOffset)
+          .isEqualTo(fixture.offsetForWindow("${type}Val = ${type}Container.${type}Value|"))
+      }
+    }
+  }
+
   private fun createMessage(stateVariable: String, composable: String) =
     "State read: when the value of \"$stateVariable\" changes, \"$composable\" will recompose."
 }
