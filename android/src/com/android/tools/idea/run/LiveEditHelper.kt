@@ -16,7 +16,7 @@
 package com.android.tools.idea.run
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.intellij.execution.runners.ExecutionEnvironment
 import java.nio.file.Path

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.intellij.ide.actionsOnSave.ActionOnSaveContext

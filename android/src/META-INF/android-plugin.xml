@@ -750,7 +750,7 @@
   </extensions>
 
   <applicationListeners>
-    <listener class="com.android.tools.idea.editors.literals.LiveEditAnActionListener"
+    <listener class="com.android.tools.idea.editors.liveedit.LiveEditAnActionListener"
               topic="com.intellij.openapi.actionSystem.ex.AnActionListener"/>
     <listener class="com.android.tools.idea.stats.ManifestMergerStatsTracker"
               topic="com.android.tools.idea.model.MergedManifestSnapshotComputeListener"/>

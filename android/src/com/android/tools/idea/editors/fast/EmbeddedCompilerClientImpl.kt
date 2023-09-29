@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled

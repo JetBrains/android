@@ -21,8 +21,8 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.ClientImpl
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditServiceImpl
+import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidProjectRule

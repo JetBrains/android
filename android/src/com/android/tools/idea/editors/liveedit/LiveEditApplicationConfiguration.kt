@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.editors.liveedit
 
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
 
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS

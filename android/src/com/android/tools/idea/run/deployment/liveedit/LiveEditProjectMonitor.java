@@ -27,13 +27,11 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiManager;
 import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -44,7 +42,7 @@ import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
-import com.android.tools.idea.editors.literals.LiveEditService;
+import com.android.tools.idea.editors.liveedit.LiveEditService;
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
 import com.android.tools.idea.log.LogWrapper;
@@ -81,7 +79,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.KotlinFileType;
-import org.jetbrains.kotlin.psi.KtFile;
 
 /**
  * Helper to set up Live Literal deployment monitoring.

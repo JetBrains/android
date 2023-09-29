@@ -21,7 +21,7 @@ import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.deploy.DeploymentConfiguration
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidSessionInfo

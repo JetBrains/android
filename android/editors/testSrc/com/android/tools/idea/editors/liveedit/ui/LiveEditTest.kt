@@ -15,21 +15,6 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.project.Project
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mockito.`when`
-import java.util.Collections
-
 class LiveEditTest {
   //lateinit var project: Project
   //lateinit var service: LiveEditService

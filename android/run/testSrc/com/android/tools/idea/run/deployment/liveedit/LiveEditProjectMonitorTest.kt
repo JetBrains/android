@@ -21,8 +21,7 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.run.deployment.liveedit.analysis.compileIr
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.project.Project

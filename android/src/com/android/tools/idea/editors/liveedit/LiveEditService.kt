@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.literals
+package com.android.tools.idea.editors.liveedit
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener

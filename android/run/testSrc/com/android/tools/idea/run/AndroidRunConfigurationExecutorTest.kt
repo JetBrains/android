@@ -26,8 +26,8 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditServiceImpl
+import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
