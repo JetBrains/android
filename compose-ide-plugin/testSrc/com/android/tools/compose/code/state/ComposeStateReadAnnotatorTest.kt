@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.code.state
 
+import com.android.tools.compose.ComposeBundle
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -295,5 +296,5 @@ class ComposeStateReadAnnotatorTest {
   }
 
   private fun createMessage(stateVariable: String, composable: String) =
-    "State read: when the value of \"$stateVariable\" changes, \"$composable\" will recompose."
+    ComposeBundle.message("compose.state.read.message", stateVariable, composable)
 }
