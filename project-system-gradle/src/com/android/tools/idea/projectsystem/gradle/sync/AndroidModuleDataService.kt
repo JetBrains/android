@@ -231,7 +231,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
       val serverFlag = ServerFlagService.instance.getProtoOrNull(
         "feature/studio_api_level_support", AndroidSdkSupportConfiguration.getDefaultInstance()
-      )?.androidApiStudioVersionMappingMap
+      )?.androidApiStudioMappingMap
 
       AndroidSdkCompatibilityChecker.getInstance().checkAndroidSdkVersion(
         imported,

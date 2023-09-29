@@ -6,7 +6,9 @@ option java_multiple_files = true;
 // Configuration to store mapping of support levels between Android API and
 // Android Studio
 message AndroidSdkSupportConfiguration {
-  map<int32, RecommendedVersions> android_api_studio_version_mapping = 1;
+  map<int32, RecommendedVersions> android_api_studio_version_mapping = 1
+      [deprecated = true];
+  map<string, RecommendedVersions> android_api_studio_mapping = 2;
 }
 
 // Versions of Studio that will be recommended to developers based on the

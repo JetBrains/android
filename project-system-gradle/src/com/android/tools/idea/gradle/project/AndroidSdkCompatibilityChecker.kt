@@ -22,15 +22,12 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.serverflags.protos.RecommendedVersions
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import org.jetbrains.android.util.AndroidBundle
-
 
 /**
  * Verifies an Android Gradle project, does not have any modules that violate the compatibility rule between the compile sdk version
@@ -44,7 +41,7 @@ class AndroidSdkCompatibilityChecker {
 
   fun checkAndroidSdkVersion(importedModules: Collection<DataNode<GradleAndroidModelData>>,
                              project: Project,
-                             serverFlag: MutableMap<Int, RecommendedVersions>?) {
+                             serverFlag: MutableMap<String, RecommendedVersions>?) {
     if (StudioUpgradeReminder(project).shouldAsk().not()) return
 
     val modulesViolatingSupportRules = importedModules.mapNotNull {
@@ -68,7 +65,12 @@ class AndroidSdkCompatibilityChecker {
     val highestViolatingSdkVersion: AndroidVersion = modulesViolatingSupportRules.map { it.second }
                                                        .maxWithOrNull(compareBy({ it.apiLevel }, { it.codename })) ?: return
 
-    val recommendation = serverFlag?.get(highestViolatingSdkVersion.apiLevel) ?: return
+    val recommendation = if (highestViolatingSdkVersion.isPreview) {
+      highestViolatingSdkVersion.codename?.let { previewName -> serverFlag?.get(previewName) }
+    } else {
+      serverFlag?.get(highestViolatingSdkVersion.apiLevel.toString())
+    } ?: return
+
 
     val (recommendedVersion, potentialFallbackVersion) = when (getChannelFromUpdateSettings()) {
       ProductDetails.SoftwareLifeCycleChannel.CANARY -> Pair(recommendation.canaryChannel, null)

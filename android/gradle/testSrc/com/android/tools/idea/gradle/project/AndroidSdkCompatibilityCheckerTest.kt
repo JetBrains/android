@@ -60,8 +60,8 @@ class AndroidSdkCompatibilityCheckerTest {
   @get:Rule val rule = RuleChain(projectRule, HeadlessDialogRule())
 
   private val checker: AndroidSdkCompatibilityChecker = AndroidSdkCompatibilityChecker()
-  private val serverFlag: MutableMap<Int, RecommendedVersions> = mutableMapOf(
-    1000 to RecommendedVersions.newBuilder().apply {
+  private val serverFlag: MutableMap<String, RecommendedVersions> = mutableMapOf(
+    "1000" to RecommendedVersions.newBuilder().apply {
       canaryChannel = StudioVersionRecommendation.getDefaultInstance()
       betaRcChannel = StudioVersionRecommendation.getDefaultInstance()
       stableChannel = StudioVersionRecommendation.getDefaultInstance()
@@ -210,7 +210,7 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with released canary channel`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.EAP
-    serverFlag[1000] = RecommendedVersions.newBuilder().apply {
+    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
       canaryChannel = StudioVersionRecommendation.newBuilder().apply {
         versionReleased = true
         buildDisplayName = "Android Studio Canary X"
@@ -234,7 +234,7 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with released beta channel`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.BETA
-    serverFlag[1000] = RecommendedVersions.newBuilder().apply {
+    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
       betaRcChannel = StudioVersionRecommendation.newBuilder().apply {
         versionReleased = true
         buildDisplayName = "Android Studio Beta Y"
@@ -259,7 +259,7 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with released stable version`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.RELEASE
-    serverFlag[1000] = RecommendedVersions.newBuilder().apply {
+    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
       stableChannel = StudioVersionRecommendation.newBuilder().apply {
         versionReleased = true
         buildDisplayName = "Android Studio Stable Z"
@@ -284,7 +284,7 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with unreleased beta channel recommending canary`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.BETA
-    serverFlag[1000] = RecommendedVersions.newBuilder().apply {
+    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
       canaryChannel = StudioVersionRecommendation.newBuilder().apply {
         versionReleased = true
         buildDisplayName = "Android Studio Canary X"
@@ -315,7 +315,7 @@ class AndroidSdkCompatibilityCheckerTest {
   @Test
   fun `test dialog shown with unreleased alpha channel no recommendation`() {
     UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.EAP
-    serverFlag[1000] = RecommendedVersions.newBuilder().apply {
+    serverFlag["1000"] = RecommendedVersions.newBuilder().apply {
       canaryChannel = StudioVersionRecommendation.newBuilder().apply {
         versionReleased = false
         buildDisplayName = "Android Studio Canary X"
@@ -332,6 +332,36 @@ class AndroidSdkCompatibilityCheckerTest {
       assertThat(it is AndroidSdkCompatibilityDialog)
       assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
       assertThat(it.recommendedVersion.versionReleased).isFalse()
+      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
+      assertThat(it.potentialFallbackVersion).isNull()
+    }
+  }
+
+  @Test
+  fun `test sdk compatibility rules with preview sdk will use the codename`() {
+    UpdateSettings.getInstance().selectedChannelStatus = ChannelStatus.EAP
+    serverFlag["TiramisuPrivacySandbox"] = RecommendedVersions.newBuilder().apply {
+      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
+        versionReleased = true
+        buildDisplayName = "Android Studio Canary X"
+      }.build()
+    }.build()
+    serverFlag["34"] = RecommendedVersions.newBuilder().apply {
+      canaryChannel = StudioVersionRecommendation.newBuilder().apply {
+        versionReleased = true
+        buildDisplayName = "Android Studio Canary Y"
+      }.build()
+    }.build()
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(compileSdk = "android-TiramisuPrivacySandbox")
+    )
+    val androidModels = getGradleAndroidModels(projectRule.project)
+
+    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
+      assertThat(it is AndroidSdkCompatibilityDialog)
+      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
+      assertThat(it.recommendedVersion.versionReleased).isTrue()
       assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
       assertThat(it.potentialFallbackVersion).isNull()
     }
