@@ -65,6 +65,7 @@ import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.SdkUtils;
+import com.android.utils.SdkUtils.FileLineColumnUrlData;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -88,7 +89,6 @@ import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaDirectoryService;
@@ -273,28 +273,11 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
 
   private static void handleFileUrl(@NotNull String url, @NotNull Module module) {
     Project project = module.getProject();
+    FileLineColumnUrlData parsed = SdkUtils.parseDecoratedFileUrlString(url);
+    int line = parsed.line == null ? -1 : parsed.line;
+    int column = parsed.column == null ? 0 : parsed.column;
     try {
-      // Allow line numbers and column numbers to be tacked on at the end of
-      // the file URL:
-      //   file:<path>:<line>:<column>
-      //   file:<path>:<line>
-      int line = -1;
-      int column = 0;
-      Pattern pattern = Pattern.compile(".*:(\\d+)(:(\\d+))");
-      Matcher matcher = pattern.matcher(url);
-      if (matcher.matches()) {
-        line = Integer.parseInt(matcher.group(1));
-        column = Integer.parseInt(matcher.group(3));
-        url = url.substring(0, matcher.start(1) - 1);
-      }
-      else {
-        matcher = Pattern.compile(".*:(\\d+)").matcher(url);
-        if (matcher.matches()) {
-          line = Integer.parseInt(matcher.group(1));
-          url = url.substring(0, matcher.start(1) - 1);
-        }
-      }
-      File ioFile = SdkUtils.urlToFile(url);
+      File ioFile = SdkUtils.urlToFile(parsed.urlString);
       VirtualFile file = LocalFileSystem.getInstance().findFileByIoFile(ioFile);
       if (file != null) {
         openEditor(project, file, line, column);
