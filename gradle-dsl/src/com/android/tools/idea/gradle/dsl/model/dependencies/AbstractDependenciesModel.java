@@ -226,11 +226,6 @@ public abstract class AbstractDependenciesModel extends GradleDslBlockModel impl
     addModule(configurationName, path, null);
   }
 
-  @Override
-  public void addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
-    ModuleDependencyModelImpl.createNew(myDslElement, configurationName, path, config);
-  }
-
   @NotNull
   @Override
   @TestOnly

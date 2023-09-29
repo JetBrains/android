@@ -27,9 +27,6 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +36,7 @@ import java.util.List;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.google.common.base.Splitter.on;
 
-public class ModuleDependencyModelImpl extends DependencyModelImpl implements ModuleDependencyModel {
+public class ScriptModuleDependencyModelImpl extends DependencyModelImpl implements ModuleDependencyModel {
   @NonNls public static final String PROJECT = "project";
   @NonNls private static final String PATH = "path";
   @NonNls private static final String CONFIGURATION = "configuration";
@@ -56,7 +53,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
         return new PlatformModuleDependencyModelImpl(configurationName, methodCall, maintainer, platformMethodName);
       }
       else {
-        return new ModuleDependencyModelImpl(configurationName, methodCall, maintainer);
+        return new ScriptModuleDependencyModelImpl(configurationName, methodCall, maintainer);
       }
     }
     return null;
@@ -81,12 +78,12 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
       methodCall.addNewArgument(mapArguments);
     }
     parent.setNewElement(methodCall);
-    return new ModuleDependencyModelImpl(configurationName, methodCall, ScriptDependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
+    return new ScriptModuleDependencyModelImpl(configurationName, methodCall, ScriptDependenciesModelImpl.Maintainers.SINGLE_ITEM_MAINTAINER);
   }
 
-  ModuleDependencyModelImpl(@NotNull String configurationName,
-                            @NotNull GradleDslMethodCall dslElement,
-                            @NotNull Maintainer maintainer) {
+  ScriptModuleDependencyModelImpl(@NotNull String configurationName,
+                                  @NotNull GradleDslMethodCall dslElement,
+                                  @NotNull Maintainer maintainer) {
     super(configurationName, maintainer);
     myDslElement = dslElement;
   }
@@ -108,25 +105,6 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements Mo
     List<String> pathSegments = on(GRADLE_PATH_SEPARATOR).omitEmptyStrings().splitToList(path().forceString());
     int segmentCount = pathSegments.size();
     return segmentCount > 0 ? pathSegments.get(segmentCount - 1) : "";
-  }
-
-  @Override
-  public void setName(@NotNull String name) {
-    String newPath;
-    ResolvedPropertyModel path = path();
-
-    // Keep empty spaces, needed when putting the path back together
-    List<String> segments = Splitter.on(GRADLE_PATH_SEPARATOR).splitToList(path.forceString());
-    List<String> modifiableSegments = Lists.newArrayList(segments);
-    int segmentCount = modifiableSegments.size();
-    if (segmentCount == 0) {
-      newPath = GRADLE_PATH_SEPARATOR + name.trim();
-    }
-    else {
-      modifiableSegments.set(segmentCount - 1, name);
-      newPath = Joiner.on(GRADLE_PATH_SEPARATOR).join(modifiableSegments);
-    }
-    path.setValue(newPath);
   }
 
   @Override

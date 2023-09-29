@@ -20,7 +20,9 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.AbstractDependenciesModel.DependencyReplacer
+import com.android.tools.idea.gradle.dsl.model.dependencies.AbstractDependenciesModel.Fetcher
 import com.android.tools.idea.gradle.dsl.model.dependencies.DependencyModelImpl.Maintainer
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
@@ -73,8 +75,30 @@ class DeclarativeDependenciesModelImpl(dslElement: DependenciesDslElement) : Abs
     }
   }
 
-  override fun getModuleFetcher(): Fetcher<ModuleDependencyModel> {
-    return Fetcher<ModuleDependencyModel> { configurationName, element, resolved, configurationElement, maintainer, dest -> }
+  override fun addModule(configurationName: String, path: String, config: String?) {
+    DeclarativeModuleDependencyModelImpl.createNew(myDslElement, configurationName, path, config)
+  }
+
+  override fun getModuleFetcher(): Fetcher<ModuleDependencyModel> = object : Fetcher<ModuleDependencyModel> {
+    override fun fetch(
+      configurationName: String,
+      element: GradleDslElement,
+      resolved: GradleDslElement,
+      configurationElement: GradleDslClosure?,
+      maintainer: Maintainer,
+      dest: MutableList<in ModuleDependencyModel>
+    ) {
+      if (element is GradleDslExpressionMap) { // Declarative map notation
+        val map: Map<String, GradleDslElement> = element.elements
+        val project = map["project"]
+        if (project is GradleDslLiteral) {
+          val model = DeclarativeModuleDependencyModelImpl(configurationName, element, maintainer)
+          if (model.path().getValueType() != GradlePropertyModel.ValueType.NONE) {
+            dest.add(model)
+          }
+        }
+      }
+    }
   }
 
   override fun getFileTreeFetcher(): Fetcher<FileTreeDependencyModel> {

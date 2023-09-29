@@ -1,0 +1,6 @@
+[dependencies]
+compile = [
+  { project = ":androidlib1", configuration = "flavor1Release" },
+  { project = ":androidlib2", configuration = "flavor2Release" }
+]
+runtime = [{ project = ":javalib2" }]

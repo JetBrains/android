@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyMode
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import org.jetbrains.annotations.NotNull;
 
-public class PlatformModuleDependencyModelImpl extends ModuleDependencyModelImpl implements PlatformDependencyModel {
+public class PlatformModuleDependencyModelImpl extends ScriptModuleDependencyModelImpl implements PlatformDependencyModel {
   String methodName;
 
   PlatformModuleDependencyModelImpl(@NotNull String configurationName,

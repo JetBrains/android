@@ -48,6 +48,11 @@ public class ScriptDependenciesModelImpl extends AbstractDependenciesModel {
   }
 
   @Override
+  public void addModule(@NotNull String configurationName, @NotNull String path, @Nullable String config) {
+    ScriptModuleDependencyModelImpl.createNew(myDslElement, configurationName, path, config);
+  }
+
+  @Override
   protected Fetcher<ArtifactDependencyModel> getArtifactFetcher() {
     return (configurationName, element, resolved, configurationElement, maintainer, dest) -> {
       // We can only create ArtifactDependencyModels from expressions -- if for some reason we don't have an expression here (e.g. from a
@@ -105,8 +110,8 @@ public class ScriptDependenciesModelImpl extends AbstractDependenciesModel {
           platformMethodName = methodCall.getMethodName();
           methodCall = (GradleDslMethodCall)methodCall.getArguments().get(0);
         }
-        if (methodCall.getMethodName().equals(ModuleDependencyModelImpl.PROJECT)) {
-          ModuleDependencyModel model = ModuleDependencyModelImpl.create(configurationName, methodCall, maintainer, platformMethodName);
+        if (methodCall.getMethodName().equals(ScriptModuleDependencyModelImpl.PROJECT)) {
+          ModuleDependencyModel model = ScriptModuleDependencyModelImpl.create(configurationName, methodCall, maintainer, platformMethodName);
           if (model != null && model.path().getValueType() != NONE) {
             dest.add(model);
           }
