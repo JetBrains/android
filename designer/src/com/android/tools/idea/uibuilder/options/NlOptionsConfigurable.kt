@@ -18,6 +18,7 @@ import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.labelTable
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GraphicsEnvironment
 import javax.swing.JLabel
@@ -25,10 +26,10 @@ import javax.swing.JList
 import javax.swing.JSlider
 
 private const val CONFIGURABLE_ID = "nele.options"
-private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
+private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerActionsBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
 
-@VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
-@VisibleForTesting const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"
+@Nls @VisibleForTesting val LABEL_TRACK_PAD = AndroidDesignerActionsBundle.message("title.track.pad")
+@Nls @VisibleForTesting val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = AndroidDesignerActionsBundle.message("label.zooming.sensitivity")
 
 private val MAGNIFY_SUPPORTED = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
 
@@ -71,22 +72,22 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
 
     return panel {
       row {
-        checkBox("Show lint icons on design surface")
+        checkBox(AndroidDesignerActionsBundle.message("checkbox.show.lint.icons.on.design.surface"))
           .bindSelected(state::isShowLint, state::setShowLint)
       }
-      group("Default Editor Mode") {
-        row("Drawables:") {
+      group(AndroidDesignerActionsBundle.message("title.default.editor.mode")) {
+        row(AndroidDesignerActionsBundle.message("combobox.drawables")) {
           preferredDrawablesEditorMode = editorModeComboBox().component
         }
-        row("Other Resources (e.g. Layout, Menu, Navigation):") {
+        row(AndroidDesignerActionsBundle.message("combobox.other.resources")) {
           preferredEditorMode = editorModeComboBox().component
         }
-        row("Compose files:") {
+        row(AndroidDesignerActionsBundle.message("combobox.compose.files")) {
           editorModeComboBox()
             .bindItem({ state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
                       state::setPreferredComposableEditorMode)
         }
-        row("Other Kotlin files:") {
+        row(AndroidDesignerActionsBundle.message("combobox.other.kotlin.files")) {
           editorModeComboBox()
             .bindItem({ state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
                       state::setPreferredKotlinEditorMode)
@@ -101,9 +102,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
             val maxSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MAX_MAGNIFY_SENSITIVITY)
             magnifySensitivity = slider(minSensitivityPercentage, maxSensitivityPercentage, 0, (maxSensitivityPercentage - minSensitivityPercentage) / 4)
               .labelTable(mapOf(
-                minSensitivityPercentage to JLabel("Slow"),
-                defaultSensitivityPercentage to JLabel("Default"),
-                maxSensitivityPercentage to JLabel("Fast")
+                minSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.slow")),
+                defaultSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.default")),
+                maxSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.fast"))
               )).applyToComponent {
                 value = percentageValue
               }.component

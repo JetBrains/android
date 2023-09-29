@@ -7,17 +7,17 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 import java.util.function.Supplier
 
-object AndroidDesignerBundle {
-  @NonNls
-  private const val BUNDLE = "messages.AndroidDesignerActionsBundle"
-  private val INSTANCE = DynamicBundle(AndroidDesignerBundle::class.java, BUNDLE)
+@NonNls
+private const val BUNDLE = "messages.AndroidDesignerActionsBundle"
+
+internal object AndroidDesignerActionsBundle : DynamicBundle(BUNDLE) {
   @Nls
   fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String {
-    return INSTANCE.getMessage(key, *params)
+    return getMessage(key, *params)
   }
 
+  @Nls
   fun messagePointer(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): Supplier<String> {
-    return INSTANCE.getLazyMessage(key, *params)
+    return getLazyMessage(key, *params)
   }
 }
-
