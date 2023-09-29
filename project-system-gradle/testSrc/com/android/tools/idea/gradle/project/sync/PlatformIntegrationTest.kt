@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -47,7 +46,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
@@ -83,13 +81,10 @@ class PlatformIntegrationTest {
 
         val gradleParameterizedTestModel: TestParameterizedGradleModel? =
           CapturePlatformModelsProjectResolverExtension.getTestParameterizedGradleModel(module)
-        // TODO(b/202448739): Remove `if` when support for parameterized models in included builds is fixed in the IntelliJ platform.
-        if (module.getGradleProjectPath()?.buildRoot == toSystemIndependentName(compositeBuild.root.absolutePath)) {
-          expect.that(gradleParameterizedTestModel).named("TestParameterizedGradleModel($module)").isNotNull()
-          if (gradleParameterizedTestModel != null) {
-            expect.that(gradleParameterizedTestModel.message).named("TestParameterizedGradleModel($module).message")
-              .isEqualTo("Parameter: EHLO BuildDir: ${ExternalSystemApiUtil.getExternalProjectPath(module)}/build")
-          }
+        expect.that(gradleParameterizedTestModel).named("TestParameterizedGradleModel($module)").isNotNull()
+        if (gradleParameterizedTestModel != null) {
+          expect.that(gradleParameterizedTestModel.message).named("TestParameterizedGradleModel($module).message")
+            .isEqualTo("Parameter: EHLO BuildDir: ${ExternalSystemApiUtil.getExternalProjectPath(module)}/build")
         }
       }
     }
