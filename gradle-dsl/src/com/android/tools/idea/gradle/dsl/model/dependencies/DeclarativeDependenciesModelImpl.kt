@@ -63,7 +63,7 @@ class DeclarativeDependenciesModelImpl(dslElement: DependenciesDslElement) : Abs
             notation.markAsVersionCatalogDependency()
             notation.enableSetThrough()
           }
-        } else if (element is GradleDslExpressionMap) {
+        } else {
           val notation: ArtifactDependencyModel? = ArtifactDependencyModelImpl.DynamicNotation.create(
             configurationName, (element as GradleDslExpression), configurationElement, maintainer, null
           )

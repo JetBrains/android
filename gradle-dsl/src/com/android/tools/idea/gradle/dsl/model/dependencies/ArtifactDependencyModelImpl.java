@@ -53,6 +53,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -464,7 +465,7 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
 
     @Override
     public boolean isValidDSL() {
-      return myDslElement.getLiteral("name", String.class) != null || myDslElement.getLiteral("module", String.class) != null;
+      return StringUtils.isNotEmpty(name().valueAsString());
     }
 
     @Override

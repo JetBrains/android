@@ -1,0 +1,7 @@
+[dependencies]
+compile = [ {notation="com.android.support:appcompat-v7:22.1.1"}]
+runtime = [ {notation="com.google.guava:guava:18.0"}]
+test = [
+  { extension = "kotlin", module = "test"},
+]
+

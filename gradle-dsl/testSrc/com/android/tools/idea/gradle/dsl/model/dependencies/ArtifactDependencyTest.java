@@ -494,6 +494,25 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testParseKotlinExtension() throws IOException {
+    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
+    isIrrelevantForGroovy("No multiple dependency configuration form in Groovy");
+    writeToBuildFile(TestFile.PARSE_KOTLIN_EXTENSION);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(2);
+
+    ExpectedArtifactDependency expected = new ExpectedArtifactDependency(COMPILE, "appcompat-v7", "com.android.support", "22.1.1");
+    expected.assertMatches(dependencies.get(0));
+
+    expected = new ExpectedArtifactDependency(RUNTIME, "guava", "com.google.guava", "18.0");
+    expected.assertMatches(dependencies.get(1));
+  }
+
+  @Test
   public void testParseDependenciesWithCompactNotationInSingleLineWithComments() throws IOException {
     isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
     isIrrelevantForDeclarative("No inline comments for declarative");
@@ -2748,6 +2767,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE("compactToMapCatalogDependency.versions.toml"),
     TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE_EXPECTED("compactToMapCatalogDependencyExpected.versions.toml"),
     EDIT_CATALOG_DEPENDENCY_EXPECTED("editCatalogDependencyExpected"),
+    PARSE_KOTLIN_EXTENSION("parseKotlinExtension"),
     ;
 
     @NotNull private @SystemDependent String path;
