@@ -710,8 +710,8 @@ class FakeScreenSharingAgent(
       val rotatedDisplaySize = getFoldedDisplaySize().rotatedByQuadrants(deviceOrientation)
       val displayWidth = rotatedDisplaySize.width.toDouble()
       val displayHeight = rotatedDisplaySize.height.toDouble()
-      val maxResolutionWidth = maxVideoResolution.width.coerceAtMost(maxVideoEncoderResolution)
-      val maxResolutionHeight = maxVideoResolution.height.coerceAtMost(maxVideoEncoderResolution)
+      val maxResolutionWidth = min(max(maxVideoResolution.width, rotatedDisplaySize.width / 2), maxVideoEncoderResolution)
+      val maxResolutionHeight = min(max(maxVideoResolution.height, rotatedDisplaySize.height / 2), maxVideoEncoderResolution)
       val scale = max(min(1.0, min(maxResolutionWidth / displayWidth, maxResolutionHeight / displayHeight)),
                       max(MIN_VIDEO_RESOLUTION / displayWidth, MIN_VIDEO_RESOLUTION / displayHeight))
       val width = (displayWidth * scale).roundToInt().roundUpToMultipleOf8()

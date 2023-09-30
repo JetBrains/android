@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.ImageUtils.scale
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -69,6 +70,7 @@ import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.Alarm
 import com.intellij.util.ui.UIUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.launch
@@ -190,6 +192,8 @@ internal class DeviceView(
   private var lastTouchCoordinates: Point? = null
   /** Whether the last observed mouse event was in display. */
   private var wasInsideDisplay = false
+  private val repaintAlarm: Alarm = Alarm(this)
+  private var highQualityRenderingRequested = false
 
   init {
     Disposer.register(disposableParent, this)
@@ -375,6 +379,7 @@ internal class DeviceView(
       if (frameNumber == 0u) {
         hideLongRunningOperationIndicatorInstantly()
       }
+      repaintAlarm.cancelAllRequests()
       if (displayOrientationQuadrants != displayFrame.orientation ||
           deviceDisplaySize.width != 0 && deviceDisplaySize.width != displayFrame.displaySize.width ||
           deviceDisplaySize.height != 0 && deviceDisplaySize.height != displayFrame.displaySize.height) {
@@ -393,10 +398,19 @@ internal class DeviceView(
         g.drawImage(image, null, displayRect.x, displayRect.y)
       }
       else {
-        displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
-        displayTransform.scale(displayRect.width.toDouble() / image.width, displayRect.height.toDouble() / image.height)
-        g.drawImage(image, displayTransform, null)
+        val xScale = displayRect.width.toDouble() / image.width
+        val yScale = displayRect.height.toDouble() / image.height
+        if (highQualityRenderingRequested && (xScale < 0.5 || yScale < 0.5)) {
+          g.drawImage(scale(image, xScale, yScale), null, displayRect.x, displayRect.y)
+        }
+        else {
+          displayTransform.setToTranslation(displayRect.x.toDouble(), displayRect.y.toDouble())
+          displayTransform.scale(xScale, yScale)
+          g.drawImage(image, displayTransform, null)
+          repaintAlarm.addRequest(::requestHighQualityRepaint, 500)
+        }
       }
+      highQualityRenderingRequested = false
 
       deviceDisplaySize.size = displayFrame.displaySize
       displayOrientationQuadrants = displayFrame.orientation
@@ -409,6 +423,11 @@ internal class DeviceView(
         drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
       }
     }
+  }
+
+  private fun requestHighQualityRepaint() {
+    highQualityRenderingRequested = true
+    repaint()
   }
 
   @UiThread
