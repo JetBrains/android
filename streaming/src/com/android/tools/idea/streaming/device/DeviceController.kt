@@ -270,10 +270,14 @@ internal class DeviceController(
   }
 
   private fun onDeviceStateChanged(message: DeviceStateNotification) {
-    currentFoldingState = supportedFoldingStates.find { it.id == message.deviceState }
+    setFoldingState(message.deviceState)
     for (listener in deviceStateListeners) {
       listener.onDeviceStateChanged(message.deviceState)
     }
+  }
+
+  fun setFoldingState(stateId: Int) {
+    currentFoldingState = supportedFoldingStates.find { it.id == stateId }
   }
 
   private fun onDisplayAdded(message: DisplayAddedNotification) {

@@ -37,6 +37,7 @@ internal data class DeviceFoldingAction(val foldingState: FoldingState) : Abstra
   override fun actionPerformed(event: AnActionEvent) {
     val controller = getDeviceController(event) ?: return
     if (foldingState.id != controller.currentFoldingState?.id) {
+      controller.setFoldingState(foldingState.id)
       val controlMessage = RequestDeviceStateMessage(foldingState.id)
       controller.sendControlMessage(controlMessage)
     }
