@@ -146,7 +146,7 @@ string JObject::ToString() const {
   jmethodID method = clazz.GetDeclaredOrInheritedMethod("toString", "()Ljava/lang/String;");
   JString str = JString(jni, jni->CallObjectMethod(ref_, method));
   if (str.IsNull()) {
-    JObject exception = jni.GetAndClearException();
+    JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
       Log::W("%s.toString returned null", clazz.GetName(jni).c_str());
     } else {
@@ -284,7 +284,7 @@ JObject JClass::NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const {
   va_end(args);
   if (result.IsNull()) {
     Jni jni(jni_env);
-    JObject exception = jni.GetAndClearException();
+    JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
       Log::Fatal(NULL_POINTER, "%s constructor returned null", GetName(jni).c_str());
     } else {
