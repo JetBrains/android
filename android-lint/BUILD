@@ -133,8 +133,10 @@ maven_repository(
         "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:com.google.truth.truth_0.44",
         "@maven//:com.googlecode.java-diff-utils.diffutils_1.3.0",
+        "@maven//:commons-io.commons-io_2.4",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.checkerframework.checker-compat-qual_2.5.5",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.junit.junit-bom_5.9.3",
     ],
 )
