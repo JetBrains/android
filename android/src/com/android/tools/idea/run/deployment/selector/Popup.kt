@@ -13,139 +13,118 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.tools.adtui.util.HelpTooltipForList;
-import com.android.tools.idea.run.deployment.Heading;
-import com.intellij.ide.HelpTooltip;
-import com.intellij.ide.ui.UISettings;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup;
-import com.intellij.ui.popup.PopupFactoryImpl.ActionItem;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.util.OptionalInt;
-import java.util.stream.IntStream;
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.JList;
-import javax.swing.ListModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.adtui.util.HelpTooltipForList
+import com.android.tools.idea.run.deployment.Heading
+import com.intellij.ide.HelpTooltip
+import com.intellij.ide.ui.UISettings
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.ui.popup.PopupFactoryImpl.ActionGroupPopup
+import com.intellij.ui.popup.PopupFactoryImpl.ActionItem
+import com.intellij.ui.popup.list.ListPopupImpl
+import com.intellij.ui.popup.list.PopupListElementRenderer
+import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.UIUtil
+import java.awt.Dimension
+import java.awt.event.ActionEvent
+import java.awt.event.InputEvent
+import java.util.stream.IntStream
+import javax.swing.AbstractAction
+import javax.swing.JList
 
-final class Popup extends ActionGroupPopup {
-
-  Popup(@NotNull ActionGroup group, @NotNull DataContext context, @NotNull Runnable runnable) {
-    super(null, group, context, false, true, true, false, runnable, 30, null, null, true);
-    setMinimumSize(new Dimension(1, 1));
-
-    @SuppressWarnings("unchecked")
-    JList<ActionItem> list = getList();
-
-    list.setCellRenderer(new CellRenderer(this));
-    list.setName("deviceAndSnapshotComboBoxList");
-    new HelpTooltipForList<ActionItem>().installOnList(this, list, (listIndex, tooltip) -> {
-      AnAction action = list.getModel().getElementAt(listIndex).getAction();
-      if (action instanceof SelectDeviceAction) {
-        return TooltipsKt.updateTooltip(((SelectDeviceAction)action).getDevice().getLaunchCompatibility(), tooltip);
+internal class Popup(group: ActionGroup, context: DataContext, runnable: Runnable) :
+  ActionGroupPopup(null, group, context, false, true, true, false, runnable, 30, null, null, true) {
+  init {
+    setMinimumSize(Dimension(1, 1))
+    @Suppress("UNCHECKED_CAST") val list = list as JList<ActionItem>
+    list.setCellRenderer(CellRenderer(this))
+    list.setName("deviceAndSnapshotComboBoxList")
+    HelpTooltipForList<ActionItem>().installOnList(this, list) {
+      listIndex: Int,
+      tooltip: HelpTooltip ->
+      when (val action = list.model.getElementAt(listIndex).action) {
+        is SelectDeviceAction -> updateTooltip(action.device.launchCompatibility, tooltip)
+        is SnapshotActionGroup -> updateTooltip(action.device.launchCompatibility, tooltip)
+        else -> false
       }
-      if (action instanceof SnapshotActionGroup) {
-        return TooltipsKt.updateTooltip(((SnapshotActionGroup)action).getDevice().getLaunchCompatibility(), tooltip);
-      }
-      return false;
-    });
-
-    ActionMap map = list.getActionMap();
-
-    map.put("selectNextRow", new SelectNextRow(list));
-    map.put("selectPreviousRow", new SelectPreviousRow(list));
-  }
-
-  @Override
-  protected void disposeAllParents(@Nullable InputEvent event) {
-    // There is case when a tooltip is scheduled to show, but the popup is already closed (disposeAllParents is called).
-    HelpTooltip.dispose(getList());
-    super.disposeAllParents(event);
-  }
-
-  private static final class SelectNextRow extends SelectRow {
-    private SelectNextRow(@NotNull JList<ActionItem> list) {
-      super(list);
     }
+    list.actionMap.apply {
+      put("selectNextRow", SelectNextRow(list))
+      put("selectPreviousRow", SelectPreviousRow(list))
+    }
+  }
 
+  override fun disposeAllParents(event: InputEvent) {
+    // There is case when a tooltip is scheduled to show, but the popup is already closed
+    // (disposeAllParents is called).
+    HelpTooltip.dispose(list)
+    super.disposeAllParents(event)
+  }
+
+  private class CellRenderer(popup: ListPopupImpl) : PopupListElementRenderer<ActionItem>(popup) {
+    override fun customizeComponent(
+      list: JList<out ActionItem>,
+      value: ActionItem,
+      selected: Boolean
+    ) {
+      super.customizeComponent(list, value, selected)
+      if (value.action is Heading) {
+        myTextLabel.setFont(UIUtil.getLabelFont(UIUtil.FontSize.MINI))
+        return
+      }
+      myTextLabel.setFont(StartupUiUtil.labelFont)
+    }
+  }
+
+  private class SelectNextRow(list: JList<ActionItem>) : SelectRow(list) {
     /**
-     * @return a cyclic index stream starting from the index after the selected one if "Cyclic scrolling in list" is selected in the
-     * settings. If the setting is not selected, returns an index stream starting from the index after the selected one to the end.
+     * @return a cyclic index stream starting from the index after the selected one if "Cyclic
+     *   scrolling in list" is selected in the settings. If the setting is not selected, returns an
+     *   index stream starting from the index after the selected one to the end.
      */
-    @NotNull
-    @Override
-    IntStream indexStream() {
-      if (UISettings.getInstance().getCycleScrolling()) {
-        return IntStream.iterate(nextIndex(myList.getLeadSelectionIndex()), this::nextIndex);
+    override fun indexStream(): IntStream {
+      return when {
+        UISettings.getInstance().cycleScrolling ->
+          IntStream.iterate(nextIndex(list.leadSelectionIndex), ::nextIndex)
+        else -> IntStream.range(list.leadSelectionIndex + 1, list.model.size)
       }
-
-      return IntStream.range(myList.getLeadSelectionIndex() + 1, myList.getModel().getSize());
     }
 
-    private int nextIndex(int currentIndex) {
-      int nextIndex = currentIndex + 1;
-      return nextIndex == myList.getModel().getSize() ? 0 : nextIndex;
-    }
+    private fun nextIndex(currentIndex: Int): Int = (currentIndex + 1).mod(list.model.size)
   }
 
-  private static final class SelectPreviousRow extends SelectRow {
-    private SelectPreviousRow(@NotNull JList<ActionItem> list) {
-      super(list);
-    }
-
+  private class SelectPreviousRow(list: JList<ActionItem>) : SelectRow(list) {
     /**
-     * @return a cyclic index stream starting from the index before the selected one if "Cyclic scrolling in list" is selected in the
-     * settings. If the setting is not selected, returns an index stream starting from the index before the selected one to 0.
+     * @return a cyclic index stream starting from the index before the selected one if "Cyclic
+     *   scrolling in list" is selected in the settings. If the setting is not selected, returns an
+     *   index stream starting from the index before the selected one to 0.
      */
-    @NotNull
-    @Override
-    IntStream indexStream() {
-      int leadSelectionIndex = myList.getLeadSelectionIndex();
-
-      if (UISettings.getInstance().getCycleScrolling()) {
-        return IntStream.iterate(previousIndex(leadSelectionIndex), this::previousIndex);
+    override fun indexStream(): IntStream {
+      val leadSelectionIndex = list.leadSelectionIndex
+      return when {
+        UISettings.getInstance().cycleScrolling ->
+          IntStream.iterate(previousIndex(leadSelectionIndex), ::previousIndex)
+        else ->
+          IntStream.range(0, leadSelectionIndex).map { index: Int ->
+            leadSelectionIndex - index - 1
+          }
       }
-
-      return IntStream.range(0, leadSelectionIndex)
-        .map(index -> leadSelectionIndex - index - 1);
     }
 
-    private int previousIndex(int currentIndex) {
-      int previousIndex = currentIndex - 1;
-      return previousIndex == -1 ? myList.getModel().getSize() - 1 : previousIndex;
-    }
+    private fun previousIndex(currentIndex: Int): Int = (currentIndex - 1).mod(list.model.size)
   }
 
-  private static abstract class SelectRow extends AbstractAction {
-    @NotNull final JList<ActionItem> myList;
-
-    private SelectRow(@NotNull JList<ActionItem> list) {
-      myList = list;
+  private abstract class SelectRow(val list: JList<ActionItem>) : AbstractAction() {
+    /** Traverses the index stream, finds the first non heading action, and selects it */
+    override fun actionPerformed(event: ActionEvent) {
+      indexStream()
+        .filter { list.model.getElementAt(it).action !is Heading }
+        .findFirst()
+        .ifPresent { index -> list.selectionModel.setSelectionInterval(index, index) }
     }
 
-    /**
-     * Traverses the index stream, finds the first non heading action, and selects it
-     */
-    @Override
-    public final void actionPerformed(@NotNull ActionEvent event) {
-      ListModel<ActionItem> model = myList.getModel();
-
-      OptionalInt optionalIndex = indexStream()
-        .filter(index -> !(model.getElementAt(index).getAction() instanceof Heading))
-        .findFirst();
-
-      optionalIndex.ifPresent(index -> myList.getSelectionModel().setSelectionInterval(index, index));
-    }
-
-    @NotNull
-    abstract IntStream indexStream();
+    abstract fun indexStream(): IntStream
   }
 }

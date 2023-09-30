@@ -13,56 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 
-public final class SelectMultipleDevicesAction extends AnAction {
-  static final String ID = "SelectMultipleDevices";
-  private final @NotNull Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
-
-  public SelectMultipleDevicesAction() {
-    this(AsyncDevicesGetter::getInstance);
-  }
-
-  @VisibleForTesting
-  @NonInjectable
-  SelectMultipleDevicesAction(@NotNull Function<Project, AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
-    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
-  }
-
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    Project project = event.getProject();
-    Presentation presentation = event.getPresentation();
-
+class SelectMultipleDevicesAction
+internal constructor(
+  private val devicesGetter: (Project) -> AsyncDevicesGetter = Project::service,
+) : AnAction() {
+  override fun update(event: AnActionEvent) {
+    val project = event.project
+    val presentation = event.presentation
     if (project == null) {
-      presentation.setEnabledAndVisible(false);
-      return;
+      presentation.setEnabledAndVisible(false)
+      return
     }
-
-    boolean empty = myAsyncDevicesGetterGetInstance.apply(project).get().map(Collection::isEmpty).orElse(true);
-    presentation.setEnabledAndVisible(!empty);
+    val empty = devicesGetter(project).get().map { it.isEmpty() }.orElse(true)
+    presentation.setEnabledAndVisible(!empty)
   }
 
-  @NotNull
-  @Override
-  public ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  override fun actionPerformed(event: AnActionEvent) {
+    DeviceAndSnapshotComboBoxAction.instance.selectMultipleDevices(requireNotNull(event.project))
   }
 
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    DeviceAndSnapshotComboBoxAction.getInstance().selectMultipleDevices(Objects.requireNonNull(event.getProject()));
+  companion object {
+    const val ID = "SelectMultipleDevices"
   }
 }

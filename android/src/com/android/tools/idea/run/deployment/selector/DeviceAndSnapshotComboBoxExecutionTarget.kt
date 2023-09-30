@@ -13,143 +13,94 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.ddmlib.IDevice;
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.execution.common.DeployableToDevice;
-import com.android.tools.idea.run.DeploymentApplicationService;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.util.concurrency.AppExecutorUtil;
-import icons.StudioIcons;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import javax.swing.Icon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.ddmlib.IDevice
+import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.execution.common.DeployableToDevice.deploysToLocalDevice
+import com.android.tools.idea.run.DeploymentApplicationService
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.util.concurrency.AppExecutorUtil
+import icons.StudioIcons
+import java.util.Objects
+import javax.swing.Icon
 
 /**
- * The combo box generates these {@link ExecutionTarget ExecutionTargets.} ExecutionTargets determine the state of the run, debug, and stop
- * (but <em>not</em> the apply changes) toolbar buttons.
+ * The combo box generates these [ExecutionTargets.][ExecutionTarget] ExecutionTargets determine the
+ * state of the run, debug, and stop (but *not* the apply changes) toolbar buttons.
  */
-final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTarget {
-  private final @NotNull Collection<DeviceId> myKeys;
-  private final @NotNull AsyncDevicesGetter myDevicesGetter;
+internal class DeviceAndSnapshotComboBoxExecutionTarget(
+  targets: Collection<Target>,
+  private val devicesGetter: AsyncDevicesGetter,
+  private val deploymentApplicationService: () -> DeploymentApplicationService =
+    DeploymentApplicationService.Companion::instance
+) : AndroidExecutionTarget() {
+  private val keys = targets.map(Target::deviceKey).toSet()
 
-  @NotNull
-  private final Supplier<DeploymentApplicationService> myDeploymentApplicationServiceGetInstance;
-
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
-    this(targets, devicesGetter, DeploymentApplicationService::getInstance);
+  override fun isApplicationRunningAsync(appPackage: String): ListenableFuture<Boolean> {
+    return Futures.submit<Boolean>(
+      { isApplicationRunning(appPackage) },
+      AppExecutorUtil.getAppExecutorService()
+    )
   }
 
-  @VisibleForTesting
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets,
-                                           @NotNull AsyncDevicesGetter devicesGetter,
-                                           @NotNull Supplier<DeploymentApplicationService> deploymentApplicationServiceGetInstance) {
-    myKeys = targets.stream()
-      .map(Target::getDeviceKey)
-      .collect(Collectors.toSet());
-
-    myDevicesGetter = devicesGetter;
-    myDeploymentApplicationServiceGetInstance = deploymentApplicationServiceGetInstance;
+  private fun isApplicationRunning(appPackage: String): Boolean {
+    val service = deploymentApplicationService()
+    return runningDevices.any { device -> service.findClient(device, appPackage).isNotEmpty() }
   }
 
-  @Override
-  public @NotNull ListenableFuture<Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
-    return Futures.submit(() -> isApplicationRunning(appPackage), AppExecutorUtil.getAppExecutorService());
+  override fun getAvailableDeviceCount(): Int {
+    return devices().count()
   }
 
-  private boolean isApplicationRunning(@NotNull String appPackage) {
-    var service = myDeploymentApplicationServiceGetInstance.get();
-
-    return getRunningDevices().stream()
-      .map(device -> service.findClient(device, appPackage))
-      .anyMatch(clients -> !clients.isEmpty());
+  override fun getRunningDevices(): Collection<IDevice> {
+    return devices().filter(Device::isConnected).map { Futures.getUnchecked(it.ddmlibDeviceAsync) }
   }
 
-  @Override
-  public int getAvailableDeviceCount() {
-    return (int)deviceStream().count();
+  private fun devices(): List<Device> {
+    return devicesGetter.get().orElse(emptyList()).filter { it.key in keys }
   }
 
-  @NotNull
-  @Override
-  public Collection<IDevice> getRunningDevices() {
-    return deviceStream()
-      .filter(Device::isConnected)
-      .map(Device::getDdmlibDeviceAsync)
-      .map(Futures::getUnchecked)
-      .collect(Collectors.toList());
-  }
-
-  private @NotNull Stream<Device> deviceStream() {
-    return myDevicesGetter.get().map(this::filteredStream).orElseGet(Stream::empty);
-  }
-
-  private @NotNull Stream<Device> filteredStream(@NotNull Collection<Device> devices) {
-    return devices.stream().filter(device -> myKeys.contains(device.getKey()));
-  }
-
-  @NotNull
-  @Override
-  public String getId() {
-    return myKeys.stream()
-      .map(DeviceId::toString)
+  override fun getId(): String {
+    return keys
+      .map { it.toString() }
       .sorted()
-      .collect(Collectors.joining(", ", "device_and_snapshot_combo_box_target[", "]"));
+      .joinToString(
+        separator = ", ",
+        prefix = "device_and_snapshot_combo_box_target[",
+        postfix = "]"
+      )
   }
 
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    var devices = deviceStream().toList();
-
-    return switch (devices.size()) {
-      case 0 -> "No Devices";
-      case 1 -> devices.get(0).getName();
-      default -> "Multiple Devices";
-    };
-  }
-
-  @NotNull
-  @Override
-  public Icon getIcon() {
-    var devices = deviceStream().toList();
-
-    if (devices.size() == 1) {
-      return devices.get(0).getIcon();
+  override fun getDisplayName(): String =
+    devices().let {
+      when (it.size) {
+        0 -> "No Devices"
+        1 -> it[0].name
+        else -> "Multiple Devices"
+      }
     }
 
-    return StudioIcons.DeviceExplorer.MULTIPLE_DEVICES;
-  }
-
-  @Override
-  public boolean canRun(@NotNull RunConfiguration configuration) {
-    return DeployableToDevice.deploysToLocalDevice(configuration);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof DeviceAndSnapshotComboBoxExecutionTarget target)) {
-      return false;
+  override fun getIcon(): Icon =
+    devices().let {
+      when (it.size) {
+        1 -> it[0].icon
+        else -> StudioIcons.DeviceExplorer.MULTIPLE_DEVICES
+      }
     }
 
-    return myKeys.equals(target.myKeys) &&
-           myDevicesGetter.equals(target.myDevicesGetter) &&
-           myDeploymentApplicationServiceGetInstance.equals(target.myDeploymentApplicationServiceGetInstance);
-  }
+  override fun canRun(configuration: RunConfiguration): Boolean =
+    deploysToLocalDevice(configuration)
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(myKeys, myDevicesGetter, myDeploymentApplicationServiceGetInstance);
+  override fun equals(other: Any?): Boolean =
+    other is DeviceAndSnapshotComboBoxExecutionTarget &&
+      keys == other.keys &&
+      devicesGetter == other.devicesGetter &&
+      deploymentApplicationService == other.deploymentApplicationService
+
+  override fun hashCode(): Int {
+    return Objects.hash(keys, devicesGetter, deploymentApplicationService)
   }
 }

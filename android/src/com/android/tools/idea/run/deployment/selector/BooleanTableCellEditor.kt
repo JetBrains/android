@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import java.util.EventObject;
-import javax.swing.AbstractButton;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JCheckBox;
-import javax.swing.SwingConstants;
-import org.jetbrains.annotations.NotNull;
+import java.util.EventObject
+import javax.swing.AbstractButton
+import javax.swing.DefaultCellEditor
+import javax.swing.JCheckBox
+import javax.swing.SwingConstants
 
-final class BooleanTableCellEditor extends DefaultCellEditor {
-  BooleanTableCellEditor() {
-    super(new JCheckBox());
-    ((AbstractButton)getComponent()).setHorizontalAlignment(SwingConstants.CENTER);
+internal class BooleanTableCellEditor : DefaultCellEditor(JCheckBox()) {
+  init {
+    (component as AbstractButton).setHorizontalAlignment(SwingConstants.CENTER)
   }
 
-  @Override
-  public boolean shouldSelectCell(@NotNull EventObject event) {
-    return false;
-  }
+  override fun shouldSelectCell(event: EventObject) = false
 }

@@ -13,151 +13,83 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBUI;
-import java.awt.Component;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import javax.swing.Action;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Group;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.table.TableModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.Sets
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.JBUI
+import javax.swing.Action
+import javax.swing.GroupLayout
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.table.TableModel
 
-final class SelectMultipleDevicesDialog extends DialogWrapper {
-  @NotNull
-  private final Project myProject;
+internal class SelectMultipleDevicesDialog(
+  private val project: Project,
+  private val devices: List<Device>,
+  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
+) : DialogWrapper(project) {
 
-  private final @NotNull List<Device> myDevices;
-  private final @NotNull TableModel myModel;
-
-  @NotNull
-  private final Function<Project, DevicesSelectedService> myDevicesSelectedServiceGetInstance;
-
-  @Nullable
-  private SelectMultipleDevicesDialogTable myTable;
-
-  SelectMultipleDevicesDialog(@NotNull Project project, @NotNull List<Device> devices) {
-    this(project, devices, DevicesSelectedService::getInstance);
-  }
-
-  @VisibleForTesting
-  SelectMultipleDevicesDialog(@NotNull Project project,
-                              @NotNull List<Device> devices,
-                              @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
-    super(project);
-
-    myProject = project;
-    myDevices = devices;
-    myModel = new SelectMultipleDevicesDialogTableModel(devices);
-    myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
-
-    initTable();
-    init();
-    setTitle("Select Multiple Devices");
-  }
-
-  private void initTable() {
-    myTable = new SelectMultipleDevicesDialogTable();
-
-    myTable.setModel(myModel);
-    myTable.setSelectedTargets(myDevicesSelectedServiceGetInstance.apply(myProject).getTargetsSelectedWithDialog(myDevices));
-  }
-
-  @NotNull
-  @Override
-  protected JComponent createCenterPanel() {
-    JComponent panel = new JPanel();
-    GroupLayout layout = new GroupLayout(panel);
-    Component label = new JLabel("Available devices");
-
-    Component scrollPane = new JBScrollPane(myTable);
-    scrollPane.setPreferredSize(JBUI.size(556, 270));
-
-    Group horizontalGroup = layout.createParallelGroup()
-      .addComponent(label)
-      .addComponent(scrollPane);
-
-    Group verticalGroup = layout.createSequentialGroup()
-      .addComponent(label)
-      .addComponent(scrollPane);
-
-    layout.setAutoCreateGaps(true);
-    layout.setHorizontalGroup(horizontalGroup);
-    layout.setVerticalGroup(verticalGroup);
-
-    panel.setLayout(layout);
-    return panel;
-  }
-
-  @Override
-  protected void doOKAction() {
-    super.doOKAction();
-
-    assert myTable != null;
-
-    myDevicesSelectedServiceGetInstance.apply(myProject).setTargetsSelectedWithDialog(myTable.getSelectedTargets());
-  }
-
-  @VisibleForTesting
-  @Override
-  @SuppressWarnings("EmptyMethod")
-  protected @NotNull Action getOKAction() {
-    return super.getOKAction();
-  }
-
-  @Override
-  protected boolean postponeValidation() {
-    return false;
-  }
-
-  @Override
-  protected @NotNull String getDimensionServiceKey() {
-    return "com.android.tools.idea.run.deployment.SelectMultipleDevicesDialog";
-  }
-
-  @NotNull
-  @Override
-  public JComponent getPreferredFocusedComponent() {
-    return getTable();
-  }
-
-  @Override
-  protected @Nullable ValidationInfo doValidate() {
-    assert myTable != null;
-    Collection<Target> targets = myTable.getSelectedTargets();
-
-    Collection<DeviceId> keys = Sets.newHashSetWithExpectedSize(targets.size());
-
-    boolean duplicateKeys = targets.stream()
-      .map(Target::getDeviceKey)
-      .anyMatch(key -> !keys.add(key));
-
-    if (duplicateKeys) {
-      String message = "Some of the selected targets are for the same device. Each target should be for a different device.";
-      return new ValidationInfo(message, null);
+  private val model: TableModel = SelectMultipleDevicesDialogTableModel(devices)
+  private var table: SelectMultipleDevicesDialogTable =
+    SelectMultipleDevicesDialogTable().apply {
+      setModel(this@SelectMultipleDevicesDialog.model)
+      selectedTargets = devicesSelectedService(project).getTargetsSelectedWithDialog(devices)
     }
 
-    return null;
+  init {
+    init()
+    title = "Select Multiple Devices"
+  }
+
+  override fun createCenterPanel(): JComponent {
+    val panel = JPanel()
+    val layout = GroupLayout(panel)
+    val label = JLabel("Available devices")
+    val scrollPane = JBScrollPane(table)
+    scrollPane.setPreferredSize(JBUI.size(556, 270))
+    val horizontalGroup = layout.createParallelGroup().addComponent(label).addComponent(scrollPane)
+    val verticalGroup = layout.createSequentialGroup().addComponent(label).addComponent(scrollPane)
+    layout.autoCreateGaps = true
+    layout.setHorizontalGroup(horizontalGroup)
+    layout.setVerticalGroup(verticalGroup)
+    panel.setLayout(layout)
+    return panel
+  }
+
+  override fun doOKAction() {
+    super.doOKAction()
+    devicesSelectedService(project).setTargetsSelectedWithDialog(table.selectedTargets)
   }
 
   @VisibleForTesting
-  @NotNull
-  SelectMultipleDevicesDialogTable getTable() {
-    assert myTable != null;
-    return myTable;
+  override fun getOKAction(): Action {
+    return super.getOKAction()
+  }
+
+  override fun postponeValidation() = false
+
+  override fun getDimensionServiceKey() =
+    "com.android.tools.idea.run.deployment.SelectMultipleDevicesDialog"
+
+  override fun getPreferredFocusedComponent() = table
+
+  override fun doValidate(): ValidationInfo? {
+    val targets = table.selectedTargets
+    val keys = Sets.newHashSetWithExpectedSize<DeviceId>(targets.size)
+    val duplicateKeys = targets.any { !keys.add(it.deviceKey) }
+    if (duplicateKeys) {
+      val message =
+        "Some of the selected targets are for the same device. Each target should be for a different device."
+      return ValidationInfo(message, null)
+    }
+    return null
   }
 }

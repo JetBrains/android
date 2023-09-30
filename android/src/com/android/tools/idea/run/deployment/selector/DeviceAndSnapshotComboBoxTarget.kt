@@ -13,81 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetState;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.RunProfileState;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.project.Project;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.deployment.selector.Target.Companion.filterDevices
+import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.editor.DeployTargetState
+import com.intellij.execution.Executor
+import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.project.Project
 
-final class DeviceAndSnapshotComboBoxTarget implements DeployTarget {
-  private final @NotNull SelectedTargetSupplier myGetSelectedTargets;
-  private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
+internal class DeviceAndSnapshotComboBoxTarget(
+  private val deviceAndSnapshotComboBoxAction: () -> DeviceAndSnapshotComboBoxAction =
+    DeviceAndSnapshotComboBoxAction.Companion::instance,
+  private val getSelectedTargets: (Project, List<Device>) -> Set<Target> = { project, devices ->
+    deviceAndSnapshotComboBoxAction().getSelectedTargets(project, devices)
+  },
+) : DeployTarget {
+  override fun hasCustomRunProfileState(executor: Executor) = false
 
-  DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets) {
-    this(getSelectedTargets, DeviceAndSnapshotComboBoxAction::getInstance);
+  override fun getRunProfileState(
+    executor: Executor,
+    environment: ExecutionEnvironment,
+    state: DeployTargetState
+  ): RunProfileState {
+    throw UnsupportedOperationException()
   }
 
-  @VisibleForTesting
-  DeviceAndSnapshotComboBoxTarget(@NotNull SelectedTargetSupplier getSelectedTargets,
-                                  @NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance) {
-    myGetSelectedTargets = getSelectedTargets;
-    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
-  }
-
-  @Override
-  public boolean hasCustomRunProfileState(@NotNull Executor executor) {
-    return false;
-  }
-
-  @NotNull
-  @Override
-  public RunProfileState getRunProfileState(@NotNull Executor executor,
-                                            @NotNull ExecutionEnvironment environment,
-                                            @NotNull DeployTargetState state) {
-    throw new UnsupportedOperationException();
-  }
-
-  @NotNull
-  @Override
-  public DeviceFutures getDevices(@NotNull Project project) {
-    List<Device> devices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getDevices(project).orElse(Collections.emptyList());
-    Set<Target> selectedTargets = myGetSelectedTargets.get(project, devices);
-    Collection<Device> selectedDevices = Target.filterDevices(selectedTargets, devices);
-
-    bootAvailableDevices(selectedTargets, selectedDevices, project);
-    return newDeviceFutures(selectedDevices);
-  }
-
-  private static void bootAvailableDevices(@NotNull Collection<Target> selectedTargets,
-                                           @NotNull Collection<Device> selectedDevices,
-                                           @NotNull Project project) {
-    Map<DeviceId, Target> map = selectedTargets.stream().collect(Collectors.toMap(Target::getDeviceKey, target -> target));
-
-    selectedDevices.stream()
-      .filter(device -> !device.isConnected())
-      .forEach(device -> map.get(device.getKey()).boot(device, project));
-  }
-
-  private static @NotNull DeviceFutures newDeviceFutures(@NotNull Collection<Device> selectedDevices) {
-    List<AndroidDevice> devices = selectedDevices.stream()
-      .map(Device::getAndroidDevice)
-      .collect(Collectors.toList());
-
-    return new DeviceFutures(devices);
+  override fun getDevices(project: Project): DeviceFutures {
+    val devices = deviceAndSnapshotComboBoxAction().getDevices(project).orElse(emptyList())
+    val selectedTargets = getSelectedTargets(project, devices)
+    val selectedDevices = filterDevices(selectedTargets, devices)
+    val deviceKeyToTarget = selectedTargets.associateBy { it.deviceKey }
+    for (device in selectedDevices) {
+      if (!device.isConnected) {
+        deviceKeyToTarget[device.key]!!.boot(device, project)
+      }
+    }
+    return DeviceFutures(selectedDevices.map { it.androidDevice })
   }
 }

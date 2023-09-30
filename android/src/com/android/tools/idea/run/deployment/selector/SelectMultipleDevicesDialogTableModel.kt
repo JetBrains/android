@@ -13,151 +13,96 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import javax.swing.Icon;
-import javax.swing.table.AbstractTableModel;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.collect.HashMultiset
+import javax.swing.Icon
+import javax.swing.table.AbstractTableModel
 
-final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
-  static final int SELECTED_MODEL_COLUMN_INDEX = 0;
-  static final int TYPE_MODEL_COLUMN_INDEX = 1;
-  private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
-  private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
-  private static final int BOOT_OPTION_MODEL_COLUMN_INDEX = 4;
+internal class SelectMultipleDevicesDialogTableModel(devices: List<Device>) : AbstractTableModel() {
+  private val rows =
+    devices.flatMap { device ->
+      device.targets.map { target -> SelectMultipleDevicesDialogTableModelRow(device, target) }
+    }
+  private val deviceNames = devices.mapTo(HashMultiset.create()) { it.name }
 
-  private final @NotNull List<SelectMultipleDevicesDialogTableModelRow> myRows;
-
-  @NotNull
-  private final Multiset<String> myDeviceNameMultiset;
-
-  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices) {
-    myRows = new ArrayList<>();
-
-    for (Device device : devices) {
-      for (Target target : device.getTargets()) {
-        myRows.add(new SelectMultipleDevicesDialogTableModelRow(device, target));
+  var selectedTargets: Set<Target>
+    get() = rows.filter { it.isSelected }.map { it.target }.toSet()
+    set(selectedTargets) {
+      for (rowIndex in 0 until rows.size) {
+        setValueAt(
+          selectedTargets.contains(rows[rowIndex].target),
+          rowIndex,
+          SELECTED_MODEL_COLUMN_INDEX
+        )
       }
     }
 
-    myDeviceNameMultiset = devices.stream()
-      .map(Device::getName)
-      .collect(Collectors.toCollection(() -> HashMultiset.create(devices.size())));
-  }
+  override fun getRowCount() = rows.size
 
-  @NotNull Set<Target> getSelectedTargets() {
-    return myRows.stream()
-      .filter(SelectMultipleDevicesDialogTableModelRow::isSelected)
-      .map(SelectMultipleDevicesDialogTableModelRow::getTarget)
-      .collect(Collectors.toSet());
-  }
+  override fun getColumnCount() = 5
 
-  void setSelectedTargets(@NotNull Set<Target> selectedTargets) {
-    IntStream.range(0, myRows.size())
-      .filter(modelRowIndex -> selectedTargets.contains(myRows.get(modelRowIndex).getTarget()))
-      .forEach(modelRowIndex -> setValueAt(true, modelRowIndex, SELECTED_MODEL_COLUMN_INDEX));
-  }
-
-  @Override
-  public int getRowCount() {
-    return myRows.size();
-  }
-
-  @Override
-  public int getColumnCount() {
-    return 5;
-  }
-
-  @NotNull
-  @Override
-  public String getColumnName(int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case SELECTED_MODEL_COLUMN_INDEX:
-        return "";
-      case TYPE_MODEL_COLUMN_INDEX:
-        return "Type";
-      case DEVICE_MODEL_COLUMN_INDEX:
-        return "Device";
-      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-        return "Serial Number";
-      case BOOT_OPTION_MODEL_COLUMN_INDEX:
-        return "Boot Option";
-      default:
-        throw new AssertionError(modelColumnIndex);
+  override fun getColumnName(modelColumnIndex: Int): String {
+    return when (modelColumnIndex) {
+      SELECTED_MODEL_COLUMN_INDEX -> ""
+      TYPE_MODEL_COLUMN_INDEX -> "Type"
+      DEVICE_MODEL_COLUMN_INDEX -> "Device"
+      SERIAL_NUMBER_MODEL_COLUMN_INDEX -> "Serial Number"
+      BOOT_OPTION_MODEL_COLUMN_INDEX -> "Boot Option"
+      else -> throw AssertionError(modelColumnIndex)
     }
   }
 
-  @NotNull
-  @Override
-  public Class<?> getColumnClass(int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case SELECTED_MODEL_COLUMN_INDEX:
-        return Boolean.class;
-      case TYPE_MODEL_COLUMN_INDEX:
-        return Icon.class;
-      case DEVICE_MODEL_COLUMN_INDEX:
-      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-      case BOOT_OPTION_MODEL_COLUMN_INDEX:
-        return Object.class;
-      default:
-        throw new AssertionError(modelColumnIndex);
+  override fun getColumnClass(modelColumnIndex: Int): Class<*> {
+    return when (modelColumnIndex) {
+      SELECTED_MODEL_COLUMN_INDEX -> java.lang.Boolean::class.java
+      TYPE_MODEL_COLUMN_INDEX -> Icon::class.java
+      DEVICE_MODEL_COLUMN_INDEX,
+      SERIAL_NUMBER_MODEL_COLUMN_INDEX,
+      BOOT_OPTION_MODEL_COLUMN_INDEX -> Any::class.java
+      else -> throw AssertionError(modelColumnIndex)
     }
   }
 
-  @Override
-  public boolean isCellEditable(int modelRowIndex, int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case SELECTED_MODEL_COLUMN_INDEX:
-        return true;
-      case TYPE_MODEL_COLUMN_INDEX:
-      case DEVICE_MODEL_COLUMN_INDEX:
-      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-      case BOOT_OPTION_MODEL_COLUMN_INDEX:
-        return false;
-      default:
-        throw new AssertionError(modelColumnIndex);
+  override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int): Boolean {
+    return when (modelColumnIndex) {
+      SELECTED_MODEL_COLUMN_INDEX -> true
+      TYPE_MODEL_COLUMN_INDEX,
+      DEVICE_MODEL_COLUMN_INDEX,
+      SERIAL_NUMBER_MODEL_COLUMN_INDEX,
+      BOOT_OPTION_MODEL_COLUMN_INDEX -> false
+      else -> throw AssertionError(modelColumnIndex)
     }
   }
 
-  @NotNull
-  @Override
-  public Object getValueAt(int modelRowIndex, int modelColumnIndex) {
-    switch (modelColumnIndex) {
-      case SELECTED_MODEL_COLUMN_INDEX:
-        return myRows.get(modelRowIndex).isSelected();
-      case TYPE_MODEL_COLUMN_INDEX:
-        return myRows.get(modelRowIndex).getDevice().getIcon();
-      case DEVICE_MODEL_COLUMN_INDEX:
-        return myRows.get(modelRowIndex).getDeviceCellText();
-      case SERIAL_NUMBER_MODEL_COLUMN_INDEX:
-        return getSerialNumber(myRows.get(modelRowIndex).getDevice());
-      case BOOT_OPTION_MODEL_COLUMN_INDEX:
-        return myRows.get(modelRowIndex).getBootOption();
-      default:
-        throw new AssertionError(modelColumnIndex);
+  override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): Any {
+    return when (modelColumnIndex) {
+      SELECTED_MODEL_COLUMN_INDEX -> rows[modelRowIndex].isSelected
+      TYPE_MODEL_COLUMN_INDEX -> rows[modelRowIndex].device.icon
+      DEVICE_MODEL_COLUMN_INDEX -> rows[modelRowIndex].deviceCellText
+      SERIAL_NUMBER_MODEL_COLUMN_INDEX -> getSerialNumber(rows[modelRowIndex].device)
+      BOOT_OPTION_MODEL_COLUMN_INDEX -> rows[modelRowIndex].bootOption
+      else -> throw AssertionError(modelColumnIndex)
     }
   }
 
-  @NotNull
-  private Object getSerialNumber(@NotNull Device device) {
+  private fun getSerialNumber(device: Device): Any {
     // TODO: Use device disambiguator when we have devices with the same name
-    if (myDeviceNameMultiset.count(device.getName()) != 1) {
-      return device.getKey().toString();
-    }
-
-    return "";
+    return if (deviceNames.count(device.name) != 1) {
+      device.key.toString()
+    } else ""
   }
 
-  @Override
-  public void setValueAt(@NotNull Object value, int modelRowIndex, int modelColumnIndex) {
-    myRows.get(modelRowIndex).setSelected((Boolean)value);
-    fireTableCellUpdated(modelRowIndex, modelColumnIndex);
+  override fun setValueAt(value: Any, modelRowIndex: Int, modelColumnIndex: Int) {
+    rows[modelRowIndex].isSelected = (value as Boolean)
+    fireTableCellUpdated(modelRowIndex, modelColumnIndex)
+  }
+
+  companion object {
+    const val SELECTED_MODEL_COLUMN_INDEX = 0
+    const val TYPE_MODEL_COLUMN_INDEX = 1
+    private const val DEVICE_MODEL_COLUMN_INDEX = 2
+    private const val SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3
+    private const val BOOT_OPTION_MODEL_COLUMN_INDEX = 4
   }
 }

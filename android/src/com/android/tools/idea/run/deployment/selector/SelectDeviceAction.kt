@@ -13,66 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import java.util.Collection;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
- * An action for each device in the drop down without a snapshot sublist. When a user selects a device, SelectDeviceAction will set a target
- * for the device in DeviceAndSnapshotComboBoxAction.
+ * An action for each device in the drop down without a snapshot sublist. When a user selects a
+ * device, SelectDeviceAction will set a target for the device in DeviceAndSnapshotComboBoxAction.
  */
-public final class SelectDeviceAction extends AnAction {
-  @NotNull
-  private final Device myDevice;
-
-  @NotNull
-  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  SelectDeviceAction(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    myDevice = device;
-    myComboBoxAction = comboBoxAction;
+class SelectDeviceAction
+internal constructor(
+  val device: Device,
+  private val myComboBoxAction: DeviceAndSnapshotComboBoxAction
+) : AnAction() {
+  override fun update(event: AnActionEvent) {
+    val presentation = event.presentation
+    val project = requireNotNull(event.project)
+    presentation.setIcon(device.icon)
+    val devices = myComboBoxAction.getDevices(project).orElseThrow { AssertionError() }
+    val key = if (Devices.containsAnotherDeviceWithSameName(devices, device)) device.key else null
+    presentation.setText(Devices.getText(device, key), false)
   }
 
-  @NotNull
-  public Device getDevice() {
-    return myDevice;
+  override fun actionPerformed(event: AnActionEvent) {
+    myComboBoxAction.setTargetSelectedWithComboBox(
+      requireNotNull(event.project),
+      device.defaultTarget
+    )
   }
 
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    Presentation presentation = event.getPresentation();
-    presentation.setIcon(myDevice.getIcon());
+  override fun equals(other: Any?): Boolean =
+    other is SelectDeviceAction &&
+      device == other.device &&
+      myComboBoxAction == other.myComboBoxAction
 
-    Collection<Device> devices = myComboBoxAction.getDevices(Objects.requireNonNull(event.getProject())).orElseThrow(AssertionError::new);
-    DeviceId key = Devices.containsAnotherDeviceWithSameName(devices, myDevice) ? myDevice.getKey() : null;
-
-    presentation.setText(Devices.getText(myDevice, key), false);
-  }
-
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setTargetSelectedWithComboBox(Objects.requireNonNull(event.getProject()), myDevice.getDefaultTarget());
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof SelectDeviceAction)) {
-      return false;
-    }
-
-    SelectDeviceAction action = (SelectDeviceAction)object;
-    return myDevice.equals(action.myDevice) && myComboBoxAction.equals(action.myComboBoxAction);
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * myDevice.hashCode() + myComboBoxAction.hashCode();
+  override fun hashCode(): Int {
+    return 31 * device.hashCode() + myComboBoxAction.hashCode()
   }
 }

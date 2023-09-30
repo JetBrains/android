@@ -13,57 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import java.util.Objects
 
-final class SnapshotActionGroup extends ActionGroup {
-  private final @NotNull Device myDevice;
-  private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  SnapshotActionGroup(@NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    setPopup(true);
-
-    myDevice = device;
-    myComboBoxAction = comboBoxAction;
+internal class SnapshotActionGroup(
+  val device: Device,
+  val comboBoxAction: DeviceAndSnapshotComboBoxAction
+) : ActionGroup() {
+  init {
+    isPopup = true
   }
 
-  @NotNull Device getDevice() {
-    return myDevice;
+  override fun getChildren(event: AnActionEvent?): Array<AnAction> {
+    return device.targets.map { SelectTargetAction(it, device, comboBoxAction) }.toTypedArray()
   }
 
-  @Override
-  public @NotNull AnAction[] getChildren(@Nullable AnActionEvent event) {
-    return myDevice.getTargets().stream()
-      .map(target -> new SelectTargetAction(target, myDevice, myComboBoxAction))
-      .toArray(AnAction[]::new);
+  override fun update(event: AnActionEvent) {
+    val presentation = event.presentation
+    presentation.setIcon(device.icon)
+    presentation.setText(Devices.getText(device), false)
   }
 
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    Presentation presentation = event.getPresentation();
+  override fun hashCode(): Int = Objects.hash(device, comboBoxAction)
 
-    presentation.setIcon(myDevice.getIcon());
-    presentation.setText(Devices.getText(myDevice), false);
-  }
-
-  @Override
-  public int hashCode() {
-    return 31 * myDevice.hashCode() + myComboBoxAction.hashCode();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof SnapshotActionGroup)) {
-      return false;
-    }
-
-    SnapshotActionGroup group = (SnapshotActionGroup)object;
-    return myDevice.equals(group.myDevice) && myComboBoxAction.equals(group.myComboBoxAction);
-  }
+  override fun equals(other: Any?): Boolean =
+    other is SnapshotActionGroup && device == other.device && comboBoxAction == other.comboBoxAction
 }

@@ -13,40 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.google.common.annotations.VisibleForTesting;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import org.jetbrains.annotations.NotNull;
+import com.android.sdklib.deviceprovisioner.DeviceId
+import java.time.Clock
+import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 
-final class KeyToConnectionTimeMap {
-  @NotNull
-  private final Map<DeviceId, Instant> myMap;
+internal class KeyToConnectionTimeMap(private val clock: Clock = Clock.systemDefaultZone()) {
+  private val map = ConcurrentHashMap<DeviceId, Instant>()
 
-  @NotNull
-  private final Clock myClock;
-
-  KeyToConnectionTimeMap() {
-    this(Clock.systemDefaultZone());
+  operator fun get(key: DeviceId): Instant {
+    return map.computeIfAbsent(key) { clock.instant() }
   }
 
-  @VisibleForTesting
-  KeyToConnectionTimeMap(@NotNull Clock clock) {
-    myMap = new ConcurrentHashMap<>();
-    myClock = clock;
-  }
-
-  @NotNull
-  Instant get(@NotNull DeviceId key) {
-    return myMap.computeIfAbsent(key, k -> myClock.instant());
-  }
-
-  void retainAll(@NotNull Collection<DeviceId> keys) {
-    myMap.keySet().retainAll(keys);
+  fun retainAll(keys: Collection<DeviceId>) {
+    map.keys.retainAll(keys)
   }
 }

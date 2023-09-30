@@ -13,56 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import java.util.Objects
 
 /**
- * An item in the {@link SnapshotActionGroup submenu} for a virtual device. The {@link Target target} determines if an available virtual
- * device will be cold booted, quick booted, or booted with a snapshot.
+ * An item in the [submenu][SnapshotActionGroup] for a virtual device. The [target][Target]
+ * determines if an available virtual device will be cold booted, quick booted, or booted with a
+ * snapshot.
  */
-final class SelectTargetAction extends AnAction {
-  private final @NotNull Target myTarget;
-  private final @NotNull Device myDevice;
-  private final @NotNull DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  SelectTargetAction(@NotNull Target target, @NotNull Device device, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    myTarget = target;
-    myDevice = device;
-    myComboBoxAction = comboBoxAction;
+internal class SelectTargetAction(
+  private val target: Target,
+  private val device: Device,
+  private val comboBoxAction: DeviceAndSnapshotComboBoxAction
+) : AnAction() {
+  override fun update(event: AnActionEvent) {
+    event.presentation.setText(target.getText(device), false)
   }
 
-  @Override
-  public void update(@NotNull AnActionEvent event) {
-    event.getPresentation().setText(myTarget.getText(myDevice), false);
+  override fun actionPerformed(event: AnActionEvent) {
+    comboBoxAction.setTargetSelectedWithComboBox(requireNotNull(event.project), target)
   }
 
-  @Override
-  public void actionPerformed(@NotNull AnActionEvent event) {
-    myComboBoxAction.setTargetSelectedWithComboBox(Objects.requireNonNull(event.getProject()), myTarget);
-  }
+  override fun hashCode(): Int = Objects.hash(target, device, comboBoxAction)
 
-  @Override
-  public int hashCode() {
-    int hashCode = myTarget.hashCode();
-
-    hashCode = 31 * hashCode + myDevice.hashCode();
-    hashCode = 31 * hashCode + myComboBoxAction.hashCode();
-
-    return hashCode;
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof SelectTargetAction)) {
-      return false;
-    }
-
-    SelectTargetAction action = (SelectTargetAction)object;
-    return myTarget.equals(action.myTarget) && myDevice.equals(action.myDevice) && myComboBoxAction.equals(action.myComboBoxAction);
+  override fun equals(other: Any?): Boolean {
+    return other is SelectTargetAction &&
+      target == other.target &&
+      device == other.device &&
+      comboBoxAction == other.comboBoxAction
   }
 }

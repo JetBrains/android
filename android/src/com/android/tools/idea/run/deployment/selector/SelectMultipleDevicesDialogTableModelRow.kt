@@ -13,47 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.intellij.ui.ColorUtil;
-import com.intellij.ui.SimpleTextAttributes;
-import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.run.deployment.selector.Devices.getBootOption
+import com.intellij.ui.ColorUtil
+import com.intellij.ui.SimpleTextAttributes
 
-final class SelectMultipleDevicesDialogTableModelRow {
-  private boolean mySelected;
-  private final @NotNull Device myDevice;
-  private final @NotNull Target myTarget;
+internal class SelectMultipleDevicesDialogTableModelRow(val device: Device, val target: Target) {
+  var isSelected = false
 
-  SelectMultipleDevicesDialogTableModelRow(@NotNull Device device, @NotNull Target target) {
-    myDevice = device;
-    myTarget = target;
-  }
+  val deviceCellText: String
+    get() {
+      val greyColor = ColorUtil.toHtmlColor(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor)
+      return device.launchCompatibility.reason?.let { reason ->
+        "<html>$device<br><font size=-2 color=$greyColor>$reason</font></html>"
+      } ?: device.name
+    }
 
-  boolean isSelected() {
-    return mySelected;
-  }
-
-  void setSelected(boolean selected) {
-    mySelected = selected;
-  }
-
-  @NotNull Device getDevice() {
-    return myDevice;
-  }
-
-  @NotNull String getDeviceCellText() {
-    String greyColor = ColorUtil.toHtmlColor(SimpleTextAttributes.GRAYED_ATTRIBUTES.getFgColor());
-    return Optional.ofNullable(myDevice.getLaunchCompatibility().getReason())
-      .map(reason -> String.format("<html>%s<br><font size=-2 color=%s>%s</font></html>", myDevice, greyColor, reason))
-      .orElse(myDevice.getName());
-  }
-
-  @NotNull String getBootOption() {
-    return Devices.getBootOption(myDevice, myTarget).orElse("");
-  }
-
-  @NotNull Target getTarget() {
-    return myTarget;
-  }
+  val bootOption: String
+    get() = getBootOption(device, target) ?: ""
 }

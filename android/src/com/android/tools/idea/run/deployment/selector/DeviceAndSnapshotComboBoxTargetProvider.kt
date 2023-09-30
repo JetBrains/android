@@ -13,129 +13,97 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.run.LaunchCompatibility.State;
-import com.android.tools.idea.run.TargetSelectionMode;
-import com.android.tools.idea.run.editor.DeployTarget;
-import com.android.tools.idea.run.editor.DeployTargetConfigurable;
-import com.android.tools.idea.run.editor.DeployTargetConfigurableContext;
-import com.android.tools.idea.run.editor.DeployTargetState;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.LaunchCompatibility
+import com.android.tools.idea.run.TargetSelectionMode
+import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.editor.DeployTargetConfigurable
+import com.android.tools.idea.run.editor.DeployTargetConfigurableContext
+import com.android.tools.idea.run.editor.DeployTargetState
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
 
-public final class DeviceAndSnapshotComboBoxTargetProvider extends com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider {
-  private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
-  private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
+class DeviceAndSnapshotComboBoxTargetProvider
+internal constructor(
+  private val deviceAndSnapshotComboBoxAction: () -> DeviceAndSnapshotComboBoxAction =
+    DeviceAndSnapshotComboBoxAction.Companion::instance,
+  private val newSelectedDevicesErrorDialog: (Project, Iterable<Device>) -> DialogWrapper =
+    ::SelectedDevicesErrorDialog,
+  private val newDeviceAndSnapshotComboBoxTarget: () -> DeployTarget = {
+    DeviceAndSnapshotComboBoxTarget()
+  },
+) : com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider() {
 
-  @NotNull
-  private final Supplier<DeployTarget> myNewDeviceAndSnapshotComboBoxTarget;
-
-  private DeviceAndSnapshotComboBoxTargetProvider() {
-    this(DeviceAndSnapshotComboBoxAction::getInstance,
-         SelectedDevicesErrorDialog::new,
-         () -> new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance()::getSelectedTargets));
+  override fun isEnabled(): Boolean {
+    return StudioFlags.DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION.get()
   }
 
-  // TODO This should not be used in tests
-  public static DeviceAndSnapshotComboBoxTargetProvider getInstance() {
-    return new DeviceAndSnapshotComboBoxTargetProvider();
+  override fun getId(): String {
+    return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name
   }
 
-  @VisibleForTesting
-  DeviceAndSnapshotComboBoxTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
-                                          @NotNull DialogSupplier selectedDevicesErrorDialog,
-                                          @NotNull Supplier<DeployTarget> newDeviceAndSnapshotComboBoxTarget) {
-    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
-    mySelectedDevicesErrorDialog = selectedDevicesErrorDialog;
-    myNewDeviceAndSnapshotComboBoxTarget = newDeviceAndSnapshotComboBoxTarget;
+  override fun getDisplayName(): String {
+    return "Use the device/snapshot drop down"
   }
 
-  @Override
-  public boolean isEnabled() {
-    return StudioFlags.DEPLOYMENT_TARGET_DEVICE_PROVISIONER_MIGRATION.get();
+  override fun createState(): DeployTargetState {
+    return DeployTargetState.DEFAULT_STATE
   }
 
-  @NotNull
-  @Override
-  public String getId() {
-    return TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX.name();
+  override fun createConfigurable(
+    project: Project,
+    parent: Disposable,
+    context: DeployTargetConfigurableContext
+  ): DeployTargetConfigurable {
+    return DeployTargetConfigurable.DEFAULT_CONFIGURABLE
   }
 
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return "Use the device/snapshot drop down";
-  }
-
-  @NotNull
-  @Override
-  public DeployTargetState createState() {
-    return DeployTargetState.DEFAULT_STATE;
-  }
-
-  @NotNull
-  @Override
-  public DeployTargetConfigurable createConfigurable(@NotNull Project project,
-                                                     @NotNull Disposable parent,
-                                                     @NotNull DeployTargetConfigurableContext context) {
-    return DeployTargetConfigurable.DEFAULT_CONFIGURABLE;
-  }
-
-  @Override
-  public boolean requiresRuntimePrompt(@NotNull Project project) {
-    List<Device> devicesWithError = selectedDevicesWithError(project);
+  override fun requiresRuntimePrompt(project: Project): Boolean {
+    val devicesWithError = selectedDevicesWithError(project)
     if (devicesWithError.isEmpty()) {
-      return false;
+      return false
     }
+    val anyDeviceHasError =
+      devicesWithError.any { it.launchCompatibility.state == LaunchCompatibility.State.ERROR }
 
-    var anyDeviceHasError = devicesWithError.stream()
-      .map(Device::getLaunchCompatibility)
-      .map(LaunchCompatibility::getState)
-      .anyMatch(state -> state.equals(State.ERROR));
-
-    // Show dialog if any device has an error or if DO_NOT_SHOW_WARNING_ON_DEPLOYMENT is not true (null or false).
-    return anyDeviceHasError || !Objects.equals(project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT), true);
+    // Show dialog if any device has an error or if DO_NOT_SHOW_WARNING_ON_DEPLOYMENT is not true
+    // (null or false).
+    return anyDeviceHasError ||
+      project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT) != true
   }
 
-  @NotNull
-  private List<Device> selectedDevicesWithError(@NotNull Project project) {
-    List<Device> selectedDevices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(project);
-    return selectedDevices.stream().filter(device -> !device.getLaunchCompatibility().getState().equals(State.OK)).toList();
+  private fun selectedDevicesWithError(project: Project): List<Device> {
+    return deviceAndSnapshotComboBoxAction().getSelectedDevices(project).filter {
+      it.launchCompatibility.state != LaunchCompatibility.State.OK
+    }
   }
 
-  @Override
-  public @Nullable DeployTarget showPrompt(@NotNull Project project) {
-    List<Device> devicesWithError = selectedDevicesWithError(project);
-    if (!devicesWithError.isEmpty()) {
-      if (!mySelectedDevicesErrorDialog.get(project, devicesWithError).showAndGet()) {
-        return null;
+  override fun showPrompt(project: Project): DeployTarget? {
+    val devicesWithError = selectedDevicesWithError(project)
+    if (devicesWithError.isNotEmpty()) {
+      if (!newSelectedDevicesErrorDialog(project, devicesWithError).showAndGet()) {
+        return null
       }
     }
-
-    return myNewDeviceAndSnapshotComboBoxTarget.get();
+    return newDeviceAndSnapshotComboBoxTarget()
   }
 
-  @NotNull
-  @Override
-  public DeployTarget getDeployTarget(@NotNull Project project) {
-    return myNewDeviceAndSnapshotComboBoxTarget.get();
+  override fun getDeployTarget(project: Project): DeployTarget {
+    return newDeviceAndSnapshotComboBoxTarget()
   }
 
-  public int getNumberOfSelectedDevices(@NotNull Project project) {
-    return myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(project).size();
+  override fun getNumberOfSelectedDevices(project: Project): Int {
+    return deviceAndSnapshotComboBoxAction().getSelectedDevices(project).size
   }
 
-  @Override
-  public boolean canDeployToLocalDevice() {
-    return true;
+  override fun canDeployToLocalDevice() = true
+
+  companion object {
+    @JvmStatic
+    fun getInstance() = DeviceAndSnapshotComboBoxTargetProvider()
   }
 }

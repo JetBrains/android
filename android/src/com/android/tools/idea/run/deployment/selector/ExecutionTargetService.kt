@@ -13,75 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionTargetManager;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
-import java.util.function.Function;
-import org.jetbrains.annotations.NotNull;
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.ExecutionTargetManager
+import com.intellij.execution.RunManager
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
 
-final class ExecutionTargetService {
-  @NotNull
-  private final Project myProject;
+internal class ExecutionTargetService
+@VisibleForTesting
+@NonInjectable
+constructor(
+  private val project: Project,
+  private val executionTargetManager: (Project) -> ExecutionTargetManager,
+  private val runManager: (Project) -> RunManager,
+) {
+  @Suppress("unused")
+  private constructor(
+    project: Project
+  ) : this(project, ExecutionTargetManager::getInstance, RunManager.Companion::getInstance)
 
-  @NotNull
-  private final Function<Project, ExecutionTargetManager> myExecutionTargetManagerGetInstance;
-
-  @NotNull
-  private final Function<Project, RunManager> myRunManagerGetInstance;
-
-  @SuppressWarnings("unused")
-  private ExecutionTargetService(@NotNull Project project) {
-    this(project, ExecutionTargetManager::getInstance, RunManager::getInstance);
-  }
-
-  @VisibleForTesting
-  @NonInjectable
-  ExecutionTargetService(@NotNull Project project,
-                         @NotNull Function<Project, ExecutionTargetManager> executionTargetManagerGetInstance,
-                         @NotNull Function<Project, RunManager> runManagerGetInstance) {
-    myProject = project;
-    myExecutionTargetManagerGetInstance = executionTargetManagerGetInstance;
-    myRunManagerGetInstance = runManagerGetInstance;
-  }
-
-  @NotNull
-  static ExecutionTargetService getInstance(@NotNull Project project) {
-    return project.getService(ExecutionTargetService.class);
-  }
-
-  @VisibleForTesting
-  DeviceAndSnapshotComboBoxExecutionTarget getActiveTarget() {
-    return (DeviceAndSnapshotComboBoxExecutionTarget)myExecutionTargetManagerGetInstance.apply(myProject).getActiveTarget();
-  }
-
-  void setActiveTarget(@NotNull DeviceAndSnapshotComboBoxExecutionTarget target) {
-    ExecutionTargetManager executionTargetManager = myExecutionTargetManagerGetInstance.apply(myProject);
-
-    if (executionTargetManager.getActiveTarget().equals(target)) {
-      return;
-    }
-
-    // In certain test scenarios, this action may get updated in the main test thread instead of the EDT thread (is this correct?).
-    // So we'll just make sure the following gets run on the EDT thread and wait for its result.
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      RunManager runManager = myRunManagerGetInstance.apply(myProject);
-      RunnerAndConfigurationSettings settings = runManager.getSelectedConfiguration();
-
-      // There is a bug in {@link com.intellij.execution.impl.RunManagerImplKt#clear(boolean)} where it's possible the selected setting's
-      // RunConfiguration is be non-existent in the RunManager. This happens when temporary/shared RunnerAndConfigurationSettings are
-      // cleared from the list of RunnerAndConfigurationSettings, and the selected RunnerAndConfigurationSettings is temporary/shared and
-      // left dangling.
-      if (settings == null || runManager.findSettings(settings.getConfiguration()) == null) {
-        return;
+  @get:VisibleForTesting
+  var activeTarget: DeviceAndSnapshotComboBoxExecutionTarget
+    get() = executionTargetManager(project).activeTarget as DeviceAndSnapshotComboBoxExecutionTarget
+    set(target) {
+      val executionTargetManager = executionTargetManager(project)
+      if (executionTargetManager.activeTarget == target) {
+        return
       }
 
-      executionTargetManager.setActiveTarget(target);
-    });
-  }
+      // In certain test scenarios, this action may get updated in the main test thread instead of
+      // the EDT thread (is this correct?).
+      // So we'll just make sure the following gets run on the EDT thread and wait for its result.
+      ApplicationManager.getApplication().invokeAndWait {
+        val runManager = runManager(project)
+        val settings = runManager.selectedConfiguration
+
+        // There is a bug in {@link com.intellij.execution.impl.RunManagerImplKt#clear(boolean)}
+        // where it's possible the selected setting's
+        // RunConfiguration is be non-existent in the RunManager. This happens when temporary/shared
+        // RunnerAndConfigurationSettings are
+        // cleared from the list of RunnerAndConfigurationSettings, and the selected
+        // RunnerAndConfigurationSettings is temporary/shared and
+        // left dangling.
+        if (settings == null || runManager.findSettings(settings.configuration) == null) {
+          return@invokeAndWait
+        }
+        executionTargetManager.activeTarget = target
+      }
+    }
 }

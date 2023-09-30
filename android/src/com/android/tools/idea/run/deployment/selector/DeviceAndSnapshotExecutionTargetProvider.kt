@@ -13,44 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.ExecutionTargetProvider;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.execution.ExecutionTarget
+import com.intellij.execution.ExecutionTargetProvider
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 
-public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetProvider {
-  @NotNull
-  private final Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
-
-  @NotNull
-  private final Function<Project, AsyncDevicesGetter> myAsyncDevicesGetterGetInstance;
-
-  @SuppressWarnings("unused")
-  public DeviceAndSnapshotExecutionTargetProvider() {
-    this(DeviceAndSnapshotComboBoxAction::getInstance, AsyncDevicesGetter::getInstance);
-  }
-
-  @NonInjectable
-  @VisibleForTesting
-  DeviceAndSnapshotExecutionTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
-                                           @NotNull Function<Project, AsyncDevicesGetter> asyncDevicesGetterGetInstance) {
-    myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
-    myAsyncDevicesGetterGetInstance = asyncDevicesGetterGetInstance;
-  }
-
-  @NotNull
-  @Override
-  public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
-    var targets = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedTargets(project).orElseGet(Set::of);
-    return List.of(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myAsyncDevicesGetterGetInstance.apply(project)));
+class DeviceAndSnapshotExecutionTargetProvider
+internal constructor(
+  private val deviceAndSnapshotComboBox: () -> DeviceAndSnapshotComboBoxAction =
+    DeviceAndSnapshotComboBoxAction.Companion::instance,
+  private val asyncDevicesGetter: (Project) -> AsyncDevicesGetter = Project::service,
+) : ExecutionTargetProvider() {
+  override fun getTargets(
+    project: Project,
+    configuration: RunConfiguration
+  ): List<ExecutionTarget> {
+    val targets = deviceAndSnapshotComboBox().getSelectedTargets(project).orElse(emptySet())
+    return listOf(DeviceAndSnapshotComboBoxExecutionTarget(targets, asyncDevicesGetter(project)))
   }
 }

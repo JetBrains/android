@@ -13,113 +13,67 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction;
-import com.android.tools.idea.run.deployment.Heading;
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.Separator;
-import java.util.ArrayList;
-import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
+import com.android.tools.idea.run.deployment.Heading
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 
-final class PopupActionGroup extends DefaultActionGroup {
-  @NotNull
-  private final Collection<Device> myDevices;
-
-  @NotNull
-  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
-
-  private final @NotNull ActionManager myManager;
-
-  PopupActionGroup(@NotNull Collection<Device> devices, @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
-    this(devices, comboBoxAction, ActionManager.getInstance());
+internal class PopupActionGroup(
+  private val devices: Collection<Device>,
+  private val comboBoxAction: DeviceAndSnapshotComboBoxAction,
+  private val actionManager: ActionManager = ActionManager.getInstance()
+) : DefaultActionGroup() {
+  init {
+    val deviceActions = newSelectDeviceActionsOrSnapshotActionGroups()
+    addAll(deviceActions)
+    if (!deviceActions.isEmpty()) {
+      addSeparator()
+    }
+    add(actionManager.getAction(SelectMultipleDevicesAction.ID))
+    add(actionManager.getAction(PairDevicesUsingWiFiAction.ID))
+    add(actionManager.getAction("Android.DeviceManager"))
+    actionManager.getAction("DeveloperServices.ConnectionAssistant")?.let {
+      addSeparator()
+      add(it)
+    }
   }
 
-  @VisibleForTesting
-  PopupActionGroup(@NotNull Collection<Device> devices,
-                   @NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
-                   @NotNull ActionManager manager) {
-    myDevices = devices;
-    myComboBoxAction = comboBoxAction;
-    myManager = manager;
-
-    var actions = newSelectDeviceActionsOrSnapshotActionGroups();
-    addAll(actions);
-
-    if (!actions.isEmpty()) {
-      addSeparator();
-    }
-
-    add(manager.getAction(SelectMultipleDevicesAction.ID));
-    add(manager.getAction(PairDevicesUsingWiFiAction.ID));
-    add(manager.getAction("Android.DeviceManager"));
-
-    AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
-
-    if (action == null) {
-      return;
-    }
-
-    addSeparator();
-    add(action);
-  }
-
-  private @NotNull Collection<AnAction> newSelectDeviceActionsOrSnapshotActionGroups() {
-    int size = myDevices.size();
-    Collection<Device> runningDevices = new ArrayList<>(size);
-    Collection<Device> availableDevices = new ArrayList<>(size);
-
-    for (Device device : myDevices) {
-      if (device.isConnected()) {
-        runningDevices.add(device);
-        continue;
+  private fun newSelectDeviceActionsOrSnapshotActionGroups(): Collection<AnAction> {
+    val size = devices.size
+    val runningDevices = ArrayList<Device>(size)
+    val availableDevices = ArrayList<Device>(size)
+    for (device in devices) {
+      when {
+        device.isConnected -> runningDevices.add(device)
+        else -> availableDevices.add(device)
       }
-
-      availableDevices.add(device);
     }
-
-    boolean runningDevicesPresent = !runningDevices.isEmpty();
-    Collection<AnAction> actions = new ArrayList<>(3 + size);
-
-    if (runningDevicesPresent) {
-      actions.add(myManager.getAction(Heading.RUNNING_DEVICES_ID));
+    val actions = ArrayList<AnAction>(3 + size)
+    if (runningDevices.isNotEmpty()) {
+      actions.add(actionManager.getAction(Heading.RUNNING_DEVICES_ID))
     }
-
-    runningDevices.stream()
-      .map(this::newSelectDeviceAction)
-      .forEach(actions::add);
-
-    boolean availableDevicesPresent = !availableDevices.isEmpty();
-
-    if (runningDevicesPresent && availableDevicesPresent) {
-      actions.add(Separator.create());
+    for (runningDevice in runningDevices) {
+      actions.add(SelectDeviceAction(runningDevice, comboBoxAction))
     }
-
-    if (availableDevicesPresent) {
-      actions.add(myManager.getAction(Heading.AVAILABLE_DEVICES_ID));
+    if (runningDevices.isNotEmpty() && availableDevices.isNotEmpty()) {
+      actions.add(Separator.create())
     }
-
-    availableDevices.stream()
-      .map(this::newSelectDeviceActionOrSnapshotActionGroup)
-      .forEach(actions::add);
-
-    return actions;
-  }
-
-  private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
-    if (!device.getSnapshots().isEmpty()) {
-      return new SnapshotActionGroup(device, myComboBoxAction);
+    if (availableDevices.isNotEmpty()) {
+      actions.add(actionManager.getAction(Heading.AVAILABLE_DEVICES_ID))
     }
-
-    return newSelectDeviceAction(device);
-  }
-
-  @NotNull
-  private AnAction newSelectDeviceAction(@NotNull Device device) {
-    return new SelectDeviceAction(device, myComboBoxAction);
+    for (availableDevice in availableDevices) {
+      actions.add(
+        when {
+          availableDevice.snapshots.isNotEmpty() ->
+            SnapshotActionGroup(availableDevice, comboBoxAction)
+          else -> SelectDeviceAction(availableDevice, comboBoxAction)
+        }
+      )
+    }
+    return actions
   }
 }

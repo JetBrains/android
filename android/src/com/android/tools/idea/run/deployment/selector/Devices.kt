@@ -13,69 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import java.util.Collection;
-import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.sdklib.deviceprovisioner.DeviceId
 
-final class Devices {
-  private Devices() {
-  }
+internal object Devices {
+  fun containsAnotherDeviceWithSameName(devices: Collection<Device>, device: Device): Boolean =
+    devices.any { it.key != device.key && it.name == device.name }
 
-  static boolean containsAnotherDeviceWithSameName(@NotNull Collection<Device> devices, @NotNull Device device) {
-    Object key = device.getKey();
-    Object name = device.getName();
-
-    return devices.stream()
-      .filter(d -> !d.getKey().equals(key))
-      .map(Device::getName)
-      .anyMatch(name::equals);
-  }
-
-  @NotNull
-  static Optional<String> getBootOption(@NotNull Device device, @NotNull Target target) {
-    if (device.isConnected()) {
-      return Optional.empty();
+  fun getBootOption(device: Device, target: Target): String? {
+    return when {
+      device.isConnected -> null
+      device.snapshots.isEmpty() -> null
+      else -> target.getText(device)
     }
+  }
 
-    if (device.getSnapshots().isEmpty()) {
-      return Optional.empty();
+  // TODO: key is not the right disambiguator
+  fun getText(device: Device, key: DeviceId? = null, bootOption: String? = null): String =
+    buildString {
+      append(device.name)
+      key?.let { append(" [$it]") }
+      bootOption?.let { append(" - $it") }
     }
-
-    return Optional.of(target.getText(device));
-  }
-
-  static @NotNull String getText(@NotNull Device device) {
-    return getText(device, null);
-  }
-
-  static @NotNull String getText(@NotNull Device device, @Nullable DeviceId key) {
-    return getText(device, key, null);
-  }
-
-  static @NotNull String getText(@NotNull Device device, @Nullable DeviceId key, @Nullable String bootOption) {
-    return getText(device.getName(), key == null ? null : key.toString(), bootOption);
-  }
-
-  private static @NotNull String getText(@NotNull String device, @Nullable String key, @Nullable String bootOption) {
-    StringBuilder builder = new StringBuilder(device);
-
-    if (key != null) {
-      builder
-        .append(" [")
-        .append(key)
-        .append(']');
-    }
-
-    if (bootOption != null) {
-      builder
-        .append(" - ")
-        .append(bootOption);
-    }
-
-    return builder.toString();
-  }
 }
