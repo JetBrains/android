@@ -13,4 +13,39 @@
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
   </configurable>
+  <configurable id="com.android.studio.ml.bot.mainConfigurable" configurable_name="Studio Bot">
+    <option name="" hit=" Augment responses with information from your codebase" />
+    <option name="augment" hit=" Augment responses with information from your codebase" />
+    <option name="codebase" hit=" Augment responses with information from your codebase" />
+    <option name="from" hit=" Augment responses with information from your codebase" />
+    <option name="information" hit=" Augment responses with information from your codebase" />
+    <option name="responses" hit=" Augment responses with information from your codebase" />
+    <option name="with" hit=" Augment responses with information from your codebase" />
+    <option name="your" hit=" Augment responses with information from your codebase" />
+    <option name="" hit=" Do not share information from your codebase" />
+    <option name="codebase" hit=" Do not share information from your codebase" />
+    <option name="do" hit=" Do not share information from your codebase" />
+    <option name="from" hit=" Do not share information from your codebase" />
+    <option name="information" hit=" Do not share information from your codebase" />
+    <option name="not" hit=" Do not share information from your codebase" />
+    <option name="share" hit=" Do not share information from your codebase" />
+    <option name="your" hit=" Do not share information from your codebase" />
+    <option name="ai-based" hit="Enable AI-based inline code completions" />
+    <option name="code" hit="Enable AI-based inline code completions" />
+    <option name="completions" hit="Enable AI-based inline code completions" />
+    <option name="enable" hit="Enable AI-based inline code completions" />
+    <option name="inline" hit="Enable AI-based inline code completions" />
+    <option name="privacy" hit="Privacy Settings" />
+    <option name="settings" hit="Privacy Settings" />
+    <option name="bot" hit="Studio Bot" />
+    <option name="studio" hit="Studio Bot" />
+    <option name="a" hit="Studio Bot requires a logged in Google account." />
+    <option name="account" hit="Studio Bot requires a logged in Google account." />
+    <option name="bot" hit="Studio Bot requires a logged in Google account." />
+    <option name="google" hit="Studio Bot requires a logged in Google account." />
+    <option name="in" hit="Studio Bot requires a logged in Google account." />
+    <option name="logged" hit="Studio Bot requires a logged in Google account." />
+    <option name="requires" hit="Studio Bot requires a logged in Google account." />
+    <option name="studio" hit="Studio Bot requires a logged in Google account." />
+  </configurable>
 </options>
