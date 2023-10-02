@@ -389,7 +389,7 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
   for (uint16_t c: text) {
     JObjectArray event_array = key_character_map_->GetEvents(&c, 1);
     if (event_array.IsNull()) {
-      Log::E("Unable to map character '\\u%04X' to key events", c);
+      Log::E(jni_.GetAndClearException(), "Unable to map character '\\u%04X' to key events", c);
       continue;
     }
     auto len = event_array.GetLength();

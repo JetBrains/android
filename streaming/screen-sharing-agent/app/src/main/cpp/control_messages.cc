@@ -63,7 +63,7 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
       return unique_ptr<ControlMessage>(DisplayConfigurationRequest::Deserialize(stream));
 
     default:
-      Log::Fatal("Unexpected message type %d", type);
+      Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
 }
 
@@ -112,7 +112,7 @@ KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {
 TextInputMessage* TextInputMessage::Deserialize(Base128InputStream& stream) {
   unique_ptr<u16string> text = stream.ReadString16();
   if (text == nullptr || text->empty()) {
-    Log::Fatal("Received a TextInputMessage without text");
+    Log::Fatal(INVALID_CONTROL_MESSAGE, "Received a TextInputMessage without text");
   }
   return new TextInputMessage(*text);
 }

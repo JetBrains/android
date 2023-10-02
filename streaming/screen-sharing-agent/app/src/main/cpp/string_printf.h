@@ -18,9 +18,12 @@
 
 #include <string>
 
+#include <stdarg.h>
+
 namespace screensharing {
 
 // Formats a string and returns it.
 std::string StringPrintf(const char* format, ...) __attribute__((format(printf, 1, 2)));
+std::string StringVPrintf(const char* format, va_list args);
 
 }  // namespace screensharing

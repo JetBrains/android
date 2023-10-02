@@ -73,8 +73,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
     JObject state_info = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
     if (state_info.IsNull()) {
       // May happen if the initial state hasn't been committed.
-      jni.CheckAndClearException();
-      Log::W("Device state is not available");
+      Log::W(jni.GetAndClearException(), "Device state is not available");
       return true;
     }
     current_base_state_ = state_info.GetIntField(base_state_field_);

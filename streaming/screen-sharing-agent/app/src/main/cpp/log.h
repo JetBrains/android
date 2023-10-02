@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "jvm.h"
+
 namespace screensharing {
 
 enum ExitCode {
@@ -31,8 +33,11 @@ enum ExitCode {
   VIRTUAL_DISPLAY_CREATION_ERROR = 13,
   INPUT_SURFACE_CREATION_ERROR = 14,
   SERVICE_NOT_FOUND = 15,
+  DISPLAY_MANAGER_ERROR = 16,
+  KEY_CHARACTER_MAP_ERROR = 17,
   SOCKET_CONNECTIVITY_ERROR = 20,
   SOCKET_IO_ERROR = 21,
+  INVALID_CONTROL_MESSAGE = 22,
   NULL_POINTER = 30,
   CLASS_NOT_FOUND = 31,
   METHOD_NOT_FOUND = 32,
@@ -63,17 +68,25 @@ public:
   static void W(const char* msg, ...)
       __attribute__((format(printf, 1, 2)));
 
+  // Logs a warning message.
+  static void W(JThrowable throwable, const char* msg, ...)
+      __attribute__((format(printf, 2, 3)));
+
   // Logs an error message.
   static void E(const char* msg, ...)
       __attribute__((format(printf, 1, 2)));
 
-  // Logs an error message and terminates the program with exit code 1.
-  [[noreturn]] static void Fatal(const char* msg, ...)
-      __attribute__((format(printf, 1, 2)));
+  // Logs an error message.
+  static void E(JThrowable throwable, const char* msg, ...)
+      __attribute__((format(printf, 2, 3)));
 
   // Logs an error message and terminates the program with the given exit code.
   [[noreturn]] static void Fatal(ExitCode exit_code, const char* msg, ...)
-  __attribute__((format(printf, 2, 3)));
+      __attribute__((format(printf, 2, 3)));
+
+  // Logs an error message and terminates the program with the given exit code.
+  [[noreturn]] static void Fatal(ExitCode exit_code, JThrowable throwable, const char* msg, ...)
+      __attribute__((format(printf, 3, 4)));
 
   static void SetLevel(Level level) {
     level_ = level;

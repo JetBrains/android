@@ -56,11 +56,7 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
 string ClipboardManager::GetText() const {
   JObject text = clipboard_adapter_class_.CallStaticObjectMethod(jni_, get_text_method_);
   if (text.IsNull()) {
-    JThrowable exception = jni_.GetAndClearException();
-    if (!exception.IsNull()) {
-      Log::W("Unable to obtain clipboard text - %s", exception.Describe().c_str());
-    }
-
+    Log::W(jni_.GetAndClearException(), "Unable to obtain clipboard text");
     return "";
   }
   return text.ToString();
