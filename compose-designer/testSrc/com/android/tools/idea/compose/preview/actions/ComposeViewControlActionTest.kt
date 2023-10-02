@@ -272,8 +272,7 @@ class ComposeViewControlActionTest {
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,
         listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider = { _ -> null }
+        onSurfaceLayoutSelected = { _, _ -> }
       )
 
     manager.currentStatus = nonRefreshingStatus

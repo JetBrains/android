@@ -29,7 +29,7 @@ import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
-import com.android.tools.idea.compose.preview.actions.UiCheckFilteringAction
+import com.android.tools.idea.compose.preview.actions.UiCheckDropDownAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInUiCheck
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
@@ -129,12 +129,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
                 // If Essentials Mode is enabled, it should not be possible to switch layout.
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             },
-            onSurfaceLayoutSelected = { _, _ -> },
-            additionalActionProvider = { dataContext ->
-              dataContext.getData(COMPOSE_PREVIEW_MANAGER)?.let { UiCheckFilteringAction(it) }
-            }
+            onSurfaceLayoutSelected = { _, _ -> }
           )
           .visibleOnlyInUiCheck(),
+        UiCheckDropDownAction().visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {

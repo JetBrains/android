@@ -46,13 +46,14 @@ class ComposeViewControlAction(
   private val layoutManagers: List<SurfaceLayoutManagerOption>,
   private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
   private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit,
-  private val additionalActionProvider: (DataContext) -> AnAction?
+  private val additionalActionProvider: (DataContext) -> AnAction? = { null }
 ) :
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
     copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
   ) {
+
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabled = !isPreviewRefreshing(e.dataContext)
