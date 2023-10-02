@@ -52,12 +52,14 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
+import com.intellij.util.alsoIfNull
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ToolTipManager
+import javax.swing.tree.TreePath
 
 const val BASE_PERSPECTIVE_MODULE_PLACE_NAME = "base_perspective.module"
 
@@ -84,6 +86,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var treeInitiated: Boolean = false
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
+  private var selectedUnresolvedPath: String? = null
   val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
 
@@ -100,6 +103,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       override fun ended() {
         loadingPanelVisible = false
         stopSyncAnimation()
+        maybeUpdateTreeAfterSync()
       }
     }, this)
 
@@ -116,6 +120,12 @@ abstract class BasePerspectiveConfigurable protected constructor(
     context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
   }
 
+  private fun maybeUpdateTreeAfterSync() {
+    if (myTree.isEmpty) myTree.expandPath(TreePath(myTree.model.root))
+    selectedUnresolvedPath?.let { selectModule(it) }
+    selectedUnresolvedPath = null
+  }
+
   private fun stopSyncAnimation() {
     loadingPanel?.stopLoading()
   }
@@ -127,7 +137,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
         selectNodeInTree(node)
         selectedNode = node
         node.configurable as? BaseNamedConfigurable<*>
-      }
+      }.alsoIfNull { selectedUnresolvedPath = gradlePath }
 
   protected fun findModuleByGradlePath(gradlePath: String): PsModule? =
     context.project.findModuleByGradlePath(gradlePath) ?: extraModules.find { it.gradlePath == gradlePath }
