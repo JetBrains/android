@@ -28,6 +28,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
@@ -88,7 +89,8 @@ public class DrawableRenderer implements Disposable {
    */
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
-    RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE, StudioHtmlLinkManager::new);
+    RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
+                                           () -> HtmlLinkManager.NOOP_LINK_MANAGER);
     myParserFactory = new MyLayoutPullParserFactory();
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.

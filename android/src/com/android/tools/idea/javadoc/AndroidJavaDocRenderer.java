@@ -56,11 +56,11 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.ShowFixFactory;
-import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -1055,8 +1055,8 @@ public class AndroidJavaDocRenderer {
           AndroidFacet facet = AndroidFacet.getInstance(myModule);
           assert facet != null;
           final RenderService service = StudioRenderService.getInstance(myModule.getProject());
-          RenderLogger logger =
-            new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE, StudioHtmlLinkManager::new);
+          RenderLogger logger = new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
+                                                 () -> HtmlLinkManager.NOOP_LINK_MANAGER);
           CompletableFuture<RenderTask> renderTaskFuture = taskBuilder(service, facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {
