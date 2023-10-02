@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.offsetForWindow
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
@@ -39,7 +40,23 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
+const val OUTER_FUNCTION = "Outer"
+
 val EXPECTED_ICON = StudioIcons.Common.INFO
+
+val COMPOSE_RUNTIME_IMPORTS =
+  listOf(
+    "Composable",
+    "MutableState",
+    "getValue",
+    "mutableDoubleStateOf",
+    "mutableFloatStateOf",
+    "mutableIntStateOf",
+    "mutableLongStateOf",
+    "mutableStateOf",
+    "saveable.rememberSaveable",
+    "setValue",
+  )
 
 @RunWith(JUnit4::class)
 @RunsInEdt
@@ -60,241 +77,206 @@ class ComposeStateReadAnnotatorTest {
 
   @Test
   fun delegatedPropertyRead() {
-    val psiFile =
-      fixture.loadNewFile(
-        "src/com/example/Test.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-      import androidx.compose.runtime.getValue
-      import androidx.compose.runtime.mutableStateOf
-      import androidx.compose.runtime.saveable.rememberSaveable
-      import androidx.compose.runtime.setValue
-
-      @Composable
-      fun HelloScreen() {
-        var name by rememberSaveable { mutableStateOf("") }
-        HelloContent(name = name) { name = it }
-      }
-
-      @Composable
-      fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-      """
-          .trimIndent()
+    createPsiFile(
+        "fun Inner(arg: String, onNameChange: (String) -> Unit)",
+        "Inner(arg = stateVar) { stateVar = it }",
+        "var stateVar by rememberSaveable { mutableStateOf(\"\") }",
       )
-
-    val allElements = psiFile.collectDescendantsOfType<PsiElement>()
-    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
-
-    assertThat(annotations).hasSize(1)
-    with(annotations.first()) {
-      assertThat(message).isEqualTo(createMessage("name", "HelloScreen"))
-      assertThat(message).isEqualTo(message)
-      assertThat(gutterIconRenderer).isNotNull()
-      assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
-      assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = |name)"))
-      assertThat(endOffset).isEqualTo(fixture.offsetForWindow("HelloContent(name = name|)"))
-    }
+      .assertSingleHighlight("|stateVar|)", composeScope = OUTER_FUNCTION)
   }
 
   @Test
   fun assignedPropertyRead() {
-    val psiFile =
-      fixture.loadNewFile(
-        "src/com/example/Test.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-      import androidx.compose.runtime.mutableStateOf
-      import androidx.compose.runtime.saveable.rememberSaveable
-
-      @Composable
-      fun HelloScreen() {
-        val assignedName = rememberSaveable { mutableStateOf("") }
-        HelloContent(name = assignedName.value) { assignedName.value = it }
-      }
-
-      @Composable
-      fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-      """
-          .trimIndent()
+    createPsiFile(
+        "fun Inner(arg: String, onNameChange: (String) -> Unit)",
+        "Inner(arg = stateVar.value) { stateVar.value = it }",
       )
-
-    val allElements = psiFile.collectDescendantsOfType<PsiElement>()
-    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
-
-    assertThat(annotations).hasSize(1)
-    with(annotations.first()) {
-      assertThat(message).isEqualTo(createMessage("assignedName", "HelloScreen"))
-      assertThat(message).isEqualTo(message)
-      assertThat(gutterIconRenderer).isNotNull()
-      assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
-      assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset)
-        .isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.|value)"))
-      assertThat(endOffset)
-        .isEqualTo(fixture.offsetForWindow("HelloContent(name = assignedName.value|)"))
-    }
+      .assertSingleHighlight("|value|)", composeScope = OUTER_FUNCTION)
   }
 
   @Test
   fun listPropertyRead() {
-    val psiFile =
-      fixture.loadNewFile(
-        "src/com/example/Test.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-      import androidx.compose.runtime.mutableStateOf
-      import androidx.compose.runtime.saveable.rememberSaveable
-
-      @Composable
-      fun HelloScreen() {
-        val listName = listOf(rememberSaveable { mutableStateOf("") })
-        HelloContent(name = listName[0].value) { listName[0].value = it }
-      }
-
-      @Composable
-      fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-      """
-          .trimIndent()
+    createPsiFile(
+        "fun Inner(arg: String, onNameChange: (String) -> Unit)",
+        "Inner(arg = stateListVar[0].value) { stateListVar[0].value = it }",
+        "val stateListVar = listOf(rememberSaveable { mutableStateOf(\"\") })",
       )
-
-    val allElements = psiFile.collectDescendantsOfType<PsiElement>()
-    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
-
-    assertThat(annotations).hasSize(1)
-    with(annotations.first()) {
-      assertThat(message).isEqualTo(createMessage("listName[0]", "HelloScreen"))
-      assertThat(gutterIconRenderer).isNotNull()
-      assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
-      assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-      assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset)
-        .isEqualTo(fixture.offsetForWindow("HelloContent(name = listName[0].|value)"))
-      assertThat(endOffset)
-        .isEqualTo(fixture.offsetForWindow("HelloContent(name = listName[0].value|)"))
-    }
+      .assertSingleHighlight(
+        "|value|)",
+        stateVariable = "stateListVar[0]",
+        composeScope = OUTER_FUNCTION
+      )
   }
 
   @Test
   fun nestedPropertyRead() {
-    val psiFile =
-      fixture.loadNewFile(
-        "src/com/example/Test.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-      import androidx.compose.runtime.MutableState
-      import androidx.compose.runtime.mutableStateOf
-      import androidx.compose.runtime.saveable.rememberSaveable
-
-      @Composable
-      fun HelloScreen() {
-        val container = StateHolder(rememberSaveable { mutableStateOf("") })
-        HelloContent(name = container.name.value) { container.name.value = it }
-      }
-
-      @Composable
-      fun HelloContent(name: String, onNameChange: (String) -> Unit) { }
-
-      class StateHolder(val name: MutableState<String>)
-      """
-          .trimIndent()
+    createPsiFile(
+        "fun Inner(arg: String, onNameChange: (String) -> Unit)",
+        "Inner(arg = container.stateProp.value) { container.stateProp.value = it }",
+        "val container = StateHolder(rememberSaveable { mutableStateOf(\"\") })",
+        "class StateHolder(val stateProp: MutableState<String>)",
       )
+      .assertSingleHighlight("|value|)", stateVariable = "stateProp", composeScope = OUTER_FUNCTION)
+  }
 
-    val allElements = psiFile.collectDescendantsOfType<PsiElement>()
+  @Test
+  fun primitivePropertyRead_int() {
+    createPsiFile(
+        "fun Inner(arg: Int, (Int) -> Unit)",
+        "Inner(arg = stateVar.intValue) { stateVar.intValue = it }",
+        "val stateVar = rememberSaveable { mutableIntStateOf(42) }",
+      )
+      .assertSingleHighlight("|intValue|", composeScope = OUTER_FUNCTION)
+  }
+
+  @Test
+  fun primitivePropertyRead_long() {
+    createPsiFile(
+        "fun Inner(arg: Long, (Long) -> Unit)",
+        "Inner(arg = stateVar.longValue) { stateVar.longValue = it }",
+        "val stateVar = rememberSaveable { mutableLongStateOf(8657309L) }",
+      )
+      .assertSingleHighlight("|longValue|", composeScope = OUTER_FUNCTION)
+  }
+
+  @Test
+  fun primitivePropertyRead_float() {
+    createPsiFile(
+        "fun Inner(arg: Float, (Float) -> Unit)",
+        "Inner(arg = stateVar.floatValue) { stateVar.floatValue = it }",
+        "val stateVar = rememberSaveable { mutableFloatStateOf(3.14159f) }",
+      )
+      .assertSingleHighlight("|floatValue|", composeScope = OUTER_FUNCTION)
+  }
+
+  @Test
+  fun primitivePropertyRead_double() {
+    createPsiFile(
+        "fun Inner(arg: Double, (Double) -> Unit)",
+        "Inner(arg = stateVar.doubleValue) { stateVar.doubleValue = it }",
+        "val stateVar = rememberSaveable { mutableDoubleStateOf(2.71828) }",
+      )
+      .assertSingleHighlight("|doubleValue|", composeScope = OUTER_FUNCTION)
+  }
+
+  @Test
+  fun composableLambdaArgument() {
+    createPsiFile(
+        "fun Inner(arg: @Composable () -> Unit)",
+        "Inner { stateVar.value }",
+      )
+      .assertSingleHighlight("|value|")
+  }
+
+  @Test
+  fun noncomposableLambdaArgument() {
+    createPsiFile(
+        "fun Inner(arg: () -> Unit)",
+        "Inner { stateVar.value }",
+      )
+      .assertNoHighlight()
+  }
+
+  @Test
+  fun inlineLambdaArgument() {
+    createPsiFile(
+        "inline fun Inner(arg: () -> Unit)",
+        "Inner { stateVar.value }",
+      )
+      .assertSingleHighlight("|value|", composeScope = OUTER_FUNCTION)
+  }
+
+  @Test
+  fun noinlineLambdaArgument() {
+    createPsiFile(
+        "inline fun Inner(noinline arg: () -> Unit)",
+        "Inner { stateVar.value }",
+      )
+      .assertNoHighlight()
+  }
+
+  @Test
+  fun composableNoinlineLambdaArgument() {
+    createPsiFile(
+        "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
+        "Inner({ stateVar.value }, 3)",
+      )
+      .assertSingleHighlight("|value|")
+  }
+
+  @Test
+  fun composablePositionalLambdaArgument() {
+    createPsiFile(
+        "fun Inner(arg: @Composable () -> Unit, otherArg: Int)",
+        "Inner({ stateVar.value }, 3)",
+      )
+      .assertSingleHighlight("|value|")
+  }
+
+  @Test
+  fun composableNamedLambdaArgument() {
+    createPsiFile(
+        "fun Inner(beforeArg: Int, arg: @Composable () -> Unit, afterArg: Int)",
+        "Inner(arg = { stateVar.value }, beforeArg = 17, afterArg = 42)",
+      )
+      .assertSingleHighlight("|value|")
+  }
+
+  private fun createPsiFile(
+    innerFunctionSignature: String,
+    innerFunctionInvocation: String,
+    stateVarCreation: String = "val stateVar = rememberSaveable { mutableStateOf(\"\") }",
+    extraCode: String = ""
+  ): PsiFile {
+    return fixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+      ${COMPOSE_RUNTIME_IMPORTS.joinToString("\n      ") { "import androidx.compose.runtime.$it" }}
+      @Composable $innerFunctionSignature {}
+      @Composable
+      fun $OUTER_FUNCTION {
+        $stateVarCreation
+        $innerFunctionInvocation
+      }
+      $extraCode
+      """
+        .trimIndent()
+    )
+  }
+
+  private fun PsiFile.assertNoHighlight() {
+    val allElements = collectDescendantsOfType<PsiElement>()
+    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
+
+    assertThat(annotations).hasSize(0)
+  }
+
+  private fun PsiFile.assertSingleHighlight(
+    window: String,
+    stateVariable: String = "stateVar",
+    composeScope: String =
+      ComposeBundle.message("compose.state.read.recompose.target.enclosing.lambda")
+  ) {
+    val allElements = collectDescendantsOfType<PsiElement>()
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
 
     assertThat(annotations).hasSize(1)
-    with(annotations.first()) {
-      assertThat(message).isEqualTo(createMessage("name", "HelloScreen"))
+
+    val windowStart = window.reversed().replaceFirst("|", "").reversed()
+    val windowEnd = window.replaceFirst("|", "")
+
+    with(annotations.single()) {
+      val expectedMessage =
+        ComposeBundle.message("compose.state.read.message", stateVariable, composeScope)
+      assertThat(message).isEqualTo(expectedMessage)
       assertThat(gutterIconRenderer).isNotNull()
       assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
       assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
       assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-      assertThat(startOffset)
-        .isEqualTo(fixture.offsetForWindow("HelloContent(name = container.name.|value)"))
-      assertThat(endOffset)
-        .isEqualTo(fixture.offsetForWindow("HelloContent(name = container.name.value|)"))
+      assertThat(startOffset).isEqualTo(fixture.offsetForWindow(windowStart))
+      assertThat(endOffset).isEqualTo(fixture.offsetForWindow(windowEnd))
     }
   }
-
-  @Test
-  fun primitivePropertyRead() {
-    val psiFile =
-      fixture.loadNewFile(
-        "src/com/example/Test.kt",
-        // language=kotlin
-        """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-      import androidx.compose.runtime.mutableIntStateOf
-      import androidx.compose.runtime.mutableLongStateOf
-      import androidx.compose.runtime.mutableFloatStateOf
-      import androidx.compose.runtime.mutableDoubleStateOf
-      import androidx.compose.runtime.saveable.rememberSaveable
-
-      @Composable
-      fun HelloScreen() {
-        val intContainer = rememberSaveable { mutableIntStateOf(42) }
-        val longContainer = rememberSaveable { mutableLongStateOf(8675309L) }
-        val floatContainer = rememberSaveable { mutableFloatStateOf(3.14159F) }
-        val doubleContainer = rememberSaveable { mutableDoubleStateOf(2.71828) }
-        HelloContent(
-          intVal = intContainer.intValue,
-          longVal = longContainer.longValue,
-          floatVal = floatContainer.floatValue,
-          doubleVal = doubleContainer.doubleValue,
-        ) { i, l, f, d ->
-          intContainer.intValue = i
-          longContainer.longValue = l
-          floatContainer.floatValue = f
-          doubleContainer.doubleValue = d
-        }
-      }
-
-      @Composable
-      fun HelloContent(intVal: Int, longVal: Long, floatVal: Float, doubleVal: Double,
-        onNameChange: (Int, Long, Float, Double) -> Unit) { }
-
-      class StateHolder(val name: MutableState<String>)
-      """
-          .trimIndent()
-      )
-
-    val allElements = psiFile.collectDescendantsOfType<PsiElement>()
-    val annotations = CodeInsightTestUtil.testAnnotator(annotator, *allElements.toTypedArray())
-
-    val foo = listOf("int", "long", "float", "double")
-    assertThat(annotations).hasSize(foo.size)
-    for ((annotation, type) in annotations.zip(foo)) {
-      with(annotation) {
-        assertThat(message).isEqualTo(createMessage("${type}Container", "HelloScreen"))
-        assertThat(gutterIconRenderer).isNotNull()
-        assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
-        assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
-        assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-        assertThat(startOffset)
-          .isEqualTo(fixture.offsetForWindow("${type}Val = ${type}Container.|${type}Value"))
-        assertThat(endOffset)
-          .isEqualTo(fixture.offsetForWindow("${type}Val = ${type}Container.${type}Value|"))
-      }
-    }
-  }
-
-  private fun createMessage(stateVariable: String, composable: String) =
-    ComposeBundle.message("compose.state.read.message", stateVariable, composable)
 }
