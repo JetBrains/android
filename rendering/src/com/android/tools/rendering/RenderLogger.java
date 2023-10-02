@@ -179,7 +179,7 @@ public class RenderLogger implements IRenderLogger {
         return RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable);
       }
       else {
-        return RenderProblem.createPlain(ERROR, description, project, getLinkManager(), throwable, fixFactory).tag(tag);
+        return RenderProblem.createHtml(ERROR, description, project, getLinkManager(), throwable, fixFactory).tag(tag);
       }
     };
   }

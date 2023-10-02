@@ -545,7 +545,7 @@ final public class RenderService implements Disposable {
           String message = e.getPresentableMessage();
           message = message != null ? message : RenderingBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(
-            RenderProblem.createPlain(
+            RenderProblem.createHtml(
               ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
           return null;
         }
