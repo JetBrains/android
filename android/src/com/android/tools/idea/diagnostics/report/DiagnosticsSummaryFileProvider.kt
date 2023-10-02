@@ -23,7 +23,7 @@ import com.intellij.troubleshooting.TroubleInfoCollector
 import java.nio.file.Path
 import java.nio.file.Paths
 
-/*
+/**
   FileInfo contains a pair of values used for creating a diagnostic report
   @param source: the path to the file
   @param destination: the path where the file should be stored in the report

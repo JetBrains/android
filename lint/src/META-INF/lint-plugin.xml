@@ -93,5 +93,6 @@
     <lang.inspectionSuppressor
         language="Groovy"
         implementationClass="com.android.tools.idea.lint.common.AndroidLintJcenterInspectionSuppressor"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWrongCommentType" groupName="Android Lint: Correctness" displayName="Wrong Comment Type" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWrongCommentTypeInspection"/>
   </extensions>
 </idea-plugin>

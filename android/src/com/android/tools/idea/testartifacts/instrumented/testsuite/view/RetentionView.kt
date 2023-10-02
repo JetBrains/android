@@ -293,7 +293,7 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
     }
   }
 
-  /*
+  /**
    * Sets the snapshot file and updates UI.
    *
    * @param snapshotFile a snapshot file
