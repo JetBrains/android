@@ -46,7 +46,7 @@ public final class SkinComboBoxModel extends AbstractListModel<Skin> implements 
   @NotNull
   private final Function<SkinComboBoxModel, FutureCallback<Collection<Skin>>> myNewMerge;
 
-  public SkinComboBoxModel(@NotNull Callable<Collection<Skin>> collect) {
+  SkinComboBoxModel(@NotNull Callable<Collection<Skin>> collect) {
     this(collect, Merge::new);
   }
 

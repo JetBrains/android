@@ -39,9 +39,7 @@ import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.avdmanager.skincombobox.Collector;
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBox;
-import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
@@ -261,7 +259,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private ArrayList<SnapshotListItem> mySnapshotList;
 
   public ConfigureAvdOptionsStep(@Nullable Project project, @NotNull AvdOptionsModel model) {
-    this(project, model, new SkinComboBox(project, new SkinComboBoxModel(new Collector(DeviceSkinUpdater::updateSkins)::collect)));
+    this(project, model, new SkinComboBox(project, DeviceSkinUpdater::updateSkins));
   }
 
   @VisibleForTesting

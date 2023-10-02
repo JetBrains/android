@@ -15,13 +15,20 @@
  */
 package com.android.tools.idea.avdmanager.skincombobox;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import java.nio.file.Path;
+import java.util.function.UnaryOperator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class SkinComboBox extends ComboBox<Skin> {
+  public SkinComboBox(@Nullable Project project, @NotNull UnaryOperator<Path> map) {
+    this(project, new SkinComboBoxModel(new Collector(map)::collect));
+  }
+
+  @VisibleForTesting
   public SkinComboBox(@Nullable Project project, @NotNull SkinComboBoxModel model) {
     super(model);
 
