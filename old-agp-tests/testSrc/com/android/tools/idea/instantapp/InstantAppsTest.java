@@ -48,7 +48,7 @@ public class InstantAppsTest {
   }
 
   @Test
-  @Ignore("b/203803107")
+  @Ignore("b/303109738")
   public void testGetDefaultInstantAppUrlWithInstantApp() throws Exception {
     // Use a plugin version that supports instant app
     projectRule.loadProject(INSTANT_APP, "instant-app", AgpVersionSoftwareEnvironmentDescriptor.AGP_35);

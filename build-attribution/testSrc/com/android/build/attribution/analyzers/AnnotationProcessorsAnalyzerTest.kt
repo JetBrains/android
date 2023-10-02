@@ -87,7 +87,7 @@ class AnnotationProcessorsAnalyzerTest {
   }
 
   @Test
-  @Ignore("b/179137380")
+  @Ignore("b/303118104")
   fun testNonIncrementalAnnotationProcessorsAnalyzerWithSuppressedWarnings() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 

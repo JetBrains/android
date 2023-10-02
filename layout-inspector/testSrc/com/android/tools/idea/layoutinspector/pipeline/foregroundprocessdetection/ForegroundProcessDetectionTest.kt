@@ -268,7 +268,7 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
-  @Ignore
+  @Ignore("b/303111516")
   // TODO re-enable
   fun testReceiveMultipleInstancesOfStudio(): Unit = runBlocking {
     val (deviceModel1, processModel1) = createDeviceModel(device1)
@@ -872,7 +872,7 @@ class ForegroundProcessDetectionTest {
 
   @Test
   // TODO(b/260847188) re-enable
-  @Ignore
+  @Ignore("b/260847188")
   fun testCorruptedTransportIsLogged(): Unit = runBlocking {
     // see b/250589069 for definition of "corrupted transport"
     val onDeviceDisconnectedSyncChannel = Channel<DeviceDescriptor>()

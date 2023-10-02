@@ -82,7 +82,7 @@ class SessionsViewTest {
     mySessionsView = SessionsView(myProfilers, FakeIdeProfilerComponents())
   }
 
-  @Ignore("b/123901060")
+  @Ignore("b/303113078")
   @Test
   fun testSessionsListUpToDate() {
     val sessionsPanel = mySessionsView.sessionsPanel

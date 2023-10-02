@@ -24,7 +24,7 @@ import java.awt.event.MouseEvent
 
 class SaturationBrightnessComponentTest {
 
-  @Ignore("TODO (b/172521726): Re-enable this test when the flakes are fixed.")
+  @Ignore("b/303116558")
   @Test
   fun testPickColor() {
     val model = ColorPickerModel()

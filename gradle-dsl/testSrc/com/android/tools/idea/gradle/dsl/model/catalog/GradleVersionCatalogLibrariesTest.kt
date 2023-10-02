@@ -331,7 +331,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
 
   // We do not support writing in such format for now
   @Test
-  @Ignore
+  @Ignore("b/303108824")
   fun testAddDeclarationAsMapWithMapVersion() {
     writeToBuildFile("")
     writeToVersionCatalogFile("")

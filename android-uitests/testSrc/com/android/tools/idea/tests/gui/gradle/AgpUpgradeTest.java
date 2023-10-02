@@ -58,7 +58,7 @@ public class AgpUpgradeTest {
     ideFrame = guiTest.ideFrame();
   }
 
- @Ignore //Ignoring the test, Enable after adding AGP 8.1.0 Canary Version
+  @Ignore("b/303087314") //Ignoring the test, Enable after adding AGP 8.1.0 Canary Version
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testUpgradeFunctionalityCheck() {

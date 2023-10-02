@@ -109,7 +109,7 @@ class AlwaysRunTasksAnalyzerTest {
   }
 
   @Test
-  @Ignore("b/179137380")
+  @Ignore("b/303117971")
   fun testAlwaysRunTasksAnalyzerWithSuppressedWarning() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 

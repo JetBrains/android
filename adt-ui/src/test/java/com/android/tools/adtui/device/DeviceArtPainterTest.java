@@ -78,7 +78,7 @@ public class DeviceArtPainterTest {
   // This test is disabled but code is preserved here; this is handy for quickly checking rendering results when tweaking the code to
   // assemble composite images. (Make sure you also turn off the thumbnail cache first! Return null from DeviceArtPainter#getCachedImage.)
   @Test
-  @Ignore
+  @Ignore("b/303116235")
   public void testRendering() throws Exception {
     DeviceArtPainter framePainter = DeviceArtPainter.getInstance();
     for (DeviceArtDescriptor spec : framePainter.getDescriptors()) {
@@ -266,7 +266,7 @@ public class DeviceArtPainterTest {
   // This test no longer applies; it was used to convert assets with a lot of padding into more tightly cropped screenshots.
   // We're preserving the code since for future device releases we might get new artwork which includes padding.
   @Test
-  @Ignore
+  @Ignore("b/303116235")
   public void testCropData() throws Exception {
 
     // Apply crop

@@ -1387,7 +1387,7 @@ class AppInsightsProjectLevelControllerTest {
   }
 
   @Test
-  @Ignore("b/260206459: disable queueing of actions for now")
+  @Ignore("b/303113113")
   fun `add and delete notes during network failure, causes offline mode, results in requests being queued and retried later`() =
     runBlocking {
       val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))

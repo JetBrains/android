@@ -161,7 +161,7 @@ class ConfigurationCachingCompatibilityAnalyzerTest {
     }
   }
 
-  @Ignore("Need additional work to make such setup run offline.")
+  @Ignore("b/303118113")
   @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
   @Test
   fun testOldKotlinDetectedAppliedInPluginDsl() {

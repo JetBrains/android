@@ -90,7 +90,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     everythingDisabledNoEffectOn("GMavenRepository/AGP2Project")
   }
 
-  @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
+  @Ignore("b/303111009") // TODO(b/152854665)
   fun testEverythingDisabledNoEffectOnGradleVersion() {
     everythingDisabledNoEffectOn("GradleVersion/OldGradleVersion")
   }
@@ -222,7 +222,7 @@ class AgpUpgradeRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
     verifyFileContents(buildFile, TestFileName("RemoveBuildTypeUseProguard/TwoBuildTypesExpected"))
   }
 
-  @Ignore("gradle-wrapper.properties is not a build file") // TODO(b/152854665)
+  @Ignore("b/303111009") // TODO(b/152854665)
   fun testEnabledEffectOnGradleVersion() {
     writeToBuildFile(TestFileName("GradleVersion/OldGradleVersion"))
     val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("3.5.0"), AgpVersion.parse("4.1.0"))

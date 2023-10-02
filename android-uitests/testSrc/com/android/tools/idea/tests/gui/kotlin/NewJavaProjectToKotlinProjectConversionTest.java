@@ -98,7 +98,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
     assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(240)).isBuildSuccessful()).isTrue();
   }
 
-  @Ignore
+  @Ignore("b/303107708")
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testNewBasicActivityJavaProjectToKotlinProjectConversion() throws Exception {

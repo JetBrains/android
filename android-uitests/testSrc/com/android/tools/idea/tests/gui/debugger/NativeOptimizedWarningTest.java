@@ -59,7 +59,7 @@ public class NativeOptimizedWarningTest extends DebuggerTestBase {
    * <p>TT ID: TODO this test case needs a TT ID.
    *
    */
-  @Ignore("b/37140919")
+  @Ignore("b/303108383")
   @RunIn(TestGroup.QA_UNRELIABLE)
   @Test
   public void test() throws IOException, ClassNotFoundException, InterruptedException {

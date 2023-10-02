@@ -111,7 +111,7 @@ class LiveEditProjectMonitorTest {
   }
 
   @Test
-  @Ignore("Test was written assuming a world where the class differ doesn't exist")
+  @Ignore("b/303114511")
   fun `Auto Mode with Private and Public Inline`() {
     var monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);

@@ -827,7 +827,7 @@ public class AndroidValueResourcesTest {
 
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
-  @Ignore
+  @Ignore("b/303115375")
   @Test
   public void navigationInPlatformXml1_NavigateFromParentAttr() throws Exception {
     VirtualFile themes_holo =
@@ -858,7 +858,7 @@ public class AndroidValueResourcesTest {
   }
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
-  @Ignore
+  @Ignore("b/303115375")
   @Test
   public void navigationInPlatformXml2_NavigateFromNameAttr() throws Exception {
     VirtualFile themes_holo =
@@ -889,7 +889,7 @@ public class AndroidValueResourcesTest {
   }
 
   // Fails when sandboxed, as the fixture tries to write to themes_holo.xml in the SDK
-  @Ignore
+  @Ignore("b/303115375")
   @Test
   public void navigationInPlatformXml3() throws Exception {
     VirtualFile themes_holo =

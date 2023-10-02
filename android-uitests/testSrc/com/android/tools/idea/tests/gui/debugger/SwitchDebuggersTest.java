@@ -78,7 +78,7 @@ public class SwitchDebuggersTest extends DebuggerTestBase {
    *   9. Should be able to switch to a new debugger and breakpoints should get hit accordingly.
    *   </pre>
    */
-  @Ignore("b/37093995: Attaching the debugger to running process fails while switching one deubugger mode to other")
+  @Ignore("b/303107600")
   @Test
   @RunIn(TestGroup.QA_UNRELIABLE) // b/37093995
   public void switchDebuggersUsingAttachToDebugger() throws Exception {

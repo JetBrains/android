@@ -99,7 +99,7 @@ class BasicLayoutInspectorUITest {
     }
   }
 
-  @Ignore("b/228615904")
+  @Ignore("b/303086932")
   @Test
   @UseBleak
   @RunIn(TestGroup.PERFORMANCE)

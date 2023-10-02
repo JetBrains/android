@@ -106,7 +106,7 @@ class ComposableCompileTest {
   }
 
   @Test
-  @Ignore // Bug 298237095
+  @Ignore("b/303114659")
   fun multipleEditsInOneUpdate() {
     val cache = initialCache(mapOf(
       "ComposeSimple.kt" to """
@@ -165,7 +165,7 @@ class ComposableCompileTest {
     val original = projectRule.compileIr("""
      import androidx.compose.runtime.Composable
      @Composable fun isComposable() {}
-     fun notComposable() {} 
+     fun notComposable() {}
     """, "Mixed.kt")
     val cache = MutableIrClassCache()
     cache.update(original)

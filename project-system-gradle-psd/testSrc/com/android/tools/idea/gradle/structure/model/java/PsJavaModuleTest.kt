@@ -72,7 +72,7 @@ class PsJavaModuleTest {
 
   // TODO(b/117969438) : Find out what the correct configurations are and implement.
   @Test
-  @Ignore("b/117969438")
+  @Ignore("b/303085801")
   fun /*testC*/onfigurations() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     projectRule.psTestWithProject(preparedProject) {

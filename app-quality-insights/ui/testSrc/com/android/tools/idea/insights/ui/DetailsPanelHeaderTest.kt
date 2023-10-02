@@ -90,7 +90,7 @@ class DetailsPanelHeaderTest {
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
   }
 
-  @Ignore("Investigate sizing discrepancies on different platforms")
+  @Ignore("b/303112785")
   @Test
   fun `header width affects class name and method name in title label`() {
     val detailsPanelHeader =

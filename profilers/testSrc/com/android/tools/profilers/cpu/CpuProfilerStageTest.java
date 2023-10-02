@@ -526,7 +526,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(newStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
   }
 
-  @Ignore
+  @Ignore("b/303111904")
   @Test
   public void setCaptureWhileCapturingShouldParseAndContinueInCapturingState() throws InterruptedException, IOException {
     // First generate a finished capture that we can select
@@ -548,7 +548,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureParser().isParsing()).isFalse();
   }
 
-  @Ignore
+  @Ignore("b/303111904")
   @Test
   public void setCaptureWhileIdleShouldParseAndStayInIdleState() throws InterruptedException, IOException {
     // First generate a finished capture that we can select
@@ -779,7 +779,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore("b/209673164")
+  @Ignore("b/303111904")
   public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
     ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);

@@ -80,7 +80,7 @@ class StringSearchTest {
     assertThat(found).isEqualTo(6)
   }
 
-  @Ignore // Failing (java.lang.OutOfMemoryError)
+  @Ignore("b/303115227") // Failing (java.lang.OutOfMemoryError)
   @Test
   fun `doesn't find missing text in middle of streaming reader`() {
     val search = StringSearch("balloon")
@@ -110,7 +110,7 @@ class StringSearchTest {
     assertThat(search.findInLoadedRegion(reader)).isEqualTo(0)
   }
 
-  @Ignore // Failing (java.lang.IndexOutOfBoundsException)
+  @Ignore("b/303115227") // Failing (java.lang.IndexOutOfBoundsException)
   @Test
   fun `find in loaded region text at end of streaming reader`() {
     val search = StringSearch("world")
@@ -139,7 +139,7 @@ class StringSearchTest {
     assertThat(search.findInLoadedRegion(reader)).isEqualTo(6)
   }
 
-  @Ignore // Failing (java.lang.IndexOutOfBoundsException)
+  @Ignore("b/303115227") // Failing (java.lang.IndexOutOfBoundsException)
   @Test
   fun `find in loaded region text in middle of streaming reader`() {
     val search = StringSearch("world")
@@ -171,7 +171,7 @@ class StringSearchTest {
     assertThat(search.findInLoadedRegion(reader)).isEqualTo(6)
   }
 
-  @Ignore // Failing(java.lang.IndexOutOfBoundsException)
+  @Ignore("b/303115227") // Failing(java.lang.IndexOutOfBoundsException)
   @Test
   fun `doesn't find missing text in loaded region of streaming reader`() {
     val search = StringSearch("balloon")
@@ -221,21 +221,21 @@ class StringSearchTest {
     assertThat(found).isEqualTo(6)
   }
 
-  @Ignore // Failing (wrong value)
+  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find missing text in generic byte array`() {
     val found = StringSearch("balloon").find("hello world, my old friend".asGenericByteBuffer())
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore // Failing (wrong value)
+  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find text when starting after it in generic byte buffer`() {
     val found = StringSearch("hello").find("hello world, my old friend".asGenericByteBuffer(), startIndex = 7)
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore // Failing (java.lang.StringIndexOutOfBoundsException)
+  @Ignore("b/303115227") // Failing (java.lang.StringIndexOutOfBoundsException)
   @Test
   fun `ignores endIndex when longer than generic byte buffer`() {
     val found = StringSearch("balloon").find("hello world, my old friend".asGenericByteBuffer(), endIndex = Int.MAX_VALUE)
@@ -260,21 +260,21 @@ class StringSearchTest {
     assertThat(found).isEqualTo(6)
   }
 
-  @Ignore // Failing (wrong value)
+  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find missing text in byte array`() {
     val found = StringSearch("balloon").find("hello world, my old friend".toByteArray())
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore // Failing (wrong value)
+  @Ignore("b/303115227") // Failing (wrong value)
   @Test
   fun `doesn't find text when starting after it in byte array`() {
     val found = StringSearch("hello").find("hello world, my old friend".toByteArray(), startIndex = 7)
     assertThat(found).isEqualTo(-1)
   }
 
-  @Ignore // Failing (java.lang.StringIndexOutOfBoundsException)
+  @Ignore("b/303115227") // Failing (java.lang.StringIndexOutOfBoundsException)
   @Test
   fun `ignores endIndex when longer than byte array`() {
     val found = StringSearch("balloon").find("hello world, my old friend".toByteArray(), endIndex = Int.MAX_VALUE)
