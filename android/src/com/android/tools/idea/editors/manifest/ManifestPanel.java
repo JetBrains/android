@@ -1063,66 +1063,36 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private void describePosition(@NotNull HtmlBuilder sb, ManifestFileWithMetadata manifestFile) {
     if (manifestFile instanceof InjectedBuildDotGradleFile injectedFile) {
-      if (injectedFile.getFile() != null) {
-        sb.addHtml("<a href=\"");
-        sb.add(injectedFile.getFile().toURI().toString());
-        sb.addHtml("\">");
-        sb.add(injectedFile.getFile().getName());
-        sb.addHtml("</a>");
-        sb.add(" injection");
-      } else {
+      File file = injectedFile.getFile();
+      if (file != null) {
+        sb.addLink(null, file.getName(), " injection", myHtmlLinkManager.createFileLink(file));
+      }
+      else {
         sb.add("Injection from Gradle build file (source location unknown)");
       }
       return;
     }
     if (manifestFile instanceof ManifestXmlWithMetadata manifestXml) {
-      if (manifestXml.getType() == ManifestXmlType.NAVIGATION_XML) {
-        sb.addHtml("<a href=\"");
-        sb.add(manifestXml.getFile().toURI().toString());
-        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
-          sb.add(":");
-          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartLine()));
-          sb.add(":");
-          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartColumn()));
-        }
-        sb.addHtml("\">");
-
-        sb.add(manifestXml.getSourceLibrary());
-        sb.addHtml("</a>");
-        sb.add(" navigation file");
-
-        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
-          sb.add(", line ");
-          sb.add(Integer.toString(manifestXml.getSourcePosition().getStartLine()));
-        }
-        return;
-      }
-
-      if (manifestXml.getType() == ManifestXmlType.ANDROID_MANIFEST_XML) {
-        sb.addHtml("<a href=\"");
-
-        sb.add(manifestXml.getFile().toURI().toString());
-        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
-          sb.add(":");
-          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartLine()));
-          sb.add(":");
-          sb.add(String.valueOf(manifestXml.getSourcePosition().getStartColumn()));
-        }
-        sb.addHtml("\">");
-
-        sb.add(manifestXml.getSourceLibrary());
-        sb.addHtml("</a>");
-        sb.add(" manifest");
-
-        if (FileUtil.filesEqual(manifestXml.getFile(), VfsUtilCore.virtualToIoFile(myFile))) {
-          sb.add(" (this file)");
-        }
-
-        if (!SourcePosition.UNKNOWN.equals(manifestXml.getSourcePosition())) {
-          sb.add(", line ");
-          sb.add(Integer.toString(manifestXml.getSourcePosition().getStartLine()));
+      SourcePosition position = manifestXml.getSourcePosition();
+      String urlString;
+      String textAfter = " unknown manifest XML file";
+      switch (manifestXml.getType()) {
+        case NAVIGATION_XML -> textAfter = " navigation file";
+        case ANDROID_MANIFEST_XML -> {
+          textAfter = " manifest";
+          if (FileUtil.filesEqual(manifestXml.getFile(), VfsUtilCore.virtualToIoFile(myFile))) {
+            textAfter += " (this file)";
+          }
         }
       }
+      if (SourcePosition.UNKNOWN.equals(position)) {
+        urlString = myHtmlLinkManager.createFileLink(manifestXml.getFile());
+      }
+      else {
+        urlString = myHtmlLinkManager.createFileLink(manifestXml.getFile(), position.getStartLine(), position.getStartColumn());
+        textAfter += ", line " + position.getStartLine();
+      }
+      sb.addLink(null, manifestXml.getSourceLibrary(), textAfter, urlString);
     }
   }
 
@@ -1366,6 +1336,21 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     public String createRunnableLink(Runnable runnable) {
       runnables.add(runnable);
       return URL_SCHEME_RUNNABLE + (runnables.size() - 1);
+    }
+
+    public String createFileLink(@NotNull File file) {
+      return createFileLink(file, null, null);
+    }
+
+    public String createFileLink(@NotNull File file, @Nullable Integer line, @Nullable Integer col) {
+      String fileUrlString = file.toURI().toString();
+      if (line != null) {
+        fileUrlString += ":" + line;
+        if (col != null) {
+          fileUrlString += ":" + col;
+        }
+      }
+      return fileUrlString;
     }
   }
 }
