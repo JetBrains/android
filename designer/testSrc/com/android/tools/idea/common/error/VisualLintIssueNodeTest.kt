@@ -226,9 +226,7 @@ class VisualLintIssueNodeTest {
         .type(VisualLintErrorType.BOUNDS)
         .build()
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
-    assertEquals(1, node.getChildren().size)
-    val child = node.getChildren()[0]
-    assertInstanceOf<NavigatableFileNode>(child)
-    assertEquals(navigatable, child.getNavigatable())
+    assertEquals(0, node.getChildren().size)
+    assertEquals(navigatable, node.getNavigatable())
   }
 }

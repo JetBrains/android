@@ -270,19 +270,5 @@ class DesignerCommonIssuePanelTest {
       assertInstanceOf<VisualLintIssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
     }
-
-    run {
-      // Test NavigatableFileNode
-      tree.setSelectionRow(5)
-      val context = DataManager.getInstance().getDataContext(tree)
-
-      assertInstanceOf<NavigatableFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
-      assertEquals(composeFile.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
-      assertInstanceOf<OpenFileDescriptor>(navigatable)
-      val descriptor = navigatable as OpenFileDescriptor
-      assertEquals(rule.project, descriptor.project)
-      assertEquals(composeFile.virtualFile, descriptor.file)
-    }
   }
 }

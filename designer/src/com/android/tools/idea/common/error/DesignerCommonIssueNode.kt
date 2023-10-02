@@ -438,17 +438,17 @@ class VisualLintIssueNode(
 
   override fun getLeafState() = LeafState.DEFAULT
 
-  override fun getChildren(): List<DesignerCommonIssueNode> {
-    val navigatable =
-      (visualLintIssue.components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
-        as? OpenFileDescriptor)
-    val file = navigatable?.file ?: return emptyList()
-    return listOf(NavigatableFileNode(file, navigatable, this))
-  }
+  override fun getChildren(): List<DesignerCommonIssueNode> = emptyList()
 
   override fun getNavigatable(): Navigatable? {
     if (project == null) {
       return null
+    }
+    val navigatable =
+      (visualLintIssue.components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
+        as? OpenFileDescriptor)
+    if (navigatable != null) {
+      return navigatable
     }
     val targetComponent =
       visualLintIssue.components
@@ -477,44 +477,6 @@ class VisualLintIssueNode(
       override fun canNavigateToSource(): Boolean = project != null
     }
   }
-}
-
-class NavigatableFileNode(
-  val file: VirtualFile,
-  val fileNavigatable: Navigatable,
-  parent: DesignerCommonIssueNode?
-) : DesignerCommonIssueNode(parent?.project, parent) {
-
-  override fun getLeafState() = LeafState.ALWAYS
-
-  override fun getName() = getVirtualFile().name
-
-  @Suppress("UnstableApiUsage")
-  override fun getVirtualFile() = file.let { BackedVirtualFile.getOriginFileIfBacked(file) }
-
-  override fun getNavigatable() = fileNavigatable
-
-  override fun updatePresentation(presentation: PresentationData) {
-    val virtualFile = file
-    presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-    presentation.setIcon(
-      CompoundIconProvider.findIcon(PsiUtilCore.findFileSystemItem(project, virtualFile), 0)
-        ?: if (virtualFile.isDirectory) AllIcons.Nodes.Folder else AllIcons.FileTypes.Any_type
-    )
-  }
-
-  override fun hashCode() = Objects.hash(parentDescriptor?.element, file, fileNavigatable)
-
-  override fun equals(other: Any?): Boolean {
-    if (this === other) return true
-    if (this.javaClass != other?.javaClass) return false
-    val that = other as? IssuedFileNode ?: return false
-    return that.parentDescriptor?.element == parentDescriptor?.element &&
-      that.file == file &&
-      that.getNavigatable() == fileNavigatable
-  }
-
-  override fun getChildren() = emptyList<DesignerCommonIssueNode>()
 }
 
 private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :

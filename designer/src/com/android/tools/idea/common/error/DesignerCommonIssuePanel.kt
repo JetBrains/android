@@ -172,7 +172,9 @@ class DesignerCommonIssuePanel(
       }
       val selectedNode = newSelectedNode as DesignerCommonIssueNode
       updateSidePanel(selectedNode, sidePanelVisible)
-      selectedNode.getIssue().let { issue -> issueListeners.forEach { it.onIssueSelected(issue) } }
+      (selectedNode as? IssueNode)?.issue.let { issue ->
+        issueListeners.forEach { it.onIssueSelected(issue) }
+      }
     }
 
     // Listener for metric
@@ -357,13 +359,5 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
       current = parent
     }
     return orders.reversed().joinToString(",")
-  }
-}
-
-private fun DesignerCommonIssueNode.getIssue(): Issue? {
-  return when (this) {
-    is IssueNode -> this.issue
-    is NavigatableFileNode -> (this.parentDescriptor as? IssueNode)?.issue
-    else -> null
   }
 }
