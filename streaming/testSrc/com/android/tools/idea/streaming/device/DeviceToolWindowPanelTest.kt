@@ -28,7 +28,6 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.DisplayType
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.createTestEvent
@@ -248,6 +247,7 @@ class DeviceToolWindowPanelTest {
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
+    waitForCondition(2, SECONDS) { deviceView.deviceController?.currentFoldingState != null }
     waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible }
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
