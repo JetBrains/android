@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
@@ -63,6 +64,7 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
 
   fun clear() = issues.clear()
 
+  @Suppress("UnstableApiUsage")
   class VisualLintIssueSource(models: Set<NlModel>, components: List<NlComponent>) : IssueSource {
     private val modelRefs = models.map { WeakReference(it) }.toMutableList()
     private val componentRefs = components.map { WeakReference(it) }.toMutableList()
@@ -73,7 +75,9 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
     val components: List<NlComponent>
       get() = componentRefs.mapNotNull { it.get() }.toList()
 
-    override val file: VirtualFile? = null
+    override val files: Set<VirtualFile>
+      get() = models.map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile) }.toSet()
+
     override val displayText = ""
 
     fun addComponent(component: NlComponent) {

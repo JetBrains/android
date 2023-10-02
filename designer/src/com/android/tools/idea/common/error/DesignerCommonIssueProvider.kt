@@ -18,7 +18,6 @@ package com.android.tools.idea.common.error
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
-import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
@@ -52,18 +51,8 @@ object NotSuppressedFilter : DesignerCommonIssueProvider.Filter {
 class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filter {
   private val editorManager: FileEditorManager = FileEditorManager.getInstance(project)
 
-  @Suppress("UnstableApiUsage")
   override fun invoke(issue: Issue): Boolean {
-    return if (issue is VisualLintRenderIssue) {
-      val files =
-        issue.source.models
-          .map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile).name }
-          .distinct()
-      editorManager.selectedEditor?.file?.let { files.contains(it.name) } ?: false
-    } else {
-      val issuedFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
-      editorManager.selectedEditor?.file?.let { it == issuedFile } ?: false
-    }
+    return editorManager.selectedEditor?.file?.let { issue.source.files.contains(it) } ?: false
   }
 }
 

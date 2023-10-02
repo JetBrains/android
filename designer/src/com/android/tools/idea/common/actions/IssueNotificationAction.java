@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
@@ -55,15 +54,6 @@ public class IssueNotificationAction extends ToggleAction {
 
   @VisibleForTesting
   public static final Icon DISABLED_ICON = IconUtil.desaturate(StudioIcons.Common.ERROR_INLINE);
-
-  /**
-   * Returns the icon and description to be used when the surface is active but there are no errors.
-   * Both can be null to allow using the {@link IssueNotificationAction} defaults.
-   */
-  @NotNull
-  protected Pair<Icon, String> getNoErrorsIconAndDescription(@NotNull AnActionEvent event) {
-    return new Pair<>(null, null);
-  }
 
   @NotNull
   public static IssueNotificationAction getInstance() {
@@ -89,31 +79,21 @@ public class IssueNotificationAction extends ToggleAction {
     else {
       event.getPresentation().setEnabled(true);
       IssueModel issueModel = surface.getIssueModel();
-      int markerCount = issueModel.getIssueCount();
+      boolean hasIssues = issueModel.hasIssues();
 
       VisualLintService service = VisualLintService.getInstance(event.getRequiredData(PlatformDataKeys.PROJECT));
       List<VirtualFile> files = surface.getModels().stream().map(NlModel::getVirtualFile).toList();
       Set<Issue> visualLintIssues =
-        service.getIssueModel().getIssues().stream().filter(it -> files.contains(it.getSource().getFile())).collect(Collectors.toSet());
+        service.getIssueModel().getIssues().stream().filter(issue -> issue.getSource().getFiles().stream().anyMatch(files::contains))
+          .collect(Collectors.toSet());
 
-      markerCount += visualLintIssues.size();
-      presentation.setDescription(markerCount == 0 ? NO_ISSUE : SHOW_ISSUE);
-      if (markerCount == 0) {
-        Pair<Icon, String> iconAndDescription = getNoErrorsIconAndDescription(event);
-        if (iconAndDescription.getSecond() != null) {
-          presentation.setText(iconAndDescription.getSecond());
-        }
-
-        if (iconAndDescription.getFirst() == null) {
-          presentation.setIcon(getIssueTypeIcon(issueModel, visualLintIssues));
-        }
-        else {
-          presentation.setIcon(iconAndDescription.getFirst());
-        }
-      }
-      else {
+      if (hasIssues || !visualLintIssues.isEmpty()) {
+        presentation.setDescription(SHOW_ISSUE);
         presentation.setIcon(getIssueTypeIcon(issueModel, visualLintIssues));
         presentation.setText(DEFAULT_TOOLTIP);
+      } else {
+        presentation.setDescription(NO_ISSUE);
+        presentation.setIcon(DISABLED_ICON);
       }
     }
   }

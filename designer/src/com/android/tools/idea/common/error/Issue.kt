@@ -33,10 +33,7 @@ import javax.swing.event.HyperlinkListener
 class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributesHolder {
   private val componentRef = WeakReference(component)
 
-  @Suppress(
-    "RedundantNullableReturnType"
-  ) // May be null when using mocked NlModel in the test environment.
-  override val file: VirtualFile? = component.model.virtualFile
+  override val files: Set<VirtualFile> = setOf(component.model.virtualFile)
   override val displayText: String =
     listOfNotNull(component.model.modelDisplayName, component.id, "<${component.tagName}>")
       .joinToString(" ")
@@ -63,16 +60,16 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
     val component = componentRef.get() ?: return false
     val otherComponent = other.componentRef.get() ?: return false
     if (component != otherComponent) return false
-    if (file != other.file) return false
+    if (files != other.files) return false
     return displayText == other.displayText
   }
 
-  override fun hashCode(): Int = Objects.hash(component, file, displayText)
+  override fun hashCode(): Int = Objects.hash(component, files, displayText)
 }
 
 /** Interface that represents the source for a given [Issue]. */
 interface IssueSource {
-  val file: VirtualFile?
+  val files: Set<VirtualFile>
 
   /** The display text to show in the issue panel. */
   val displayText: String
@@ -81,7 +78,7 @@ interface IssueSource {
     @JvmField
     val NONE =
       object : IssueSource {
-        override val file: VirtualFile? = null
+        override val files: Set<VirtualFile> = emptySet()
         override val displayText: String = ""
 
         override fun equals(other: Any?): Boolean = other === this
@@ -93,18 +90,15 @@ interface IssueSource {
     @JvmStatic
     fun fromNlModel(model: NlModel): IssueSource =
       object : IssueSource {
-        @Suppress(
-          "RedundantNullableReturnType"
-        ) // May be null when using mocked NlModel in the test environment.
-        override val file: VirtualFile? = model.virtualFile
+        override val files: Set<VirtualFile> = setOf(model.virtualFile)
         override val displayText: String = model.modelDisplayName.orEmpty()
 
         override fun equals(other: Any?): Boolean =
           other is IssueSource &&
-            Objects.equals(file, other.file) &&
+            Objects.equals(files, other.files) &&
             Objects.equals(displayText, other.displayText)
 
-        override fun hashCode(): Int = Objects.hash(file, displayText)
+        override fun hashCode(): Int = Objects.hash(files, displayText)
       }
   }
 }

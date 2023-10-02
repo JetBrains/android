@@ -21,13 +21,14 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
-import com.android.tools.idea.common.error.IssueSourceWithFile
-import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.lang.annotation.HighlightSeverity
@@ -78,7 +79,7 @@ class IssueNotificationActionTest {
 
     run {
       val infoIssueProvider =
-        createSingleIssueProviderWithSeverity(HighlightSeverity.INFORMATION, mockedFile)
+        createSingleIssueProviderWithSeverity(HighlightSeverity.INFORMATION, model)
       visualLintIssueModel.addIssueProvider(infoIssueProvider)
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.INFO_INLINE, presentation.icon)
@@ -87,7 +88,7 @@ class IssueNotificationActionTest {
 
     run {
       val warningIssueProvider =
-        createSingleIssueProviderWithSeverity(HighlightSeverity.WARNING, mockedFile)
+        createSingleIssueProviderWithSeverity(HighlightSeverity.WARNING, model)
       visualLintIssueModel.addIssueProvider(warningIssueProvider)
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.WARNING_INLINE, presentation.icon)
@@ -95,8 +96,7 @@ class IssueNotificationActionTest {
     }
 
     run {
-      val errorIssueProvider =
-        createSingleIssueProviderWithSeverity(HighlightSeverity.ERROR, mockedFile)
+      val errorIssueProvider = createSingleIssueProviderWithSeverity(HighlightSeverity.ERROR, model)
       visualLintIssueModel.addIssueProvider(errorIssueProvider)
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.ERROR_INLINE, presentation.icon)
@@ -106,11 +106,19 @@ class IssueNotificationActionTest {
 
   private fun createSingleIssueProviderWithSeverity(
     severity: HighlightSeverity,
-    file: VirtualFile
+    nlModel: NlModel
   ): IssueProvider {
     return object : IssueProvider() {
       override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-        val issue = TestIssue(source = IssueSourceWithFile(file), severity = severity)
+        val issue =
+          VisualLintRenderIssue.builder()
+            .summary("")
+            .severity(severity)
+            .contentDescriptionProvider { HtmlBuilder() }
+            .model(nlModel)
+            .components(mutableListOf())
+            .type(VisualLintErrorType.BOUNDS)
+            .build()
         issueListBuilder.add(issue)
       }
     }

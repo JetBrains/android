@@ -20,6 +20,7 @@ import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.isVisualLintErrorSuppressed
 import com.google.common.annotations.VisibleForTesting
@@ -143,8 +144,12 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
   override fun updateIssues(issueList: List<Issue>, nodeFactory: NodeFactory) {
     // Construct the nodes of the whole tree. The old node is reused if it exists.
     val fileIssuesMap: Map<VirtualFile?, List<Issue>> =
-      issueList.groupBy {
-        it.source.file?.let { file -> BackedVirtualFile.getOriginFileIfBacked(file) }
+      issueList.groupBy { issue ->
+        if (issue.source is VisualLintIssueProvider.VisualLintIssueSource) null
+        else
+          issue.source.files.let {
+            BackedVirtualFile.getOriginFileIfBacked(it.firstOrNull() ?: return@let null)
+          }
       }
 
     val oldFileNodeMap = fileNodeMap

@@ -653,6 +653,7 @@ class VisualizationForm(
     IssuePanelService.getInstance(project)
       .getSharedIssuePanel()
       ?.removeIssueSelectionListener(surface.issueListener)
+    myFile?.let { FileEditorManager.getInstance(project).getSelectedEditor(it)?.selectNotify() }
   }
 
   override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) {

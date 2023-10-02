@@ -282,7 +282,7 @@ class NlAtfIssueTest : LayoutTestCase() {
   }
 
   class TestSource : IssueSource, NlAttributesHolder {
-    override val file: VirtualFile? = null
+    override val files: Set<VirtualFile> = emptySet()
     override val displayText: String = "displayText"
 
     var getAttrResult = ""

@@ -25,6 +25,7 @@ import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.rendering.RenderResult
+import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -188,6 +189,7 @@ class NlLayoutScannerTest {
     val componentSize = 5
     val model = helper.buildModel(componentSize)
     val renderResult = helper.mockRenderResult(model)
+    Mockito.mock(VirtualFile::class.java).also { Mockito.`when`(model.virtualFile).thenReturn(it) }
 
     var validatorResult: ValidatorResult? = null
     val listener =
