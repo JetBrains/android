@@ -15,36 +15,24 @@
  */
 package com.android.tools.idea.avdmanager.skincombobox;
 
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.idea.avdmanager.SkinUtils;
-import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-public final class NoSkin implements Skin {
-  public static final Skin INSTANCE = new NoSkin();
+@RunWith(JUnit4.class)
+public final class NoSkinTest {
+  @Test
+  public void merge() {
+    // Arrange
+    var skin = new DefaultSkin(SkinUtils.noSkin());
 
-  private NoSkin() {
-  }
+    // Act
+    var actualSkin = NoSkin.INSTANCE.merge(skin);
 
-  /**
-   * Resolves collisions in favor of this. If the user creates a hardware profile with no skin Collector will return it wrapped in a
-   * DefaultSkin, which would collide with NoSkin.INSTANCE.
-   */
-  @NotNull
-  @Override
-  public Skin merge(@NotNull Skin skin) {
-    assert skin.path().equals(SkinUtils.noSkin()) : skin;
-    return this;
-  }
-
-  @NotNull
-  @Override
-  public Path path() {
-    return SkinUtils.noSkin();
-  }
-
-  @NotNull
-  @Override
-  public String toString() {
-    return "No Skin";
+    // Assert
+    assertEquals(NoSkin.INSTANCE, actualSkin);
   }
 }
