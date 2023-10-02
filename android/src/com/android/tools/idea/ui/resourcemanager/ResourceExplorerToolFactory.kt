@@ -92,11 +92,8 @@ private fun createContent(toolWindow: ToolWindow, project: Project) {
     return
   }
 
-  if (project.getLastSyncTimestamp() < 0L) {
-    toolWindow.displayWaitingForBuild()
-  } else {
-    toolWindow.displayWaitingForGoodSync()
-  }
+  toolWindow.displayWaitingForGoodSync()
+
   // No existing successful sync, since there's a fair chance of having rendering issues, wait for next successful sync.
   project.runWhenSmartAndSyncedOnEdt(callback = { result ->
     if (result.isSuccessful) {
@@ -146,8 +143,6 @@ private fun ToolWindow.displayWaitingView(message: String, showWarning: Boolean)
   val content = contentManager.factory.createContent(waitingForSyncPanel, null, false)
   contentManager.addContent(content)
 }
-
-private fun ToolWindow.displayWaitingForBuild() = displayWaitingView("Waiting for build to finish...", false)
 
 private fun ToolWindow.displayWaitingForGoodSync() = displayWaitingView("Waiting for successful sync...", true)
 

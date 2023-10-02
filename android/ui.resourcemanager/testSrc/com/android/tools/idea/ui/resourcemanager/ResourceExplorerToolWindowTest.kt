@@ -47,7 +47,6 @@ import javax.swing.JLabel
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-@org.junit.Ignore("b/253353307")
 class ResourceExplorerToolWindowTest {
 
   lateinit var fixture: CodeInsightTestFixture
@@ -111,6 +110,7 @@ class ResourceExplorerToolWindowTest {
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
     runInEdtAndWait {
+      (project.getProjectSystem() as TestProjectSystem).emulateSync(ProjectSystemSyncManager.SyncResult.SUCCESS)
       resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
     }
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
@@ -168,23 +168,6 @@ class ResourceExplorerToolWindowTest {
       assertNotNull(label.icon)
       assertThat(label.text).isEqualTo("Waiting for successful sync...")
     }
-  }
-
-  @Test
-  fun createWithWaitingForBuildMessage() {
-    val windowManager = ToolWindowManager.getInstance(module.project)
-    val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
-    initFacet()
-    val resourceExplorerToolFactory = ResourceExplorerToolFactory()
-    runInEdtAndWait {
-      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
-    }
-    assertThat(toolWindow.contentManager.contents).isNotEmpty()
-    val content = toolWindow.contentManager.contents[0].component
-    val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
-    assertNotNull(label)
-    assertNull(label.icon)
-    assertThat(label.text).isEqualTo("Waiting for build to finish...")
   }
 
   @Test
