@@ -57,18 +57,12 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @Mock
   lateinit var myModelWizardDialog: ModelWizardDialog
 
-  private lateinit var myProvider: TestAttachAndroidSdkSourcesNotificationProvider
+  private val myProvider = TestAttachAndroidSdkSourcesNotificationProvider()
 
   @Before
   fun setup() {
     StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(true)
     whenever(myModelWizardDialog.showAndGet()).thenReturn(true)
-    myProvider = TestAttachAndroidSdkSourcesNotificationProvider(myAndroidProjectRule.project)
-  }
-
-  @Test
-  fun getKey() {
-    assertThat(myProvider.key.toString()).isEqualTo("add sdk sources to class")
   }
 
   @Test
@@ -205,12 +199,14 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   private fun invokeCreateNotificationPanel(virtualFile: VirtualFile): AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel? {
-    val panel = runReadAction { myProvider.createNotificationPanel(virtualFile, myFileEditor) }
+    val panel = runReadAction {
+      myProvider.collectNotificationData(myAndroidProjectRule.project, virtualFile)
+    }?.apply(myFileEditor)
     return panel as AttachAndroidSdkSourcesNotificationProvider.MyEditorNotificationPanel?
   }
 
   private val androidSdkClassWithoutSources: VirtualFile
-    private get() {
+    get() {
       for (sdk in AndroidSdks.getInstance().allAndroidSdks) {
         val sdkModificator = sdk.sdkModificator
         sdkModificator.removeRoots(OrderRootType.SOURCES)
@@ -228,12 +224,12 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   /**
    * Test implementation of [AttachAndroidSdkSourcesNotificationProvider] that mocks the call to create an SDK download dialog.
    */
-  private inner class TestAttachAndroidSdkSourcesNotificationProvider(project: Project) :
-    AttachAndroidSdkSourcesNotificationProvider(project) {
+  private inner class TestAttachAndroidSdkSourcesNotificationProvider() :
+    AttachAndroidSdkSourcesNotificationProvider() {
     var requestedPaths: List<String>? = null
       private set
 
-    override fun createSdkDownloadDialog(requestedPaths: List<String>?): ModelWizardDialog? {
+    override fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog? {
       this.requestedPaths = requestedPaths
       return myModelWizardDialog
     }
