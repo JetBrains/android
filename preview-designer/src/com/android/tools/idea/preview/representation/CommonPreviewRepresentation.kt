@@ -58,7 +58,7 @@ import com.android.tools.preview.PreviewElement
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.CustomizedDataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
@@ -74,7 +74,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -82,6 +81,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.swing.JComponent
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PreviewElement>("PreviewElement")
@@ -219,17 +219,13 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private val previewElementModelAdapter =
     object : DelegatingPreviewElementModelAdapter<T, NlModel>(previewElementModelAdapterDelegate) {
       override fun createDataContext(previewElement: T) =
-        object : DataContext {
-          private val delegate =
-            previewElementModelAdapterDelegate.createDataContext(previewElement)
-
-          override fun getData(dataId: String): Any? =
-            when (dataId) {
-              PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-              CommonDataKeys.PROJECT.name -> project
-              PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
-              else -> delegate.getData(dataId)
-            }
+        CustomizedDataContext.create(previewElementModelAdapterDelegate.createDataContext(previewElement)) { dataId ->
+          when (dataId) {
+            PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+            CommonDataKeys.PROJECT.name -> project
+            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
+            else -> null
+          }
         }
     }
 
