@@ -17,7 +17,6 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.SdkConstants;
 import com.android.tools.adtui.validation.Validator;
-import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
@@ -31,12 +30,8 @@ final class CustomSkinValidator implements Validator<Optional<File>> {
 
     File customSkin = optionalCustomSkin.get();
 
-    if (FileUtil.filesEqual(customSkin, AvdWizardUtils.NO_SKIN)) {
+    if (customSkin.toPath().equals(SkinUtils.noSkin())) {
       return Result.OK;
-    }
-
-    if (FileUtil.filesEqual(customSkin, SkinChooser.LOADING_SKINS)) {
-      return new Result(Severity.ERROR, "Loading device skins. This can take a few seconds.");
     }
 
     File layout = new File(customSkin, SdkConstants.FN_SKIN_LAYOUT);
