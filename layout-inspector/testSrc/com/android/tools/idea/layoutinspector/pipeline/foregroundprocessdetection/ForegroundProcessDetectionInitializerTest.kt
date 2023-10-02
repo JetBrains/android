@@ -104,6 +104,7 @@ class ForegroundProcessDetectionInitializerTest {
         processModel
       )
     ForegroundProcessDetectionInitializer.initialize(
+      parentDisposable = projectRule.testRootDisposable,
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,
@@ -193,6 +194,7 @@ class ForegroundProcessDetectionInitializerTest {
     }
 
     ForegroundProcessDetectionInitializer.initialize(
+      parentDisposable = projectRule.testRootDisposable,
       project = projectRule.project,
       processModel = processModel,
       deviceModel = deviceModel,

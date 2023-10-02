@@ -222,6 +222,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device1)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -279,6 +280,7 @@ class ForegroundProcessDetectionTest {
     // studio1
     val foregroundProcessDetection1 =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel1,
         processModel1,
@@ -295,6 +297,7 @@ class ForegroundProcessDetectionTest {
     // studio2
     val foregroundProcessDetection2 =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel2,
         processModel2,
@@ -357,6 +360,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -413,6 +417,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device3)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -458,6 +463,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -553,6 +559,7 @@ class ForegroundProcessDetectionTest {
 
       val (deviceModel, processModel) = createDeviceModel(device1)
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -593,6 +600,7 @@ class ForegroundProcessDetectionTest {
 
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel1,
         processModel1,
@@ -685,6 +693,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device1)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -766,6 +775,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device1)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -808,6 +818,7 @@ class ForegroundProcessDetectionTest {
     runBlocking {
       val (deviceModel, processModel) = createDeviceModel(device4)
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -873,6 +884,7 @@ class ForegroundProcessDetectionTest {
 
     val (deviceModel, processModel) = createDeviceModel(device1)
     ForegroundProcessDetectionImpl(
+      projectRule.disposable,
       projectRule.project,
       deviceModel,
       processModel,
@@ -939,6 +951,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -985,6 +998,7 @@ class ForegroundProcessDetectionTest {
     val (deviceModel, processModel) = createDeviceModel(listOf(device1), processDiscovery)
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        projectRule.disposable,
         projectRule.project,
         deviceModel,
         processModel,
@@ -1036,6 +1050,34 @@ class ForegroundProcessDetectionTest {
     val stopTrackingDevice = stopTrackingSyncChannel.receive()
 
     assertThat(stopTrackingDevice).isEqualTo(device1)
+  }
+
+  @Test
+  fun testDispose() {
+    val processDiscovery = TestProcessDiscovery()
+    val (deviceModel, processModel) = createDeviceModel(listOf(device1), processDiscovery)
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.disposable,
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        streamManagerRule.streamManager,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
+
+    assertThat(processModel.selectedProcessListeners.size).isEqualTo(1)
+
+    Disposer.dispose(projectRule.disposable)
+
+    assertThat(processModel.selectedProcessListeners.size).isEqualTo(0)
+    assertThat(foregroundProcessDetection.transportListenerJob.isCancelled)
   }
 
   /** Assert that [newForegroundProcess] contains the expected [device] and [foregroundProcess]. */

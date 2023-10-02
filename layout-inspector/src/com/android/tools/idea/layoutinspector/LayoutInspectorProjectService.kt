@@ -149,6 +149,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
     val foregroundProcessDetection =
       createForegroundProcessDetection(
+        disposable,
         project,
         processesModel,
         deviceModel,
@@ -178,6 +179,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   }
 
   private fun createForegroundProcessDetection(
+    parentDisposable: Disposable,
     project: Project,
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
@@ -185,6 +187,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   ): ForegroundProcessDetection? {
     return if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
       ForegroundProcessDetectionInitializer.initialize(
+        parentDisposable = parentDisposable,
         project = project,
         processModel = processesModel,
         deviceModel = deviceModel,
