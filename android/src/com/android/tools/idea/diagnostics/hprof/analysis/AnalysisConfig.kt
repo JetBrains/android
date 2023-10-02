@@ -107,7 +107,7 @@ class AnalysisConfig(
   )
 
   class SummaryOptions(
-    val minimumSubgraphSize: Long = 1_000_000,
+    val minimumSubgraphSize: Long = 10_000_000,
     val maximumTreeDepth: Int = 40
   )
 
