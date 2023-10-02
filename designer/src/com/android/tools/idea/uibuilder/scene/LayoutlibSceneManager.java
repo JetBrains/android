@@ -918,8 +918,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayoutAndRenderAsync(boolean animate) {
-    // Don't render if we're just showing the blueprint
-    if (getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
+    // Don't re-render if we're just showing the blueprint
+    if (myRenderedVersion != null && getDesignSurface().getScreenViewProvider() == NlScreenViewProvider.BLUEPRINT) {
       return requestLayoutAsync(animate);
     }
 

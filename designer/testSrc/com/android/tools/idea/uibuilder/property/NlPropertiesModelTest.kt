@@ -47,6 +47,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -174,7 +175,7 @@ class NlPropertiesModelTest {
     nlModel.notifyLiveUpdate(false)
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    verify(listener).propertyValuesChanged(model)
+    verify(listener, atLeast(1)).propertyValuesChanged(model)
   }
 
   @Test
