@@ -33,6 +33,12 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
 
+private val tagsWithDestination = setOf(
+  "activity",
+  "dialog",
+  "fragment",
+)
+
 class NavFileInspection : LocalInspectionTool() {
 
   @Nls
@@ -76,6 +82,9 @@ class NavFileInspection : LocalInspectionTool() {
         return
       }
       val tag = attribute.parent
+
+      if (!tagsWithDestination.contains(tag.name)) return
+
       val value = attribute.value ?: ""
       val allowedDestinations = getClassesForTag(module, tag.name).keys.map { it.qualifiedName }.toSet()
       if (!allowedDestinations.contains(value)) {
