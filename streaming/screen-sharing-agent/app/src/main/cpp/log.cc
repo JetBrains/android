@@ -31,7 +31,7 @@ constexpr char TAG[] = "studio.screen.sharing";
 
 string FormatErrorMessage(const JThrowable* throwable, const char* message, va_list args) {
   string formattedMessage = StringVPrintf(message, args);
-  return throwable == nullptr ? formattedMessage : formattedMessage + " - " + throwable->Describe();
+  return throwable == nullptr || throwable->IsNull() ? formattedMessage : formattedMessage + " - " + throwable->Describe();
 }
 
 void LogFatalError(const JThrowable* throwable, const char* message, va_list args) {
