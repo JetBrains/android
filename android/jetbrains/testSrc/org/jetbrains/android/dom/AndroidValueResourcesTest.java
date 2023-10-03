@@ -1029,6 +1029,7 @@ public class AndroidValueResourcesTest {
       catch (InterruptedException | TimeoutException ignore) {
       }
 
+      IdentifierHighlighterPassFactory.waitForIdentifierHighlighting();
       highlightInfos = myFixture.doHighlighting();
       assertThat(highlightInfos).hasSize(2);
       List<Pair<HighlightSeverity, String>> severities =
