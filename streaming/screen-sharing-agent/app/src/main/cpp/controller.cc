@@ -508,7 +508,7 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
   for (auto display_id : display_ids) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni_, display_id);
     if (display_info.IsOn() && (display_info.flags & DisplayInfo::FLAG_PRIVATE) == 0) {
-      Log::D("Returning display configuration: displayId=%d state=%d flags=0x%2x %dx%d orientation=%d",
+      Log::D("Returning display configuration: displayId=%d state=%d flags=0x%2x size=%dx%d orientation=%d",
              display_id, display_info.state, display_info.flags, display_info.logical_size.width, display_info.logical_size.height,
              display_info.rotation);
       displays.emplace_back(display_id, display_info);

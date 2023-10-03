@@ -286,7 +286,7 @@ void DisplayStreamer::Run() {
       }
       Size video_size = ConfigureCodec(
           codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info, display_id_);
-      Log::D("Display %d: rotation=%d rotation_correction = %d video_size = %dx%d",
+      Log::D("Display %d: rotation=%d rotation_correction=%d video_size=%dx%d",
              display_id_, display_info.rotation, rotation_correction, video_size.width, video_size.height);
       media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {

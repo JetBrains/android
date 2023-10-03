@@ -45,7 +45,7 @@ DisplayInfo::DisplayInfo(
 }
 
 string DisplayInfo::ToDebugString() const {
-  return StringPrintf("logical_size:%dx%d display_rotation:%d dpi:%d layer_stack:%d flags:0x%x type:%d state:%d",
+  return StringPrintf("logical_size=%dx%d display_rotation=%d dpi=%d layer_stack=%d flags=0x%x type=%d state=%d",
                       logical_size.width, logical_size.height, rotation, logical_density_dpi, layer_stack, flags, type, state);
 }
 
