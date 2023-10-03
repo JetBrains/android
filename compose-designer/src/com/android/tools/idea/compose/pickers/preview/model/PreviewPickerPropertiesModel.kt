@@ -173,6 +173,7 @@ private constructor(
             PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
             PARAMETER_WALLPAPER ->
               Wallpaper.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "None"
+            PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
             else -> entry.value
           }
         }

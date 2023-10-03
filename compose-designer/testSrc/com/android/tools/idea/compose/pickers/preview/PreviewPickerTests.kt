@@ -220,7 +220,7 @@ class PreviewPickerTests {
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals(if (isK2Plugin()) "1.0f" else "1f", model.properties["", "fontScale"].defaultValue)
+    assertEquals(if (isK2Plugin()) "1.0" else "1", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
