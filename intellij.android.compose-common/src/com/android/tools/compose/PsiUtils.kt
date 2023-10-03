@@ -35,40 +35,46 @@ import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-private val composableFunctionKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isComposableFunction")
-private val deprecatedKey = Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
+private val composableFunctionKey =
+  Key.create<CachedValue<KtAnnotationEntry?>>(
+    "com.android.tools.compose.PsiUtil.isComposableFunction"
+  )
+private val deprecatedKey =
+  Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
 
 @OptIn(KtAllowAnalysisOnEdt::class)
-fun PsiElement.isComposableFunction(): Boolean = if (isK2Plugin()) {
-  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { annotationEntry ->
-    allowAnalysisOnEdt {
-      analyze(annotationEntry) {
-        isComposableAnnotation(annotationEntry)
-      }
-    }
-  } != null
-} else {
-  this.getComposableAnnotation() != null
-}
+fun PsiElement.isComposableFunction(): Boolean =
+  if (isK2Plugin()) {
+    (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { annotationEntry ->
+      allowAnalysisOnEdt { analyze(annotationEntry) { isComposableAnnotation(annotationEntry) } }
+    } != null
+  } else {
+    this.getComposableAnnotation() != null
+  }
 
 fun PsiElement.getComposableAnnotation(): KtAnnotationEntry? =
-  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() }
+  (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) {
+    it.isComposableAnnotation()
+  }
 
 fun PsiElement.isDeprecated(): Boolean =
-  (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } != null
+  (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } !=
+    null
 
-private fun KtAnnotated.getAnnotationWithCaching(key: Key<CachedValue<KtAnnotationEntry?>>, doCheck: (KtAnnotationEntry) -> Boolean)
-  : KtAnnotationEntry? {
-    return CachedValuesManager.getCachedValue(this, key) {
-      val annotationEntry = annotationEntries.firstOrNull { doCheck(it) }
-      val containingKtFile = this.containingKtFile
+private fun KtAnnotated.getAnnotationWithCaching(
+  key: Key<CachedValue<KtAnnotationEntry?>>,
+  doCheck: (KtAnnotationEntry) -> Boolean
+): KtAnnotationEntry? {
+  return CachedValuesManager.getCachedValue(this, key) {
+    val annotationEntry = annotationEntries.firstOrNull { doCheck(it) }
+    val containingKtFile = this.containingKtFile
 
-      CachedValueProvider.Result.create(
-        // TODO: see if we can handle alias imports without ruining performance.
-        annotationEntry,
-        containingKtFile,
-        ProjectRootModificationTracker.getInstance(project)
-      )
+    CachedValueProvider.Result.create(
+      // TODO: see if we can handle alias imports without ruining performance.
+      annotationEntry,
+      containingKtFile,
+      ProjectRootModificationTracker.getInstance(project)
+    )
   }
 }
 
@@ -78,9 +84,7 @@ fun PsiElement.isComposableAnnotation(): Boolean {
   return fqNameMatches(COMPOSABLE_ANNOTATION_FQ_NAME)
 }
 
-/**
- * K2 version of [isComposableAnnotation].
- */
+/** K2 version of [isComposableAnnotation]. */
 fun KtAnalysisSession.isComposableAnnotation(element: PsiElement): Boolean {
   if (element !is KtAnnotationEntry) return false
 
@@ -89,10 +93,8 @@ fun KtAnalysisSession.isComposableAnnotation(element: PsiElement): Boolean {
 
 private const val DEPRECATED_ANNOTATION_NAME = "Deprecated"
 
-private val DEPRECATED_FQ_NAMES = setOf(
-  "kotlin.$DEPRECATED_ANNOTATION_NAME",
-  "java.lang.$DEPRECATED_ANNOTATION_NAME"
-)
+private val DEPRECATED_FQ_NAMES =
+  setOf("kotlin.$DEPRECATED_ANNOTATION_NAME", "java.lang.$DEPRECATED_ANNOTATION_NAME")
 
 private fun KtAnnotationEntry.isDeprecatedAnnotation() =
   // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
@@ -100,5 +102,6 @@ private fun KtAnnotationEntry.isDeprecatedAnnotation() =
 
 fun PsiElement.isInsideComposableCode(): Boolean {
   // TODO(b/268536237): also handle composable lambdas.
-  return language == KotlinLanguage.INSTANCE && parentOfType<KtNamedFunction>()?.isComposableFunction() == true
+  return language == KotlinLanguage.INSTANCE &&
+    parentOfType<KtNamedFunction>()?.isComposableFunction() == true
 }

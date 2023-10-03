@@ -29,10 +29,13 @@ class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest(
 
         @Composable
         fun stringResource(id: Int): String = ""
-      """.trimIndent()
+      """
+        .trimIndent()
     )
-    val fileName = KotlinTestUtils.navigationMetadata(
-      "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableFunction/function.test")
+    val fileName =
+      KotlinTestUtils.navigationMetadata(
+        "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableFunction/function.test"
+      )
     doTest(fileName)
   }
 }
