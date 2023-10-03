@@ -28,16 +28,6 @@ import com.android.ddmlib.TimeoutException
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.ddms.DevicePropertyUtil
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.protobuf.ByteString
-import com.android.tools.idea.transport.TransportProxy.ProxyCommandHandler
-import com.android.tools.profiler.proto.Commands.Command.CommandType
-import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Common.Process.ExposureLevel
-import com.android.tools.profiler.proto.Transport.*
-import com.android.tools.profiler.proto.TransportServiceGrpc
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.text.StringUtil
 import com.android.tools.idea.io.grpc.ManagedChannel
 import com.android.tools.idea.io.grpc.MethodDescriptor
 import com.android.tools.idea.io.grpc.ServerCallHandler
@@ -45,6 +35,25 @@ import com.android.tools.idea.io.grpc.ServerServiceDefinition
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.io.grpc.stub.ServerCalls
 import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.transport.TransportProxy.ProxyCommandHandler
+import com.android.tools.profiler.proto.Commands.Command.CommandType
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Transport.BytesRequest
+import com.android.tools.profiler.proto.Transport.BytesResponse
+import com.android.tools.profiler.proto.Transport.ExecuteRequest
+import com.android.tools.profiler.proto.Transport.ExecuteResponse
+import com.android.tools.profiler.proto.Transport.GetEventsRequest
+import com.android.tools.profiler.proto.Transport.GetProcessesRequest
+import com.android.tools.profiler.proto.Transport.GetProcessesResponse
+import com.android.tools.profiler.proto.Transport.TimeRequest
+import com.android.tools.profiler.proto.Transport.TimeResponse
+import com.android.tools.profiler.proto.Transport.VersionRequest
+import com.android.tools.profiler.proto.Transport.VersionResponse
+import com.android.tools.profiler.proto.TransportServiceGrpc
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.text.StringUtil
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.jetbrains.annotations.TestOnly
@@ -54,7 +63,6 @@ import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections
-import java.util.HashMap
 import java.util.Random
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.CountDownLatch
@@ -219,9 +227,18 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
 
   @VisibleForTesting
   fun execute(request: ExecuteRequest, responseObserver: StreamObserver<ExecuteResponse>) = request.command.let { command ->
-    responseObserver.onLast(commandHandlers[command.type]?.let {
-      if (it.shouldHandle(command)) it.execute(command) else null
-    } ?: serviceStub.execute(request))
+    try {
+      responseObserver.onLast(commandHandlers[command.type]?.let {
+        if (it.shouldHandle(command)) it.execute(command) else null
+      } ?: serviceStub.execute(request))
+    }
+    catch (t: StatusRuntimeException) {
+      // There is one known case where this exception can show up: in the interval of time between when an emulator
+      // is stopped and Studio detects it stopped, it's possible for clients of the Transport to send messages to
+      // that emulator. Doing so causes "StatusRuntimeException: UNAVAILABLE: Network closed for unknown reason" to
+      // be thrown by grpc.
+      log.warn(t)
+    }
   }
 
   override fun deviceConnected(device: IDevice) { } // Don't care
