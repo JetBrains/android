@@ -484,15 +484,19 @@ internal class LogcatFormatDialog(
     applyComponentsToOptions(options)
     val textAccumulator = TextAccumulator()
     previewFormatter.formatMessages(options, textAccumulator, previewMessages)
-    previewEditor.document.setReadOnly(false)
-    previewEditor.document.setText("")
-    DocumentAppender(project, previewEditor.document, MAX_PREVIEW_DOCUMENT_BUFFER_SIZE)
-      .appendToDocument(textAccumulator)
-    previewEditor.document.insertString(
-      previewEditor.document.textLength,
-      " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH)
-    )
-    previewEditor.document.setReadOnly(true)
+    try {
+      previewEditor.document.setReadOnly(false)
+      previewEditor.document.setText("")
+      DocumentAppender(project, previewEditor.document, MAX_PREVIEW_DOCUMENT_BUFFER_SIZE)
+        .appendToDocument(textAccumulator)
+      previewEditor.document.insertString(
+        previewEditor.document.textLength,
+        " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH)
+      )
+    }
+    finally {
+      previewEditor.document.setReadOnly(true)
+    }
 
     applyComponentsToOptions(
       if (formattingStyle.get() == STANDARD) standardFormattingOptions else compactFormattingOptions
