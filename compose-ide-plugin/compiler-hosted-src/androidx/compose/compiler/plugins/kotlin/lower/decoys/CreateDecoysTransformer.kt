@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.ir.util.copyTypeParametersFrom
 import org.jetbrains.kotlin.backend.common.ir.moveBodyTo
 import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
+import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.builders.declarations.IrFunctionBuilder
@@ -91,7 +91,7 @@ class CreateDecoysTransformer(
     pluginContext: IrPluginContext,
     symbolRemapper: DeepCopySymbolRemapper,
     bindingTrace: BindingTrace,
-    signatureBuilder: IdSignatureSerializer,
+    signatureBuilder: IdSignatureFactory,
     metrics: ModuleMetrics,
 ) : AbstractDecoysLowering(
     pluginContext = pluginContext,
