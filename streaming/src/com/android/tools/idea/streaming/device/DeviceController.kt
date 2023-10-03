@@ -70,7 +70,7 @@ internal class DeviceController(
     private set
   private val responseCallbacks = ResponseCallbackMap()
   private val requestIdCounter = AtomicInteger()
-  val requestIdGenerator: () -> Int
+  private val requestIdGenerator: () -> Int
     get() = { requestIdCounter.getAndIncrement() }
 
   init {
@@ -200,7 +200,6 @@ internal class DeviceController(
 
   private fun onResponse(response: CorrelatedMessage) {
     val continuation = responseCallbacks.remove(response.requestId) ?: return
-    response as ControlMessage
     if (response is ErrorResponse) {
       continuation.resumeWithException(StatusRuntimeException(Status.UNKNOWN.withDescription(response.errorMessage)))
     }
