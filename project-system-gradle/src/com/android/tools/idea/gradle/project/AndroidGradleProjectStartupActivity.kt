@@ -54,6 +54,7 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.service.project.manage.ExternalProjectsManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -67,6 +68,7 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
@@ -75,6 +77,7 @@ import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfig
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import kotlin.coroutines.resume
 
 /**
  * Sync Android Gradle project with the persisted project data on startup.
@@ -84,6 +87,8 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
     if (Registry.`is`("android.gradle.project.startup.activity.disabled", false)) {
       return
     }
+
+    waitForExternalProjectsManagerInitialization(project)
 
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
 
@@ -115,6 +120,14 @@ class AndroidGradleProjectStartupActivity : ProjectActivity {
     AndroidStudioPreferences.cleanUpPreferences(project)
 
     showNeededNotifications(project)
+  }
+
+  private suspend fun waitForExternalProjectsManagerInitialization(project: Project) {
+    suspendCancellableCoroutine { continuation ->
+      ExternalProjectsManager.getInstance(project).runWhenInitializedInBackground {
+        continuation.resume(Unit)
+      }
+    }
   }
 
   @TestOnly
