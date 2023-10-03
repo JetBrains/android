@@ -164,6 +164,7 @@ studio_plugin(
             "//tools/base/profgen/profgen:studio.android.sdktools.profgen",
             "//tools/adt/idea/app-inspection/api:app-inspection.api",
             "//tools/adt/idea/app-inspection/ide:app-inspection.ide",
+            "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle",
             "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api",
             "//tools/adt/idea/app-inspection/inspector/ide:app-inspection.inspector.ide",
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/ide:app-inspection.inspectors.backgroundtask.ide",

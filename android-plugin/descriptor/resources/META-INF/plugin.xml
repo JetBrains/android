@@ -45,6 +45,7 @@
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layout-inspector-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-inspection.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/app-inspection-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
