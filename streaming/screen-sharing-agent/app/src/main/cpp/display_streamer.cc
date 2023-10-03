@@ -30,6 +30,7 @@
 #include "agent.h"
 #include "jvm.h"
 #include "log.h"
+#include "string_printf.h"
 
 namespace screensharing {
 
@@ -263,12 +264,13 @@ void DisplayStreamer::Run() {
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
     VirtualDisplay virtual_display;
     JObject display_token;
+    string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
     if (DisplayManager::CanCreateVirtualDisplay(jni)) {
       virtual_display = DisplayManager::CreateVirtualDisplay(
-          jni, "studio.screen.sharing", display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
+          jni, display_name.c_str(), display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
     } else {
       bool secure = Agent::api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
-      display_token = SurfaceControl::CreateDisplay(jni, "studio.screen.sharing", secure);
+      display_token = SurfaceControl::CreateDisplay(jni, display_name.c_str(), secure);
       if (display_token.IsNull()) {
         Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Display %d: unable to create a virtual display", display_id_);
       }
