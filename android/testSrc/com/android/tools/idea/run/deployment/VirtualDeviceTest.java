@@ -71,7 +71,7 @@ public final class VirtualDeviceTest {
   public void deactivateIconLoader() {
     IconManager.Companion.deactivate();
     IconLoader.deactivate();
-    IconLoader.clearCacheInTests();
+    IconLoader.INSTANCE.clearCacheInTests();
   }
 
   @Test

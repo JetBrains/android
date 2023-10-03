@@ -31,10 +31,8 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
@@ -111,7 +109,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   public void deactivateIconLoader() {
     IconManager.Companion.deactivate();
     IconLoader.deactivate();
-    IconLoader.clearCacheInTests();
+    IconLoader.INSTANCE.clearCacheInTests();
   }
 
   @Test

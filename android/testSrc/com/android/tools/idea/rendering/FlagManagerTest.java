@@ -51,7 +51,7 @@ public class FlagManagerTest {
   @After
   public void tearDown() {
     IconLoader.deactivate();
-    IconLoader.clearCacheInTests();
+    IconLoader.INSTANCE.clearCacheInTests();
   }
 
   @Test
