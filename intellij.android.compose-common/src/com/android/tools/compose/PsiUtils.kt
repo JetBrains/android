@@ -18,22 +18,41 @@
 package com.android.tools.compose
 
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentOfTypes
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.psi.hasInlineModifier
+import org.jetbrains.kotlin.idea.references.mainReference
+import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtLambdaArgument
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtTypeReference
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.KtValueArgumentList
 
 private val composableFunctionKey =
   Key.create<CachedValue<KtAnnotationEntry?>>(
@@ -41,6 +60,8 @@ private val composableFunctionKey =
   )
 private val deprecatedKey =
   Key.create<CachedValue<KtAnnotationEntry?>>("com.android.tools.compose.PsiUtil.isDeprecated")
+private val COMPOSABLE_CLASS_ID =
+  ClassId(FqName("androidx.compose.runtime"), Name.identifier("Composable"))
 
 @OptIn(KtAllowAnalysisOnEdt::class)
 fun PsiElement.isComposableFunction(): Boolean =
@@ -101,7 +122,59 @@ private fun KtAnnotationEntry.isDeprecatedAnnotation() =
   shortName?.identifier == DEPRECATED_ANNOTATION_NAME && fqNameMatches(DEPRECATED_FQ_NAMES)
 
 fun PsiElement.isInsideComposableCode(): Boolean {
-  // TODO(b/268536237): also handle composable lambdas.
-  return language == KotlinLanguage.INSTANCE &&
-    parentOfType<KtNamedFunction>()?.isComposableFunction() == true
+  return language == KotlinLanguage.INSTANCE && parentOfType<KtElement>()?.composableScope() != null
+}
+
+/** Returns the `@Composable` scope around this [KtElement]. */
+tailrec fun KtElement.composableScope(): PsiNamedElement? {
+  return when (val nextParent = parentOfTypes(KtNamedFunction::class, KtLambdaExpression::class)) {
+    // Always stop at a named function - if it's not composable, we're done.
+    is KtNamedFunction -> nextParent.takeIf { it.hasComposableAnnotation() }
+    // A lambda that is a @Composable function argument may be what recomposes, unless it is
+    // inlined.
+    is KtLambdaExpression -> {
+      val argument = nextParent.parent as? KtValueArgument ?: return null
+      val function = argument.toFunction() ?: return null
+      val param = function.getParameterForArgument(argument) ?: return null
+      if (function.hasInlineModifier() && !param.hasModifier(KtTokens.NOINLINE_KEYWORD)) {
+        // If it's inlined then continue up to the enclosing function (i.e. recurse).
+        argument.composableScope()
+      } else {
+        param.takeIf { it.typeReference?.hasComposableAnnotation() == true }
+      }
+    }
+    else -> null
+  }
+}
+
+private fun KtFunction.hasComposableAnnotation(): Boolean =
+  if (isK2Plugin()) {
+    hasAnnotation(COMPOSABLE_CLASS_ID)
+  } else {
+    descriptor?.annotations?.findAnnotation(COMPOSABLE_CLASS_ID.asSingleFqName()) != null
+  }
+
+private fun KtTypeReference.hasComposableAnnotation() =
+  if (isK2Plugin()) {
+    hasAnnotation(COMPOSABLE_CLASS_ID)
+  } else {
+    annotationEntries.any { it.isComposableAnnotation() }
+  }
+
+private fun KtValueArgument.toFunction(): KtFunction? =
+  parentOfType<KtCallExpression>()?.calleeExpression?.mainReference?.resolve() as? KtFunction
+
+private fun KtFunction.getParameterForArgument(argument: KtValueArgument): KtParameter? {
+  // If it's a lambda argument, it's always the last one.
+  if (argument is KtLambdaArgument) return valueParameters.lastOrNull()
+
+  // If it's a named argument, then we have to look it up in our parameter list.
+  val argumentName = argument.getArgumentName()?.asName?.asString()
+  if (argumentName != null) return valueParameters.first { it.name == argumentName }
+
+  // Otherwise, it's a positional argument, so just take its current position.
+  return (argument.parent as? KtValueArgumentList)
+    ?.arguments
+    ?.indexOf(argument)
+    ?.let(valueParameters::getOrNull)
 }

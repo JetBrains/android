@@ -38,4 +38,24 @@ class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest(
       )
     doTest(fileName)
   }
+
+  fun testKotlinAndroidAddStringResource_composable_lambda() {
+    myFixture.stubComposableAnnotation()
+    myFixture.addFileToProject(
+      "src/androidx/compose/ui/res/StringResources.kt",
+      // language=kotlin
+      """
+          package androidx.compose.ui.res
+
+          @Composable
+          fun stringResource(id: Int): String = ""
+          """
+        .trimIndent()
+    )
+    val fileName =
+      KotlinTestUtils.navigationMetadata(
+        "idea-android/testData/android/resourceIntention/kotlinAndroidAddStringResource/composableLambda/function.test"
+      )
+    doTest(fileName)
+  }
 }
