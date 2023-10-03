@@ -126,6 +126,7 @@ private:
   DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;
   std::atomic_int32_t device_state_ = -1;
+  int32_t previous_device_state_ = -1;
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)

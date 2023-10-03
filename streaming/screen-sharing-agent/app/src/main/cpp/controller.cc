@@ -491,12 +491,13 @@ void Controller::OnDeviceStateChanged(int32_t device_state) {
 }
 
 void Controller::SendDeviceStateNotification() {
-  int32_t device_state = device_state_.exchange(-1);
-  if (device_state >= 0) {
+  int32_t device_state = device_state_;
+  if (device_state != previous_device_state_) {
     Log::D("Sending DeviceStateNotification(%d)", device_state);
     DeviceStateNotification notification(device_state);
     notification.Serialize(output_stream_);
     output_stream_.Flush();
+    previous_device_state_ = device_state;
   }
 }
 
