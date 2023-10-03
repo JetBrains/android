@@ -1543,10 +1543,12 @@ public final class StudioFlags {
     Flag.create(APP_LINKS_ASSISTANT, "deeplinks.grpc.server", "Deep links gRPC server address",
                 "Deep links gRPC server address. Use a non-default value for testing purposes.",
                 "deeplinkassistant-pa.googleapis.com");
-
   public static final Flag<Boolean> CREATE_APP_LINKS_V2 =
     Flag.create(APP_LINKS_ASSISTANT, "create.app.links.v2", "Create App Links V2",
                 "Improvements to the Create App Links functionalities.", false);
+  public static final Flag<Boolean> DATALAYER_MEMORY_IMPROVEMENT =
+    Flag.create(APP_LINKS_ASSISTANT, "datalayer.memory.improvement", "Data layer memory improvements",
+                "Memory improvements in the data layer.", true);
   // endregion App Links Assistant
 
   // region GOOGLE_PLAY_SDK_INDEX
