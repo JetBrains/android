@@ -541,8 +541,8 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
 
   override fun getData(dataId: String): Any? {
     return when {
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> {
-        DataProvider { slowId -> getSlowData(slowId) }
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> selectedObject.let { selection ->
+        DataProvider { slowId -> getSlowData(slowId, selection) }
       }
       CommonDataKeys.PROJECT.`is`(dataId) -> {
         javaPsiFacade.project
@@ -555,15 +555,15 @@ private class AndroidTestResultsTableViewComponent(private val model: AndroidTes
     }
   }
 
-  private fun getSlowData(dataId: String): Any? {
+  private fun getSlowData(dataId: String, selection: AndroidTestResults?): Any? {
     return when {
       CommonDataKeys.PSI_ELEMENT.`is`(dataId) -> {
-        val selectedTestResults = selectedObject ?: return null
+        val selectedTestResults = selection ?: return null
         getPsiElement(selectedTestResults)
       }
 
       Location.DATA_KEY.`is`(dataId) -> {
-        val psiElement = getSlowData(CommonDataKeys.PSI_ELEMENT.name) as? PsiElement ?: return null
+        val psiElement = getSlowData(CommonDataKeys.PSI_ELEMENT.name, selection) as? PsiElement ?: return null
         PsiLocation.fromPsiElement(psiElement, module)
       }
 
