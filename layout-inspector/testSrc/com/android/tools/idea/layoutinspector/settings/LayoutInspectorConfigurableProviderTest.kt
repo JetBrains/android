@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.settings
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.runningdevices.withAutoConnect
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.options.SearchableConfigurable
@@ -24,19 +25,11 @@ import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import javax.swing.JCheckBox
 import javax.swing.JPanel
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class LayoutInspectorConfigurableProviderTest {
-  private lateinit var layoutInspectorSettings: LayoutInspectorSettings
-
   @get:Rule val applicationRule = ApplicationRule()
-
-  @Before
-  fun testSetUp() {
-    layoutInspectorSettings = LayoutInspectorSettings.getInstance()
-  }
 
   @Test
   fun testConfigurableName() {
@@ -82,8 +75,7 @@ class LayoutInspectorConfigurableProviderTest {
   }
 
   @Test
-  fun testConfigurableSettingAutoConnectInteraction() {
-
+  fun testConfigurableSettingAutoConnectInteraction() = withAutoConnect {
     var restartStudio = true
     var restartDialogShown = false
     val provider = LayoutInspectorConfigurableProvider {
@@ -93,37 +85,34 @@ class LayoutInspectorConfigurableProviderTest {
     val configurable = provider.createConfigurable()
     val enableAutoConnectCheckBox = configurable.createComponent()!!.getComponent(0) as JBCheckBox
 
-    // make sure to start with property set to true
-    layoutInspectorSettings.autoConnectEnabled = true
-
     // load settings from configurable to swing
     configurable.reset()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+    assertThat(enableAutoConnect).isTrue()
     assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
 
     // uncheck the checkbox
     enableAutoConnectCheckBox.isSelected = false
 
     assertThat(configurable.isModified).isTrue()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+    assertThat(enableAutoConnect).isTrue()
 
     // store setting from swing to configurable
     configurable.apply()
     assertThat(restartDialogShown).isTrue()
     assertThat(configurable.isModified).isFalse()
     assertThat(enableAutoConnectCheckBox.isSelected).isFalse()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
+    assertThat(enableAutoConnect).isFalse()
 
     // load settings from configurable to swing
     configurable.reset()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
+    assertThat(enableAutoConnect).isFalse()
     assertThat(enableAutoConnectCheckBox.isSelected).isFalse()
 
     // back to true
-    layoutInspectorSettings.autoConnectEnabled = true
+    enableAutoConnect = true
     // load settings from configurable to swing
     configurable.reset()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+    assertThat(enableAutoConnect).isTrue()
     assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
 
     restartStudio = false
@@ -132,7 +121,7 @@ class LayoutInspectorConfigurableProviderTest {
     enableAutoConnectCheckBox.isSelected = false
 
     assertThat(configurable.isModified).isTrue()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+    assertThat(enableAutoConnect).isTrue()
 
     // store setting from swing to configurable
     // the settings shouldn't be stored because studio is not restarted
@@ -140,7 +129,7 @@ class LayoutInspectorConfigurableProviderTest {
     assertThat(restartDialogShown).isTrue()
     assertThat(configurable.isModified).isFalse()
     assertThat(enableAutoConnectCheckBox.isSelected).isTrue()
-    assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
+    assertThat(enableAutoConnect).isTrue()
   }
 
   @Test

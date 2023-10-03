@@ -24,6 +24,12 @@ object EmbeddedLayoutInspectorSettingsProxy {
       LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = value
     }
     get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+
+  var enableAutoConnect: Boolean
+    set(value) {
+      LayoutInspectorSettings.getInstance().autoConnectEnabled = value
+    }
+    get() = LayoutInspectorSettings.getInstance().autoConnectEnabled
 }
 
 /**
@@ -39,6 +45,28 @@ fun withEmbeddedLayoutInspector(
   val settings = EmbeddedLayoutInspectorSettingsProxy
   val prev = settings.enableEmbeddedLayoutInspector
   settings.enableEmbeddedLayoutInspector = enabled
-  block(settings)
-  settings.enableEmbeddedLayoutInspector = prev
+  try {
+    block(settings)
+  } finally {
+    settings.enableEmbeddedLayoutInspector = prev
+  }
+}
+
+/**
+ * Utility function used to enable and disable auto connect in tests. It takes care of restoring the
+ * settings state at the end of the test, and provides [EmbeddedLayoutInspectorSettingsProxy], a
+ * utility to enable and auto connect during the test.
+ */
+fun withAutoConnect(
+  enabled: Boolean = true,
+  block: EmbeddedLayoutInspectorSettingsProxy.() -> Unit
+) {
+  val settings = EmbeddedLayoutInspectorSettingsProxy
+  val prev = settings.enableAutoConnect
+  settings.enableAutoConnect = enabled
+  try {
+    block(settings)
+  } finally {
+    settings.enableAutoConnect = prev
+  }
 }
