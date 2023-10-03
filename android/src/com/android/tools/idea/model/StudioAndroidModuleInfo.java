@@ -92,14 +92,6 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
   }
 
   /**
-   * @return the minimum SDK version for current Android module.
-   */
-  @Override
-  public int getModuleMinApi() {
-    return getMinSdkVersion().getApiLevel();
-  }
-
-  /**
    * Obtains the applicationId name for the current variant, or if not initialized, from the primary manifest.
    * This method will return the applicationId from gradle, even if the manifest merger fails.
    */
