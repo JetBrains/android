@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
+import com.android.tools.idea.appinspection.inspector.ide.resolver.BlockingArtifactResolver
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -44,8 +45,8 @@ class InspectorArtifactServiceTest {
       val artifactResolverFactory =
         object : ArtifactResolverFactory {
           override fun getArtifactResolver(project: Project): ArtifactResolver {
-            return object : ArtifactResolver {
-              override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
+            return object : BlockingArtifactResolver() {
+              override fun resolveArtifactBlocking(artifactCoordinate: ArtifactCoordinate): Path {
                 return libraryPath
               }
             }
