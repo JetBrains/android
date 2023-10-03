@@ -76,11 +76,4 @@
               topic="com.intellij.execution.ExecutionListener"/>
   </projectListeners>
 
-  <applicationListeners>
-    <listener
-        class="com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionOnDeviceFlagController"
-        topic="com.intellij.openapi.project.ProjectManagerListener"
-    />
-  </applicationListeners>
-
 </idea-plugin>

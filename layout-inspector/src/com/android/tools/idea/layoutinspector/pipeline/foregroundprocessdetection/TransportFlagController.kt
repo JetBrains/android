@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,9 @@ import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Agent
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManagerListener
 
-/** Listener used to set the feature flag to true or false in the Transport Daemon. */
-class ForegroundProcessDetectionOnDeviceFlagController :
-  TransportDeviceManager.TransportDeviceManagerListener, ProjectManagerListener {
-
-  override fun projectOpened(project: Project) {
-    ApplicationManager.getApplication()
-      .messageBus
-      .connect()
-      .subscribe(TransportDeviceManager.TOPIC, this)
-  }
-
+/** Class used to enable/disable auto-connect in the Transport Daemon. */
+class TransportFlagController : TransportDeviceManager.TransportDeviceManagerListener {
   override fun onPreTransportDaemonStart(device: Common.Device) {}
 
   override fun onTransportDaemonException(device: Common.Device, exception: Exception) {}
