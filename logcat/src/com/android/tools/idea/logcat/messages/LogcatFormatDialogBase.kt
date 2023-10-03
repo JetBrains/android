@@ -364,10 +364,13 @@ internal abstract class LogcatFormatDialogBase(
     val textAccumulator = TextAccumulator()
     sampleMessageFormatter.formatMessages(sampleFormattingOptions, textAccumulator, sampleMessages)
     sampleEditor.document.setReadOnly(false)
-    sampleEditor.document.setText("")
-    DocumentAppender(project, sampleEditor.document, MAX_SAMPLE_DOCUMENT_BUFFER_SIZE).appendToDocument(textAccumulator)
-    sampleEditor.document.insertString(sampleEditor.document.textLength, " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH))
-    sampleEditor.document.setReadOnly(true)
+    try {
+      sampleEditor.document.setText("")
+      DocumentAppender(project, sampleEditor.document, MAX_SAMPLE_DOCUMENT_BUFFER_SIZE).appendToDocument(textAccumulator)
+      sampleEditor.document.insertString(sampleEditor.document.textLength, " ".repeat(MAX_SAMPLE_DOCUMENT_TEXT_LENGTH))
+    } finally {
+      sampleEditor.document.setReadOnly(true)
+    }
   }
 
   interface ApplyAction {
