@@ -28,6 +28,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -40,7 +41,7 @@ class AnimationCard(
   override val state: ElementState,
   extraActions: List<AnAction> = emptyList(),
   private val tracker: AnimationTracker
-) : JPanel(TabularLayout("*", "30px,30px")), Card {
+) : JPanel(TabularLayout("*", "30px,40px")), Card {
 
   // Collapsed view:
   //   Expand button
@@ -73,8 +74,7 @@ class AnimationCard(
   private val firstRow =
     JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.empty(0, 0, 0, 8) }
 
-  private val secondRow =
-    JPanel(TabularLayout("Fit,Fit,*", "30px")).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
+  private val secondRow = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
 
   override fun getCurrentHeight() =
     if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
@@ -105,7 +105,7 @@ class AnimationCard(
         "AnimationCard",
         listOf(FreezeAction(previewState, state, tracker)) + extraActions
       )
-    secondRow.add(secondRowToolbar.component, TabularLayout.Constraint(0, 0))
+    secondRow.add(secondRowToolbar.component, BorderLayout.CENTER)
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))
     OpenInNewTab().installOn(this)
