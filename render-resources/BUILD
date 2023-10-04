@@ -27,6 +27,7 @@ kotlin_library(
         "src/**/*.java",
         "src/**/*.kt",
     ]),
+    resource_strip_prefix = "tools/adt/idea/render-resources/resources",
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [

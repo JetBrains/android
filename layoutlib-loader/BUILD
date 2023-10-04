@@ -22,6 +22,7 @@ java_library(
     srcs = glob(
         ["src/**/*.java"],
     ),
+    resource_strip_prefix = "tools/adt/idea/layoutlib-loader/resources",
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
