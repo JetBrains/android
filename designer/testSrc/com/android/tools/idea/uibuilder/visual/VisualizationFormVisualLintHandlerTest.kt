@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.TestIssue
+import com.android.tools.idea.common.error.createTestVisualLintRenderIssue
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
@@ -28,6 +32,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 class VisualizationFormVisualLintHandlerTest {
 
@@ -42,8 +47,24 @@ class VisualizationFormVisualLintHandlerTest {
     assertEquals(0, issueModel.issues.size)
 
     val handlerIssueProvider = handler.lintIssueProvider
-    val localIssues = listOf(TestIssue("local1"), TestIssue("local2"))
-    handlerIssueProvider.addAllIssues(VisualLintErrorType.LOCALE_TEXT, localIssues)
+    val fakeNlModel = MockitoKt.mock<NlModel>()
+    val fakeNlComponent = MockitoKt.mock<NlComponent>()
+    Mockito.`when`(fakeNlComponent.model).thenReturn(fakeNlModel)
+
+    val localIssues =
+      listOf(
+        createTestVisualLintRenderIssue(
+          VisualLintErrorType.BOUNDS,
+          listOf(fakeNlComponent),
+          "bounds"
+        ),
+        createTestVisualLintRenderIssue(
+          VisualLintErrorType.OVERLAP,
+          listOf(fakeNlComponent),
+          "overlap"
+        )
+      )
+    handlerIssueProvider.addAllIssues(localIssues)
     issueModel.updateErrorsList()
 
     // Compare as the sets, because we don't care about the order in issue model.

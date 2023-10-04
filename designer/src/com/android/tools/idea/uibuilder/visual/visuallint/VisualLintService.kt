@@ -302,7 +302,6 @@ class VisualLintService(val project: Project) : Disposable {
       if (VisualLintErrorType.LOCALE_TEXT !in ignoredTypes) {
         LocaleAnalyzer(baseConfigIssues).let {
           targetIssueProvider.addAllIssues(
-            it.type,
             it.analyze(result, model, getSeverity(it.type), runningInBackground)
           )
         }
@@ -321,7 +320,7 @@ class VisualLintService(val project: Project) : Disposable {
       .filter { !ignoredTypes.contains(it.type) }
       .forEach {
         val issues = it.analyze(result, model, getSeverity(it.type), runningInBackground)
-        targetIssueProvider.addAllIssues(it.type, issues)
+        targetIssueProvider.addAllIssues(issues)
       }
   }
 

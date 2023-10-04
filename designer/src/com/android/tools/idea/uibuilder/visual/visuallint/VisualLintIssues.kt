@@ -35,29 +35,24 @@ class VisualLintIssues {
     _mapByType.clear()
   }
 
-  fun add(errorType: VisualLintErrorType, issue: Issue) {
-    if (issue is VisualLintRenderIssue) {
-      val original = _map[issue.rangeBasedHashCode()]
+  fun add(issue: VisualLintRenderIssue) {
+    val original = _map[issue.rangeBasedHashCode()]
 
-      when {
-        original == null -> {
-          // new issue. Add to map
-          _map[issue.rangeBasedHashCode()] = issue
-          _mapByType[errorType] = issue
-        }
-        original != issue -> {
-          // original.rangeBasedHashCode() == issue.rangeBasedHashCode()
-          // original and issue are same issue, diff config.
-          // TODO: Check if components already exist (set instead of list)
-          (original as VisualLintRenderIssue).combineWithIssue(issue)
-        }
-        else -> {
-          // Same issue, same config. ignore.
-        }
+    when {
+      original == null -> {
+        // new issue. Add to map
+        _map[issue.rangeBasedHashCode()] = issue
+        _mapByType[issue.type] = issue
       }
-    } else {
-      _mapByType[errorType] = issue
-      _map[issue.hashCode()] = issue
+      original != issue -> {
+        // original.rangeBasedHashCode() == issue.rangeBasedHashCode()
+        // original and issue are same issue, diff config.
+        // TODO: Check if components already exist (set instead of list)
+        (original as VisualLintRenderIssue).combineWithIssue(issue)
+      }
+      else -> {
+        // Same issue, same config. ignore.
+      }
     }
   }
 }

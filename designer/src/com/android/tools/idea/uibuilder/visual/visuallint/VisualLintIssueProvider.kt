@@ -54,11 +54,9 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
     clear()
   }
 
-  private fun addIssue(errorType: VisualLintErrorType, issue: Issue) =
-    this.issues.add(errorType, issue)
+  private fun addIssue(issue: VisualLintRenderIssue) = this.issues.add(issue)
 
-  fun addAllIssues(errorType: VisualLintErrorType, issues: List<Issue>) =
-    issues.forEach { addIssue(errorType, it) }
+  fun addAllIssues(issues: List<VisualLintRenderIssue>) = issues.forEach { addIssue(it) }
 
   fun getIssues() = issues.list
 
