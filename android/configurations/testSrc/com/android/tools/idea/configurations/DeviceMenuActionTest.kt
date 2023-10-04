@@ -71,8 +71,11 @@ class DeviceMenuActionTest {
   fun testAction() {
     testActions(getReferenceDevicesExpected() +
                 """Phones
+        Pixel 8 (411 × 914 dp, 420dpi)
+        Pixel 8 Pro (448 × 997 dp, xxhdpi)
         Pixel 7 (411 × 914 dp, 420dpi)
         Pixel 7 Pro (411 × 891 dp, 560dpi)
+        Pixel 7a (411 × 914 dp, 420dpi)
         Pixel 6 (411 × 914 dp, 420dpi)
         Pixel 6 Pro (411 × 891 dp, 560dpi)
         Pixel 6a (411 × 914 dp, 420dpi)
