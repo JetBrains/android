@@ -11,6 +11,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" />
-    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>

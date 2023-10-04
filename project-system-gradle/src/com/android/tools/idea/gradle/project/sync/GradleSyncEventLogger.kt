@@ -122,9 +122,11 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       else -> null
     }
     runReadAction {
-      val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
+      val lastKnownVersion =
+        GradleProjectSystemUtil.getLastKnownAndroidGradlePluginVersion(project)
       if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
-      val lastSuccessfulVersion = GradleUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
+      val lastSuccessfulVersion =
+        GradleProjectSystemUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
       if (lastSuccessfulVersion != null) syncStats.androidGradlePluginVersion = lastSuccessfulVersion
 
       // Set up the Android studio event

@@ -43,6 +43,8 @@ import com.android.tools.idea.gradle.model.IdeBaseArtifact;
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.ProjectStructure;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -54,6 +56,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
@@ -710,5 +713,45 @@ public class GradleProjectSystemUtil {
   @Nullable
   public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
     return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
+  }
+
+  /**
+   * Get last known AGP version from a project. It can be null if it has not been setup.
+   */
+  @Nullable
+  public static String getLastKnownAndroidGradlePluginVersion(@NotNull Project project) {
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleFacetConfiguration configuration = gradleFacet.getConfiguration();
+      String version = configuration.LAST_KNOWN_AGP_VERSION;
+      if (version != null) {
+        // All versions should be the same, return version from first module found
+        return version;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get last successful AGP version from a project. It can be null if sync has never been successful.
+   */
+  @Nullable
+  public static String getLastSuccessfulAndroidGradlePluginVersion(@NotNull Project project) {
+    for (Module module : ProjectFacetManager.getInstance(project).getModulesWithFacet(GradleFacet.getFacetTypeId())) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (gradleFacet == null) {
+        continue;
+      }
+      GradleFacetConfiguration configuration = gradleFacet.getConfiguration();
+      String version = configuration.LAST_SUCCESSFUL_SYNC_AGP_VERSION;
+      if (version != null) {
+        // All versions should be the same, return version from first module found
+        return version;
+      }
+    }
+    return null;
   }
 }
