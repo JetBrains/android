@@ -33,7 +33,7 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.border.MatteBorder
 
 /** Component and its layout for `All animations` tab. */
-class AllTabPanel : JPanel(TabularLayout("2px,*", "31px,*")) {
+class AllTabPanel : JPanel(TabularLayout("6px,*", "32px,*")) {
 
   //   ________________________________________________
   //   | [Playback control]                            |

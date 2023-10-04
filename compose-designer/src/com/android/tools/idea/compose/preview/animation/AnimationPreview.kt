@@ -574,11 +574,16 @@ class AnimationPreview(
     private val tabTimelineParent = JPanel(BorderLayout())
 
     val tabComponent =
-      JPanel(TabularLayout("Fit,*,Fit", "30px,*")).apply {
+      JPanel(TabularLayout("*,Fit", "32px,*")).apply {
+        //    |  playbackControls                            |  toolbar  |
+        //    ------------------------------------------------------------
+        //    |                                                          |
+        //    |                     tabScrollPane                        |
+        //    |                                                          |
         val toolbar =
           createToolbarWithNavigation(rootComponent, "State", stateComboBox.extraActions)
-        add(toolbar.component, TabularLayout.Constraint(0, 2))
-        add(tabScrollPane, TabularLayout.Constraint(1, 0, 3))
+        add(toolbar.component, TabularLayout.Constraint(0, 1))
+        add(tabScrollPane, TabularLayout.Constraint(1, 0, 2))
         tabScrollPane.setViewportView(tabTimelineParent)
         add(
           playbackControls.createToolbar(listOf(FreezeAction(previewState, elementState, tracker))),
