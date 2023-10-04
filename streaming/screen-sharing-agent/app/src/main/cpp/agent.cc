@@ -289,7 +289,7 @@ void Agent::Shutdown() {
 }
 
 int64_t Agent::GetLastTouchEventTime() {
-  return last_touch_time_millis_.load();
+  return last_touch_time_millis_;
 }
 
 void Agent::RecordTouchEvent() {
