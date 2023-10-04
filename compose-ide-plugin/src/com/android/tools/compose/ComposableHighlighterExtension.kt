@@ -26,6 +26,21 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingVisitorExtension
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
+const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
+
+val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
+  TextAttributesKey.createTextAttributesKey(
+    COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
+    DefaultLanguageHighlighterColors.FUNCTION_CALL
+  )
+
+val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
+  HighlightInfoType.HighlightInfoTypeImpl(
+    HighlightInfoType.SYMBOL_TYPE_SEVERITY,
+    COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
+    false
+  )
+
 /**
  * Used to apply styles for calls to @Composable functions.
  *
@@ -39,25 +54,10 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
  * precedence.
  *
  * Luckily, the Kotlin plugin provides its own extension mechanism, which is implemented here with
- * [HighlighterExtension]. When this code returns Composable function highlighting for a given
- * method call, it will always be used instead of the default Kotlin highlighting.
+ * [KotlinHighlightingVisitorExtension]. When this code returns Composable function highlighting for
+ * a given function call, it will always be used instead of the default Kotlin highlighting.
  */
 class ComposableHighlighterExtension : KotlinHighlightingVisitorExtension() {
-  companion object {
-    const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
-    val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
-      TextAttributesKey.createTextAttributesKey(
-        COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME,
-        DefaultLanguageHighlighterColors.FUNCTION_CALL
-      )
-    val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
-      HighlightInfoType.HighlightInfoTypeImpl(
-        HighlightInfoType.SYMBOL_TYPE_SEVERITY,
-        COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY,
-        false
-      )
-  }
-
   override fun highlightDeclaration(
     elementToHighlight: PsiElement,
     descriptor: DeclarationDescriptor

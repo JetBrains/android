@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.analysis
 
-import com.android.tools.compose.ComposableHighlighterExtension
+import com.android.tools.compose.COMPOSABLE_CALL_TEXT_TYPE
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import junit.framework.Assert.assertEquals
@@ -1399,9 +1399,7 @@ class ComposableCheckerTests : AbstractComposeDiagnosticsTest() {
       """
           .trimIndent(),
         highlights
-          .filter { (highlight, _) ->
-            highlight.type == ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE
-          }
+          .filter { (highlight, _) -> highlight.type == COMPOSABLE_CALL_TEXT_TYPE }
           .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" }
       )
     }
