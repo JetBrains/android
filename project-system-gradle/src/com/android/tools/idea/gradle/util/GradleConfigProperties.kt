@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.util
 
+import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.plugins.gradle.properties.GRADLE_CACHE_DIR_NAME
 import org.jetbrains.plugins.gradle.properties.GRADLE_LOCAL_JAVA_HOME_PROPERTY
@@ -28,6 +29,8 @@ import java.nio.file.Paths
 class GradleConfigProperties(
   projectFolderPath: File
 ) {
+
+  constructor(externalProjectSettings: ExternalProjectSettings): this(File(externalProjectSettings.externalProjectPath))
 
   var javaHome: File? = null
     get() = if (isJavaHomeModified) field else getPath(GRADLE_LOCAL_JAVA_HOME_PROPERTY)

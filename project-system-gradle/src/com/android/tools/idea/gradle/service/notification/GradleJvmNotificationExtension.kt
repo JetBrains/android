@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.service.notification
 
-import com.android.tools.idea.gradle.project.extensions.externalProjectFile
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.sdk.IdeSdks
@@ -119,8 +118,9 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
     val gradleRootPattern = Regex(ExternalSystemBundle.message("notification.project.refresh.fail.title", GradleConstants.GRADLE_NAME, "(.+)"))
     gradleRootPattern.find(notificationData.title)?.groupValues?.get(1)?.let { gradleRootName ->
       GradleSettings.getInstance(project).linkedProjectsSettings
-        .firstOrNull { it.externalProjectFile.endsWith(gradleRootName) }
-        ?.let { return it.externalProjectPath }
+        .map { it.externalProjectPath }
+        .firstOrNull { File(it).endsWith(gradleRootName) }
+        ?.let { return it }
     }
     return project.basePath.orEmpty()
   }

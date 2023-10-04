@@ -23,6 +23,7 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.openapi.externalSystem.service.execution.createJdkInfo
 import com.intellij.openapi.externalSystem.service.ui.addJdkReferenceItem
+import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings
 import com.intellij.openapi.observable.util.whenItemSelected
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
@@ -45,9 +46,10 @@ import java.io.File
 class GradleJdkComboBox(
   sdkComboBoxModel: SdkComboBoxModel,
   private val sdkLookupProvider: SdkLookupProvider,
-  private val externalProjectFile: File
+  externalProjectSettings: ExternalProjectSettings
 ) {
 
+  private val externalProjectFile: File = File(externalProjectSettings.externalProjectPath)
   private val sdkReferenceItemsHomePathMap = mutableMapOf<String, String?>()
   private val comboBox = SdkComboBox(sdkComboBoxModel)
   private val model

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.extensions.externalProjectFile
 import com.android.tools.idea.gradle.ui.GradleJdkComboBox
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBox
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBoxBuilder
@@ -136,7 +135,7 @@ class AndroidGradleProjectSettingsControlBuilder(
           name = GRADLE_LOCAL_JAVA_HOME,
           homePath = selectedJdkPath
         )
-        GradleConfigProperties(initialSettings.externalProjectFile).run {
+        GradleConfigProperties(initialSettings).run {
           javaHome = File(selectedJdkPath)
           save()
         }
@@ -225,7 +224,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     myGradleJdkComboBox = GradleJdkComboBox(
       sdkComboBoxModel = boxModel,
       sdkLookupProvider = getGradleJvmLookupProvider(project, myInitialSettings),
-      externalProjectFile = myInitialSettings.externalProjectFile
+      externalProjectSettings = myInitialSettings
     )
     myGradleJdkComboBox?.addItemSelectedLister {
       if ((it as?  SdkListItem.SdkReferenceItem)?.name == GRADLE_LOCAL_JAVA_HOME) {
