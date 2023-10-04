@@ -803,6 +803,10 @@ class ComposePreviewRepresentation(
     get() = composeWorkBench.component
 
   // region Lifecycle handling
+  @VisibleForTesting
+  var buildListenerSetupFinished = false
+    private set
+
   /**
    * Completes the initialization of the preview. This method is only called once after the first
    * [onActivate] happens.
@@ -826,12 +830,19 @@ class ComposePreviewRepresentation(
          */
         private var animationInspectionsEnabled = false
 
+        override fun startedListening() {
+          buildListenerSetupFinished = true
+        }
+
         override fun buildSucceeded() {
           log.debug("buildSucceeded")
           module?.let {
-            // When the build completes successfully, we do not need the overlay until a
-            // modifications has happened.
-            ModuleClassLoaderOverlays.getInstance(it).invalidateOverlayPaths()
+            // When the build completes successfully, we do not need the overlay until a new
+            // modification happens. But invalidation should not be done when this listener is
+            // called during setup, as a consequence of an old build (see startedListening)
+            if (buildListenerSetupFinished) {
+              ModuleClassLoaderOverlays.getInstance(it).invalidateOverlayPaths()
+            }
           }
 
           val file = psiFilePointer.element

@@ -51,15 +51,18 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndWait
+import java.nio.file.Path
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,6 +71,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 
 internal class TestComposePreviewView(override val mainSurface: NlDesignSurface) :
   ComposePreviewView {
@@ -485,6 +489,54 @@ class ComposePreviewRepresentationTest {
       }
 
       assertEquals(preview, dataProvider.getData(PreviewModeManager.KEY.name))
+    }
+
+  @Test
+  fun testActivationDoesNotCleanOverlayClassLoader() =
+    runBlocking(workerThread) {
+      val composeTest = runWriteActionAndWait {
+        fixture.addFileToProjectAndInvalidate(
+          "Test.kt",
+          // language=kotlin
+          """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+      """
+            .trimIndent()
+        )
+      }
+      val surfaceMock = Mockito.mock(NlDesignSurface::class.java)
+      val composeView = TestComposePreviewView(surfaceMock)
+      val previewRepresentation =
+        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+          composeView
+        }
+      Disposer.register(fixture.testRootDisposable, previewRepresentation)
+      Disposer.register(fixture.testRootDisposable, surfaceMock)
+
+      // Compile the project so that 'buildSucceeded' is called during build listener setup
+      ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+
+      val job = launch {
+        while (!previewRepresentation.buildListenerSetupFinished) {
+          delay(500)
+        }
+      }
+
+      val overlayClassLoader = ModuleClassLoaderOverlays.getInstance(fixture.module)
+      assertTrue(overlayClassLoader.state.paths.isEmpty())
+      overlayClassLoader.pushOverlayPath(Path.of("/tmp/test"))
+      assertFalse(overlayClassLoader.state.paths.isEmpty())
+      assertFalse(previewRepresentation.buildListenerSetupFinished)
+      previewRepresentation.onActivate()
+      job.join()
+      assertTrue(previewRepresentation.buildListenerSetupFinished)
+      assertFalse(overlayClassLoader.state.paths.isEmpty())
     }
 
   private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
