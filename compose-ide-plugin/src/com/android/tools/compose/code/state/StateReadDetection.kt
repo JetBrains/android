@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.code.state
 
-import com.android.tools.compose.ComposeBundle
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
@@ -48,13 +47,6 @@ private val STATE_CLASSES_BY_ACCESSOR =
   }
 private val GENERIC_STATE_CLASS_ID =
   checkNotNull(STATE_CLASSES_BY_ACCESSOR["value"]) { "No class ID for generic State class!" }
-
-/**
- * Creates a message for the user to understand that updating [stateVariable] will recompose
- * [composable].
- */
-internal fun createMessage(stateVariable: String, composable: String) =
-  ComposeBundle.message("compose.state.read.message", stateVariable, composable)
 
 internal fun KtNameReferenceExpression.getStateReadElement(): PsiElement? =
   CachedValuesManager.getProjectPsiDependentCache(this) { it.computeStateReadElement() }

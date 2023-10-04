@@ -23,9 +23,7 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
-import icons.StudioIcons
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtParameter
 
@@ -41,10 +39,10 @@ val COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
  * Annotator that highlights reads of `androidx.compose.runtime.State` variables inside
  * `@Composable` functions.
  *
- * TODO(b/225218822): Before productionizing this, depending on whether we want a gutter icon,
- *   highlighting, or both, we must change this to use `KotlinHighlightingVisitorExtension` (to
- *   avoid race conditions), or use a `RelatedItemLineMarkerProvider` for the gutter icon so it can
- *   be disabled with a setting.
+ * TODO(b/225218822): Before productionizing this, we must determine whether to change this to use
+ *   `KotlinHighlightingVisitorExtension` (to avoid race conditions). This may be non-trivial as
+ *   that class does not have the ability to highlight anything other than the element being
+ *   visited.
  */
 class ComposeStateReadAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
@@ -58,19 +56,12 @@ class ComposeStateReadAnnotator : Annotator {
       }
     element.getStateReadElement()?.let {
       holder
-        .newAnnotation(HighlightSeverity.INFORMATION, createMessage(it.text, scopeName))
+        .newAnnotation(
+          HighlightSeverity.INFORMATION,
+          ComposeBundle.message("compose.state.read.message", it.text, scopeName)
+        )
         .textAttributes(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
-        .gutterIconRenderer(ComposeStateReadGutterIconRenderer(it.text, scopeName))
         .create()
     }
-  }
-
-  private data class ComposeStateReadGutterIconRenderer(
-    private val stateName: String,
-    private val functionName: String
-  ) : GutterIconRenderer() {
-    override fun getIcon() = StudioIcons.Common.INFO
-
-    override fun getTooltipText() = createMessage(stateName, functionName)
   }
 }

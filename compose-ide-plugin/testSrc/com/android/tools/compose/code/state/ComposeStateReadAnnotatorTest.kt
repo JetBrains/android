@@ -29,7 +29,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
-import icons.StudioIcons
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
@@ -41,8 +40,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 const val OUTER_FUNCTION = "Outer"
-
-val EXPECTED_ICON = StudioIcons.Common.INFO
 
 val COMPOSE_RUNTIME_IMPORTS =
   listOf(
@@ -271,9 +268,7 @@ class ComposeStateReadAnnotatorTest {
       val expectedMessage =
         ComposeBundle.message("compose.state.read.message", stateVariable, composeScope)
       assertThat(message).isEqualTo(expectedMessage)
-      assertThat(gutterIconRenderer).isNotNull()
-      assertThat(gutterIconRenderer!!.icon).isEqualTo(EXPECTED_ICON)
-      assertThat(gutterIconRenderer!!.tooltipText).isEqualTo(message)
+      assertThat(gutterIconRenderer).isNull()
       assertThat(textAttributes).isEqualTo(COMPOSE_STATE_READ_TEXT_ATTRIBUTES_KEY)
       assertThat(startOffset).isEqualTo(fixture.offsetForWindow(windowStart))
       assertThat(endOffset).isEqualTo(fixture.offsetForWindow(windowEnd))
