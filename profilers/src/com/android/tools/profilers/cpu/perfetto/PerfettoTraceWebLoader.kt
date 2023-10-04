@@ -23,6 +23,7 @@ import org.apache.http.entity.FileEntity
 import org.apache.http.impl.bootstrap.ServerBootstrap
 import java.io.File
 import java.net.URI
+import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 /**
@@ -32,7 +33,6 @@ import java.util.concurrent.TimeUnit
 // We reuse the HTTP+RPC port because it's the only one allowed by the CSP
 private const val port = 9001
 private const val origin = "https://ui.perfetto.dev"
-private const val traceFilePath = "traceFile" // we only serve one file at a time, so no need to risk using the actual file name in a URL
 
 /**
  * Opens a trace in Perfetto Web UI (in the browser).
@@ -47,8 +47,8 @@ object PerfettoTraceWebLoader {
   fun loadTrace(traceFile: File) {
     server?.stop() // TODO(297379481): close the server automatically once it fully serves one request
     server = HttpServer(traceFile).also { it.start() }
-    BrowserLauncher.instance.browse(URI.create("$origin/#!/?url=http://127.0.0.1:$port/$traceFilePath"))
-  }
+    val urlEncodedFileName = URLEncoder.encode(traceFile.name, Charsets.UTF_8)
+    BrowserLauncher.instance.browse(URI.create("$origin/#!/?url=http://127.0.0.1:$port/$urlEncodedFileName")) }
 }
 
 private class HttpServer(traceFile: File) {
@@ -56,7 +56,7 @@ private class HttpServer(traceFile: File) {
     .bootstrap()
     .setListenerPort(port)
     .setSocketConfig(SocketConfig.custom().setSoReuseAddress(true).setSoKeepAlive(true).build())
-    .registerHandler("/$traceFilePath") { _, response, _ ->
+    .registerHandler("/${traceFile.name}") { _, response, _ ->
       response.setStatusCode(HttpStatus.SC_OK)
       response.setHeader("Access-Control-Allow-Origin", origin)
       response.setHeader("Cache-Control", "no-cache")
