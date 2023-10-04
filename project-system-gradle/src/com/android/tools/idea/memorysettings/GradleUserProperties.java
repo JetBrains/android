@@ -18,8 +18,8 @@ package com.android.tools.idea.memorysettings;
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getGradleDaemonXmx;
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getKotlinDaemonXmx;
 
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.io.File;
@@ -83,7 +83,7 @@ public class GradleUserProperties {
 
   @Nullable
   private static GradleProperties getProperties(Project project) {
-    File file = GradleUtil.getUserGradlePropertiesFile(project);
+    File file = GradleProjectSystemUtil.getUserGradlePropertiesFile(project);
     try {
       if (file.exists()) {
         return new GradleProperties(file);

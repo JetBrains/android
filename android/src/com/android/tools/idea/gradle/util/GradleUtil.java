@@ -15,32 +15,23 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
-import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
-import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.utils.BuildScriptUtil;
-import com.google.common.base.Strings;
 import com.intellij.facet.ProjectFacetManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -50,8 +41,6 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
-import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -62,8 +51,6 @@ public final class GradleUtil {
 
   @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
   @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
-
-  private static final Logger LOG = Logger.getInstance(GradleUtil.class);
 
   private GradleUtil() {
   }
@@ -157,83 +144,6 @@ public final class GradleUtil {
     File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
-  }
-
-  @NotNull
-  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
-    GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      if (executionSettings == null) {
-        File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
-        assert gradlePath != null && gradlePath.isDirectory();
-        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
-      }
-    }
-    if(executionSettings == null) {
-      executionSettings = new GradleExecutionSettings(null, null, BUNDLED, null, false);
-    }
-    return executionSettings;
-  }
-
-  @Nullable
-  public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
-    GradleProjectSettings projectSettings = getGradleProjectSettings(project);
-    if (projectSettings == null) {
-      File baseDirPath = getBaseDirPath(project);
-      String msg = String
-        .format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(), baseDirPath.getPath());
-      LOG.info(msg);
-      return null;
-    }
-
-    try {
-      return getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
-    }
-    catch (IllegalArgumentException e) {
-      LOG.info("Failed to obtain Gradle execution settings", e);
-      return null;
-    }
-  }
-
-  @Nullable
-  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
-    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
-  }
-
-  /**
-   * This method calculates the path for user gradle.properties file based on gradle user home folder
-   * defined in execution settings for this project.
-   *
-   * In case this is not possible use default location as described in {@link  GradleUtil#getUserGradlePropertiesFile()}.
-   */
-  @NotNull
-  public static File getUserGradlePropertiesFile(@NotNull Project project) {
-    GradleExecutionSettings settings = getGradleExecutionSettings(project);
-    if (settings != null) {
-      String gradleHomePath = settings.getServiceDirectory();
-      if (!Strings.isNullOrEmpty(gradleHomePath)) {
-        return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
-      }
-    }
-    return getUserGradlePropertiesFile();
-  }
-
-  /**
-   * Calculates location of user gradle.properties based on system properties and environment variables. See
-   * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties">gradle properties</a>
-   * section in gradle documentation for the context.
-   * @return file pointing to gradle.properties in gradle user home.
-   */
-  @NotNull
-  private static File getUserGradlePropertiesFile() {
-    String gradleUserHome = System.getProperty("gradle.user.home");
-    if (Strings.isNullOrEmpty(gradleUserHome)) {
-      gradleUserHome = System.getenv("GRADLE_USER_HOME");
-    }
-    if (Strings.isNullOrEmpty(gradleUserHome)) {
-      gradleUserHome = join(System.getProperty("user.home"), DOT_GRADLE);
-    }
-    return new File(gradleUserHome, FN_GRADLE_PROPERTIES);
   }
 
   /**

@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.run.createSpec
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.execution.printlnError
@@ -39,7 +39,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
-import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Joiner
 import com.intellij.build.BuildContentManager
 import com.intellij.execution.ExecutionListener
@@ -282,7 +281,7 @@ class GradleConnectedAndroidTestInvoker(
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ): GradleExecutionSettings {
-    return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
+    return GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
       val deviceSerials = devices.joinToString(",") { device ->
         device.serialNumber

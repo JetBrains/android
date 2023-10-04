@@ -19,16 +19,19 @@ import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
+import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.google.common.base.Splitter.on;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
+import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.ide.common.repository.AgpVersion;
@@ -48,6 +51,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
@@ -79,6 +83,7 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData;
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 public class GradleProjectSystemUtil {
@@ -352,7 +357,7 @@ public class GradleProjectSystemUtil {
             !GradleLocalCache.getInstance().containsGradleWrapperVersion(gradleVersion, project)) {
           File embeddedGradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
           if (embeddedGradlePath != null) {
-            GradleProjectSettings gradleSettings = GradleUtil.getGradleProjectSettings(project);
+            GradleProjectSettings gradleSettings = getGradleProjectSettings(project);
             if (gradleSettings != null) {
               gradleSettings.setDistributionType(LOCAL);
               gradleSettings.setGradleHome(embeddedGradlePath.getPath());
@@ -628,5 +633,82 @@ public class GradleProjectSystemUtil {
       }
     }
     return false;
+  }
+
+  /**
+   * This method calculates the path for user gradle.properties file based on gradle user home folder
+   * defined in execution settings for this project.
+   * <p>
+   * In case this is not possible use default location as described in {@link  GradleUtil#getUserGradlePropertiesFile()}.
+   */
+  @NotNull
+  public static File getUserGradlePropertiesFile(@NotNull Project project) {
+    GradleExecutionSettings settings = getGradleExecutionSettings(project);
+    if (settings != null) {
+      String gradleHomePath = settings.getServiceDirectory();
+      if (!Strings.isNullOrEmpty(gradleHomePath)) {
+        return new File(gradleHomePath, FN_GRADLE_PROPERTIES);
+      }
+    }
+    return getUserGradlePropertiesFile();
+  }
+
+  /**
+   * Calculates location of user gradle.properties based on system properties and environment variables. See
+   * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:gradle_configuration_properties">gradle properties</a>
+   * section in gradle documentation for the context.
+   * @return file pointing to gradle.properties in gradle user home.
+   */
+  @NotNull
+  private static File getUserGradlePropertiesFile() {
+    String gradleUserHome = System.getProperty("gradle.user.home");
+    if (Strings.isNullOrEmpty(gradleUserHome)) {
+      gradleUserHome = System.getenv("GRADLE_USER_HOME");
+    }
+    if (Strings.isNullOrEmpty(gradleUserHome)) {
+      gradleUserHome = join(System.getProperty("user.home"), DOT_GRADLE);
+    }
+    return new File(gradleUserHome, FN_GRADLE_PROPERTIES);
+  }
+
+  @NotNull
+  public static GradleExecutionSettings getOrCreateGradleExecutionSettings(@NotNull Project project) {
+    GradleExecutionSettings executionSettings = getGradleExecutionSettings(project);
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      if (executionSettings == null) {
+        File gradlePath = EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath();
+        assert gradlePath != null && gradlePath.isDirectory();
+        executionSettings = new GradleExecutionSettings(gradlePath.getPath(), null, LOCAL, null, false);
+      }
+    }
+    if(executionSettings == null) {
+      executionSettings = new GradleExecutionSettings(null, null, BUNDLED, null, false);
+    }
+    return executionSettings;
+  }
+
+  @Nullable
+  public static GradleExecutionSettings getGradleExecutionSettings(@NotNull Project project) {
+    GradleProjectSettings projectSettings = getGradleProjectSettings(project);
+    if (projectSettings == null) {
+      File baseDirPath = getBaseDirPath(project);
+      String msg = String
+        .format("Unable to obtain Gradle project settings for project '%1$s', located at '%2$s'", project.getName(), baseDirPath.getPath());
+      LOG.info(msg);
+      return null;
+    }
+
+    try {
+      return getExecutionSettings(project, projectSettings.getExternalProjectPath(), GradleUtil.GRADLE_SYSTEM_ID);
+    }
+    catch (IllegalArgumentException e) {
+      LOG.info("Failed to obtain Gradle execution settings", e);
+      return null;
+    }
+  }
+
+  @Nullable
+  public static GradleProjectSettings getGradleProjectSettings(@NotNull Project project) {
+    return GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
   }
 }

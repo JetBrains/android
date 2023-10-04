@@ -17,7 +17,7 @@ package com.android.build.attribution.data
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.gradle.util.PropertiesFiles
 import com.intellij.lang.properties.IProperty
@@ -86,7 +86,11 @@ data class StudioProvidedInfo(
 
     private fun getUserPropertiesConfigurationCachePropertyState(project: Project): String? {
       val propertiesFileResult = runCatching {
-        PropertiesFiles.getProperties(GradleUtil.getUserGradlePropertiesFile(project))
+        PropertiesFiles.getProperties(
+          GradleProjectSystemUtil.getUserGradlePropertiesFile(
+            project
+          )
+        )
       }
       return propertiesFileResult.getOrNull()?.let{ properties ->
         sequence {

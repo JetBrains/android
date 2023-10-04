@@ -17,6 +17,7 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -167,7 +168,8 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode) {
-      val userSettingsFile = GradleUtil.getUserGradlePropertiesFile(project)
+      val userSettingsFile =
+        GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
       val file = VfsUtil.findFileByIoFile(userSettingsFile, false)
       if (file != null) {
         yield(file.describe("Global Properties", BUILD_WIDE_ORDER_BASE))

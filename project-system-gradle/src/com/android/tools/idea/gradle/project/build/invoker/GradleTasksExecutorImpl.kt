@@ -35,7 +35,6 @@ import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.SelectSdkDialog
@@ -215,7 +214,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private fun invokeGradleTasks(buildAction: BuildAction<*>?): GradleInvocationResult {
       val project = myRequest.project
       val executionSettings = myRequest.data.executionSettings ?:
-      GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
+                              GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(
+                                project).apply {
           this.withVmOptions(myRequest.jvmArguments)
             .withArguments(myRequest.commandLineArguments)
             .withEnvironmentVariables(myRequest.env)

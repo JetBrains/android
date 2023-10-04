@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.project.sync.hyperlink.EnableAndroidXHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileSyncMessageHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlSyncMessageHyperlink
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -41,7 +41,8 @@ class AndroidXUsedReporter: SimpleDeduplicatingSyncIssueReporter() {
     syncIssues: MutableList<IdeSyncIssue>,
     affectedModules: MutableList<Module>,
     buildFileMap: MutableMap<Module, VirtualFile>
-  ): List<SyncIssueNotificationHyperlink> = createQuickFixes(GradleUtil.getUserGradlePropertiesFile(project))
+  ): List<SyncIssueNotificationHyperlink> = createQuickFixes(
+    GradleProjectSystemUtil.getUserGradlePropertiesFile(project))
 
   @VisibleForTesting
   fun createQuickFixes(propertiesPath: File): List<SyncIssueNotificationHyperlink> {

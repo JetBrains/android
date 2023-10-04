@@ -107,7 +107,8 @@ class GradleUtilAndroidGradleTest {
     preparedProject.open { project ->
       val gradleHome = Paths.get(projectRule.getBaseTestPath(), "gradleHome").toString()
       ApplicationManager.getApplication().runWriteAction { GradleSettings.getInstance(project).serviceDirectoryPath = gradleHome }
-      val userGradlePropertiesFile = GradleUtil.getUserGradlePropertiesFile(project)
+      val userGradlePropertiesFile =
+        GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
       assertThat(userGradlePropertiesFile).isEqualTo(File(gradleHome, "gradle.properties"))
     }
   }
@@ -133,7 +134,8 @@ class GradleUtilAndroidGradleTest {
       assertThat(basePath).isNotEmpty()
       val managerPath = GradleInstallationManager.getInstance().getGradleJvmPath(project, basePath!!)
       assertThat(managerPath).isNotNull()
-      val settings = GradleUtil.getOrCreateGradleExecutionSettings(project)
+      val settings = GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(
+        project)
       val settingsPath = settings.javaHome
       assertThat(settingsPath).isNotNull()
       assertThat(settingsPath).isNotEmpty()
