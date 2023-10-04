@@ -40,6 +40,7 @@ import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.transport.TransportException
 import com.android.tools.idea.util.StudioPathManager
@@ -167,9 +168,7 @@ class ComposeLayoutInspectorClient(
         } else {
           val projectSystem = project.getProjectSystem()
           val token =
-            GetComposeLayoutInspectorJarToken.EP_NAME.getExtensions(project).firstOrNull {
-              it.isApplicable(projectSystem)
-            }
+            projectSystem.getTokenOrNull(GetComposeLayoutInspectorJarToken.EP_NAME)
               // TODO(xof): We need an APP_INSPECTION_UNSUPPORTED_BUILD_SYSTEM here, theoretically
               ?: return handleError(
                 notificationModel,
