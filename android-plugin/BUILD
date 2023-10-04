@@ -17,6 +17,7 @@ iml_module(
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
         "//tools/adt/idea/app-quality-insights/ide/gradle:intellij.android.app-quality-insights.ide.gradle",
+        "//tools/adt/idea/profilers-android/gradle:intellij.android.profilersAndroid.gradle",
     ],
     # do not sort: must match IML order
     deps = [

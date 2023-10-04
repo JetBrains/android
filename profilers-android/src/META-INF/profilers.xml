@@ -61,6 +61,11 @@
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
               extensions="pftrace;perfetto-trace"/>
   </extensions>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.profilers.profilerProgramRunnerToken"
+                    interface="com.android.tools.idea.profilers.ProfilerProgramRunnerToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
   <projectListeners>
     <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
     <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>

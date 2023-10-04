@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
@@ -136,7 +135,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
    * the debuggable fallback or abort.
    */
   private fun checkProfileableSupportAndExecute(state: RunProfileState, environment: ExecutionEnvironment): Promise<RunContentDescriptor?> {
-    if (isAgpVersionSupported(environment.project) && isDeviceSupported(environment)) {
+    if (isProjectSupported(environment.project) && isDeviceSupported(environment)) {
       return doExecuteInternal(state, environment)
     }
     val dialog = object : DialogWrapper(environment.project) {
@@ -231,9 +230,10 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       return ProfileRunExecutor.EXECUTOR_ID == executorId
     }
 
-    private fun isAgpVersionSupported(project: Project): Boolean {
-      val agpVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)?.let { AgpVersion.tryParse(it) }
-      return agpVersion != null && agpVersion.isAtLeastIncludingPreviews(7, 3, 0)
+    private fun isProjectSupported(project: Project): Boolean {
+      val projectSystem = project.getProjectSystem()
+      val token = projectSystem.getTokenOrNull(ProfilerProgramRunnerToken.EP_NAME) ?: return false
+      return token.isProfileableBuildSupported(projectSystem)
     }
 
     private fun isDeviceSupported(env: ExecutionEnvironment): Boolean {
