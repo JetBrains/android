@@ -324,10 +324,6 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
     return newModuleClassLoaderReference
   }
 
-  @Synchronized
-  override fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext) =
-    getShared(parent, moduleRenderContext, ClassTransform.identity, ClassTransform.identity) {}
-
   /**
    * Return a [StudioModuleClassLoader] for a [Module] to be used for rendering. Similar to [getShared] but guarantees that the returned
    * [StudioModuleClassLoader] is not shared and the caller has full ownership of it.
@@ -356,10 +352,6 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
         newModuleClassLoaderReference
       }
   }
-
-  @Synchronized
-  override fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext, ) =
-    getPrivate(parent, moduleRenderContext, ClassTransform.identity, ClassTransform.identity)
 
   @VisibleForTesting
   fun createCopy(mcl: StudioModuleClassLoader): StudioModuleClassLoader? = mcl.copy(createDiagnostics())
