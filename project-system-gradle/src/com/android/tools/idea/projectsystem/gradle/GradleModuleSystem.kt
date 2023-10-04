@@ -66,6 +66,7 @@ import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.getUnitTestModule
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.rendering.StudioModuleDependencies
@@ -460,7 +461,8 @@ class GradleModuleSystem(
   override fun getApplicationIdProvider(): ApplicationIdProvider {
     val androidFacet = AndroidFacet.getInstance(module) ?: error("Cannot find AndroidFacet. Module: ${module.name}")
     val androidModel = GradleAndroidModel.get(androidFacet) ?: error("Cannot find GradleAndroidModel. Module: ${module.name}")
-    val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule()
+    val forTests =  androidFacet.module.isUnitTestModule() || androidFacet.module.isAndroidTestModule() ||
+      androidFacet.module.isScreenshotTestModule()
     return GradleApplicationIdProvider.create(
       androidFacet, forTests, androidModel, androidModel.selectedBasicVariant, androidModel.selectedVariant
     )
