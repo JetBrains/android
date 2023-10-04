@@ -57,7 +57,7 @@ val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType =
  * [KotlinHighlightingVisitorExtension]. When this code returns Composable function highlighting for
  * a given function call, it will always be used instead of the default Kotlin highlighting.
  */
-class ComposableHighlighterExtension : KotlinHighlightingVisitorExtension() {
+class ComposableHighlightingVisitorExtension : KotlinHighlightingVisitorExtension() {
   override fun highlightDeclaration(
     elementToHighlight: PsiElement,
     descriptor: DeclarationDescriptor

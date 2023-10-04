@@ -40,10 +40,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
-class ComposableHighlighterExtensionTest {
+class ComposableHighlightingVisitorExtensionTest {
   @get:Rule var projectRule = AndroidProjectRule.inMemory()
 
-  private val highlighter = ComposableHighlighterExtension()
+  private val highlighter = ComposableHighlightingVisitorExtension()
 
   private val mockDescriptor: DeclarationDescriptor = mock()
   private val mockElement: PsiElement = mock()

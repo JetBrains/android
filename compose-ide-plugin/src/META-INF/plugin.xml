@@ -25,7 +25,7 @@
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
+    <highlighterExtension implementation="com.android.tools.compose.ComposableHighlightingVisitorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
