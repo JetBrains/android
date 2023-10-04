@@ -43,7 +43,8 @@ import java.nio.file.Path
  * only apply to a specific [Project].
  */
 interface AndroidProjectSystem: ModuleHierarchyProvider {
-
+  /** The IDE project this project system describes */
+  val project: Project
   /**
    * Returns path to android.jar
    */

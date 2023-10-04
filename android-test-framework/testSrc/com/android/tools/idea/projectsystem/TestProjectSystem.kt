@@ -59,7 +59,7 @@ import java.util.concurrent.CountDownLatch
  */
 @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
 class TestProjectSystem @JvmOverloads constructor(
-  val project: Project,
+  override val project: Project,
   availableDependencies: List<GradleCoordinate> = listOf(),
   private var sourceProvidersFactoryStub: SourceProvidersFactory = SourceProvidersFactoryStub(),
   @Volatile private var lastSyncResult: SyncResult = SyncResult.SUCCESS,
