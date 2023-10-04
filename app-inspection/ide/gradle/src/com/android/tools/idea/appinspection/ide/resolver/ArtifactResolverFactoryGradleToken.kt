@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
-import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.projectsystem.GradleToken

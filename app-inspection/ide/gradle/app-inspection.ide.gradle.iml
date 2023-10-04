@@ -14,5 +14,7 @@
     <orderEntry type="module" module-name="app-inspection.inspector.ide" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="app-inspection.inspector.api" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
   </component>
 </module>

@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
-import com.android.tools.idea.appinspection.ide.resolver.moduleSystem.ModuleSystemArtifactResolver
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.flags.StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR
 import com.android.tools.idea.projectsystem.ProjectSystemService

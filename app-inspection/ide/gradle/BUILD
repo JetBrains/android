@@ -15,5 +15,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/inspector/ide:app-inspection.inspector.ide[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )

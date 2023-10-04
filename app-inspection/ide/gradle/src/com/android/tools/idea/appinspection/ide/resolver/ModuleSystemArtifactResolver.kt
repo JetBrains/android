@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.ide.resolver.blaze
+package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
-import com.android.tools.idea.appinspection.ide.resolver.ModuleSystemArtifactFinder
-import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
@@ -27,33 +24,31 @@ import java.nio.file.Path
 import kotlinx.coroutines.withContext
 
 /**
- * Special handling for blaze projects:
+ * This resolver uses the IDE's module system to look for inspector artifacts.
  *
- * Because androidx libraries are released in google3 before they are released on GMaven, there
- * exists a window of time in which http resolver will fail to resolve the library against GMaven.
+ * This is not the preferred way to resolve artifacts as it looks at local artifacts which could be
+ * modified by the user. However, it is useful in situations in which the artifact can't be resolved
+ * any other way.
  *
- * When that happens, the code below will try to resolve the library using BlazeModuleSystem, which
- * will track down the dependency in the blaze BUILD system (if it exists) and match it with a
- * target label. The label is then mapped to a path that is in google3.
- *
- * For example, assuming the blaze project depends on:
- * //third_party/java/androidx/work/runtime:runtime
- *
- * Attempting to resolve androidx.work:work-runtime:1.0.0 will yield the path:
- * ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime
- *
- * The file name is then computed from the maven coordinate, yielding:
- * ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
+ * In blaze projects, this resolver looks at artifacts located inside google3's third_party
+ * repository.
  */
-class BlazeArtifactResolver(
+class ModuleSystemArtifactResolver(
   private val fileService: FileService,
   private val moduleSystemArtifactFinder: ModuleSystemArtifactFinder
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
     withContext(AndroidDispatchers.diskIoThread) {
-      moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.resolveExistsOrNull(INSPECTOR_JAR)
+      val libraryPath =
+        moduleSystemArtifactFinder.findLibrary(artifactCoordinate)
+          ?: throw AppInspectionArtifactNotFoundException(
+            "Artifact $artifactCoordinate could not be found in module system.",
+            artifactCoordinate
+          )
+      val extractedPath = extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
+      extractedPath.resolveExistsOrNull(INSPECTOR_JAR)
         ?: throw AppInspectionArtifactNotFoundException(
-          "Artifact not found in blaze module system.",
+          "inspector jar could not be found in $libraryPath",
           artifactCoordinate
         )
     }
