@@ -25,10 +25,10 @@ class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest(
       "src/androidx/compose/ui/res/StringResources.kt",
       // language=kotlin
       """
-        package androidx.compose.ui.res
+      package androidx.compose.ui.res
 
-        @Composable
-        fun stringResource(id: Int): String = ""
+      @Composable
+      fun stringResource(id: Int): String = ""
       """
         .trimIndent()
     )
@@ -45,11 +45,11 @@ class KotlinAndroidAddStringResourceTest : AbstractAndroidResourceIntentionTest(
       "src/androidx/compose/ui/res/StringResources.kt",
       // language=kotlin
       """
-          package androidx.compose.ui.res
+      package androidx.compose.ui.res
 
-          @Composable
-          fun stringResource(id: Int): String = ""
-          """
+      @Composable
+      fun stringResource(id: Int): String = ""
+      """
         .trimIndent()
     )
     val fileName =
