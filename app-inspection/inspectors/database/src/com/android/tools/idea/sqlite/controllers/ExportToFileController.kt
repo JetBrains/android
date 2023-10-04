@@ -98,7 +98,6 @@ import org.jetbrains.annotations.VisibleForTesting
  *   process of fetching the data).
  * @param releaseDatabaseLock takes a lockId acquired through [acquireDatabaseLock]
  */
-@UiThread
 class ExportToFileController(
   private val project: Project,
   private val projectScope: CoroutineScope,
@@ -139,6 +138,7 @@ class ExportToFileController(
     view.removeListener(listener)
   }
 
+  @UiThread
   fun showView() {
     view.show()
   }

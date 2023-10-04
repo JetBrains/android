@@ -31,6 +31,7 @@ import java.io.IOException
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
 
 /** Class responsible for downloading and deleting file database data */
 interface FileDatabaseManager {
@@ -73,12 +74,14 @@ class FileDatabaseManagerImpl(
       try {
         // store files in Studio caches
         val downloadDestinationFolder = IdeFileService("database-inspector").cacheRoot
-        deviceFileDownloaderService.downloadFiles(
-          processDescriptor.device.serial,
-          pathsToDownload,
-          disposableDownloadProgress,
-          downloadDestinationFolder
-        )
+        withContext(edtDispatcher) {
+          deviceFileDownloaderService.downloadFiles(
+            processDescriptor.device.serial,
+            pathsToDownload,
+            disposableDownloadProgress,
+            downloadDestinationFolder
+          )
+        }
       } catch (e: IllegalArgumentException) {
         throw DeviceNotFoundException(
           "Device '${processDescriptor.device.model} ${processDescriptor.device.serial}' not found.",
