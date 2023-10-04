@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver
 
-import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.ide.resolver.http.HttpArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
@@ -23,14 +22,10 @@ import com.android.tools.idea.io.FileService
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
-class ArtifactResolverFactory(
-  private val fileService: FileService,
-  private val getIdeBrand: () -> AndroidStudioEvent.IdeBrand = { currentIdeBrand() }
-) : ArtifactResolverFactory {
+class ArtifactResolverFactory(private val fileService: FileService) : ArtifactResolverFactory {
   private val httpArtifactResolver =
     HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
 

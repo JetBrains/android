@@ -50,24 +50,21 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
           ProjectSystemService.getInstance(projectRule.project)
             .replaceProjectSystemForTests(GradleProjectSystem(projectRule.project))
           assertThat(
-              ArtifactResolverFactory(TestFileService()) { ideBrand }
-                .getArtifactResolver(projectRule.project)
+              ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project)
             )
             .isInstanceOf(HttpArtifactResolver::class.java)
 
           APP_INSPECTION_USE_SNAPSHOT_JAR.override(true)
 
           assertThat(
-              ArtifactResolverFactory(TestFileService()) { ideBrand }
-                .getArtifactResolver(projectRule.project)
+              ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project)
             )
             .isInstanceOf(GradleModuleSystemArtifactResolver::class.java)
         }
       IdeBrand.ANDROID_STUDIO_WITH_BLAZE ->
         run {
           assertThat(
-              ArtifactResolverFactory(TestFileService()) { ideBrand }
-                .getArtifactResolver(projectRule.project)
+              ArtifactResolverFactory(TestFileService()).getArtifactResolver(projectRule.project)
             )
             .isInstanceOf(HttpArtifactResolver::class.java)
         }
