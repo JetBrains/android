@@ -171,7 +171,7 @@ class GradleModuleSystem(
       else -> null
     }
 
-  override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
+  fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
       ?.libraries
       ?.filterIsInstance<IdeArtifactLibrary>()

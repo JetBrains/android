@@ -30,7 +30,10 @@ class ArtifactResolverFactoryGradleToken :
   ) =
     when {
       StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get() ->
-        ModuleSystemArtifactResolver(fileService, ModuleSystemArtifactFinder(projectSystem.project))
+        GradleModuleSystemArtifactResolver(
+          fileService,
+          GradleModuleSystemArtifactFinder(projectSystem)
+        )
       else -> httpArtifactResolver
     }
 }

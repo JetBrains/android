@@ -24,18 +24,15 @@ import java.nio.file.Path
 import kotlinx.coroutines.withContext
 
 /**
- * This resolver uses the IDE's module system to look for inspector artifacts.
+ * This resolver uses the Gradle module system to look for inspector artifacts.
  *
  * This is not the preferred way to resolve artifacts as it looks at local artifacts which could be
  * modified by the user. However, it is useful in situations in which the artifact can't be resolved
  * any other way.
- *
- * In blaze projects, this resolver looks at artifacts located inside google3's third_party
- * repository.
  */
-class ModuleSystemArtifactResolver(
+class GradleModuleSystemArtifactResolver(
   private val fileService: FileService,
-  private val moduleSystemArtifactFinder: ModuleSystemArtifactFinder
+  private val moduleSystemArtifactFinder: GradleModuleSystemArtifactFinder
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
     withContext(AndroidDispatchers.diskIoThread) {

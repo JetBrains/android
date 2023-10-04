@@ -153,14 +153,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
 
-  /**
-   * Returns the absolute path of the provided coordinate, if it is resolvable within the module.
-   * <p>
-   * Note the resulting path doesn't necessarily point to an archive file (ex: jar). It is determined
-   * by the build system this method is implemented for.
-   */
-  fun getDependencyPath(coordinate: GradleCoordinate): Path?
-
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
 

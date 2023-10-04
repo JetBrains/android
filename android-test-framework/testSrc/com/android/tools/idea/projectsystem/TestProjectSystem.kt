@@ -255,8 +255,6 @@ class TestProjectSystem @JvmOverloads constructor(
         return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
       }
 
-      override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
-
       override val useAndroidX: Boolean
         get() = this@TestProjectSystem.useAndroidX
 

@@ -17,34 +17,21 @@ package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.intellij.openapi.project.Project
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.project.modules
-import java.nio.file.Path
-import org.jetbrains.annotations.TestOnly
 
-class ModuleSystemArtifactFinder(
-  project: Project,
-  @TestOnly
-  private val findArtifact: (ArtifactCoordinate) -> Path? = { artifactCoordinate ->
-    project.findLibrary(artifactCoordinate)
-  }
-) {
+class GradleModuleSystemArtifactFinder(private val projectSystem: GradleProjectSystem) {
   /**
    * Finds the location of the library's aar specified by [artifactCoordinate].
    *
    * The resulting location could point to a zip (JAR or AAR) or an unzipped directory.
    */
-  fun findLibrary(artifactCoordinate: ArtifactCoordinate) = findArtifact(artifactCoordinate)
-
-  companion object {
-    private fun Project.findLibrary(artifactCoordinate: ArtifactCoordinate) =
-      modules.asList().firstNotNullOfOrNull { module ->
-        getProjectSystem()
-          .getModuleSystem(module)
-          .getDependencyPath(artifactCoordinate.toGradleCoordinate())
-      }
-  }
+  fun findLibrary(artifactCoordinate: ArtifactCoordinate) =
+    projectSystem.project.modules.asList().firstNotNullOfOrNull { module ->
+      projectSystem
+        .getModuleSystem(module)
+        .getDependencyPath(artifactCoordinate.toGradleCoordinate())
+    }
 }
 
 private fun ArtifactCoordinate.toGradleCoordinate(): GradleCoordinate =

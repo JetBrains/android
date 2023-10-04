@@ -61,7 +61,7 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
               ArtifactResolverFactory(TestFileService()) { ideBrand }
                 .getArtifactResolver(projectRule.project)
             )
-            .isInstanceOf(ModuleSystemArtifactResolver::class.java)
+            .isInstanceOf(GradleModuleSystemArtifactResolver::class.java)
         }
       IdeBrand.ANDROID_STUDIO_WITH_BLAZE ->
         run {

@@ -156,8 +156,6 @@ class DefaultModuleSystem(override val module: Module) :
     return null
   }
 
-  override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
-
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
   override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
