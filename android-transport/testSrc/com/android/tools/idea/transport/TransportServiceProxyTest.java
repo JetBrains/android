@@ -169,7 +169,6 @@ public class TransportServiceProxyTest {
     assertThat(process2.getExposureLevel()).isEqualTo(Common.Process.ExposureLevel.PROFILEABLE);
   }
 
-  @Ignore("b/126763044")
   @Test
   public void testEventStreaming() throws Exception {
     Client client1 = createMockClient(1, "test1", "testClient1");
