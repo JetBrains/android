@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
@@ -282,7 +283,7 @@ public class MotionLayoutComponentHelper {
               }
             }
             return null;
-          }).get();
+          }).get(250, TimeUnit.MILLISECONDS);
         }
         catch (Exception e) {
           if (DEBUG) {
@@ -998,8 +999,7 @@ public class MotionLayoutComponentHelper {
               e.printStackTrace();
             }
           }
-          return;
-        }).get();
+        }).get(250, TimeUnit.MILLISECONDS);
       }
       catch (Exception e) {
         if (true) {
