@@ -60,6 +60,7 @@ iml_module(
         # See https://android-developers.googleblog.com/2022/02/discontinuing-kotlin-synthetics-for-views.html
         "no_k2",
     ],
+    test_timeout = "long",  # These tests can be slow, especially on Mac (b/299445080).
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common"],
     # do not sort: must match IML order
