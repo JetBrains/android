@@ -53,6 +53,7 @@ import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
 import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
 import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
+import com.android.tools.idea.common.surface.layout.TopLeftCornerScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -70,6 +71,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
@@ -387,7 +389,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
    */
   private final BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> mySceneManagerProvider;
 
-  @NotNull private SurfaceLayoutManager myLayoutManager;
   @SurfaceScale private final double myMinScale;
   @SurfaceScale private final double myMaxScale;
 
@@ -432,7 +433,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           maxFitIntoZoomLevel);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
-    myLayoutManager = defaultLayoutManager;
     mySceneManagerProvider = sceneManagerProvider;
     mySupportedActions = supportedActions;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
@@ -894,8 +894,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     if (changed) {
       DesignSurfaceViewport port = getViewport();
       Point scrollPosition = getScrollPosition();
+      SurfaceLayoutManager layoutManager = ((NlDesignSurfacePositionableContentLayoutManager)getSceneViewLayoutManager())
+        .getLayoutManager();
 
-      if (myLayoutManager instanceof GroupedListSurfaceLayoutManager) {
+      if (layoutManager instanceof GroupedListSurfaceLayoutManager) { // new list mode
         if(x < 0 || y < 0) {
           // zoom with top-center of the visible area as anchor
           myViewportScroller = new TopBoundCenterScroller(
@@ -910,8 +912,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                                                                                      getPositionableContent(),
                                                                                      getExtentSize()));
         }
+      } else if(layoutManager instanceof GroupedGridSurfaceLayoutManager) { // new grid mode
+        // zoom with top-left corner of the visible area as anchor
+        myViewportScroller = new TopLeftCornerScroller(
+          new Dimension(port.getViewSize()), new Point(scrollPosition), previousScale, getScale());
       }
-      else if (!(myLayoutManager instanceof GridSurfaceLayoutManager)) {
+      else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
         Point zoomCenterInView;
         if (x < 0 || y < 0) {
           x = port.getViewportComponent().getWidth() / 2;
