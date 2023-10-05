@@ -20,6 +20,7 @@
 
 #include "accessors/display_info.h"
 #include "accessors/virtual_display.h"
+#include "copy_on_write_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -82,8 +83,8 @@ private:
   static JClass display_manager_class_;
   static jmethodID create_virtual_display_method_;
 
-  // Copy-on-write set of clipboard listeners.
-  static std::atomic<std::vector<DisplayListener*>*> display_listeners_;
+  // List of display listeners.
+  static CopyOnWriteList<DisplayListener*> display_listeners_;
 
   static DisplayListenerDispatcher* display_listener_dispatcher_;
 

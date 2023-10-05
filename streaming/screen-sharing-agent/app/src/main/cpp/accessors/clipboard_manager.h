@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "common.h"
+#include "copy_on_write_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -54,8 +55,8 @@ private:
   jmethodID set_text_method_;
   jmethodID enable_primary_clip_changed_listener_method_;
   jmethodID disable_primary_clip_changed_listener_method_;
-  // Copy-on-write set of clipboard listeners.
-  std::atomic<std::vector<ClipboardListener*>*> clipboard_listeners_;
+  // List of clipboard listeners.
+  CopyOnWriteList<ClipboardListener*> clipboard_listeners_;
 
   DISALLOW_COPY_AND_ASSIGN(ClipboardManager);
 };

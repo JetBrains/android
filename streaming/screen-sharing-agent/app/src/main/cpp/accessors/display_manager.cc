@@ -34,8 +34,7 @@ static mutex static_initialization_mutex; // Protects initialization of static f
 void DisplayManager::InitializeStatics(Jni jni) {
   scoped_lock lock(static_initialization_mutex);
 
-  if (display_listeners_ == nullptr) {
-    display_listeners_ = new vector<DisplayListener*>();
+  if (display_manager_global_class_.IsNull()) {
     display_manager_global_class_ = jni.GetClass("android/hardware/display/DisplayManagerGlobal");
     jmethodID get_instance_method =
         display_manager_global_class_.GetStaticMethod("getInstance", "()Landroid/hardware/display/DisplayManagerGlobal;");
@@ -107,18 +106,9 @@ void DisplayManager::AddDisplayListener(Jni jni, DisplayListener* listener) {
   if (display_listener_dispatcher_ == nullptr) {
     return;
   }
-  for (;;) {
-    auto old_listeners = display_listeners_.load();
-    auto new_listeners = new vector<DisplayListener*>(*old_listeners);
-    new_listeners->push_back(listener);
-    if (display_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-      if (old_listeners->empty()) {
-        display_listener_dispatcher_->Start();
-      }
-      delete old_listeners;
-      break;
-    }
-    delete new_listeners;
+
+  if (display_listeners_.Add(listener) == 1) {
+    display_listener_dispatcher_->Start();
   }
 }
 
@@ -130,21 +120,8 @@ void DisplayManager::RemoveDisplayListener(Jni jni, DisplayListener* listener) {
     }
   }
 
-  for (;;) {
-    auto old_listeners = display_listeners_.load();
-    auto new_listeners = new vector<DisplayListener*>(*old_listeners);
-    auto pos = find(new_listeners->begin(), new_listeners->end(), listener);
-    if (pos != new_listeners->end()) {
-      new_listeners->erase(pos);
-    }
-    if (display_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-      if (new_listeners->empty()) {
-        display_listener_dispatcher_->Stop();
-      }
-      delete old_listeners;
-      break;
-    }
-    delete new_listeners;
+  if (display_listeners_.Remove(listener) == 0) {
+    display_listener_dispatcher_->Stop();
   }
 }
 
@@ -156,21 +133,13 @@ void DisplayManager::RemoveAllDisplayListeners(Jni jni) {
     }
   }
 
-  auto empty_listeners = new vector<DisplayListener*>();
-  for (;;) {
-    auto old_listeners = display_listeners_.load();
-    if (display_listeners_.compare_exchange_strong(old_listeners, empty_listeners)) {
-      display_listener_dispatcher_->Stop();
-      delete old_listeners;
-      break;
-    }
-  }
+  display_listeners_.Clear();
 }
 
 void DisplayManager::OnDisplayAdded(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
   Log::D("DisplayManager::OnDisplayAdded %d", display_id);
-  for (auto listener : *display_listeners_.load()) {
+  for (auto listener : display_listeners_.Get()) {
     listener->OnDisplayAdded(display_id);
   }
 }
@@ -178,14 +147,15 @@ void DisplayManager::OnDisplayAdded(Jni jni, int32_t display_id) {
 void DisplayManager::OnDisplayRemoved(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
   Log::D("DisplayManager::OnDisplayRemoved %d", display_id);
-  for (auto listener : *display_listeners_.load()) {
+  for (auto listener : display_listeners_.Get()) {
     listener->OnDisplayRemoved(display_id);
   }
 }
 
 void DisplayManager::OnDisplayChanged(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
-  for (auto listener : *display_listeners_.load()) {
+  Log::D("DisplayManager::OnDisplayChanged %d", display_id);
+  for (auto listener : display_listeners_.Get()) {
     listener->OnDisplayChanged(display_id);
   }
 }
@@ -216,9 +186,7 @@ jfieldID DisplayManager::type_field_ = nullptr;
 jfieldID DisplayManager::state_field_ = nullptr;
 JClass DisplayManager::display_manager_class_;
 jmethodID DisplayManager::create_virtual_display_method_ = nullptr;
-
-atomic<vector<DisplayManager::DisplayListener*>*> DisplayManager::display_listeners_;
-
+CopyOnWriteList<DisplayManager::DisplayListener*> DisplayManager::display_listeners_;
 DisplayListenerDispatcher* DisplayManager::display_listener_dispatcher_ = nullptr;
 
 }  // namespace screensharing

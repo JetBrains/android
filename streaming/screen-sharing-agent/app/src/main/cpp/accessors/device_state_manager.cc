@@ -112,43 +112,15 @@ void DeviceStateManager::RequestState(Jni jni, int32_t state_id, int32_t flags) 
 }
 
 void DeviceStateManager::AddDeviceStateListener(DeviceStateListener* listener) {
-  for (;;) {
-    auto old_listeners = device_state_listeners_.load();
-    auto new_listeners = old_listeners == nullptr ?
-        new vector<DeviceStateListener*>(1, listener) :
-        new vector<DeviceStateListener*>(*old_listeners);
-    if (old_listeners == nullptr) {
-      new_listeners->push_back(listener);
-    }
-    if (device_state_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-      delete old_listeners;
-      scoped_lock lock(state_mutex_);
-      if (current_state_ >= 0) {
-        listener->OnDeviceStateChanged(current_state_);
-      }
-      return;
-    }
-    delete new_listeners;
+  device_state_listeners_.Add(listener);
+  scoped_lock lock(state_mutex_);
+  if (current_state_ >= 0) {
+    listener->OnDeviceStateChanged(current_state_);
   }
 }
 
 void DeviceStateManager::RemoveDeviceStateListener(DeviceStateListener* listener) {
-  for (;;) {
-    auto old_listeners = device_state_listeners_.load();
-    if (old_listeners == nullptr) {
-      break;
-    }
-    auto new_listeners = new vector<DeviceStateListener*>(*old_listeners);
-    auto pos = std::find(new_listeners->begin(), new_listeners->end(), listener);
-    if (pos != new_listeners->end()) {
-      new_listeners->erase(pos);
-      if (device_state_listeners_.compare_exchange_strong(old_listeners, new_listeners)) {
-        delete old_listeners;
-        return;
-      }
-    }
-    delete new_listeners;
-  }
+  device_state_listeners_.Remove(listener);
 }
 
 void DeviceStateManager::OnDeviceStateChanged(Jni jni, jobject device_state_info) {
@@ -175,13 +147,9 @@ void DeviceStateManager::OnDeviceStateChanged(Jni jni, jobject device_state_info
   }
 }
 
-
 void DeviceStateManager::NotifyListeners(int32_t device_state) {
-  auto listeners = device_state_listeners_.load();
-  if (listeners != nullptr) {
-    for (auto listener: *listeners) {
-      listener->OnDeviceStateChanged(device_state);
-    }
+  for (auto listener : device_state_listeners_.Get()) {
+    listener->OnDeviceStateChanged(device_state);
   }
 }
 
@@ -194,7 +162,7 @@ jfieldID DeviceStateManager::base_state_field_ = nullptr;
 jfieldID DeviceStateManager::current_state_field_ = nullptr;
 JClass DeviceStateManager::binder_class_;
 jmethodID DeviceStateManager::binder_constructor_ = nullptr;
-atomic<vector<DeviceStateManager::DeviceStateListener*>*> DeviceStateManager::device_state_listeners_;
+CopyOnWriteList<DeviceStateManager::DeviceStateListener*> DeviceStateManager::device_state_listeners_;
 std::mutex DeviceStateManager::state_mutex_;
 int32_t DeviceStateManager::current_base_state_ = -1;
 int32_t DeviceStateManager::current_state_ = -1;
