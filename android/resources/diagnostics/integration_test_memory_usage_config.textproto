@@ -13,6 +13,7 @@ categories: {
     label: "resourceRepository_main"
     package_names: "org.jetbrains.android.facet"
     package_names: "com.android.tools.idea.res"
+    package_names: "com.android.resources"
   }
 }
 categories: {
