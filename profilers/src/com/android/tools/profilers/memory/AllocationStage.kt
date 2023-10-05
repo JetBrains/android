@@ -114,6 +114,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
     super.exit()
     stopTracking()
     timeline.selectionRange.removeDependencies(this)
+    captureSelection.selectedCapture?.unload()
   }
 
   @VisibleForTesting
