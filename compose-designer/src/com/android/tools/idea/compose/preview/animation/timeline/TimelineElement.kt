@@ -52,8 +52,8 @@ open class ParentTimelineElement(
 ) :
   TimelineElement(
     state = state,
-    minX = children.minOf { it.minX },
-    maxX = children.maxOf { it.maxX },
+    minX = children.minOfOrNull { it.minX } ?: 0,
+    maxX = children.maxOfOrNull { it.maxX } ?: 0,
     positionProxy = positionProxy
   ) {
   override var height = children.sumOf { it.height }

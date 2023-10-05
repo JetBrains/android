@@ -56,7 +56,7 @@ class TimelineLine(
     transition.startMillis?.let { positionProxy.xPositionForValue(it) }
       ?: (positionProxy.minimumXPosition()),
     transition.endMillis?.let { positionProxy.xPositionForValue(it) }
-      ?: positionProxy.maximumXPosition(),
+      ?: positionProxy.minimumXPosition(),
     maxY,
     positionProxy
   )

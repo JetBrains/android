@@ -23,11 +23,16 @@ import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.android.tools.idea.compose.preview.animation.TooltipInfo
 import com.android.tools.idea.compose.preview.animation.Transition
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import junit.framework.Assert.assertTrue
 import org.junit.Assert.assertEquals
+import org.junit.Rule
 import org.junit.Test
 
 class TransitionCurveTest {
+
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val property =
     AnimatedProperty.Builder()
@@ -195,5 +200,35 @@ class TransitionCurveTest {
     assertEquals(expected, tooltips)
     // Uncomment to preview ui.
     // ui.render()
+  }
+
+  @Test
+  fun `create empty transition curves`() {
+    invokeAndWaitIfNeeded {
+      val slider = TestUtils.createTestSlider()
+      // Call layoutAndDispatchEvents() so positionProxy returns correct values
+      val ui = FakeUi(slider.parent).apply { layoutAndDispatchEvents() }
+
+      val transitionCurve =
+        TransitionCurve.create(
+          state = ElementState(),
+          transition = Transition(emptyMap()),
+          rowMinY = InspectorLayout.timelineHeaderHeightScaled(),
+          positionProxy = slider.sliderUI.positionProxy
+        )
+
+      slider.sliderUI.elements.add(transitionCurve)
+
+      // There are no tooltips.
+      ui.render() // paint() method within render() should be called to update BoxedLabel positions.
+      val tooltips = slider.scanForTooltips()
+      assertEquals(emptySet<TooltipInfo>(), tooltips)
+
+      // Even though transition is empty, it should have one element.
+      assertTrue(transitionCurve.height > 10)
+
+      // Uncomment to preview ui.
+      // ui.render()
+    }
   }
 }

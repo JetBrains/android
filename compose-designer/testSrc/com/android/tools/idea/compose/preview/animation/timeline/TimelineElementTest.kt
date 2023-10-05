@@ -17,13 +17,17 @@ package com.android.tools.idea.compose.preview.animation.timeline
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Rule
 import org.junit.Test
 
 class TimelineElementTest {
+
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun `create element`(): Unit = invokeAndWaitIfNeeded {
@@ -134,6 +138,25 @@ class TimelineElementTest {
       assertEquals(0, line2.offsetPx)
       assertEquals(0, parent.offsetPx)
       assertEquals(0, sharedState.valueOffset)
+    }
+  }
+
+  @Test
+  fun `create empty timeline element`(): Unit = invokeAndWaitIfNeeded {
+    val slider =
+      TestUtils.createTestSlider().apply {
+        maximum = 600
+        // Call layoutAndDispatchEvents() so positionProxy returns correct values
+        FakeUi(this.parent).apply { layoutAndDispatchEvents() }
+      }
+    slider.sliderUI.apply {
+      val sharedState = ElementState()
+      val parent = ParentTimelineElement(sharedState, emptyList(), positionProxy)
+      assertEquals(0, parent.minX)
+      assertEquals(0, parent.maxX)
+      assertEquals(0, parent.offsetPx)
+      assertEquals(0, parent.height)
+      assertEquals(0, parent.heightScaled())
     }
   }
 }

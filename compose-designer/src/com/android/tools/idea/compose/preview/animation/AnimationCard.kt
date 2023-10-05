@@ -34,6 +34,7 @@ import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
+import kotlin.math.max
 
 class AnimationCard(
   previewState: AnimationPreviewState,
@@ -77,7 +78,9 @@ class AnimationCard(
   private val secondRow = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
 
   override fun getCurrentHeight() =
-    if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
+    // Card has a minimum height of TIMELINE_LINE_ROW_HEIGHT.
+    if (state.expanded) max(expandedSize, InspectorLayout.TIMELINE_LINE_ROW_HEIGHT)
+    else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   var durationLabel: Component? = null
 
