@@ -20,8 +20,8 @@ import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -36,7 +36,7 @@ class VisualizationFormVisualLintHandler(
 ) {
 
   private val myBaseConfigIssues = VisualLintBaseConfigIssues()
-  val lintIssueProvider = VisualLintIssueProvider(parentDisposable)
+  val lintIssueProvider = ViewVisualLintIssueProvider(parentDisposable)
 
   init {
     issueModel.addIssueProvider(lintIssueProvider)

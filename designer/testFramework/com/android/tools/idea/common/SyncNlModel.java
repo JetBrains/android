@@ -16,6 +16,7 @@
 package com.android.tools.idea.common;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlModelBuilder;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlModel;
@@ -63,7 +64,7 @@ public class SyncNlModel extends NlModel {
   private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
                       @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, tooltip, facet, file, configuration, componentRegistrar, DataContext.EMPTY_CONTEXT);
+    super(parent, tooltip, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);
   }
 
   /**

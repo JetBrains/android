@@ -55,7 +55,7 @@ class VisualLintAnalysisTest {
 
   private val issueProvider by
     lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-      VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
     }
 
   @Before

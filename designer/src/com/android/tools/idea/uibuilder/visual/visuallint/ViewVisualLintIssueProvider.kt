@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,39 @@
 package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
+
+/** [VisualLintIssueProvider] to be used when dealing with View-based layouts. */
+class ViewVisualLintIssueProvider(parentDisposable: Disposable) :
+  VisualLintIssueProvider(parentDisposable) {
+
+  override fun customizeIssue(issue: VisualLintRenderIssue) {
+    val type = issue.type
+    val components = issue.components
+
+    issue.customizeIsSuppressed { component ->
+      component
+        .getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
+        ?.split(",")
+        ?.mapNotNull { VisualLintErrorType.getTypeByIgnoredAttribute(it) }
+        ?.contains(type) ?: false
+    }
+
+    if (type != VisualLintErrorType.ATF && components.isNotEmpty()) {
+      issue.addSuppress(
+        Issue.Suppress(
+          "Suppress",
+          type.toSuppressActionDescription(),
+          ViewVisualLintSuppressTask(type, components)
+        )
+      )
+    }
+  }
+}
 
 /**
  * Suppress the issue associated with the given [components]. Note that this doesn't suppress all
@@ -27,10 +57,11 @@ import com.intellij.openapi.command.WriteCommandAction
  * TODO: Have two different suppress tasks for: (1) a single file, (2) all variant files. We also
  *   needs another project-level suppress task in the future.
  */
-class VisualLintSuppressTask(
+class ViewVisualLintSuppressTask(
   private val typeToSuppress: VisualLintErrorType,
   private val components: List<NlComponent>
 ) : Runnable {
+
   override fun run() {
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
     val transactions =
@@ -63,7 +94,7 @@ class VisualLintSuppressTask(
       // All suppresses should in the same undo/redo action.
       WriteCommandAction.runWriteCommandAction(
         project,
-        "Suppress: " + typeToSuppress.toSuppressActionDescription(),
+        typeToSuppress.toSuppressActionDescription(),
         null,
         { transactions.forEach { it.commit() } },
         *files

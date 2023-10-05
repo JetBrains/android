@@ -25,6 +25,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.google.common.collect.ImmutableCollection
@@ -51,16 +52,19 @@ class VisualizationFormVisualLintHandlerTest {
     val fakeNlComponent = MockitoKt.mock<NlComponent>()
     Mockito.`when`(fakeNlComponent.model).thenReturn(fakeNlModel)
 
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val localIssues =
       listOf(
         createTestVisualLintRenderIssue(
           VisualLintErrorType.BOUNDS,
           listOf(fakeNlComponent),
+          issueProvider,
           "bounds"
         ),
         createTestVisualLintRenderIssue(
           VisualLintErrorType.OVERLAP,
           listOf(fakeNlComponent),
+          issueProvider,
           "overlap"
         )
       )

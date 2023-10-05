@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.model;
 
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
-import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import android.view.View;
@@ -27,7 +26,6 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
@@ -185,16 +183,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     return new NlModel(parent, modelTooltip, facet, file, configuration, componentRegistrar, xmlFileProvider, modelUpdater, dataContext);
   }
 
-  protected NlModel(@Nullable Disposable parent,
-                    @Nullable String modelTooltip,
-                    @NotNull AndroidFacet facet,
-                    @NotNull VirtualFile file,
-                    @NotNull Configuration configuration,
-                    @NotNull Consumer<NlComponent> componentRegistrar,
-                    @NotNull DataContext dataContext) {
-    this(parent, modelTooltip, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile, null, dataContext);
-  }
-
   @VisibleForTesting
   protected NlModel(@Nullable Disposable parent,
                     @Nullable String modelTooltip,
@@ -348,16 +336,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @NotNull
   public VirtualFile getVirtualFile() {
     return myFile;
-  }
-
-  /**
-   * Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}.
-   * @deprecated Use {@link NlModelBuilder} and do not use this method.
-   */
-  @NotNull
-  private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
-    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
-    return verifyNotNull(file);
   }
 
   @NotNull

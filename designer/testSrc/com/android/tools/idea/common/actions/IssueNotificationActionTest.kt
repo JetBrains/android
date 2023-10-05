@@ -18,18 +18,16 @@ package com.android.tools.idea.common.actions
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.error.IssueProvider
+import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.utils.HtmlBuilder
-import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.ActionManager
@@ -57,6 +55,12 @@ class IssueNotificationActionTest {
     whenever(surface.project).thenReturn(projectRule.project)
     whenever(surface.supportedActions).thenReturn(setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL))
 
+    val issueProvider =
+      object : VisualLintIssueProvider(projectRule.testRootDisposable) {
+        override fun customizeIssue(issue: VisualLintRenderIssue) = Unit
+      }
+    whenever(surface.visualLintIssueProvider).thenReturn(issueProvider)
+
     val mockedFile = mock<VirtualFile>()
     val model = mock<NlModel>()
     whenever(model.virtualFile).thenReturn(mockedFile)
@@ -71,56 +75,49 @@ class IssueNotificationActionTest {
     }
     val presentation = Presentation()
     val actionEvent = AnActionEvent(null, context, "", presentation, ActionManager.getInstance(), 0)
-    val visualLintIssueModel = VisualLintService.getInstance(projectRule.project).issueModel
 
     action.update(actionEvent)
     assertEquals(IssueNotificationAction.DISABLED_ICON, presentation.icon)
     assertEquals(IssueNotificationAction.NO_ISSUE, presentation.description)
 
     run {
-      val infoIssueProvider =
-        createSingleIssueProviderWithSeverity(HighlightSeverity.INFORMATION, model)
-      visualLintIssueModel.addIssueProvider(infoIssueProvider)
+      issueProvider.addAllIssues(
+        listOf(createSingleIssueWithSeverity(HighlightSeverity.INFORMATION, model))
+      )
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.INFO_INLINE, presentation.icon)
       assertEquals(IssueNotificationAction.SHOW_ISSUE, presentation.description)
+      issueProvider.clear()
     }
 
     run {
-      val warningIssueProvider =
-        createSingleIssueProviderWithSeverity(HighlightSeverity.WARNING, model)
-      visualLintIssueModel.addIssueProvider(warningIssueProvider)
+      issueProvider.addAllIssues(
+        listOf(createSingleIssueWithSeverity(HighlightSeverity.WARNING, model))
+      )
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.WARNING_INLINE, presentation.icon)
       assertEquals(IssueNotificationAction.SHOW_ISSUE, presentation.description)
+      issueProvider.clear()
     }
 
     run {
-      val errorIssueProvider = createSingleIssueProviderWithSeverity(HighlightSeverity.ERROR, model)
-      visualLintIssueModel.addIssueProvider(errorIssueProvider)
+      issueProvider.addAllIssues(
+        listOf(createSingleIssueWithSeverity(HighlightSeverity.ERROR, model))
+      )
       action.update(actionEvent)
       assertEquals(StudioIcons.Common.ERROR_INLINE, presentation.icon)
       assertEquals(IssueNotificationAction.SHOW_ISSUE, presentation.description)
+      issueProvider.clear()
     }
   }
 
-  private fun createSingleIssueProviderWithSeverity(
-    severity: HighlightSeverity,
-    nlModel: NlModel
-  ): IssueProvider {
-    return object : IssueProvider() {
-      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-        val issue =
-          VisualLintRenderIssue.builder()
-            .summary("")
-            .severity(severity)
-            .contentDescriptionProvider { HtmlBuilder() }
-            .model(nlModel)
-            .components(mutableListOf())
-            .type(VisualLintErrorType.BOUNDS)
-            .build()
-        issueListBuilder.add(issue)
-      }
-    }
-  }
+  private fun createSingleIssueWithSeverity(severity: HighlightSeverity, nlModel: NlModel) =
+    VisualLintRenderIssue.builder()
+      .summary("")
+      .severity(severity)
+      .contentDescriptionProvider { HtmlBuilder() }
+      .model(nlModel)
+      .components(mutableListOf(NlComponent(nlModel, 570L)))
+      .type(VisualLintErrorType.BOUNDS)
+      .build()
 }

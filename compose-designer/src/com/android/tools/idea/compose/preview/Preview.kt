@@ -83,7 +83,6 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -562,10 +561,9 @@ class ComposePreviewRepresentation(
   private val postIssueUpdateListenerForUiCheck = {
     val models = mutableSetOf<NlModel>()
     surface.visualLintIssueProvider
-      .getIssues()
+      .getUnsuppressedIssues()
       .map { it.source }
-      .filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
-      .filter { models.addAll(it.models) }
+      .forEach { models.addAll(it.models) }
     uiCheckFilterFlow.value.modelsWithErrors = models
     if (isUiCheckFilterEnabled) {
       ApplicationManager.getApplication().invokeLater {

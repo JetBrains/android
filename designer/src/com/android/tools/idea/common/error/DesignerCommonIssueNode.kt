@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
-import com.android.tools.idea.uibuilder.visual.visuallint.isVisualLintErrorSuppressed
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.codeHighlighting.HighlightDisplayLevel
@@ -204,7 +203,7 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
  */
 class DesignerCommonIssueRoot(
   project: Project?,
-  private val issueProvider: DesignerCommonIssueProvider<out Any?>,
+  val issueProvider: DesignerCommonIssueProvider<out Any?>,
   private val nodeFactoryProvider: () -> NodeFactory
 ) : DesignerCommonIssueNode(project, null) {
 
@@ -455,10 +454,7 @@ class VisualLintIssueNode(
     if (navigatable != null) {
       return navigatable
     }
-    val targetComponent =
-      visualLintIssue.components
-        .filterNot { it.isVisualLintErrorSuppressed(visualLintIssue.type) }
-        .firstOrNull()
+    val targetComponent = visualLintIssue.components.firstOrNull()
     val openLayoutValidationNavigatable =
       if (
         HardwareConfigHelper.isWear(visualLintIssue.models.firstOrNull()?.configuration?.device)

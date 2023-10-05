@@ -21,6 +21,7 @@ import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
@@ -60,10 +61,21 @@ class DesignerIssueNodeVisitorTest {
         )
         .build()
 
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue1 =
-      createTestVisualLintRenderIssue(errorType, model.components.first().children, "summaryA")
+      createTestVisualLintRenderIssue(
+        errorType,
+        model.components.first().children,
+        issueProvider,
+        "summaryA"
+      )
     val issue2 =
-      createTestVisualLintRenderIssue(errorType, model.components.first().children, "summaryB")
+      createTestVisualLintRenderIssue(
+        errorType,
+        model.components.first().children,
+        issueProvider,
+        "summaryB"
+      )
 
     val node1 = TestIssueNode(issue1)
     val node2 = TestIssueNode(issue2)

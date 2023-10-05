@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.SdkConstants
-
 enum class VisualLintErrorType(val shortName: String) {
   TEXT_FIELD_SIZE("TextFieldSize"),
   BUTTON_SIZE("ButtonSize"),
@@ -34,7 +32,7 @@ enum class VisualLintErrorType(val shortName: String) {
     get() = ATTRIBUTE_PREFIX + shortName
 
   fun toSuppressActionDescription(): String {
-    return """Add ${SdkConstants.TOOLS_NS_NAME_PREFIX}${SdkConstants.ATTR_IGNORE}="$ignoredAttributeValue attribute""""
+    return """Suppress $this rule from Visual Lint analysis""""
   }
 
   companion object {

@@ -168,6 +168,7 @@ class DesignerCommonIssuePanel(
       val newSelectedNode = event?.newLeadSelectionPath?.lastPathComponent
       if (newSelectedNode == null) {
         updateSidePanel(null, false) // force hide the side panel even the sidePanelVisible is true.
+        issueListeners.forEach { it.onIssueSelected(null) }
         return@addTreeSelectionListener
       }
       val selectedNode = newSelectedNode as DesignerCommonIssueNode

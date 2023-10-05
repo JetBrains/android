@@ -35,6 +35,8 @@ interface DesignerCommonIssueProvider<T> : Disposable {
 
   fun removeUpdateListener(listener: () -> Unit)
 
+  fun update()
+
   fun interface Filter : (Issue) -> Boolean
 }
 
@@ -140,6 +142,10 @@ class DesignToolsIssueProvider(
 
   override fun removeUpdateListener(listener: () -> Unit) {
     listeners.remove(listener)
+  }
+
+  override fun update() {
+    listeners.forEach { it() }
   }
 
   override fun dispose() {

@@ -86,7 +86,7 @@ class PerfgateVisualLintTest {
     projectRule.load("projects/visualLintApplication")
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
-    val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, dashboardLayout)
@@ -107,7 +107,7 @@ class PerfgateVisualLintTest {
     projectRule.load("projects/visualLintApplication")
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
-    val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")

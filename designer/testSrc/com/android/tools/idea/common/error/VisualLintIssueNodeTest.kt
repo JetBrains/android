@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
 import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
@@ -75,8 +76,13 @@ class VisualLintIssueNodeTest {
         )
         .build()
 
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
-      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model.components.first().children)
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.BOUNDS,
+        model.components.first().children,
+        issueProvider
+      )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
@@ -126,7 +132,9 @@ class VisualLintIssueNodeTest {
         )
         .build()
 
-    val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
+    val issue =
+      createTestVisualLintRenderIssue(errorType, model.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
   }
@@ -149,10 +157,12 @@ class VisualLintIssueNodeTest {
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()
 
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.WEAR_MARGIN,
-        model.components.first().children
+        model.components.first().children,
+        issueProvider
       )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
@@ -204,7 +214,9 @@ class VisualLintIssueNodeTest {
         .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
         .build()
 
-    val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
+    val issue =
+      createTestVisualLintRenderIssue(errorType, model.components.first().children, issueProvider)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }

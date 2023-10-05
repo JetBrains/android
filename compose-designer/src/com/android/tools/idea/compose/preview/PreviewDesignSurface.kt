@@ -197,6 +197,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setScreenViewProvider(screenViewProvider, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     .setMinScale(0.01) // Allow down to 1% zoom level
+    .setVisualLintIssueProvider { ComposeVisualLintIssueProvider(it) }
 
 /** Creates a [NlDesignSurface.Builder] for the main design surface in the Compose preview. */
 internal fun createMainDesignSurfaceBuilder(

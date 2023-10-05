@@ -103,7 +103,7 @@ class VisualLintServiceTest {
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
     visualLintService.runVisualLintAnalysis(
       projectRule.fixture.testRootDisposable,
-      VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+      ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
       listOf(nlModel),
       emptyMap(),
       visualLintExecutorService
@@ -127,7 +127,7 @@ class VisualLintServiceTest {
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(
         projectRule.fixture.testRootDisposable,
-        VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+        ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
         listOf(atfModel),
         emptyMap(),
         visualLintExecutorService
@@ -159,7 +159,7 @@ class VisualLintServiceTest {
     VisualLintService.getInstance(projectRule.project)
       .runVisualLintAnalysis(
         projectRule.fixture.testRootDisposable,
-        VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+        ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
         listOf(wearModel),
         emptyMap(),
         visualLintExecutorService
@@ -213,7 +213,7 @@ class VisualLintServiceTest {
         val result = task.render().get()
         visualLintService.runVisualLintAnalysis(
           projectRule.fixture.testRootDisposable,
-          VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+          ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to phoneModel),
           visualLintExecutorService
@@ -248,7 +248,7 @@ class VisualLintServiceTest {
         val result = task.render().get()
         visualLintService.runVisualLintAnalysis(
           projectRule.fixture.testRootDisposable,
-          VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+          ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to tabletModel),
           visualLintExecutorService
@@ -281,7 +281,7 @@ class VisualLintServiceTest {
         NlModelHierarchyUpdater.updateHierarchy(result, atfModel)
         visualLintService.runVisualLintAnalysis(
           projectRule.fixture.testRootDisposable,
-          VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+          ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable),
           emptyList(),
           mapOf(result to atfModel),
           visualLintExecutorService

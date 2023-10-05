@@ -23,8 +23,10 @@ import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.error.IssuePanelServiceKt;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -81,11 +83,7 @@ public class IssueNotificationAction extends ToggleAction {
       IssueModel issueModel = surface.getIssueModel();
       boolean hasIssues = issueModel.hasIssues();
 
-      VisualLintService service = VisualLintService.getInstance(event.getRequiredData(PlatformDataKeys.PROJECT));
-      List<VirtualFile> files = surface.getModels().stream().map(NlModel::getVirtualFile).toList();
-      Set<Issue> visualLintIssues =
-        service.getIssueModel().getIssues().stream().filter(issue -> issue.getSource().getFiles().stream().anyMatch(files::contains))
-          .collect(Collectors.toSet());
+      List<VisualLintRenderIssue> visualLintIssues = ((NlDesignSurface)surface).getVisualLintIssueProvider().getUnsuppressedIssues();
 
       if (hasIssues || !visualLintIssues.isEmpty()) {
         presentation.setDescription(SHOW_ISSUE);
@@ -128,7 +126,7 @@ public class IssueNotificationAction extends ToggleAction {
   }
 
   @NotNull
-  private static Icon getIssueTypeIcon(@NotNull IssueModel issueModel, @NotNull Set<Issue> visualLintIssues) {
+  private static Icon getIssueTypeIcon(@NotNull IssueModel issueModel, @NotNull List<VisualLintRenderIssue> visualLintIssues) {
     Set<HighlightSeverity> visualLintSeverities = visualLintIssues.stream()
       .map(Issue::getSeverity).collect(Collectors.toSet());
 
