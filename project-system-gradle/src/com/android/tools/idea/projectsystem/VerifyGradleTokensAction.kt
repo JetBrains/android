@@ -38,6 +38,7 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
       blockingContext {
         val tokenClass = Token::class.java
         val gradleTokenClass = GradleToken::class.java
+        val projectSystemTokenClass = ProjectSystemToken::class.java
         val interfaces = mutableSetOf<Class<*>>()
         val classes = mutableSetOf<Class<*>>()
         val problems = mutableSetOf<Class<*>>()
@@ -51,7 +52,10 @@ class VerifyGradleTokensAction : AnAction("Verify Gradle Tokens") {
           .filter { tokenClass.isAssignableFrom(it) }
           .forEach {
             when {
-              it == tokenClass || it == gradleTokenClass -> Unit
+              it == tokenClass -> Unit
+              // Skip interfaces like `interface GradleToken: ProjectSystemToken`
+              it.isInterface && projectSystemTokenClass.isAssignableFrom(it) -> Unit
+
               it.isInterface -> interfaces.add(it)
               else -> classes.add(it)
             }

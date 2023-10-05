@@ -28,6 +28,14 @@ interface Token {
   fun isApplicable(projectSystem: AndroidProjectSystem): Boolean
 }
 
+/**
+ * A marker interface for project system tokens.
+ *
+ * The purpose of this interface is to distinguish tokens that are supposed to be implemented for various project systems from tokens
+ * representing project systems.
+ */
+interface ProjectSystemToken : Token
+
 /** Returns an instance of token [T] such that it is suitable for [this] project system. */
 inline fun <reified T : Token> AndroidProjectSystem.getToken(extensionPointName: ExtensionPointName<T>): T {
   return getTokenOrNull(extensionPointName) ?: error("${T::class.java} token is not available for $this")
