@@ -102,7 +102,7 @@ vector<int32_t> DisplayManager::GetDisplayIds(Jni jni) {
   return result;
 }
 
-void DisplayManager::RegisterDisplayListener(Jni jni, DisplayManager::DisplayListener* listener) {
+void DisplayManager::AddDisplayListener(Jni jni, DisplayListener* listener) {
   InitializeStatics(jni);
   if (display_listener_dispatcher_ == nullptr) {
     return;
@@ -122,7 +122,7 @@ void DisplayManager::RegisterDisplayListener(Jni jni, DisplayManager::DisplayLis
   }
 }
 
-void DisplayManager::UnregisterDisplayListener(Jni jni, DisplayManager::DisplayListener* listener) {
+void DisplayManager::RemoveDisplayListener(Jni jni, DisplayListener* listener) {
   {
     scoped_lock lock(static_initialization_mutex);
     if (display_listener_dispatcher_ == nullptr) {
@@ -148,7 +148,7 @@ void DisplayManager::UnregisterDisplayListener(Jni jni, DisplayManager::DisplayL
   }
 }
 
-void DisplayManager::UnregisterAllDisplayListeners(Jni jni) {
+void DisplayManager::RemoveAllDisplayListeners(Jni jni) {
   {
     scoped_lock lock(static_initialization_mutex);
     if (display_listener_dispatcher_ == nullptr) {

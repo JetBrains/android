@@ -279,7 +279,7 @@ void Agent::Shutdown() {
     for (auto& it : display_streamers_) {
       it.second.Stop();
     }
-    DisplayManager::UnregisterAllDisplayListeners(Jvm::GetJni());
+    DisplayManager::RemoveAllDisplayListeners(Jvm::GetJni());
     if (controller_ != nullptr) {
       controller_->Stop();
     }

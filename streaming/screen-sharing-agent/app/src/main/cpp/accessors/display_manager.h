@@ -41,9 +41,9 @@ public:
 
   static DisplayInfo GetDisplayInfo(Jni jni, int32_t display_id);
   static std::vector<int32_t> GetDisplayIds(Jni jni);
-  static void RegisterDisplayListener(Jni jni, DisplayListener* listener);
-  static void UnregisterDisplayListener(Jni jni, DisplayListener* listener);
-  static void UnregisterAllDisplayListeners(Jni jni);
+  static void AddDisplayListener(Jni jni, DisplayListener* listener);
+  static void RemoveDisplayListener(Jni jni, DisplayListener* listener);
+  static void RemoveAllDisplayListeners(Jni jni);
 
   static void OnDisplayAdded(Jni jni, int32_t display_id);
   static void OnDisplayChanged(Jni jni, int32_t display_id);

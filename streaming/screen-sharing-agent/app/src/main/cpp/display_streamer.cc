@@ -249,8 +249,8 @@ void DisplayStreamer::Run() {
   AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
-  DisplayManager::RegisterDisplayListener(jni, this);
-  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 1};
+  DisplayManager::AddDisplayListener(jni, this);
+  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
 
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
@@ -330,7 +330,7 @@ void DisplayStreamer::Run() {
 
   AMediaFormat_delete(media_format);
   WindowManager::RemoveRotationWatcher(jni, &display_rotation_watcher_);
-  DisplayManager::UnregisterDisplayListener(jni, this);
+  DisplayManager::RemoveDisplayListener(jni, this);
 
   if (!continue_streaming) {
     Agent::Shutdown();
