@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.declarative
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.util.generateExistingPath
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.psiElement
@@ -52,7 +53,8 @@ class DeclarativeCatalogDependencyReferenceContributor: PsiReferenceContributor(
       .with(
         object : PatternCondition<TomlLiteral>(null) {
           override fun accepts(tomlLiteral: TomlLiteral, context: ProcessingContext?): Boolean {
-            return "dependencies" == tomlLiteral.findParentOfType<TomlTable>()?.header?.key?.segments?.get(0)?.text
+            val path = generateExistingPath(tomlLiteral)
+            return "dependencies" == path.firstOrNull()
           }
         }
       )

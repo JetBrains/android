@@ -35,7 +35,7 @@ class DeclarativeGoToApiDeclarationHandler: GotoDeclarationHandlerBase() {
   override fun getGotoDeclarationTarget(sourceElement: PsiElement?, editor: Editor?): PsiElement? {
     val segment = (sourceElement?.parent as? TomlKeySegment) ?: return null
 
-    val path = generateExistingPath(segment)
+    val path = generateExistingPath(segment, false)
     val className = findDslElementClassName(path, segment.text) ?: return null
 
     val project = sourceElement.project

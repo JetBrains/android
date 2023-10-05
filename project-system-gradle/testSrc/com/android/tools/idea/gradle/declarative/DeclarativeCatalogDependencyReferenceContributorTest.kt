@@ -99,6 +99,31 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
     )
   }
 
+  @Test
+  fun testAsKey() {
+    doTest(
+      """
+      dependencies.implementation = [
+        { alias = "lib^s.constraint.layout" }
+      ]
+    """.trimIndent(),
+      "constraint-layout",
+      "libs.versions.toml"
+    )
+  }
+
+  @Test
+  fun testAsArrayTable() {
+    doTest(
+      """
+      [[dependencies.implementation]]
+       alias = "lib^s.constraint.layout"
+    """.trimIndent(),
+      "constraint-layout",
+      "libs.versions.toml"
+    )
+  }
+
   private fun doTest(declarativeText: String, elementName: String, filename: String) {
     val caret = declarativeText.indexOf('^')
     Truth.assertWithMessage("The declarativeText must include ^ somewhere to point to reference").that(caret).isNotEqualTo(-1)

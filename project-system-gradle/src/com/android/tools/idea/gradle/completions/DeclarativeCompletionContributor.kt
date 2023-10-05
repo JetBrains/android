@@ -109,7 +109,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                  val originalFile = parameters.originalFile as? TomlFile ?: return
                  val existingKeys = getDeclaredKeys(originalFile)
                  val segment = parameters.position.parent as? TomlKeySegment ?: return
-                 val path = generateExistingPath(segment)
+                 val path = generateExistingPath(segment, false)
                  result.addAllElements(getSuggestions(path, existingKeys).map {
                    val element = LookupElementBuilder.create(it.name)
                      .withTypeText(it.type.str, null, true)
@@ -127,7 +127,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
              object : CompletionProvider<CompletionParameters>() {
                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                  val segment = parameters.position.parent as? TomlKeySegment ?: return
-                 val path = generateExistingPath(segment)
+                 val path = generateExistingPath(segment, false)
                  val originalFile = parameters.originalFile as? TomlFile ?: return
                  val existingKeys = getDeclaredKeys(originalFile)
                  result.addAllElements(getSuggestions(path, existingKeys).map {

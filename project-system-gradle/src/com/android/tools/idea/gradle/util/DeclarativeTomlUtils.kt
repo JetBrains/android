@@ -17,47 +17,45 @@ package com.android.tools.idea.gradle.util
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.findParentOfType
+import org.toml.lang.psi.TomlElement
+import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlHeaderOwner
-import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
+import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTableHeader
 
-// returns path from root to a given TOML Segment
-fun generateExistingPath(psiElement: TomlKeySegment): List<String> {
-  /**
-   * Segment can be at multiple points in toml file.
-   * 1) In table header
-   * - TomlTable or TomlArrayTable
-   * -- TomlTableHeader
-   * --- TomlKey
-   * ---- List<TomlKeySegment>
-   * 2) In key as part of table content. This can be recursive as a.b = { c.d = "..." }
-   * - TomlKeyValue
-   * -- TomlKey
-   * --- List<TomlKeySegment>
-   * -- TomlValue
-   */
-  val result = mutableListOf<String>()
-  var key: TomlKey?
-  var nextElement: PsiElement = psiElement
-  if (psiElement.parent.parent !is TomlTableHeader) {
-    do {
-      // bubble up via inline tables to root/file
-      key = nextElement.findParentOfType<TomlKey>()
-      if (key != null) {
-        nextElement = key
-        result.appendReversedSegments(key, psiElement)
+// returns path as keys or table segments from root to a given TOML element
+fun generateExistingPath(psiElement: TomlElement, includeCurrent: Boolean = true): List<String> {
+  fun bubbleUp(element: PsiElement?, list: MutableList<String>){
+    if(element == null || element is TomlFile) return
+    when(element){
+      is TomlKeyValue -> {
+        element.key.segments.reversed().forEach { list.add(it.text) }
+        bubbleUp(element.parent, list)
       }
+      is TomlHeaderOwner -> {
+        element.header.key?.segments?.reversed()?.forEach { list.add(it.text)}
+        bubbleUp(element.parent, list)
+      }
+      is TomlKeySegment -> {
+        var currElement: TomlKeySegment? = element
+        do {
+          list.add(currElement!!.text)
+          currElement = currElement.prevSibling?.prevSibling as? TomlKeySegment
+        } while (currElement != null)
+        if(element.parent?.parent is TomlTableHeader)
+          bubbleUp(element.findParentOfType<TomlHeaderOwner>(true)?.parent, list) // jump over TomlHeaderOwner parent
+        else
+          bubbleUp(element.findParentOfType<TomlKeyValue>(true)?.parent, list) // jump over TomlKeyValue parent
+      }
+      else ->  bubbleUp(element.parent, list)
     }
-    while (key != null)
   }
-  val parentTableHeaderKey = nextElement.findParentOfType<TomlHeaderOwner>()?.header?.key
-  result.appendReversedSegments(parentTableHeaderKey, psiElement)
-  return result.reversed()
-}
 
-private fun MutableList<String>.appendReversedSegments(key: TomlKey?, startElement: PsiElement) {
-  key ?: return
-  // User may point to a middle segment. So we need to omit all segments that are to the right from startElement
-  addAll(key.segments.takeWhile { it != startElement }.mapNotNull { it.name }.reversed())
+  val result = mutableListOf<String>()
+  bubbleUp(psiElement, result)
+
+  return result.reversed().let {
+    if (!includeCurrent && it.isNotEmpty()) it.dropLast(1) else it
+  }
 }
