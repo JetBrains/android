@@ -34,8 +34,6 @@ class StackFrameParserTest {
     }
   }
 
-  // TODO(vaage): Enable this test when when we update StackFrameParser to handle no line numbers.
-  @Ignore("b/303111013")
   @Test
   fun parsesFrameWithoutLineNumber() {
     parseFrame("com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)").apply {
