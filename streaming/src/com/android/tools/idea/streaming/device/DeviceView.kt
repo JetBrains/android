@@ -155,8 +155,10 @@ internal class DeviceView(
       if (field != value) {
         field = value
         UIUtil.invokeLaterIfNeeded {
-          for (listener in connectionStateListeners) {
-            listener.connectionStateChanged(deviceSerialNumber, connectionState)
+          if (!disposed) {
+            for (listener in connectionStateListeners) {
+              listener.connectionStateChanged(deviceSerialNumber, connectionState)
+            }
           }
         }
       }
