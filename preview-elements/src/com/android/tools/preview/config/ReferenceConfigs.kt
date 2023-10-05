@@ -40,7 +40,7 @@ val ReferenceDesktopConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
   getDeviceConfigFor(DEVICE_CLASS_DESKTOP_ID)
 }
 
-private fun getDeviceConfigFor(deviceClassName: String): DeviceConfig {
+internal fun getDeviceConfigFor(deviceClassName: String): DeviceConfig {
   val serialisedDeviceConfig = referenceDeviceIds.entries.first { (_, value) -> value == deviceClassName }.key
   return DeviceConfig.toDeviceConfigOrNull(serialisedDeviceConfig, emptyList()) ?: DeviceConfig()
 }

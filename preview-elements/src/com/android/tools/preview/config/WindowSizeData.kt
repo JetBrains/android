@@ -41,12 +41,27 @@ internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 16
  */
 internal fun Int.toPx(density: Density): Int = this.toDouble().toPx(density)
 
+val DeviceWindowsNames = mapOf(
+  DEVICE_CLASS_PHONE_ID to "Medium Phone",
+  DEVICE_CLASS_FOLDABLE_ID to "Foldable",
+  DEVICE_CLASS_TABLET_ID to "Medium Tablet",
+  DEVICE_CLASS_DESKTOP_ID to "Desktop"
+)
+
 /**
  * The device definitions used by Android Studio only
  */
-val PREDEFINED_WINDOW_SIZES_DEFINITIONS: List<WindowSizeData> = listOf(
-  WindowSizeData(DEVICE_CLASS_PHONE_ID, "Medium Phone", 411.0, 891.0, Density.create(420), ScreenOrientation.PORTRAIT),
-  WindowSizeData(DEVICE_CLASS_FOLDABLE_ID, "Foldable", 673.0, 841.0, Density.create(420), ScreenOrientation.PORTRAIT),
-  WindowSizeData(DEVICE_CLASS_TABLET_ID, "Medium Tablet", 1280.0, 800.0, Density.HIGH, ScreenOrientation.LANDSCAPE),
-  WindowSizeData(DEVICE_CLASS_DESKTOP_ID, "Desktop", 1920.0, 1080.0, Density.MEDIUM, ScreenOrientation.LANDSCAPE)
-)
+val PREDEFINED_WINDOW_SIZES_DEFINITIONS = referenceDeviceIds.entries.map { (_, deviceClassName) ->
+  val config = getDeviceConfigFor(deviceClassName)
+  WindowSizeData(
+    config.deviceId ?: "",
+    DeviceWindowsNames[deviceClassName] ?: "Custom",
+    config.width.toDouble(),
+    config.height.toDouble(),
+    Density.create(config.dpi),
+    when (config.orientation) {
+      Orientation.portrait -> ScreenOrientation.PORTRAIT
+      Orientation.landscape -> ScreenOrientation.LANDSCAPE
+    }
+  )
+}
