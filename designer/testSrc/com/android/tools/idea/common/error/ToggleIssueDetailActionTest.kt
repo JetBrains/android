@@ -132,9 +132,9 @@ class ToggleIssueDetailActionTest {
     service.setSharedIssuePanelVisibility(true)
 
     action.setSelected(event, false)
-    assertFalse(service.getSelectedSharedIssuePanel()!!.sidePanelVisible)
+    assertFalse(service.getSelectedIssuePanel()!!.sidePanelVisible)
 
     action.setSelected(event, true)
-    assertTrue(service.getSelectedSharedIssuePanel()!!.sidePanelVisible)
+    assertTrue(service.getSelectedIssuePanel()!!.sidePanelVisible)
   }
 }

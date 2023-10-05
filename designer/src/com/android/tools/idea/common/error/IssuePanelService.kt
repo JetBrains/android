@@ -58,6 +58,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
+import java.lang.ref.WeakReference
+import java.util.WeakHashMap
 import javax.swing.event.TreeModelEvent
 import org.intellij.lang.annotations.Language
 import org.jetbrains.annotations.TestOnly
@@ -72,8 +74,9 @@ private const val SHARED_ISSUE_PANEL_TAB_NAME = "_Designer_Tab"
 @Service(Service.Level.PROJECT)
 class IssuePanelService(private val project: Project) {
 
-  private val nameToTabMap: MutableMap<String, Pair<DesignerCommonIssuePanel, Content>> =
-    mutableMapOf()
+  private val nameToTabMap: MutableMap<String, WeakReference<Content>> = mutableMapOf()
+  private val tabToPanelMap: MutableMap<Content, WeakReference<DesignerCommonIssuePanel>> =
+    WeakHashMap()
 
   private var inited = false
 
@@ -150,7 +153,8 @@ class IssuePanelService(private val project: Project) {
       tabName = DESIGN_TOOL_TAB_NAME
       isPinnable = false
       isCloseable = false
-      nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME] = Pair(issuePanel, this)
+      nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME] = WeakReference(this)
+      tabToPanelMap[this] = WeakReference(issuePanel)
       contentManager.addContent(this@apply)
     }
 
@@ -257,7 +261,7 @@ class IssuePanelService(private val project: Project) {
   }
 
   private fun selectSharedIssuePanelTab() {
-    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second ?: return
+    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return
     tab.manager?.setSelectedContent(tab)
   }
 
@@ -268,7 +272,7 @@ class IssuePanelService(private val project: Project) {
    */
   @VisibleForTesting
   fun removeSharedIssueTabFromProblemsPanel(): Boolean {
-    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second ?: return false
+    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return false
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
     val contentManager = toolWindow.contentManager
     contentManager.removeContent(tab, false)
@@ -281,7 +285,7 @@ class IssuePanelService(private val project: Project) {
    * (e.g. has been added before).
    */
   private fun addSharedIssueTabToProblemsPanel(): Boolean {
-    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second ?: return false
+    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return false
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
     val contentManager = toolWindow.contentManager
     if (contentManager.contents.contains(tab)) {
@@ -323,7 +327,7 @@ class IssuePanelService(private val project: Project) {
    * executed after the visibility is changed.
    */
   fun setSharedIssuePanelVisibility(visible: Boolean, onAfterSettingVisibility: Runnable? = null) {
-    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second ?: return
+    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
     DesignerCommonIssuePanelUsageTracker.getInstance()
       .trackChangingCommonIssuePanelVisibility(visible, project)
@@ -342,7 +346,7 @@ class IssuePanelService(private val project: Project) {
 
   @TestOnly
   fun isSharedIssuePanelAddedToProblemsPane(): Boolean {
-    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second ?: return false
+    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return false
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return false
     return problemsViewPanel.contentManager.contents.any { it === tab }
   }
@@ -351,14 +355,8 @@ class IssuePanelService(private val project: Project) {
 
   /** Update the tab name (includes the issue count) of shared issue panel. */
   private fun updateSharedIssuePanelTabName() {
-    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second ?: return
-    val count =
-      nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]
-        ?.first
-        ?.issueProvider
-        ?.getFilteredIssues()
-        ?.distinct()
-        ?.size
+    val tab = nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get() ?: return
+    val count = tabToPanelMap[tab]?.get()?.issueProvider?.getFilteredIssues()?.distinct()?.size
     // This change the ui text, run it in the UI thread.
     runInEdt { tab.displayName = createTabName(getSharedIssuePanelTabTitle(), count) }
   }
@@ -463,7 +461,7 @@ class IssuePanelService(private val project: Project) {
 
   /** Return the visibility of the issue panel. */
   fun isIssuePanelVisible(): Boolean {
-    return isSharedIssueTabShowing(nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second)
+    return isSharedIssueTabShowing(nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get())
   }
 
   /**
@@ -481,12 +479,12 @@ class IssuePanelService(private val project: Project) {
   }
 
   fun getSharedIssuePanel(): DesignerCommonIssuePanel? =
-    nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.first
+    nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get()?.let { tabToPanelMap[it]?.get() }
 
-  fun getSelectedSharedIssuePanel(): DesignerCommonIssuePanel? {
-    return if (nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.second?.isSelected == true)
-      getSharedIssuePanel()
-    else null
+  fun getSelectedIssuePanel(): DesignerCommonIssuePanel? {
+    return ProblemsView.getToolWindow(project)?.contentManager?.selectedContent?.let {
+      tabToPanelMap[it]?.get()
+    }
   }
 
   /** Focus IJ's problems pane if Problems Panel is visible. Or do nothing otherwise. */
@@ -543,7 +541,7 @@ class IssuePanelService(private val project: Project) {
       ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)?.contentManager
         ?: return
 
-    var uiCheckIssuePanel = nameToTabMap[name]?.first
+    var uiCheckIssuePanel = nameToTabMap[name]?.get()?.let { tabToPanelMap[it]?.get() }
     if (uiCheckIssuePanel == null) {
       val issueProvider =
         DesignToolsIssueProvider(parentDisposable, project, NotSuppressedFilter, name)
@@ -578,6 +576,7 @@ class IssuePanelService(private val project: Project) {
           override fun contentRemoved(event: ContentManagerEvent) {
             if (tab == event.content) {
               nameToTabMap.remove(name)
+              tabToPanelMap.remove(tab)
               surface.isIssueTabSelected = false
               contentManager.removeContentManagerListener(this)
             }
@@ -585,7 +584,8 @@ class IssuePanelService(private val project: Project) {
         }
       )
       Disposer.register(parentDisposable) { contentManager.removeContent(tab, true) }
-      nameToTabMap[name] = Pair(uiCheckIssuePanel, tab)
+      nameToTabMap[name] = WeakReference(tab)
+      tabToPanelMap[tab] = WeakReference(uiCheckIssuePanel)
       surface.isIssueTabSelected = true
     }
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListener)
@@ -594,8 +594,9 @@ class IssuePanelService(private val project: Project) {
   }
 
   fun stopUiCheck(name: String, surface: NlDesignSurface, postIssueUpdateListener: () -> Unit) {
-    nameToTabMap[name]?.first?.removeIssueSelectionListener(surface.issueListener)
-    nameToTabMap[name]?.first?.issueProvider?.removeUpdateListener(postIssueUpdateListener)
+    val panel = nameToTabMap[name]?.get()?.let { tabToPanelMap[it]?.get() }
+    panel?.removeIssueSelectionListener(surface.issueListener)
+    panel?.issueProvider?.removeUpdateListener(postIssueUpdateListener)
     surface.visualLintIssueProvider.uiCheckInstanceId = null
   }
 

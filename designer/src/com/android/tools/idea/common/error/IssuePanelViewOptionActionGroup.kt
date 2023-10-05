@@ -21,6 +21,7 @@ import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Separator
@@ -80,6 +81,8 @@ class SeverityFilterAction(val project: Project, @Nls name: String, val severity
       updateIssuePanelFilter(project)
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 class VisualLintFilterAction(val project: Project) :
@@ -91,10 +94,12 @@ class VisualLintFilterAction(val project: Project) :
     VisualLintSettings.getInstance(project).isVisualLintFilterSelected = selected
     updateIssuePanelFilter(project)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 private fun updateIssuePanelFilter(project: Project) {
-  val panel = IssuePanelService.getInstance(project).getSelectedSharedIssuePanel() ?: return
+  val panel = IssuePanelService.getInstance(project).getSelectedIssuePanel() ?: return
   val hiddenSeverities = ProblemsViewState.getInstance(project).hideBySeverity
   val showVisualLint = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
 
@@ -123,6 +128,8 @@ class ToggleIssuePanelSortedBySeverityAction : DumbAwareToggleAction("Sort By Se
     state.intIncrementModificationCount()
     updateIssuePanelOrder(project)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 class ToggleIssuePanelSortedByNameAction : DumbAwareToggleAction("Sort By Name") {
@@ -139,10 +146,12 @@ class ToggleIssuePanelSortedByNameAction : DumbAwareToggleAction("Sort By Name")
     state.intIncrementModificationCount()
     updateIssuePanelOrder(project)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 private fun updateIssuePanelOrder(project: Project) {
-  val panel = IssuePanelService.getInstance(project).getSelectedSharedIssuePanel() ?: return
+  val panel = IssuePanelService.getInstance(project).getSelectedIssuePanel() ?: return
   val state = ProblemsViewState.getInstance(project)
   panel.setIssueNodeOrder(state.sortBySeverity, state.sortByName)
 }

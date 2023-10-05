@@ -27,7 +27,7 @@ class ToggleIssueDetailAction : ToggleAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   private fun isEnabled(e: AnActionEvent): Boolean =
-    e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() } != null &&
+    e.project?.let { IssuePanelService.getInstance(it).getSelectedIssuePanel() } != null &&
       e.dataContext.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode != null
 
   override fun update(e: AnActionEvent) {
@@ -44,14 +44,13 @@ class ToggleIssueDetailAction : ToggleAction() {
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!isEnabled(e)) return false
 
-    val issuePanel =
-      e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
+    val issuePanel = e.project?.let { IssuePanelService.getInstance(it).getSelectedIssuePanel() }
     return issuePanel?.sidePanelVisible ?: false
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val issuePanel =
-      e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() } ?: return
+      e.project?.let { IssuePanelService.getInstance(it).getSelectedIssuePanel() } ?: return
     issuePanel.sidePanelVisible = state
   }
 }

@@ -20,15 +20,17 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.codeInsight.daemon.impl.SeverityRegistrar
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.wm.RegisterToolWindowTask
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.assertInstanceOf
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -166,11 +168,12 @@ class VisualLintFilterActionTest {
 
   @Test
   fun testPerform() {
-    val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(rule.project)
+    val toolWindow =
+      ToolWindowManager.getInstance(rule.project)
+        .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val service = IssuePanelService.getInstance(rule.project)
     service.initIssueTabs(toolWindow)
-    toolWindow.contentManager.let { it.setSelectedContent(it.contents[0]) }
-    val panel = service.getSelectedSharedIssuePanel()!!
+    val panel = service.getSharedIssuePanel()!!
     val visualLintIssue = mock<VisualLintRenderIssue>()
 
     VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected = true

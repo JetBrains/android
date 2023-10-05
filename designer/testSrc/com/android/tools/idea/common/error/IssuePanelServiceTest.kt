@@ -118,13 +118,13 @@ class IssuePanelServiceTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertNull(service.getSelectedIssuePanel())
 
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertNull(service.getSelectedIssuePanel())
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertNull(service.getSelectedIssuePanel())
   }
 
   @Test
@@ -141,7 +141,7 @@ class IssuePanelServiceTest {
     toolWindow.contentManager.let {
       it.setSelectedContent(it.contents[0])
     } // select current file tab.
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertNull(service.getSelectedIssuePanel())
 
     runInEdtAndWait { service.setSharedIssuePanelVisibility(true) }
     assertTrue(toolWindow.isVisible)
