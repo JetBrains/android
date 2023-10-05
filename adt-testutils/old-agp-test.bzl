@@ -88,3 +88,6 @@ def generate_old_agp_tests_from_list(name, iml_module, tests_list, ignore_locati
     )
     for test_kwargs in tests_list:
         old_agp_test(name = name, iml_module = iml_module, **test_kwargs)
+
+def get_agp_versions_from_tests_list(tests_list):
+    return [test_kwargs["agp_version"] for test_kwargs in tests_list]
