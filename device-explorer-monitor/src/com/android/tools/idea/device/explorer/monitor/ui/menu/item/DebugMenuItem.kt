@@ -17,11 +17,13 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
 import com.android.ddmlib.ClientData
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.diagnostic.thisLogger
 import javax.swing.Icon
 
-class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
+class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     return "Attach debugger"
   }
@@ -40,10 +42,12 @@ class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context:
   override val isVisible: Boolean
     get() {
       return if (!IdeInfo.getInstance().isGameTools) {
-        if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
+        if (context == MenuContext.Popup) {
+          listener.selectedProcessInfo.any { !it.isPidOnly }
+        } else true
       } else {
         // We currently don't have a communication mechanism from Game Tools process back into Visual Studio
-        return false
+        false
       }
     }
 

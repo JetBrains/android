@@ -97,14 +97,17 @@ class DeviceMonitorViewImpl(
 
   override fun killNodes() {
     listeners.forEach(Consumer { it.killNodesInvoked(getModelRows(table.selectedRows)) })
+    table.clearSelection()
   }
 
   override fun forceStopNodes() {
     listeners.forEach(Consumer { it.forceStopNodesInvoked(getModelRows(table.selectedRows)) })
+    table.clearSelection()
   }
 
   override fun debugNodes() {
     listeners.forEach(Consumer { it.debugNodes(getModelRows(table.selectedRows)) })
+    table.clearSelection()
   }
 
   override fun packageFilterToggled(isActive: Boolean) {
