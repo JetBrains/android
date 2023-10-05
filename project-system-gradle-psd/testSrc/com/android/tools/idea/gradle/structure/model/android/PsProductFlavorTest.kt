@@ -37,6 +37,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -230,6 +231,8 @@ class PsProductFlavorTest {
 
     val appModule = project.findModuleByName("app") as PsAndroidModule
     assertThat(appModule, notNullValue())
+    val nested2Module = project.findModuleByName("nested2") as PsAndroidModule
+    assertThat(nested2Module, notNullValue())
 
     val productFlavor = appModule.findProductFlavor("foo", "paid")
     assertThat(productFlavor, notNullValue()); productFlavor!!
@@ -237,6 +240,21 @@ class PsProductFlavorTest {
     assertThat(
       PsProductFlavor.ProductFlavorDescriptors.dimension.bindContext(productFlavor).getKnownValues().get().literals,
       hasItems(ValueDescriptor("foo", "foo"), ValueDescriptor("bar", "bar")))
+
+    run {
+      val appFooDimension = appModule.findFlavorDimension("foo")
+      assertThat(appFooDimension, notNullValue())
+      val appInvalidDimension1 = PsFlavorDimension(appModule, true)
+      val appInvalidDimension2 = PsFlavorDimension(appModule, true)
+      val nested2FooDimension = nested2Module.findFlavorDimension("foo")
+      assertThat(nested2FooDimension, notNullValue())
+      val nested2InvalidDimension = PsFlavorDimension(nested2Module, true)
+      assertThat(appFooDimension, not(equalTo(appInvalidDimension1)))
+      assertThat(appFooDimension, not(equalTo(appInvalidDimension2)))
+      assertThat(appInvalidDimension1, equalTo(appInvalidDimension2))
+      assertThat(nested2FooDimension, not(equalTo(appFooDimension)))
+      assertThat(nested2InvalidDimension, not(equalTo(appInvalidDimension1)))
+    }
   }
 
   @Test
