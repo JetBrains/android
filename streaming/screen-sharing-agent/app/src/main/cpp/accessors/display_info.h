@@ -39,6 +39,20 @@ struct DisplayInfo {
     return state == STATE_ON || state == STATE_VR;
   }
 
+  bool operator==(const DisplayInfo& other) const {
+    return logical_size == other.logical_size &&
+           logical_density_dpi == other.logical_density_dpi &&
+           rotation == other.rotation &&
+           layer_stack == other.layer_stack &&
+           flags == other.flags &&
+           type == other.type &&
+           state == other.state;
+  }
+
+  bool operator!=(const DisplayInfo& other) const {
+    return !operator==(other);
+  }
+
   std::string ToDebugString() const;
 
   Size logical_size;
