@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.tools.idea.common.error.Issue
 import java.util.concurrent.ConcurrentHashMap
 
 /** List of visual lint issues. */
 class VisualLintIssues {
 
   /** Range based hashed map - used for detecting different config same issues. Source of truth. */
-  private val _map = ConcurrentHashMap<Int, Issue>()
+  private val _map = ConcurrentHashMap<Int, VisualLintRenderIssue>()
 
   /** For accessing by type. To be used later for categorization. */
-  private val _mapByType = ConcurrentHashMap<VisualLintErrorType, Issue>()
+  private val _mapByType = ConcurrentHashMap<VisualLintErrorType, VisualLintRenderIssue>()
 
-  val list: Collection<Issue>
+  val list: Collection<VisualLintRenderIssue>
     get() = _map.values
 
   fun clear() {
@@ -48,7 +47,7 @@ class VisualLintIssues {
         // original.rangeBasedHashCode() == issue.rangeBasedHashCode()
         // original and issue are same issue, diff config.
         // TODO: Check if components already exist (set instead of list)
-        (original as VisualLintRenderIssue).combineWithIssue(issue)
+        original.combineWithIssue(issue)
       }
       else -> {
         // Same issue, same config. ignore.
