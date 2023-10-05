@@ -190,14 +190,13 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
                                                              @NotNull Common.Session session,
                                                              @NotNull Common.SessionMetaData sessionMetaData) {
 
-    Range requestRange = new Range();
+    Range requestRange;
     if (sessionMetaData.getType() == Common.SessionMetaData.SessionType.FULL) {
-      requestRange
-        .set(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()), TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
+      requestRange = new Range(TimeUnit.NANOSECONDS.toMicros(session.getStartTimestamp()), TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
     }
     else {
       // We need to list imported traces and their timestamps might not be within the session range, so we search for max range.
-      requestRange.set(Long.MIN_VALUE, Long.MAX_VALUE);
+      requestRange = new Range(Long.MIN_VALUE, Long.MAX_VALUE);
     }
 
     // TODO b/133324501 handle the case where a CpuTraceInfo is still ongoing after a session has ended.
