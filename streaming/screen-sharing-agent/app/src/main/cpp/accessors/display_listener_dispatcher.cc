@@ -31,7 +31,7 @@ namespace {
 // Constants copied from the android.hardware.display.DisplayManager class.
 constexpr int64_t EVENT_FLAG_DISPLAY_ADDED = 1L << 0;
 constexpr int64_t EVENT_FLAG_DISPLAY_REMOVED = 1L << 1;
-constexpr int64_t  EVENT_FLAG_DISPLAY_CHANGED = 1L << 2;
+constexpr int64_t EVENT_FLAG_DISPLAY_CHANGED = 1L << 2;
 
 }
 
