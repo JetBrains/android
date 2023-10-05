@@ -15,50 +15,32 @@
  */
 package com.android.tools.preview.config
 
-import com.android.resources.ScreenOrientation
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 
 /** Default device configuration for Phones */
-val ReferencePhoneConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
+val ReferencePhoneConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
+  getDeviceConfigFor(DEVICE_CLASS_PHONE_ID)
+}
 
 /** Default device configuration for Foldables */
-val ReferenceFoldableConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
+val ReferenceFoldableConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
+  getDeviceConfigFor(DEVICE_CLASS_FOLDABLE_ID)
+}
 
 /** Default device configuration for Tablets */
-val ReferenceTabletConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
+val ReferenceTabletConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
+  getDeviceConfigFor(DEVICE_CLASS_TABLET_ID)
+}
 
 /** Default device configuration for Desktops */
-val ReferenceDesktopConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
+val ReferenceDesktopConfig: DeviceConfig by lazy(LazyThreadSafetyMode.NONE) {
+  getDeviceConfigFor(DEVICE_CLASS_DESKTOP_ID)
+}
 
-private fun WindowSizeData.toDeviceConfigWithDpDimensions() =
-  DeviceConfig(
-    width = widthDp.toFloat(),
-    height = heightDp.toFloat(),
-    dimUnit = DimUnit.dp,
-    dpi = density.dpiValue,
-    shape = Shape.Normal,
-    orientation =
-      when (defaultOrientation) {
-        ScreenOrientation.LANDSCAPE -> Orientation.landscape
-        else -> Orientation.portrait
-      }
-  )
+private fun getDeviceConfigFor(deviceClassName: String): DeviceConfig {
+  val serialisedDeviceConfig = referenceDeviceIds.entries.first { (_, value) -> value == deviceClassName }.key
+  return DeviceConfig.toDeviceConfigOrNull(serialisedDeviceConfig, emptyList()) ?: DeviceConfig()
+}

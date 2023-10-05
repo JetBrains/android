@@ -20,6 +20,10 @@ import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.intellij.ide.HelpTooltip
@@ -47,10 +51,10 @@ import kotlin.math.roundToInt
 private val PIXEL_DEVICE_COMPARATOR = PixelDeviceComparator(VarianceComparator.reversed()).reversed()
 
 internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
-  "_device_class_phone" to DEVICE_CLASS_PHONE_TOOLTIP,
-  "_device_class_foldable" to DEVICE_CLASS_FOLDABLE_TOOLTIP,
-  "_device_class_tablet" to DEVICE_CLASS_TABLET_TOOLTIP,
-  "_device_class_desktop" to DEVICE_CLASS_DESKTOP_TOOLTIP
+  DEVICE_CLASS_PHONE_ID to DEVICE_CLASS_PHONE_TOOLTIP,
+  DEVICE_CLASS_FOLDABLE_ID to DEVICE_CLASS_FOLDABLE_TOOLTIP,
+  DEVICE_CLASS_TABLET_ID to DEVICE_CLASS_TABLET_TOOLTIP,
+  DEVICE_CLASS_DESKTOP_ID to DEVICE_CLASS_DESKTOP_TOOLTIP
 )
 
 /**

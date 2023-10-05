@@ -51,14 +51,15 @@ import kotlin.reflect.KProperty
  * List of the definitions of reference devices in `Device.kt` in the `ui-tooling` library. The
  * devices do not have a consistent device id used in their definitions so this patches the device
  * id so it shows correctly in our metrics.
+ *
+ * Remember to update the keys in case Devices.kt is changes in future versions
  */
 val referenceDeviceIds =
   mapOf(
-    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to
-      DEVICE_CLASS_PHONE_ID,
-    "spec:shape=Normal,width=673,height=841,unit=dp,dpi=480" to DEVICE_CLASS_FOLDABLE_ID,
-    "spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420" to DEVICE_CLASS_TABLET_ID,
-    "spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420" to DEVICE_CLASS_DESKTOP_ID
+    "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to DEVICE_CLASS_PHONE_ID,
+    "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420" to DEVICE_CLASS_FOLDABLE_ID,
+    "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240" to DEVICE_CLASS_TABLET_ID,
+    "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160" to DEVICE_CLASS_DESKTOP_ID
   )
 
 /**
@@ -126,8 +127,17 @@ open class DeviceConfig(
 
   /** Returns a string that defines the Device in the current state of [DeviceConfig] */
   fun deviceSpec(): String {
+    if (deviceId != null) {
+      // In case we have a device class device we don't need to rebuild any string,
+      // we can just take the key from the reference device id map
+      referenceDeviceIds.entries
+        .firstOrNull { (_, deviceClassId) -> deviceClassId == deviceId }
+        ?.key
+        ?.let { referenceString ->
+          return referenceString
+        }
+    }
     val builder = StringBuilder(DEVICE_BY_SPEC_PREFIX)
-
     if (parentDeviceId != null) {
       // When there's a backing Device ID, only print the parameters that are not inherent to a
       // device, e.g: orientation
@@ -304,7 +314,7 @@ open class DeviceConfig(
         // Return null if parsing fails
         val orientation =
           enumValueOfOrNull<Orientation>(params.getOrDefault(PARAMETER_ORIENTATION, ""))
-            ?: return null
+          ?: return null
 
         // Override orientation
         return initialConfig

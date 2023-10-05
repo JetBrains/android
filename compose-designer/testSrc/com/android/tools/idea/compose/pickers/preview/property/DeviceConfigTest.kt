@@ -227,15 +227,24 @@ internal class DeviceConfigTest {
     )
     assertEquals(
       "_device_class_foldable",
-      parseDeviceSpec("spec:shape=Normal,width=673,height=841,unit=dp,dpi=480")!!.deviceId
+      parseDeviceSpec(
+          "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420"
+        )!!
+        .deviceId
     )
     assertEquals(
       "_device_class_tablet",
-      parseDeviceSpec("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420")!!.deviceId
+      parseDeviceSpec(
+          "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240"
+        )!!
+        .deviceId
     )
     assertEquals(
       "_device_class_desktop",
-      parseDeviceSpec("spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420")!!.deviceId
+      parseDeviceSpec(
+          "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160"
+        )!!
+        .deviceId
     )
   }
 }

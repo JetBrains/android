@@ -300,15 +300,15 @@ class ComposePreviewRepresentationTest {
           PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          spec:shape=Normal,width=673,height=841,unit=dp,dpi=480
+          spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
           PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420
+          spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
           PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420
+          spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
           PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
@@ -386,15 +386,15 @@ class ComposePreviewRepresentationTest {
           PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          spec:shape=Normal,width=673,height=841,unit=dp,dpi=480
+          spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
           PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          spec:shape=Normal,width=1280,height=800,unit=dp,dpi=420
+          spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
           PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          spec:shape=Normal,width=1920,height=1080,unit=dp,dpi=420
+          spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
           PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1

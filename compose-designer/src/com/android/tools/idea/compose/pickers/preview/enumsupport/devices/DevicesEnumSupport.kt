@@ -25,6 +25,7 @@ import com.android.tools.preview.config.Densities
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.Preview
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.util.text.nullize
@@ -43,8 +44,7 @@ internal fun createDeviceEnumSupport(
       }
 
     trimmedValue.nullize()?.let {
-      val isDeviceSpec =
-        it.startsWith("spec:") // TODO(b/197021783): Reuse constant from PreviewElement.kt
+      val isDeviceSpec = it.startsWith(Preview.DeviceSpec.PREFIX)
       if (isDeviceSpec) {
         val knownSpec =
           DeviceEnumValueBuilder()
