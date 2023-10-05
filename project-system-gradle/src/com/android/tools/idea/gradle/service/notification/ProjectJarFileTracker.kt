@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.service.notification
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.util.toIoFile
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
@@ -107,6 +109,9 @@ class ProjectJarFileTracker(val project: Project) {
   class JarFileNotificationProvider: EditorNotificationProvider {
 
     override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?>? {
+      if (project.getProjectSystem() !is GradleProjectSystem) {
+        return null
+      }
       val tracker = getInstance(project)
       if(tracker.jarFilesChanged){
         return Function { fileEditor -> JarFileSyncNotificationPanel(project, fileEditor) }
