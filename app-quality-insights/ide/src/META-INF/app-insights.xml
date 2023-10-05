@@ -31,9 +31,6 @@
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"
                     interface="com.android.tools.idea.insights.ui.AppInsightsTabProvider"/>
-    <extensionPoint qualifiedName="com.android.tools.idea.insights.vcsIntegrationToken"
-                    interface="com.android.tools.idea.insights.VcsIntegrationToken"
-                    area="IDEA_PROJECT"/>
   </extensionPoints>
   <actions>
     <action internal="true" id="Android.EnterOfflineModeInternalAction" class="com.android.tools.idea.insights.EnterOfflineModeInternalAction">

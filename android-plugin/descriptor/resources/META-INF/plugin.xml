@@ -26,7 +26,6 @@
   <xi:include href="/META-INF/android-dagger.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-insights-api.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-insights.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/app-insights-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/mlkit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
