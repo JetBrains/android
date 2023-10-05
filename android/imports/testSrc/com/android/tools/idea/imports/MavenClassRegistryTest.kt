@@ -21,6 +21,7 @@ import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
+import kotlinx.serialization.json.Json
 import org.jetbrains.kotlin.name.FqName
 import org.junit.Assert.assertThrows
 import org.junit.Test
@@ -516,15 +517,9 @@ class MavenClassRegistryTest {
       }
 
       // Check if we have a valid built-in index file.
-      assertThat(data).startsWith(
-        """
-          {
-            "Index": [
-              {
-        """.trimIndent()
-      )
+      Json.parseToJsonElement(data)
 
-      // Check if this offline index file can be properly parsed.
+      // Check if this offline index file has some of the expected data.
       mavenClassRegistry.lookup.classNameMap.let {
         assertThat(it.size).isAtLeast(6000)
         assertThat(it).containsEntry(
