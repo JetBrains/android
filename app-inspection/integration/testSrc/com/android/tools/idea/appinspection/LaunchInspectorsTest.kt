@@ -85,17 +85,9 @@ class LaunchInspectorsTest {
             // Component for Network Inspector.
             studio.waitForComponentByClass("RangeTooltipComponent")
 
-            // TODO(b/298692330): Replace with a more stable assertion.
-            // Log for Database Inspector: Accessing hidden method
-            // `android.database.sqlite.SQLiteDatabase`
-            // waitForLog(".*Accessing hidden method.*SQLiteDatabase.*", 60.seconds)
-
-            // Log for Background Task Inspector: Transformed class:
-            // `android.os.PowerManager$WakeLock`
-            waitForLog(".*Transformed class.*WakeLock.*", 60.seconds)
-
-            // Log for Network Inspector: Transformed class: `java.net.URL`
-            waitForLog(".*Transformed class.*URL.*", 60.seconds)
+            waitForLog(".*Inspector installed: androidx.sqlite.inspection", 60.seconds)
+            waitForLog(".*Inspector installed: backgroundtask.inspection", 60.seconds)
+            waitForLog(".*Inspector installed: studio.network.inspection", 60.seconds)
           }
         }
       }
