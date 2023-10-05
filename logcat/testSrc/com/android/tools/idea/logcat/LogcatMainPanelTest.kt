@@ -36,6 +36,7 @@ import com.android.tools.idea.logcat.actions.PopupActionGroupAction
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.devices.DeviceComboBoxDeviceTrackerFactory
 import com.android.tools.idea.logcat.devices.FakeDeviceComboBoxDeviceTracker
+import com.android.tools.idea.logcat.files.LogcatFileData
 import com.android.tools.idea.logcat.filters.AndroidLogcatFilterHistory
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE

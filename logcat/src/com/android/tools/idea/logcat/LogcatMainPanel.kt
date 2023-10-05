@@ -57,6 +57,7 @@ import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.Devi
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.android.tools.idea.logcat.files.LogcatFileData
 import com.android.tools.idea.logcat.files.LogcatFileIo
+import com.android.tools.idea.logcat.files.safeGetFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
@@ -919,15 +920,6 @@ private fun LogcatPanelConfig.getInitialItem(): DeviceComboBox.DeviceComboItem? 
     file != null -> FileItem(Path.of(file))
     else -> null
   }
-}
-
-private fun LogcatFileData?.safeGetFilter(): String {
-  val filter = this?.metadata?.filter ?: return ""
-  if (!filter.contains(MY_PACKAGE) || metadata.projectApplicationIds.isEmpty()) {
-    return filter
-  }
-  val packages = metadata.projectApplicationIds.joinToString(" ") { "package:$it" }
-  return if (filter == MY_PACKAGE) packages else filter.replace(MY_PACKAGE, "(${packages})")
 }
 
 private fun LogcatPanelConfig?.getFormattingOptions(): FormattingOptions =
