@@ -26,26 +26,13 @@ import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.JavaLibraryDependency
-import com.android.tools.idea.testing.buildAgpProjectFlagsStub
-import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
-import com.android.tools.tests.AdtTestKotlinArtifacts
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
 class AppInsightsExternalAnnotatorOnChangeTest {
-  private val projectRule =
-    AndroidProjectRule.withAndroidModel(
-      createAndroidProjectBuilderForDefaultTestProjectStructure()
-        .withAgpProjectFlags { buildAgpProjectFlagsStub().copy(enableVcsInfo = true) }
-        // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need kotlin-stdlib for
-        // every Kotlin test.
-        .withJavaLibraryDependencyList {
-          listOf(JavaLibraryDependency.forJar(AdtTestKotlinArtifacts.kotlinStdlib))
-        }
-    )
+  private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
   private val changeAwareFlagRule =
     FlagRule(StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT, true)

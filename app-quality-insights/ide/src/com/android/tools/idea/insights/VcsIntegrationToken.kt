@@ -28,6 +28,4 @@ interface VcsIntegrationToken<P : AndroidProjectSystem> : Token {
   }
 
   fun canShowSuggestVcsIntegrationFeaturePanel(projectSystem: P): Boolean
-
-  fun isChangeAwareAnnotationEnabled(projectSystem: P): Boolean
 }

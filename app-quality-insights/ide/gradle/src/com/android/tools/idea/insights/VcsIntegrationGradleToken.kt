@@ -39,16 +39,6 @@ class VcsIntegrationGradleToken : VcsIntegrationToken<GradleProjectSystem>, Grad
     return project.hasRequiredAgpVersion(MIN_SUPPORTED_AGP_VERSION)
   }
 
-  override fun isChangeAwareAnnotationEnabled(projectSystem: GradleProjectSystem): Boolean {
-    if (
-      !StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get() ||
-        !StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT.get()
-    ) {
-      return false
-    }
-    return projectSystem.project.isVcsInfoEnabledInAgp()
-  }
-
   companion object {
     const val MIN_SUPPORTED_AGP_VERSION = "8.2.0-alpha06"
   }
