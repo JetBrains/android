@@ -25,7 +25,7 @@ internal class EmulatorStreamingSessionTracker : StreamingSessionTracker() {
   override val deviceInfoProto: DeviceInfo
     get() = DeviceInfo.newBuilder().setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR).build()
   override val streamingSessionProto: DeviceMirroringSession
-    get() {
+    @Synchronized get() {
       return DeviceMirroringSession.newBuilder().apply {
         deviceKind = DeviceMirroringSession.DeviceKind.VIRTUAL
         durationSec = sessionDurationSec
@@ -37,11 +37,11 @@ internal class EmulatorStreamingSessionTracker : StreamingSessionTracker() {
 
   private var firstFrameArrivalTime: Long = 0L
 
-  fun firstFrameArrived() {
+  @Synchronized fun firstFrameArrived() {
     firstFrameArrivalTime = System.currentTimeMillis()
   }
 
-  override fun reset() {
+  @Synchronized override fun reset() {
     firstFrameArrivalTime = 0L
   }
 }

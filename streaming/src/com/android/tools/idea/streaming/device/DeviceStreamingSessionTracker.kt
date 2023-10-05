@@ -42,21 +42,21 @@ internal class DeviceStreamingSessionTracker(private val deviceConfig: DeviceCon
   private var agentPushEndTime: Long = 0L
   private var firstFrameArrivalTime: Long = 0L
 
-  fun agentPushStarted() {
+  @Synchronized fun agentPushStarted() {
     agentPushStartTime = System.currentTimeMillis()
   }
 
-  fun agentPushEnded() {
+  @Synchronized fun agentPushEnded() {
     agentPushEndTime = System.currentTimeMillis()
   }
 
-  fun videoFrameArrived() {
+  @Synchronized fun videoFrameArrived() {
     if (firstFrameArrivalTime == 0L) {
       firstFrameArrivalTime = System.currentTimeMillis()
     }
   }
 
-  override fun reset() {
+  @Synchronized override fun reset() {
     agentPushStartTime = 0L
     agentPushEndTime = 0L
     firstFrameArrivalTime = 0L
