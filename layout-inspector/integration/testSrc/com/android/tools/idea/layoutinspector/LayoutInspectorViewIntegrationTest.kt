@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.utils.join
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,6 +28,7 @@ class LayoutInspectorViewIntegrationTest {
 
   @get:Rule val system = AndroidSystem.standard()
 
+  @Ignore("b/297407259")
   @Test
   fun testEmptyApplication() {
     val project =
