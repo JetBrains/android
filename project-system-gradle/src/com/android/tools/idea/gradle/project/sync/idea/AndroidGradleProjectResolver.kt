@@ -153,6 +153,7 @@ private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
  * Imports Android-Gradle projects into IDEA.
  */
 @Order(ExternalSystemConstants.UNORDERED)
+@SuppressLint("AvoidByLazy")
 class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal constructor(private val myCommandLineArgs: CommandLineArgs) :
   AbstractProjectResolverExtension(), AndroidGradleProjectResolverMarker {
   private var project: Project? = null
@@ -582,8 +583,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.
-  private val isAndroidGradleProject: Boolean
-    get() = resolverCtx.hasModulesWithModel(IdeAndroidModels::class.java)
+  private val isAndroidGradleProject: Boolean by lazy {
+    resolverCtx.hasModulesWithModel(IdeAndroidModels::class.java)
+  }
 
   /**
    * Find IdeaModule representations of every Gradle project included in the main build and calls
