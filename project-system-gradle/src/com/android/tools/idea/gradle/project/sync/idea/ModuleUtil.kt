@@ -55,8 +55,8 @@ object ModuleUtil {
    * @param dataToModuleMap a map of external system [ModuleData] to modules required in order to lookup a modules children
    */
   @JvmStatic
-  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?) {
-    val holderModule = dataToModuleMap(data) ?: return
+  fun DataNode<out ModuleData>.linkAndroidModuleGroup(dataToModuleMap: (ModuleData) -> Module?): LinkedAndroidModuleGroup? {
+    val holderModule = dataToModuleMap(data) ?: return null
     // Clear the links, this prevents old links from being used
     holderModule.putUserData(LINKED_ANDROID_MODULE_GROUP, null)
     var unitTestModule : Module? = null
@@ -74,12 +74,13 @@ object ModuleUtil {
     }
     if (mainModule == null) {
       logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
-      return
+      return null
     }
     val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
     androidModuleGroup.getModules().forEach { module ->
       module?.putUserData(LINKED_ANDROID_MODULE_GROUP, androidModuleGroup)
     }
+    return androidModuleGroup
   }
 
   @JvmStatic

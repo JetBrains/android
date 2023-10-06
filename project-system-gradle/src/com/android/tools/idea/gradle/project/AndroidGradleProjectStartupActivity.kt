@@ -199,6 +199,8 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       }
       .toMap()
 
+  val modulesWithAndroidFacet = mutableSetOf<Module>()
+
   val projectDataNodes: List<DataNode<ProjectData>> =
     GradleSettings.getInstance(project)
       .linkedProjectsSettings
@@ -212,7 +214,10 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
         }
         externalProjectInfo?.externalProjectStructure?.modules()?.forEach { moduleDataNode ->
           if (ExternalSystemApiUtil.getChildren(moduleDataNode, ANDROID_MODEL).singleOrNull() != null) {
-            moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
+            val androidModuleGroup = moduleDataNode.linkAndroidModuleGroup { data -> modulesById[data.id] }
+            if (androidModuleGroup != null) {
+              modulesWithAndroidFacet += androidModuleGroup.getModules()
+            }
           }
         }
         val moduleVariants = project.getSelectedVariantAndAbis()
@@ -304,12 +309,12 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     /** Returns `null` if validation fails. */
     fun <T, V : Facet<*>> prepare(
       dataKey: Key<T>,
-      getModel: (DataNode<*>, Key<T>) -> T?,
+      getModel: (Module, DataNode<*>, Key<T>) -> T?,
       getFacet: (Module) -> V?,
       attach: V.(T) -> Unit,
       validate: T.() -> Boolean = { true }
     ): (() -> Unit)? {
-      val model = getModel(data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
+      val model = getModel(data.module, data.dataNode, dataKey) ?: return { /* No model for datanode/datakey pair */ }
       if (!model.validate()) {
         requestSync("invalid model found for $dataKey in ${data.module.name}")
         return null
@@ -325,19 +330,20 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
     // For models that can be broken into source sets, we need to check the parent datanode for the model,
     // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
     // module per source set, we should replace this code with were we know the model will be living.
-    fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
-      return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
+    fun <T> getModelForMaybeSourceSetDataNode(m: Module, n: DataNode<*>, k: Key<T>): T? {
+      if (m !in modulesWithAndroidFacet) return null
+      return getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) }
     }
     listOf(
       prepare(
         ANDROID_MODEL,
-        getModelForMaybeSourceSetDataNode(),
+        ::getModelForMaybeSourceSetDataNode,
         AndroidFacet::getInstance,
         { AndroidModel.set(this, data.gradleAndroidModelFactory(it)) },
         validate = GradleAndroidModelData::validate
       ) ?: return,
-      prepare(GRADLE_MODULE_MODEL, ::getModelFromDataNode, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
-      prepare(NDK_MODEL, ::getModelFromDataNode, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
+      prepare(GRADLE_MODULE_MODEL, { _, n, k -> getModelFromDataNode(n, k) }, GradleFacet::getInstance, GradleFacet::setGradleModuleModel) ?: return,
+      prepare(NDK_MODEL, { _, n, k -> getModelFromDataNode(n, k) }, NdkFacet::getInstance, NdkFacet::setNdkModuleModel) ?: return
     )
   }
 
