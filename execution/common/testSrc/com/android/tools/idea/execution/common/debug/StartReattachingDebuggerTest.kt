@@ -30,6 +30,8 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
@@ -97,7 +99,7 @@ class StartReattachingDebuggerTest {
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
     val firstSession = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      APP_ID,
+      TestApplicationProjectContext(APP_ID,),
       masterProcessHandler,
       executionEnvironment,
       AndroidJavaDebugger(),
@@ -143,6 +145,8 @@ class StartReattachingDebuggerTest {
     val runContentManagerImplMock = Mockito.mock(RunContentManager::class.java)
 
     project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
+    val projectSystem = TestProjectSystem(project)
+    projectSystem.useInTests()
 
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
 
@@ -151,7 +155,7 @@ class StartReattachingDebuggerTest {
 
     DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      APP_ID,
+      TestApplicationProjectContext(APP_ID),
       MASTER_PROCESS_NAME,
       executionEnvironment,
       AndroidJavaDebugger(),
@@ -197,7 +201,7 @@ class StartReattachingDebuggerTest {
 
     val sessionImpl = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      APP_ID,
+      TestApplicationProjectContext(APP_ID),
       MASTER_PROCESS_NAME,
       executionEnvironment,
       AndroidJavaDebugger(),

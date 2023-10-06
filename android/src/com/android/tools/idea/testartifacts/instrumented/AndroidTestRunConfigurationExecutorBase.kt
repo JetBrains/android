@@ -22,6 +22,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
@@ -59,6 +60,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
   protected suspend fun startDebuggerSession(
     indicator: ProgressIndicator,
     device: IDevice,
+    applicationContext: ApplicationProjectContext,
     console: AndroidTestSuiteView
   ): XDebugSessionImpl {
     val debugger = configuration.androidDebuggerContext.androidDebugger
@@ -75,7 +77,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
         val masterAndroidProcessName = MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME[executionType]!!
         DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
           device,
-          packageNameForDebug,
+          applicationContext,
           masterAndroidProcessName,
           env,
           debugger,
@@ -91,7 +93,7 @@ abstract class AndroidTestRunConfigurationExecutorBase(val env: ExecutionEnviron
       } else {
         DebugSessionStarter.attachDebuggerToStartedProcess(
           device,
-          packageNameForDebug,
+          applicationContext,
           env,
           debugger,
           debuggerState,

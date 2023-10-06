@@ -29,6 +29,7 @@ import com.android.tools.deployer.model.component.WearComponent.CommandResultRec
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -50,12 +51,17 @@ class AndroidTileConfigurationExecutor(
   appRunSettings: AppRunSettings,
   applicationIdProvider: ApplicationIdProvider,
   apkProvider: ApkProvider,
+  applicationContext: ApplicationProjectContext,
   deployer: ApplicationDeployer
-) : AndroidWearConfigurationExecutor(environment, deviceFutures,
-                                     appRunSettings,
-                                     applicationIdProvider,
-                                     apkProvider,
-                                     deployer) {
+) : AndroidWearConfigurationExecutor(
+  environment,
+  deviceFutures,
+  appRunSettings,
+  applicationIdProvider,
+  apkProvider,
+  applicationContext,
+  deployer
+) {
   private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
     val tileName = AppComponent.getFQEscapedName(applicationId, tileLaunchOptions.componentName!!)

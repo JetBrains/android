@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ddmlib.Client
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
+import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -35,8 +37,13 @@ import com.android.tools.idea.gradle.util.getOutputFilesFromListingFile
 import com.android.tools.idea.gradle.util.getOutputListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.ClassJarProvider
+import com.android.tools.idea.project.DefaultToken
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
+import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
@@ -480,4 +487,17 @@ fun AssembleInvocationResult.getBuiltApksForSelectedVariant(androidFacet: Androi
                       ?: error("The supplied facet does not represent a project managed by the Gradle project system. " +
                                "Module: ${androidFacet.module.name}")
   return projectSystem.getBuiltApksForSelectedVariant(androidFacet, this, forTests)
+}
+
+/**
+ * An [ApplicationProjectContextProvider] for the Gradle project system.
+ */
+class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
+  override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+    val result = FacetFinder.findFacetForProcess(project, client.clientData)
+    return FacetBasedApplicationProjectContext(
+      result.applicationId,
+      result.facet
+    )
+  }
 }

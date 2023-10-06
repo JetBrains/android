@@ -19,6 +19,7 @@ import com.android.ddmlib.Client
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.impl.AndroidDebuggerImplBase
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -55,7 +56,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   override fun getDebugProcessStarterForNewProcess(
     project: Project,
     client: Client,
-    applicationId: String,
+    applicationContext: ApplicationProjectContext,
     debugState: AndroidDebuggerState,
     consoleViewToReuse: ConsoleView?
   ): XDebugProcessStarter {
@@ -76,7 +77,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   override fun getDebugProcessStarterForExistingProcess(
     project: Project,
     client: Client,
-    applicationId: String?,
+    applicationContext: ApplicationProjectContext,
     state: AndroidDebuggerState?
   ): XDebugProcessStarter {
     try {

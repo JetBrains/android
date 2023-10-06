@@ -22,6 +22,7 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -31,15 +32,23 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 
-abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironment,
-                                                deviceFutures: DeviceFutures,
-                                                appRunSettings: AppRunSettings,
-                                                applicationIdProvider: ApplicationIdProvider,
-                                                apkProvider: ApkProvider,
-                                                deployer: ApplicationDeployer) : AndroidConfigurationExecutorBase(environment, deviceFutures,
-                                                                                                                  appRunSettings,
-                                                                                                                  applicationIdProvider,
-                                                                                                                  apkProvider, deployer) {
+abstract class AndroidWearConfigurationExecutor(
+  environment: ExecutionEnvironment,
+  deviceFutures: DeviceFutures,
+  appRunSettings: AppRunSettings,
+  applicationIdProvider: ApplicationIdProvider,
+  apkProvider: ApkProvider,
+  applicationContext: ApplicationProjectContext,
+  deployer: ApplicationDeployer
+) : AndroidConfigurationExecutorBase(
+  environment,
+  deviceFutures,
+  appRunSettings,
+  applicationIdProvider,
+  apkProvider,
+  applicationContext,
+  deployer
+) {
 
   override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
     throw RuntimeException("Unsupported operation")
@@ -51,15 +60,15 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
 
   override suspend fun startDebugSession(
     device: IDevice,
-    applicationId: String,
+    applicationContext: ApplicationProjectContext,
     console: ConsoleView,
     indicator: ProgressIndicator
   ): XDebugSessionImpl {
     checkAndroidVersionForWearDebugging(device.version, console)
     return DebugSessionStarter.attachDebuggerToStartedProcess(
-      device, applicationId, environment, AndroidJavaDebugger(),
+      device, applicationContext, environment, AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      getStopCallback(console, applicationId, true),
+      getStopCallback(console, applicationContext.applicationId, true),
       indicator,
       console
     )

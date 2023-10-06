@@ -28,8 +28,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemToken
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
+import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -45,14 +47,12 @@ import com.android.tools.idea.run.NonGradleApkProvider
 import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.util.androidFacet
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -211,4 +211,8 @@ class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem
       .filter { applicationId == it.applicationId }
       .map { it.module }
       .toImmutableList()
+}
+
+interface DefaultToken: ProjectSystemToken {
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem is DefaultProjectSystem
 }

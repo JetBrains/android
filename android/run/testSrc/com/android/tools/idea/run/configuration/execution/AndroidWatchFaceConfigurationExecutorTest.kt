@@ -25,6 +25,7 @@ import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
@@ -101,7 +102,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      deviceFutures,
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
@@ -166,7 +175,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      DeviceFutures.forDevices(listOf(device)),
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
 
@@ -226,7 +243,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
       .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
 
-    val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      DeviceFutures.forDevices(listOf(device)),
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
     val spyExecutor = Mockito.spy(executor)
     Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
@@ -295,7 +320,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      DeviceFutures.forDevices(listOf(device)),
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.

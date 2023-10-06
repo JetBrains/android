@@ -756,6 +756,7 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea">
     <deviceProvisioner implementation="com.android.tools.idea.avdmanager.LocalEmulatorProvisionerFactory"/>
+    <projectsystem.ApplicationProjectContextProvider implementation="com.android.tools.idea.project.DefaultApplicationProjectContextProvider"/>
   </extensions>
 
   <applicationListeners>

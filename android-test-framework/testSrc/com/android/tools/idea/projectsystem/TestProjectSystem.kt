@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ddmlib.Client
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
@@ -22,6 +23,7 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.ClassJarProvider
+import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -78,6 +80,15 @@ class TestProjectSystem @JvmOverloads constructor(
   @Deprecated("Recommended replacement: use AndroidProjectRule.withAndroidModels which gives a more realistic project structure and project system behaviors while still not requiring a 'real' synced project")
   fun useInTests() {
     ProjectSystemService.getInstance(project).replaceProjectSystemForTests(this)
+    val provider = object : ApplicationProjectContextProvider, TestToken {
+      override val expectedInstance: TestProjectSystem = this@TestProjectSystem
+
+      override fun getApplicationProjectContextProvider(client: Client): ApplicationProjectContext {
+        return TestApplicationProjectContext(client.clientData.packageName ?: error("packagename must not be empty"))
+      }
+    }
+    project.extensionArea.getExtensionPoint(ApplicationProjectContextProvider.Companion.EP_NAME)
+      .registerExtension(provider, project)
   }
 
   private val dependenciesByModule: HashMultimap<Module, Dependency> = HashMultimap.create()
@@ -421,4 +432,15 @@ class TestProjectSystemBuildManager(
 
 private class SourceProvidersFactoryStub : SourceProvidersFactory {
   override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? = null
+}
+
+/**
+ * An [ApplicationProjectContext] used with the [TestProjectSystem]
+ */
+data class TestApplicationProjectContext(override val applicationId: String) : ApplicationProjectContext
+
+interface TestToken: ProjectSystemToken {
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem == expectedInstance
+
+  val expectedInstance: TestProjectSystem
 }

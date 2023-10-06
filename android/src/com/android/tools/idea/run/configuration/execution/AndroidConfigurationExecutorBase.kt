@@ -28,6 +28,7 @@ import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -52,6 +53,7 @@ abstract class AndroidConfigurationExecutorBase(
   protected val appRunSettings: AppRunSettings,
   protected val applicationIdProvider: ApplicationIdProvider,
   protected val apkProvider: ApkProvider,
+  protected val applicationContext: ApplicationProjectContext,
   protected val applicationDeployer: ApplicationDeployer
 ) : AndroidConfigurationExecutor {
 
@@ -110,7 +112,7 @@ abstract class AndroidConfigurationExecutorBase(
     val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
 
     val runContentDescriptorDeferred = async {
-      startDebugSession(device, applicationId, console, indicator).runContentDescriptor
+      startDebugSession(device, applicationContext, console, indicator).runContentDescriptor
     }
 
     launch(device, deployResult.app, console, true, indicator)
@@ -145,7 +147,10 @@ abstract class AndroidConfigurationExecutorBase(
   abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
   protected abstract suspend fun startDebugSession(
-    device: IDevice, applicationId: String, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
+    device: IDevice,
+    applicationContext: ApplicationProjectContext,
+    console: ConsoleView, indicator: ProgressIndicator
+  ): XDebugSessionImpl
 
 
   private fun createConsole(): ConsoleView {

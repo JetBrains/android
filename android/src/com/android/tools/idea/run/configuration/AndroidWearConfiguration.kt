@@ -28,6 +28,8 @@ import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugge
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -82,13 +84,17 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   override fun checkConfiguration() {
     configurationModule.checkForWarning()
     // If module is null `configurationModule.checkForWarning()` will throw an error
-    val module = configurationModule.module!!
-    AndroidFacet.getInstance(module) ?: throw RuntimeConfigurationError(AndroidBundle.message("no.facet.error", module.name))
+    getAndroidFacetOrThrow()
     if (project.getProjectSystem().getSyncManager().isSyncInProgress()) {
       throw RuntimeConfigurationError("Project is synchronizing")
     }
     componentLaunchOptions.componentName ?: throw RuntimeConfigurationError(
       "${componentLaunchOptions.userVisibleComponentTypeName} is not chosen")
+  }
+
+  private fun getAndroidFacetOrThrow(): AndroidFacet {
+    val module = configurationModule.module!!
+    return AndroidFacet.getInstance(module) ?: throw RuntimeConfigurationError(AndroidBundle.message("no.facet.error", module.name))
   }
 
   final override fun getState(executor: Executor, environment: ExecutionEnvironment): AndroidConfigurationExecutorRunProfileState {
@@ -115,6 +121,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
 
       val applicationIdProvider = project.getProjectSystem().getApplicationIdProvider(this) ?: throw RuntimeException(
         "Cannot get ApplicationIdProvider")
+      val applicationContext = FacetBasedApplicationProjectContext(applicationIdProvider.packageName, getAndroidFacetOrThrow());
 
       val appRunSettings = object : AppRunSettings {
         override val deployOptions = this@AndroidWearConfiguration.deployOptions
@@ -122,7 +129,11 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
         override val module = this@AndroidWearConfiguration.module
       }
       val deployer = ApplicationDeployerImpl(project, stats)
-      val state = getExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider, deployer)
+      val state = getExecutor(
+        environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider,
+        applicationContext,
+        deployer
+      )
       stats.markStateCreated()
       state
     }
@@ -138,6 +149,7 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     appRunSettings: AppRunSettings,
     applicationIdProvider: ApplicationIdProvider,
     apkProvider: ApkProvider,
+    applicationContext: ApplicationProjectContext,
     deployer: ApplicationDeployer
   ): AndroidConfigurationExecutor
 

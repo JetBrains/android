@@ -20,7 +20,6 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.AssumeUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
@@ -34,6 +33,7 @@ import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -125,7 +125,7 @@ class AndroidJavaDebuggerTest {
   fun testAllInformationForPositionManager() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
@@ -146,7 +146,7 @@ class AndroidJavaDebuggerTest {
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), onDebugProcessDestroyed, EmptyProgressIndicator()
@@ -162,7 +162,7 @@ class AndroidJavaDebuggerTest {
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), destroyRunningProcess = { countDownLatch.countDown() }, EmptyProgressIndicator())
@@ -204,7 +204,7 @@ class AndroidJavaDebuggerTest {
   fun testKillAppOnDestroy() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), onDebugProcessDestroyed, indicator = EmptyProgressIndicator())
@@ -247,7 +247,7 @@ class AndroidJavaDebuggerTest {
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),

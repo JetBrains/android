@@ -24,6 +24,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Deployer
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.projectsystem.applicationProjectContextForTests
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationExecutor
@@ -40,6 +41,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
@@ -95,6 +97,7 @@ class RunInstantAppTest {
 
     return AndroidRunConfigurationExecutor(
       projectRule.project.getProjectSystem().getApplicationIdProvider(configSettings.configuration)!!,
+      (configSettings.configuration as ModuleBasedConfiguration<*, *>).applicationProjectContextForTests,
       env,
       DeviceFutures.forDevices(listOf(device)),
       projectRule.project.getProjectSystem().getApkProvider(configSettings.configuration)!!,

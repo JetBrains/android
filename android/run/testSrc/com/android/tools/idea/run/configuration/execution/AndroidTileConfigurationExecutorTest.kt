@@ -27,6 +27,7 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
@@ -109,7 +110,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidTileConfigurationExecutor(
+      env,
+      deviceFutures,
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
@@ -175,7 +184,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidTileConfigurationExecutor(
+      env,
+      deviceFutures,
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
       getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
@@ -221,7 +238,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = Mockito.mock(App::class.java)
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidTileConfigurationExecutor(
+      env,
+      deviceFutures,
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
     val spyExecutor = Mockito.spy(executor)
     Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
@@ -278,7 +303,15 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidTileConfigurationExecutor(
+      env,
+      deviceFutures,
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
     assertThat(runContentDescriptor.processHandler).instanceOf(AndroidRemoteDebugProcessHandler::class)

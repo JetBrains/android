@@ -22,11 +22,13 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -55,7 +57,7 @@ object DebugSessionStarter {
    */
   suspend fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(
     device: IDevice,
-    appId: String,
+    applicationContext: ApplicationProjectContext,
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
     androidDebuggerState: S,
@@ -64,12 +66,12 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 15
   ): XDebugSessionImpl = RunStats.from(environment).track(START_DEBUGGER_SESSION) {
-    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+    val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator)
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
       environment.project,
       client,
-      appId,
+      applicationContext,
       androidDebuggerState,
       consoleView
     )
@@ -86,13 +88,13 @@ object DebugSessionStarter {
         super.processTerminated(event)
       }
     })
-    AndroidSessionInfo.create(debugProcessHandler, listOf(device), appId)
+    AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
     session
   }
 
   suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
-    appId: String,
+    applicationContext: ApplicationProjectContext,
     masterProcessName: String,
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
@@ -108,7 +110,7 @@ object DebugSessionStarter {
     )
     masterProcessHandler.addTargetDevice(device)
     return attachReattachingDebuggerToStartedProcess(
-      device, appId, masterProcessHandler, environment, androidDebugger,
+      device, applicationContext, masterProcessHandler, environment, androidDebugger,
       androidDebuggerState, indicator, consoleView, timeout
     )
   }
@@ -120,7 +122,7 @@ object DebugSessionStarter {
    */
   suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
-    appId: String,
+    applicationContext: ApplicationProjectContext,
     masterProcessHandler: ProcessHandler,
     environment: ExecutionEnvironment,
     androidDebugger: AndroidDebugger<S>,
@@ -129,11 +131,11 @@ object DebugSessionStarter {
     consoleView: ConsoleView? = null,
     timeout: Long = 300
   ): XDebugSessionImpl = RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
-    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+    val client = waitForClientReadyForDebug(device, listOf(applicationContext.applicationId), timeout, indicator)
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
       environment.project,
       client,
-      appId,
+      applicationContext,
       androidDebuggerState,
       consoleView
     )
@@ -141,7 +143,7 @@ object DebugSessionStarter {
     val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
 
     val reattachingListener = ReattachingDebuggerListener(
-      environment.project, masterProcessHandler, appId,
+      environment.project, masterProcessHandler, applicationContext,
       androidDebugger, androidDebuggerState, consoleView, environment,
       reattachingProcessHandler
     )
@@ -169,7 +171,7 @@ object DebugSessionStarter {
       reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
       session.runContentDescriptor.processHandler = reattachingProcessHandler
 
-      AndroidSessionInfo.create(debugProcessHandler, listOf(device), appId)
+      AndroidSessionInfo.create(debugProcessHandler, listOf(device), applicationContext.applicationId)
       session as XDebugSessionImpl
     }
   }
@@ -187,16 +189,15 @@ object DebugSessionStarter {
     androidDebuggerState: S
   ): XDebugSession {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
-    val applicationId = runCatching { FacetFinder.findFacetForProcess(project, client.clientData).applicationId }.getOrNull()
-    val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationId, androidDebuggerState)
+    val applicationContext = project.getProjectSystem().getApplicationProjectContext(client)
+      ?: throw ExecutionException("Cannot obtain RunningApplicationContext for client: $client")
+    val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationContext, androidDebuggerState)
 
     val session = withContext(uiThread) {
       XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
     }
     val debugProcessHandler = session.debugProcess.processHandler
-    if (applicationId != null) {
-        AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationId)
-      }
+    AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationContext.applicationId)
     return session
   }
 }

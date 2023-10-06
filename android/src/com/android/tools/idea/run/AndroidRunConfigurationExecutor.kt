@@ -40,6 +40,7 @@ import com.android.tools.idea.execution.common.shouldDebugSandboxSdk
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
@@ -74,6 +75,7 @@ import java.util.Locale
 
 class AndroidRunConfigurationExecutor(
   private val applicationIdProvider: ApplicationIdProvider,
+  private val applicationContext: ApplicationProjectContext,
   private val env: ExecutionEnvironment,
   val deviceFutures: DeviceFutures,
   private val apkProvider: ApkProvider,
@@ -256,7 +258,7 @@ class AndroidRunConfigurationExecutor(
 
     return DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      applicationId,
+      applicationContext,
       env,
       debugger,
       debuggerState,

@@ -40,6 +40,8 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.applicationProjectContextForTests
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
@@ -129,6 +131,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -189,6 +192,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -238,6 +242,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -288,6 +293,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -324,6 +330,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") })
@@ -353,6 +360,10 @@ class AndroidRunConfigurationExecutorTest {
           throw ApkProvisionException("AndroidExecutionException testPackageName")
         }
       },
+      applicationContext = object: ApplicationProjectContext {
+        override val applicationId: String
+          get() = error("Not supposed to be invoked")
+      },
       env,
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") })
@@ -374,6 +385,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -423,7 +435,10 @@ class AndroidRunConfigurationExecutorTest {
     val runningDescriptor = setSwapInfo(env, device)
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
-    val runner = AndroidRunConfigurationExecutor(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
+    val runner = AndroidRunConfigurationExecutor(
+      configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
+      env, deviceFutures, { throw ApkProvisionException("Exception") })
 
     assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
@@ -463,6 +478,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -513,6 +529,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -626,4 +643,3 @@ class AndroidRunConfigurationExecutorTest {
     return runContentDescriptor!!
   }
 }
-

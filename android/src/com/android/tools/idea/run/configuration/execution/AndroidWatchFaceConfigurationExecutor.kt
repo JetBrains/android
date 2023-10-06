@@ -26,6 +26,7 @@ import com.android.tools.deployer.model.component.WearComponent.CommandResultRec
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -38,17 +39,23 @@ import org.jetbrains.android.util.AndroidBundle
 
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
 
-class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
-                                                 deviceFutures: DeviceFutures,
-                                                 appRunSettings: AppRunSettings,
-                                                 applicationIdProvider: ApplicationIdProvider,
-                                                 apkProvider: ApkProvider,
-                                                 deployer: ApplicationDeployer) : AndroidWearConfigurationExecutor(environment,
-                                                                                                                   deviceFutures,
-                                                                                                                   appRunSettings,
-                                                                                                                   applicationIdProvider,
-                                                                                                                   apkProvider,
-                                                                                                                   deployer) {
+class AndroidWatchFaceConfigurationExecutor(
+  environment: ExecutionEnvironment,
+  deviceFutures: DeviceFutures,
+  appRunSettings: AppRunSettings,
+  applicationIdProvider: ApplicationIdProvider,
+  apkProvider: ApkProvider,
+  applicaitonContext: ApplicationProjectContext,
+  deployer: ApplicationDeployer
+) : AndroidWearConfigurationExecutor(
+  environment,
+  deviceFutures,
+  appRunSettings,
+  applicationIdProvider,
+  apkProvider,
+  applicaitonContext,
+  deployer
+) {
   private val watchFaceLaunchOptions = appRunSettings.componentLaunchOptions as WatchFaceLaunchOptions
   override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 

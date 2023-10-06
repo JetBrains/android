@@ -25,6 +25,7 @@ import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.applychanges.BaseAction
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isMainModule
@@ -77,7 +78,7 @@ import javax.swing.Icon
 /**
  * Run Configuration used for running Android Apps (and Instant Apps) locally on a device/emulator.
  */
-open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFactory?) :
+open class AndroidRunConfiguration(internal val project: Project, factory: ConfigurationFactory?) :
   AndroidRunConfigurationBase(project, factory, false), RefactoringListenerProvider, RunnerIconProvider {
   private val myLaunchOptionStates: MutableMap<String, LaunchOptionState> = Maps.newHashMap()
 
@@ -131,7 +132,13 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
   override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
-    return AndroidRunConfigurationExecutor(applicationIdProvider, env, deployFutures, apkProvider)
+    return AndroidRunConfigurationExecutor(
+      applicationIdProvider,
+      FacetBasedApplicationProjectContext(applicationIdProvider.packageName, facet),
+      env,
+      deployFutures,
+      apkProvider
+    )
   }
 
   override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> {

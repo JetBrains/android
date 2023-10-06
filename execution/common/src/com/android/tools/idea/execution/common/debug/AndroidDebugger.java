@@ -17,6 +17,7 @@ package com.android.tools.idea.execution.common.debug;
 
 import com.android.annotations.Nullable;
 import com.android.ddmlib.Client;
+import com.android.tools.idea.projectsystem.ApplicationProjectContext;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.ui.ConsoleView;
@@ -91,12 +92,12 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
 
   XDebugProcessStarter getDebugProcessStarterForExistingProcess(@NotNull Project project,
                                                                 @NotNull Client client,
-                                                                @Nullable String applicationId,
+                                                                @NotNull ApplicationProjectContext applicationContext,
                                                                 @Nullable S debugState) throws ExecutionException;
 
   XDebugProcessStarter getDebugProcessStarterForNewProcess(@NotNull Project project,
                                                            @NotNull Client client,
-                                                           @NotNull String applicationId,
+                                                           @NotNull ApplicationProjectContext applicationContext,
                                                            @NotNull S debugState,
                                                            @Nullable ConsoleView consoleViewToReuse) throws ExecutionException;
 

@@ -23,6 +23,7 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
@@ -139,7 +140,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
     val device = devices.single()
 
-    val session = startDebuggerSession(indicator, device, console)
+    val session = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageName, facet), console)
     session.runContentDescriptor
   }
 

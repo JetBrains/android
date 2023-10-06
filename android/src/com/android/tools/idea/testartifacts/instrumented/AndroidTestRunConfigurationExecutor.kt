@@ -25,6 +25,7 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestOptions
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ClearLogcatListener
@@ -274,7 +275,9 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
 
     val device = devices.single()
     indicator.text = "Connecting debugger"
-    val session = startDebuggerSession(indicator, device, console).apply {
+    val session = startDebuggerSession(indicator, device,
+                                       FacetBasedApplicationProjectContext(packageName, facet),
+                                       console).apply {
       processHandler.addProcessListener(object : ProcessAdapter() {
         override fun processTerminated(event: ProcessEvent) {
           processHandler.destroyProcess()
