@@ -61,5 +61,6 @@
     <orderEntry type="module" module-name="intellij.android.layout-inspector.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.profilersAndroid.gradle" scope="RUNTIME" />
     <orderEntry type="module" module-name="app-inspection.ide.gradle" scope="RUNTIME" />
+    <orderEntry type="module" module-name="samples-browser" />
   </component>
 </module>

@@ -71,5 +71,6 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
+        "//tools/adt/idea/samples-browser[module]",
     ],
 )

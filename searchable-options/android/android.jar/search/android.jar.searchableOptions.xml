@@ -382,10 +382,17 @@
     <option name="module" path="ActionManager" hit="Import Module..." />
     <option name="import" path="ActionManager" hit="Import Project..." />
     <option name="project" path="ActionManager" hit="Import Project..." />
+    <option name="import" path="ActionManager" hit="Import Sample..." />
+    <option name="sample" path="ActionManager" hit="Import Sample..." />
     <option name="file" path="ActionManager" hit="Import Tests from File..." />
     <option name="from" path="ActionManager" hit="Import Tests from File..." />
     <option name="import" path="ActionManager" hit="Import Tests from File..." />
     <option name="tests" path="ActionManager" hit="Import Tests from File..." />
+    <option name="an" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="android" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="code" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="import" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="sample" path="ActionManager" hit="Import an Android Code Sample" />
     <option name="a" path="ActionManager" hit="Import the results of a test execution from an XML file" />
     <option name="an" path="ActionManager" hit="Import the results of a test execution from an XML file" />
     <option name="execution" path="ActionManager" hit="Import the results of a test execution from an XML file" />

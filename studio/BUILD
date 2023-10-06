@@ -228,6 +228,7 @@ studio_plugin(
             "//tools/adt/idea/render-resources:intellij.android.render-resources",
             "//tools/adt/idea/rendering:intellij.android.rendering",
             "//tools/adt/idea/room:intellij.android.room",
+            "//tools/adt/idea/samples-browser:samples-browser",
             "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
             "//tools/adt/idea/android-test-retention:intellij.android.testRetention",
             "//tools/adt/idea/threading-checker:intellij.android.threading-checker",
