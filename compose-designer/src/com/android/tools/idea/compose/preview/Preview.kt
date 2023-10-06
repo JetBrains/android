@@ -568,6 +568,7 @@ class ComposePreviewRepresentation(
     if (isUiCheckFilterEnabled) {
       ApplicationManager.getApplication().invokeLater {
         surface.updateSceneViewVisibilities { it.sceneManager.model in models }
+        surface.zoomToFit()
         surface.repaint()
       }
     }
