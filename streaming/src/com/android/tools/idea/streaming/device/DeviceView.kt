@@ -26,6 +26,8 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.constrainInside
 import com.android.tools.idea.streaming.core.contains
+import com.android.tools.idea.streaming.core.createShowLogHyperlinkListener
+import com.android.tools.idea.streaming.core.getShowLogHyperlink
 import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.core.scaled
@@ -327,16 +329,18 @@ internal class DeviceView(
       }
 
       connectionState = ConnectionState.DISCONNECTED
-      showDisconnectedStateMessage(message, reconnector)
+      showDisconnectedStateMessage(message, createShowLogHyperlinkListener(), reconnector)
     }
   }
 
   private fun getConnectionErrorMessage(exception: Throwable?): String {
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
-          "The device may not have sufficient computing power for encoding display contents. See the error log."
-      AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors during initialization of the device agent. See the error log."
-      else -> (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See the error log."
+          "The device may not have sufficient computing power for encoding display contents. See ${getShowLogHyperlink()} for details."
+      AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
+          "Repeated video encoder errors during initialization of the device agent. See ${getShowLogHyperlink()} for details."
+      else ->
+          (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See ${getShowLogHyperlink()} for details."
     }
   }
 
@@ -344,9 +348,9 @@ internal class DeviceView(
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
           "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
-          " See the error log."
-      AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See the error log."
-      else -> "Lost connection to the device. See the error log."
+          " See ${getShowLogHyperlink()} for details."
+      AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See ${getShowLogHyperlink()} for details."
+      else -> "Lost connection to the device. See ${getShowLogHyperlink()} for details."
     }
   }
 

@@ -660,7 +660,7 @@ internal class DeviceViewTest {
     }
     val errorMessage = fakeUi.getComponent<JEditorPane>()
     waitForCondition(2, SECONDS) { fakeUi.isShowing(errorMessage) }
-    assertThat(extractText(errorMessage.text)).isEqualTo("Lost connection to the device. See the error log.")
+    assertThat(extractText(errorMessage.text)).isEqualTo("Lost connection to the device. See log for details.")
     var mirroringSessions = usageTrackerRule.deviceMirroringSessions()
     assertThat(mirroringSessions.size).isEqualTo(1)
     var mirroringSessionPattern = Regex(
@@ -746,7 +746,7 @@ internal class DeviceViewTest {
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
     }
-    assertThat(extractText(errorMessage.text)).isEqualTo("Failed to initialize the device agent. See the error log.")
+    assertThat(extractText(errorMessage.text)).isEqualTo("Failed to initialize the device agent. See log for details.")
     assertThat(button.text).isEqualTo("Retry")
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
 

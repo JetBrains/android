@@ -58,6 +58,7 @@ import javax.swing.AbstractAction
 import javax.swing.JButton
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
+import javax.swing.event.HyperlinkListener
 import kotlin.math.floor
 import kotlin.math.log2
 import kotlin.math.max
@@ -190,10 +191,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
-  protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
+  protected fun showDisconnectedStateMessage(
+      message: String, hyperlinkListener: HyperlinkListener? = null, reconnector: Reconnector? = null) {
     hideLongRunningOperationIndicatorInstantly()
     zoom(ZoomType.FIT)
-    disconnectedStatePanel.showPanel(message, reconnector)
+    disconnectedStatePanel.showPanel(message, hyperlinkListener, reconnector)
   }
 
   protected fun hideDisconnectedStateMessage() {
@@ -387,8 +389,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
       add(button, c)
     }
 
-    fun showPanel(messageHtml: String, reconnector: Reconnector? = null) {
+    fun showPanel(messageHtml: String, hyperlinkListener: HyperlinkListener?, reconnector: Reconnector? = null) {
       message.text = "<center>$messageHtml</center>"
+      if (hyperlinkListener != null) {
+        message.addHyperlinkListener(hyperlinkListener)
+      }
       button.apply {
         if (reconnector == null) {
           isVisible = false
@@ -408,6 +413,9 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
 
     fun hidePanel() {
+      for (listener in message.hyperlinkListeners) {
+        message.removeHyperlinkListener(listener)
+      }
       isVisible = false
       button.action = null
       revalidate()

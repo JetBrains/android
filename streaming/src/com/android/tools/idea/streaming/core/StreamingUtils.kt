@@ -19,12 +19,14 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.ide.actions.ShowLogAction
 import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.AnActionHolder
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.SameThreadExecutor
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import kotlinx.coroutines.cancelFutureOnCancellation
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -37,6 +39,8 @@ import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import java.nio.ByteBuffer
 import javax.swing.Icon
+import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
@@ -270,3 +274,16 @@ internal val MouseEvent.location: Point
 /** Wraps the string with &lt;font color=...>, &lt;/font> tags. */
 internal fun String.htmlColored(color: Color): String =
     "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>$this</font>"
+
+/** Returns an HTML hyperlink for showing the log. */
+internal fun getShowLogHyperlink(): String =
+    if (ShowLogAction.isSupported()) "<a href='ShowLog'>log</a>".htmlColored(JBUI.CurrentTheme.Link.Foreground.ENABLED) else "log"
+
+/** Returns a hyperlink listener for showing the log. */
+internal fun createShowLogHyperlinkListener(): HyperlinkListener {
+  return HyperlinkListener { event ->
+    if (event.eventType == HyperlinkEvent.EventType.ACTIVATED && event.description == "ShowLog") {
+      ShowLogAction.showLog()
+    }
+  }
+}
