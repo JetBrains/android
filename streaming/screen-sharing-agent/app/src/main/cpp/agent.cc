@@ -293,7 +293,7 @@ int64_t Agent::GetLastTouchEventTime() {
 }
 
 void Agent::RecordTouchEvent() {
-  last_touch_time_millis_.store(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
+  last_touch_time_millis_ = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
 int32_t Agent::api_level_(0);
