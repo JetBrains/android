@@ -40,8 +40,8 @@ internal const val PRIMARY_DISPLAY_ID = 0
 internal const val STREAMING_SECONDARY_TOOLBAR_ID = "StreamingToolbarSecondary"
 
 internal val FOLDING_STATE_ICONS = mapOf(
-  // TODO: Uncomment when the POSTURE_BOTH_DISPLAYS icon is created (b/289546684).
-  //"Both Displays" to StudioIcons.Emulator.Menu.POSTURE_BOTH_DISPLAYS,
+  // TODO: Uncomment when the POSTURE_DUAL_DISPLAYS icon is created (b/289546684).
+  //"Dual Displays" to StudioIcons.Emulator.Menu.POSTURE_DUAL_DISPLAYS,
   "Closed" to StudioIcons.Emulator.Menu.POSTURE_CLOSED,
   "Flipped" to StudioIcons.Emulator.Menu.POSTURE_FLIPPED,
   "Half-Open" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,

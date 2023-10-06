@@ -258,7 +258,7 @@ class DeviceToolWindowPanelTest {
       DeviceFoldingAction(FoldingState(2, "Half-Open", true)),
       DeviceFoldingAction(FoldingState(3, "Open", true)),
       DeviceFoldingAction(FoldingState(4, "Rear Display", true)),
-      DeviceFoldingAction(FoldingState(5, "Both Displays", true)),
+      DeviceFoldingAction(FoldingState(5, "Dual Displays", true)),
       DeviceFoldingAction(FoldingState(6, "Flipped", true)))
     for (action in foldingActions) {
       action.update(event)
