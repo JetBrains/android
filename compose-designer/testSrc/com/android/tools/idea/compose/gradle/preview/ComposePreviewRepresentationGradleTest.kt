@@ -260,7 +260,6 @@ class ComposePreviewRepresentationGradleTest {
     ImageDiffUtil.assertImageSimilar("testImage", firstRender, thirdRender, 10.0, 20)
   }
 
-  @Ignore("b/269427611")
   @Test
   fun `MultiPreview annotation changes are reflected in the previews without rebuilding`() =
     runBlocking {
@@ -269,16 +268,17 @@ class ComposePreviewRepresentationGradleTest {
       FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
       val otherPreviewsFile = getPsiFile(project, SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
-      // Add an annotation class annotated with Preview in OtherPreviews.kt
-      runWriteActionAndWait {
-        fixture.openFileInEditor(otherPreviewsFile.virtualFile)
-        fixture.moveCaret("|@Preview")
-        fixture.editor.executeAndSave { insertText("@Preview\nannotation class MyAnnotation\n\n") }
-        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-        FileDocumentManager.getInstance().saveAllDocuments()
-      }
-
       projectRule.runAndWaitForRefresh {
+        // Add an annotation class annotated with Preview in OtherPreviews.kt
+        runWriteActionAndWait {
+          fixture.openFileInEditor(otherPreviewsFile.virtualFile)
+          fixture.moveCaret("|@Preview")
+          fixture.editor.executeAndSave {
+            insertText("@Preview\nannotation class MyAnnotation\n\n")
+          }
+          PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+          FileDocumentManager.getInstance().saveAllDocuments()
+        }
         // Annotate DefaultPreview with the new MultiPreview annotation class
         runWriteActionAndWait {
           fixture.openFileInEditor(psiMainFile.virtualFile)
@@ -289,18 +289,17 @@ class ComposePreviewRepresentationGradleTest {
         }
       }
       withContext(uiThread) {
-        fakeUi.root.validate()
         fakeUi.layoutAndDispatchEvents()
+        projectRule.validate()
       }
-
-      projectRule.waitForAllRefreshesToFinish()
       assertEquals(
         """
-        DefaultPreview
         DefaultPreview - MyAnnotation 1
+        DefaultPreview
+        TwoElementsPreview
         NavigatablePreview
         OnlyATextNavigation
-        TwoElementsPreview
+        MyPreviewWithInline
       """
           .trimIndent(),
         fakeUi
@@ -310,42 +309,30 @@ class ComposePreviewRepresentationGradleTest {
           .joinToString("\n")
       )
 
-      // Simulate what happens when leaving the MainActivity.kt tab in the editor
-      // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better
-      // way of simulating it, and this is the only relevant consequence of changing tabs for this
-      // test.
-      composePreviewRepresentation.onDeactivate()
-
-      // Modify the Preview annotating MyAnnotation
-      runWriteActionAndWait {
-        fixture.openFileInEditor(otherPreviewsFile.virtualFile)
-        fixture.moveCaret("@Preview|")
-        fixture.editor.executeAndSave { insertText("(name = \"newName\")") }
-        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-        FileDocumentManager.getInstance().saveAllDocuments()
-      }
-
-      projectRule.runAndWaitForRefresh(35.seconds) {
-        // Simulate what happens when changing back to the MainActivity.kt tab in the editor
-        // TODO(b/232092986) This is actually not a tab change, but currently we don't have a better
-        // way of simulating it, and this is the only relevant consequence of changing tabs for this
-        // test.
-        runWriteActionAndWait { fixture.openFileInEditor(psiMainFile.virtualFile) }
-        composePreviewRepresentation.onActivate()
+      projectRule.runAndWaitForRefresh {
+        // Modify the Preview annotating MyAnnotation
+        runWriteActionAndWait {
+          fixture.openFileInEditor(otherPreviewsFile.virtualFile)
+          fixture.moveCaret("@Preview|")
+          fixture.editor.executeAndSave { insertText("(name = \"newName\")") }
+          PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+          FileDocumentManager.getInstance().saveAllDocuments()
+        }
       }
 
       withContext(uiThread) {
-        fakeUi.root.validate()
         fakeUi.layoutAndDispatchEvents()
+        projectRule.validate()
       }
 
       assertEquals(
         """
-        DefaultPreview
         DefaultPreview - newName
+        DefaultPreview
+        TwoElementsPreview
         NavigatablePreview
         OnlyATextNavigation
-        TwoElementsPreview
+        MyPreviewWithInline
       """
           .trimIndent(),
         fakeUi
