@@ -893,17 +893,19 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     boolean changed = super.setScale(scale, x, y);
     if (changed) {
       DesignSurfaceViewport port = getViewport();
+      Point scrollPosition = getScrollPosition();
 
       if (myLayoutManager instanceof GroupedListSurfaceLayoutManager) {
-        Point scrollPosition = getScrollPosition();
         if(x < 0 || y < 0) {
+          // zoom with top-center of the visible area as anchor
           myViewportScroller = new TopBoundCenterScroller(
-            new Dimension(port.getViewSize()), new Point(scrollPosition));
+            new Dimension(port.getViewSize()), new Point(scrollPosition), port.getExtentSize(), previousScale, getScale());
         }
         else {
+          // zoom with mouse position as anchor, and considering its relative position to the existing scene views
           myViewportScroller = new ReferencePointScroller(
             new Dimension(port.getViewSize()), new Point(scrollPosition),
-            new Point(x, y), getScale()/previousScale, findSceneViewRectangles(),
+            new Point(x, y), previousScale, getScale(), findSceneViewRectangles(),
             (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
                                                                                      getPositionableContent(),
                                                                                      getExtentSize()));
@@ -915,7 +917,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           x = port.getViewportComponent().getWidth() / 2;
           y = port.getViewportComponent().getHeight() / 2;
         }
-        Point scrollPosition = getScrollPosition();
         zoomCenterInView = new Point(scrollPosition.x + x, scrollPosition.y + y);
 
         myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
