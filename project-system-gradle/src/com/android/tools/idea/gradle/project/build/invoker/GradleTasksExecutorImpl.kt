@@ -177,7 +177,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             if (acquired) {
               semaphore.release()
             }
-            SaveAndSyncHandler.getInstance().scheduleRefresh()
           }
         }
       } catch (t: Throwable) {

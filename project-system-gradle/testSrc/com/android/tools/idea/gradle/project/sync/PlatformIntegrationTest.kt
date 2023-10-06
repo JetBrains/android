@@ -25,7 +25,6 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.android.tools.idea.testing.openPreparedProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -45,7 +44,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.impl.CoreProgressManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.NewVirtualFile
@@ -99,50 +97,25 @@ class PlatformIntegrationTest {
   }
 
   @Test
-  fun `importing an already built project does not add all files to the VFS - existing idea project`() {
+  fun `importing an already built project does not add all files to the VFS`() {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
     val root = simpleApplication.root
 
-    simpleApplication.open { project ->
-      expect.that(root.resolve("app/build").exists())
-      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
-      ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
-      expect.that(root.resolve("app/build/intermediates/dex/debug").exists())
-      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
+    // create build dir with some content, to simulate built project
+    val buildDir = root.resolve("app/build").also { it.mkdirs() }
+    val dexOutputDir = root.resolve("app/build/intermediates/dex/debug").also { it.mkdirs() }
+
+    fun verifyVfsState() {
+      expect.that(buildDir.exists()).isTrue()
+      expect.that(root.resolveVirtualIfCached("app/build")).isNotNull()
+      expect.that(dexOutputDir.exists()).isTrue()
       expect.that(root.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
     }
 
-    val copy = root.parentFile.resolve("copy")
-    FileUtil.copyDir(root, copy)
-    projectRule.openPreparedProject("copy") { project ->
-      expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
-      expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
-      expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
-    }
-  }
+    simpleApplication.open { _ -> verifyVfsState() }
 
-  @Test
-  fun `importing an already built project does not add all files to the VFS - new idea project`() {
-    val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
-    val root = simpleApplication.root
-
-    simpleApplication.open { project ->
-      expect.that(root.resolve("app/build").exists())
-      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
-      ProjectTaskManager.getInstance(project).rebuildAllModules().blockingGet(1, TimeUnit.MINUTES)
-      expect.that(root.resolve("app/build/intermediates/dex/debug").exists())
-      expect.that(root.resolveVirtualIfCached("app/build")).isNull()
-      expect.that(root.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
-    }
-
-    val copy = root.parentFile.resolve("copy")
-    FileUtil.copyDir(root, copy)
-    FileUtil.delete(copy.resolve(".idea"))
-    projectRule.openPreparedProject("copy") { project ->
-      expect.that(copy.resolve("app/build/intermediates/dex/debug").exists())
-      expect.that(copy.resolveVirtualIfCached("app/build")).isNotNull()
-      expect.that(copy.resolveVirtualIfCached("app/build/intermediates/dex/debug")).isNull()
-    }
+    // Check the state is the same if the models are cached
+    simpleApplication.open { project -> verifyVfsState() }
   }
 
   @Test
@@ -150,16 +123,23 @@ class PlatformIntegrationTest {
     val simpleApplication = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, "project")
     val root = simpleApplication.root
 
-    simpleApplication.open {project ->
-      val expectedOutputDir = root.resolve("app/build/intermediates/javac/debug")
-      assertThat(expectedOutputDir.exists()).isFalse()  // Verify test assumptions.
+    simpleApplication.open { project ->
+      val compilerOutputs = listOf(
+        root.resolve("app/build/intermediates/javac/debug"),
+        root.resolve("app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar"),
+      )
+      compilerOutputs.forEach {
+        assertThat(it.exists()).isFalse()  // Verify test assumptions.
+      }
       ProjectTaskManager.getInstance(project).buildAllModules().blockingGet(1, TimeUnit.MINUTES)
-      assertThat(expectedOutputDir.exists()).isTrue()  // Verify test assumptions.
+      compilerOutputs.forEach {
+        assertThat(it.exists()).isTrue()  // Verify test assumptions.
 
-      // TODO(b/241686649): Remove the following assertion, which is wrong and simply illustrates the problem.
-      assertThat(VfsUtil.findFileByIoFile(expectedOutputDir, false)).isNull()
-      // TODO(b/241686649): assertThat(VfsUtil.findFileByIoFile(expectedOutputDir, false)).isNotNull()
-      // TODO(b/241686649): assertThat(VfsUtil.findFileByIoFile(expectedOutputDir, false)?.isValid).isTrue()
+        VfsUtil.findFileByIoFile(it, false).let { vFile ->
+          assertThat(vFile).isNotNull()
+          assertThat(vFile!!.isValid).isTrue()
+        }
+      }
     }
   }
 
