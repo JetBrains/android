@@ -28,9 +28,9 @@ import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -103,6 +103,22 @@ internal class DeviceToolWindowPanel(
     get() = deviceClient.deviceConfig
   private val displayPanels = Int2ObjectRBTreeMap<DeviceDisplayPanel>()
 
+  private val deviceStateListener = object : DeviceController.DeviceStateListener {
+    override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
+      updateMainToolbarLater()
+    }
+
+    override fun onDeviceStateChanged(deviceState: Int) {
+      updateMainToolbarLater()
+    }
+
+    private fun updateMainToolbarLater() {
+      EventQueue.invokeLater {
+        mainToolbar.updateActionsImmediately()
+      }
+    }
+  }
+
   init {
     Disposer.register(disposableParent, this)
   }
@@ -140,22 +156,6 @@ internal class DeviceToolWindowPanel(
     secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
     val displayConfigurator = if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) DisplayConfigurator() else null
-    val deviceStateListener = object : DeviceController.DeviceStateListener {
-      override fun onSupportedDeviceStatesChanged(deviceStates: List<FoldingState>) {
-        updateMainToolbarLater()
-      }
-
-      override fun onDeviceStateChanged(deviceState: Int) {
-        displayConfigurator?.onDisplaysChanged()
-        updateMainToolbarLater()
-      }
-
-      private fun updateMainToolbarLater() {
-        EventQueue.invokeLater {
-          mainToolbar.updateActionsImmediately()
-        }
-      }
-    }
 
     deviceView.addConnectionStateListener(object : ConnectionStateListener {
       @UiThread
