@@ -390,40 +390,6 @@ class ComposePreviewRepresentationGradleTest {
     assertFalse(composePreviewRepresentation.status().isOutOfDate)
   }
 
-  // Regression test for b/246963901
-  @Ignore("b/270198240")
-  @Test
-  fun `second build doesn't trigger refresh on first nor second activation`() = runBlocking {
-    // This test only makes sense when fast preview is disabled,
-    // as some build related logic is being tested.
-    FastPreviewManager.getInstance(project).disable(DISABLED_FOR_A_TEST)
-    repeat(2) {
-      runWriteActionAndWait {
-        projectRule.fixture.openFileInEditor(psiMainFile.virtualFile)
-        projectRule.fixture.moveCaret("Text(text = \"Hello \$name!\")|")
-        projectRule.fixture.type("\nText(\"added during test execution\")")
-        PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-        FileDocumentManager.getInstance().saveAllDocuments()
-      }
-      withContext(uiThread) {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
-      }
-
-      projectRule.waitForAllRefreshesToFinish()
-      assertTrue(composePreviewRepresentation.status().isOutOfDate)
-      // First build after modification should trigger refresh
-      projectRule.buildAndRefresh()
-      assertFalse(composePreviewRepresentation.status().isOutOfDate)
-      // Second build shouldn't trigger refresh
-      assertFails { projectRule.buildAndRefresh(15.seconds) }
-
-      // Deactivating and activating the representation shouldn't affect its
-      // behaviour for the next repetition of the code above
-      composePreviewRepresentation.onDeactivate()
-      composePreviewRepresentation.onActivate()
-    }
-  }
-
   @Test
   fun `refresh returns completed exceptionally if ComposePreviewRepresentation is disposed`() {
     var refreshDeferred = runBlocking {
