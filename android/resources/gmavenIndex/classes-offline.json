@@ -325,9 +325,10 @@
     {
       "groupId": "androidx.activity",
       "artifactId": "activity",
-      "version": "1.7.2",
+      "version": "1.8.0",
       "ktxTargets": [],
       "fqcns": [
+        "androidx.activity.BackEventCompat",
         "androidx.activity.Cancellable",
         "androidx.activity.ComponentActivity",
         "androidx.activity.ComponentDialog",
@@ -336,6 +337,7 @@
         "androidx.activity.OnBackPressedCallback",
         "androidx.activity.OnBackPressedDispatcher",
         "androidx.activity.OnBackPressedDispatcherOwner",
+        "androidx.activity.SystemBarStyle",
         "androidx.activity.contextaware.ContextAware",
         "androidx.activity.contextaware.ContextAwareHelper",
         "androidx.activity.contextaware.OnContextAvailableListener",
@@ -354,7 +356,7 @@
     {
       "groupId": "androidx.activity",
       "artifactId": "activity-compose",
-      "version": "1.7.2",
+      "version": "1.8.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.activity.compose.ActivityResultLauncherHolder",
@@ -367,7 +369,7 @@
     {
       "groupId": "androidx.activity",
       "artifactId": "activity-ktx",
-      "version": "1.7.2",
+      "version": "1.8.0",
       "ktxTargets": [
         "androidx.activity:activity"
       ],
@@ -1217,44 +1219,35 @@
     {
       "groupId": "androidx.collection",
       "artifactId": "collection",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "ktxTargets": [],
-      "fqcns": [
-        "androidx.collection.ArrayMap",
-        "androidx.collection.ArraySet",
-        "androidx.collection.CircularArray",
-        "androidx.collection.CircularIntArray",
-        "androidx.collection.LongSparseArray",
-        "androidx.collection.LruCache",
-        "androidx.collection.SimpleArrayMap",
-        "androidx.collection.SparseArrayCompat"
-      ]
+      "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-iosarm64",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-iossimulatorarm64",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-iosx64",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-jvm",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.collection.ArrayMap",
@@ -1272,35 +1265,35 @@
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-ktx",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-linuxx64",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-macosarm64",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.collection",
       "artifactId": "collection-macosx64",
-      "version": "1.3.0-rc01",
+      "version": "1.3.0",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose",
       "artifactId": "compose-bom",
-      "version": "2023.09.02",
+      "version": "2023.10.00",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -1314,14 +1307,14 @@
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.animation.AndroidFlingSpline",
@@ -1453,14 +1446,14 @@
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation-core",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation-core-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.animation.core.Animatable",
@@ -1655,15 +1648,354 @@
     },
     {
       "groupId": "androidx.compose.animation",
+      "artifactId": "animation-core-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.animation.core.Animatable",
+        "androidx.compose.animation.core.Animation",
+        "androidx.compose.animation.core.AnimationConstants",
+        "androidx.compose.animation.core.AnimationEndReason",
+        "androidx.compose.animation.core.AnimationResult",
+        "androidx.compose.animation.core.AnimationScope",
+        "androidx.compose.animation.core.AnimationSpec",
+        "androidx.compose.animation.core.AnimationState",
+        "androidx.compose.animation.core.AnimationVector",
+        "androidx.compose.animation.core.AnimationVector1D",
+        "androidx.compose.animation.core.AnimationVector2D",
+        "androidx.compose.animation.core.AnimationVector3D",
+        "androidx.compose.animation.core.AnimationVector4D",
+        "androidx.compose.animation.core.Animations",
+        "androidx.compose.animation.core.ComplexDouble",
+        "androidx.compose.animation.core.CubicBezierEasing",
+        "androidx.compose.animation.core.DecayAnimation",
+        "androidx.compose.animation.core.DecayAnimationSpec",
+        "androidx.compose.animation.core.DurationBasedAnimationSpec",
+        "androidx.compose.animation.core.Easing",
+        "androidx.compose.animation.core.ExperimentalTransitionApi",
+        "androidx.compose.animation.core.FiniteAnimationSpec",
+        "androidx.compose.animation.core.FloatAnimationSpec",
+        "androidx.compose.animation.core.FloatDecayAnimationSpec",
+        "androidx.compose.animation.core.FloatExponentialDecaySpec",
+        "androidx.compose.animation.core.FloatSpringSpec",
+        "androidx.compose.animation.core.FloatTweenSpec",
+        "androidx.compose.animation.core.InfiniteRepeatableSpec",
+        "androidx.compose.animation.core.InfiniteTransition",
+        "androidx.compose.animation.core.InternalAnimationApi",
+        "androidx.compose.animation.core.KeyframesSpec",
+        "androidx.compose.animation.core.Motion",
+        "androidx.compose.animation.core.MutableTransitionState",
+        "androidx.compose.animation.core.MutatePriority",
+        "androidx.compose.animation.core.MutatorMutex",
+        "androidx.compose.animation.core.PathEasing",
+        "androidx.compose.animation.core.PreventExhaustiveWhenTransitionState",
+        "androidx.compose.animation.core.RepeatMode",
+        "androidx.compose.animation.core.RepeatableSpec",
+        "androidx.compose.animation.core.SeekableTransitionState",
+        "androidx.compose.animation.core.SnapSpec",
+        "androidx.compose.animation.core.Spring",
+        "androidx.compose.animation.core.SpringSimulation",
+        "androidx.compose.animation.core.SpringSpec",
+        "androidx.compose.animation.core.StartOffset",
+        "androidx.compose.animation.core.StartOffsetType",
+        "androidx.compose.animation.core.TargetBasedAnimation",
+        "androidx.compose.animation.core.Transition",
+        "androidx.compose.animation.core.TransitionState",
+        "androidx.compose.animation.core.TweenSpec",
+        "androidx.compose.animation.core.TwoWayConverter",
+        "androidx.compose.animation.core.VectorizedAnimationSpec",
+        "androidx.compose.animation.core.VectorizedDecayAnimationSpec",
+        "androidx.compose.animation.core.VectorizedDurationBasedAnimationSpec",
+        "androidx.compose.animation.core.VectorizedFiniteAnimationSpec",
+        "androidx.compose.animation.core.VectorizedFloatAnimationSpec",
+        "androidx.compose.animation.core.VectorizedInfiniteRepeatableSpec",
+        "androidx.compose.animation.core.VectorizedKeyframesSpec",
+        "androidx.compose.animation.core.VectorizedRepeatableSpec",
+        "androidx.compose.animation.core.VectorizedSnapSpec",
+        "androidx.compose.animation.core.VectorizedSpringSpec",
+        "androidx.compose.animation.core.VectorizedTweenSpec"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.animation.core.AnimatableKt.Animatable"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateDpAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateFloatAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateIntAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateIntOffsetAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateIntSizeAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateOffsetAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateRectAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateSizeAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimateAsStateKt.animateValueAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationKt.DecayAnimation"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationKt.TargetBasedAnimation"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationSpecKt.infiniteRepeatable"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationSpecKt.keyframes"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationSpecKt.repeatable"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationSpecKt.snap"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationSpecKt.spring"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationSpecKt.tween"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationStateKt.AnimationState"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.AnimationVectorsKt.AnimationVector"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.DecayAnimationSpecKt.exponentialDecay"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.InfiniteAnimationPolicyKt.withInfiniteAnimationFrameNanos"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.InfiniteTransitionKt.rememberInfiniteTransition"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.SpringEstimationKt.estimateAnimationDurationMillis"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.SuspendAnimationKt.animate"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.SuspendAnimationKt.animateDecay"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.TransitionKt.rememberTransition"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.TransitionKt.updateTransition"
+        },
+        {
+          "fqn": "androidx.compose.animation.core.VectorConvertersKt.TwoWayConverter"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.AnimationKt.getVelocityFromNanos",
+          "rcvr": "androidx.compose.animation.core.Animation"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.AnimationStateKt.copy",
+          "rcvr": "androidx.compose.animation.core.AnimationState"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.SuspendAnimationKt.animateDecay",
+          "rcvr": "androidx.compose.animation.core.AnimationState"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.SuspendAnimationKt.animateTo",
+          "rcvr": "androidx.compose.animation.core.AnimationState"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.DecayAnimationSpecKt.calculateTargetValue",
+          "rcvr": "androidx.compose.animation.core.DecayAnimationSpec"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.DecayAnimationSpecKt.generateDecayAnimationSpec",
+          "rcvr": "androidx.compose.animation.core.FloatDecayAnimationSpec"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.InfiniteTransitionKt.animateFloat",
+          "rcvr": "androidx.compose.animation.core.InfiniteTransition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.InfiniteTransitionKt.animateValue",
+          "rcvr": "androidx.compose.animation.core.InfiniteTransition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.TransitionKt.createDeferredAnimation",
+          "rcvr": "androidx.compose.animation.core.Transition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.AnimationStateKt.createZeroVectorFrom",
+          "rcvr": "androidx.compose.animation.core.TwoWayConverter"
+        },
+        {
+          "xfqn": "androidx.compose.animation.core.AnimationKt.createAnimation",
+          "rcvr": "androidx.compose.animation.core.VectorizedAnimationSpec"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.animation",
+      "artifactId": "animation-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.animation.AndroidFlingSpline",
+        "androidx.compose.animation.AnimatedContentRootScope",
+        "androidx.compose.animation.AnimatedContentScope",
+        "androidx.compose.animation.AnimatedContentTransitionScope",
+        "androidx.compose.animation.AnimatedVisibilityScope",
+        "androidx.compose.animation.ChangeSize",
+        "androidx.compose.animation.ContentTransform",
+        "androidx.compose.animation.EnterExitState",
+        "androidx.compose.animation.EnterTransition",
+        "androidx.compose.animation.ExitTransition",
+        "androidx.compose.animation.ExperimentalAnimationApi",
+        "androidx.compose.animation.Fade",
+        "androidx.compose.animation.FlingCalculator",
+        "androidx.compose.animation.GraphicsLayerBlockForEnterExit",
+        "androidx.compose.animation.LayoutModifierNodeWithPassThroughIntrinsics",
+        "androidx.compose.animation.LayoutModifierWithPassThroughIntrinsics",
+        "androidx.compose.animation.OnLookaheadMeasured",
+        "androidx.compose.animation.Scale",
+        "androidx.compose.animation.SizeTransform",
+        "androidx.compose.animation.Slide",
+        "androidx.compose.animation.SplineBasedFloatDecayAnimationSpec",
+        "androidx.compose.animation.TransitionData"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.animation.AnimatedContentKt.AnimatedContent"
+        },
+        {
+          "fqn": "androidx.compose.animation.AnimatedContentKt.SizeTransform"
+        },
+        {
+          "fqn": "androidx.compose.animation.AnimatedVisibilityKt.AnimatedVisibility"
+        },
+        {
+          "fqn": "androidx.compose.animation.CrossfadeKt.Crossfade"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.expandHorizontally"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.expandIn"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.expandVertically"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.fadeIn"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.fadeOut"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.scaleIn"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.scaleOut"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.shrinkHorizontally"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.shrinkOut"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.shrinkVertically"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.slideIn"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.slideInHorizontally"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.slideInVertically"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.slideOut"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.slideOutHorizontally"
+        },
+        {
+          "fqn": "androidx.compose.animation.EnterExitTransitionKt.slideOutVertically"
+        },
+        {
+          "fqn": "androidx.compose.animation.SingleValueAnimationKt.Animatable"
+        },
+        {
+          "fqn": "androidx.compose.animation.SingleValueAnimationKt.animateColorAsState"
+        },
+        {
+          "fqn": "androidx.compose.animation.SplineBasedDecayAnimationSpec_desktopKt.rememberSplineBasedDecay"
+        },
+        {
+          "fqn": "androidx.compose.animation.SplineBasedDecayKt.splineBasedDecay"
+        },
+        {
+          "xfqn": "androidx.compose.animation.AnimatedContentKt.togetherWith",
+          "rcvr": "androidx.compose.animation.EnterTransition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.TransitionKt.animateColor",
+          "rcvr": "androidx.compose.animation.core.InfiniteTransition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.AnimatedContentKt.AnimatedContent",
+          "rcvr": "androidx.compose.animation.core.Transition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.AnimatedVisibilityKt.AnimatedVisibility",
+          "rcvr": "androidx.compose.animation.core.Transition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.CrossfadeKt.Crossfade",
+          "rcvr": "androidx.compose.animation.core.Transition"
+        },
+        {
+          "xfqn": "androidx.compose.animation.AnimatedVisibilityKt.AnimatedVisibility",
+          "rcvr": "androidx.compose.foundation.layout.ColumnScope"
+        },
+        {
+          "xfqn": "androidx.compose.animation.AnimatedVisibilityKt.AnimatedVisibility",
+          "rcvr": "androidx.compose.foundation.layout.RowScope"
+        },
+        {
+          "xfqn": "androidx.compose.animation.AnimationModifierKt.animateContentSize",
+          "rcvr": "androidx.compose.ui.Modifier"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.animation",
       "artifactId": "animation-graphics",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.animation",
       "artifactId": "animation-graphics-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi",
@@ -1698,8 +2030,34 @@
     },
     {
       "groupId": "androidx.compose.animation",
+      "artifactId": "animation-graphics-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi",
+        "androidx.compose.animation.graphics.vector.AnimatedImageVector",
+        "androidx.compose.animation.graphics.vector.AnimatedVectorTarget",
+        "androidx.compose.animation.graphics.vector.Animator",
+        "androidx.compose.animation.graphics.vector.AnimatorSet",
+        "androidx.compose.animation.graphics.vector.Keyframe",
+        "androidx.compose.animation.graphics.vector.ObjectAnimator",
+        "androidx.compose.animation.graphics.vector.Ordering",
+        "androidx.compose.animation.graphics.vector.PropertyValues",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolder",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolder1D",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolder2D",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderColor",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderFloat",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderInt",
+        "androidx.compose.animation.graphics.vector.PropertyValuesHolderPath",
+        "androidx.compose.animation.graphics.vector.StateVectorConfig",
+        "androidx.compose.animation.graphics.vector.Timestamp"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.animation",
       "artifactId": "animation-tooling-internal",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.animation.tooling.ComposeAnimatedProperty",
@@ -1732,14 +2090,14 @@
     {
       "groupId": "androidx.compose.foundation",
       "artifactId": "foundation",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.foundation",
       "artifactId": "foundation-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.foundation.AndroidEdgeEffectOverscrollEffect",
@@ -2354,15 +2712,802 @@
     },
     {
       "groupId": "androidx.compose.foundation",
+      "artifactId": "foundation-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.foundation.BasicTooltipDefaults",
+        "androidx.compose.foundation.BasicTooltipState",
+        "androidx.compose.foundation.BorderModifierNode",
+        "androidx.compose.foundation.BorderModifierNodeElement",
+        "androidx.compose.foundation.BorderStroke",
+        "androidx.compose.foundation.CombinedClickableNode",
+        "androidx.compose.foundation.ContextMenuData",
+        "androidx.compose.foundation.ContextMenuItem",
+        "androidx.compose.foundation.ContextMenuRepresentation",
+        "androidx.compose.foundation.ContextMenuState",
+        "androidx.compose.foundation.DefaultContextMenuRepresentation",
+        "androidx.compose.foundation.DesktopPlatform",
+        "androidx.compose.foundation.ExperimentalFoundationApi",
+        "androidx.compose.foundation.FocusedBoundsNode",
+        "androidx.compose.foundation.FocusedBoundsObserverNode",
+        "androidx.compose.foundation.Indication",
+        "androidx.compose.foundation.IndicationInstance",
+        "androidx.compose.foundation.InternalFoundationApi",
+        "androidx.compose.foundation.MarqueeAnimationMode",
+        "androidx.compose.foundation.MarqueeSpacing",
+        "androidx.compose.foundation.MouseClickScope",
+        "androidx.compose.foundation.MutatePriority",
+        "androidx.compose.foundation.MutatorMutex",
+        "androidx.compose.foundation.NoOpOverscrollEffect",
+        "androidx.compose.foundation.OverscrollEffect",
+        "androidx.compose.foundation.ScrollState",
+        "androidx.compose.foundation.ScrollbarAdapter",
+        "androidx.compose.foundation.ScrollbarStyle",
+        "androidx.compose.foundation.ScrollingLayoutElement",
+        "androidx.compose.foundation.ScrollingLayoutNode",
+        "androidx.compose.foundation.TooltipPlacement",
+        "androidx.compose.foundation.draganddrop.DragAndDropSourceNode",
+        "androidx.compose.foundation.draganddrop.DragAndDropSourceScope",
+        "androidx.compose.foundation.gestures.AnchoredDragScope",
+        "androidx.compose.foundation.gestures.AnchoredDraggableState",
+        "androidx.compose.foundation.gestures.BringIntoViewRequestPriorityQueue",
+        "androidx.compose.foundation.gestures.BringIntoViewSpec",
+        "androidx.compose.foundation.gestures.ContentInViewNode",
+        "androidx.compose.foundation.gestures.DefaultFlingBehavior",
+        "androidx.compose.foundation.gestures.Drag2dScope",
+        "androidx.compose.foundation.gestures.DragScope",
+        "androidx.compose.foundation.gestures.Draggable2dState",
+        "androidx.compose.foundation.gestures.DraggableAnchors",
+        "androidx.compose.foundation.gestures.DraggableAnchorsConfig",
+        "androidx.compose.foundation.gestures.DraggableElement",
+        "androidx.compose.foundation.gestures.DraggableNode",
+        "androidx.compose.foundation.gestures.DraggableState",
+        "androidx.compose.foundation.gestures.FlingBehavior",
+        "androidx.compose.foundation.gestures.GestureCancellationException",
+        "androidx.compose.foundation.gestures.LinuxGnomeConfig",
+        "androidx.compose.foundation.gestures.MacOSCocoaConfig",
+        "androidx.compose.foundation.gestures.Orientation",
+        "androidx.compose.foundation.gestures.PointerDirectionConfig",
+        "androidx.compose.foundation.gestures.PressGestureScope",
+        "androidx.compose.foundation.gestures.ScrollConfig",
+        "androidx.compose.foundation.gestures.ScrollScope",
+        "androidx.compose.foundation.gestures.ScrollableDefaults",
+        "androidx.compose.foundation.gestures.ScrollableState",
+        "androidx.compose.foundation.gestures.TransformScope",
+        "androidx.compose.foundation.gestures.TransformableState",
+        "androidx.compose.foundation.gestures.UpdatableAnimationState",
+        "androidx.compose.foundation.gestures.WindowsWinUIConfig",
+        "androidx.compose.foundation.gestures.snapping.FinalSnappingItem",
+        "androidx.compose.foundation.gestures.snapping.SnapFlingBehavior",
+        "androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider",
+        "androidx.compose.foundation.gestures.snapping.SnapPositionInLayout",
+        "androidx.compose.foundation.interaction.DragInteraction",
+        "androidx.compose.foundation.interaction.FocusInteraction",
+        "androidx.compose.foundation.interaction.HoverInteraction",
+        "androidx.compose.foundation.interaction.Interaction",
+        "androidx.compose.foundation.interaction.InteractionSource",
+        "androidx.compose.foundation.interaction.MutableInteractionSource",
+        "androidx.compose.foundation.interaction.PressInteraction",
+        "androidx.compose.foundation.lazy.LazyItemScope",
+        "androidx.compose.foundation.lazy.LazyListAnimateScrollScope",
+        "androidx.compose.foundation.lazy.LazyListBeyondBoundsState",
+        "androidx.compose.foundation.lazy.LazyListInterval",
+        "androidx.compose.foundation.lazy.LazyListIntervalContent",
+        "androidx.compose.foundation.lazy.LazyListItemAnimator",
+        "androidx.compose.foundation.lazy.LazyListItemInfo",
+        "androidx.compose.foundation.lazy.LazyListItemProvider",
+        "androidx.compose.foundation.lazy.LazyListLayoutInfo",
+        "androidx.compose.foundation.lazy.LazyListMeasureResult",
+        "androidx.compose.foundation.lazy.LazyListMeasuredItem",
+        "androidx.compose.foundation.lazy.LazyListMeasuredItemProvider",
+        "androidx.compose.foundation.lazy.LazyListScope",
+        "androidx.compose.foundation.lazy.LazyListScrollPosition",
+        "androidx.compose.foundation.lazy.LazyListState",
+        "androidx.compose.foundation.lazy.LazyScopeMarker",
+        "androidx.compose.foundation.lazy.grid.GridCells",
+        "androidx.compose.foundation.lazy.grid.GridItemSpan",
+        "androidx.compose.foundation.lazy.grid.LazyGridAnimateScrollScope",
+        "androidx.compose.foundation.lazy.grid.LazyGridBeyondBoundsState",
+        "androidx.compose.foundation.lazy.grid.LazyGridInterval",
+        "androidx.compose.foundation.lazy.grid.LazyGridIntervalContent",
+        "androidx.compose.foundation.lazy.grid.LazyGridItemInfo",
+        "androidx.compose.foundation.lazy.grid.LazyGridItemPlacementAnimator",
+        "androidx.compose.foundation.lazy.grid.LazyGridItemProvider",
+        "androidx.compose.foundation.lazy.grid.LazyGridItemScope",
+        "androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope",
+        "androidx.compose.foundation.lazy.grid.LazyGridLayoutInfo",
+        "androidx.compose.foundation.lazy.grid.LazyGridMeasureResult",
+        "androidx.compose.foundation.lazy.grid.LazyGridMeasuredItem",
+        "androidx.compose.foundation.lazy.grid.LazyGridMeasuredItemProvider",
+        "androidx.compose.foundation.lazy.grid.LazyGridMeasuredLine",
+        "androidx.compose.foundation.lazy.grid.LazyGridMeasuredLineProvider",
+        "androidx.compose.foundation.lazy.grid.LazyGridScope",
+        "androidx.compose.foundation.lazy.grid.LazyGridScopeMarker",
+        "androidx.compose.foundation.lazy.grid.LazyGridScrollPosition",
+        "androidx.compose.foundation.lazy.grid.LazyGridSlots",
+        "androidx.compose.foundation.lazy.grid.LazyGridSlotsProvider",
+        "androidx.compose.foundation.lazy.grid.LazyGridSpanLayoutProvider",
+        "androidx.compose.foundation.lazy.grid.LazyGridState",
+        "androidx.compose.foundation.lazy.layout.AwaitFirstLayoutModifier",
+        "androidx.compose.foundation.lazy.layout.IntervalList",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutAnimateScrollScope",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutAnimation",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutAnimationSpecsNode",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutBeyondBoundsInfo",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutBeyondBoundsModifierLocal",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutBeyondBoundsState",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutIntervalContent",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutItemContentFactory",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutItemProvider",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutKeyIndexMap",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutMeasureScope",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutNearestRangeState",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutPinnedItemList",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutPrefetchState",
+        "androidx.compose.foundation.lazy.layout.LazyLayoutSemanticState",
+        "androidx.compose.foundation.lazy.layout.MutableIntervalList",
+        "androidx.compose.foundation.lazy.layout.NearestRangeKeyIndexMap",
+        "androidx.compose.foundation.lazy.staggeredgrid.EmptyLazyStaggeredGridLayoutInfo",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyGridStaggeredGridSlotsProvider",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridAnimateScrollScope",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridBeyondBoundsState",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridInterval",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridIntervalContent",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridItemInfo",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridItemPlacementAnimator",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridItemProvider",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridItemScope",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridLaneInfo",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridLayoutInfo",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridMeasureContext",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridMeasureProvider",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridMeasureResult",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridMeasuredItem",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScopeMarker",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScrollPosition",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSlots",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSpanProvider",
+        "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState",
+        "androidx.compose.foundation.lazy.staggeredgrid.SpanRange",
+        "androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells",
+        "androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan",
+        "androidx.compose.foundation.pager.EmptyLayoutInfo",
+        "androidx.compose.foundation.pager.MeasuredPage",
+        "androidx.compose.foundation.pager.PageInfo",
+        "androidx.compose.foundation.pager.PageSize",
+        "androidx.compose.foundation.pager.PagerBeyondBoundsState",
+        "androidx.compose.foundation.pager.PagerDefaults",
+        "androidx.compose.foundation.pager.PagerIntervalContent",
+        "androidx.compose.foundation.pager.PagerLayoutInfo",
+        "androidx.compose.foundation.pager.PagerLazyLayoutItemProvider",
+        "androidx.compose.foundation.pager.PagerMeasureResult",
+        "androidx.compose.foundation.pager.PagerScope",
+        "androidx.compose.foundation.pager.PagerScrollPosition",
+        "androidx.compose.foundation.pager.PagerSnapDistance",
+        "androidx.compose.foundation.pager.PagerSnapDistanceMaxPages",
+        "androidx.compose.foundation.pager.PagerState",
+        "androidx.compose.foundation.pager.PagerWrapperFlingBehavior",
+        "androidx.compose.foundation.relocation.BringIntoViewChildNode",
+        "androidx.compose.foundation.relocation.BringIntoViewParent",
+        "androidx.compose.foundation.relocation.BringIntoViewRequester",
+        "androidx.compose.foundation.relocation.BringIntoViewRequesterNode",
+        "androidx.compose.foundation.relocation.BringIntoViewResponder",
+        "androidx.compose.foundation.relocation.BringIntoViewResponderNode",
+        "androidx.compose.foundation.shape.AbsoluteCutCornerShape",
+        "androidx.compose.foundation.shape.AbsoluteRoundedCornerShape",
+        "androidx.compose.foundation.shape.CornerBasedShape",
+        "androidx.compose.foundation.shape.CornerSize",
+        "androidx.compose.foundation.shape.CutCornerShape",
+        "androidx.compose.foundation.shape.GenericShape",
+        "androidx.compose.foundation.shape.RoundedCornerShape",
+        "androidx.compose.foundation.text.DeadKeyCombiner",
+        "androidx.compose.foundation.text.Handle",
+        "androidx.compose.foundation.text.HandleState",
+        "androidx.compose.foundation.text.InlineTextContent",
+        "androidx.compose.foundation.text.InternalFoundationTextApi",
+        "androidx.compose.foundation.text.KeyCommand",
+        "androidx.compose.foundation.text.KeyMapping",
+        "androidx.compose.foundation.text.KeyboardActionRunner",
+        "androidx.compose.foundation.text.KeyboardActionScope",
+        "androidx.compose.foundation.text.KeyboardActions",
+        "androidx.compose.foundation.text.KeyboardOptions",
+        "androidx.compose.foundation.text.MappedKeys",
+        "androidx.compose.foundation.text.TextDelegate",
+        "androidx.compose.foundation.text.TextDragObserver",
+        "androidx.compose.foundation.text.TextFieldDelegate",
+        "androidx.compose.foundation.text.TextFieldKeyInput",
+        "androidx.compose.foundation.text.TextFieldScrollerPosition",
+        "androidx.compose.foundation.text.TextFieldState",
+        "androidx.compose.foundation.text.TextLayoutResultProxy",
+        "androidx.compose.foundation.text.UndoManager",
+        "androidx.compose.foundation.text.modifiers.InlineDensity",
+        "androidx.compose.foundation.text.modifiers.MinLinesConstrainer",
+        "androidx.compose.foundation.text.modifiers.MultiParagraphLayoutCache",
+        "androidx.compose.foundation.text.modifiers.ParagraphLayoutCache",
+        "androidx.compose.foundation.text.modifiers.SelectableTextAnnotatedStringElement",
+        "androidx.compose.foundation.text.modifiers.SelectableTextAnnotatedStringNode",
+        "androidx.compose.foundation.text.modifiers.SelectionController",
+        "androidx.compose.foundation.text.modifiers.StaticTextSelectionParams",
+        "androidx.compose.foundation.text.modifiers.TextAnnotatedStringElement",
+        "androidx.compose.foundation.text.modifiers.TextAnnotatedStringNode",
+        "androidx.compose.foundation.text.modifiers.TextStringSimpleElement",
+        "androidx.compose.foundation.text.modifiers.TextStringSimpleNode",
+        "androidx.compose.foundation.text.selection.BaseTextPreparedSelection",
+        "androidx.compose.foundation.text.selection.CrossStatus",
+        "androidx.compose.foundation.text.selection.Direction",
+        "androidx.compose.foundation.text.selection.MouseSelectionObserver",
+        "androidx.compose.foundation.text.selection.MultiWidgetSelectionDelegate",
+        "androidx.compose.foundation.text.selection.Selectable",
+        "androidx.compose.foundation.text.selection.SelectableInfo",
+        "androidx.compose.foundation.text.selection.Selection",
+        "androidx.compose.foundation.text.selection.SelectionAdjustment",
+        "androidx.compose.foundation.text.selection.SelectionHandleAnchor",
+        "androidx.compose.foundation.text.selection.SelectionHandleInfo",
+        "androidx.compose.foundation.text.selection.SelectionLayout",
+        "androidx.compose.foundation.text.selection.SelectionLayoutBuilder",
+        "androidx.compose.foundation.text.selection.SelectionManager",
+        "androidx.compose.foundation.text.selection.SelectionMode",
+        "androidx.compose.foundation.text.selection.SelectionRegistrar",
+        "androidx.compose.foundation.text.selection.TextFieldPreparedSelection",
+        "androidx.compose.foundation.text.selection.TextFieldSelectionManager",
+        "androidx.compose.foundation.text.selection.TextPreparedSelection",
+        "androidx.compose.foundation.text.selection.TextPreparedSelectionState",
+        "androidx.compose.foundation.text.selection.TextSelectionColors",
+        "androidx.compose.foundation.text2.PasswordRevealFilter",
+        "androidx.compose.foundation.text2.SecureTextFieldController",
+        "androidx.compose.foundation.text2.input.CodepointTransformation",
+        "androidx.compose.foundation.text2.input.ImeActionHandler",
+        "androidx.compose.foundation.text2.input.InputTransformation",
+        "androidx.compose.foundation.text2.input.SingleLineCodepointTransformation",
+        "androidx.compose.foundation.text2.input.TextFieldBuffer",
+        "androidx.compose.foundation.text2.input.TextFieldCharSequence",
+        "androidx.compose.foundation.text2.input.TextFieldLineLimits",
+        "androidx.compose.foundation.text2.input.TextFieldState",
+        "androidx.compose.foundation.text2.input.TextObfuscationMode",
+        "androidx.compose.foundation.text2.input.TextUndoManager",
+        "androidx.compose.foundation.text2.input.UndoState"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.foundation.BasicMarqueeKt.MarqueeSpacing"
+        },
+        {
+          "fqn": "androidx.compose.foundation.BasicTooltipKt.BasicTooltipState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.BasicTooltipKt.rememberBasicTooltipState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.BasicTooltip_desktopKt.BasicTooltipBox"
+        },
+        {
+          "fqn": "androidx.compose.foundation.BorderStrokeKt.BorderStroke"
+        },
+        {
+          "fqn": "androidx.compose.foundation.CanvasKt.Canvas"
+        },
+        {
+          "fqn": "androidx.compose.foundation.CheckScrollableContainerConstraintsKt.checkScrollableContainerConstraints"
+        },
+        {
+          "fqn": "androidx.compose.foundation.ClickableKt.CombinedClickableNode"
+        },
+        {
+          "fqn": "androidx.compose.foundation.ContextMenuProvider_desktopKt.ContextMenuArea"
+        },
+        {
+          "fqn": "androidx.compose.foundation.ContextMenuProvider_desktopKt.ContextMenuDataProvider"
+        },
+        {
+          "fqn": "androidx.compose.foundation.DarkThemeKt.isSystemInDarkTheme"
+        },
+        {
+          "fqn": "androidx.compose.foundation.ImageKt.Image"
+        },
+        {
+          "fqn": "androidx.compose.foundation.ScrollKt.rememberScrollState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.Scrollbar_desktopKt.HorizontalScrollbar"
+        },
+        {
+          "fqn": "androidx.compose.foundation.Scrollbar_desktopKt.ScrollbarAdapter"
+        },
+        {
+          "fqn": "androidx.compose.foundation.Scrollbar_desktopKt.VerticalScrollbar"
+        },
+        {
+          "fqn": "androidx.compose.foundation.Scrollbar_desktopKt.defaultScrollbarStyle"
+        },
+        {
+          "fqn": "androidx.compose.foundation.Scrollbar_desktopKt.rememberScrollbarAdapter"
+        },
+        {
+          "fqn": "androidx.compose.foundation.TooltipArea_desktopKt.TooltipArea"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.AnchoredDraggableKt.DraggableAnchors"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.DraggableKt.DraggableState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.DraggableKt.rememberDraggableState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.ScrollableStateKt.ScrollableState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.ScrollableStateKt.rememberScrollableState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.TransformableStateKt.TransformableState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.TransformableStateKt.rememberTransformableState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.snapping.LazyGridSnapLayoutInfoProviderKt.SnapLayoutInfoProvider"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.snapping.LazyListSnapLayoutInfoProviderKt.SnapLayoutInfoProvider"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.snapping.LazyListSnapLayoutInfoProviderKt.rememberSnapFlingBehavior"
+        },
+        {
+          "fqn": "androidx.compose.foundation.gestures.snapping.SnapFlingBehaviorKt.rememberSnapFlingBehavior"
+        },
+        {
+          "fqn": "androidx.compose.foundation.interaction.InteractionSourceKt.MutableInteractionSource"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.LazyDslKt.LazyColumn"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.LazyDslKt.LazyRow"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.LazyListStateKt.rememberLazyListState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.grid.LazyGridDslKt.LazyHorizontalGrid"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.grid.LazyGridDslKt.LazyVerticalGrid"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.grid.LazyGridSpanKt.GridItemSpan"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.grid.LazyGridStateKt.rememberLazyGridState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.layout.LazyLayoutKt.LazyLayout"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.layout.LazyLayoutPinnableItemKt.LazyLayoutPinnableItem"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.layout.Lazy_desktopKt.getDefaultLazyLayoutKey"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridDslKt.LazyHorizontalStaggeredGrid"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridDslKt.LazyVerticalStaggeredGrid"
+        },
+        {
+          "fqn": "androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridStateKt.rememberLazyStaggeredGridState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.pager.PagerKt.HorizontalPager"
+        },
+        {
+          "fqn": "androidx.compose.foundation.pager.PagerKt.VerticalPager"
+        },
+        {
+          "fqn": "androidx.compose.foundation.pager.PagerStateKt.rememberPagerState"
+        },
+        {
+          "fqn": "androidx.compose.foundation.relocation.BringIntoViewRequesterKt.BringIntoViewRequester"
+        },
+        {
+          "fqn": "androidx.compose.foundation.shape.AbsoluteCutCornerShapeKt.AbsoluteCutCornerShape"
+        },
+        {
+          "fqn": "androidx.compose.foundation.shape.AbsoluteRoundedCornerShapeKt.AbsoluteRoundedCornerShape"
+        },
+        {
+          "fqn": "androidx.compose.foundation.shape.CornerSizeKt.CornerSize"
+        },
+        {
+          "fqn": "androidx.compose.foundation.shape.CutCornerShapeKt.CutCornerShape"
+        },
+        {
+          "fqn": "androidx.compose.foundation.shape.RoundedCornerShapeKt.RoundedCornerShape"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text.BasicTextFieldKt.BasicTextField"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text.BasicTextKt.BasicText"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text.ClickableTextKt.ClickableText"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text.KeyboardActionsKt.KeyboardActions"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text.selection.SelectionContainerKt.DisableSelection"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text.selection.SelectionContainerKt.SelectionContainer"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text2.BasicSecureTextFieldKt.BasicSecureTextField"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text2.BasicTextField2Kt.BasicTextField2"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text2.input.TextFieldCharSequenceKt.TextFieldCharSequence"
+        },
+        {
+          "fqn": "androidx.compose.foundation.text2.input.TextFieldStateKt.rememberTextFieldState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.AnchoredDraggableKt.animateTo",
+          "rcvr": "androidx.compose.foundation.gestures.AnchoredDraggableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.AnchoredDraggableKt.snapTo",
+          "rcvr": "androidx.compose.foundation.gestures.AnchoredDraggableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.ScrollExtensionsKt.animateScrollBy",
+          "rcvr": "androidx.compose.foundation.gestures.ScrollableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.ScrollExtensionsKt.scrollBy",
+          "rcvr": "androidx.compose.foundation.gestures.ScrollableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.ScrollExtensionsKt.stopScroll",
+          "rcvr": "androidx.compose.foundation.gestures.ScrollableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.animatePanBy",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.animateRotateBy",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.animateZoomBy",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.panBy",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.rotateBy",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.stopTransformation",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableStateKt.zoomBy",
+          "rcvr": "androidx.compose.foundation.gestures.TransformableState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.interaction.DragInteractionKt.collectIsDraggedAsState",
+          "rcvr": "androidx.compose.foundation.interaction.InteractionSource"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.interaction.FocusInteractionKt.collectIsFocusedAsState",
+          "rcvr": "androidx.compose.foundation.interaction.InteractionSource"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.interaction.HoverInteractionKt.collectIsHoveredAsState",
+          "rcvr": "androidx.compose.foundation.interaction.InteractionSource"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.interaction.PressInteractionKt.collectIsPressedAsState",
+          "rcvr": "androidx.compose.foundation.interaction.InteractionSource"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.CodepointTransformationKt.mask",
+          "rcvr": "androidx.compose.foundation.text2.input.CodepointTransformation.Companion"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.InputTransformationKt.then",
+          "rcvr": "androidx.compose.foundation.text2.input.InputTransformation"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.AllCapsTransformationKt.allCaps",
+          "rcvr": "androidx.compose.foundation.text2.input.InputTransformation.Companion"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.MaxLengthTransformationKt.maxLengthInChars",
+          "rcvr": "androidx.compose.foundation.text2.input.InputTransformation.Companion"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.MaxLengthTransformationKt.maxLengthInCodepoints",
+          "rcvr": "androidx.compose.foundation.text2.input.InputTransformation.Companion"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldBufferKt.delete",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldBuffer"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldBufferKt.insert",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldBuffer"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldBufferKt.placeCursorAtEnd",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldBuffer"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldBufferKt.selectAll",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldBuffer"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldStateKt.clearText",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldStateKt.forEachTextValue",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldStateKt.setTextAndPlaceCursorAtEnd",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldStateKt.setTextAndSelectAll",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text2.input.TextFieldStateKt.textAsFlow",
+          "rcvr": "androidx.compose.foundation.text2.input.TextFieldState"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.BackgroundKt.background",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.BasicMarqueeKt.basicMarquee",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.BorderKt.border",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.ClickableKt.clickable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.ClickableKt.combinedClickable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.Clickable_desktopKt.mouseClickable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.ClipScrollableContainerKt.clipScrollableContainer",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.FocusableKt.focusGroup",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.FocusableKt.focusable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.FocusedBoundsKt.onFocusedBoundsChanged",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.HoverableKt.hoverable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.IndicationKt.indication",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.OverscrollKt.overscroll",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.ProgressSemanticsKt.progressSemantics",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.ScrollKt.horizontalScroll",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.ScrollKt.verticalScroll",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.draganddrop.DragAndDropSourceKt.dragAndDropSource",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.draganddrop.DragAndDropTargetKt.dragAndDropTarget",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.AnchoredDraggableKt.anchoredDraggable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DraggableKt.draggable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.ScrollableKt.scrollable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformableKt.transformable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.relocation.BringIntoViewRequesterKt.bringIntoViewRequester",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.relocation.BringIntoViewResponderKt.bringIntoViewResponder",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.selection.SelectableGroupKt.selectableGroup",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.selection.SelectableKt.selectable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.selection.ToggleableKt.toggleable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.selection.ToggleableKt.triStateToggleable",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitDragOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitHorizontalDragOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitHorizontalTouchSlopOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitLongPressOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitTouchSlopOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitVerticalDragOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.awaitVerticalTouchSlopOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.drag",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.horizontalDrag",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.verticalDrag",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TapGestureDetectorKt.awaitFirstDown",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TapGestureDetectorKt.waitForUpOrCancellation",
+          "rcvr": "androidx.compose.ui.input.pointer.AwaitPointerEventScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformGestureDetectorKt.calculateCentroid",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerEvent"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformGestureDetectorKt.calculateCentroidSize",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerEvent"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformGestureDetectorKt.calculatePan",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerEvent"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformGestureDetectorKt.calculateRotation",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerEvent"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformGestureDetectorKt.calculateZoom",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerEvent"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.detectDragGestures",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.detectDragGesturesAfterLongPress",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.detectHorizontalDragGestures",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.DragGestureDetectorKt.detectVerticalDragGestures",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.ForEachGestureKt.awaitEachGesture",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TapGestureDetectorKt.detectTapGestures",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.gestures.TransformGestureDetectorKt.detectTransformGestures",
+          "rcvr": "androidx.compose.ui.input.pointer.PointerInputScope"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.text.InlineTextContentKt.appendInlineContent",
+          "rcvr": "androidx.compose.ui.text.AnnotatedString.Builder"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.window.WindowDraggableArea_desktopKt.WindowDraggableArea",
+          "rcvr": "androidx.compose.ui.window.WindowScope"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.foundation",
       "artifactId": "foundation-layout",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.foundation",
       "artifactId": "foundation-layout-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.foundation.layout.AlignmentLineProvider",
@@ -2657,6 +3802,248 @@
     },
     {
       "groupId": "androidx.compose.foundation",
+      "artifactId": "foundation-layout-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.foundation.layout.AlignmentLineProvider",
+        "androidx.compose.foundation.layout.Arrangement",
+        "androidx.compose.foundation.layout.BoxScope",
+        "androidx.compose.foundation.layout.BoxScopeInstance",
+        "androidx.compose.foundation.layout.BoxWithConstraintsScope",
+        "androidx.compose.foundation.layout.ColumnScope",
+        "androidx.compose.foundation.layout.ColumnScopeInstance",
+        "androidx.compose.foundation.layout.CrossAxisAlignment",
+        "androidx.compose.foundation.layout.Direction",
+        "androidx.compose.foundation.layout.ExperimentalLayoutApi",
+        "androidx.compose.foundation.layout.FlowColumnScope",
+        "androidx.compose.foundation.layout.FlowColumnScopeInstance",
+        "androidx.compose.foundation.layout.FlowResult",
+        "androidx.compose.foundation.layout.FlowRowScope",
+        "androidx.compose.foundation.layout.FlowRowScopeInstance",
+        "androidx.compose.foundation.layout.HorizontalAlignElement",
+        "androidx.compose.foundation.layout.HorizontalAlignNode",
+        "androidx.compose.foundation.layout.InsetsPaddingModifier",
+        "androidx.compose.foundation.layout.InsetsValues",
+        "androidx.compose.foundation.layout.IntrinsicSize",
+        "androidx.compose.foundation.layout.LayoutOrientation",
+        "androidx.compose.foundation.layout.LayoutScopeMarker",
+        "androidx.compose.foundation.layout.LayoutWeightElement",
+        "androidx.compose.foundation.layout.LayoutWeightNode",
+        "androidx.compose.foundation.layout.MutableWindowInsets",
+        "androidx.compose.foundation.layout.OrientationIndependentConstraints",
+        "androidx.compose.foundation.layout.PaddingValues",
+        "androidx.compose.foundation.layout.RowColumnMeasureHelperResult",
+        "androidx.compose.foundation.layout.RowColumnMeasurementHelper",
+        "androidx.compose.foundation.layout.RowColumnParentData",
+        "androidx.compose.foundation.layout.RowScope",
+        "androidx.compose.foundation.layout.RowScopeInstance",
+        "androidx.compose.foundation.layout.SiblingsAlignedNode",
+        "androidx.compose.foundation.layout.SizeMode",
+        "androidx.compose.foundation.layout.ValueInsets",
+        "androidx.compose.foundation.layout.VerticalAlignElement",
+        "androidx.compose.foundation.layout.VerticalAlignNode",
+        "androidx.compose.foundation.layout.WindowInsets",
+        "androidx.compose.foundation.layout.WindowInsetsSides",
+        "androidx.compose.foundation.layout.WithAlignmentLineBlockElement",
+        "androidx.compose.foundation.layout.WithAlignmentLineElement"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.foundation.layout.BoxKt.Box"
+        },
+        {
+          "fqn": "androidx.compose.foundation.layout.BoxWithConstraintsKt.BoxWithConstraints"
+        },
+        {
+          "fqn": "androidx.compose.foundation.layout.PaddingKt.PaddingValues"
+        },
+        {
+          "fqn": "androidx.compose.foundation.layout.SpacerKt.Spacer"
+        },
+        {
+          "fqn": "androidx.compose.foundation.layout.WindowInsetsKt.WindowInsets"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.PaddingKt.calculateEndPadding",
+          "rcvr": "androidx.compose.foundation.layout.PaddingValues"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.PaddingKt.calculateStartPadding",
+          "rcvr": "androidx.compose.foundation.layout.PaddingValues"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsKt.add",
+          "rcvr": "androidx.compose.foundation.layout.WindowInsets"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsKt.asPaddingValues",
+          "rcvr": "androidx.compose.foundation.layout.WindowInsets"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsKt.exclude",
+          "rcvr": "androidx.compose.foundation.layout.WindowInsets"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsKt.only",
+          "rcvr": "androidx.compose.foundation.layout.WindowInsets"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsKt.union",
+          "rcvr": "androidx.compose.foundation.layout.WindowInsets"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.AlignmentLineKt.paddingFrom",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.AlignmentLineKt.paddingFromBaseline",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.AspectRatioKt.aspectRatio",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.IntrinsicKt.height",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.IntrinsicKt.requiredHeight",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.IntrinsicKt.requiredWidth",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.IntrinsicKt.width",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.OffsetKt.absoluteOffset",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.OffsetKt.offset",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.PaddingKt.absolutePadding",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.PaddingKt.padding",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.defaultMinSize",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.fillMaxHeight",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.fillMaxSize",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.fillMaxWidth",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.height",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.heightIn",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.requiredHeight",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.requiredHeightIn",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.requiredSize",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.requiredSizeIn",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.requiredWidth",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.requiredWidthIn",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.size",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.sizeIn",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.width",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.widthIn",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.wrapContentHeight",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.wrapContentSize",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.SizeKt.wrapContentWidth",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsPaddingKt.consumeWindowInsets",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsPaddingKt.onConsumedWindowInsetsChanged",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsPaddingKt.windowInsetsPadding",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsSizeKt.windowInsetsBottomHeight",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsSizeKt.windowInsetsEndWidth",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsSizeKt.windowInsetsStartWidth",
+          "rcvr": "androidx.compose.ui.Modifier"
+        },
+        {
+          "xfqn": "androidx.compose.foundation.layout.WindowInsetsSizeKt.windowInsetsTopHeight",
+          "rcvr": "androidx.compose.ui.Modifier"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.foundation",
       "artifactId": "foundation-text",
       "version": "1.0.0-alpha07",
       "ktxTargets": [],
@@ -2691,56 +4078,84 @@
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.material",
+      "artifactId": "material-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-icons-core",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-icons-core-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.material",
+      "artifactId": "material-icons-core-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-icons-extended",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-icons-extended-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.material",
+      "artifactId": "material-icons-extended-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-ripple",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.material",
       "artifactId": "material-ripple-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.material",
+      "artifactId": "material-ripple-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -3265,7 +4680,7 @@
     {
       "groupId": "androidx.compose.material3",
       "artifactId": "material3-android",
-      "version": "1.2.0-alpha08",
+      "version": "1.2.0-alpha09",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.AlertDialogDefaults",
@@ -3322,11 +4737,9 @@
         "androidx.compose.material3.FabPlacement",
         "androidx.compose.material3.FabPosition",
         "androidx.compose.material3.FilterChipDefaults",
-        "androidx.compose.material3.FixedThreshold",
         "androidx.compose.material3.FloatRange",
         "androidx.compose.material3.FloatingActionButtonDefaults",
         "androidx.compose.material3.FloatingActionButtonElevation",
-        "androidx.compose.material3.FractionalThreshold",
         "androidx.compose.material3.IconButtonColors",
         "androidx.compose.material3.IconButtonDefaults",
         "androidx.compose.material3.IconToggleButtonColors",
@@ -3357,7 +4770,6 @@
         "androidx.compose.material3.RadioButtonColors",
         "androidx.compose.material3.RadioButtonDefaults",
         "androidx.compose.material3.RangeSliderState",
-        "androidx.compose.material3.ResistanceConfig",
         "androidx.compose.material3.RichTooltipColors",
         "androidx.compose.material3.ScaffoldDefaults",
         "androidx.compose.material3.SearchBarColors",
@@ -3389,10 +4801,7 @@
         "androidx.compose.material3.SnapFlingBehavior",
         "androidx.compose.material3.Strings",
         "androidx.compose.material3.SuggestionChipDefaults",
-        "androidx.compose.material3.SwipeProgress",
         "androidx.compose.material3.SwipeToDismissDefaults",
-        "androidx.compose.material3.SwipeableDefaults",
-        "androidx.compose.material3.SwipeableState",
         "androidx.compose.material3.SwitchColors",
         "androidx.compose.material3.SwitchDefaults",
         "androidx.compose.material3.TabPosition",
@@ -3400,7 +4809,6 @@
         "androidx.compose.material3.TextFieldColors",
         "androidx.compose.material3.TextFieldDefaults",
         "androidx.compose.material3.TextFieldType",
-        "androidx.compose.material3.ThresholdConfig",
         "androidx.compose.material3.TimePickerColors",
         "androidx.compose.material3.TimePickerDefaults",
         "androidx.compose.material3.TimePickerLayoutType",
@@ -3414,6 +4822,8 @@
         "androidx.compose.material3.TopAppBarState",
         "androidx.compose.material3.Typography",
         "androidx.compose.material3.WindowAlignmentMarginPosition",
+        "androidx.compose.material3.pullrefresh.PullRefreshDefaults",
+        "androidx.compose.material3.pullrefresh.PullRefreshState",
         "androidx.compose.material3.tokens.AssistChipTokens",
         "androidx.compose.material3.tokens.BadgeTokens",
         "androidx.compose.material3.tokens.BottomAppBarTokens",
@@ -3605,10 +5015,16 @@
           "fqn": "androidx.compose.material3.DatePickerKt.DatePicker"
         },
         {
+          "fqn": "androidx.compose.material3.DatePickerKt.DatePickerState"
+        },
+        {
           "fqn": "androidx.compose.material3.DatePickerKt.rememberDatePickerState"
         },
         {
           "fqn": "androidx.compose.material3.DateRangePickerKt.DateRangePicker"
+        },
+        {
+          "fqn": "androidx.compose.material3.DateRangePickerKt.DateRangePickerState"
         },
         {
           "fqn": "androidx.compose.material3.DateRangePickerKt.rememberDateRangePickerState"
@@ -3743,9 +5159,6 @@
           "fqn": "androidx.compose.material3.SegmentedButtonKt.SingleChoiceSegmentedButtonRow"
         },
         {
-          "fqn": "androidx.compose.material3.SheetDefaultsKt.SheetState"
-        },
-        {
           "fqn": "androidx.compose.material3.SliderKt.RangeSlider"
         },
         {
@@ -3759,9 +5172,6 @@
         },
         {
           "fqn": "androidx.compose.material3.SurfaceKt.Surface"
-        },
-        {
-          "fqn": "androidx.compose.material3.SwipeToDismissKt.DismissState"
         },
         {
           "fqn": "androidx.compose.material3.SwipeToDismissKt.SwipeToDismiss"
@@ -3779,10 +5189,560 @@
           "fqn": "androidx.compose.material3.TabKt.Tab"
         },
         {
-          "fqn": "androidx.compose.material3.TabRowKt.ScrollableTabRow"
+          "fqn": "androidx.compose.material3.TabRowKt.PrimaryScrollableTabRow"
         },
         {
-          "fqn": "androidx.compose.material3.TabRowKt.TabRow"
+          "fqn": "androidx.compose.material3.TabRowKt.PrimaryTabRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabRowKt.SecondaryScrollableTabRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabRowKt.SecondaryTabRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.TextFieldKt.TextField"
+        },
+        {
+          "fqn": "androidx.compose.material3.TextKt.ProvideTextStyle"
+        },
+        {
+          "fqn": "androidx.compose.material3.TextKt.Text"
+        },
+        {
+          "fqn": "androidx.compose.material3.TimePickerKt.TimeInput"
+        },
+        {
+          "fqn": "androidx.compose.material3.TimePickerKt.TimePicker"
+        },
+        {
+          "fqn": "androidx.compose.material3.TimePickerKt.rememberTimePickerState"
+        },
+        {
+          "fqn": "androidx.compose.material3.TooltipKt.PlainTooltip"
+        },
+        {
+          "fqn": "androidx.compose.material3.TooltipKt.RichTooltip"
+        },
+        {
+          "fqn": "androidx.compose.material3.TooltipKt.TooltipBox"
+        },
+        {
+          "fqn": "androidx.compose.material3.TooltipKt.TooltipState"
+        },
+        {
+          "fqn": "androidx.compose.material3.TooltipKt.rememberTooltipState"
+        },
+        {
+          "xfqn": "androidx.compose.material3.NavigationBarKt.NavigationBarItem",
+          "rcvr": "androidx.compose.foundation.layout.RowScope"
+        },
+        {
+          "xfqn": "androidx.compose.material3.ColorSchemeKt.contentColorFor",
+          "rcvr": "androidx.compose.material3.ColorScheme"
+        },
+        {
+          "xfqn": "androidx.compose.material3.ColorSchemeKt.surfaceColorAtElevation",
+          "rcvr": "androidx.compose.material3.ColorScheme"
+        },
+        {
+          "xfqn": "androidx.compose.material3.SegmentedButtonKt.SegmentedButton",
+          "rcvr": "androidx.compose.material3.MultiChoiceSegmentedButtonRowScope"
+        },
+        {
+          "xfqn": "androidx.compose.material3.SegmentedButtonKt.SegmentedButton",
+          "rcvr": "androidx.compose.material3.SingleChoiceSegmentedButtonRowScope"
+        },
+        {
+          "xfqn": "androidx.compose.material3.InteractiveComponentSizeKt.minimumInteractiveComponentSize",
+          "rcvr": "androidx.compose.ui.Modifier"
+        }
+      ]
+    },
+    {
+      "groupId": "androidx.compose.material3",
+      "artifactId": "material3-desktop",
+      "version": "1.2.0-alpha09",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.material3.AnchorAlignmentOffsetPosition",
+        "androidx.compose.material3.AnchoredDragScope",
+        "androidx.compose.material3.AnchoredDraggableDefaults",
+        "androidx.compose.material3.AnchoredDraggableState",
+        "androidx.compose.material3.AssistChipDefaults",
+        "androidx.compose.material3.BadgeDefaults",
+        "androidx.compose.material3.BottomAppBarDefaults",
+        "androidx.compose.material3.BottomAppBarScrollBehavior",
+        "androidx.compose.material3.BottomAppBarState",
+        "androidx.compose.material3.BottomSheetDefaults",
+        "androidx.compose.material3.BottomSheetScaffoldState",
+        "androidx.compose.material3.ButtonColors",
+        "androidx.compose.material3.ButtonDefaults",
+        "androidx.compose.material3.ButtonElevation",
+        "androidx.compose.material3.CalendarDate",
+        "androidx.compose.material3.CalendarModel",
+        "androidx.compose.material3.CalendarMonth",
+        "androidx.compose.material3.CardColors",
+        "androidx.compose.material3.CardDefaults",
+        "androidx.compose.material3.CardElevation",
+        "androidx.compose.material3.CheckboxColors",
+        "androidx.compose.material3.CheckboxDefaults",
+        "androidx.compose.material3.ChipBorder",
+        "androidx.compose.material3.ChipColors",
+        "androidx.compose.material3.ChipElevation",
+        "androidx.compose.material3.ClockDialModifier",
+        "androidx.compose.material3.ClockDialNode",
+        "androidx.compose.material3.ColorScheme",
+        "androidx.compose.material3.DateInputFormat",
+        "androidx.compose.material3.DateInputValidator",
+        "androidx.compose.material3.DatePickerColors",
+        "androidx.compose.material3.DatePickerDefaults",
+        "androidx.compose.material3.DatePickerFormatter",
+        "androidx.compose.material3.DatePickerState",
+        "androidx.compose.material3.DateRangePickerDefaults",
+        "androidx.compose.material3.DateRangePickerState",
+        "androidx.compose.material3.DismissDirection",
+        "androidx.compose.material3.DismissState",
+        "androidx.compose.material3.DismissValue",
+        "androidx.compose.material3.DisplayMode",
+        "androidx.compose.material3.DividerDefaults",
+        "androidx.compose.material3.DraggableAnchors",
+        "androidx.compose.material3.DraggableAnchorsConfig",
+        "androidx.compose.material3.DrawerDefaults",
+        "androidx.compose.material3.DrawerState",
+        "androidx.compose.material3.DrawerValue",
+        "androidx.compose.material3.DropdownMenuPositionProvider",
+        "androidx.compose.material3.ExperimentalMaterial3Api",
+        "androidx.compose.material3.FabPlacement",
+        "androidx.compose.material3.FabPosition",
+        "androidx.compose.material3.FilterChipDefaults",
+        "androidx.compose.material3.FloatRange",
+        "androidx.compose.material3.FloatingActionButtonDefaults",
+        "androidx.compose.material3.FloatingActionButtonElevation",
+        "androidx.compose.material3.IconButtonColors",
+        "androidx.compose.material3.IconButtonDefaults",
+        "androidx.compose.material3.IconToggleButtonColors",
+        "androidx.compose.material3.InputChipDefaults",
+        "androidx.compose.material3.InputIdentifier",
+        "androidx.compose.material3.InternalMutatorMutex",
+        "androidx.compose.material3.ListItemColors",
+        "androidx.compose.material3.ListItemDefaults",
+        "androidx.compose.material3.MappedInteractionSource",
+        "androidx.compose.material3.MaterialTheme",
+        "androidx.compose.material3.MenuDefaults",
+        "androidx.compose.material3.MenuItemColors",
+        "androidx.compose.material3.MenuPosition",
+        "androidx.compose.material3.MinimumInteractiveModifier",
+        "androidx.compose.material3.MinimumInteractiveModifierNode",
+        "androidx.compose.material3.MultiChoiceSegmentedButtonRowScope",
+        "androidx.compose.material3.MutableWindowInsets",
+        "androidx.compose.material3.NavigationBarDefaults",
+        "androidx.compose.material3.NavigationBarItemColors",
+        "androidx.compose.material3.NavigationBarItemDefaults",
+        "androidx.compose.material3.NavigationDrawerItemColors",
+        "androidx.compose.material3.NavigationDrawerItemDefaults",
+        "androidx.compose.material3.NavigationRailDefaults",
+        "androidx.compose.material3.NavigationRailItemColors",
+        "androidx.compose.material3.NavigationRailItemDefaults",
+        "androidx.compose.material3.OutlinedTextFieldDefaults",
+        "androidx.compose.material3.ProgressIndicatorDefaults",
+        "androidx.compose.material3.RadioButtonColors",
+        "androidx.compose.material3.RadioButtonDefaults",
+        "androidx.compose.material3.RangeSliderState",
+        "androidx.compose.material3.RichTooltipColors",
+        "androidx.compose.material3.ScaffoldDefaults",
+        "androidx.compose.material3.SegmentedButtonBorder",
+        "androidx.compose.material3.SegmentedButtonColors",
+        "androidx.compose.material3.SegmentedButtonContentMeasurePolicy",
+        "androidx.compose.material3.SegmentedButtonDefaults",
+        "androidx.compose.material3.SelectableChipBorder",
+        "androidx.compose.material3.SelectableChipColors",
+        "androidx.compose.material3.SelectableChipElevation",
+        "androidx.compose.material3.SelectableDates",
+        "androidx.compose.material3.SelectedRangeInfo",
+        "androidx.compose.material3.Selection",
+        "androidx.compose.material3.ShapeDefaults",
+        "androidx.compose.material3.Shapes",
+        "androidx.compose.material3.SheetState",
+        "androidx.compose.material3.SheetValue",
+        "androidx.compose.material3.SingleChoiceSegmentedButtonRowScope",
+        "androidx.compose.material3.SliderColors",
+        "androidx.compose.material3.SliderDefaults",
+        "androidx.compose.material3.SliderState",
+        "androidx.compose.material3.SnackbarData",
+        "androidx.compose.material3.SnackbarDefaults",
+        "androidx.compose.material3.SnackbarDuration",
+        "androidx.compose.material3.SnackbarHostState",
+        "androidx.compose.material3.SnackbarResult",
+        "androidx.compose.material3.SnackbarVisuals",
+        "androidx.compose.material3.SnapFlingBehavior",
+        "androidx.compose.material3.Strings",
+        "androidx.compose.material3.SuggestionChipDefaults",
+        "androidx.compose.material3.SwipeToDismissDefaults",
+        "androidx.compose.material3.SwitchColors",
+        "androidx.compose.material3.SwitchDefaults",
+        "androidx.compose.material3.TabPosition",
+        "androidx.compose.material3.TabRowDefaults",
+        "androidx.compose.material3.TextFieldColors",
+        "androidx.compose.material3.TextFieldDefaults",
+        "androidx.compose.material3.TextFieldType",
+        "androidx.compose.material3.TimePickerColors",
+        "androidx.compose.material3.TimePickerDefaults",
+        "androidx.compose.material3.TimePickerLayoutType",
+        "androidx.compose.material3.TimePickerState",
+        "androidx.compose.material3.TonalPalette",
+        "androidx.compose.material3.TooltipDefaults",
+        "androidx.compose.material3.TooltipState",
+        "androidx.compose.material3.TopAppBarColors",
+        "androidx.compose.material3.TopAppBarDefaults",
+        "androidx.compose.material3.TopAppBarScrollBehavior",
+        "androidx.compose.material3.TopAppBarState",
+        "androidx.compose.material3.Typography",
+        "androidx.compose.material3.WindowAlignmentMarginPosition",
+        "androidx.compose.material3.pullrefresh.PullRefreshDefaults",
+        "androidx.compose.material3.pullrefresh.PullRefreshState",
+        "androidx.compose.material3.tokens.AssistChipTokens",
+        "androidx.compose.material3.tokens.BadgeTokens",
+        "androidx.compose.material3.tokens.BottomAppBarTokens",
+        "androidx.compose.material3.tokens.CheckboxTokens",
+        "androidx.compose.material3.tokens.CircularProgressIndicatorTokens",
+        "androidx.compose.material3.tokens.ColorDarkTokens",
+        "androidx.compose.material3.tokens.ColorLightTokens",
+        "androidx.compose.material3.tokens.ColorSchemeKeyTokens",
+        "androidx.compose.material3.tokens.DateInputModalTokens",
+        "androidx.compose.material3.tokens.DatePickerModalTokens",
+        "androidx.compose.material3.tokens.DialogTokens",
+        "androidx.compose.material3.tokens.DividerTokens",
+        "androidx.compose.material3.tokens.ElevatedButtonTokens",
+        "androidx.compose.material3.tokens.ElevatedCardTokens",
+        "androidx.compose.material3.tokens.ElevationTokens",
+        "androidx.compose.material3.tokens.ExtendedFabPrimaryTokens",
+        "androidx.compose.material3.tokens.FabPrimaryLargeTokens",
+        "androidx.compose.material3.tokens.FabPrimarySmallTokens",
+        "androidx.compose.material3.tokens.FabPrimaryTokens",
+        "androidx.compose.material3.tokens.FabSecondaryTokens",
+        "androidx.compose.material3.tokens.FilledAutocompleteTokens",
+        "androidx.compose.material3.tokens.FilledButtonTokens",
+        "androidx.compose.material3.tokens.FilledCardTokens",
+        "androidx.compose.material3.tokens.FilledIconButtonTokens",
+        "androidx.compose.material3.tokens.FilledTextFieldTokens",
+        "androidx.compose.material3.tokens.FilledTonalButtonTokens",
+        "androidx.compose.material3.tokens.FilledTonalIconButtonTokens",
+        "androidx.compose.material3.tokens.FilterChipTokens",
+        "androidx.compose.material3.tokens.IconButtonTokens",
+        "androidx.compose.material3.tokens.InputChipTokens",
+        "androidx.compose.material3.tokens.LinearProgressIndicatorTokens",
+        "androidx.compose.material3.tokens.ListTokens",
+        "androidx.compose.material3.tokens.MenuTokens",
+        "androidx.compose.material3.tokens.MotionTokens",
+        "androidx.compose.material3.tokens.NavigationBarTokens",
+        "androidx.compose.material3.tokens.NavigationDrawerTokens",
+        "androidx.compose.material3.tokens.NavigationRailTokens",
+        "androidx.compose.material3.tokens.OutlinedAutocompleteTokens",
+        "androidx.compose.material3.tokens.OutlinedButtonTokens",
+        "androidx.compose.material3.tokens.OutlinedCardTokens",
+        "androidx.compose.material3.tokens.OutlinedIconButtonTokens",
+        "androidx.compose.material3.tokens.OutlinedSegmentedButtonTokens",
+        "androidx.compose.material3.tokens.OutlinedTextFieldTokens",
+        "androidx.compose.material3.tokens.PaletteTokens",
+        "androidx.compose.material3.tokens.PlainTooltipTokens",
+        "androidx.compose.material3.tokens.PrimaryNavigationTabTokens",
+        "androidx.compose.material3.tokens.RadioButtonTokens",
+        "androidx.compose.material3.tokens.RichTooltipTokens",
+        "androidx.compose.material3.tokens.ScrimTokens",
+        "androidx.compose.material3.tokens.SearchBarTokens",
+        "androidx.compose.material3.tokens.SearchViewTokens",
+        "androidx.compose.material3.tokens.SecondaryNavigationTabTokens",
+        "androidx.compose.material3.tokens.ShapeKeyTokens",
+        "androidx.compose.material3.tokens.ShapeTokens",
+        "androidx.compose.material3.tokens.SheetBottomTokens",
+        "androidx.compose.material3.tokens.SliderTokens",
+        "androidx.compose.material3.tokens.SnackbarTokens",
+        "androidx.compose.material3.tokens.StateTokens",
+        "androidx.compose.material3.tokens.SuggestionChipTokens",
+        "androidx.compose.material3.tokens.SwitchTokens",
+        "androidx.compose.material3.tokens.TextButtonTokens",
+        "androidx.compose.material3.tokens.TimeInputTokens",
+        "androidx.compose.material3.tokens.TimePickerTokens",
+        "androidx.compose.material3.tokens.TopAppBarLargeTokens",
+        "androidx.compose.material3.tokens.TopAppBarMediumTokens",
+        "androidx.compose.material3.tokens.TopAppBarSmallCenteredTokens",
+        "androidx.compose.material3.tokens.TopAppBarSmallTokens",
+        "androidx.compose.material3.tokens.TypeScaleTokens",
+        "androidx.compose.material3.tokens.TypefaceTokens",
+        "androidx.compose.material3.tokens.TypographyKeyTokens",
+        "androidx.compose.material3.tokens.TypographyTokens"
+      ],
+      "ktlfns": [
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.BottomAppBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.BottomAppBarState"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.CenterAlignedTopAppBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.LargeTopAppBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.MediumTopAppBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.TopAppBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.rememberBottomAppBarState"
+        },
+        {
+          "fqn": "androidx.compose.material3.AppBarKt.rememberTopAppBarState"
+        },
+        {
+          "fqn": "androidx.compose.material3.BadgeKt.Badge"
+        },
+        {
+          "fqn": "androidx.compose.material3.BadgeKt.BadgedBox"
+        },
+        {
+          "fqn": "androidx.compose.material3.BottomSheetScaffoldKt.BottomSheetScaffold"
+        },
+        {
+          "fqn": "androidx.compose.material3.BottomSheetScaffoldKt.rememberBottomSheetScaffoldState"
+        },
+        {
+          "fqn": "androidx.compose.material3.BottomSheetScaffoldKt.rememberStandardBottomSheetState"
+        },
+        {
+          "fqn": "androidx.compose.material3.ButtonKt.Button"
+        },
+        {
+          "fqn": "androidx.compose.material3.ButtonKt.ElevatedButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.ButtonKt.FilledTonalButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.ButtonKt.OutlinedButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.ButtonKt.TextButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.CalendarModel_desktopKt.formatWithSkeleton"
+        },
+        {
+          "fqn": "androidx.compose.material3.CardKt.Card"
+        },
+        {
+          "fqn": "androidx.compose.material3.CardKt.ElevatedCard"
+        },
+        {
+          "fqn": "androidx.compose.material3.CardKt.OutlinedCard"
+        },
+        {
+          "fqn": "androidx.compose.material3.CheckboxKt.Checkbox"
+        },
+        {
+          "fqn": "androidx.compose.material3.CheckboxKt.TriStateCheckbox"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.AssistChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.ElevatedAssistChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.ElevatedFilterChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.ElevatedSuggestionChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.FilterChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.InputChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ChipKt.SuggestionChip"
+        },
+        {
+          "fqn": "androidx.compose.material3.ColorSchemeKt.contentColorFor"
+        },
+        {
+          "fqn": "androidx.compose.material3.ColorSchemeKt.darkColorScheme"
+        },
+        {
+          "fqn": "androidx.compose.material3.ColorSchemeKt.lightColorScheme"
+        },
+        {
+          "fqn": "androidx.compose.material3.DatePickerKt.DatePicker"
+        },
+        {
+          "fqn": "androidx.compose.material3.DatePickerKt.DatePickerState"
+        },
+        {
+          "fqn": "androidx.compose.material3.DatePickerKt.rememberDatePickerState"
+        },
+        {
+          "fqn": "androidx.compose.material3.DateRangePickerKt.DateRangePicker"
+        },
+        {
+          "fqn": "androidx.compose.material3.DateRangePickerKt.DateRangePickerState"
+        },
+        {
+          "fqn": "androidx.compose.material3.DateRangePickerKt.rememberDateRangePickerState"
+        },
+        {
+          "fqn": "androidx.compose.material3.DividerKt.HorizontalDivider"
+        },
+        {
+          "fqn": "androidx.compose.material3.DividerKt.VerticalDivider"
+        },
+        {
+          "fqn": "androidx.compose.material3.FloatingActionButtonKt.ExtendedFloatingActionButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.FloatingActionButtonKt.FloatingActionButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.FloatingActionButtonKt.LargeFloatingActionButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.FloatingActionButtonKt.SmallFloatingActionButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.FilledIconButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.FilledIconToggleButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.FilledTonalIconButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.FilledTonalIconToggleButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.IconButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.IconToggleButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.OutlinedIconButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconButtonKt.OutlinedIconToggleButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.IconKt.Icon"
+        },
+        {
+          "fqn": "androidx.compose.material3.LabelKt.Label"
+        },
+        {
+          "fqn": "androidx.compose.material3.ListItemKt.ListItem"
+        },
+        {
+          "fqn": "androidx.compose.material3.MaterialThemeKt.MaterialTheme"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationBarKt.NavigationBar"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.DismissibleDrawerSheet"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.DismissibleNavigationDrawer"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.ModalDrawerSheet"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.ModalNavigationDrawer"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.NavigationDrawerItem"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.PermanentDrawerSheet"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.PermanentNavigationDrawer"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationDrawerKt.rememberDrawerState"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationRailKt.NavigationRail"
+        },
+        {
+          "fqn": "androidx.compose.material3.NavigationRailKt.NavigationRailItem"
+        },
+        {
+          "fqn": "androidx.compose.material3.OutlinedTextFieldKt.OutlinedTextField"
+        },
+        {
+          "fqn": "androidx.compose.material3.ProgressIndicatorKt.CircularProgressIndicator"
+        },
+        {
+          "fqn": "androidx.compose.material3.ProgressIndicatorKt.LinearProgressIndicator"
+        },
+        {
+          "fqn": "androidx.compose.material3.RadioButtonKt.RadioButton"
+        },
+        {
+          "fqn": "androidx.compose.material3.ScaffoldKt.Scaffold"
+        },
+        {
+          "fqn": "androidx.compose.material3.SegmentedButtonKt.MultiChoiceSegmentedButtonRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.SegmentedButtonKt.SingleChoiceSegmentedButtonRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.SliderKt.RangeSlider"
+        },
+        {
+          "fqn": "androidx.compose.material3.SliderKt.Slider"
+        },
+        {
+          "fqn": "androidx.compose.material3.SnackbarHostKt.SnackbarHost"
+        },
+        {
+          "fqn": "androidx.compose.material3.SnackbarKt.Snackbar"
+        },
+        {
+          "fqn": "androidx.compose.material3.SurfaceKt.Surface"
+        },
+        {
+          "fqn": "androidx.compose.material3.SwipeToDismissKt.SwipeToDismiss"
+        },
+        {
+          "fqn": "androidx.compose.material3.SwipeToDismissKt.rememberDismissState"
+        },
+        {
+          "fqn": "androidx.compose.material3.SwitchKt.Switch"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabKt.LeadingIconTab"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabKt.Tab"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabRowKt.PrimaryScrollableTabRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabRowKt.PrimaryTabRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabRowKt.SecondaryScrollableTabRow"
+        },
+        {
+          "fqn": "androidx.compose.material3.TabRowKt.SecondaryTabRow"
         },
         {
           "fqn": "androidx.compose.material3.TextFieldKt.TextField"
@@ -3863,7 +5823,7 @@
     {
       "groupId": "androidx.compose.material3",
       "artifactId": "material3-window-size-class-android",
-      "version": "1.2.0-alpha08",
+      "version": "1.2.0-alpha09",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi",
@@ -3878,16 +5838,35 @@
       ]
     },
     {
+      "groupId": "androidx.compose.material3",
+      "artifactId": "material3-window-size-class-desktop",
+      "version": "1.2.0-alpha09",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi",
+        "androidx.compose.material3.windowsizeclass.WindowHeightSizeClass",
+        "androidx.compose.material3.windowsizeclass.WindowSizeClass",
+        "androidx.compose.material3.windowsizeclass.WindowWidthSizeClass"
+      ]
+    },
+    {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.runtime",
+      "artifactId": "runtime-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -3901,35 +5880,42 @@
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-livedata",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-rxjava2",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-rxjava3",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-saveable",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.runtime",
       "artifactId": "runtime-saveable-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "androidx.compose.runtime",
+      "artifactId": "runtime-saveable-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -3950,14 +5936,14 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.AbsoluteAlignment",
@@ -4290,7 +6276,7 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-android-stubs",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "android.view.DisplayListCanvas",
@@ -4299,15 +6285,355 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.AbsoluteAlignment",
+        "androidx.compose.ui.Alignment",
+        "androidx.compose.ui.BiasAbsoluteAlignment",
+        "androidx.compose.ui.BiasAlignment",
+        "androidx.compose.ui.CombinedModifier",
+        "androidx.compose.ui.ComposeScene",
+        "androidx.compose.ui.CompositionLocalMapInjectionElement",
+        "androidx.compose.ui.CompositionLocalMapInjectionNode",
+        "androidx.compose.ui.Modifier",
+        "androidx.compose.ui.MotionDurationScale",
+        "androidx.compose.ui.UiComposable",
+        "androidx.compose.ui.ZIndexElement",
+        "androidx.compose.ui.ZIndexNode",
+        "androidx.compose.ui.autofill.Autofill",
+        "androidx.compose.ui.autofill.AutofillNode",
+        "androidx.compose.ui.autofill.AutofillTree",
+        "androidx.compose.ui.autofill.AutofillType",
+        "androidx.compose.ui.awt.ComposeDialog",
+        "androidx.compose.ui.awt.ComposeLayer",
+        "androidx.compose.ui.awt.ComposePanel",
+        "androidx.compose.ui.awt.ComposeWindow",
+        "androidx.compose.ui.awt.ComposeWindowDelegate",
+        "androidx.compose.ui.draganddrop.DragAndDropEvent",
+        "androidx.compose.ui.draganddrop.DragAndDropEventType",
+        "androidx.compose.ui.draganddrop.DragAndDropInfo",
+        "androidx.compose.ui.draganddrop.DragAndDropModifierNode",
+        "androidx.compose.ui.draganddrop.DragAndDropNode",
+        "androidx.compose.ui.draganddrop.DragAndDropTarget",
+        "androidx.compose.ui.draganddrop.DragAndDropTransfer",
+        "androidx.compose.ui.draw.BlurredEdgeTreatment",
+        "androidx.compose.ui.draw.BuildDrawCacheParams",
+        "androidx.compose.ui.draw.CacheDrawModifierNode",
+        "androidx.compose.ui.draw.CacheDrawScope",
+        "androidx.compose.ui.draw.DrawBackgroundModifier",
+        "androidx.compose.ui.draw.DrawCacheModifier",
+        "androidx.compose.ui.draw.DrawModifier",
+        "androidx.compose.ui.draw.DrawResult",
+        "androidx.compose.ui.focus.CustomDestinationResult",
+        "androidx.compose.ui.focus.FocusDirection",
+        "androidx.compose.ui.focus.FocusEventModifierNode",
+        "androidx.compose.ui.focus.FocusInvalidationManager",
+        "androidx.compose.ui.focus.FocusManager",
+        "androidx.compose.ui.focus.FocusOrderToProperties",
+        "androidx.compose.ui.focus.FocusOwner",
+        "androidx.compose.ui.focus.FocusProperties",
+        "androidx.compose.ui.focus.FocusPropertiesModifierNode",
+        "androidx.compose.ui.focus.FocusPropertiesScope",
+        "androidx.compose.ui.focus.FocusRequester",
+        "androidx.compose.ui.focus.FocusRequesterModifierNode",
+        "androidx.compose.ui.focus.FocusRestorerNode",
+        "androidx.compose.ui.focus.FocusState",
+        "androidx.compose.ui.focus.FocusTargetModifierNode",
+        "androidx.compose.ui.focus.FocusTargetNode",
+        "androidx.compose.ui.focus.FocusTransactionManager",
+        "androidx.compose.ui.graphics.CompositingStrategy",
+        "androidx.compose.ui.graphics.Fields",
+        "androidx.compose.ui.graphics.GraphicsLayerScope",
+        "androidx.compose.ui.graphics.ReusableGraphicsLayerScope",
+        "androidx.compose.ui.graphics.TransformOrigin",
+        "androidx.compose.ui.graphics.vector.DrawCache",
+        "androidx.compose.ui.graphics.vector.GroupComponent",
+        "androidx.compose.ui.graphics.vector.ImageVector",
+        "androidx.compose.ui.graphics.vector.PathComponent",
+        "androidx.compose.ui.graphics.vector.VNode",
+        "androidx.compose.ui.graphics.vector.VectorApplier",
+        "androidx.compose.ui.graphics.vector.VectorComponent",
+        "androidx.compose.ui.graphics.vector.VectorComposable",
+        "androidx.compose.ui.graphics.vector.VectorConfig",
+        "androidx.compose.ui.graphics.vector.VectorGroup",
+        "androidx.compose.ui.graphics.vector.VectorNode",
+        "androidx.compose.ui.graphics.vector.VectorPainter",
+        "androidx.compose.ui.graphics.vector.VectorPath",
+        "androidx.compose.ui.graphics.vector.VectorProperty",
+        "androidx.compose.ui.hapticfeedback.HapticFeedback",
+        "androidx.compose.ui.hapticfeedback.HapticFeedbackType",
+        "androidx.compose.ui.hapticfeedback.PlatformHapticFeedbackType",
+        "androidx.compose.ui.input.InputMode",
+        "androidx.compose.ui.input.InputModeManager",
+        "androidx.compose.ui.input.key.Key",
+        "androidx.compose.ui.input.key.KeyEvent",
+        "androidx.compose.ui.input.key.KeyEventType",
+        "androidx.compose.ui.input.key.KeyInputModifierNode",
+        "androidx.compose.ui.input.key.KeyShortcut",
+        "androidx.compose.ui.input.key.SoftKeyboardInterceptionModifierNode",
+        "androidx.compose.ui.input.nestedscroll.NestedScrollConnection",
+        "androidx.compose.ui.input.nestedscroll.NestedScrollDispatcher",
+        "androidx.compose.ui.input.nestedscroll.NestedScrollNode",
+        "androidx.compose.ui.input.nestedscroll.NestedScrollSource",
+        "androidx.compose.ui.input.pointer.AwaitPointerEventScope",
+        "androidx.compose.ui.input.pointer.AwtCursor",
+        "androidx.compose.ui.input.pointer.HistoricalChange",
+        "androidx.compose.ui.input.pointer.HitPathTracker",
+        "androidx.compose.ui.input.pointer.InternalPointerEvent",
+        "androidx.compose.ui.input.pointer.Node",
+        "androidx.compose.ui.input.pointer.NodeParent",
+        "androidx.compose.ui.input.pointer.PointerButtons",
+        "androidx.compose.ui.input.pointer.PointerEvent",
+        "androidx.compose.ui.input.pointer.PointerEventPass",
+        "androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException",
+        "androidx.compose.ui.input.pointer.PointerEventType",
+        "androidx.compose.ui.input.pointer.PointerHoverIconModifierElement",
+        "androidx.compose.ui.input.pointer.PointerHoverIconModifierNode",
+        "androidx.compose.ui.input.pointer.PointerIcon",
+        "androidx.compose.ui.input.pointer.PointerIconService",
+        "androidx.compose.ui.input.pointer.PointerId",
+        "androidx.compose.ui.input.pointer.PointerInputChange",
+        "androidx.compose.ui.input.pointer.PointerInputEvent",
+        "androidx.compose.ui.input.pointer.PointerInputEventData",
+        "androidx.compose.ui.input.pointer.PointerInputEventProcessor",
+        "androidx.compose.ui.input.pointer.PointerInputFilter",
+        "androidx.compose.ui.input.pointer.PointerInputModifier",
+        "androidx.compose.ui.input.pointer.PointerInputScope",
+        "androidx.compose.ui.input.pointer.PointerKeyboardModifiers",
+        "androidx.compose.ui.input.pointer.PointerType",
+        "androidx.compose.ui.input.pointer.PositionCalculator",
+        "androidx.compose.ui.input.pointer.ProcessResult",
+        "androidx.compose.ui.input.pointer.SuspendPointerInputElement",
+        "androidx.compose.ui.input.pointer.SuspendingPointerInputModifierNode",
+        "androidx.compose.ui.input.pointer.TestPointerInputEventData",
+        "androidx.compose.ui.input.pointer.util.DataPointAtTime",
+        "androidx.compose.ui.input.pointer.util.PointerIdArray",
+        "androidx.compose.ui.input.pointer.util.VelocityTracker",
+        "androidx.compose.ui.input.pointer.util.VelocityTracker1D",
+        "androidx.compose.ui.input.rotary.RotaryInputModifierNode",
+        "androidx.compose.ui.input.rotary.RotaryScrollEvent",
+        "androidx.compose.ui.layout.AlignmentLine",
+        "androidx.compose.ui.layout.BeyondBoundsLayout",
+        "androidx.compose.ui.layout.ContentScale",
+        "androidx.compose.ui.layout.DefaultIntrinsicMeasurable",
+        "androidx.compose.ui.layout.FixedScale",
+        "androidx.compose.ui.layout.HorizontalAlignmentLine",
+        "androidx.compose.ui.layout.IntermediateLayoutModifierNode",
+        "androidx.compose.ui.layout.IntermediateMeasureScope",
+        "androidx.compose.ui.layout.IntrinsicMeasurable",
+        "androidx.compose.ui.layout.IntrinsicMeasureScope",
+        "androidx.compose.ui.layout.IntrinsicMinMax",
+        "androidx.compose.ui.layout.IntrinsicWidthHeight",
+        "androidx.compose.ui.layout.IntrinsicsMeasureScope",
+        "androidx.compose.ui.layout.LayoutCoordinates",
+        "androidx.compose.ui.layout.LayoutIdModifier",
+        "androidx.compose.ui.layout.LayoutIdParentData",
+        "androidx.compose.ui.layout.LayoutInfo",
+        "androidx.compose.ui.layout.LayoutModifier",
+        "androidx.compose.ui.layout.LayoutNodeSubcompositionsState",
+        "androidx.compose.ui.layout.LookaheadLayoutCoordinates",
+        "androidx.compose.ui.layout.LookaheadScope",
+        "androidx.compose.ui.layout.Measurable",
+        "androidx.compose.ui.layout.MeasurePolicy",
+        "androidx.compose.ui.layout.MeasureResult",
+        "androidx.compose.ui.layout.MeasureScope",
+        "androidx.compose.ui.layout.Measured",
+        "androidx.compose.ui.layout.ModifierInfo",
+        "androidx.compose.ui.layout.MultiContentMeasurePolicy",
+        "androidx.compose.ui.layout.OnGloballyPositionedModifier",
+        "androidx.compose.ui.layout.OnPlacedModifier",
+        "androidx.compose.ui.layout.OnRemeasuredModifier",
+        "androidx.compose.ui.layout.ParentDataModifier",
+        "androidx.compose.ui.layout.PinnableContainer",
+        "androidx.compose.ui.layout.Placeable",
+        "androidx.compose.ui.layout.Remeasurement",
+        "androidx.compose.ui.layout.RemeasurementModifier",
+        "androidx.compose.ui.layout.RootMeasurePolicy",
+        "androidx.compose.ui.layout.ScaleFactor",
+        "androidx.compose.ui.layout.SubcomposeLayoutState",
+        "androidx.compose.ui.layout.SubcomposeMeasureScope",
+        "androidx.compose.ui.layout.SubcomposeSlotReusePolicy",
+        "androidx.compose.ui.layout.VerticalAlignmentLine",
+        "androidx.compose.ui.modifier.BackwardsCompatLocalMap",
+        "androidx.compose.ui.modifier.EmptyMap",
+        "androidx.compose.ui.modifier.ModifierLocal",
+        "androidx.compose.ui.modifier.ModifierLocalConsumer",
+        "androidx.compose.ui.modifier.ModifierLocalManager",
+        "androidx.compose.ui.modifier.ModifierLocalMap",
+        "androidx.compose.ui.modifier.ModifierLocalModifierNode",
+        "androidx.compose.ui.modifier.ModifierLocalProvider",
+        "androidx.compose.ui.modifier.ModifierLocalReadScope",
+        "androidx.compose.ui.modifier.MultiLocalMap",
+        "androidx.compose.ui.modifier.ProvidableModifierLocal",
+        "androidx.compose.ui.modifier.SingleLocalMap",
+        "androidx.compose.ui.node.AlignmentLines",
+        "androidx.compose.ui.node.AlignmentLinesOwner",
+        "androidx.compose.ui.node.BackwardsCompatNode",
+        "androidx.compose.ui.node.ComposeUiNode",
+        "androidx.compose.ui.node.CompositionLocalConsumerModifierNode",
+        "androidx.compose.ui.node.DelegatableNode",
+        "androidx.compose.ui.node.DelegatingNode",
+        "androidx.compose.ui.node.DepthSortedSet",
+        "androidx.compose.ui.node.DepthSortedSetsForDifferentPasses",
+        "androidx.compose.ui.node.DiffCallback",
+        "androidx.compose.ui.node.DrawModifierNode",
+        "androidx.compose.ui.node.GlobalPositionAwareModifierNode",
+        "androidx.compose.ui.node.HitTestResult",
+        "androidx.compose.ui.node.InnerNodeCoordinator",
+        "androidx.compose.ui.node.InternalCoreApi",
+        "androidx.compose.ui.node.InteroperableComposeUiNode",
+        "androidx.compose.ui.node.IntrinsicsPolicy",
+        "androidx.compose.ui.node.LayoutAwareModifierNode",
+        "androidx.compose.ui.node.LayoutModifierNode",
+        "androidx.compose.ui.node.LayoutModifierNodeCoordinator",
+        "androidx.compose.ui.node.LayoutNode",
+        "androidx.compose.ui.node.LayoutNodeAlignmentLines",
+        "androidx.compose.ui.node.LayoutNodeDrawScope",
+        "androidx.compose.ui.node.LayoutNodeLayoutDelegate",
+        "androidx.compose.ui.node.LayoutTreeConsistencyChecker",
+        "androidx.compose.ui.node.LookaheadAlignmentLines",
+        "androidx.compose.ui.node.LookaheadCapablePlaceable",
+        "androidx.compose.ui.node.LookaheadDelegate",
+        "androidx.compose.ui.node.MeasureAndLayoutDelegate",
+        "androidx.compose.ui.node.MeasureScopeWithLayoutNode",
+        "androidx.compose.ui.node.ModifierNodeElement",
+        "androidx.compose.ui.node.MutableVectorWithMutationTracking",
+        "androidx.compose.ui.node.NestedVectorStack",
+        "androidx.compose.ui.node.NodeChain",
+        "androidx.compose.ui.node.NodeCoordinator",
+        "androidx.compose.ui.node.NodeKind",
+        "androidx.compose.ui.node.NodeMeasuringIntrinsics",
+        "androidx.compose.ui.node.Nodes",
+        "androidx.compose.ui.node.ObserverModifierNode",
+        "androidx.compose.ui.node.ObserverNodeOwnerScope",
+        "androidx.compose.ui.node.OnPositionedDispatcher",
+        "androidx.compose.ui.node.OwnedLayer",
+        "androidx.compose.ui.node.Owner",
+        "androidx.compose.ui.node.OwnerScope",
+        "androidx.compose.ui.node.OwnerSnapshotObserver",
+        "androidx.compose.ui.node.ParentDataModifierNode",
+        "androidx.compose.ui.node.PointerInputModifierNode",
+        "androidx.compose.ui.node.Ref",
+        "androidx.compose.ui.node.RootForTest",
+        "androidx.compose.ui.node.SemanticsModifierNode",
+        "androidx.compose.ui.node.TailModifierNode",
+        "androidx.compose.ui.node.TraversableNode",
+        "androidx.compose.ui.node.TreeSet",
+        "androidx.compose.ui.platform.AccessibilityController",
+        "androidx.compose.ui.platform.AccessibilityManager",
+        "androidx.compose.ui.platform.ClipboardManager",
+        "androidx.compose.ui.platform.ComposeAccessible",
+        "androidx.compose.ui.platform.DefaultAccessibilityManager",
+        "androidx.compose.ui.platform.DefaultHapticFeedback",
+        "androidx.compose.ui.platform.DefaultTextToolbar",
+        "androidx.compose.ui.platform.DefaultUiApplier",
+        "androidx.compose.ui.platform.DefaultViewConfiguration",
+        "androidx.compose.ui.platform.DelegatingSoftwareKeyboardController",
+        "androidx.compose.ui.platform.DesktopPlatform",
+        "androidx.compose.ui.platform.DesktopTextInputSession",
+        "androidx.compose.ui.platform.DummyPlatformComponent",
+        "androidx.compose.ui.platform.FlushCoroutineDispatcher",
+        "androidx.compose.ui.platform.GlobalSnapshotManager",
+        "androidx.compose.ui.platform.InfiniteAnimationPolicy",
+        "androidx.compose.ui.platform.InspectableModifier",
+        "androidx.compose.ui.platform.InspectableValue",
+        "androidx.compose.ui.platform.InspectorInfo",
+        "androidx.compose.ui.platform.InspectorValueInfo",
+        "androidx.compose.ui.platform.OutlineCache",
+        "androidx.compose.ui.platform.PlatformClipboardManager",
+        "androidx.compose.ui.platform.PlatformComponent",
+        "androidx.compose.ui.platform.PlatformComponentWithCursor",
+        "androidx.compose.ui.platform.PlatformInput",
+        "androidx.compose.ui.platform.PlatformInputComponent",
+        "androidx.compose.ui.platform.PlatformLocalization",
+        "androidx.compose.ui.platform.PlatformTextInputModifierNode",
+        "androidx.compose.ui.platform.PlatformTextInputSession",
+        "androidx.compose.ui.platform.PlatformTextInputSessionScope",
+        "androidx.compose.ui.platform.PlatformUriHandler",
+        "androidx.compose.ui.platform.SkiaBasedOwner",
+        "androidx.compose.ui.platform.SkiaLayer",
+        "androidx.compose.ui.platform.SkiaRootForTest",
+        "androidx.compose.ui.platform.SoftwareKeyboardController",
+        "androidx.compose.ui.platform.TestComposeWindow",
+        "androidx.compose.ui.platform.TextToolbar",
+        "androidx.compose.ui.platform.TextToolbarStatus",
+        "androidx.compose.ui.platform.UriHandler",
+        "androidx.compose.ui.platform.ValueElement",
+        "androidx.compose.ui.platform.ValueElementSequence",
+        "androidx.compose.ui.platform.ViewConfiguration",
+        "androidx.compose.ui.platform.WindowInfo",
+        "androidx.compose.ui.semantics.AccessibilityAction",
+        "androidx.compose.ui.semantics.AppendedSemanticsElement",
+        "androidx.compose.ui.semantics.ClearAndSetSemanticsElement",
+        "androidx.compose.ui.semantics.CollectionInfo",
+        "androidx.compose.ui.semantics.CollectionItemInfo",
+        "androidx.compose.ui.semantics.CoreSemanticsModifierNode",
+        "androidx.compose.ui.semantics.CustomAccessibilityAction",
+        "androidx.compose.ui.semantics.EmptySemanticsElement",
+        "androidx.compose.ui.semantics.EmptySemanticsModifier",
+        "androidx.compose.ui.semantics.LiveRegionMode",
+        "androidx.compose.ui.semantics.ProgressBarRangeInfo",
+        "androidx.compose.ui.semantics.Role",
+        "androidx.compose.ui.semantics.ScrollAxisRange",
+        "androidx.compose.ui.semantics.SemanticsActions",
+        "androidx.compose.ui.semantics.SemanticsConfiguration",
+        "androidx.compose.ui.semantics.SemanticsModifier",
+        "androidx.compose.ui.semantics.SemanticsNode",
+        "androidx.compose.ui.semantics.SemanticsOwner",
+        "androidx.compose.ui.semantics.SemanticsProperties",
+        "androidx.compose.ui.semantics.SemanticsPropertyKey",
+        "androidx.compose.ui.semantics.SemanticsPropertyReceiver",
+        "androidx.compose.ui.state.ToggleableState",
+        "androidx.compose.ui.util.AddRemoveMutableList",
+        "androidx.compose.ui.util.ComponentUpdater",
+        "androidx.compose.ui.viewinterop.InteropViewFactoryHolder",
+        "androidx.compose.ui.window.AlignmentOffsetPositionProvider",
+        "androidx.compose.ui.window.ApplicationScope",
+        "androidx.compose.ui.window.DialogState",
+        "androidx.compose.ui.window.DialogWindowScope",
+        "androidx.compose.ui.window.FrameWindowScope",
+        "androidx.compose.ui.window.JComponentApplier",
+        "androidx.compose.ui.window.JMenuItemApplier",
+        "androidx.compose.ui.window.MenuBarScope",
+        "androidx.compose.ui.window.MenuItemApplier",
+        "androidx.compose.ui.window.MenuScope",
+        "androidx.compose.ui.window.Notification",
+        "androidx.compose.ui.window.PopupPositionProvider",
+        "androidx.compose.ui.window.TrayState",
+        "androidx.compose.ui.window.UndecoratedWindowResizer",
+        "androidx.compose.ui.window.WindowPlacement",
+        "androidx.compose.ui.window.WindowPosition",
+        "androidx.compose.ui.window.WindowScope",
+        "androidx.compose.ui.window.WindowState"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-geometry",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-geometry-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.geometry.CornerRadius",
+        "androidx.compose.ui.geometry.MutableRect",
+        "androidx.compose.ui.geometry.Offset",
+        "androidx.compose.ui.geometry.Rect",
+        "androidx.compose.ui.geometry.RoundRect",
+        "androidx.compose.ui.geometry.Size"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
+      "artifactId": "ui-geometry-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.geometry.CornerRadius",
@@ -4321,14 +6647,14 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-graphics",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-graphics-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.graphics.AndroidCanvas",
@@ -4419,15 +6745,107 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-graphics-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.graphics.BlendMode",
+        "androidx.compose.ui.graphics.BlendModeColorFilter",
+        "androidx.compose.ui.graphics.BlurEffect",
+        "androidx.compose.ui.graphics.Brush",
+        "androidx.compose.ui.graphics.Canvas",
+        "androidx.compose.ui.graphics.ClipOp",
+        "androidx.compose.ui.graphics.Color",
+        "androidx.compose.ui.graphics.ColorFilter",
+        "androidx.compose.ui.graphics.ColorList",
+        "androidx.compose.ui.graphics.ColorMatrix",
+        "androidx.compose.ui.graphics.ColorMatrixColorFilter",
+        "androidx.compose.ui.graphics.ColorProducer",
+        "androidx.compose.ui.graphics.ColorSet",
+        "androidx.compose.ui.graphics.ExperimentalGraphicsApi",
+        "androidx.compose.ui.graphics.FilterQuality",
+        "androidx.compose.ui.graphics.Float16",
+        "androidx.compose.ui.graphics.ImageBitmap",
+        "androidx.compose.ui.graphics.ImageBitmapConfig",
+        "androidx.compose.ui.graphics.LightingColorFilter",
+        "androidx.compose.ui.graphics.LinearGradient",
+        "androidx.compose.ui.graphics.Matrix",
+        "androidx.compose.ui.graphics.MutableColorList",
+        "androidx.compose.ui.graphics.MutableColorSet",
+        "androidx.compose.ui.graphics.OffsetEffect",
+        "androidx.compose.ui.graphics.Outline",
+        "androidx.compose.ui.graphics.Paint",
+        "androidx.compose.ui.graphics.PaintingStyle",
+        "androidx.compose.ui.graphics.Path",
+        "androidx.compose.ui.graphics.PathEffect",
+        "androidx.compose.ui.graphics.PathFillType",
+        "androidx.compose.ui.graphics.PathMeasure",
+        "androidx.compose.ui.graphics.PathOperation",
+        "androidx.compose.ui.graphics.PixelMap",
+        "androidx.compose.ui.graphics.PointMode",
+        "androidx.compose.ui.graphics.RadialGradient",
+        "androidx.compose.ui.graphics.RenderEffect",
+        "androidx.compose.ui.graphics.ShaderBrush",
+        "androidx.compose.ui.graphics.Shadow",
+        "androidx.compose.ui.graphics.Shape",
+        "androidx.compose.ui.graphics.SkiaBackedCanvas",
+        "androidx.compose.ui.graphics.SkiaBackedPaint",
+        "androidx.compose.ui.graphics.SkiaBackedPath",
+        "androidx.compose.ui.graphics.SkiaBackedPathEffect",
+        "androidx.compose.ui.graphics.SkiaBackedPathMeasure",
+        "androidx.compose.ui.graphics.SkiaBackedRenderEffect",
+        "androidx.compose.ui.graphics.SolidColor",
+        "androidx.compose.ui.graphics.StampedPathEffectStyle",
+        "androidx.compose.ui.graphics.StrokeCap",
+        "androidx.compose.ui.graphics.StrokeJoin",
+        "androidx.compose.ui.graphics.SweepGradient",
+        "androidx.compose.ui.graphics.TileMode",
+        "androidx.compose.ui.graphics.VertexMode",
+        "androidx.compose.ui.graphics.Vertices",
+        "androidx.compose.ui.graphics.colorspace.Adaptation",
+        "androidx.compose.ui.graphics.colorspace.ColorModel",
+        "androidx.compose.ui.graphics.colorspace.ColorSpace",
+        "androidx.compose.ui.graphics.colorspace.ColorSpaces",
+        "androidx.compose.ui.graphics.colorspace.Connector",
+        "androidx.compose.ui.graphics.colorspace.DoubleFunction",
+        "androidx.compose.ui.graphics.colorspace.Illuminant",
+        "androidx.compose.ui.graphics.colorspace.Lab",
+        "androidx.compose.ui.graphics.colorspace.Oklab",
+        "androidx.compose.ui.graphics.colorspace.RenderIntent",
+        "androidx.compose.ui.graphics.colorspace.Rgb",
+        "androidx.compose.ui.graphics.colorspace.TransferParameters",
+        "androidx.compose.ui.graphics.colorspace.WhitePoint",
+        "androidx.compose.ui.graphics.colorspace.Xyz",
+        "androidx.compose.ui.graphics.drawscope.CanvasDrawScope",
+        "androidx.compose.ui.graphics.drawscope.ContentDrawScope",
+        "androidx.compose.ui.graphics.drawscope.DrawContext",
+        "androidx.compose.ui.graphics.drawscope.DrawScope",
+        "androidx.compose.ui.graphics.drawscope.DrawScopeMarker",
+        "androidx.compose.ui.graphics.drawscope.DrawStyle",
+        "androidx.compose.ui.graphics.drawscope.DrawTransform",
+        "androidx.compose.ui.graphics.drawscope.EmptyCanvas",
+        "androidx.compose.ui.graphics.drawscope.Fill",
+        "androidx.compose.ui.graphics.drawscope.Stroke",
+        "androidx.compose.ui.graphics.painter.BitmapPainter",
+        "androidx.compose.ui.graphics.painter.BrushPainter",
+        "androidx.compose.ui.graphics.painter.ColorPainter",
+        "androidx.compose.ui.graphics.painter.Painter",
+        "androidx.compose.ui.graphics.vector.PathBuilder",
+        "androidx.compose.ui.graphics.vector.PathNode",
+        "androidx.compose.ui.graphics.vector.PathParser"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-test",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-test-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.test.AndroidInputDispatcher",
@@ -4465,15 +6883,55 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-test-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.test.ComposeTimeoutException",
+        "androidx.compose.ui.test.DesktopInputDispatcher",
+        "androidx.compose.ui.test.ExperimentalTestApi",
+        "androidx.compose.ui.test.FrameDeferringContinuationInterceptor",
+        "androidx.compose.ui.test.GlobalAssertionsCollection",
+        "androidx.compose.ui.test.IdlingResource",
+        "androidx.compose.ui.test.InjectionScope",
+        "androidx.compose.ui.test.InputDispatcher",
+        "androidx.compose.ui.test.InputDispatcherState",
+        "androidx.compose.ui.test.InternalTestApi",
+        "androidx.compose.ui.test.KeyInjectionScope",
+        "androidx.compose.ui.test.KeyInputState",
+        "androidx.compose.ui.test.MainTestClock",
+        "androidx.compose.ui.test.MouseButton",
+        "androidx.compose.ui.test.MouseInjectionScope",
+        "androidx.compose.ui.test.MouseInputState",
+        "androidx.compose.ui.test.MultiModalInjectionScope",
+        "androidx.compose.ui.test.PartialGesture",
+        "androidx.compose.ui.test.RotaryInjectionScope",
+        "androidx.compose.ui.test.RotaryInputState",
+        "androidx.compose.ui.test.ScrollWheel",
+        "androidx.compose.ui.test.SelectionResult",
+        "androidx.compose.ui.test.SemanticsMatcher",
+        "androidx.compose.ui.test.SemanticsNodeInteraction",
+        "androidx.compose.ui.test.SemanticsNodeInteractionCollection",
+        "androidx.compose.ui.test.SemanticsNodeInteractionsProvider",
+        "androidx.compose.ui.test.SemanticsSelector",
+        "androidx.compose.ui.test.TestContext",
+        "androidx.compose.ui.test.TestMonotonicFrameClock",
+        "androidx.compose.ui.test.TestOwner",
+        "androidx.compose.ui.test.TouchInjectionScope",
+        "androidx.compose.ui.test.VelocityPathFinder"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-test-junit4",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-test-junit4-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.test.AndroidComposeUiTest",
@@ -4498,22 +6956,44 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-test-junit4-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.test.ApplyingContinuationInterceptor",
+        "androidx.compose.ui.test.ComposeUiTest",
+        "androidx.compose.ui.test.DesktopComposeUiTest",
+        "androidx.compose.ui.test.StateRestorationTester",
+        "androidx.compose.ui.test.junit4.AbstractMainTestClock",
+        "androidx.compose.ui.test.junit4.ComposeContentTestRule",
+        "androidx.compose.ui.test.junit4.ComposeTestRule",
+        "androidx.compose.ui.test.junit4.DesktopComposeTestRule",
+        "androidx.compose.ui.test.junit4.GoldenConfig",
+        "androidx.compose.ui.test.junit4.IdlingResourceRegistry",
+        "androidx.compose.ui.test.junit4.ScreenshotResultProto",
+        "androidx.compose.ui.test.junit4.ScreenshotTestRule",
+        "androidx.compose.ui.test.junit4.SkiaTestAlbum",
+        "androidx.compose.ui.test.junit4.UncaughtExceptionHandler"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-test-manifest",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-text",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-text-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.text.AndroidParagraph",
@@ -4680,8 +7160,135 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-text-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.text.AnnotatedString",
+        "androidx.compose.ui.text.Cache",
+        "androidx.compose.ui.text.CacheTextLayoutInput",
+        "androidx.compose.ui.text.ExperimentalTextApi",
+        "androidx.compose.ui.text.ExpireAfterAccessCache",
+        "androidx.compose.ui.text.InternalTextApi",
+        "androidx.compose.ui.text.MultiParagraph",
+        "androidx.compose.ui.text.MultiParagraphIntrinsics",
+        "androidx.compose.ui.text.Paragraph",
+        "androidx.compose.ui.text.ParagraphInfo",
+        "androidx.compose.ui.text.ParagraphIntrinsicInfo",
+        "androidx.compose.ui.text.ParagraphIntrinsics",
+        "androidx.compose.ui.text.ParagraphStyle",
+        "androidx.compose.ui.text.Placeholder",
+        "androidx.compose.ui.text.PlaceholderVerticalAlign",
+        "androidx.compose.ui.text.PlatformParagraphStyle",
+        "androidx.compose.ui.text.PlatformSpanStyle",
+        "androidx.compose.ui.text.PlatformStringDelegate",
+        "androidx.compose.ui.text.PlatformTextStyle",
+        "androidx.compose.ui.text.SkiaParagraph",
+        "androidx.compose.ui.text.SpanStyle",
+        "androidx.compose.ui.text.TextLayoutCache",
+        "androidx.compose.ui.text.TextLayoutInput",
+        "androidx.compose.ui.text.TextLayoutResult",
+        "androidx.compose.ui.text.TextMeasurer",
+        "androidx.compose.ui.text.TextPainter",
+        "androidx.compose.ui.text.TextRange",
+        "androidx.compose.ui.text.TextStyle",
+        "androidx.compose.ui.text.TtsAnnotation",
+        "androidx.compose.ui.text.UrlAnnotation",
+        "androidx.compose.ui.text.VerbatimTtsAnnotation",
+        "androidx.compose.ui.text.caches.LruCache",
+        "androidx.compose.ui.text.caches.SimpleArrayMap",
+        "androidx.compose.ui.text.font.AsyncFontListLoader",
+        "androidx.compose.ui.text.font.AsyncTypefaceCache",
+        "androidx.compose.ui.text.font.DefaultFontFamily",
+        "androidx.compose.ui.text.font.FileBasedFontFamily",
+        "androidx.compose.ui.text.font.Font",
+        "androidx.compose.ui.text.font.FontFamily",
+        "androidx.compose.ui.text.font.FontFamilyTypefaceAdapter",
+        "androidx.compose.ui.text.font.FontListFontFamily",
+        "androidx.compose.ui.text.font.FontListFontFamilyTypefaceAdapter",
+        "androidx.compose.ui.text.font.FontLoadingStrategy",
+        "androidx.compose.ui.text.font.FontMatcher",
+        "androidx.compose.ui.text.font.FontStyle",
+        "androidx.compose.ui.text.font.FontSynthesis",
+        "androidx.compose.ui.text.font.FontVariation",
+        "androidx.compose.ui.text.font.FontWeight",
+        "androidx.compose.ui.text.font.GenericFontFamily",
+        "androidx.compose.ui.text.font.LoadedFontFamily",
+        "androidx.compose.ui.text.font.PlatformFontFamilyTypefaceAdapter",
+        "androidx.compose.ui.text.font.PlatformFontLoader",
+        "androidx.compose.ui.text.font.PlatformResolveInterceptor",
+        "androidx.compose.ui.text.font.ResourceFont",
+        "androidx.compose.ui.text.font.SkiaFontLoader",
+        "androidx.compose.ui.text.font.SystemFontFamily",
+        "androidx.compose.ui.text.font.Typeface",
+        "androidx.compose.ui.text.font.TypefaceRequest",
+        "androidx.compose.ui.text.font.TypefaceRequestCache",
+        "androidx.compose.ui.text.font.TypefaceResult",
+        "androidx.compose.ui.text.input.BackspaceCommand",
+        "androidx.compose.ui.text.input.CommitTextCommand",
+        "androidx.compose.ui.text.input.DeleteAllCommand",
+        "androidx.compose.ui.text.input.DeleteSurroundingTextCommand",
+        "androidx.compose.ui.text.input.DeleteSurroundingTextInCodePointsCommand",
+        "androidx.compose.ui.text.input.EditCommand",
+        "androidx.compose.ui.text.input.EditProcessor",
+        "androidx.compose.ui.text.input.EditingBuffer",
+        "androidx.compose.ui.text.input.FinishComposingTextCommand",
+        "androidx.compose.ui.text.input.ImeAction",
+        "androidx.compose.ui.text.input.ImeOptions",
+        "androidx.compose.ui.text.input.KeyboardCapitalization",
+        "androidx.compose.ui.text.input.KeyboardType",
+        "androidx.compose.ui.text.input.MoveCursorCommand",
+        "androidx.compose.ui.text.input.OffsetMapping",
+        "androidx.compose.ui.text.input.PartialGapBuffer",
+        "androidx.compose.ui.text.input.PasswordVisualTransformation",
+        "androidx.compose.ui.text.input.PlatformImeOptions",
+        "androidx.compose.ui.text.input.PlatformTextInputMethodRequest",
+        "androidx.compose.ui.text.input.PlatformTextInputService",
+        "androidx.compose.ui.text.input.SetComposingRegionCommand",
+        "androidx.compose.ui.text.input.SetComposingTextCommand",
+        "androidx.compose.ui.text.input.SetSelectionCommand",
+        "androidx.compose.ui.text.input.TextFieldValue",
+        "androidx.compose.ui.text.input.TextInputService",
+        "androidx.compose.ui.text.input.TextInputSession",
+        "androidx.compose.ui.text.input.TransformedText",
+        "androidx.compose.ui.text.input.VisualTransformation",
+        "androidx.compose.ui.text.intl.DesktopLocale",
+        "androidx.compose.ui.text.intl.Locale",
+        "androidx.compose.ui.text.intl.LocaleList",
+        "androidx.compose.ui.text.intl.PlatformLocale",
+        "androidx.compose.ui.text.intl.PlatformLocaleDelegate",
+        "androidx.compose.ui.text.platform.ComputedStyle",
+        "androidx.compose.ui.text.platform.DesktopStringDelegate",
+        "androidx.compose.ui.text.platform.FileFont",
+        "androidx.compose.ui.text.platform.FontCache",
+        "androidx.compose.ui.text.platform.FontLoadResult",
+        "androidx.compose.ui.text.platform.LoadedFont",
+        "androidx.compose.ui.text.platform.ParagraphBuilder",
+        "androidx.compose.ui.text.platform.ParagraphLayouter",
+        "androidx.compose.ui.text.platform.PlatformFont",
+        "androidx.compose.ui.text.platform.ResourceFont",
+        "androidx.compose.ui.text.platform.SkiaBackedTypeface",
+        "androidx.compose.ui.text.platform.SkiaParagraphIntrinsics",
+        "androidx.compose.ui.text.platform.SynchronizedObject",
+        "androidx.compose.ui.text.style.BaselineShift",
+        "androidx.compose.ui.text.style.Hyphens",
+        "androidx.compose.ui.text.style.LineBreak",
+        "androidx.compose.ui.text.style.LineHeightStyle",
+        "androidx.compose.ui.text.style.ResolvedTextDirection",
+        "androidx.compose.ui.text.style.TextAlign",
+        "androidx.compose.ui.text.style.TextDecoration",
+        "androidx.compose.ui.text.style.TextDirection",
+        "androidx.compose.ui.text.style.TextForegroundStyle",
+        "androidx.compose.ui.text.style.TextGeometricTransform",
+        "androidx.compose.ui.text.style.TextIndent",
+        "androidx.compose.ui.text.style.TextMotion",
+        "androidx.compose.ui.text.style.TextOverflow"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-text-google-fonts",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.text.googlefonts.FontsContractCompatLoader",
@@ -4693,14 +7300,14 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.tooling.ComposeViewAdapter",
@@ -4733,14 +7340,14 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling-data",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling-data-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.tooling.data.CallGroup",
@@ -4756,15 +7363,43 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-tooling-data-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.tooling.data.CallGroup",
+        "androidx.compose.ui.tooling.data.ContextCache",
+        "androidx.compose.ui.tooling.data.Group",
+        "androidx.compose.ui.tooling.data.JoinedKey",
+        "androidx.compose.ui.tooling.data.NodeGroup",
+        "androidx.compose.ui.tooling.data.ParameterInformation",
+        "androidx.compose.ui.tooling.data.SourceContext",
+        "androidx.compose.ui.tooling.data.SourceLocation",
+        "androidx.compose.ui.tooling.data.UiToolingDataApi"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
+      "artifactId": "ui-tooling-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.desktop.ui.tooling.preview.runtime.NonInteractivePreviewFacade",
+        "androidx.compose.desktop.ui.tooling.preview.runtime.PreviewRunner",
+        "androidx.compose.ui.tooling.PreviewLogger"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling-preview",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-tooling-preview-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.tooling.preview.Device",
@@ -4781,15 +7416,46 @@
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-tooling-preview-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.desktop.ui.tooling.preview.Preview"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-unit",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-unit-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.unit.Constraints",
+        "androidx.compose.ui.unit.Density",
+        "androidx.compose.ui.unit.Dp",
+        "androidx.compose.ui.unit.DpOffset",
+        "androidx.compose.ui.unit.DpRect",
+        "androidx.compose.ui.unit.DpSize",
+        "androidx.compose.ui.unit.ExperimentalUnitApi",
+        "androidx.compose.ui.unit.IntOffset",
+        "androidx.compose.ui.unit.IntRect",
+        "androidx.compose.ui.unit.IntSize",
+        "androidx.compose.ui.unit.LayoutDirection",
+        "androidx.compose.ui.unit.TextUnit",
+        "androidx.compose.ui.unit.TextUnitType",
+        "androidx.compose.ui.unit.Velocity"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
+      "artifactId": "ui-unit-desktop",
+      "version": "1.6.0-alpha07",
       "ktxTargets": [],
       "fqcns": [
         "androidx.compose.ui.unit.Constraints",
@@ -4811,21 +7477,31 @@
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-util",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
       "artifactId": "ui-util-android",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.compose.ui",
+      "artifactId": "ui-util-desktop",
+      "version": "1.6.0-alpha07",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.compose.ui.ExperimentalComposeUiApi",
+        "androidx.compose.ui.InternalComposeUiApi"
+      ]
+    },
+    {
+      "groupId": "androidx.compose.ui",
       "artifactId": "ui-viewbinding",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -4984,7 +7660,7 @@
     {
       "groupId": "androidx.constraintlayout",
       "artifactId": "constraintlayout-compose-android",
-      "version": "1.1.0-alpha12",
+      "version": "1.1.0-alpha13",
       "ktxTargets": [],
       "fqcns": [
         "androidx.constraintlayout.compose.AnchorFunctions",
@@ -5569,7 +8245,7 @@
     {
       "groupId": "androidx.core",
       "artifactId": "core-performance",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0-beta02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.core.performance.DefaultDevicePerformance",
@@ -5579,7 +8255,7 @@
     {
       "groupId": "androidx.core",
       "artifactId": "core-performance-play-services",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0-beta02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.core.performance.play.services.PlayServicesDevicePerformance"
@@ -5588,7 +8264,7 @@
     {
       "groupId": "androidx.core",
       "artifactId": "core-performance-testing",
-      "version": "1.0.0-beta01",
+      "version": "1.0.0-beta02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.core.performance.testing.FakeDevicePerformance"
@@ -5628,15 +8304,16 @@
     {
       "groupId": "androidx.core",
       "artifactId": "core-telecom",
-      "version": "1.0.0-alpha01",
+      "version": "1.0.0-alpha02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.core.telecom.CallAttributesCompat",
-        "androidx.core.telecom.CallControlCallback",
+        "androidx.core.telecom.CallControlResult",
         "androidx.core.telecom.CallControlScope",
         "androidx.core.telecom.CallEndpointCompat",
         "androidx.core.telecom.CallException",
-        "androidx.core.telecom.CallsManager"
+        "androidx.core.telecom.CallsManager",
+        "androidx.core.telecom.util.ExperimentalAppActions"
       ]
     },
     {
@@ -5682,7 +8359,7 @@
     {
       "groupId": "androidx.credentials",
       "artifactId": "credentials",
-      "version": "1.2.0-beta04",
+      "version": "1.2.0-rc01",
       "ktxTargets": [],
       "fqcns": [
         "androidx.credentials.ClearCredentialStateRequest",
@@ -5799,7 +8476,7 @@
     {
       "groupId": "androidx.credentials",
       "artifactId": "credentials-play-services-auth",
-      "version": "1.2.0-beta04",
+      "version": "1.2.0-rc01",
       "ktxTargets": [],
       "fqcns": [
         "androidx.credentials.playservices.controllers.BeginSignIn.BeginSignInControllerUtility",
@@ -7407,7 +10084,7 @@
     {
       "groupId": "androidx.health.connect",
       "artifactId": "connect-client",
-      "version": "1.1.0-alpha04",
+      "version": "1.1.0-alpha05",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -7514,7 +10191,7 @@
     {
       "groupId": "androidx.javascriptengine",
       "artifactId": "javascriptengine",
-      "version": "1.0.0-alpha05",
+      "version": "1.0.0-alpha06",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -9071,7 +11748,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-common",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.ActionOnlyNavDirections",
@@ -9109,7 +11786,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-common-ktx",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [
         "androidx.navigation:navigation-common"
       ],
@@ -9118,7 +11795,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-compose",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.compose.BackStackEntryIdViewModel",
@@ -9130,7 +11807,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-dynamic-features-fragment",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.dynamicfeatures.fragment.DynamicFragmentNavigator",
@@ -9144,7 +11821,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-dynamic-features-runtime",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.dynamicfeatures.DynamicActivityNavigator",
@@ -9161,7 +11838,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-fragment",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.fragment.AbstractListDetailFragment",
@@ -9175,7 +11852,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-fragment-ktx",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [
         "androidx.navigation:navigation-fragment"
       ],
@@ -9184,7 +11861,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-runtime",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.ActivityNavigator",
@@ -9203,7 +11880,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-runtime-ktx",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [
         "androidx.navigation:navigation-runtime"
       ],
@@ -9212,7 +11889,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-safe-args-generator",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.safe.args.generator.BoolArrayType",
@@ -9265,7 +11942,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-safe-args-gradle-plugin",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.safeargs.gradle.ArgumentsGenerationTask",
@@ -9277,7 +11954,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-testing",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.testing.TestNavHostController",
@@ -9288,7 +11965,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-ui",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": [
         "androidx.navigation.ui.AbstractAppBarOnDestinationChangedListener",
@@ -9303,7 +11980,7 @@
     {
       "groupId": "androidx.navigation",
       "artifactId": "navigation-ui-ktx",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [
         "androidx.navigation:navigation-ui"
       ],
@@ -9312,14 +11989,14 @@
     {
       "groupId": "androidx.navigation.safeargs",
       "artifactId": "androidx.navigation.safeargs.gradle.plugin",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": []
     },
     {
       "groupId": "androidx.navigation.safeargs.kotlin",
       "artifactId": "androidx.navigation.safeargs.kotlin.gradle.plugin",
-      "version": "2.7.3",
+      "version": "2.7.4",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -9803,7 +12480,7 @@
     {
       "groupId": "androidx.privacysandbox.ads",
       "artifactId": "ads-adservices",
-      "version": "1.1.0-beta01",
+      "version": "1.1.0-beta02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.ads.adservices.adid.AdId",
@@ -9839,7 +12516,7 @@
     {
       "groupId": "androidx.privacysandbox.ads",
       "artifactId": "ads-adservices-java",
-      "version": "1.1.0-beta01",
+      "version": "1.1.0-beta02",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.ads.adservices.java.adid.AdIdManagerFutures",
@@ -9871,7 +12548,7 @@
     {
       "groupId": "androidx.privacysandbox.sdkruntime",
       "artifactId": "sdkruntime-client",
-      "version": "1.0.0-alpha08",
+      "version": "1.0.0-alpha09",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.sdkruntime.client.SdkSandboxManagerCompat",
@@ -9882,15 +12559,20 @@
         "androidx.privacysandbox.sdkruntime.client.activity.SdkActivity",
         "androidx.privacysandbox.sdkruntime.client.config.LocalSdkConfig",
         "androidx.privacysandbox.sdkruntime.client.config.LocalSdkConfigParser",
+        "androidx.privacysandbox.sdkruntime.client.config.LocalSdkConfigsHolder",
         "androidx.privacysandbox.sdkruntime.client.config.ResourceRemappingConfig",
+        "androidx.privacysandbox.sdkruntime.client.config.SdkTableConfigParser",
         "androidx.privacysandbox.sdkruntime.client.controller.AppOwnedSdkRegistry",
         "androidx.privacysandbox.sdkruntime.client.controller.LocalController",
+        "androidx.privacysandbox.sdkruntime.client.controller.LocalControllerFactory",
         "androidx.privacysandbox.sdkruntime.client.controller.LocallyLoadedSdks",
         "androidx.privacysandbox.sdkruntime.client.loader.FileClassLoaderFactory",
         "androidx.privacysandbox.sdkruntime.client.loader.InMemorySdkClassLoaderFactory",
         "androidx.privacysandbox.sdkruntime.client.loader.JavaResourcesLoadingClassLoaderFactory",
+        "androidx.privacysandbox.sdkruntime.client.loader.LocalSdkProvider",
         "androidx.privacysandbox.sdkruntime.client.loader.ResourceRemapping",
         "androidx.privacysandbox.sdkruntime.client.loader.SdkLoader",
+        "androidx.privacysandbox.sdkruntime.client.loader.VersionHandshake",
         "androidx.privacysandbox.sdkruntime.client.loader.storage.CachedLocalSdkStorage",
         "androidx.privacysandbox.sdkruntime.client.loader.storage.LocalSdkDexFiles",
         "androidx.privacysandbox.sdkruntime.client.loader.storage.LocalSdkFolderProvider",
@@ -9900,18 +12582,26 @@
     {
       "groupId": "androidx.privacysandbox.sdkruntime",
       "artifactId": "sdkruntime-core",
-      "version": "1.0.0-alpha08",
+      "version": "1.0.0-alpha09",
       "ktxTargets": [],
       "fqcns": [
         "androidx.privacysandbox.sdkruntime.core.AppOwnedSdkSandboxInterfaceCompat",
         "androidx.privacysandbox.sdkruntime.core.LoadSdkCompatException",
         "androidx.privacysandbox.sdkruntime.core.SandboxedSdkCompat",
         "androidx.privacysandbox.sdkruntime.core.SandboxedSdkInfo",
-        "androidx.privacysandbox.sdkruntime.core.SandboxedSdkProviderAdapter",
         "androidx.privacysandbox.sdkruntime.core.SandboxedSdkProviderCompat",
         "androidx.privacysandbox.sdkruntime.core.activity.ActivityHolder",
         "androidx.privacysandbox.sdkruntime.core.activity.SdkSandboxActivityHandlerCompat",
         "androidx.privacysandbox.sdkruntime.core.controller.SdkSandboxControllerCompat"
+      ]
+    },
+    {
+      "groupId": "androidx.privacysandbox.sdkruntime",
+      "artifactId": "sdkruntime-provider",
+      "version": "1.0.0-alpha09",
+      "ktxTargets": [],
+      "fqcns": [
+        "androidx.privacysandbox.sdkruntime.provider.SandboxedSdkProviderAdapter"
       ]
     },
     {
@@ -12345,7 +15035,7 @@
     {
       "groupId": "androidx.tracing",
       "artifactId": "tracing-perfetto",
-      "version": "1.0.0-rc01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.tracing.perfetto.PerfettoSdkTrace",
@@ -12361,7 +15051,7 @@
     {
       "groupId": "androidx.tracing",
       "artifactId": "tracing-perfetto-binary",
-      "version": "1.0.0-rc01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -12377,7 +15067,7 @@
     {
       "groupId": "androidx.tracing",
       "artifactId": "tracing-perfetto-handshake",
-      "version": "1.0.0-rc01",
+      "version": "1.0.0",
       "ktxTargets": [],
       "fqcns": [
         "androidx.tracing.perfetto.handshake.PerfettoSdkHandshake",
@@ -12430,7 +15120,7 @@
     {
       "groupId": "androidx.tv",
       "artifactId": "tv-foundation",
-      "version": "1.0.0-alpha09",
+      "version": "1.0.0-alpha10",
       "ktxTargets": [],
       "fqcns": [
         "androidx.tv.foundation.ExperimentalTvFoundationApi",
@@ -12491,15 +15181,13 @@
     {
       "groupId": "androidx.tv",
       "artifactId": "tv-material",
-      "version": "1.0.0-alpha09",
+      "version": "1.0.0-alpha10",
       "ktxTargets": [],
       "fqcns": [
         "androidx.tv.material3.AssistChipDefaults",
         "androidx.tv.material3.BaseButtonDefaults",
         "androidx.tv.material3.BaseWideButtonDefaults",
         "androidx.tv.material3.Border",
-        "androidx.tv.material3.BorderIndication",
-        "androidx.tv.material3.BorderIndicationInstance",
         "androidx.tv.material3.ButtonBorder",
         "androidx.tv.material3.ButtonColors",
         "androidx.tv.material3.ButtonDefaults",
@@ -12535,7 +15223,6 @@
         "androidx.tv.material3.ExperimentalTvMaterial3Api",
         "androidx.tv.material3.FilterChipDefaults",
         "androidx.tv.material3.Glow",
-        "androidx.tv.material3.GlowIndication",
         "androidx.tv.material3.IconButtonDefaults",
         "androidx.tv.material3.ImmersiveListBackgroundScope",
         "androidx.tv.material3.ImmersiveListDefaults",
@@ -12563,9 +15250,6 @@
         "androidx.tv.material3.OutlinedIconButtonDefaults",
         "androidx.tv.material3.RadioButtonColors",
         "androidx.tv.material3.RadioButtonDefaults",
-        "androidx.tv.material3.ScaleIndication",
-        "androidx.tv.material3.ScaleIndicationInstance",
-        "androidx.tv.material3.ScaleIndicationTokens",
         "androidx.tv.material3.ScrollPauseHandle",
         "androidx.tv.material3.SelectableChipBorder",
         "androidx.tv.material3.SelectableChipColors",
@@ -12575,6 +15259,7 @@
         "androidx.tv.material3.ShapeDefaults",
         "androidx.tv.material3.Shapes",
         "androidx.tv.material3.SuggestionChipDefaults",
+        "androidx.tv.material3.SurfaceShapeOutlineCache",
         "androidx.tv.material3.SwitchColors",
         "androidx.tv.material3.SwitchDefaults",
         "androidx.tv.material3.TabColors",
@@ -12599,6 +15284,7 @@
         "androidx.tv.material3.tokens.RadioButtonTokens",
         "androidx.tv.material3.tokens.ShapeKeyTokens",
         "androidx.tv.material3.tokens.ShapeTokens",
+        "androidx.tv.material3.tokens.SurfaceScaleTokens",
         "androidx.tv.material3.tokens.SwitchTokens",
         "androidx.tv.material3.tokens.TypeScaleTokens",
         "androidx.tv.material3.tokens.TypefaceTokens",
@@ -13537,7 +16223,7 @@
     {
       "groupId": "androidx.wear.compose",
       "artifactId": "compose-material3",
-      "version": "1.0.0-alpha12",
+      "version": "1.0.0-alpha13",
       "ktxTargets": [],
       "fqcns": [
         "androidx.wear.compose.material3.ButtonColors",
@@ -13575,15 +16261,20 @@
         "androidx.wear.compose.material3.tokens.ColorTokens",
         "androidx.wear.compose.material3.tokens.FilledButtonTokens",
         "androidx.wear.compose.material3.tokens.FilledIconButtonTokens",
+        "androidx.wear.compose.material3.tokens.FilledTextButtonTokens",
         "androidx.wear.compose.material3.tokens.FilledTonalButtonTokens",
         "androidx.wear.compose.material3.tokens.FilledTonalIconButtonTokens",
+        "androidx.wear.compose.material3.tokens.FilledTonalTextButtonTokens",
         "androidx.wear.compose.material3.tokens.IconButtonTokens",
         "androidx.wear.compose.material3.tokens.IconToggleButtonTokens",
         "androidx.wear.compose.material3.tokens.OutlinedButtonTokens",
         "androidx.wear.compose.material3.tokens.OutlinedIconButtonTokens",
+        "androidx.wear.compose.material3.tokens.OutlinedTextButtonTokens",
         "androidx.wear.compose.material3.tokens.PaletteTokens",
         "androidx.wear.compose.material3.tokens.ShapeKeyTokens",
         "androidx.wear.compose.material3.tokens.ShapeTokens",
+        "androidx.wear.compose.material3.tokens.TextButtonTokens",
+        "androidx.wear.compose.material3.tokens.TextToggleButtonTokens",
         "androidx.wear.compose.material3.tokens.TypeScaleTokens",
         "androidx.wear.compose.material3.tokens.TypefaceTokens",
         "androidx.wear.compose.material3.tokens.TypographyKeyTokens",
@@ -16723,7 +19414,7 @@
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "pangle",
-      "version": "5.4.1.1.0",
+      "version": "5.5.0.4.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -16758,7 +19449,7 @@
     {
       "groupId": "com.google.ads.mediation",
       "artifactId": "vungle",
-      "version": "6.12.1.1",
+      "version": "7.0.0.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -20063,6 +22754,13 @@
       "groupId": "com.google.android.libraries.sdkcoroutines",
       "artifactId": "sdkcoroutines",
       "version": "1.0.0",
+      "ktxTargets": [],
+      "fqcns": []
+    },
+    {
+      "groupId": "com.google.android.libraries.searchinapps",
+      "artifactId": "searchinapps",
+      "version": "0.1.0",
       "ktxTargets": [],
       "fqcns": []
     },
@@ -25513,378 +28211,6 @@
       "groupId": "com.google.relay",
       "artifactId": "relay-gradle-plugin",
       "version": "0.3.08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "android-device-provider-gradle",
-      "version": "0.0.8-alpha07",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "android-device-provider-local",
-      "version": "0.0.8-alpha08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "android-driver-instrumentation",
-      "version": "0.0.8-alpha08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "android-test-plugin",
-      "version": "0.0.8-alpha08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "android-test-plugin-host-device-info",
-      "version": "0.0.8-alpha07",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "android-test-plugin-host-retention",
-      "version": "0.0.8-alpha07",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "core",
-      "version": "0.0.8-alpha08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "core-proto",
-      "version": "0.0.8-alpha08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.testing.platform",
-      "artifactId": "launcher",
-      "version": "0.0.8-alpha08",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "io.fabric.sdk.android",
-      "artifactId": "fabric",
-      "version": "1.4.8",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "org.chromium.net",
-      "artifactId": "cronet-api",
-      "version": "113.5672.61",
-      "ktxTargets": [],
-      "fqcns": [
-        "org.chromium.net.ApiVersion",
-        "org.chromium.net.BidirectionalStream",
-        "org.chromium.net.CallbackException",
-        "org.chromium.net.ConnectionMigrationOptions",
-        "org.chromium.net.CronetEngine",
-        "org.chromium.net.CronetException",
-        "org.chromium.net.CronetProvider",
-        "org.chromium.net.DnsOptions",
-        "org.chromium.net.ICronetEngineBuilder",
-        "org.chromium.net.InlineExecutionProhibitedException",
-        "org.chromium.net.NetworkException",
-        "org.chromium.net.NetworkQualityRttListener",
-        "org.chromium.net.NetworkQualityThroughputListener",
-        "org.chromium.net.QuicException",
-        "org.chromium.net.QuicOptions",
-        "org.chromium.net.RequestFinishedInfo",
-        "org.chromium.net.UploadDataProvider",
-        "org.chromium.net.UploadDataSink",
-        "org.chromium.net.UrlRequest",
-        "org.chromium.net.UrlResponseInfo",
-        "org.chromium.net.apihelpers.ByteArrayCronetCallback",
-        "org.chromium.net.apihelpers.CronetRequestCompletionListener",
-        "org.chromium.net.apihelpers.CronetResponse",
-        "org.chromium.net.apihelpers.ImplicitFlowControlCallback",
-        "org.chromium.net.apihelpers.InMemoryTransformCronetCallback",
-        "org.chromium.net.apihelpers.JsonCronetCallback",
-        "org.chromium.net.apihelpers.RedirectHandler",
-        "org.chromium.net.apihelpers.RedirectHandlers",
-        "org.chromium.net.apihelpers.StringCronetCallback",
-        "org.chromium.net.apihelpers.UploadDataProviders",
-        "org.chromium.net.apihelpers.UrlRequestCallbacks"
-      ]
-    },
-    {
-      "groupId": "org.chromium.net",
-      "artifactId": "cronet-common",
-      "version": "113.5672.61",
-      "ktxTargets": [],
-      "fqcns": [
-        "org.chromium.net.EffectiveConnectionType",
-        "org.chromium.net.RttThroughputValues",
-        "org.chromium.net.ThreadStatsUid"
-      ]
-    },
-    {
-      "groupId": "org.chromium.net",
-      "artifactId": "cronet-embedded",
-      "version": "113.5672.61",
-      "ktxTargets": [],
-      "fqcns": [
-        "J.N",
-        "org.chromium.base.ActivityState",
-        "org.chromium.base.ApiCompatibilityUtils",
-        "org.chromium.base.ApkAssets",
-        "org.chromium.base.ApplicationState",
-        "org.chromium.base.ApplicationStatus",
-        "org.chromium.base.BaseSwitches",
-        "org.chromium.base.BuildInfo",
-        "org.chromium.base.BundleUtils",
-        "org.chromium.base.ByteArrayGenerator",
-        "org.chromium.base.Callback",
-        "org.chromium.base.CallbackController",
-        "org.chromium.base.ChildBindingState",
-        "org.chromium.base.CollectionUtil",
-        "org.chromium.base.CommandLine",
-        "org.chromium.base.CommandLineInitUtil",
-        "org.chromium.base.ContentUriUtils",
-        "org.chromium.base.ContextUtils",
-        "org.chromium.base.CpuFeatures",
-        "org.chromium.base.DiscardableReferencePool",
-        "org.chromium.base.EarlyTraceEvent",
-        "org.chromium.base.EventLog",
-        "org.chromium.base.FieldTrialList",
-        "org.chromium.base.FileUtils",
-        "org.chromium.base.FileUtilsJni",
-        "org.chromium.base.Flag",
-        "org.chromium.base.ImportantFileWriterAndroid",
-        "org.chromium.base.IntStringCallback",
-        "org.chromium.base.JNIUtils",
-        "org.chromium.base.JavaExceptionReporter",
-        "org.chromium.base.JavaHandlerThread",
-        "org.chromium.base.JniException",
-        "org.chromium.base.JniStaticTestMocker",
-        "org.chromium.base.LifetimeAssert",
-        "org.chromium.base.LocaleUtils",
-        "org.chromium.base.Log",
-        "org.chromium.base.MathUtils",
-        "org.chromium.base.MemoryPressureLevel",
-        "org.chromium.base.MemoryPressureListener",
-        "org.chromium.base.NativeLibraryLoadedStatus",
-        "org.chromium.base.ObserverList",
-        "org.chromium.base.PackageManagerUtils",
-        "org.chromium.base.PackageUtils",
-        "org.chromium.base.PathService",
-        "org.chromium.base.PathUtils",
-        "org.chromium.base.PiiElider",
-        "org.chromium.base.PowerMonitor",
-        "org.chromium.base.PowerMonitorForQ",
-        "org.chromium.base.Promise",
-        "org.chromium.base.RadioUtils",
-        "org.chromium.base.RequiredCallback",
-        "org.chromium.base.StreamUtil",
-        "org.chromium.base.StrictModeContext",
-        "org.chromium.base.ThreadUtils",
-        "org.chromium.base.TimeUtils",
-        "org.chromium.base.TraceEvent",
-        "org.chromium.base.TraceRecordMode",
-        "org.chromium.base.UnguessableToken",
-        "org.chromium.base.UnownedUserData",
-        "org.chromium.base.UnownedUserDataHost",
-        "org.chromium.base.UnownedUserDataKey",
-        "org.chromium.base.UserData",
-        "org.chromium.base.UserDataHost",
-        "org.chromium.base.WrappedClassLoader",
-        "org.chromium.base.annotations.AccessedByNative",
-        "org.chromium.base.annotations.CalledByNative",
-        "org.chromium.base.annotations.CalledByNativeForTesting",
-        "org.chromium.base.annotations.CalledByNativeUnchecked",
-        "org.chromium.base.annotations.JNIAdditionalImport",
-        "org.chromium.base.annotations.JNINamespace",
-        "org.chromium.base.annotations.JniIgnoreNatives",
-        "org.chromium.base.annotations.NativeClassQualifiedName",
-        "org.chromium.base.annotations.NativeMethods",
-        "org.chromium.base.compat.ApiHelperForM",
-        "org.chromium.base.compat.ApiHelperForN",
-        "org.chromium.base.compat.ApiHelperForO",
-        "org.chromium.base.compat.ApiHelperForOMR1",
-        "org.chromium.base.compat.ApiHelperForP",
-        "org.chromium.base.compat.ApiHelperForQ",
-        "org.chromium.base.compat.ApiHelperForR",
-        "org.chromium.base.compat.ApiHelperForS",
-        "org.chromium.base.lifetime.DestroyChecker",
-        "org.chromium.base.lifetime.Destroyable",
-        "org.chromium.base.memory.JavaHeapDumpGenerator",
-        "org.chromium.base.memory.MemoryInfoBridge",
-        "org.chromium.base.memory.MemoryPressureCallback",
-        "org.chromium.base.memory.MemoryPressureUma",
-        "org.chromium.base.metrics.HistogramBucket",
-        "org.chromium.base.metrics.JSONVerbosityLevel",
-        "org.chromium.base.metrics.NativeUmaRecorderJni",
-        "org.chromium.base.metrics.RecordHistogram",
-        "org.chromium.base.metrics.RecordUserAction",
-        "org.chromium.base.metrics.ScopedSysTraceEvent",
-        "org.chromium.base.metrics.StatisticsRecorderAndroid",
-        "org.chromium.base.metrics.TimingMetric",
-        "org.chromium.base.metrics.UmaRecorder",
-        "org.chromium.base.metrics.UmaRecorderHolder",
-        "org.chromium.base.natives.GEN_JNI",
-        "org.chromium.base.supplier.DestroyableObservableSupplier",
-        "org.chromium.base.supplier.ObservableSupplier",
-        "org.chromium.base.supplier.OneShotCallback",
-        "org.chromium.base.supplier.OneshotSupplier",
-        "org.chromium.base.supplier.Supplier",
-        "org.chromium.base.supplier.UnownedUserDataSupplier",
-        "org.chromium.base.task.AsyncTask",
-        "org.chromium.base.task.BackgroundOnlyAsyncTask",
-        "org.chromium.base.task.ChainedTasks",
-        "org.chromium.base.task.PostTask",
-        "org.chromium.base.task.SequencedTaskRunner",
-        "org.chromium.base.task.SingleThreadTaskRunner",
-        "org.chromium.base.task.TaskExecutor",
-        "org.chromium.base.task.TaskPriority",
-        "org.chromium.base.task.TaskRunner",
-        "org.chromium.base.task.TaskRunnerType",
-        "org.chromium.base.task.TaskTraits",
-        "org.chromium.base.task.UiThreadTaskExecutor",
-        "org.chromium.build.annotations.AlwaysInline",
-        "org.chromium.build.annotations.CheckDiscard",
-        "org.chromium.build.annotations.DoNotClassMerge",
-        "org.chromium.build.annotations.DoNotInline",
-        "org.chromium.build.annotations.IdentifierNameString",
-        "org.chromium.build.annotations.MainDex",
-        "org.chromium.build.annotations.MockedInTests",
-        "org.chromium.build.annotations.UsedByReflection",
-        "org.chromium.net.AndroidCertVerifyResult",
-        "org.chromium.net.AndroidKeyStore",
-        "org.chromium.net.AndroidTrafficStats",
-        "org.chromium.net.CertVerifyStatusAndroid",
-        "org.chromium.net.ChromiumNetworkAdapter",
-        "org.chromium.net.ConnectionCost",
-        "org.chromium.net.ConnectionSubtype",
-        "org.chromium.net.ConnectionType",
-        "org.chromium.net.DnsStatus",
-        "org.chromium.net.GURLUtils",
-        "org.chromium.net.GURLUtilsJni",
-        "org.chromium.net.HttpNegotiateAuthenticator",
-        "org.chromium.net.HttpNegotiateConstants",
-        "org.chromium.net.HttpUtil",
-        "org.chromium.net.Idempotency",
-        "org.chromium.net.MimeTypeFilter",
-        "org.chromium.net.NetError",
-        "org.chromium.net.NetId",
-        "org.chromium.net.NetStringUtil",
-        "org.chromium.net.NetworkActiveNotifier",
-        "org.chromium.net.NetworkChangeNotifier",
-        "org.chromium.net.NetworkChangeNotifierAutoDetect",
-        "org.chromium.net.NetworkQualityObservationSource",
-        "org.chromium.net.NetworkTrafficAnnotationTag",
-        "org.chromium.net.PrivateKeyType",
-        "org.chromium.net.ProxyChangeListener",
-        "org.chromium.net.RegistrationPolicyAlwaysRegister",
-        "org.chromium.net.RegistrationPolicyApplicationStatus",
-        "org.chromium.net.RequestContextConfig",
-        "org.chromium.net.RequestContextConfigOptions",
-        "org.chromium.net.RequestContextConfigOptionsOrBuilder",
-        "org.chromium.net.RequestPriority",
-        "org.chromium.net.TrafficStatsError",
-        "org.chromium.net.TrafficStatsUid",
-        "org.chromium.net.X509Util",
-        "org.chromium.net.urlconnection.CronetHttpURLConnection",
-        "org.chromium.net.urlconnection.CronetURLStreamHandlerFactory",
-        "org.chromium.url.IDNStringUtil"
-      ]
-    },
-    {
-      "groupId": "org.chromium.net",
-      "artifactId": "cronet-fallback",
-      "version": "113.5672.61",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "org.jetbrains.kotlin",
-      "artifactId": "kotlin-ksp",
-      "version": "1.4.0-rc-dev-experimental-20200828",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "org.jetbrains.kotlin",
-      "artifactId": "kotlin-symbol-processing-api",
-      "version": "1.4.0-rc-dev-experimental-20200828",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "tools.base.build-system.debug",
-      "artifactId": "model",
-      "version": "unspecified",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "zipflinger",
-      "artifactId": "zipflinger",
-      "version": "3.6.0-alpha05",
-      "ktxTargets": [],
-      "fqcns": []
-    }
-  ]
-}om.google.net.cronet",
-      "artifactId": "cronet-okhttp",
-      "version": "0.1.0",
-      "ktxTargets": [],
-      "fqcns": [
-        "com.google.net.cronet.okhttptransport.CronetCallFactory",
-        "com.google.net.cronet.okhttptransport.CronetInterceptor",
-        "com.google.net.cronet.okhttptransport.CronetTimeoutException",
-        "com.google.net.cronet.okhttptransport.RedirectStrategy"
-      ]
-    },
-    {
-      "groupId": "com.google.oboe",
-      "artifactId": "oboe",
-      "version": "1.7.0",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.prefab",
-      "artifactId": "api",
-      "version": "2.0.0",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.prefab",
-      "artifactId": "cli",
-      "version": "2.0.0",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.relay",
-      "artifactId": "com.google.relay.gradle.plugin",
-      "version": "0.3.07",
-      "ktxTargets": [],
-      "fqcns": []
-    },
-    {
-      "groupId": "com.google.relay",
-      "artifactId": "relay-gradle-plugin",
-      "version": "0.3.07",
       "ktxTargets": [],
       "fqcns": []
     },
