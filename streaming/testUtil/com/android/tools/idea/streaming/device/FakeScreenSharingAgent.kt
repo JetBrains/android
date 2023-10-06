@@ -715,7 +715,7 @@ class FakeScreenSharingAgent(
       val scale = max(min(1.0, min(maxResolutionWidth / displayWidth, maxResolutionHeight / displayHeight)),
                       max(MIN_VIDEO_RESOLUTION / displayWidth, MIN_VIDEO_RESOLUTION / displayHeight))
       val width = (displayWidth * scale).roundToInt().roundUpToMultipleOf8()
-      val height = (width * displayHeight / displayWidth).roundToInt()
+      val height = (width * displayHeight / displayWidth).roundToInt().roundUpToMultipleOf2()
       return Dimension(width, height)
     }
 
@@ -728,6 +728,9 @@ class FakeScreenSharingAgent(
 
     private fun Int.roundUpToMultipleOf8(): Int =
       (this + 7) and 7.inv()
+
+    private fun Int.roundUpToMultipleOf2(): Int =
+      (this + 1) and 1.inv()
 
     private fun BufferedImage.rotatedByQuadrants(quadrants: Int): BufferedImage =
       ImageUtils.rotateByQuadrants(this, quadrants)
