@@ -386,6 +386,7 @@ filegroup(
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
+        "//tools/adt/idea/logcat:logcat-proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
         "//tools/adt/idea/studio:default_user_jvm_args",
