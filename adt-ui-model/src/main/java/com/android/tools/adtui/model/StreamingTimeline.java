@@ -18,7 +18,12 @@ package com.android.tools.adtui.model;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.math.DoubleMath;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -82,6 +87,8 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   private long myResetTimeNs;
   private boolean myIsPaused = false;
   private long myPausedTime;
+  private final Queue<Double> myMouseScrollWheelEvents = new LinkedList<>();
+  private final Lock myScrollbarScrollWheelEventLock = new ReentrantLock();
 
   /**
    * When not negative, interpolates {@link #myViewRangeUs}'s max to it while keeping the view range length.
@@ -156,6 +163,15 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     }
   }
 
+  public void addMouseScrollWheelEvent(Double event) {
+    // Acquire the lock on modifying the mouse scroll wheel events queue.
+    myScrollbarScrollWheelEventLock.lock();
+    // Store the mouse wheel scroll event.
+    myMouseScrollWheelEvents.offer(event);
+    // Release the lock.
+    myScrollbarScrollWheelEventLock.unlock();
+  }
+
   @NotNull
   @Override
   public Range getDataRange() {
@@ -182,6 +198,8 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
 
   @Override
   public void update(long elapsedNs) {
+    handleMouseScrollWheelEvents(); // Does not take into consideration the elapsed time
+                                    // after a timeline reset.
     if (myIsReset) {
       // If the timeline has been reset, we need to make sure the elapsed time is the duration between the current update and when reset
       // was triggered. Otherwise we would be adding extra time. e.g.
@@ -393,6 +411,27 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
       setStreaming(false);
     }
     Timeline.super.panView(deltaUs);
+  }
+
+  /**
+   * Handles queued up mouse scroll wheel events stored by the mouse wheel event listener in the TimelineScrollbar.
+   */
+  public void handleMouseScrollWheelEvents() {
+    // Acquire the lock to modify the mouse scroll wheel event queue.
+    myScrollbarScrollWheelEventLock.lock();
+    // Make a copy of the mouse scroll wheel events queue.
+    Queue<Double> copyMouseScrollWheelEvents = new LinkedList<>(myMouseScrollWheelEvents);
+    // Clear the original queue.
+    myMouseScrollWheelEvents.clear();
+    // Release the lock on the mouse scroll wheel events.
+    myScrollbarScrollWheelEventLock.unlock();
+    // Process the events from the copy of the queue.
+    double delta = copyMouseScrollWheelEvents.stream().mapToDouble(Double::doubleValue).sum();
+    // If there are no mouse scroll wheel events (delta is 0), do not continue processing.
+    if (DoubleMath.fuzzyEquals(delta, 0.0, 0.00001)) {
+      return;
+    }
+    panView(delta);
   }
 
   /**

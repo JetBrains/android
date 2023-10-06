@@ -150,14 +150,18 @@ public class TimelineScrollbarTest {
   public void testPan() {
     double delta = myScrollbar.getPanWheelDelta();
     myUi.mouse.wheel(50, 50, 1);
+    // Advance the timer so that the StreamingTimeline update method is called, handling the stored scroll wheel events.
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + delta, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 + delta, myTimeline.getViewRange().getMax(), EPSILON);
 
     myUi.mouse.wheel(50, 50, 2);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0 + delta * 3, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000 + delta * 3, myTimeline.getViewRange().getMax(), EPSILON);
 
     myUi.mouse.wheel(50, 50, -3);
+    myTimer.tick(TimeUnit.SECONDS.toNanos(5));
     assertEquals(0, myTimeline.getViewRange().getMin(), EPSILON);
     assertEquals(5000, myTimeline.getViewRange().getMax(), EPSILON);
   }
