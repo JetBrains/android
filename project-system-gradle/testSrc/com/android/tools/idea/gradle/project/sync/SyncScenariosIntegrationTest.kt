@@ -50,10 +50,10 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
-import com.intellij.testFramework.RunsInEdt
-import com.intellij.workspaceModel.ide.getInstance
 import com.intellij.platform.workspace.storage.impl.url.toVirtualFileUrl
 import com.intellij.platform.workspace.storage.url.VirtualFileUrlManager
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.workspaceModel.ide.getInstance
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
