@@ -509,7 +509,7 @@ internal class ManageSnapshotsDialog(
    */
   private fun showError(message: String) {
     // Unfortunately, DialogWrapper.setErrorInfoAll and the related methods are protected
-    // nd cannot be called directly since we are not subclassing DialogWrapper. To get
+    // and cannot be called directly since we are not subclassing DialogWrapper. To get
     // around this limitation we take advantage of the existing setErrorInfoAll call in
     // the MyDialogWrapper.performAction method in components.kt.
     (dialogManager as DialogManager?)?.performAction {
