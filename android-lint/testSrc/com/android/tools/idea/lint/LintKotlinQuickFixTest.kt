@@ -29,6 +29,7 @@ import com.intellij.psi.PsiManager
 import java.io.IOException
 import junit.framework.Assert.*
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 
 // Migrated tests from org.jetbrains.kotlin.android.quickfix.AndroidLintQuickfixTestGenerated
 class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
@@ -230,7 +231,20 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+      + import android.support.annotation.RequiresApi
+
+      @@ -5 +7
+            companion object {
+      +         @RequiresApi(LOLLIPOP)
+                val VECTOR_DRAWABLE = VectorDrawable()
       """
+      } else {
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -240,7 +254,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
             companion object {
       +         @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
                 val VECTOR_DRAWABLE = VectorDrawable()
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -256,7 +271,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+            @@ -2 +2
+              import android.graphics.drawable.VectorDrawable
+            + import android.os.Build.VERSION_CODES.LOLLIPOP
+            + import android.support.annotation.RequiresApi
+
+            + @RequiresApi(LOLLIPOP)
+              fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
+            """
+        } else {
+          """
             @@ -2 +2
               import android.graphics.drawable.VectorDrawable
             + import android.os.Build
@@ -264,7 +290,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
 
             + @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
               fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
-            """,
+            """
+        },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -281,7 +308,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
       expectedDiff =
+        if (isK2Plugin()) {
+          """
+        @@ -2 +2
+          import android.graphics.drawable.VectorDrawable
+        + import android.os.Build.VERSION_CODES.LOLLIPOP
+        + import android.support.annotation.RequiresApi
+
+        + @RequiresApi(LOLLIPOP)
+          class MyVectorDrawable : VectorDrawable() {
         """
+        } else {
+          """
         @@ -2 +2
           import android.graphics.drawable.VectorDrawable
         + import android.os.Build
@@ -289,7 +327,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
 
         + @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
           class MyVectorDrawable : VectorDrawable() {
-        """,
+        """
+        },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -309,7 +348,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+      + import android.support.annotation.RequiresApi
+
+        class VectorDrawableProvider {
+      +     @RequiresApi(LOLLIPOP)
+            fun getVectorDrawable(): VectorDrawable {
       """
+      } else {
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -318,7 +369,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -334,7 +386,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintInlinedApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -1 +1
+      + import android.os.Build.VERSION_CODES.KITKAT
+      + import android.support.annotation.RequiresApi
+      +
+        class Test {
+      +     @RequiresApi(KITKAT)
+            fun foo(): Int {
       """
+      } else {
+        """
       @@ -1 +1
       + import android.os.Build
       + import android.support.annotation.RequiresApi
@@ -342,7 +405,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         class Test {
       +     @RequiresApi(Build.VERSION_CODES.KITKAT)
             fun foo(): Int {
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -360,7 +424,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+      + import android.support.annotation.RequiresApi
+
+        class VectorDrawableProvider {
+      +     @RequiresApi(LOLLIPOP)
+            fun getVectorDrawable(): VectorDrawable {
       """
+      } else {
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -369,7 +445,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -386,7 +463,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+      + import android.support.annotation.RequiresApi
+
+        class VectorDrawableProvider {
+      +     @RequiresApi(LOLLIPOP)
+            val VECTOR_DRAWABLE = VectorDrawable()
       """
+      } else {
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -395,7 +484,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         class VectorDrawableProvider {
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             val VECTOR_DRAWABLE = VectorDrawable()
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -410,7 +500,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -2 +2
+        import android.app.Activity
+      + import android.os.Build.VERSION_CODES.M
+      + import android.support.annotation.RequiresApi
+
+        val top: Int
+      +     @RequiresApi(M)
+            get() = Activity().checkSelfPermission(READ_CONTACTS)
       """
+      } else {
+        """
       @@ -2 +2
         import android.app.Activity
       + import android.os.Build
@@ -419,7 +521,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
         val top: Int
       +     @RequiresApi(Build.VERSION_CODES.M)
             get() = Activity().checkSelfPermission(READ_CONTACTS)
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -441,7 +544,20 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
+      if (isK2Plugin()) {
+        """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+      + import android.support.annotation.RequiresApi
+
+      @@ -5 +7
+            val flag = false
+      +     @RequiresApi(LOLLIPOP)
+            fun getVectorDrawable(): VectorDrawable {
       """
+      } else {
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -451,7 +567,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
             val flag = false
       +     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
-      """,
+      """
+      },
       stubs = listOf(requiresApiAnnotationStub)
     )
   }
@@ -687,7 +804,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+        class VectorDrawableProvider {
+      +     @TargetApi(LOLLIPOP)
+            companion object {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -697,6 +826,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             companion object {
       """
+        }
     )
   }
 
@@ -711,7 +841,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      + @TargetApi(LOLLIPOP)
+        fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -720,6 +861,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         fun withDefaultParameter(vector: VectorDrawable = VectorDrawable()) {
       """
+        }
     )
   }
 
@@ -735,7 +877,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      + @TargetApi(LOLLIPOP)
+        class MyVectorDrawable : VectorDrawable() {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -744,6 +897,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         class MyVectorDrawable : VectorDrawable() {
       """
+        }
     )
   }
 
@@ -763,7 +917,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+        class VectorDrawableProvider {
+      +     @TargetApi(LOLLIPOP)
+            fun getVectorDrawable(): VectorDrawable {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -773,6 +939,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
       """
+        }
     )
   }
 
@@ -788,7 +955,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintInlinedApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+      + import android.os.Build.VERSION_CODES.KITKAT
+      +
+        class Test {
+      +     @TargetApi(KITKAT)
+            fun foo(): Int {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
       + import android.os.Build
@@ -797,6 +975,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     @TargetApi(Build.VERSION_CODES.KITKAT)
             fun foo(): Int {
       """
+        }
     )
   }
 
@@ -814,7 +993,19 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+        class VectorDrawableProvider {
+      +     @TargetApi(LOLLIPOP)
+            fun getVectorDrawable(): VectorDrawable {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -824,6 +1015,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
       """
+        }
     )
   }
 
@@ -840,7 +1032,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      + @TargetApi(LOLLIPOP)
+        class VectorDrawableProvider {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -849,6 +1052,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         class VectorDrawableProvider {
       """
+        }
     )
   }
 
@@ -865,7 +1069,18 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      + @TargetApi(LOLLIPOP)
+        class VectorDrawableProvider {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -874,6 +1089,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       + @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         class VectorDrawableProvider {
       """
+        }
     )
   }
 
@@ -895,7 +1111,20 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.annotation.TargetApi
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -5 +7
+            val flag = false
+      +     @TargetApi(LOLLIPOP)
+            fun getVectorDrawable(): VectorDrawable {
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -906,6 +1135,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             fun getVectorDrawable(): VectorDrawable {
       """
+        }
     )
   }
 
@@ -958,7 +1188,25 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -3 +3
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -8 +10
+        fun foo() {
+      -     val (v1, v2) = ValueProvider(VectorDrawable(), 0)
+      +     val (v1, v2) = if (SDK_INT >= LOLLIPOP) {
+      +         ValueProvider(VectorDrawable(), 0)
+      +     } else {
+      +         TODO("VERSION.SDK_INT < LOLLIPOP")
+      +     }
+        }
+      """
+        } else {
+          """
       @@ -3 +3
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -973,6 +1221,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     }
         }
       """
+        }
     )
   }
 
@@ -988,7 +1237,24 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+        class VectorDrawableProvider {
+      -     fun getVectorDrawable(): VectorDrawable = VectorDrawable()
+      +     fun getVectorDrawable(): VectorDrawable = if (SDK_INT >= LOLLIPOP) {
+      +         VectorDrawable()
+      +     } else {
+      +         TODO("VERSION.SDK_INT < LOLLIPOP")
+      +     }
+        }
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1002,6 +1268,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +     }
         }
       """
+        }
     )
   }
 
@@ -1021,7 +1288,25 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -6 +8
+                with(this) {
+      -             return VectorDrawable()
+      +             return if (SDK_INT >= LOLLIPOP) {
+      +                 VectorDrawable()
+      +             } else {
+      +                 TODO("VERSION.SDK_INT < LOLLIPOP")
+      +             }
+                }
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1036,6 +1321,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +             }
                 }
       """
+        }
     )
   }
 
@@ -1050,7 +1336,23 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+        val v: VectorDrawable
+      -     get() = VectorDrawable()
+      +     get() = if (SDK_INT >= LOLLIPOP) {
+      +         VectorDrawable()
+      +     } else {
+      +         TODO("VERSION.SDK_INT < LOLLIPOP")
+      +     }
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1063,6 +1365,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +         TODO("VERSION.SDK_INT < LOLLIPOP")
       +     }
       """
+        }
     )
   }
 
@@ -1082,7 +1385,25 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -7 +9
+                if (flag)
+      -             return VectorDrawable()
+      +             return if (SDK_INT >= LOLLIPOP) {
+      +                 VectorDrawable()
+      +             } else {
+      +                 TODO("VERSION.SDK_INT < LOLLIPOP")
+      +             }
+            }
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1097,6 +1418,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +             }
             }
       """
+        }
     )
   }
 
@@ -1117,7 +1439,25 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -7 +9
+                if (flag) {
+      -             return VectorDrawable()
+      +             return if (SDK_INT >= LOLLIPOP) {
+      +                 VectorDrawable()
+      +             } else {
+      +                 TODO("VERSION.SDK_INT < LOLLIPOP")
+      +             }
+                }
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1132,6 +1472,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +             }
                 }
       """
+        }
     )
   }
 
@@ -1147,7 +1488,24 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintInlinedApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -1 +1
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.KITKAT
+      +
+        class Test {
+            fun foo(): Int {
+      -         return android.R.attr.windowTranslucentStatus
+      +         return if (SDK_INT >= KITKAT) {
+      +             android.R.attr.windowTranslucentStatus
+      +         } else {
+      +             TODO("VERSION.SDK_INT < KITKAT")
+      +         }
+            }
+      """
+        } else {
+          """
       @@ -1 +1
       + import android.os.Build
       +
@@ -1161,6 +1519,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +         }
             }
       """
+        }
     )
   }
 
@@ -1178,7 +1537,25 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -5 +7
+            fun getVectorDrawable(): VectorDrawable {
+      -         return VectorDrawable()
+      +         return if (SDK_INT >= LOLLIPOP) {
+      +             VectorDrawable()
+      +         } else {
+      +             TODO("VERSION.SDK_INT < LOLLIPOP")
+      +         }
+            }
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1193,6 +1570,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +         }
             }
       """
+        }
     )
   }
 
@@ -1214,7 +1592,26 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
       expectedDiff =
-        """
+        if (isK2Plugin()) {
+          """
+      @@ -2 +2
+        import android.graphics.drawable.VectorDrawable
+      + import android.os.Build.VERSION.SDK_INT
+      + import android.os.Build.VERSION_CODES.LOLLIPOP
+
+      @@ -7 +9
+                return when (flag) {
+      -             true -> VectorDrawable()
+      +             true -> if (SDK_INT >= LOLLIPOP) {
+      +                 VectorDrawable()
+      +             } else {
+      +                 TODO("VERSION.SDK_INT < LOLLIPOP")
+      +             }
+      +
+                    else -> VectorDrawable()
+      """
+        } else {
+          """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1230,6 +1627,7 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       +
                     else -> VectorDrawable()
       """
+        }
     )
   }
 }
