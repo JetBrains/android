@@ -33,6 +33,7 @@ public class Emulator implements AutoCloseable {
   private final TestFileSystem fileSystem;
   private final AndroidSdk sdk;
   private final LogFile logFile;
+  private final LogFile logCat;
   private final String portString;
   private final Process process;
 
@@ -88,6 +89,8 @@ public class Emulator implements AutoCloseable {
                                List<String> extraEmulatorFlags) throws IOException, InterruptedException {
     Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "emulator_logs");
 
+    LogFile logCat = new LogFile(logsDir.resolve(name + "_logcat.txt"));
+
     List<String> procArgs = new ArrayList<>(Arrays.asList(
       sdk.getSourceDir().resolve(SdkConstants.FD_EMULATOR).resolve("emulator").toString(),
       "@" + name,
@@ -100,7 +103,11 @@ public class Emulator implements AutoCloseable {
       "-ModemSimulator,-Vulkan",
       "-delay-adb",
       "-no-boot-anim",
-      "-verbose"
+      "-verbose",
+      "-logcat",
+      "*:V",
+      "-logcat-output",
+      logCat.getPath().toFile().getAbsolutePath()
     ));
 
     procArgs.addAll(extraEmulatorFlags);
@@ -145,13 +152,14 @@ public class Emulator implements AutoCloseable {
     String portString =
       logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
-    return new Emulator(fileSystem, sdk, logFile, portString, process);
+    return new Emulator(fileSystem, sdk, logFile, logCat, portString, process);
   }
 
-  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, String portString, Process process) {
+  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, LogFile logCat, String portString, Process process) {
     this.fileSystem = fileSystem;
     this.sdk = sdk;
     this.logFile = logFile;
+    this.logCat = logCat;
     this.portString = portString;
     this.process = process;
   }
@@ -169,6 +177,10 @@ public class Emulator implements AutoCloseable {
 
   public AndroidSdk getSdk() {
     return sdk;
+  }
+
+  public LogFile getLogCat() {
+    return logCat;
   }
 
   public String getPortString() {
