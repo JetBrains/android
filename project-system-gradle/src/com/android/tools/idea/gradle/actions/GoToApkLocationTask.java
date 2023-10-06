@@ -154,7 +154,7 @@ public class GoToApkLocationTask {
       notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
     }
     else {
-      String msg = "Errors while building APK. You can find the errors in the 'Messages' view.";
+      String msg = "Errors while building APK. You can find the errors in the 'Build' view.";
       notification.showBalloon(myNotificationTitle, msg, ERROR);
     }
   }

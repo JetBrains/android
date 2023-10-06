@@ -104,7 +104,7 @@ public class GoToBundleLocationTask {
       notification.showBalloon(myNotificationTitle, "Build cancelled.", INFORMATION);
     }
     else {
-      String msg = "Errors while building Bundle file. You can find the errors in the 'Messages' view.";
+      String msg = "Errors while building Bundle file. You can find the errors in the 'Build' view.";
       notification.showBalloon(myNotificationTitle, msg, ERROR);
     }
   }
