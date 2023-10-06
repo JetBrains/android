@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.calls.KtAnnotationCall
+import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
@@ -49,7 +50,6 @@ import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeFe10
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -283,7 +283,7 @@ fun KtClassOrObject.toPsiType() =
 
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (isK2Plugin()) {
-    mapOnDeclarationSymbol { it.hasAnnotation(classId) } == true
+    mapOnDeclarationSymbol { it.hasAnnotation(classId) } ?: (findAnnotationEntryByClassId(classId) != null)
   } else {
     findAnnotationK1(classId.asSingleFqName()) != null
   }
@@ -295,8 +295,9 @@ fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
     findAnnotationK1(classId.asSingleFqName())
   }
 
-private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
-  mapOnDeclarationSymbol { it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry }
+private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? = mapOnDeclarationSymbol {
+  it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry
+} ?: findAnnotationEntryByClassId(classId)
 
 @OptIn(KtAllowAnalysisOnEdt::class)
 private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KtDeclarationSymbol) -> T?): T? =
@@ -304,5 +305,21 @@ private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSessi
     analyze(this) {
       val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
       declaration?.getSymbol()?.let { block(it) }
+    }
+  }
+
+/**
+ * Fallback of [mapOnDeclarationSymbol] in the case the given [KtAnnotated] is not [KtDeclaration]. One example is [KtTypeReference].
+ * This function resolves [annotationEntries] and finds a symbol (a constructor symbol in the [KtTypeReference] case) whose class symbol
+ * is [classId].
+ */
+@OptIn(KtAllowAnalysisOnEdt::class)
+private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): KtAnnotationEntry? =
+  allowAnalysisOnEdt {
+    analyze(this) {
+      annotationEntries.find { annotationEntry ->
+        val annotationConstructorCall = annotationEntry.resolveCall()?.singleConstructorCallOrNull() ?: return null
+        annotationConstructorCall.symbol.containingClassIdIfNonLocal == classId
+      }
     }
   }
