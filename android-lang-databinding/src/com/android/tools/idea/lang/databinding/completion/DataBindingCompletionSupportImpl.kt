@@ -21,7 +21,7 @@ import com.android.tools.idea.lang.databinding.config.DbFileType
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.codeInsight.TailType
+import com.intellij.codeInsight.TailTypes
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
@@ -177,7 +177,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // pkg.name is always non-null for subpackages
         .filter { pkg -> pkg.name!!.all { char -> Character.isJavaIdentifierPart(char) } }
         .forEach { pkg ->
-          resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailType.DOT))
+          resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailTypes.dotType()))
         }
 
       if (rootPackage.name.isNullOrEmpty()) {
