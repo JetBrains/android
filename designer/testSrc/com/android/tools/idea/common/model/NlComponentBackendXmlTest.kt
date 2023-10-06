@@ -273,6 +273,37 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
     }
   }
 
+  fun testReformat() {
+    val editText =
+      // language=xml
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <TextView
+            xmlns:android="${ANDROID_URI}" xmlns:tools="${TOOLS_URI}" android:text="Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+      """
+        .trimIndent()
+    val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
+    val rootTag = xmlFile.rootTag!!
+    val backend = createBackend(rootTag)
+
+    WriteCommandAction.runWriteCommandAction(project) { backend.reformatAndRearrange() }
+    assertEquals(
+      // language=xml
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Text" />
+      """
+        .trimIndent(),
+      xmlFile.text
+    )
+  }
+
   private fun createBackend(tag: XmlTag): NlComponentBackendXml {
     return NlComponentBackendXml(myFixture.project, tag, createTagPointer(tag))
   }

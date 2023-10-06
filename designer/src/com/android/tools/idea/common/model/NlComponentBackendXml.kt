@@ -179,7 +179,11 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
       return
     }
 
-    ReformatUtil.reformatAndRearrange(myProject, xmlTag)
+    try {
+      ReformatUtil.reformatAndRearrange(myProject, xmlTag)
+    } catch (e: AssertionError) {
+      LOGGER.warn("Failed to reformat ${getTagName()}.", e)
+    }
   }
 
   override fun isValid(): Boolean {
