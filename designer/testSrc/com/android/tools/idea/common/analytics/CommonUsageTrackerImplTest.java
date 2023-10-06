@@ -46,6 +46,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(surface.getScale()).thenReturn(0.50);
     Configuration configuration = getConfigurationMock();
     when(surface.getConfigurations()).thenReturn(ImmutableList.of(configuration));
+    when(surface.getConfiguration()).thenReturn(configuration);
 
     return new CommonUsageTrackerImpl(SYNC_EXECUTOR, surface, usageTracker::logNow) {
       @Override
@@ -56,8 +57,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     };
   }
 
-  // b/110242994
-  public void ignore_testBasicLogging() {
+  public void testBasicLogging() {
     CommonUsageTracker tracker = getUsageTracker();
 
     tracker.logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
