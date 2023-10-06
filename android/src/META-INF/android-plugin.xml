@@ -189,14 +189,6 @@
         text="Hide Android Banners"
         description="Dismisses banner for Gradle project notifications">
     </action>
-
-  <action
-        id="AndroidX.BaselineProfile.RunGenerate"
-        class="com.android.tools.idea.run.configuration.BaselineProfileAction"
-        text="Generate Baseline Profile"
-        icon="StudioIcons.Shell.Toolbar.RUN"
-        description="Generate the Baseline Profile for the entire app. Note that generation is always per app and cannot be done for a single method or class.">
-    </action>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -351,8 +343,6 @@
     <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer"/>
     <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.AndroidWearRunMarkerContributor"/>
-    <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor"/>
-    <runConfigurationProducer implementation="com.android.tools.idea.run.configuration.BaselineProfileConfigurationProducer"/>
     <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.AndroidActivityRunLineMarkerContributor"/>
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.AndroidActivityRunLineMarkerContributor"/>
     <configurationType implementation="com.android.tools.idea.run.AndroidRunConfigurationType"/>
