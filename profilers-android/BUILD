@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
 # managed by go/iml_to_build
@@ -7,7 +8,19 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    tags = ["no_test_windows"],
+    split_test_targets = {
+        "CaptureDetailsTest": {
+            "tags": [
+                "no_test_windows",
+                "very_flaky",  # b/255883540
+            ],
+            "test_filter": "com.android.tools.idea.profilers.performance.CaptureDetailsTest",
+        },
+        "other": {
+            "tags": ["no_test_windows"],
+        },
+    },
+    tags = [],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
         "//prebuilts/tools/common/trace-processor-daemon",
@@ -126,8 +139,6 @@ kotlin_test(
         "//tools/base/testutils:studio.android.sdktools.testutils",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
