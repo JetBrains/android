@@ -43,6 +43,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -69,9 +70,17 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     // However, we are not interested in Kotlin compiler diagnostics or resolution failures, as we are running with a
     // simplified and unrealistic project structure: so mask away the Kotlin highlighting visitors.
     List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(myFixture.getProject()).stream()
-      .filter((x) -> !(x instanceof AbstractKotlinHighlightVisitor)).toList();
+      .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
     ExtensionTestUtil.maskExtensions(HighlightVisitor.EP_HIGHLIGHT_VISITOR, highlightVisitors, myFixture.getProjectDisposable(), false,
                                      myFixture.getProject());
+  }
+
+  private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
+    // K1: a subtype of [AbstractKotlinHighlightVisitor]
+    // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
+    // TODO(233): add checking if visitor instanceof KotlinSemanticHighlightingVisitor
+    return visitor instanceof AbstractKotlinHighlightVisitor
+      || visitor instanceof KotlinDiagnosticHighlightVisitor;
   }
 
   @Test
