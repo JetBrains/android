@@ -181,10 +181,10 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {
-    Log::Fatal(VIDEO_ENCODER_CONFIGURATION_ERROR, "Display %d: AMediaCodec_configure returned %d for video_size=%dx%d bit rate=%d",
+    Log::Fatal(VIDEO_ENCODER_CONFIGURATION_ERROR, "Display %d: AMediaCodec_configure returned %d for video size %dx%d bit rate %d",
                display_id, status, video_size.width, video_size.height, bit_rate);
   }
-  Log::I("Display %d: configured %s video_size=%dx%d bit rate=%d",
+  Log::I("Display %d: configured %s video size %dx%d bit_rate %d",
          display_id, codec_info.name.c_str(), video_size.width, video_size.height, bit_rate);
   return video_size;
 }
