@@ -40,7 +40,6 @@ import javax.swing.JPanel
 import kotlinx.coroutines.launch
 
 class VitalsTabProvider : AppInsightsTabProvider {
-  private val loggedOutErrorStateComponent = loggedOutErrorStateComponent()
   override val displayName = VITALS_KEY.displayName
 
   override val icon = StudioIcons.Avd.DEVICE_PLAY_STORE
@@ -62,7 +61,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
                 }
                 .build()
             )
-            tabPanel.setComponent(loggedOutErrorStateComponent)
+            tabPanel.setComponent(loggedOutErrorStateComponent())
           }
           is AppInsightsModel.Authenticated -> {
             tabPanel.setComponent(
