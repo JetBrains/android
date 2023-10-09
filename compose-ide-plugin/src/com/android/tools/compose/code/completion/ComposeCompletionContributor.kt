@@ -19,6 +19,7 @@ import com.android.ide.common.vectordrawable.VdPreview
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import com.android.tools.compose.aa.code.isComposableFunctionParameter
+import com.android.tools.compose.code.ComposableFunctionRenderParts
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
@@ -91,13 +92,10 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
   // The only type in the list is the return type (can be Unit).
   type.isFunctionType && argumentValueType.arguments.size == 1
 
+/** true iff [valueParameterSymbol]'s type arguments contains only the return type (can be Unit). */
 private fun KtAnalysisSession.isLambdaWithNoParameters(
   valueParameterSymbol: KtValueParameterSymbol
-): Boolean {
-  // The only type in the list is the return type (can be Unit).
-  val functionalReturnType = valueParameterSymbol.returnType as? KtFunctionalType ?: return false
-  return functionalReturnType.ownTypeArguments.size == 1
-}
+) = with(valueParameterSymbol) { (returnType as? KtFunctionalType)?.ownTypeArguments?.size == 1 }
 
 /** true iff the last parameter is required, and a lambda type with no parameters. */
 private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
@@ -106,10 +104,7 @@ private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
 /** true iff the last parameter is required, and a lambda type with no parameters. */
 private fun KtAnalysisSession.isRequiredLambdaWithNoParameters(
   valueParameterSymbol: KtValueParameterSymbol
-) =
-  !valueParameterSymbol.hasDefaultValue &&
-    isLambdaWithNoParameters(valueParameterSymbol) &&
-    !valueParameterSymbol.isVararg
+) = with(valueParameterSymbol) { !hasDefaultValue && isLambdaWithNoParameters(this) && !isVararg }
 
 private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
@@ -158,16 +153,16 @@ class ComposeCompletionContributor : CompletionContributor() {
     // If there's no PsiElement, just leave the result alone.
     val psi = lookupElement.psiElement ?: return completionResult
 
-    return when {
-      psi.isComposableFunction() ->
-        if (lookupElement.isForSpecialLambdaLookupElement()) null
-        else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
-      ComposeMaterialIconLookupElement.appliesTo(psi) ->
-        completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
-
-      // No transformation needed.
-      else -> completionResult
+    if (psi.isComposableFunction()) {
+      // Get rid of the extra version of the lookup element shown with trailing lambda
+      // syntax (i.e. "{ }").
+      if (lookupElement.isForSpecialLambdaLookupElement()) return null
+      return completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
     }
+    if (ComposeMaterialIconLookupElement.appliesTo(psi)) {
+      return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
+    }
+    return completionResult
   }
 
   /**
@@ -202,24 +197,18 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
       val element = psiElement
       analyze(element) {
         val functionSymbol = element.getFunctionLikeSymbol()
-        presentation.icon = COMPOSABLE_FUNCTION_ICON
-        presentation.setTypeText(
-          if (functionSymbol.returnType.isUnit) null else presentation.typeText,
-          null
-        )
-        val (parameters, tail) = getComposableFunctionRenderParts(functionSymbol)
-        rewriteSignature(presentation, parameters, tail)
+        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnit }
+        presentation.setTypeText(typeText, null)
+        presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
       }
     } else {
       val descriptor = getFunctionDescriptor() ?: return
-      presentation.icon = COMPOSABLE_FUNCTION_ICON
-      presentation.setTypeText(
-        if (descriptor.returnType?.isUnit() == true) null else presentation.typeText,
-        null
-      )
-      val (parameters, tail) = descriptor.getComposableFunctionRenderParts()
-      rewriteSignature(presentation, parameters, tail)
+      val typeText = presentation.typeText.takeUnless { descriptor.returnType?.isUnit() == true }
+      presentation.setTypeText(typeText, null)
+      presentation.rewriteSignature(descriptor.getComposableFunctionRenderParts())
     }
+
+    presentation.icon = COMPOSABLE_FUNCTION_ICON
   }
 
   override fun handleInsert(context: InsertionContext) {
@@ -244,14 +233,10 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     }
   }
 
-  private fun rewriteSignature(
-    presentation: LookupElementPresentation,
-    parameters: String?,
-    tail: String?
-  ) {
-    presentation.clearTail()
-    parameters?.let { presentation.appendTailTextItalic(it, /* grayed = */ false) }
-    tail?.let { presentation.appendTailText(" $it", /* grayed = */ true) }
+  private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
+    clearTail()
+    parts.parameters?.let { appendTailTextItalic(it, /* grayed = */ false) }
+    parts.tail?.let { appendTailText(" $it", /* grayed = */ true) }
   }
 }
 
@@ -342,9 +327,8 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
 
     /** Returns an [Icon] given an Android Studio resource path. */
     @VisibleForTesting
-    internal fun getIcon(fqName: String): Icon? {
-      return getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
-    }
+    internal fun getIcon(fqName: String): Icon? =
+      getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
 
     private fun getIconFromMaterialIconsProvider(fqName: String): Icon? {
       val iconFileName = fqName.iconFileNameFromFqName() ?: return null
@@ -368,9 +352,10 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
               content,
               errorLog
             )
-          if (errorLog.isNotEmpty())
+          if (errorLog.isNotEmpty()) {
             Logger.getInstance(ComposeMaterialIconLookupElement::class.java)
               .error(errorLog.toString())
+          }
 
           ImageIcon(bufferedImage)
         }
@@ -378,16 +363,13 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
   }
 }
 
-private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {
-  val elementAtCaret = file.findElementAt(editor.caretModel.offset) ?: return null
-  return elementAtCaret.getNextSiblingIgnoringWhitespace(true) ?: return null
-}
+private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? =
+  file.findElementAt(editor.caretModel.offset)?.getNextSiblingIgnoringWhitespace(true)
 
-private fun InsertionContext.isNextElementOpenCurlyBrace() =
-  getNextElementIgnoringWhitespace()?.text?.startsWith("{") == true
+private fun InsertionContext.isNextElementOpenCurlyBrace() = nextElementStartsWith("{")
 
-private fun InsertionContext.isNextElementOpenParenthesis() =
-  getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
+private fun InsertionContext.nextElementStartsWith(prefix: String) =
+  getNextElementIgnoringWhitespace()?.text?.startsWith(prefix) ?: false
 
 private abstract class ComposeInsertHandler(callType: CallType<*>) :
   KotlinCallableInsertHandler(callType) {
@@ -395,7 +377,7 @@ private abstract class ComposeInsertHandler(callType: CallType<*>) :
     with(context) {
       super.handleInsert(context, item)
 
-      if (isNextElementOpenParenthesis()) return
+      if (nextElementStartsWith("(")) return
 
       // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the
       // call to super above.

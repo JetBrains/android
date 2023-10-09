@@ -34,32 +34,31 @@ import org.jetbrains.kotlin.name.FqName
  * ensure that a lambda can be added in cases where the Composable function requires another
  * Composable as its final argument.
  */
-fun KtAnalysisSession.getComposableFunctionRenderParts(
+internal fun KtAnalysisSession.getComposableFunctionRenderParts(
   functionSymbol: KtFunctionLikeSymbol
 ): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
   val requiredParameters = allParameters.filter { isRequired(it) }
-  val lastParamIsComposable =
-    allParameters.lastOrNull()?.let { isComposableFunctionParameter(it) } == true
-  val inParens = if (lastParamIsComposable) requiredParameters.dropLast(1) else requiredParameters
-
-  val tail =
-    if (lastParamIsComposable) LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION else null
+  val isLastParamComposable =
+    allParameters.lastOrNull()?.let { isComposableFunctionParameter(it) } ?: false
+  val inParens = if (isLastParamComposable) requiredParameters.dropLast(1) else requiredParameters
+  val tail = LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION.takeIf { isLastParamComposable }
+  val hasOptionalParams = requiredParameters.size < allParameters.size
 
   val stringAfterValueParameters =
     when {
-      requiredParameters.size < allParameters.size ->
-        if (inParens.isNotEmpty()) ", ...)" else "...)"
-      inParens.isEmpty() && lastParamIsComposable ->
-        null // Don't render an empty pair of parentheses if we're rendering a lambda afterwards.
-      else -> ")"
-    } ?: return ComposableFunctionRenderParts(null, tail)
+      hasOptionalParams -> if (inParens.isEmpty()) "..." else ", ..."
+      // Don't render empty parentheses if we're rendering a lambda afterward.
+      inParens.isEmpty() && isLastParamComposable ->
+        return ComposableFunctionRenderParts(null, tail)
+      else -> ""
+    }
 
   val parameters = renderValueParameters(inParens, stringAfterValueParameters)
   return ComposableFunctionRenderParts(parameters, tail)
 }
 
-fun KtAnalysisSession.renderValueParameters(
+private fun KtAnalysisSession.renderValueParameters(
   valueParamsInParen: List<KtValueParameterSymbol>,
   closingString: String
 ) = buildString {
@@ -68,6 +67,7 @@ fun KtAnalysisSession.renderValueParameters(
     it.render(KtDeclarationRendererForSource.WITH_SHORT_NAMES)
   }
   append(closingString)
+  append(")")
 }
 
 private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
@@ -83,7 +83,7 @@ private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbo
   return valueParamSymbol.psi?.text?.endsWith("/* = compiled code */") != true
 }
 
-fun KtAnalysisSession.isComposableFunctionParameter(
+internal fun KtAnalysisSession.isComposableFunctionParameter(
   valueParamSymbol: KtValueParameterSymbol
 ): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a
