@@ -151,7 +151,7 @@ class BoxedLabel(
     }
     // Value
     g.color = InspectorColors.BOXED_LABEL_VALUE_COLOR
-    g.drawString(value, xPos + extraColorOffset, point.y - boxedLabelOffset + textBoxHeight)
+    g.drawString(value ?: "", xPos + extraColorOffset, point.y - boxedLabelOffset + textBoxHeight)
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
   }
 }

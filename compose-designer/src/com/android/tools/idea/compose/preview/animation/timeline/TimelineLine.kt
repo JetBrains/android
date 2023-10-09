@@ -31,7 +31,7 @@ import java.awt.RenderingHints
  * The animation line in [TimelinePanel].
  *
  * @param minX left position of the line - center of the left circle.
- * @param maxX right position of the the line - center of the right circle.
+ * @param maxX right position of the line - center of the right circle.
  * @param rowMinY minimum y when row with animation line start.
  * @param positionProxy [PositionProxy] for the slider. @
  */

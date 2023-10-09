@@ -29,7 +29,7 @@ class PickerState(tracker: AnimationTracker, callback: () -> Unit) : AnimationSt
 
   override fun stateHashCode(): Int = buttonAction.stateHashCode()
 
-  override fun getState(index: Int): Any? {
+  override fun getState(index: Int): Any {
     return buttonAction.getState(index)
   }
 

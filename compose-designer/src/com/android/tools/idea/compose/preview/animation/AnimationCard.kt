@@ -38,7 +38,7 @@ import kotlin.math.max
 
 class AnimationCard(
   previewState: AnimationPreviewState,
-  val rootComponent: JComponent,
+  rootComponent: JComponent,
   override val state: ElementState,
   extraActions: List<AnAction> = emptyList(),
   private val tracker: AnimationTracker
@@ -73,7 +73,7 @@ class AnimationCard(
   override var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
   private val firstRow =
-    JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.empty(0, 0, 0, 8) }
+    JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.emptyRight(8) }
 
   private val secondRow = JPanel(BorderLayout()).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
 
@@ -82,7 +82,7 @@ class AnimationCard(
     if (state.expanded) max(expandedSize, InspectorLayout.TIMELINE_LINE_ROW_HEIGHT)
     else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  var durationLabel: Component? = null
+  private var durationLabel: Component? = null
 
   override fun setDuration(durationMillis: Int?) {
     durationLabel?.let { firstRow.remove(it) }
@@ -122,7 +122,7 @@ class AnimationCard(
     }
   }
 
-  private inner class ExpandAction() :
+  private inner class ExpandAction :
     AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
 
     override fun actionPerformed(e: AnActionEvent) {

@@ -57,9 +57,9 @@ open class TimelinePanel(
       super.paintComponent(g)
       InspectorPainter.Thumb.paintThumbForHorizSlider(
         g as Graphics2D,
-        x = sliderUI.thumbRect().x + sliderUI.thumbRect().width / 2,
+        x = sliderUI.panelThumbRect().x + sliderUI.panelThumbRect().width / 2,
         y = InspectorLayout.timelineHeaderHeightScaled(),
-        height = sliderUI.thumbRect().height
+        height = sliderUI.panelThumbRect().height
       )
     }
 
@@ -105,7 +105,7 @@ open class TimelinePanel(
   val sliderUI: TimelineSliderUI
     get() = ui as TimelineSliderUI
 
-  var zoomValue = 1
+  private var zoomValue = 1
 
   fun scale(z: Int) {
     zoomValue = z
@@ -181,7 +181,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       override fun minimumValue(): Int = slider.minimum
     }
 
-  val thumbRect: () -> Rectangle = { thumbRect }
+  val panelThumbRect: () -> Rectangle = { thumbRect }
 
   /** List of elements to display. */
   var elements: MutableList<TimelineElement> = mutableListOf()

@@ -136,7 +136,7 @@ object InspectorPainter {
    *
    * @param x coordinate of the center of the diamond
    * @param y coordinate of the center of the diamond
-   * @param colorIndex index of the color from [GRAPH_COLORS]
+   * @param colorIndex index of the color from [InspectorColors.GRAPH_COLORS]
    */
   class Diamond(val x: Int, val y: Int, private val colorIndex: Int) {
     // The diamond should have the following shape:

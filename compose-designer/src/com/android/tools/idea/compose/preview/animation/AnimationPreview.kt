@@ -66,7 +66,7 @@ private val LOG = Logger.getInstance(AnimationPreview::class.java)
 
 /**
  * Minimum duration for the timeline. For transitions as snaps duration is 0. Minimum timeline
- * duration allows interact with timeline even for 0-duration animations.
+ * duration allows to interact with timeline even for 0-duration animations.
  */
 private const val MINIMUM_TIMELINE_DURATION_MS = 1000L
 
@@ -302,7 +302,7 @@ class AnimationPreview(
 
   /** Do an initial setup before adding animation to the panel. */
   fun setupAnimation(animation: ComposeAnimation, callback: () -> Unit) {
-    animationsMap[animation]?.let { it.setup(callback) }
+    animationsMap[animation]?.setup(callback)
   }
 
   private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
@@ -330,7 +330,7 @@ class AnimationPreview(
   /**
    * Update the timeline window size, which is usually the duration of the longest animation being
    * tracked. However, repeatable animations are handled differently because they can have a large
-   * number of iterations resulting in a unrealistic duration. In that case, we take the longest
+   * number of iterations resulting in an unrealistic duration. In that case, we take the longest
    * iteration instead to represent the window size and set the timeline max loop count to be large
    * enough to display all the iterations.
    */
@@ -354,8 +354,8 @@ class AnimationPreview(
     // update
     timeline.cachedVal = -1
     // The animation panel might not have the focus when the "No animations" panel is displayed,
-    // i.e. when code has changed in the editor using Fast Preview and we need to refresh the
-    // animation preview so it displays the most up-to-date animations. For that reason, we need to
+    // i.e. when code has changed in the editor using Fast Preview, and we need to refresh the
+    // animation preview, so it displays the most up-to-date animations. For that reason, we need to
     // make
     // sure the animation panel is repainted correctly.
     animationPreviewPanel.repaint()
@@ -406,7 +406,7 @@ class AnimationPreview(
     animations.add(animationTab)
 
     if (isAddingFirstTab) {
-      // There are no tabs and we're about to add one. Replace the placeholder panel with the
+      // There are no tabs, and we're about to add one. Replace the placeholder panel with the
       // TabbedPane.
       loadingPanelVisible = false
       tabbedPane.addTab(
@@ -508,7 +508,7 @@ class AnimationPreview(
 
         stateComboBox.setStartState(state ?: animation.states.firstOrNull())
 
-        // Use a longer timeout the first time we're updating the AnimatedVisiblity state. Since
+        // Use a longer timeout the first time we're updating the AnimatedVisibility state. Since
         // we're running off EDT, the UI will not
         // freeze. This is necessary here because it's the first time the animation mutable states
         // will be written, when setting the clock,

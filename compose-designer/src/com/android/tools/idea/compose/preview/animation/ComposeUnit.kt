@@ -31,7 +31,7 @@ object ComposeUnit {
 
   class TimelineUnit(val propertyLabel: String, val unit: NumberUnit<*>?)
 
-  /** Multi-dimensional property with each dimension of the type [A]. */
+  /** Multidimensional property with each dimension of the type [A]. */
   interface Unit<A> {
     val components: List<A>
 
@@ -49,7 +49,7 @@ object ComposeUnit {
     fun getPickerTitle(): String
   }
 
-  /** Multi-dimensional property with each dimension of the type [A]. */
+  /** Multidimensional property with each dimension of the type [A]. */
   interface NumberUnit<A> : Unit<A> where A : Number, A : Comparable<A> {
     /**
      * Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]
@@ -63,7 +63,7 @@ object ComposeUnit {
 
     override fun toString(componentId: Int) = component1.toString()
 
-    override fun toString(): String = components.joinToString() { it.toString() }
+    override fun toString(): String = components.joinToString { it.toString() }
   }
 
   abstract class Unit2D<A>(val component1: A, val component2: A) : Unit<A> {
