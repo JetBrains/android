@@ -91,7 +91,6 @@ import com.google.common.collect.Lists
 import com.intellij.ide.actions.CreateElementActionBase
 import com.intellij.ide.fileTemplates.FileTemplateManager
 import com.intellij.ide.fileTemplates.FileTemplateUtil
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -968,24 +967,9 @@ fun ResourceRepository.getResourceItems(
   return items.mapTo(HashSet(items.size), ResourceItem::getName)
 }
 
-/** Checks if the given [ResourceItem] is available in XML resources in the given [AndroidFacet]. */
-fun ResourceItem.isAccessibleInXml(facet: AndroidFacet): Boolean {
-  return isAccessible(namespace, type, name, facet)
-}
-
 /** Checks if the given [ResourceValue] is available in XML resources in the given [AndroidFacet]. */
 fun ResourceValue.isAccessibleInXml(facet: AndroidFacet): Boolean {
   return isAccessible(namespace, resourceType, name, facet)
-}
-
-/** Checks if the given [ResourceItem] is available in Java or Kotlin code in the given [AndroidFacet]. */
-fun ResourceItem.isAccessibleInCode(facet: AndroidFacet): Boolean {
-  return isAccessibleInXml(facet) // TODO(b/74324283): implement the third visibility level.
-}
-
-/** Checks if the given [ResourceValue] is available in Java or Kotlin code in the given [AndroidFacet]. */
-fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
-  return isAccessibleInXml(facet) // TODO(b/74324283): implement the third visibility level.
 }
 
 /**
@@ -1100,10 +1084,9 @@ fun packageToRClass(packageName: String): String {
 fun findResourceFields(
   facet: AndroidFacet,
   resClassName: String,
-  resourceName: String,
-  onlyInOwnPackages: Boolean
+  resourceName: String
 ): Array<PsiField> {
-  return findResourceFields(facet, resClassName, setOf(resourceName), onlyInOwnPackages)
+  return findResourceFields(facet, resClassName, setOf(resourceName))
 }
 
 /**
@@ -1113,8 +1096,7 @@ fun findResourceFields(
 fun findResourceFields(
   facet: AndroidFacet,
   resClassName: String,
-  resourceNames: Collection<String>,
-  onlyInOwnPackages: Boolean
+  resourceNames: Collection<String>
 ): Array<PsiField> {
   val result: MutableList<PsiField> = ArrayList()
   for (rClass in findRJavaClasses(facet)) {
@@ -1203,7 +1185,7 @@ fun findResourceFieldsForFileResource(file: PsiFile, onlyInOwnPackages: Boolean)
   val resourceType = ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceType(file)
                      ?: return PsiField.EMPTY_ARRAY
   val resourceName = SdkUtils.fileNameToResourceName(file.name)
-  return findResourceFields(facet, resourceType, resourceName, onlyInOwnPackages)
+  return findResourceFields(facet, resourceType, resourceName)
 }
 
 fun findResourceFieldsForValueResource(tag: XmlTag, onlyInOwnPackages: Boolean): Array<PsiField> {
@@ -1212,7 +1194,7 @@ fun findResourceFieldsForValueResource(tag: XmlTag, onlyInOwnPackages: Boolean):
   val resourceType = (if (fileResType == ResourceFolderType.VALUES) getResourceTypeForResourceTag(tag) else null)
                      ?: return PsiField.EMPTY_ARRAY
   val name = tag.getAttributeValue(SdkConstants.ATTR_NAME) ?: return PsiField.EMPTY_ARRAY
-  return findResourceFields(facet, resourceType.getName(), name, onlyInOwnPackages)
+  return findResourceFields(facet, resourceType.getName(), name)
 }
 
 fun getRJavaFieldName(resourceName: String): String {
@@ -1252,17 +1234,6 @@ fun isCorrectAndroidResourceName(resourceName: String): Boolean {
 
 fun getResourceTypeForResourceTag(tag: XmlTag): ResourceType? {
   return ResourceType.fromXmlTag(tag, { obj: XmlTag -> obj.name }, { obj: XmlTag, qname: String? -> obj.getAttributeValue(qname) })
-}
-
-fun getResourceClassName(field: PsiField): String? {
-  val resourceClass = field.containingClass
-  if (resourceClass != null) {
-    val parentClass = resourceClass.containingClass
-    if (parentClass != null && AndroidUtils.R_CLASS_NAME == parentClass.name && parentClass.containingClass == null) {
-      return resourceClass.name
-    }
-  }
-  return null
 }
 
 /**
@@ -1325,21 +1296,6 @@ fun isIdReference(attrValue: String?): Boolean {
 
 fun isIdDeclaration(value: XmlAttributeValue): Boolean {
   return isIdDeclaration(value.value)
-}
-
-fun isConstraintReferencedIds(nsURI: String?, nsPrefix: String?, key: String?): Boolean {
-  return SdkConstants.AUTO_URI == nsURI && SdkConstants.APP_PREFIX == nsPrefix && SdkConstants.CONSTRAINT_REFERENCED_IDS == key
-}
-
-fun isConstraintReferencedIds(value: XmlAttributeValue): Boolean {
-  val parent = value.parent
-  if (parent is XmlAttribute) {
-    val nsURI = parent.namespace
-    val nsPrefix = parent.namespacePrefix
-    val key = parent.localName
-    return isConstraintReferencedIds(nsURI, nsPrefix, key)
-  }
-  return false
 }
 
 fun getResourceNameByReferenceText(text: String): String? {
@@ -1879,59 +1835,6 @@ fun getRClassNamespace(facet: AndroidFacet, qName: String?): ResourceNamespace {
   }
   else {
     ResourceNamespace.fromPackageName(StringUtil.getPackageName(qName!!))
-  }
-}
-
-/**
- * Utility method suitable for Comparator implementations which order resource files,
- * which will sort files by base folder followed by alphabetical configurations. Prioritizes
- * XML files higher than non-XML files.
- */
-fun compareResourceFiles(file1: VirtualFile?, file2: VirtualFile?): Int {
-  return if (file1 == file2) {
-    0
-  }
-  else if (file1 != null && file2 != null) {
-    val xml1 = file1.fileType === XmlFileType.INSTANCE
-    val xml2 = file2.fileType === XmlFileType.INSTANCE
-    if (xml1 != xml2) {
-      return if (xml1) -1 else 1
-    }
-    val parent1 = file1.parent
-    val parent2 = file2.parent
-    if (parent1 != null && parent2 != null && parent1 != parent2) {
-      val parentName1 = parent1.name
-      val parentName2 = parent2.name
-      val qualifier1 = parentName1.indexOf('-') != -1
-      val qualifier2 = parentName2.indexOf('-') != -1
-      if (qualifier1 != qualifier2) {
-        return if (qualifier1) 1 else -1
-      }
-      if (qualifier1) { // Sort in FolderConfiguration order
-        val config1 = FolderConfiguration.getConfigForFolder(parentName1)
-        val config2 = FolderConfiguration.getConfigForFolder(parentName2)
-        if (config1 != null && config2 != null) {
-          return config1.compareTo(config2)
-        }
-        else if (config1 != null) {
-          return -1
-        }
-        else if (config2 != null) {
-          return 1
-        }
-        val delta = parentName1.compareTo(parentName2)
-        if (delta != 0) {
-          return delta
-        }
-      }
-    }
-    file1.path.compareTo(file2.path)
-  }
-  else if (file1 != null) {
-    -1
-  }
-  else {
-    1
   }
 }
 

@@ -221,7 +221,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
                                       facet: AndroidFacet,
                                       resourceType: ResourceType): List<GotoRelatedItem>? {
       val resourceName = SdkUtils.fileNameToResourceName(file.name)
-      val fields = findResourceFields(facet, resourceType.getName(), resourceName, true)
+      val fields = findResourceFields(facet, resourceType.getName(), resourceName)
       val field = fields.firstOrNull() ?: return null
       val module = facet.module
       // Explicitly chosen in the layout/menu file with a tools:context attribute?

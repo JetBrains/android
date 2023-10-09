@@ -395,7 +395,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   public void testFindResourceFields() {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
 
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(myFacet, "string", "hello", false);
+    PsiField[] fields = IdeResourcesUtil.findResourceFields(myFacet, "string", "hello");
     assertEquals(1, fields.length);
     PsiField field = fields[0];
     assertEquals("hello", field.getName());
@@ -407,7 +407,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
 
     PsiField[] fields = IdeResourcesUtil.findResourceFields(
-      myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
+      myFacet, "string", ImmutableList.of("hello", "goodbye"));
 
     Set<String> fieldNames = Sets.newHashSet();
     for (PsiField field : fields) {
@@ -431,7 +431,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
 
     AndroidFacet facet = AndroidFacet.getInstance(libModule);
     assertThat(facet).isNotNull();
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
+    PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello");
 
     Set<String> packages = Sets.newHashSet();
     for (PsiField field : fields) {
@@ -457,7 +457,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     // The main module doesn't get a generated R class and inherit fields (lack of manifest)
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertThat(facet).isNotNull();
-    PsiField[] mainFields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
+    PsiField[] mainFields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello"  /* onlyInOwnPackages */);
     assertEmpty(mainFields);
 
     // However, if the main module happens to get a handle on the lib's R class

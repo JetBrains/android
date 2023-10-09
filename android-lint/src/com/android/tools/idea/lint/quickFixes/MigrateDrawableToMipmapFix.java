@@ -99,7 +99,7 @@ public class MigrateDrawableToMipmapFix extends DefaultLintQuickFix {
       }
     }
 
-    PsiField[] resourceFields = IdeResourcesUtil.findResourceFields(facet, ResourceType.DRAWABLE.getName(), myUrl.name, true);
+    PsiField[] resourceFields = IdeResourcesUtil.findResourceFields(facet, ResourceType.DRAWABLE.getName(), myUrl.name);
     if (resourceFields.length == 1) {
       Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(resourceFields[0], useScope);
       for (PsiReference next : allReferences) {
