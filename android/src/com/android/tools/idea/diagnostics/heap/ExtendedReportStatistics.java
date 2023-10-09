@@ -23,6 +23,8 @@ import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.WeakList;
+import it.unimi.dsi.fastutil.ints.Int2ByteMap;
+import it.unimi.dsi.fastutil.ints.Int2ByteOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -48,6 +50,8 @@ public class ExtendedReportStatistics {
 
   @NotNull final Long2ObjectMap<ClusterHistogram> sharedClustersHistograms;
   @NotNull final Int2IntMap objectIdToMinDepth = new Int2IntOpenHashMap();
+  @NotNull final Int2ByteMap objectIdToMinDepthKind = new Int2ByteOpenHashMap();
+
   @NotNull final Map<ComponentsSet.Component, ExceededClusterStatistics> componentToExceededClustersStatistics = Maps.newHashMap();
   @NotNull final Int2ObjectMap<ExceededClusterStatistics> exceededClustersEnumeration = new Int2ObjectOpenHashMap<>();
 

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseNode.minDepthKindFromByte;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ObjectTagUtil {
   static final int INVALID_OBJECT_ID = -1;
@@ -28,7 +31,8 @@ public class ObjectTagUtil {
     32bits - postorder number
     17bits - depth
     1bit - is owned by component exceeding limits
-    5bit - (if the above is set) index of the component
+    4bit - (if the above is set) index of the component
+    1bit - optimal depth kind
    */
   private static final long CURRENT_ITERATION_ID_MASK = 0xFF;
   private static final long CURRENT_ITERATION_VISITED_MASK = 0x100;
@@ -47,7 +51,11 @@ public class ObjectTagUtil {
 
   // 8(current iteration id mask) + 1(visited bit) + 32(object id) + 17(depth) + 1(is owned by exceeding component bit)
   private static final int OBJECT_OWNING_EXCEEDED_COMPONENT_OFFSET = 59;
-  private static final long OBJECT_OWNING_EXCEEDED_COMPONENT_MASK = 0xF800000000000000L;
+
+  static final int EXCEEDED_COMPONENTS_LIMIT = 16; // 4 bits reserved for exceeded cluster id;
+  private static final long OBJECT_OWNING_EXCEEDED_COMPONENT_MASK = 0x7800000000000000L;
+  private static final int DEPTH_KIND_OFFSET = 63;
+  private static final long DEPTH_KIND_MASK = 0x8000000000000000L;
 
   static int getObjectId(long tag, short currentIterationId) {
     if (!isTagFromTheCurrentIteration(tag, currentIterationId)) {
@@ -69,6 +77,15 @@ public class ObjectTagUtil {
     }
     return (int)((tag & CURRENT_ITERATION_OBJECT_DEPTH_MASK) >> CURRENT_ITERATION_OBJECT_DEPTH_OFFSET);
   }
+
+  @Nullable
+  static HeapTraverseNode.MinDepthKind getDepthKind(long tag, short currentIterationId) {
+    if (!isTagFromTheCurrentIteration(tag, currentIterationId)) {
+      return null;
+    }
+    return minDepthKindFromByte((byte)((tag & DEPTH_KIND_MASK) >>> DEPTH_KIND_OFFSET));
+  }
+
   static void setObjectId(@NotNull final Object obj, long tag, int newObjectId, short currentIterationId) {
     tag &= ~CURRENT_ITERATION_OBJECT_ID_MASK;
     tag |= (long)newObjectId << CURRENT_ITERATION_OBJECT_ID_OFFSET;
@@ -78,19 +95,22 @@ public class ObjectTagUtil {
   }
 
   // method unsets the visited bit, sets up passed object id and depth
-  static long constructTag(int objectId, int depth, short currentIterationId,
+  static long constructTag(int objectId, int depth, HeapTraverseNode.MinDepthKind minDepthKind, short currentIterationId,
                            boolean isOwnedByExceededComponent,
                            int currentExceededClusterIndex) {
     assert 0 <= currentExceededClusterIndex;
     assert currentExceededClusterIndex < 32;
 
     long tag = 0;
-    tag |= ((long)objectId << CURRENT_ITERATION_OBJECT_ID_OFFSET) & CURRENT_ITERATION_ID_MASK;
+    tag |= ((long)objectId << CURRENT_ITERATION_OBJECT_ID_OFFSET) & CURRENT_ITERATION_OBJECT_ID_MASK;
     tag |= ((long)depth << CURRENT_ITERATION_OBJECT_DEPTH_OFFSET) & CURRENT_ITERATION_OBJECT_DEPTH_MASK;
     if (isOwnedByExceededComponent) {
       tag |= OBJECT_OWNED_BY_EXCEEDED_COMPONENT_BIT_MASK;
     }
     tag |= ((long)currentExceededClusterIndex << OBJECT_OWNING_EXCEEDED_COMPONENT_OFFSET) & OBJECT_OWNING_EXCEEDED_COMPONENT_MASK;
+    if (minDepthKind != HeapTraverseNode.MinDepthKind.DEFAULT) {
+      tag |= ((long)minDepthKind.getValue() << DEPTH_KIND_OFFSET) & DEPTH_KIND_MASK;
+    }
     tag |= currentIterationId;
     return tag;
   }

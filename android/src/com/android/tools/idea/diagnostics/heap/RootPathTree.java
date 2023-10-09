@@ -95,7 +95,7 @@ public class RootPathTree {
 
     if (rootPathTreeNode == null) {
       pathElement = rootPathIterator.next();
-      rootPathTreeNode = createRootPathTreeNode(pathElement.getLabel(), pathElement.getClassName(), extendedReportStatistics);
+      rootPathTreeNode = createRootPathTreeNode(pathElement, extendedReportStatistics);
       rootPathTreeNode.incrementNumberOfInstances(exceededClusterId, nominatedNodeTypeId, pathElement.subtreeSize);
 
       roots.add(rootPathTreeNode);
@@ -105,11 +105,11 @@ public class RootPathTree {
     addPathElementIteration(rootPathTreeNode, pathElement, rootPathIterator, exceededClusterId, nominatedNodeTypeId);
   }
 
-  private RootPathTreeNode createRootPathTreeNode(@NotNull final String label,
-                                                  @NotNull final String className,
+  private RootPathTreeNode createRootPathTreeNode(@NotNull final RootPathElement rootPathElement,
                                                   @NotNull final ExtendedReportStatistics extendedReportStatistics) {
     numberOfRootPathTreeNodes++;
-    return new RootPathTreeNode(label, className, extendedReportStatistics);
+    return new RootPathTreeNode(rootPathElement.getLabel(), rootPathElement.getClassName(), rootPathElement.isDisposedButReferenced(),
+                                extendedReportStatistics);
   }
 
   private void addPathElementIteration(@NotNull final RootPathTreeNode node,
@@ -133,7 +133,7 @@ public class RootPathTree {
 
     RootPathTreeNode childNode = node.children.get(rootPathElement.extendedStackNode);
     if (childNode == null) {
-      childNode = createRootPathTreeNode(rootPathElement.getLabel(), rootPathElement.getClassName(), extendedReportStatistics);
+      childNode = createRootPathTreeNode(rootPathElement, extendedReportStatistics);
       node.children.put(rootPathElement.extendedStackNode, childNode);
     }
 
@@ -317,7 +317,8 @@ public class RootPathTree {
            transformPrefix(prefix, isOnlyChild, isLastChild) +
            node.label +
            ": " +
-           node.className;
+           node.className +
+           (node.isDisposedButReferenced ? "(disposed)" : "");
   }
 
   public int getNumberOfRootPathTreeNodes() {
@@ -348,6 +349,10 @@ public class RootPathTree {
     @NotNull
     public String getLabel() {
       return extendedStackNode.getLabel();
+    }
+
+    public boolean isDisposedButReferenced() {
+      return extendedStackNode.isDisposedButReferenced();
     }
 
     public void setRootPathTreeNode(@Nullable RootPathTreeNode rootPathTreeNode,
@@ -391,6 +396,7 @@ public class RootPathTree {
   private static class RootPathTreeNode {
     @NotNull final String className;
     @NotNull final String label;
+    boolean isDisposedButReferenced;
 
     @NotNull final Map<ExtendedStackNode, RootPathTreeNode> children = Maps.newHashMap();
     boolean isRepeated = false;
@@ -403,9 +409,11 @@ public class RootPathTree {
 
     private RootPathTreeNode(@NotNull final String label,
                              @NotNull final String className,
+                             boolean isDisposedButReferenced,
                              @NotNull final ExtendedReportStatistics extendedReportStatistics) {
       this.className = className;
       this.label = label;
+      this.isDisposedButReferenced = isDisposedButReferenced;
       this.instancesStatistics =
         new ObjectsStatistics[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
       this.selfSizes =

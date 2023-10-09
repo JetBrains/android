@@ -223,11 +223,8 @@ abstract class DepthFirstSearchTraverse {
                                                                         exceededClusterStatistics.nominatedClassesEnumeration.getInt(
                                                                           currentObjectClassName));
         }
-        if (stackNode.getObject() instanceof Disposable) {
-          //noinspection deprecation
-          if (Disposer.isDisposed((Disposable)stackNode.getObject())) {
-            extendedReportStatistics.rootPathTree.addDisposedReferencedObjectWithPathToRoot(pathToRoot, exceededClusterStatistics);
-          }
+        if (pathToRoot.peek().isDisposedButReferenced()) {
+          extendedReportStatistics.rootPathTree.addDisposedReferencedObjectWithPathToRoot(pathToRoot, exceededClusterStatistics);
         }
       }
 
@@ -242,7 +239,12 @@ abstract class DepthFirstSearchTraverse {
     protected void pushElementToDepthFirstSearchStack(@NotNull Object obj, int depth, long tag, @NotNull String label) {
       super.pushElementToDepthFirstSearchStack(obj, depth, tag, label);
 
-      extendedNodesStack.push(new ExtendedStackNode(getObjectClassNameLabel(obj), label));
+      extendedNodesStack.push(new ExtendedStackNode(getObjectClassNameLabel(obj), label, isDisposedButReferenced(obj)));
+    }
+
+    private static boolean isDisposedButReferenced(@NotNull Object obj) {
+      //noinspection deprecation
+      return obj instanceof Disposable && Disposer.isDisposed((Disposable)obj);
     }
 
     @NotNull
@@ -292,9 +294,10 @@ abstract class DepthFirstSearchTraverse {
       }
       ExceededClusterStatistics exceededClusterStatistics =
         extendedReportStatistics.componentToExceededClustersStatistics.get(component.get());
-      pathToRoot.add(new RootPathTree.RootPathElement(new ExtendedStackNode(getObjectClassNameLabel(childObject), label),
-                                                      MemoryReportJniHelper.getObjectSize(childObject),
-                                                      extendedReportStatistics));
+      pathToRoot.add(new RootPathTree.RootPathElement(
+        new ExtendedStackNode(getObjectClassNameLabel(childObject), label, isDisposedButReferenced(childObject)),
+        MemoryReportJniHelper.getObjectSize(childObject),
+        extendedReportStatistics));
       extendedReportStatistics.rootPathTree.addClassLoaderPath(pathToRoot, exceededClusterStatistics);
       pathToRoot.pop();
     }
@@ -307,11 +310,18 @@ abstract class DepthFirstSearchTraverse {
       checkReferenceIsHoldingClassLoader(stackNode.getObject(), childObject, label);
 
       int childObjectDepth = ObjectTagUtil.getDepth(childTag, iterationId);
-      if (childObjectDepth == ObjectTagUtil.INVALID_OBJECT_DEPTH) {
+      HeapTraverseNode.MinDepthKind childMinDepthKind = ObjectTagUtil.getDepthKind(childTag, iterationId);
+      HeapTraverseNode.MinDepthKind parentMinDepthKind = ObjectTagUtil.getDepthKind(stackNode.tag, iterationId);
+
+      if (childObjectDepth == ObjectTagUtil.INVALID_OBJECT_DEPTH || childMinDepthKind == null) {
         return false;
       }
 
-      return stackNode.depth + 1 == childObjectDepth;
+      if (pathToRoot.peek().isDisposedButReferenced()) {
+        parentMinDepthKind = HeapTraverseNode.MinDepthKind.USING_DISPOSED_OBJECTS;
+      }
+
+      return stackNode.depth + 1 == childObjectDepth && parentMinDepthKind == childMinDepthKind;
     }
 
     @Override

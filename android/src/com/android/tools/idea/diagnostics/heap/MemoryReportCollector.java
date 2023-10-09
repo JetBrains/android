@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseNode.minDepthKindFromByte;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.android.tools.idea.diagnostics.heap.ObjectTagUtil.INVALID_OBJECT_ID;
@@ -251,6 +252,9 @@ public final class MemoryReportCollector implements Disposable {
           processObjectTagPreorderTraverse(currentObject, currentObjectId, node, currentObjectComponent);
 
           // propagate to referred objects
+          if (isDisposedButReferenced) {
+            node.minDepthKind = HeapTraverseNode.MinDepthKind.USING_DISPOSED_OBJECTS;
+          }
           propagateComponentMask(currentObject, node, currentObjectId, fieldCache);
         }
 
@@ -294,6 +298,7 @@ public final class MemoryReportCollector implements Disposable {
 
     if (statistics.getExtendedReportStatistics().objectIdToMinDepth.containsKey(objectId)) {
       node.minDepth = statistics.getExtendedReportStatistics().objectIdToMinDepth.get(objectId);
+      node.minDepthKind = minDepthKindFromByte(statistics.getExtendedReportStatistics().objectIdToMinDepthKind.get(objectId));
     }
 
     return node;
@@ -316,7 +321,7 @@ public final class MemoryReportCollector implements Disposable {
         statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.get(currentObjectComponent).exceededClusterIndex;
     }
     MemoryReportJniHelper.setObjectTag(obj,
-                                       ObjectTagUtil.constructTag(currentObjectId, node.minDepth, iterationId,
+                                       ObjectTagUtil.constructTag(currentObjectId, node.minDepth, node.minDepthKind, iterationId,
                                                                   isOwnedByExceededComponent, owningExceededClusterIndex));
   }
 
@@ -453,8 +458,15 @@ public final class MemoryReportCollector implements Disposable {
       currentNode.retainedMask &= parentNode.retainedMask;
       currentNode.retainedMaskForCategories &= parentNode.retainedMaskForCategories;
       currentNode.isRetainedByPlatform &= parentNode.isRetainedByPlatform;
-      if (currentNode.minDepth != null && parentNode.minDepth != null) {
-        currentNode.minDepth = Math.min(currentNode.minDepth, parentNode.minDepth + 1);
+      if (currentNode.minDepth != null && currentNode.minDepthKind != null && parentNode.minDepth != null && parentNode.minDepthKind != null) {
+        if (parentNode.minDepthKind.getValue() == currentNode.minDepthKind.getValue()) {
+          currentNode.minDepth = Math.min(currentNode.minDepth, parentNode.minDepth + 1);
+        }
+
+        if (parentNode.minDepthKind.getValue() < currentNode.minDepthKind.getValue()) {
+          currentNode.minDepth = parentNode.minDepth + 1;
+          currentNode.minDepthKind = parentNode.minDepthKind;
+        }
       }
 
       if (ownershipWeight.compareTo(currentNode.ownershipWeight) > 0) {
@@ -480,6 +492,7 @@ public final class MemoryReportCollector implements Disposable {
                                                  parentNode.retainedMaskForCategories, false, parentNode.isRetainedByPlatform);
     if (statistics.getExtendedReportStatistics() != null && parentNode.minDepth != null) {
       node.minDepth = parentNode.minDepth + 1;
+      node.minDepthKind = parentNode.minDepthKind;
     }
 
     return node;
@@ -492,6 +505,7 @@ public final class MemoryReportCollector implements Disposable {
                                                  false, false);
     if (statistics.getExtendedReportStatistics() != null) {
       node.minDepth = 0;
+      node.minDepthKind = HeapTraverseNode.MinDepthKind.DEFAULT;
     }
 
     return node;
@@ -545,6 +559,9 @@ public final class MemoryReportCollector implements Disposable {
       if (stats.getComponentStats().get(component.getId()).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes() >
           component.getExtendedReportCollectionThresholdBytes()) {
         result.add(component);
+        if (result.size() >= ObjectTagUtil.EXCEEDED_COMPONENTS_LIMIT) {
+          break;
+        }
       }
     }
 

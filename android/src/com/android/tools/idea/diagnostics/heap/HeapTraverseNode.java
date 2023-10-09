@@ -34,6 +34,31 @@ class HeapTraverseNode {
 
   @Nullable
   public Integer minDepth = null;
+  @Nullable
+  public MinDepthKind minDepthKind = null;
+
+  enum MinDepthKind {
+    DEFAULT((byte)0),
+    USING_DISPOSED_OBJECTS((byte)1);
+
+    private final byte value;
+    MinDepthKind(byte value) {
+      this.value = value;
+    }
+
+    public byte getValue() {
+      return value;
+    }
+  }
+
+  @Nullable
+  static MinDepthKind minDepthKindFromByte(byte minDepthKindByte) {
+    return switch (minDepthKindByte) {
+      case 0 -> MinDepthKind.DEFAULT;
+      case 1 -> MinDepthKind.USING_DISPOSED_OBJECTS;
+      default -> null;
+    };
+  }
 
   HeapTraverseNode(@Nullable final Object obj,
                    @NotNull RefWeight ownershipWeight,
