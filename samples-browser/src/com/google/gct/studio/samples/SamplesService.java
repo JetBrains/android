@@ -20,6 +20,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public class SamplesService {
@@ -28,12 +29,10 @@ public class SamplesService {
 
   @NotNull
   SamplesIndex getIndex() {
-    String localTestingPort = PropertiesComponent.getInstance().getValue("samples.service.use.local.port.for.test");
-    if (localTestingPort != null) {
-      String address = "http://127.0.0.1:" + localTestingPort;
-      return getIndex(address, "test");
-    }
-    return getIndex(DEFAULT_ROOT_URL, DEFAULT_SERVICE_PATH);
+    String url = Optional.ofNullable(System.getProperty("samples.service.use.local.port.for.test"))
+      .map(localTestingPort -> "http://127.0.0.1:" + localTestingPort)
+      .orElse(DEFAULT_ROOT_URL);
+    return getIndex(url, DEFAULT_SERVICE_PATH);
   }
 
   @NotNull

@@ -38,7 +38,7 @@ import java.util.Map;
 
 public class AndroidStudioInstallation {
 
-  private final TestFileSystem fileSystem;
+  public final TestFileSystem fileSystem;
   private final Path workDir;
   private final LogFile stdout;
   private final LogFile stderr;
@@ -350,6 +350,10 @@ public class AndroidStudioInstallation {
 
   public Path getStudioDir() {
     return studioDir;
+  }
+
+  public Path getAndroidStudioProjectsDir() {
+    return fileSystem.getHome().resolve("AndroidStudioProjects");
   }
 
   public LogFile getStdout() {

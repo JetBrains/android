@@ -23,6 +23,7 @@ import com.appspot.gsamplesindex.samplesindex.model.SampleCollection;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -87,12 +88,14 @@ public class SampleImportAction extends AnAction {
       return;
     }
 
-    ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
-    SampleModel model = new SampleModel();
-    wizardBuilder.addStep(new SampleBrowserStep(model, sampleList.get()));
+    ApplicationManager.getApplication().invokeLater(() -> {
+      SampleModel model = new SampleModel();
+      ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
+      wizardBuilder.addStep(new SampleBrowserStep(model, sampleList.get()));
 
-    ModelWizard wizard = wizardBuilder.build();
-    ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizard, SamplesBrowserBundle.message("sample.import.title")).build();
-    dialog.show();
+      ModelWizard wizard = wizardBuilder.build();
+      ModelWizardDialog dialog = new StudioWizardDialogBuilder(wizard, SamplesBrowserBundle.message("sample.import.title")).build();
+      dialog.show();
+    });
   }
 }
