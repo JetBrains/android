@@ -37,6 +37,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
+import com.android.ide.common.resources.colorToString
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.toFileResourcePathString
 import com.android.resources.FolderTypeRelationship
@@ -57,7 +58,6 @@ import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.getItemPsiFile
 import com.android.tools.idea.res.getItemTag
 import com.android.tools.idea.res.resolve

@@ -642,7 +642,7 @@ public class AndroidJavaDocRenderer {
           // look at the resolution chain and figure out the type of the resolved value,
           // and if appropriate, append a customized rendering.
           if (value.startsWith("#")) {
-            Color color = IdeResourcesUtil.parseColor(value);
+            Color color = ResourcesUtil.parseColor(value);
             if (color != null) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
@@ -1243,7 +1243,7 @@ public class AndroidJavaDocRenderer {
     }
 
     private void renderColorToHtml(@NotNull HtmlBuilder builder, @Nullable String colorString, float alpha) {
-      Color color = IdeResourcesUtil.parseColor(colorString);
+      Color color = ResourcesUtil.parseColor(colorString);
       if (color == null) {
         // user error, they have a value that's not a color
         renderError(builder, colorString);
@@ -1288,7 +1288,7 @@ public class AndroidJavaDocRenderer {
       // vertical-align:middle on divs)
       builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
       builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
-      builder.addHtml(IdeResourcesUtil.colorToString(displayColor));
+      builder.addHtml(ResourcesUtil.colorToString(displayColor));
       builder.addHtml("</td></tr></table>");
     }
   }

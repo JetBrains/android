@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.resources.colorToString
 import com.android.resources.ResourceType
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup

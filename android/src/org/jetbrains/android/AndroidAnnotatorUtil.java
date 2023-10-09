@@ -24,6 +24,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
@@ -71,7 +72,6 @@ import java.awt.Color;
 import java.awt.MouseInfo;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -365,10 +365,10 @@ public class AndroidAnnotatorUtil {
       }
       if (myElement.isValid()) {
         if (myElement instanceof XmlTag) {
-          return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
+          return ResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
         }
         else if (myElement instanceof XmlAttributeValue) {
-          return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
+          return ResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
         }
       }
       return null;
@@ -431,7 +431,7 @@ public class AndroidAnnotatorUtil {
     }
 
     private void setColorToAttribute(@NotNull Color color) {
-      setColorStringAttribute(IdeResourcesUtil.colorToString(color));
+      setColorStringAttribute(ResourcesUtil.colorToString(color));
     }
 
     private void setColorStringAttribute(@NotNull String colorString) {

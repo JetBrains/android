@@ -31,6 +31,7 @@ import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.parseColor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
@@ -46,7 +47,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.uibuilder.property.support.ColorSelectionAction

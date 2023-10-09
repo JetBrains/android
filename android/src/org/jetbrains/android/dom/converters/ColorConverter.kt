@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.converters
 
 import com.android.ide.common.rendering.api.AttributeFormat
-import com.android.tools.idea.res.parseColor
+import com.android.ide.common.resources.parseColor
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.ResolvingConverter
 import org.jetbrains.android.util.AndroidBundle

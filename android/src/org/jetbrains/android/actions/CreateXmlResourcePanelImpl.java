@@ -17,6 +17,7 @@ package org.jetbrains.android.actions;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
@@ -129,7 +130,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
     if (resourceType == ResourceType.COLOR) {
       // For Color values, we want a TextField with a ColorPicker so we wrap the TextField with a custom component.
-      Color defaultColor = IdeResourcesUtil.parseColor(resourceValue);
+      Color defaultColor = ResourcesUtil.parseColor(resourceValue);
       myValueFieldContainer.removeAll();
       myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon((JTextField)myValueField, defaultColor));
     }

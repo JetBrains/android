@@ -58,6 +58,7 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.escape.string.StringResourceEscaper
+import com.android.ide.common.resources.parseColor
 import com.android.ide.common.resources.toFileResourcePathString
 import com.android.ide.common.util.PathString
 import com.android.resources.FolderTypeRelationship
@@ -636,7 +637,7 @@ fun ResourceUrl.resolve(element: XmlElement): ResourceReference? {
 }
 
 @Throws(NumberFormatException::class)
-fun RenderResources.makeColorWithAlpha(color: Color, alphaValue: String?): Color {
+private fun RenderResources.makeColorWithAlpha(color: Color, alphaValue: String?): Color {
   val alpha = if (alphaValue != null) resolveStringValue(alphaValue).toFloat() else 1.0f
   val combinedAlpha = (color.alpha * alpha).toInt()
   return ColorUtil.toAlpha(color, clamp(combinedAlpha, 0, 255))
@@ -707,66 +708,6 @@ private fun createStateListState(tag: XmlTag, isFramework: Boolean): StateListSt
     }
   }
   return stateValue?.let { StateListState(stateValue, stateAttributes, alphaValue) }
-}
-
-/**
- * Converts the supported color formats (#rgb, #argb, #rrggbb, #aarrggbb to a Color
- * http://developer.android.com/guide/topics/resources/more-resources.html#Color
- */
-fun parseColor(s: String?): Color? {
-  val trimmed = s?.trim() ?: return null
-  if (trimmed.isEmpty()) {
-    return null
-  }
-
-  if (trimmed[0] == '#') {
-    var longColor = trimmed.substring(1).toLongOrNull(16) ?: return null
-
-    if (trimmed.length == 4 || trimmed.length == 5) {
-      val a = if (trimmed.length == 4) 0xff else extend(longColor and 0xf000 shr 12)
-      val r = extend(longColor and 0xf00 shr 8)
-      val g = extend(longColor and 0x0f0 shr 4)
-      val b = extend(longColor and 0x00f)
-      longColor = a shl 24 or (r shl 16) or (g shl 8) or b
-      return Color(longColor.toInt(), true)
-    }
-
-    if (trimmed.length == 7) {
-      longColor = longColor or -0x1000000
-    }
-    else if (trimmed.length != 9) {
-      return null
-    }
-    return Color(longColor.toInt(), true)
-  }
-
-  return null
-}
-
-/**
- * Converts a color to hex-string representation: #AARRGGBB, including alpha channel.
- * If alpha is FF then the output is #RRGGBB with no alpha component.
- */
-fun colorToString(color: Color): String {
-  var longColor = (color.red shl 16 or (color.green shl 8) or color.blue).toLong()
-  if (color.alpha != 0xFF) {
-    longColor = longColor or (color.alpha.toLong() shl 24)
-    return String.format("#%08X", longColor)
-  }
-  return String.format("#%06X", longColor)
-}
-
-/**
- * Converts a color to Java/Kotlin hex-string representation: 0xAARRGGBB, including alpha channel.
- *
- * The alpha channel is always included for this format.
- */
-fun colorToStringWithAlpha(color: Color): String {
-  return String.format("0x%08X", (color.red shl 16 or (color.green shl 8) or color.blue).toLong() or (color.alpha.toLong() shl 24))
-}
-
-private fun extend(nibble: Long): Long {
-  return nibble or (nibble shl 4)
 }
 
 /**

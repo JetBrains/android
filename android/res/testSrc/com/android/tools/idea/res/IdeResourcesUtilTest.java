@@ -117,56 +117,6 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertEquals("menu-en-rUS", IdeResourcesUtil.getFolderConfiguration(file2.getVirtualFile()).getFolderName(ResourceFolderType.MENU));
   }
 
-  public void testParseColor() {
-    Color c = IdeResourcesUtil.parseColor("#0f4");
-    assert c != null;
-    assertEquals(0xff00ff44, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#1237");
-    assert c != null;
-    assertEquals(0x11223377, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#123456");
-    assert c != null;
-    assertEquals(0xff123456, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#08123456");
-    assert c != null;
-    assertEquals(0x08123456, c.getRGB());
-
-    // Test that spaces are correctly trimmed
-    c = IdeResourcesUtil.parseColor("#0f4 ");
-    assert c != null;
-    assertEquals(0xff00ff44, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor(" #1237");
-    assert c != null;
-    assertEquals(0x11223377, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#123456\n\n ");
-    assert c != null;
-    assertEquals(0xff123456, c.getRGB());
-
-    assertNull(IdeResourcesUtil.parseColor("#123 456"));
-  }
-
-  public void testColorToString() {
-    Color c = new Color(0x0fff0000, true);
-    assertEquals("#0FFF0000", IdeResourcesUtil.colorToString(c));
-
-    c = new Color(0x00ff00);
-    assertEquals("#00FF00", IdeResourcesUtil.colorToString(c));
-
-    c = new Color(0x00000000, true);
-    assertEquals("#00000000", IdeResourcesUtil.colorToString(c));
-
-    Color color = new Color(0x11, 0x22, 0x33, 0xf0);
-    assertEquals("#F0112233", IdeResourcesUtil.colorToString(color));
-
-    color = new Color(0xff, 0xff, 0xff, 0x00);
-    assertEquals("#00FFFFFF", IdeResourcesUtil.colorToString(color));
-  }
-
   public void testDisabledStateListStates() {
     StateListState disabled = new StateListState("value", ImmutableMap.of("state_enabled", false), null);
     StateListState disabledPressed =
