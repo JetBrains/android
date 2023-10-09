@@ -1,4 +1,6 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 java_binary(
     name = "as_driver",
@@ -86,8 +88,6 @@ iml_module(
     ],
 )
 
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
-
 # managed by go/iml_to_build
 jvm_import(
     name = "asdriver_proto",
@@ -110,19 +110,8 @@ iml_module(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "ThreadingCheckerTest",
-    data = select({
-        "@platforms//os:linux": [
-            "//tools/adt/idea/studio:android-studio.linux.zip",
-        ],
-        "@platforms//os:macos": [
-            "//tools/adt/idea/studio:android-studio.mac.zip",
-        ],
-        "@platforms//os:windows": [
-            "//tools/adt/idea/studio:android-studio.win.zip",
-        ],
-    }),
     module = ":as-driver.integration",
     test_class = "com.android.tools.asdriver.tests.integration.ThreadingCheckerTest",
 )
