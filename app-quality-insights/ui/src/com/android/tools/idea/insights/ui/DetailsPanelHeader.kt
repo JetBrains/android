@@ -134,14 +134,24 @@ class DetailsPanelHeader(
     }
   }
 
-  @VisibleForTesting
-  fun generateTitleLabelText(className: String, methodName: String): String {
+  private fun generateTitleLabelText(className: String, methodName: String): String {
     val contentWidth = width - countsPanel.width
-    var remainingWidth = contentWidth - 5 - variantPanel.preferredWidth - 20
+    val remainingWidth = contentWidth - 5 - variantPanel.preferredWidth - 20
+    return generateTitleLabelText(className, methodName, remainingWidth, titleLabel.font)
+  }
+
+  @VisibleForTesting
+  fun generateTitleLabelText(
+    className: String,
+    methodName: String,
+    contentWidth: Int,
+    displayFont: Font
+  ): String {
+    var remainingWidth = contentWidth
     if (remainingWidth <= 0) return "<html></html>"
     val shrunkenMethodText =
       if (methodName.isNotEmpty()) {
-        val methodFontMetrics = getFontMetrics(titleLabel.font.deriveFont(Font.BOLD))
+        val methodFontMetrics = getFontMetrics(displayFont.deriveFont(Font.BOLD))
         AdtUiUtils.shrinkToFit(
             methodName,
             methodFontMetrics,
@@ -155,7 +165,7 @@ class DetailsPanelHeader(
 
     val shrunkenClassText =
       if (remainingWidth > 0) {
-        val classFontMetrics = getFontMetrics(titleLabel.font)
+        val classFontMetrics = getFontMetrics(displayFont)
         AdtUiUtils.shrinkToFit(
             "$className.",
             classFontMetrics,

@@ -18,8 +18,8 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.idea.insights.ISSUE1
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.util.ui.JBFont
 import java.awt.Dimension
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -52,18 +52,29 @@ class DetailsPanelHeaderTest {
     assertThat(detailsPanelHeader.border.getBorderInsets(detailsPanelHeader).bottom).isEqualTo(1)
   }
 
-  @Ignore("b/303112785")
   @Test
   fun `header width affects class name and method name in title label`() {
     val detailsPanelHeader = DetailsPanelHeader()
 
-    detailsPanelHeader.size = Dimension(300, 200)
-    assertThat(detailsPanelHeader.generateTitleLabelText("DetailsPanelTest", "testMethod"))
-      .isEqualTo("<html><B>...ethod</B></html>")
+    assertThat(
+        detailsPanelHeader.generateTitleLabelText(
+          "DetailsPanelTest",
+          "testMethod",
+          120,
+          JBFont.label()
+        )
+      )
+      .matches("<html>\\.\\.\\.\\w+\\.<B>testMethod</B></html>")
 
-    detailsPanelHeader.size = Dimension(350, 200)
-    assertThat(detailsPanelHeader.generateTitleLabelText("DetailsPanelTest", "testMethod"))
-      .isEqualTo("<html>...st.<B>testMethod</B></html>")
+    assertThat(
+        detailsPanelHeader.generateTitleLabelText(
+          "DetailsPanelTest",
+          "testMethod",
+          60,
+          JBFont.label()
+        )
+      )
+      .matches("<html><B>\\.\\.\\.\\w+</B></html>")
   }
 
   @Test
