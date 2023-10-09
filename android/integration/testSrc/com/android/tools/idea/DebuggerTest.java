@@ -62,7 +62,7 @@ public class DebuggerTest {
 
       System.out.println("Debugging the application");
       studio.executeAction("android.deploy.DebugWithoutBuild");
-      studio.resumeProgramFromDebugging();
+      studio.waitForDebuggerToHitBreakpoint();
     }
   }
 }

@@ -17,7 +17,6 @@ package com.android.tools.idea
 
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Ignore
@@ -54,7 +53,7 @@ class DebugJUnitTest {
 
       System.out.println("Debugging the JUnit test")
       studio.executeAction("android.deploy.DebugWithoutBuild")
-      studio.resumeProgramFromDebugging()
+      studio.waitForDebuggerToHitBreakpoint()
     }
   }
 }
