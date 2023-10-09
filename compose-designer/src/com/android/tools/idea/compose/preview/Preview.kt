@@ -759,7 +759,10 @@ class ComposePreviewRepresentation(
 
   private val qualityManager: RenderQualityManager =
     if (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get())
-      DefaultRenderQualityManager(surface, ComposePreviewRenderQualityPolicy) {
+      DefaultRenderQualityManager(
+        surface,
+        ComposePreviewRenderQualityPolicy { surface.screenScalingFactor }
+      ) {
         requestRefresh(type = RefreshType.QUALITY)
       }
     else SimpleRenderQualityManager { getDefaultPreviewQuality() }

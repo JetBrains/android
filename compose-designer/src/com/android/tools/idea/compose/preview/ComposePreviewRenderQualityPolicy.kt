@@ -19,22 +19,31 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.RenderQualityPolicy
 
-object ComposePreviewRenderQualityPolicy : RenderQualityPolicy {
+/**
+ * Implementation of [RenderQualityPolicy] specific for Compose Preview. A
+ * [screenScalingFactorProvider] is needed for the [scaleVisibilityThreshold] to work correctly.
+ * Also note that it needs to be a provider and not a fixed value for the policy to properly work
+ * and get dynamically adjusted when the user has different screens with different scale factors.
+ */
+class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> Double) :
+  RenderQualityPolicy {
+  companion object {
+    /** When the scale is lower than this value, then all previews are treated as not visible. */
+    val scaleVisibilityThreshold: Float
+      get() =
+        (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
+          .coerceAtLeast(0f)
+          .coerceAtMost(1f)
+
+    const val lowestQuality: Float = 0.001f
+  }
+
   override val acceptedErrorMargin = .05f // 5% error margin
   override val debounceTimeMillis: Long
     get() = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME.get().coerceAtLeast(1)
 
-  /** When the scale is lower than this value, then all previews are treated as not visible. */
-  val scaleVisibilityThreshold: Float
-    get() =
-      (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
-        .coerceAtLeast(0f)
-        .coerceAtMost(1f)
-
-  const val lowestQuality: Float = 0.001f
-
   override fun getTargetQuality(scale: Double, isVisible: Boolean): Float {
-    if (!isVisible || scale < scaleVisibilityThreshold) {
+    if (!isVisible || scale * screenScalingFactorProvider() < scaleVisibilityThreshold) {
       return lowestQuality
     }
     return scale.toFloat().coerceAtMost(getDefaultPreviewQuality()).coerceAtLeast(lowestQuality)
