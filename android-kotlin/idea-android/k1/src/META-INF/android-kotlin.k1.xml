@@ -42,6 +42,12 @@
                      level="WEAK WARNING"
                      language="kotlin" />
 
+    <intentionAction>
+      <language>kotlin</language>
+      <className>org.jetbrains.kotlin.android.intention.K1KotlinAndroidAddStringResourceIntention</className>
+      <category>Kotlin Android</category>
+    </intentionAction>
+
     <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K1AndroidKotlinResourceExternalAnnotator" />
   </extensions>
 

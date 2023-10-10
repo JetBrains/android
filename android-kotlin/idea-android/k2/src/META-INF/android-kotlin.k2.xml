@@ -23,5 +23,10 @@
                      cleanupTool="true"
                      level="WEAK WARNING"
                      language="kotlin" />
+    <intentionAction>
+        <language>kotlin</language>
+        <className>org.jetbrains.kotlin.android.intention.K2KotlinAndroidAddStringResourceIntention</className>
+        <category>Kotlin Android</category>
+    </intentionAction>
   </extensions>
 </idea-plugin>

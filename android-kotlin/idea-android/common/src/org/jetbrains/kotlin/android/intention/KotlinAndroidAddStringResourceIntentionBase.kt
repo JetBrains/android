@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2016 JetBrains s.r.o.
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android.intention
 
+import com.android.SdkConstants
 import com.android.resources.ResourceType
 import com.android.tools.compose.COMPOSE_STRING_RESOURCE_FQN
 import com.android.tools.compose.isInsideComposableCode
@@ -48,29 +49,17 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfTypes
 import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
-import org.jetbrains.kotlin.android.isExtensionFunctionType
-import org.jetbrains.kotlin.android.isSubclassOf
-import org.jetbrains.kotlin.builtins.isExtensionFunctionType
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtEscapeStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -79,20 +68,23 @@ import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtStringTemplateEntryWithExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
-class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateExpression>(
+abstract class KotlinAndroidAddStringResourceIntentionBase : SelfTargetingIntention<KtStringTemplateExpression>(
   KtStringTemplateExpression::class.java,
   textGetter = { AndroidBundle.message("add.string.resource.intention.text") },
   familyNameGetter = { AndroidBundle.message("add.string.resource.intention.text") }
 ) {
     private companion object {
-        private const val CLASS_CONTEXT = "android.content.Context"
-        private const val CLASS_FRAGMENT = "android.app.Fragment"
-        private const val CLASS_SUPPORT_FRAGMENT = "android.support.v4.app.Fragment"
-        private const val ANDROIDX_CLASS_SUPPORT_FRAGMENT = "androidx.fragment.app.Fragment"
-        private const val CLASS_VIEW = "android.view.View"
+        private val CLASS_IDS_WITH_GET_STRING = setOf(
+          ClassId.fromString("android/content/Context"),
+          ClassId.fromString("android/app/Fragment"),
+          ClassId.fromString("android/support/v4/app/Fragment"),
+          ClassId.fromString("androidx/fragment/app/Fragment"),
+          ClassId.fromString("android/content/res/Resources"),
+        )
+        private val CLASS_IDS_REQUIRING_CONTEXT_PARAMETER = setOf(
+          ClassId.fromString("android/view/View")
+        )
 
         private const val GET_STRING_METHOD = "getString"
         private const val EXTRACT_RESOURCE_DIALOG_TITLE = "Extract Resource"
@@ -191,7 +183,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
                         placeholderIndex++
                     }
 
-                    else -> Logger.getInstance(KotlinAndroidAddStringResource::class.java).error(
+                    else -> Logger.getInstance(KotlinAndroidAddStringResourceIntentionBase::class.java).error(
                       "Unexpected child element type: ${child::class.simpleName}")
                 }
             }
@@ -226,7 +218,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
         if (addContextParameter) {
             val marker = MacroCallNode(VariableOfTypeMacro())
-            marker.addParameter(ConstantNode(CLASS_CONTEXT))
+            marker.addParameter(ConstantNode(SdkConstants.CLASS_CONTEXT))
             template.addVariable("context", marker, ConstantNode("context"), true)
         }
 
@@ -254,22 +246,20 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
     }
 
     private fun needContextReceiver(element: PsiElement): Boolean {
-        val classesWithGetSting = listOf(CLASS_CONTEXT, CLASS_FRAGMENT, CLASS_SUPPORT_FRAGMENT, ANDROIDX_CLASS_SUPPORT_FRAGMENT)
-        val viewClass = listOf(CLASS_VIEW)
-        var parent = PsiTreeUtil.findFirstParent(element, true) { it is KtClassOrObject || it is KtFunction || it is KtLambdaExpression }
+        var parent = element.parentOfTypes(KtClassOrObject::class, KtFunction::class, KtLambdaExpression::class)
 
         while (parent != null) {
 
-            if (parent.isSubclassOrSubclassExtension(classesWithGetSting)) {
+            if (parent.hasDispatchReceiverOfAnyOfTypes(CLASS_IDS_WITH_GET_STRING)) {
                 return false
             }
 
-            if (parent.isSubclassOrSubclassExtension(viewClass) ||
+            if (parent.hasDispatchReceiverOfAnyOfTypes(CLASS_IDS_REQUIRING_CONTEXT_PARAMETER) ||
                 (parent is KtClassOrObject && !parent.isInnerClass() && !parent.isObjectLiteral())) {
                 return true
             }
 
-            parent = PsiTreeUtil.findFirstParent(parent, true) { it is KtClassOrObject || it is KtFunction || it is KtLambdaExpression }
+            parent = parent.parentOfTypes(KtClassOrObject::class, KtFunction::class, KtLambdaExpression::class)
         }
 
         return true
@@ -277,77 +267,22 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     private fun getApplicationPackage(facet: AndroidFacet) = facet.getModuleSystem().getPackageName()
 
-    private fun PsiElement.isSubclassOrSubclassExtension(baseClasses: Collection<String>) =
-            (this as? KtClassOrObject)?.isSubclassOfAny(baseClasses) ?:
-            this.isSubclassExtensionOfAny(baseClasses)
-
-    private fun PsiElement.isSubclassExtensionOfAny(baseClasses: Collection<String>) =
-            (this as? KtLambdaExpression)?.isSubclassExtensionOfAny(baseClasses) ?:
-            (this as? KtFunction)?.isSubclassExtensionOfAny(baseClasses) ?:
-            false
-
-    private fun KtClassOrObject.isObjectLiteral() = (this as? KtObjectDeclaration)?.isObjectLiteral() ?: false
-
-    private fun KtClassOrObject.isInnerClass() = (this as? KtClass)?.isInner() ?: false
-
-    @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtFunction.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
-        if (isK2Plugin()) {
-            allowAnalysisOnEdt {
-                analyze(this) {
-                    val functionSymbol = this@isSubclassExtensionOfAny.getSymbol() as? KtFunctionLikeSymbol ?: return false
-                    val receiverType = functionSymbol.receiverParameter?.type ?: return false
-                    return baseClasses.any { isSubclassOf(receiverType, it, strict = false) }
-                }
-            }
-        }
-        val descriptor = unsafeResolveToDescriptor() as FunctionDescriptor
-        val extendedTypeDescriptor = descriptor.extensionReceiverParameter?.type?.constructor?.declarationDescriptor
-        return extendedTypeDescriptor != null && baseClasses.any { extendedTypeDescriptor.isSubclassOf(it) }
+    private fun KtElement.hasDispatchReceiverOfAnyOfTypes(classIds: Set<ClassId>) = when (this) {
+        is KtClassOrObject -> isSubclassOfAnyOf(classIds)
+        is KtLambdaExpression -> isReceiverSubclassOfAnyOf(classIds)
+        is KtFunction -> isReceiverSubclassOfAnyOf(classIds)
+        else -> false
     }
 
-    @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtLambdaExpression.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
-        if (isK2Plugin()) {
-            allowAnalysisOnEdt {
-                analyze(this) {
-                    val type = this@isSubclassExtensionOfAny.getKtType() as? KtFunctionalType ?: return false
-                    if (!isExtensionFunctionType(type)) return false
-                    val extendedType = type.receiverType ?: return false
-                    return baseClasses.any { isSubclassOf(extendedType, it, strict = false) }
-                }
-            }
-        }
-        val bindingContext = analyze(BodyResolveMode.PARTIAL)
-        val type = bindingContext.getType(this) ?: return false
+    private fun KtClassOrObject.isObjectLiteral() = this is KtObjectDeclaration && isObjectLiteral()
 
-        if (!type.isExtensionFunctionType) return false
+    private fun KtClassOrObject.isInnerClass() = this is KtClass && isInner()
 
-        val extendedTypeDescriptor = type.arguments.first().type.constructor.declarationDescriptor ?: return false
-        return baseClasses.any { extendedTypeDescriptor.isSubclassOf(it) }
-    }
+    abstract fun KtFunction.isReceiverSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean
 
-    @OptIn(KtAllowAnalysisOnEdt::class)
-    private fun KtClassOrObject.isSubclassOfAny(baseClasses: Collection<String>): Boolean {
-        if (isK2Plugin()) {
-            allowAnalysisOnEdt {
-                analyze(this) {
-                    val classOrObjectSymbol = this@isSubclassOfAny.getClassOrObjectSymbol() ?: return false
-                    return baseClasses.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
-                }
-            }
-        }
-        val declarationDescriptor = resolveToDescriptorIfAny() ?: return false
-        return baseClasses.any { declarationDescriptor.isSubclassOf(it) }
-    }
+    abstract fun KtLambdaExpression.isReceiverSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean
 
-    private fun ClassifierDescriptor.isSubclassOf(className: String): Boolean {
-        return fqNameSafe.asString() == className || isStrictSubclassOf(className)
-    }
-
-    private fun ClassifierDescriptor.isStrictSubclassOf(className: String) = defaultType.constructor.supertypes.any {
-        it.constructor.declarationDescriptor?.isSubclassOf(className) ?: false
-    }
+    abstract fun KtClassOrObject.isSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean
 
     private class CreateXmlResourceParameters(val name: String,
                                               val value: String,

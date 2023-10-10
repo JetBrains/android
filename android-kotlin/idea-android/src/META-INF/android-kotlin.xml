@@ -6,12 +6,6 @@
     <extensions defaultExtensionNs="com.intellij">
         <intentionAction>
             <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
-        <intentionAction>
-            <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.AddActivityToManifest</className>
             <category>Kotlin Android</category>
         </intentionAction>
