@@ -19,7 +19,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
-import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
@@ -47,7 +47,7 @@ private fun createRenderTask(facet: AndroidFacet,
                              configuration: Configuration
 ): CompletableFuture<RenderTask?> {
   return StudioRenderService.getInstance(facet.module.project)
-    .taskBuilderWithHtmlLogger(facet, configuration)
+    .taskBuilder(facet, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()

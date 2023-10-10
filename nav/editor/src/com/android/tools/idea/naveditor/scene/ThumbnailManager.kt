@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
-import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
@@ -235,7 +235,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
                                 file: XmlFile,
                                 configuration: Configuration,
                                 renderService: RenderService): CompletableFuture<RenderTask> {
-    return renderService.taskBuilderWithHtmlLogger(facet, configuration)
+    return renderService.taskBuilder(facet, configuration)
       .withPsiFile(PsiXmlFile(file))
       .build()
       .whenComplete { task, _ -> task.setDecorations(false) }

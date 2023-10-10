@@ -20,7 +20,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
-import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
+import com.android.tools.idea.rendering.taskBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -40,7 +40,7 @@ private fun createRenderTask(facet: AndroidFacet,
                              configuration: Configuration
 ): CompletableFuture<RenderTask?> {
   return StudioRenderService.getInstance(facet.module.project)
-    .taskBuilderWithHtmlLogger(facet, configuration)
+    .taskBuilder(facet, configuration)
     .build()
 }
 
