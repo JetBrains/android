@@ -501,7 +501,7 @@ class ComposePreviewRepresentationGradleTest {
     runBlocking {
       val otherPreviewsFile = getPsiFile(project, SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
-      composePreviewRepresentation.onDeactivate()
+      projectRule.runAndWaitForRefresh { composePreviewRepresentation.onDeactivate() }
 
       // Modifying otherPreviewsFile should not trigger a refresh in the main file representation
       // (nor in any inactive one).
@@ -541,7 +541,7 @@ class ComposePreviewRepresentationGradleTest {
 
     val otherPreviewsFile = getPsiFile(project, SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
 
-    composePreviewRepresentation.onDeactivate()
+    projectRule.runAndWaitForRefresh { composePreviewRepresentation.onDeactivate() }
 
     // Modifying otherPreviewsFile should not trigger a refresh in the main file representation
     // (nor in any inactive one).
@@ -571,7 +571,7 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun testPreviewRenderQuality() = runBlocking {
+  fun testPreviewRenderQuality_zoom() = runBlocking {
     try {
       StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(true)
       // We need to set up things again to make sure that the flag change takes effect
@@ -627,6 +627,67 @@ class ComposePreviewRepresentationGradleTest {
       withContext(uiThread) { fakeUi.root.validate() }
       assertEquals(
         ComposePreviewRenderQualityPolicy.scaleVisibilityThreshold * 2,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality
+      )
+    } finally {
+      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.clearOverride()
+    }
+  }
+
+  @Test
+  fun testPreviewRenderQuality_lifecycle() = runBlocking {
+    try {
+      StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.override(true)
+      // We need to set up things again to make sure that the flag change takes effect
+      projectRule.resetInitialConfiguration()
+      withContext(uiThread) { fakeUi.root.validate() }
+
+      var firstPreview: SceneViewPeerPanel? = null
+      // zoom and center to one preview (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh {
+        firstPreview = fakeUi.findAllComponents<SceneViewPeerPanel>().first { it.isShowing }
+        firstPreview!!.sceneView.let {
+          previewView.mainSurface.zoomAndCenter(
+            it,
+            Rectangle(Point(it.x, it.y), it.scaledContentSize)
+          )
+        }
+      }
+      withContext(uiThread) { fakeUi.root.validate() }
+      // Default quality should have been used
+      assertEquals(
+        getDefaultPreviewQuality(),
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality
+      )
+
+      // Now deactivate the preview representation (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh { composePreviewRepresentation.onDeactivate() }
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        ComposePreviewRenderQualityPolicy.lowestQuality,
+        (fakeUi
+            .findAllComponents<SceneViewPeerPanel>()
+            .first { it.displayName == firstPreview!!.displayName }
+            .sceneView
+            .sceneManager as LayoutlibSceneManager)
+          .lastRenderQuality
+      )
+
+      // Now reactivate the preview representation (quality change refresh should happen)
+      projectRule.runAndWaitForRefresh { composePreviewRepresentation.onActivate() }
+      withContext(uiThread) { fakeUi.root.validate() }
+      assertEquals(
+        getDefaultPreviewQuality(),
         (fakeUi
             .findAllComponents<SceneViewPeerPanel>()
             .first { it.displayName == firstPreview!!.displayName }

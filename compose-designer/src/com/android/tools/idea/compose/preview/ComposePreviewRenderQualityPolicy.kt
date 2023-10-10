@@ -37,16 +37,34 @@ class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> D
 
     const val lowestQuality: Float = 0.001f
   }
-
+  /**
+   * When false, then the target quality of all the previews configured following this policy
+   * instance will be [lowestQuality].
+   *
+   * This is expected to be used for considering the lifecycle of the components where this policy
+   * is used, to make sure that deactivated previews, that could be reactivated later, get
+   * temporarily rendered in low quality.
+   *
+   * See [ComposePreviewRepresentation.onDeactivate] and [ComposePreviewRepresentation.onActivate]
+   */
+  private var active: Boolean = true
   override val acceptedErrorMargin = .05f // 5% error margin
   override val debounceTimeMillis: Long
     get() = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME.get().coerceAtLeast(1)
 
   override fun getTargetQuality(scale: Double, isVisible: Boolean): Float {
-    if (!isVisible || scale * screenScalingFactorProvider() < scaleVisibilityThreshold) {
+    if (!active || !isVisible || scale * screenScalingFactorProvider() < scaleVisibilityThreshold) {
       return lowestQuality
     }
     return scale.toFloat().coerceAtMost(getDefaultPreviewQuality()).coerceAtLeast(lowestQuality)
+  }
+
+  internal fun activate() {
+    active = true
+  }
+
+  internal fun deactivate() {
+    active = false
   }
 }
 

@@ -309,6 +309,9 @@ class ComposePreviewRepresentation(
       onInitActivate = { activate(false) },
       onResumeActivate = { activate(true) },
       onDeactivate = {
+        qualityPolicy.deactivate()
+        allowQualityChangeIfInactive.set(true)
+        requestRefresh(type = RefreshType.QUALITY)
         log.debug("onDeactivate")
         if (isStartingOrInInteractiveMode) {
           interactiveManager.pause()
@@ -743,12 +746,11 @@ class ComposePreviewRepresentation(
   val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
 
+  private val allowQualityChangeIfInactive = AtomicBoolean(false)
+  private val qualityPolicy = ComposePreviewRenderQualityPolicy { surface.screenScalingFactor }
   private val qualityManager: RenderQualityManager =
     if (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get())
-      DefaultRenderQualityManager(
-        surface,
-        ComposePreviewRenderQualityPolicy { surface.screenScalingFactor }
-      ) {
+      DefaultRenderQualityManager(surface, qualityPolicy) {
         requestRefresh(type = RefreshType.QUALITY)
       }
     else SimpleRenderQualityManager { getDefaultPreviewQuality() }
@@ -1090,6 +1092,8 @@ class ComposePreviewRepresentation(
   private fun CoroutineScope.activate(resume: Boolean) {
     log.debug("onActivate")
 
+    qualityPolicy.activate()
+
     initializeFlows()
 
     if (!resume) {
@@ -1386,10 +1390,15 @@ class ComposePreviewRepresentation(
       }
     }
 
-    // Make sure not to start refreshes when deactivated.
-    // But don't launch in the activation scope to avoid cancelling the refresh mid-way when a
-    // simple tab change happens.
-    if (!lifecycleManager.isActive()) {
+    // Make sure not to start refreshes when deactivated, unless it is the first quality refresh
+    // that happens since deactivation. This is expected to happen to decrease the quality of its
+    // previews when deactivating. Also, don't launch refreshes in the activation scope to avoid
+    // cancelling the refresh mid-way when a simple tab change happens.
+    if (
+      !lifecycleManager.isActive() &&
+        !(refreshRequest.type == RefreshType.QUALITY &&
+          allowQualityChangeIfInactive.getAndSet(false))
+    ) {
       refreshProgressIndicator.processFinish()
       requestLogger.debug(
         "Inactive representation (${psiFilePointer.containingFile?.name}), no work being done"
