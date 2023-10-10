@@ -731,7 +731,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.android.rendering">
-    <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
+    <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributorImpl$Provider"/>
   </extensions>
 
   <xi:include href="new-deployment-target-selection.xml" xpointer="xpointer(/idea-plugin/*)"/>
