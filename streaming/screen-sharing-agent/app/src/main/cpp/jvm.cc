@@ -286,9 +286,9 @@ JObject JClass::NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const {
     Jni jni(jni_env);
     JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
-      Log::Fatal(NULL_POINTER, "%s constructor returned null", GetName(jni).c_str());
+      Log::Fatal(NULL_POINTER, "Unable to instantiate %s - constructor returned null", GetName(jni).c_str());
     } else {
-      Log::Fatal(JAVA_EXCEPTION, "%s in %s constructor", exception.GetClass().GetName(jni).c_str(), GetName(jni).c_str());
+      Log::Fatal(JAVA_EXCEPTION, "Unable to instantiate %s - %s", GetName(jni).c_str(), exception.Describe().c_str());
     }
   }
   return result;
