@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
@@ -969,7 +970,7 @@ public class AvdManagerConnection {
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
     }
-    if (device.getId().equals("7.4in Rollable")) {
+    if (isRollable(device.getId())) {
       hardwareProperties.put(AVD_INI_ROLL, "yes");
       hardwareProperties.put(AVD_INI_ROLL_COUNT, "1");
       hardwareProperties.put(AVD_INI_HINGE_TYPE, "3");

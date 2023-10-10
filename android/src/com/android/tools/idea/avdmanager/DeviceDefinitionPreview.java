@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.FIGURE_FONT;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.STANDARD_FONT;
 import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
@@ -171,7 +172,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     metrics = g2d.getFontMetrics(FIGURE_FONT);
     int stringHeight = metrics.getHeight() - metrics.getDescent();
 
-    if (myDeviceData.isFoldable().get()) {
+    if (isRollable(myDeviceData.deviceId().get())) {
       // Show the boundary of the folded region using dashed lines
       // Get the location and size of the preview of the folded region
       double displayFactor = screenSize.height / (double)myDeviceData.screenResolutionHeight().get();
