@@ -81,7 +81,9 @@ class AssetDataProviderTest {
   fun testColorDataProvider() {
     val resName = "primary_color"
     val fileName = "colors.xml"
-    val resValue = "#FF012345"
+    
+    // We explicit omit the alpha when it's FF
+    val resValue = "#012345"
 
     val project = Mockito.mock(Project::class.java)
     val resourceResolver = Mockito.mock(ResourceResolver::class.java)

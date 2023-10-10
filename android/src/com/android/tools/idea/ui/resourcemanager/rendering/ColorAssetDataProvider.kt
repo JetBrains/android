@@ -16,12 +16,11 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
+import com.android.ide.common.resources.colorToString
 import com.android.tools.idea.res.resolveMultipleColors
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.intellij.openapi.project.Project
-import com.intellij.ui.ColorUtil
-import java.awt.Color
 
 /**
  * [AssetData] provider for Color resources.
@@ -37,17 +36,7 @@ class ColorAssetDataProvider(
     val defaultData = super.getAssetSetData(assetSet)
     val asset = assetSet.getHighestDensityAsset()
     val colors = resourceResolver.resolveMultipleColors(resourceResolver.resolveValue(asset), project).toSet()
-    val subtitle = if (colors.size == 1) "#${colors.first().toHex()}" else "Multiple colors"
+    val subtitle = if (colors.size == 1) colorToString(colors.first()) else "Multiple colors"
     return AssetData(defaultData.title, subtitle, defaultData.metadata)
   }
-
-  /**
-   * Converts the [Color] to Hex format with format #AARRGGBB, with the alpha at the beginning of the string.
-   * Unfortunately we could not use [ColorUtil] because it converts the colors to the format #RRGGBBAA,
-   * but our colors.xml are defined with the format #AARRGGBB.
-   */
-  private fun Color.toHex(): String = "%02X".format(alpha) +
-                                    "%02X".format(red) +
-                                    "%02X".format(green) +
-                                    "%02X".format(blue)
 }
