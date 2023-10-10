@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.idea.preview.rendering
 
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
+import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Returns a [CompletableFuture] that creates a [RenderTask] for a single
- * [VirtualFile]. It is the responsibility of a client of this function to
- * dispose the resulting [RenderTask] when no loner needed.
+ * Returns a [CompletableFuture] that creates a [RenderTask] for a single [VirtualFile]. It is the
+ * responsibility of a client of this function to dispose the resulting [RenderTask] when no loner
+ * needed.
  */
 fun createRenderTaskFuture(
   facet: AndroidFacet,
@@ -40,12 +42,12 @@ fun createRenderTaskFuture(
   classesToPreload: Collection<String> = emptyList(),
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
   configure: (Configuration) -> Unit = {}
-) : CompletableFuture<RenderTask> {
+): CompletableFuture<RenderTask> {
   val project = facet.module.project
 
   val xmlFile =
     AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile
-    ?: return CompletableFuture.completedFuture(null)
+      ?: return CompletableFuture.completedFuture(null)
   val configuration =
     Configuration.create(
       ConfigurationManager.getOrCreateInstance(facet.module),
@@ -53,22 +55,23 @@ fun createRenderTaskFuture(
     )
   configure(configuration)
 
-  val builder = StudioRenderService.getInstance(project)
-    .taskBuilderWithHtmlLogger(facet, configuration)
-    .withPsiFile(PsiXmlFile(xmlFile))
-    .disableDecorations()
-    .apply {
-      if (privateClassLoader) {
-        usePrivateClassLoader()
+  val builder =
+    StudioRenderService.getInstance(project)
+      .taskBuilder(facet, configuration)
+      .withPsiFile(PsiXmlFile(xmlFile))
+      .disableDecorations()
+      .apply {
+        if (privateClassLoader) {
+          usePrivateClassLoader()
+        }
+        if (classesToPreload.isNotEmpty()) {
+          preloadClasses(classesToPreload)
+        }
       }
-      if (classesToPreload.isNotEmpty()) {
-        preloadClasses(classesToPreload)
-      }
-    }
-    .withRenderingMode(SessionParams.RenderingMode.SHRINK)
-    // Compose Preview has its own out-of-date reporting mechanism
-    .doNotReportOutOfDateUserClasses()
+      .withRenderingMode(SessionParams.RenderingMode.SHRINK)
+      // Compose Preview has its own out-of-date reporting mechanism
+      .doNotReportOutOfDateUserClasses()
 
   customViewInfoParser?.let { builder.setCustomContentHierarchyParser(it) }
-    return builder.build()
+  return builder.build()
 }
