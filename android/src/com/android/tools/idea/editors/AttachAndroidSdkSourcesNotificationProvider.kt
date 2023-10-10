@@ -66,8 +66,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     project: Project
   ): Function<FileEditor, EditorNotificationPanel?>? {
     // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a
-    // debugging session, and will set the
-    // REQUIRED_SOURCES_KEY when necessary.
+    // debugging session, and will set the REQUIRED_SOURCES_KEY when necessary.
     val missingApiLevel = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
     return createPanel(project, AndroidVersion(missingApiLevel))
   }
