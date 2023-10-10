@@ -213,12 +213,12 @@ public class RenderResult {
   public static RenderResult createRenderTaskErrorResult(@NotNull RenderModelModule renderModule,
                                                          @NotNull Supplier<PsiFile> file,
                                                          @Nullable Throwable throwable,
-                                                         @Nullable RenderLogger logger) {
+                                                         @NotNull RenderLogger logger) {
     RenderResult result = new RenderResult(
       createSourceFileProvider(renderModule.getEnvironment(), file),
       renderModule.getProject(),
       renderModule,
-      logger != null ? logger : new RenderLogger(renderModule.getProject()),
+      logger,
       null,
       false,
       Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable),
