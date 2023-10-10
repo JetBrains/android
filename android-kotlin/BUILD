@@ -150,6 +150,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.kotlin.tests",
+    generate_k2_tests = True,
     iml_files = ["intellij.android.kotlin.tests.iml"],
     tags = [
         "no_test_mac",  # b/156004634
