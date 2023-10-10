@@ -140,6 +140,11 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
+  public RenderLogger createLogger(@Nullable Project project) {
+    return new RenderLogger(project);
+  }
+
+  @NotNull
   public RenderLogger getNopLogger() {
     return RenderLogger.NOP_RENDER_LOGGER;
   }
