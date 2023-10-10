@@ -235,6 +235,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -293,6 +294,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection1.start()
 
     // studio2
     val foregroundProcessDetection2 =
@@ -310,6 +312,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection2.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection1.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -373,6 +376,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -430,6 +434,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -476,6 +481,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -558,20 +564,22 @@ class ForegroundProcessDetectionTest {
       }
 
       val (deviceModel, processModel) = createDeviceModel(device1)
-      ForegroundProcessDetectionImpl(
-        projectRule.disposable,
-        projectRule.project,
-        deviceModel,
-        processModel,
-        transportClient,
-        mock(),
-        mock(),
-        coroutineScope,
-        streamManagerRule.streamManager,
-        workDispatcher,
-        onDeviceDisconnected,
-        pollingIntervalMs = 500L
-      )
+      val foregroundProcessDetection =
+        ForegroundProcessDetectionImpl(
+          projectRule.disposable,
+          projectRule.project,
+          deviceModel,
+          processModel,
+          transportClient,
+          mock(),
+          mock(),
+          coroutineScope,
+          streamManagerRule.streamManager,
+          workDispatcher,
+          onDeviceDisconnected,
+          pollingIntervalMs = 500L
+        )
+      foregroundProcessDetection.start()
 
       connectDevice(device1)
       handshakeSyncChannel.receive()
@@ -613,6 +621,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -706,6 +715,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -788,6 +798,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
     foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
@@ -817,20 +828,22 @@ class ForegroundProcessDetectionTest {
   fun testSelectedProcessOnUnknownSupportDeviceDoesNotCreateSimultaneousHandshake(): Unit =
     runBlocking {
       val (deviceModel, processModel) = createDeviceModel(device4)
-      ForegroundProcessDetectionImpl(
-        projectRule.disposable,
-        projectRule.project,
-        deviceModel,
-        processModel,
-        transportClient,
-        mock(),
-        mock(),
-        coroutineScope,
-        streamManagerRule.streamManager,
-        workDispatcher,
-        onDeviceDisconnected = {},
-        pollingIntervalMs = 500L
-      )
+      val foregroundProcessDetection =
+        ForegroundProcessDetectionImpl(
+          projectRule.disposable,
+          projectRule.project,
+          deviceModel,
+          processModel,
+          transportClient,
+          mock(),
+          mock(),
+          coroutineScope,
+          streamManagerRule.streamManager,
+          workDispatcher,
+          onDeviceDisconnected = {},
+          pollingIntervalMs = 500L
+        )
+      foregroundProcessDetection.start()
 
       connectDevice(device4)
       val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
@@ -883,20 +896,22 @@ class ForegroundProcessDetectionTest {
     val layoutInspectorMetrics = mock<LayoutInspectorMetrics>()
 
     val (deviceModel, processModel) = createDeviceModel(device1)
-    ForegroundProcessDetectionImpl(
-      projectRule.disposable,
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      layoutInspectorMetrics,
-      mock(),
-      coroutineScope,
-      streamManagerRule.streamManager,
-      workDispatcher,
-      onDeviceDisconnected = onDeviceDisconnected,
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.disposable,
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        layoutInspectorMetrics,
+        mock(),
+        coroutineScope,
+        streamManagerRule.streamManager,
+        workDispatcher,
+        onDeviceDisconnected = onDeviceDisconnected,
+        pollingIntervalMs = 500L
+      )
+    foregroundProcessDetection.start()
 
     connectDevice(device1, 2)
     val (handshakeDevice1, _) = handshakeSyncChannel.receive()
@@ -964,6 +979,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     connectDevice(device1)
     handshakeSyncChannel.receive()
@@ -1011,6 +1027,7 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     val foregroundProcessSyncChannel = Channel<Pair<NewForegroundProcess, Boolean>>()
     foregroundProcessDetection.addForegroundProcessListener {
@@ -1071,13 +1088,14 @@ class ForegroundProcessDetectionTest {
         onDeviceDisconnected = {},
         pollingIntervalMs = 500L
       )
+    foregroundProcessDetection.start()
 
     assertThat(processModel.selectedProcessListeners.size).isEqualTo(1)
 
     Disposer.dispose(projectRule.disposable)
 
     assertThat(processModel.selectedProcessListeners.size).isEqualTo(0)
-    assertThat(foregroundProcessDetection.transportListenerJob.isCancelled)
+    assertThat(foregroundProcessDetection.transportListenerJob?.isCancelled)
   }
 
   /** Assert that [newForegroundProcess] contains the expected [device] and [foregroundProcess]. */

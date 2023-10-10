@@ -98,6 +98,15 @@ interface ForegroundProcessDetection {
    * [DeviceModel.selectedDevice] to null.
    */
   fun stopPollingSelectedDevice()
+
+  /**
+   * Start listening for events from the Transport. Like device connected/disconnected and
+   * foreground process detection events.
+   */
+  fun start()
+
+  /** Stop listening for events from the Transport. */
+  fun stop()
 }
 
 /**
@@ -121,7 +130,7 @@ class ForegroundProcessDetectionImpl(
   private val metrics: ForegroundProcessDetectionMetrics,
   private val scope: CoroutineScope,
   private val streamManager: TransportStreamManager,
-  workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
+  private val workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
   @TestOnly private val pollingIntervalMs: Long = 2000
 ) : ForegroundProcessDetection, Disposable {
@@ -228,12 +237,15 @@ class ForegroundProcessDetectionImpl(
     }
   }
 
-  @VisibleForTesting val transportListenerJob: Job
+  @VisibleForTesting var transportListenerJob: Job? = null
 
   init {
     Disposer.register(parentDisposable, this)
-
     processModel.addSelectedProcessListeners(selectedProcessListener)
+  }
+
+  override fun start() {
+    transportListenerJob?.cancel()
 
     transportListenerJob =
       scope.launch {
@@ -384,9 +396,15 @@ class ForegroundProcessDetectionImpl(
       }
   }
 
+  override fun stop() {
+    transportListenerJob?.cancel()
+    connectedStreams.clear()
+    handshakeExecutors.clear()
+  }
+
   override fun dispose() {
     processModel.removeSelectedProcessListener(selectedProcessListener)
-    transportListenerJob.cancel()
+    stop()
   }
 
   override fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {

@@ -22,6 +22,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.FakeForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
@@ -77,6 +78,7 @@ class LayoutInspectorManagerTest {
   private lateinit var tab2: TabInfo
 
   private lateinit var fakeToolWindowManager: FakeToolWindowManager
+  private lateinit var fakeForegroundProcessDetection: FakeForegroundProcessDetection
 
   @Before
   fun setUp() {
@@ -120,12 +122,14 @@ class LayoutInspectorManagerTest {
         displayViewRule.disposable,
       )
 
+    fakeForegroundProcessDetection = FakeForegroundProcessDetection()
+
     layoutInspector =
       LayoutInspector(
         coroutineScope = coroutineScope,
         processModel = processModel,
         deviceModel = deviceModel,
-        foregroundProcessDetection = null,
+        foregroundProcessDetection = fakeForegroundProcessDetection,
         inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
         launcher = launcher,
         layoutInspectorModel = model {},
@@ -509,6 +513,43 @@ class LayoutInspectorManagerTest {
 
     assertThat(isWorkbenchDisposed).isTrue()
     assertThat(isRendererDisposed).isTrue()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testAssertStartStopForegroundProcessDetection() = withEmbeddedLayoutInspector {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    fakeToolWindowManager.setSelectedContent(tab1)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
+
+    assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(1)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(0)
+
+    fakeToolWindowManager.setSelectedContent(tab2)
+
+    assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(1)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(1)
+
+    layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
+
+    assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(2)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(1)
+
+    fakeToolWindowManager.setSelectedContent(tab1)
+
+    assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(3)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(2)
+
+    fakeToolWindowManager.removeContent(tab1)
+
+    assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(4)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(3)
+
+    fakeToolWindowManager.removeContent(tab2)
+
+    assertThat(fakeForegroundProcessDetection.startInvokeCounter).isEqualTo(4)
+    assertThat(fakeForegroundProcessDetection.stopInvokeCounter).isEqualTo(4)
   }
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {

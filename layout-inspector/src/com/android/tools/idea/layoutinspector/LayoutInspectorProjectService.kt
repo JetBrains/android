@@ -187,14 +187,15 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   ): ForegroundProcessDetection? {
     return if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
       ForegroundProcessDetectionInitializer.initialize(
-        parentDisposable = parentDisposable,
-        project = project,
-        processModel = processesModel,
-        deviceModel = deviceModel,
-        coroutineScope = coroutineScope,
-        streamManager = service<TransportStreamManagerService>().streamManager,
-        metrics = ForegroundProcessDetectionMetrics
-      )
+          parentDisposable = parentDisposable,
+          project = project,
+          processModel = processesModel,
+          deviceModel = deviceModel,
+          coroutineScope = coroutineScope,
+          streamManager = service<TransportStreamManagerService>().streamManager,
+          metrics = ForegroundProcessDetectionMetrics
+        )
+        .also { it.start() }
     } else {
       null
     }

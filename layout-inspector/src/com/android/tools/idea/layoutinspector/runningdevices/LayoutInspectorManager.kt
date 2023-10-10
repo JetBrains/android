@@ -142,8 +142,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       if (previousTab != null) {
         // Dispose to trigger clean up.
         Disposer.dispose(previousTab.tabComponents)
-
         previousTab.layoutInspector.stopInspector()
+        previousTab.layoutInspector.deviceModel?.forcedDeviceSerialNumber = null
+        // Calling foregroundProcessDetection.start and stop from LayoutInspectorManager is a
+        // workaround used to prevent foreground process detection from running in the background
+        // even when embedded LI is not enabled on any device. This won't be necessary when we will
+        // be able to create a new instance of LayoutInspector for each tab in Running Devices,
+        // instead of having a single global instance of LayoutInspector shared by all the tabs. See
+        // b/304540563
+        previousTab.layoutInspector.foregroundProcessDetection?.stop()
       }
 
       field = value
@@ -154,6 +161,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       // lock device model to only allow connections to this device
       value.layoutInspector.deviceModel?.forcedDeviceSerialNumber = value.deviceId.serialNumber
+      value.layoutInspector.foregroundProcessDetection?.start()
 
       val selectedDevice =
         value.layoutInspector.deviceModel?.devices?.find {
