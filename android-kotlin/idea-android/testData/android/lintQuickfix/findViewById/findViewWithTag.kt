@@ -1,4 +1,4 @@
-// INTENTION_TEXT: Convert cast to findViewById<TextView>(...)
+// INTENTION_TEXT: Convert cast to findViewWithTag<TextView>(...)
 // K1_INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.K1TypeParameterFindViewByIdInspection
 // K2_INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.K2TypeParameterFindViewByIdInspection
 
@@ -14,7 +14,7 @@ class OtherActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_other)
 
-        val tvHello = findViewById<TextView>(R.id.tvHello)
+        val tvHello = window.decorView.findViewWithTag("tag") as <caret>TextView
     }
 }
 

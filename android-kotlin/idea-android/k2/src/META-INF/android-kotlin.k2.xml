@@ -16,5 +16,12 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K2AndroidKotlinResourceExternalAnnotator" />
+    <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.K2TypeParameterFindViewByIdInspection"
+                     displayName="Cast can be converted to findViewById with type parameter"
+                     groupName="Kotlin Android"
+                     enabledByDefault="true"
+                     cleanupTool="true"
+                     level="WEAK WARNING"
+                     language="kotlin" />
   </extensions>
 </idea-plugin>

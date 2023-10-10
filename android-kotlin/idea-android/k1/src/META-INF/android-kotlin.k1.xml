@@ -34,6 +34,14 @@
       <category>Kotlin Android</category>
     </intentionAction>
 
+    <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.K1TypeParameterFindViewByIdInspection"
+                     displayName="Cast can be converted to findViewById with type parameter"
+                     groupName="Kotlin Android"
+                     enabledByDefault="true"
+                     cleanupTool="true"
+                     level="WEAK WARNING"
+                     language="kotlin" />
+
     <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K1AndroidKotlinResourceExternalAnnotator" />
   </extensions>
 

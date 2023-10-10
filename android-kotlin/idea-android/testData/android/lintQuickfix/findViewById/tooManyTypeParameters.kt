@@ -1,9 +1,11 @@
 // INTENTION_TEXT: Convert cast to findViewById<TextView>(...)
 // K1_INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.K1TypeParameterFindViewByIdInspection
 // K2_INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.K2TypeParameterFindViewByIdInspection
+// INTENTION_NOT_AVAILABLE
 
 import android.app.Activity
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 
@@ -14,9 +16,11 @@ class OtherActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_other)
 
-        val tvHello = findViewById<TextView>(R.id.tvHello)
+        val tvHello = <caret>findViewById(savedInstanceState, this) as TextView
     }
 }
+
+private fun <T, U> findViewById(t: T, u: U): View = View()
 
 class R {
     object layout {

@@ -4,14 +4,6 @@
     <xi:include href="/META-INF/android-kotlin.k2.xml" xpointer="xpointer(/idea-plugin/*)" includeIf="idea.kotlin.plugin.use.k2"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.TypeParameterFindViewByIdInspection"
-                         displayName="Cast can be converted to findViewById with type parameter"
-                         groupName="Kotlin Android"
-                         enabledByDefault="true"
-                         cleanupTool="true"
-                         level="WEAK WARNING"
-                         language="kotlin" />
-
         <intentionAction>
             <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
