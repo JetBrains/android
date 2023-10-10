@@ -213,7 +213,7 @@ public class RenderTestUtil {
   }
 
   /**
-   * @deprecated use {@link withRenderTask} instead
+   * @deprecated use {@link #withRenderTask(AndroidFacet, VirtualFile, Configuration, Consumer)} instead
    */
   @Deprecated
   @NotNull
@@ -221,7 +221,7 @@ public class RenderTestUtil {
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
     RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
-    return createRenderTask(facet, file, configuration, StudioRenderServiceKt.createHtmlLogger(renderService, facet.getModule().getProject()), RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED);
+    return createRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -229,7 +229,7 @@ public class RenderTestUtil {
                                      @NotNull Configuration configuration,
                                      @NotNull Consumer<RenderTask> f) {
     RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, StudioRenderServiceKt.createHtmlLogger(renderService, facet.getModule().getProject()), f);
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), f);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
@@ -238,7 +238,7 @@ public class RenderTestUtil {
                                     boolean enableLayoutScanner,
                                     @NotNull Consumer<RenderTask> f) {
     RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
-    withRenderTask(facet, file, configuration, StudioRenderServiceKt.createHtmlLogger(renderService, facet.getModule().getProject()), f, enableLayoutScanner);
+    withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule().getProject()), f, enableLayoutScanner);
   }
 
   public static void withRenderTask(@NotNull AndroidFacet facet,
