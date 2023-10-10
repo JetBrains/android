@@ -24,6 +24,8 @@ import java.io.File
 import java.net.MalformedURLException
 
 interface HtmlLinkManager {
+  fun showNotification(content: String) = Unit
+
   fun handleUrl(
     url: String,
     module: Module?,

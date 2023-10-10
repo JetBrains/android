@@ -146,7 +146,8 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static final NotificationGroup NOTIFICATIONS_GROUP = new NotificationGroup(
     "Render error panel notifications", NotificationDisplayType.BALLOON, false, null, null, null, PluginId.getId("org.jetbrains.android"));
 
-  public static void showNotification(@NotNull String content) {
+  @Override
+  public void showNotification(@NotNull String content) {
     Notification notification = NOTIFICATIONS_GROUP.createNotification(content, NotificationType.INFORMATION);
     Notifications.Bus.notify(notification);
 

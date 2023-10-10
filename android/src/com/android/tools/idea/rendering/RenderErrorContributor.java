@@ -607,7 +607,7 @@ public class RenderErrorContributor {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        StudioHtmlLinkManager.showNotification("Stack trace copied to clipboard");
+        myLinkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
