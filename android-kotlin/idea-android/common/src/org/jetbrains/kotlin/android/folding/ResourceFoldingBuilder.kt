@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -42,7 +42,6 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UQualifiedReferenceExpression
 import org.jetbrains.uast.UReferenceExpression
 import org.jetbrains.uast.USimpleNameReferenceExpression
-import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 import java.util.regex.Pattern
@@ -74,8 +73,7 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
         val element = SourceTreeToPsiMap.treeElementToPsi(node) ?: return null
         // We force creation of the app resources repository when necessary to keep things deterministic.
         val appResources = StudioResourceRepositoryManager.getInstance(element)?.appResources ?: return null
-        val uastContext = element.project.getService(UastContext::class.java) ?: return null
-        return uastContext.convertElement(element, null, null)?.unwrapReferenceAndGetValue(appResources)
+        return element.toUElement()?.unwrapReferenceAndGetValue(appResources)
     }
 
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
