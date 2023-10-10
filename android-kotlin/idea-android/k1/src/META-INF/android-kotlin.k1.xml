@@ -33,6 +33,8 @@
       <className>org.jetbrains.kotlin.android.intention.RedoParcelableAction</className>
       <category>Kotlin Android</category>
     </intentionAction>
+
+    <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K1AndroidKotlinResourceExternalAnnotator" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
