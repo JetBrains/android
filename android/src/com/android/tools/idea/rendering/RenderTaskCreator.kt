@@ -54,7 +54,7 @@ fun createRenderTaskFuture(
   configure(configuration)
 
   val builder = StudioRenderService.getInstance(project)
-    .taskBuilder(facet, configuration)
+    .taskBuilderWithHtmlLogger(facet, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
     .disableDecorations()
     .apply {

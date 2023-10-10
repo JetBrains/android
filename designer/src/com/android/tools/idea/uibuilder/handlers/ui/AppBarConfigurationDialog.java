@@ -27,7 +27,6 @@ import static com.android.SdkConstants.TOOLS_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.tools.idea.uibuilder.handlers.ui.AppBarConfigurationUtilKt.formatNamespaces;
-import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ide.common.rendering.api.SessionParams;
@@ -39,6 +38,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
@@ -598,7 +598,7 @@ public class AppBarConfigurationDialog extends JDialog {
   private CompletableFuture<BufferedImage> renderImage(@NotNull XmlFile xmlFile) {
     AndroidFacet facet = myModel.getFacet();
     RenderService renderService = StudioRenderService.getInstance(getProject());
-    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, myModel.getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture = StudioRenderServiceKt.taskBuilderWithHtmlLogger(renderService, facet, myModel.getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
     return taskFuture.thenCompose(task -> {

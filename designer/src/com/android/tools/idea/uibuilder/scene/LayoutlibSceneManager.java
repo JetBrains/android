@@ -1161,7 +1161,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
-    RenderLogger logger = myLogRenderErrors ? StudioRenderServiceKt.createLogger(renderService, project) : renderService.getNopLogger();
+    RenderLogger logger = myLogRenderErrors ? StudioRenderServiceKt.createHtmlLogger(renderService, project) : renderService.getNopLogger();
     RenderModelModule renderModule = createRenderModule(facet);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, configuration, logger)
       .withPsiFile(new PsiXmlFile(getModel().getFile()))

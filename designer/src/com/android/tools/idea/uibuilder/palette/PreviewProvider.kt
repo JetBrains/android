@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
-import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
@@ -163,7 +163,7 @@ class PreviewProvider(
     val module = configuration.module ?: return CompletableFuture.completedFuture(null)
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
-    return renderService.taskBuilder(facet, configuration).build()
+    return renderService.taskBuilderWithHtmlLogger(facet, configuration).build()
   }
 
   private fun extractImage(result: RenderResult): BufferedImage? {

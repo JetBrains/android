@@ -21,7 +21,7 @@ import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.StudioRenderService
-import com.android.tools.idea.rendering.createLogger
+import com.android.tools.idea.rendering.createHtmlLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -344,7 +344,7 @@ class VisualLintService(val project: Project) : Disposable {
 /** Inflates a model, then returns the completable future with render result. */
 fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture<RenderResult> {
   val renderService = StudioRenderService.getInstance(model.project)
-  val logger = renderService.createLogger(model.project)
+  val logger = renderService.createHtmlLogger(model.project)
 
   return renderService
     .taskBuilder(model.facet, model.configuration, logger)

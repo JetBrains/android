@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
-import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
@@ -29,6 +28,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
@@ -161,7 +161,7 @@ public class ViewEditorImpl extends ViewEditor {
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, model.getFacet(), getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture = StudioRenderServiceKt.taskBuilderWithHtmlLogger(renderService, model.getFacet(), getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
 
