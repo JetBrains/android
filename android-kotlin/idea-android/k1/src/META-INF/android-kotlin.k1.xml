@@ -34,4 +34,8 @@
       <category>Kotlin Android</category>
     </intentionAction>
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
+    <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider"/>
+  </extensions>
 </idea-plugin>
