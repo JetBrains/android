@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.cpu
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
+import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementCheckpoint
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
@@ -75,7 +76,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
 
   override fun before() {
     StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
-    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureHistograms = false)
+    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureTypes = setOf(CaptureType.TIMESTAMP))
   }
 
   val listener = object : GradleSyncListenerWithRoot {
@@ -130,7 +131,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
     }
   }
   private fun getTimestampForCheckpoint(checkpointName: String): Instant {
-    val file = File(OUTPUT_DIRECTORY).walk().first { it.name.endsWith(checkpointName) && !processedFiles.contains(it.name)}
+    val file = File(OUTPUT_DIRECTORY).walk().first { it.nameWithoutExtension.endsWith(checkpointName) && !processedFiles.contains(it.name)}
     return Instant.fromEpochMilliseconds(file.name.substringBefore('_').toLong()).also {
       processedFiles.add(file.name)
     }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.gradle
 
+import com.sun.management.HotSpotDiagnosticMXBean
 import org.gradle.BuildAdapter
 import org.gradle.api.Plugin
 import org.gradle.api.invocation.Gradle
@@ -33,6 +34,12 @@ import javax.management.MBeanServer
 import javax.management.ObjectName
 import kotlin.time.Duration.Companion.milliseconds
 
+enum class CaptureType {
+  HEAP_HISTOGRAM,
+  HEAP_DUMP,
+  TIMESTAMP
+}
+
 enum class MeasurementCheckpoint {
   CONFIGURATION_FINISHED,
   SYNC_FINISHED
@@ -41,14 +48,13 @@ enum class MeasurementCheckpoint {
 // Functions and variables can't be top level and has to be static to keep Gradle happy.
 object MeasurementPluginConfig {
   var outputPath: String = ""
-  var captureHistograms: Boolean = false
+  var captureTypes: Set<CaptureType> = emptySet()
 
   /** Call this from a benchmark test to configure and apply the plugin globally via init script in Gradle home. */
   @JvmStatic
   fun configureAndApply(
     outputPath: String,
-    // If false, will only create an empty file with the name containing the timestamp of the event
-    captureHistograms: Boolean,
+    captureTypes: Set<CaptureType>
   ) {
 
     val src = File("tools/adt/idea/sync-memory-tests/testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt")
@@ -56,7 +62,9 @@ object MeasurementPluginConfig {
     src.copyTo(initScript, overwrite = true)
     initScript.appendText("""
       ${this::class.simpleName}.${this::outputPath.name} = "$outputPath"
-      ${this::class.simpleName}.${this::captureHistograms.name} = $captureHistograms
+      ${this::class.simpleName}.${this::captureTypes.name} = setOf(${
+      captureTypes.joinToString(",") { "${CaptureType::class.simpleName}.$it" }
+    })
       apply<${MeasurementPlugin::class.simpleName}>()
     """.trimIndent())
   }
@@ -65,8 +73,7 @@ object MeasurementPluginConfig {
 class MeasurementPlugin @Inject constructor(private val registry: BuildEventsListenerRegistry): Plugin<Gradle>, BuildAdapter() {
   override fun apply(gradle: Gradle) {
     gradle.addBuildListener(this)
-    registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent("histogram-capture", HistogramService::class.java) {}
-    )
+    registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent("measurement-service", MeasurementService::class.java) {})
   }
 
   override fun projectsEvaluated(gradle: Gradle) {
@@ -74,9 +81,11 @@ class MeasurementPlugin @Inject constructor(private val registry: BuildEventsLis
   }
 }
 
-open class HistogramServiceParams : BuildServiceParameters
-abstract class HistogramService : OperationCompletionListener, Closeable, BuildService<HistogramServiceParams> {
-  override fun onFinish(event: FinishEvent?) {} // ignored event, triggers multiple times
+open class MeasurementServiceParams : BuildServiceParameters
+abstract class MeasurementService : OperationCompletionListener, Closeable, BuildService<MeasurementServiceParams> {
+  // Ignored event, we only care about the one right before closing
+  override fun onFinish(event: FinishEvent?) {}
+
 
   override fun close() {
     EventRecorder.recordEvent(MeasurementCheckpoint.SYNC_FINISHED)
@@ -91,9 +100,13 @@ object EventRecorder {
   @JvmStatic
   fun recordEvent(checkpoint: MeasurementCheckpoint) {
     println("Recording event ${checkpoint.name}")
-    if (MeasurementPluginConfig.captureHistograms) {
+    if (CaptureType.HEAP_DUMP in MeasurementPluginConfig.captureTypes) {
+      captureHeapOfCurrentProcess(checkpoint)
+    }
+    if (CaptureType.HEAP_HISTOGRAM in MeasurementPluginConfig.captureTypes) {
       captureHeapHistogramOfCurrentProcess(checkpoint)
-    } else {
+    }
+    if (CaptureType.TIMESTAMP in MeasurementPluginConfig.captureTypes){
       captureEventTimestamp(checkpoint)
     }
   }
@@ -112,8 +125,10 @@ object EventRecorder {
   private fun captureEventTimestamp(checkpoint: MeasurementCheckpoint) {
     val name = checkpoint.name
     val now = Instant.now()
-    val fileHistogram = File(MeasurementPluginConfig.outputPath).resolve("${now.toEpochMilli()}_$name")
-    fileHistogram.writeText(now.toString())
+    val fileTimestamp = File(MeasurementPluginConfig.outputPath).resolve("${now.toEpochMilli()}_$name.timestamp")
+    println("Capturing timestamp at ${fileTimestamp.path}")
+
+    fileTimestamp.writeText(now.toString())
   }
 
   @JvmStatic
@@ -121,8 +136,24 @@ object EventRecorder {
     val name = checkpoint.name
     val server = ManagementFactory.getPlatformMBeanServer()
     val histogram = server.execute("gcClassHistogram")
-    val fileHistogram = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_${name}")
+    val fileHistogram = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_${name}.histogram")
+    println("Capturing histogram at ${fileHistogram.path}")
     fileHistogram.writeText(histogram)
+  }
+
+  @JvmStatic
+  private fun captureHeapOfCurrentProcess(checkpoint: MeasurementCheckpoint) {
+    val name = checkpoint.name
+    val server: MBeanServer = ManagementFactory.getPlatformMBeanServer()
+    val mxBean: HotSpotDiagnosticMXBean =
+      ManagementFactory.newPlatformMXBeanProxy(
+        server,
+        "com.sun.management:type=HotSpotDiagnostic",
+        HotSpotDiagnosticMXBean::class.java
+      )
+    val heapDumpPath = File(MeasurementPluginConfig.outputPath).resolve("${Instant.now().toEpochMilli()}_${name}.hprof").path
+    println("Capturing heap dump at $heapDumpPath")
+    mxBean.dumpHeap(heapDumpPath, true)
   }
 
   @JvmStatic

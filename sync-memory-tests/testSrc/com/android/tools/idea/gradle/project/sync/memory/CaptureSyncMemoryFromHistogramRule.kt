@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import com.android.tools.perflogger.Analyzer
@@ -45,6 +46,7 @@ private val ANALYZER = listOf(
 )
 
 
+// If `capture_heap` system property is set to `true` the test will also capture the heap alongside
 class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : ExternalResource() {
   override fun before() {
     StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
@@ -53,7 +55,9 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
     mutateGradleProperties {
       setJvmArgs("$jvmArgs -XX:SoftRefLRUPolicyMSPerMB=0")
     }
-    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureHistograms = true)
+    val captureTypes = setOf(CaptureType.HEAP_HISTOGRAM) +
+                       if (System.getProperty("capture_heap").toBoolean()) setOf(CaptureType.HEAP_DUMP) else emptySet()
+    MeasurementPluginConfig.configureAndApply(OUTPUT_DIRECTORY, captureTypes)
   }
 
   override fun after() {
@@ -64,7 +68,7 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
   }
 
   private fun recordHistogramValues(projectName: String) {
-    for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory }.asIterable()) {
+    for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "histogram" }.asIterable()) {
         val lines = metricFilePath.readLines()
         // Files less than three lines are likely not heap snapshots
         if (lines.size < 3) continue
@@ -78,6 +82,9 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
           bytes
         ))
         Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
+    }
+    for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "hprof" }.asIterable()) {
+      Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
   }
 
