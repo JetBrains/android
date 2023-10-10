@@ -65,13 +65,16 @@ class ComposeCompletionContributorTest {
       fun FoobarTwo(required: Int, optional: Int = 42) {}
 
       @Composable
-      fun FoobarThree(optional: Int = 42, children: @Composable() () -> Unit) {}
+      fun FoobarThree(optional: Int = 42, children: @Composable () -> Unit) {}
 
       @Composable
-      fun FoobarFour(children: @Composable() () -> Unit) {}
+      fun FoobarFour(children: @Composable () -> Unit) {}
 
       @Composable
       fun FoobarFive(icon: String, onClick: () -> Unit) {}
+
+      @Composable
+      fun FoobarSix(icon: String, optionalOnClick: () -> Unit = {}) {}
       """
         .trimIndent()
     )
@@ -82,7 +85,8 @@ class ComposeCompletionContributorTest {
         "FoobarTwo(required: Int, ...)",
         "FoobarThree(...) {...}",
         "FoobarFour {...}",
-        "FoobarFive(icon: String, onClick: () -> Unit)"
+        "FoobarFive(icon: String) {...}",
+        "FoobarSix(icon: String, ...)",
       )
 
     // Given:

@@ -18,10 +18,8 @@ package com.android.tools.compose.code.completion
 import com.android.ide.common.vectordrawable.VdPreview
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
-import com.android.tools.compose.aa.code.isComposableFunctionParameter
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import com.android.tools.compose.code.getComposableFunctionRenderParts
-import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.CaseFormat
@@ -56,6 +54,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -76,6 +75,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
+import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.results.argumentValueType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
@@ -462,10 +462,9 @@ private class ComposeInsertHandlerForK1(
     val requiredParameters =
       allParameters.filter { !it.declaresDefaultValue() && it.varargElementType == null }
     val insertLambda =
-      allParameters.lastOrNull()?.let { valueParamDescriptor ->
-        valueParamDescriptor.isComposableFunctionParameter() ||
-          valueParamDescriptor.isRequiredLambdaWithNoParameters()
-      } == true
+      allParameters.lastOrNull()?.let {
+        !it.isVararg && it.type.isBuiltinFunctionalType && !it.hasDefaultValue()
+      } ?: false
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
     configureFunctionTemplate(
       template,
@@ -488,10 +487,9 @@ private class ComposeInsertHandlerForK2(
         val allParameters = functionSymbol.valueParameters
         val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
         val insertLambda =
-          allParameters.lastOrNull()?.let { valueParamSymbol ->
-            isComposableFunctionParameter(valueParamSymbol) ||
-              isRequiredLambdaWithNoParameters(valueParamSymbol)
-          } == true
+          allParameters.lastOrNull()?.let {
+            !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
+          } ?: false
         val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
         configureFunctionTemplate(
           template,

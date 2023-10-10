@@ -15,42 +15,36 @@
  */
 package com.android.tools.compose.aa.code
 
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 
 /**
  * Generates [ComposableFunctionRenderParts] for a given Composable function.
  *
  * Since Composable functions tend to have numerous optional parameters, those are omitted from the
  * rendered parameters and replaced with an ellipsis ("..."). Additional modifications are made to
- * ensure that a lambda can be added in cases where the Composable function requires another
- * Composable as its final argument.
+ * ensure that a lambda can be added in cases where the Composable function requires a function as
+ * its final argument.
  */
 internal fun KtAnalysisSession.getComposableFunctionRenderParts(
   functionSymbol: KtFunctionLikeSymbol
 ): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
   val requiredParameters = allParameters.filter { isRequired(it) }
-  val isLastParamComposable =
-    allParameters.lastOrNull()?.let { isComposableFunctionParameter(it) } ?: false
-  val inParens = if (isLastParamComposable) requiredParameters.dropLast(1) else requiredParameters
-  val tail = LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION.takeIf { isLastParamComposable }
+  val hasTrailingLambda = allParameters.lastOrNull()?.let { isRequiredTrailingLambda(it) } ?: false
+  val inParens = if (hasTrailingLambda) requiredParameters.dropLast(1) else requiredParameters
+  val tail = LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION.takeIf { hasTrailingLambda }
   val hasOptionalParams = requiredParameters.size < allParameters.size
 
   val stringAfterValueParameters =
     when {
       hasOptionalParams -> if (inParens.isEmpty()) "..." else ", ..."
       // Don't render empty parentheses if we're rendering a lambda afterward.
-      inParens.isEmpty() && isLastParamComposable ->
-        return ComposableFunctionRenderParts(null, tail)
+      inParens.isEmpty() && hasTrailingLambda -> return ComposableFunctionRenderParts(null, tail)
       else -> ""
     }
 
@@ -83,23 +77,14 @@ private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbo
   return valueParamSymbol.psi?.text?.endsWith("/* = compiled code */") != true
 }
 
-internal fun KtAnalysisSession.isComposableFunctionParameter(
+internal fun KtAnalysisSession.isRequiredTrailingLambda(
   valueParamSymbol: KtValueParameterSymbol
 ): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a
-  // vararg.
-  // In FE1.0, it was simple because vararg has an array type and checking that the parameter is a
-  // function type returns false.
-  // On the other hand, K2's value parameter symbol deliberately unwraps it and returns the element
-  // type as a symbol's returnType.
-  // We need a separate check for a vararg.
-  if (valueParamSymbol.isVararg) return false
-
-  val parameterType = valueParamSymbol.returnType
-  // Mimic FE1.0 `KotlinType.isBuiltinFunctionalType`.
-  val isBuiltinFunctionalType = parameterType.isFunctionType || parameterType.isSuspendFunctionType
-  return isBuiltinFunctionalType &&
-    parameterType
-      .annotationsByClassId(ClassId.topLevel(FqName(COMPOSABLE_ANNOTATION_FQ_NAME)))
-      .isNotEmpty()
+  // vararg. In FE1.0, it was simple because vararg has an array type and checking that the
+  // parameter is a function type returns false. On the other hand, K2's value parameter symbol
+  // deliberately unwraps it and returns the element type as a symbol's returnType. Thus, we need
+  // a separate check for a vararg.
+  return !valueParamSymbol.isVararg &&
+    valueParamSymbol.returnType.let { it.isFunctionType || it.isSuspendFunctionType }
 }

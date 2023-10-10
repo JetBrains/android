@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.code
 
-import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -28,7 +27,6 @@ import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory.Companion.SHORT_NAMES_RENDERER
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.renderer.DescriptorRenderer.ValueParametersHandler
 import org.jetbrains.kotlin.resolve.source.getPsi
@@ -65,20 +63,20 @@ fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderPa
 fun FunctionDescriptor.getComposableFunctionRenderParts(): ComposableFunctionRenderParts {
   val allParameters = valueParameters
   val requiredParameters = allParameters.filter { it.isRequired() }
-  val lastParamIsComposable = allParameters.lastOrNull()?.isComposableFunctionParameter() == true
-  val inParens = if (lastParamIsComposable) requiredParameters.dropLast(1) else requiredParameters
+  val hasTrailingLambda =
+    allParameters.lastOrNull()?.let { it.isRequired() && it.type.isBuiltinFunctionalType } ?: false
+  val inParens = if (hasTrailingLambda) requiredParameters.dropLast(1) else requiredParameters
 
   val descriptorRenderer =
     when {
       requiredParameters.size < allParameters.size -> SHORT_NAMES_RENDERER_WITH_DOTS
-      inParens.isEmpty() && lastParamIsComposable ->
+      inParens.isEmpty() && hasTrailingLambda ->
         null // Don't render an empty pair of parentheses if we're rendering a lambda afterwards.
       else -> SHORT_NAMES_RENDERER
     }
   val parameters = descriptorRenderer?.renderValueParameters(inParens, false)
 
-  val tail =
-    if (lastParamIsComposable) LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION else null
+  val tail = LambdaSignatureTemplates.DEFAULT_LAMBDA_PRESENTATION.takeIf { hasTrailingLambda }
 
   return ComposableFunctionRenderParts(parameters, tail)
 }
@@ -92,12 +90,6 @@ private fun ValueParameterDescriptor.isRequired(): Boolean {
   // only way I've found to determine that
   // they're truly optional is by looking at their text.
   return source.getPsi()?.text?.endsWith("/* = compiled code */") != true
-}
-
-fun ValueParameterDescriptor.isComposableFunctionParameter(): Boolean {
-  val parameterType = type
-  return parameterType.isBuiltinFunctionalType &&
-    parameterType.annotations.hasAnnotation(FqName(COMPOSABLE_ANNOTATION_FQ_NAME))
 }
 
 /** A version of [SHORT_NAMES_RENDERER] that adds `, ...)` at the end of the parameters list. */

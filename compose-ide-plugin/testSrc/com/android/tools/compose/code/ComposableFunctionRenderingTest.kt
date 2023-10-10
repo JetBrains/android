@@ -132,29 +132,7 @@ class ComposableFunctionRenderingTest {
   }
 
   @Test
-  fun onlyComposableLambda() {
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun ${caret}HomeScreen(foo: @Composable () -> Unit) {}
-      """
-        .trimIndent()
-    )
-
-    with(getComposableFunctionRenderPartsAtCaret()) {
-      assertThat(parameters).isNull()
-      assertThat(tail).isEqualTo("{...}")
-    }
-  }
-
-  @Test
-  fun onlyNonComposableLambda() {
+  fun onlyRequiredLambda() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
       // language=kotlin
@@ -170,13 +148,13 @@ class ComposableFunctionRenderingTest {
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
-      assertThat(parameters).isEqualTo("(foo: () -> Unit)")
-      assertThat(tail).isNull()
+      assertThat(parameters).isNull()
+      assertThat(tail).isEqualTo("{...}")
     }
   }
 
   @Test
-  fun composableLambdaWithParameters() {
+  fun onlyOptionalLambda() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
       // language=kotlin
@@ -186,19 +164,19 @@ class ComposableFunctionRenderingTest {
       import androidx.compose.runtime.Composable
 
       @Composable
-      fun ${caret}HomeScreen(a: Int, b: Int = 0, foo: @Composable () -> Unit) {}
+      fun ${caret}HomeScreen(foo: () -> Unit = {}) {}
       """
         .trimIndent()
     )
 
     with(getComposableFunctionRenderPartsAtCaret()) {
-      assertThat(parameters).isEqualTo("(a: Int, ...)")
-      assertThat(tail).isEqualTo("{...}")
+      assertThat(parameters).isEqualTo("(...)")
+      assertThat(tail).isNull()
     }
   }
 
   @Test
-  fun nonComposableLambdaWithParameters() {
+  fun requiredLambdaWithParameters() {
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
       // language=kotlin
@@ -213,10 +191,32 @@ class ComposableFunctionRenderingTest {
         .trimIndent()
     )
 
+    with(getComposableFunctionRenderPartsAtCaret()) {
+      assertThat(parameters).isEqualTo("(a: Int, ...)")
+      assertThat(tail).isEqualTo("{...}")
+    }
+  }
+
+  @Test
+  fun optionalLambdaWithParameters() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun ${caret}HomeScreen(a: Int, b: Int = 0, foo: () -> Unit = {}) {}
+      """
+        .trimIndent()
+    )
+
     // This seems like odd behavior, but it's documenting the existing behavior at the time this
     // test is being written.
     with(getComposableFunctionRenderPartsAtCaret()) {
-      assertThat(parameters).isEqualTo("(a: Int, foo: () -> Unit, ...)")
+      assertThat(parameters).isEqualTo("(a: Int, ...)")
       assertThat(tail).isNull()
     }
   }
