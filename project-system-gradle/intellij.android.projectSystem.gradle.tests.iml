@@ -50,6 +50,7 @@
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
   </component>
 </module>

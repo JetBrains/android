@@ -12,6 +12,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k1" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />

@@ -115,6 +115,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
     ],
     # do not sort: must match IML order

@@ -28,10 +28,13 @@
     <orderEntry type="module" module-name="intellij.android.observable" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.lint" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST"/>
+    <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k1" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" scope="TEST" />
   </component>
 </module>

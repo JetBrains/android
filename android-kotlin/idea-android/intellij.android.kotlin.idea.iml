@@ -29,5 +29,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k1" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea.k2" />
   </component>
 </module>
