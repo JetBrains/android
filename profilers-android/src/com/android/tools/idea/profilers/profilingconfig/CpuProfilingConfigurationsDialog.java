@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.menu.CommonMenuItem;
 import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
@@ -41,6 +42,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.AnActionButton;
 import com.intellij.ui.AnActionButtonRunnable;
@@ -50,12 +52,14 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
+import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBDimension;
 import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -200,8 +204,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       myConfigurations.setCellRenderer(new ProfilingConfigurationsListCellRenderer());
       myConfigurations.addListSelectionListener((e) -> {
         int index = myConfigurations.getSelectedIndex();
+        // Task based ux config fields are always editable
         boolean isReadOnlyConfig = !isTaskBasedUxEnabled && (index >= getCustomConfigurationCount());
-        myProfilersPanel.setOption(index < 0 ? null : myConfigurationsModel.get(index), isReadOnlyConfig);
+        myProfilersPanel.setOption(index < 0 ? null : myConfigurationsModel.get(index), isReadOnlyConfig, isTaskBasedUxEnabled);
       });
       if (isTaskBasedUxEnabled) {
         // Restore saved/default configurations
@@ -251,7 +256,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         .setMinimumSize(new JBDimension(200, 200))
         .setForcedDnD();
 
-      if (!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+      if (!isTaskBasedUxEnabled) {
         toolbarDecorator
           .setMoveUpAction(moveUpAction).setMoveUpActionUpdater(moveUpAction).setMoveUpActionName(MOVE_UP)
           .setMoveDownAction(moveDownAction).setMoveDownActionUpdater(moveDownAction).setMoveDownActionName(MOVE_DOWN)
@@ -268,10 +273,19 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
       }
 
       JComponent panel = toolbarDecorator.createPanel();
-      if (!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+      if (!isTaskBasedUxEnabled) {
         addAction.setPopupParent(panel);
+        return panel;
       }
-      return panel;
+
+      JPanel taskTitlePanel = new JPanel(new VerticalFlowLayout());
+      JPanel headerPanel = new JPanel(new BorderLayout());
+      JLabel headerLabel = new JLabel("Tasks");
+      headerLabel.setFont(headerLabel.getFont().deriveFont(Font.BOLD));
+      headerPanel.add(headerLabel);
+      taskTitlePanel.add(headerPanel);
+      taskTitlePanel.add(panel);
+      return taskTitlePanel;
     }
 
     @Nls

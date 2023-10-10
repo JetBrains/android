@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.profiler.CpuProfilerConfig
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -40,7 +39,6 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.JBSplitter
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -48,6 +46,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import org.mockito.Mockito.spy
 import javax.swing.JComponent
+import javax.swing.JLabel
 
 class CpuProfilingConfigurationsDialogTest {
 
@@ -83,18 +82,32 @@ class CpuProfilingConfigurationsDialogTest {
     model =  CpuProfilerConfigModel(profilers, myStage)
     model.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
     featureTracker = FakeFeatureTracker()
+    myIdeServices.enableTaskBasedUx(true)
     configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
   }
 
-  @After
-  fun tearDown() {
-    // Need to clear any override we use inside tests here.
-    StudioFlags.PROFILER_TASK_BASED_UX.clearOverride()
+  @Test
+  fun taskBasedUxHasTaskHeader() {
+    var profilingComponent : JComponent = configurations.createComponent()!!
+    val walker = TreeWalker(profilingComponent)
+    val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "Tasks" }
+    // Left panel in config dialog has "Tasks" header
+    assertThat(headerLabel.size).isEqualTo(1)
+  }
+
+  @Test
+  fun nonTaskBasedUxHasNoTaskHeader() {
+    myIdeServices.enableTaskBasedUx(false)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
+    var profilingComponent : JComponent = configurations.createComponent()!!
+    val walker = TreeWalker(profilingComponent)
+    val headerLabel = walker.descendants().filterIsInstance(JLabel::class.java).filter { ((it.text)) == "Tasks" }
+    // Left panel in config dialog doesn't have header
+    assertThat(headerLabel.size).isEqualTo(0)
   }
 
   @Test
   fun configDialogIconWhenTaskBasedUxEnabled() {
-    StudioFlags.PROFILER_TASK_BASED_UX.override(true)
     var profilingComponent : JComponent = configurations.createComponent()!!
     assertThat(profilingComponent).isNotNull()
     val splitter: JBSplitter = TreeWalker(profilingComponent).descendants().filterIsInstance<JBSplitter>().first()
@@ -113,7 +126,8 @@ class CpuProfilingConfigurationsDialogTest {
 
   @Test
   fun configDialogIconWhenTaskBasedUxDisabled() {
-    StudioFlags.PROFILER_TASK_BASED_UX.override(false)
+    myIdeServices.enableTaskBasedUx(false)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     var profilingComponent : JComponent = configurations.createComponent()!!
     assertThat(profilingComponent).isNotNull()
     val splitter: JBSplitter = TreeWalker(profilingComponent).descendants().filterIsInstance<JBSplitter>().first()
@@ -132,7 +146,6 @@ class CpuProfilingConfigurationsDialogTest {
 
   @Test
   fun setupConfigWhenTaskBasedUxEnabled() {
-    myIdeServices.enableTaskBasedUx(true)
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
 
@@ -143,6 +156,7 @@ class CpuProfilingConfigurationsDialogTest {
   @Test
   fun setupConfigWhenTaskBasedDisabled() {
     myIdeServices.enableTaskBasedUx(false)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     project = spy(MockProjectEx(disposableRule.disposable))
     configurations = getCpuProfilingDialogConfiguration(project)
 
@@ -154,6 +168,7 @@ class CpuProfilingConfigurationsDialogTest {
   @Test
   fun userConfigGettingSavedInApply() {
     myIdeServices.enableTaskBasedUx(false)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     project = spy(MockProjectEx(disposableRule.disposable))
     val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
     MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
@@ -168,7 +183,6 @@ class CpuProfilingConfigurationsDialogTest {
 
   @Test
   fun taskConfigGettingSavedInApplyForTaskBasedUx() {
-    myIdeServices.enableTaskBasedUx(true)
     project = spy(MockProjectEx(disposableRule.disposable))
     val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
     MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
@@ -181,7 +195,6 @@ class CpuProfilingConfigurationsDialogTest {
 
   @Test
   fun savingTaskConfigInProjectForTaskBasedUx() {
-    myIdeServices.enableTaskBasedUx(true)
     project = spy(MockProjectEx(disposableRule.disposable))
     val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
     MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
@@ -197,6 +210,7 @@ class CpuProfilingConfigurationsDialogTest {
   @Test
   fun savingUserConfigInProjectForNonTaskBasedUx() {
     myIdeServices.enableTaskBasedUx(false)
+    configurations = CpuProfilingConfigurationsDialog.ProfilingConfigurable(project, model, deviceLevel, featureTracker, myIdeServices)
     project = spy(MockProjectEx(disposableRule.disposable))
     val cpuProfilerStateSpy = spy(CpuProfilerConfigsState())
     MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
