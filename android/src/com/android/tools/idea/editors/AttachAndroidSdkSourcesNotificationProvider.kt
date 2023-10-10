@@ -34,13 +34,13 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
+import java.util.function.Function
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.sdk.getInstance
-import java.util.function.Function
 
 /**
- * Notifies users that the Android SDK file they opened doesn't have a source file associated with it, and provides a link to download the
- * source via the SDK Manager.
+ * Notifies users that the Android SDK file they opened doesn't have a source file associated with
+ * it, and provides a link to download the source via the SDK Manager.
  */
 open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvider {
 
@@ -48,14 +48,16 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     project: Project,
     file: VirtualFile
   ): Function<FileEditor, EditorNotificationPanel?>? {
-    return createNotificationPanelForDebugSession(file, project) ?: createNotificationPanelForClassFiles(file, project)
+    return createNotificationPanelForDebugSession(file, project)
+      ?: createNotificationPanelForClassFiles(file, project)
   }
 
   private fun createNotificationPanelForDebugSession(
     file: VirtualFile,
     project: Project
   ): Function<FileEditor, EditorNotificationPanel?>? {
-    // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
+    // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a
+    // debugging session, and will set the
     // REQUIRED_SOURCES_KEY when necessary.
     val missingApiLevel = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
     return createPanel(project, AndroidVersion(missingApiLevel))
@@ -79,9 +81,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
 
     val apiVersion = getInstance(sdk)?.apiVersion ?: return null
 
-    return createPanel(myProject, apiVersion) {
-      AndroidSdkUtils.updateSdkSourceRoot(sdk)
-    }
+    return createPanel(myProject, apiVersion) { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
   }
 
   private fun createPanel(
@@ -102,14 +102,18 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
             }
           }
         } else {
-          text = "Android SDK sources for API ${requestedSourceVersion.apiString} are not available."
+          text =
+            "Android SDK sources for API ${requestedSourceVersion.apiString} are not available."
         }
       }
     }
   }
 
   @VisibleForTesting
-  protected open fun createSdkDownloadDialog(project: Project, requestedPaths: List<String>?): ModelWizardDialog? {
+  protected open fun createSdkDownloadDialog(
+    project: Project,
+    requestedPaths: List<String>?
+  ): ModelWizardDialog? {
     // TODO(b/230852993) calls a heavy method AndroidSdkHandler.getSdkManager
     return SdkQuickfixUtils.createDialogForPaths(project, requestedPaths!!)
   }
@@ -118,12 +122,16 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     return ProjectFileIndex.getInstance(project)
       .getOrderEntriesForFile(file)
       .filterIsInstance<JdkOrderEntry>()
-      .firstOrNull { entry -> entry.jdk?.let { AndroidSdks.getInstance().isAndroidSdk(it) } == true }
+      .firstOrNull { entry ->
+        entry.jdk?.let { AndroidSdks.getInstance().isAndroidSdk(it) } == true
+      }
   }
 
   @VisibleForTesting
-  internal class MyEditorNotificationPanel(fileEditor: FileEditor?) : EditorNotificationPanel(fileEditor) {
+  internal class MyEditorNotificationPanel(fileEditor: FileEditor?) :
+    EditorNotificationPanel(fileEditor) {
     private val myLinks: MutableMap<String, Runnable> = HashMap()
+
     fun createAndAddLink(text: @NlsContexts.LinkLabel String, action: Runnable) {
       // Despite the name, `createActionLabel` both creates the label and adds it to the panel.
       val label = createActionLabel(text, action)
@@ -138,7 +146,6 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
   }
 
   companion object {
-    @JvmField
-    val REQUIRED_SOURCES_KEY = Key.create<Int>("sources to download")
+    @JvmField val REQUIRED_SOURCES_KEY = Key.create<Int>("sources to download")
   }
 }
