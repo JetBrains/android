@@ -742,7 +742,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
         device = AndroidVersion(33)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { TODO("b/304516211") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
@@ -761,7 +761,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
         device = AndroidVersion(33)
       ),
-      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      IGNORE = { TODO("b/304516211") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
          Files:
