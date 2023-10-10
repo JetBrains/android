@@ -17,12 +17,14 @@ package com.android.tools.idea.editors
 
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.ide.highlighter.JavaClassFileType
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.Project
@@ -34,7 +36,13 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
+import com.intellij.util.concurrency.annotations.RequiresEdt
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.function.Function
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.jetbrains.android.sdk.getInstance
 
@@ -44,6 +52,7 @@ import org.jetbrains.android.sdk.getInstance
  */
 open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvider {
 
+  @RequiresReadLock
   override fun collectNotificationData(
     project: Project,
     file: VirtualFile
@@ -88,25 +97,37 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     project: Project,
     requestedSourceVersion: AndroidVersion,
     refreshAfterDownload: Runnable? = null
-  ): Function<FileEditor, EditorNotificationPanel?> {
-    val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
-    val sourcesAvailable = SdkQuickfixUtils.checkPathIsAvailableForDownload(sourcesPath)
+  ): Function<FileEditor, EditorNotificationPanel?> = Function { fileEditor ->
+    doCreatePanel(project, requestedSourceVersion, refreshAfterDownload, fileEditor)
+  }
 
-    return Function { fileEditor ->
+  @RequiresEdt
+  private fun doCreatePanel(
+    project: Project,
+    requestedSourceVersion: AndroidVersion,
+    refreshAfterDownload: Runnable? = null,
+    fileEditor: FileEditor
+  ): EditorNotificationPanel {
+    val panel =
       MyEditorNotificationPanel(fileEditor).apply {
-        if (sourcesAvailable) {
-          text = "Android SDK sources for API ${requestedSourceVersion.apiString} not found."
-          createAndAddLink("Download") {
+        text = "Android SDK sources for API ${requestedSourceVersion.apiString} are not available."
+      }
+
+    createCoroutineScopeForEditor(fileEditor).launch {
+      // SdkQuickfixUtils.checkPathIsAvailableForDownload must not be called on the EDT.
+      val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
+      if (SdkQuickfixUtils.checkPathIsAvailableForDownload(sourcesPath)) {
+        withContext(Dispatchers.EDT) {
+          panel.createAndAddLink("Download") {
             if (createSdkDownloadDialog(project, listOf(sourcesPath))?.showAndGet() == true) {
               refreshAfterDownload?.run()
             }
           }
-        } else {
-          text =
-            "Android SDK sources for API ${requestedSourceVersion.apiString} are not available."
         }
       }
     }
+
+    return panel
   }
 
   @VisibleForTesting
@@ -117,6 +138,10 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     // TODO(b/230852993) calls a heavy method AndroidSdkHandler.getSdkManager
     return SdkQuickfixUtils.createDialogForPaths(project, requestedPaths!!)
   }
+
+  @VisibleForTesting
+  protected open fun createCoroutineScopeForEditor(fileEditor: FileEditor): CoroutineScope =
+    AndroidCoroutineScope(fileEditor)
 
   private fun findAndroidSdkEntryForFile(project: Project, file: VirtualFile): JdkOrderEntry? {
     return ProjectFileIndex.getInstance(project)
@@ -130,19 +155,19 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
   @VisibleForTesting
   internal class MyEditorNotificationPanel(fileEditor: FileEditor?) :
     EditorNotificationPanel(fileEditor) {
-    private val myLinks: MutableMap<String, Runnable> = HashMap()
+    private val _links: MutableMap<String, Runnable> = mutableMapOf()
 
     fun createAndAddLink(text: @NlsContexts.LinkLabel String, action: Runnable) {
       // Despite the name, `createActionLabel` both creates the label and adds it to the panel.
       val label = createActionLabel(text, action)
 
       // This collection is just for tracking for test purposes.
-      myLinks[label.text] = action
+      _links[label.text] = action
     }
 
     @get:VisibleForTesting
     val links: Map<String, Runnable>
-      get() = myLinks
+      get() = _links
   }
 
   companion object {
