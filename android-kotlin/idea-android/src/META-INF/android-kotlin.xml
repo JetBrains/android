@@ -69,7 +69,6 @@
 
         <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
 
-        <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
         <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixRegistrarK2"
                                         includeIf="idea.kotlin.plugin.use.k2"/>
