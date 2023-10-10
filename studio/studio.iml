@@ -18,7 +18,6 @@
     <orderEntry type="module" module-name="firebase" />
     <orderEntry type="module" module-name="directaccess" />
     <orderEntry type="module" module-name="firebase-testing" />
-    <orderEntry type="module" module-name="google-cloud-tools-core-as" />
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="test-recorder" />

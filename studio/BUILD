@@ -560,19 +560,17 @@ studio_plugin(
     directory = "google-cloud-tools-as",
     libs = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
-        "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-appengine",
+        "//tools/studio/google/cloud/tools/android-studio-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
-        "//tools/adt/idea/.idea/libraries:google-api-services-sourcerepo",
+        "//prebuilts/tools/common/m2:google-api-services-sourcerepo",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
     ],
     modules = {
         "google-cloud-tools-as.jar": [
             "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
-            "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as",
         ],
     },
     visibility = ["//visibility:public"],
@@ -920,7 +918,6 @@ iml_module(
         "//tools/vendor/google/firebase[module]",
         "//tools/studio/google/cloud/testing/directaccess[module]",
         "//tools/studio/google/cloud/testing/firebase-testing[module]",
-        "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as[module]",
         "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/studio/google/cloud/testing/test-recorder[module]",

@@ -138,7 +138,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" filepath="$PROJECT_DIR$/../../vendor/google/firebase/integration/firebase.integration.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" filepath="$PROJECT_DIR$/../../vendor/google/git4insights/git4insights.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/android-studio-plugin/google-cloud-tools-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/android-studio-plugin/google-cloud-tools-as.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/core-plugin/google-cloud-tools-core-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/core-plugin/google-cloud-tools-core-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" filepath="$PROJECT_DIR$/../../studio/google/cloud/tools/google-login-plugin/google-login-as.iml" />
       <module fileurl="file://$PROJECT_DIR$/studio/studio-sdk-all-plugins.iml" filepath="$PROJECT_DIR$/studio/studio-sdk-all-plugins.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-adb/intellij.android.adb.iml" filepath="$PROJECT_DIR$/android-adb/intellij.android.adb.iml" />
