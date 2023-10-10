@@ -21,10 +21,7 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-open class TestComposePreviewManager(
-  initialInteractiveMode: ComposePreviewManager.InteractiveMode =
-    ComposePreviewManager.InteractiveMode.DISABLED
-) : ComposePreviewManager {
+open class TestComposePreviewManager : ComposePreviewManager {
 
   var currentStatus =
     ComposePreviewManager.Status(
@@ -33,7 +30,6 @@ open class TestComposePreviewManager(
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      interactiveMode = initialInteractiveMode
     )
 
   override fun status(): ComposePreviewManager.Status = currentStatus

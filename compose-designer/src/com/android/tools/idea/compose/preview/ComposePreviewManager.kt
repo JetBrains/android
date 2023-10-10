@@ -26,30 +26,7 @@ import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
 interface ComposePreviewManager : Disposable, PreviewModeManager {
-  /**
-   * Enum that determines the current status of the interactive preview.
-   *
-   * The transitions are like:
-   *
-   * DISABLED -> STARTED -> READY -> STOPPING
-   *
-   * ```
-   *    ^                               +
-   *    |                               |
-   *    +-------------------------------+
-   * ```
-   */
-  enum class InteractiveMode {
-    DISABLED,
-    /** Status when interactive has been started but the first render has not happened yet. */
-    STARTING,
-    /** Interactive is ready and running. */
-    READY,
-    /** The interactive preview is stopping but it has not been fully disposed yet. */
-    STOPPING;
 
-    fun isStartingOrStopping() = this == STARTING || this == STOPPING
-  }
   /**
    * Status of the preview.
    *
@@ -61,7 +38,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
    * @param areResourcesOutOfDate true if the preview needs a build to be up to date because
    *   resources are out of date.
    * @param isRefreshing true if the view is currently refreshing.
-   * @param interactiveMode represents current state of preview interactivity.
    */
   data class Status(
     val hasRuntimeErrors: Boolean,
@@ -69,7 +45,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
     val isOutOfDate: Boolean,
     val areResourcesOutOfDate: Boolean,
     val isRefreshing: Boolean,
-    val interactiveMode: InteractiveMode
   ) {
     /** True if the preview has errors that will need a refresh */
     val hasErrors = hasRuntimeErrors || hasSyntaxErrors
@@ -138,7 +113,6 @@ class NopComposePreviewManager : ComposePreviewManager {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      ComposePreviewManager.InteractiveMode.DISABLED
     )
 
   override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =

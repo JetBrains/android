@@ -69,7 +69,6 @@ internal class PreviewIssueNotificationActionTest {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     )
 
   @Test

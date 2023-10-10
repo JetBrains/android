@@ -250,7 +250,6 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = true,
         areResourcesOutOfDate = false,
-        interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
       )
     val nonRefreshingStatus =
       ComposePreviewManager.Status(
@@ -259,7 +258,6 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = false,
         areResourcesOutOfDate = false,
-        interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
       )
     val context = DataContext {
       when {
@@ -267,7 +265,7 @@ class ComposeViewControlActionTest {
         else -> null
       }
     }
-    val event = TestActionEvent(context)
+    val event = TestActionEvent.createTestEvent(context)
     val viewControlAction =
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,

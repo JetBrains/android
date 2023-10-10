@@ -297,21 +297,6 @@ class ComposePreviewRepresentation(
   private val previewModeManager: PreviewModeManager =
     CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
 
-  private val interactiveMode: ComposePreviewManager.InteractiveMode
-    get() =
-      when (val currentMode = mode) {
-        is PreviewMode.Switching ->
-          when {
-            currentMode.currentMode is PreviewMode.Interactive ->
-              ComposePreviewManager.InteractiveMode.STOPPING
-            currentMode.newMode is PreviewMode.Interactive ->
-              ComposePreviewManager.InteractiveMode.STARTING
-            else -> ComposePreviewManager.InteractiveMode.DISABLED
-          }
-        is PreviewMode.Interactive -> ComposePreviewManager.InteractiveMode.READY
-        else -> ComposePreviewManager.InteractiveMode.DISABLED
-      }
-
   private val isStartingOrInInteractiveMode: Boolean
     get() = currentOrNextMode is PreviewMode.Interactive
 
@@ -1206,7 +1191,6 @@ class ComposePreviewRepresentation(
         !isRefreshing &&
           (projectBuildStatus as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
-        interactiveMode,
       )
 
     // This allows us to display notifications synchronized with any other change detection. The

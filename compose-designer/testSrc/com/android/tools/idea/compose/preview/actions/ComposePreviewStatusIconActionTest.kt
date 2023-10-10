@@ -57,7 +57,6 @@ class ComposePreviewStatusIconActionTest {
       isOutOfDate = false,
       areResourcesOutOfDate = false,
       isRefreshing = false,
-      interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     )
 
   private val tf = listOf(true, false)

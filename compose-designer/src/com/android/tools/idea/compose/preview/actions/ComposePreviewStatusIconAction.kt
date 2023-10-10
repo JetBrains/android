@@ -56,9 +56,7 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
   }
 
   private fun isLoading(project: Project, previewStatus: ComposePreviewManager.Status): Boolean =
-    previewStatus.interactiveMode.isStartingOrStopping() ||
-      previewStatus.isRefreshing ||
-      project.fastPreviewManager.isCompiling
+    previewStatus.isRefreshing || project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
     e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true) {

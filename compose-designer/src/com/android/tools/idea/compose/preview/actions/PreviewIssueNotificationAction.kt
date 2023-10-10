@@ -75,12 +75,6 @@ private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Sta
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
 
-    // Refresh status
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
-
     // Build/Syntax/Render errors
     project.needsBuild -> PreviewStatus.NeedsBuild
     previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
@@ -107,12 +101,6 @@ private fun getStatusForFastPreview(project: Project, previewStatus: ComposePrev
 
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
-
-    // Refresh status
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
     project.needsBuild -> PreviewStatus.NeedsBuild
     previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
     project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
