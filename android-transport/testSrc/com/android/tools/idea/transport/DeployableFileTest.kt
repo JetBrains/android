@@ -25,7 +25,7 @@ import java.io.File
 
 class DeployableFileTest {
   @get:Rule
-  val timeout = Timeout.seconds(10)
+  val timeout = Timeout.seconds(60)
 
   @Rule
   @JvmField

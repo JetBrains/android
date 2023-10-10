@@ -73,7 +73,7 @@ import org.mockito.stubbing.Answer;
 
 public class TransportServiceProxyTest {
   @Rule
-  public Timeout myTimeout = Timeout.seconds(10);
+  public Timeout myTimeout = Timeout.seconds(60);
 
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {

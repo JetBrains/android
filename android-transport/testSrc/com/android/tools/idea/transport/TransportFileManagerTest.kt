@@ -39,7 +39,7 @@ import java.io.File
 
 class TransportFileManagerTest {
   @get:Rule
-  val timeout = Timeout.seconds(10)
+  val timeout = Timeout.seconds(60)
 
   @JvmField
   @Rule

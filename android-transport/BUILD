@@ -9,18 +9,16 @@ iml_module(
     split_test_targets = {
         "TransportServiceProxyTest": {
             "tags": [
-                "no_test_windows",  # b/175394215
                 "very_flaky",  # b/126763044
             ],
             "test_filter": "com.android.tools.idea.transport.TransportServiceProxyTest",
         },
         "other": {
-            "tags": ["no_test_windows"],
         },
     },
     test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     test_srcs = ["testSrc"],
-    test_tags = [],  # b/175394215
+    test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
