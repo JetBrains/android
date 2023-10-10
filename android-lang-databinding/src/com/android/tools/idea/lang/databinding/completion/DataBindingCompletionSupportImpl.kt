@@ -177,7 +177,7 @@ class DataBindingCompletionSupportImpl : DataBindingCompletionSupport {
         // pkg.name is always non-null for subpackages
         .filter { pkg -> pkg.name!!.all { char -> Character.isJavaIdentifierPart(char) } }
         .forEach { pkg ->
-          resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailTypes.DOT))
+          resultSet.addElement(LookupElementBuilder.createWithIcon(pkg).withTypeDecorator(TailTypes.dotType()))
         }
 
       if (rootPackage.name.isNullOrEmpty()) {

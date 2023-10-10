@@ -190,7 +190,8 @@ open class DataBindingCompletionContributor : CompletionContributor() {
       ?.filter { pkg -> pkg.getSubPackages(module.moduleScope).isNotEmpty() || pkg.getClasses(module.moduleScope).isNotEmpty() }
       ?.filter { pkg -> pkg.name?.all { char -> Character.isJavaIdentifierPart(char) } == true }
       ?.forEach {
-        result.addElement(LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.DOT))
+        result.addElement(
+          LookupElementBuilder.createWithIcon(it).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType()))
       }
   }
 
@@ -209,7 +210,7 @@ open class DataBindingCompletionContributor : CompletionContributor() {
       val psiPackage = reference.resolve() as? PsiPackage ?: continue
       for (subPackage in psiPackage.subPackages) {
         completionSuggestionsList.add(
-          LookupElementBuilder.createWithIcon(subPackage).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.DOT))
+          LookupElementBuilder.createWithIcon(subPackage).withInsertHandler(onCompletionHandler).withTypeDecorator(TailTypes.dotType()))
       }
       for (subClass in psiPackage.classes) {
         completionSuggestionsList.add(LookupElementBuilder.createWithIcon(subClass).withInsertHandler(onCompletionHandler))
