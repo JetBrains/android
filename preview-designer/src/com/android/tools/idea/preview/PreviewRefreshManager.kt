@@ -161,9 +161,10 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
               currentRefreshJob?.cancel(if (it is CancellationException) it else null)
             }
             val result =
-              when (it) {
-                null -> RefreshResult.SUCCESS
-                is CancellationException -> RefreshResult.CANCELLED
+              when {
+                it == null && currentRefreshJob?.isCancelled == false -> RefreshResult.SUCCESS
+                it is CancellationException || currentRefreshJob?.isCancelled == true ->
+                  RefreshResult.CANCELLED
                 else -> RefreshResult.FAILED
               }
             currentRequest.onRefreshCompleted(result, it)

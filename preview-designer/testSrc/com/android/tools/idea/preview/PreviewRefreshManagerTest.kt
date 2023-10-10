@@ -47,7 +47,8 @@ private class TestPreviewRefreshRequest(
   override val clientId: String,
   override val priority: Int,
   val name: String,
-  val doBeforeLaunchingRefresh: () -> Unit = {}
+  val doBeforeLaunchingRefresh: () -> Unit = {},
+  val doInsideRefreshJob: suspend () -> Unit = {}
 ) : PreviewRefreshRequest {
   companion object {
     // A lock is needed because these properties are shared between all requests
@@ -56,15 +57,20 @@ private class TestPreviewRefreshRequest(
     @GuardedBy("testLock") lateinit var expectedLogPrintCount: CountDownLatch
   }
 
+  var runningRefreshJob: Job? = null
+
   override fun doRefresh(): Job {
     doBeforeLaunchingRefresh()
-    return scope.launch(AndroidDispatchers.uiThread) {
-      testLock.withLock {
-        log.appendLine("start $name")
-        expectedLogPrintCount.countDown()
+    runningRefreshJob =
+      scope.launch(AndroidDispatchers.uiThread) {
+        testLock.withLock {
+          log.appendLine("start $name")
+          expectedLogPrintCount.countDown()
+        }
+        doInsideRefreshJob()
+        delay(1000)
       }
-      delay(1000)
-    }
+    return runningRefreshJob!!
   }
 
   override fun onRefreshCompleted(result: RefreshResult, throwable: Throwable?) {
@@ -286,16 +292,22 @@ class PreviewRefreshManagerTest {
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(4)
     val doRefreshCalledLatch = CountDownLatch(1)
     refreshManager.requestRefresh(
-      TestPreviewRefreshRequest(myScope, "client1", 2, "req2") {
-        doRefreshCalledLatch.countDown()
-        // Wait a little bit and try to get the UI-thread
-        // Note that a countDownLatch cannot be used here as the wait is for the second request
-        // to happen, which would start the deadlock "on the other side (uiThread)" if we regress
-        runBlocking { delay(1000) }
-        // Here is one of the sides of the deadlock seen in b/291792172,
-        // this would hang if we regress
-        runWriteActionAndWait { /*do nothing, just try to get the UI thread*/}
-      }
+      TestPreviewRefreshRequest(
+        myScope,
+        "client1",
+        2,
+        "req2",
+        doBeforeLaunchingRefresh = {
+          doRefreshCalledLatch.countDown()
+          // Wait a little bit and try to get the UI-thread
+          // Note that a countDownLatch cannot be used here as the wait is for the second request
+          // to happen, which would start the deadlock "on the other side (uiThread)" if we regress
+          runBlocking { delay(1000) }
+          // Here is one of the sides of the deadlock seen in b/291792172,
+          // this would hang if we regress
+          runWriteActionAndWait { /*do nothing, just try to get the UI thread*/}
+        }
+      )
     )
 
     doRefreshCalledLatch.await()
@@ -311,6 +323,38 @@ class PreviewRefreshManagerTest {
       finish req2
       start req1
       finish req1
+    """
+        .trimIndent(),
+      TestPreviewRefreshRequest.log.toString().trimIndent()
+    )
+  }
+
+  // Regression test for b/304569719
+  @Test
+  fun testInternalJobCancellationIsDetected() {
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    val refreshRequest =
+      TestPreviewRefreshRequest(
+        myScope,
+        "client1",
+        1,
+        "req1",
+        doInsideRefreshJob = {
+          while (true) {
+            delay(500)
+          }
+        }
+      )
+    refreshManager.requestRefresh(refreshRequest)
+    // wait for refresh to start and then cancel its "internal" job
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
+    refreshRequest.runningRefreshJob!!.cancel()
+    TestPreviewRefreshRequest.expectedLogPrintCount.await()
+    assertEquals(
+      """
+      start req1
+      cancel req1
     """
         .trimIndent(),
       TestPreviewRefreshRequest.log.toString().trimIndent()
