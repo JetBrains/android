@@ -75,7 +75,11 @@ object DirectiveBasedActionUtils {
       return
     }
 
-    val expected = InTextDirectivesUtils.findLinesWithPrefixesRemoved(file.text, "// ERROR:").sorted()
+    val kotlinFrontendSpecificPrefix = if (isK2Plugin()) "K2" else "K1"
+    val expected =
+      InTextDirectivesUtils.findLinesWithPrefixesRemoved(
+        file.text, "// ERROR:", "// ${kotlinFrontendSpecificPrefix}-ERROR:"
+      ).sorted()
     val actual = diagnosticsCollectAndRenderer(file)
 
     UsefulTestCase.assertOrderedEquals(

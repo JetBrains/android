@@ -21,20 +21,5 @@
             <className>org.jetbrains.kotlin.android.intention.AddBroadcastReceiverToManifest</className>
             <category>Kotlin Android</category>
         </intentionAction>
-
-        <codeInsight.unresolvedReferenceQuickFixProvider
-            implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixProvider"
-            includeUnless="idea.kotlin.plugin.use.k2"/>
-    </extensions>
-
-    <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.AndroidQuickFixRegistrar"/>
-
-        <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixRegistrarK2"
-                                        includeIf="idea.kotlin.plugin.use.k2"/>
-    </extensions>
-
-    <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
-        <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
     </extensions>
 </idea-plugin>

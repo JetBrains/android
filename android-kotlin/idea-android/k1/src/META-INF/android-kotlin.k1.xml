@@ -48,10 +48,16 @@
       <category>Kotlin Android</category>
     </intentionAction>
 
+    <codeInsight.unresolvedReferenceQuickFixProvider
+        implementation="org.jetbrains.kotlin.android.quickfix.K1CreateResourceQuickFixProvider"/>
     <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K1AndroidKotlinResourceExternalAnnotator" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
     <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.K1AndroidViewConstructorFixRegistrar"/>
   </extensions>
 </idea-plugin>

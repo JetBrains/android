@@ -37,6 +37,7 @@ import com.intellij.util.PathUtil
 import junit.framework.ComparisonFailure
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
+import org.jetbrains.kotlin.android.InTextDirectivesUtils
 import org.jetbrains.kotlin.android.KotlinTestUtils
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtFile
@@ -86,6 +87,10 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
     extraFiles.mapTo(testFiles) { file -> File(mainFileDir, file.name).path }
 
     myFixture.configureByFiles(*testFiles.toTypedArray())
+
+    if (isK2Plugin() && InTextDirectivesUtils.isDirectiveDefined(originalFileText, "// SKIP-K2")) {
+      return
+    }
 
     CommandProcessor.getInstance().executeCommand(project, {
       try {
@@ -139,10 +144,7 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
   }
 
   private val availableActions: List<IntentionAction>
-    get() {
-      myFixture.doHighlighting()
-      return myFixture.availableIntentions
-    }
+    get() = myFixture.availableIntentions + myFixture.getAllQuickFixes()
 
   class TestFile internal constructor(val path: String, val content: String)
 
