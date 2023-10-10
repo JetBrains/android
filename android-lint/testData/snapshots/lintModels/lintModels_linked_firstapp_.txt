@@ -103,8 +103,8 @@ MODULE                        : My_First_App.app
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -190,8 +190,8 @@ MODULE                        : My_First_App.app
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.firstapp.test
         - GeneratedResourceFolders    : <ROOT>/firstapp/app/build/generated/res/resValues/androidTest/debug [-]
@@ -240,8 +240,8 @@ MODULE                        : My_First_App.app
             PackageDependencies
                 artifacts::app                : null => :app@main
                 artifacts::app:mysharedlibrary          : null => :app:mysharedlibrary@main
-        - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/firstapp/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -281,7 +281,7 @@ MODULE                        : My_First_App.app
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
                 Identifier                    : :app:mysharedlibrary@main
-                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :app:mysharedlibrary
             LintModelLibrary              : LocalLibrary(:app)
                 Identifier                    : :app@main
@@ -754,8 +754,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
         TestArtifact
             Dependencies
@@ -835,8 +835,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                     org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                     org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+            - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest [-]
         ApplicationId                 : com.example.mysharedlibrary.test
         - GeneratedResourceFolders    : <ROOT>/shared/mysharedlibrary/build/generated/res/resValues/androidTest/debug [-]
@@ -915,8 +915,8 @@ MODULE                        : My_First_App.app.mysharedlibrary
                 org.jetbrains.kotlin:kotlin-stdlib      : null => org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 org.jetbrains.kotlin:kotlin-stdlib-jdk7 : null => org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                 org.jetbrains:annotations     : null => org.jetbrains:annotations:13.0
-        - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         - ClassOutputs                : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest [-]
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
@@ -957,7 +957,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         LibraryResolver
             LintModelLibrary              : LocalLibrary(:app:mysharedlibrary)
                 Identifier                    : :app:mysharedlibrary@main
-                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/lint.jar [-]
+                LintJar                       : <ROOT>/shared/mysharedlibrary/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
                 ProjectPath                   : :app:mysharedlibrary
             LintModelLibrary              : JavaLibrary(androidx.annotation:annotation:1.0.0)
                 - JarFiles                    : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar

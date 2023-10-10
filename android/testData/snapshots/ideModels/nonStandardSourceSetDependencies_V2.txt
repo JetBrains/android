@@ -690,19 +690,19 @@ LIBRARY_TABLE
             canBeConsumed                 : true
     - library                     : <ROOT>::feature-a@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/feature-a/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/feature-a/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :feature-a
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::feature-b@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/feature-b/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/feature-b/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :feature-b
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::feature-b@debug/commonMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/feature-b/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/feature-b/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :feature-b
         sourceSet                     : commonMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
@@ -713,13 +713,13 @@ LIBRARY_TABLE
         sourceSet                     : MAIN
     - library                     : <ROOT>::kmp-java:sample-test@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmp-java/sample-test/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/kmp-java/sample-test/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :kmp-java:sample-test
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
@@ -2651,20 +2651,20 @@ MODULE                        : NonStandardSourceSetDependencies.app
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/createDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/createDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/release/createReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/release/createReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/createReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -2687,8 +2687,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
@@ -2878,11 +2878,11 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/createDebugApkListingFileRedirect/redirect.txt [-]
                     BundleTaskName                : bundleDebug
-                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/createDebugBundleListingFileRedirect/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/createDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
@@ -2892,8 +2892,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
@@ -2935,7 +2935,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -2949,8 +2949,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
@@ -3750,8 +3750,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/feature-a/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
@@ -3995,8 +3995,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/feature-a/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
@@ -4241,7 +4241,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/feature-a/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/feature-a/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/feature-a/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4255,8 +4255,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/feature-a/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/feature-a/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/feature-a/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
@@ -4863,8 +4863,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/feature-b/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
@@ -4896,8 +4896,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/feature-b/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
@@ -4931,7 +4931,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/feature-b/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/feature-b/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/feature-b/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4945,8 +4945,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/feature-b/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath
@@ -5079,7 +5079,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     - pureKotlinSourceFolders     : <ROOT>/feature-b/src/debug/kotlin [-]
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
-                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debug/classes [-]
+                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                     effectiveClassesDir           : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
                     resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debug [-]
                 platform                      : ANDROID
@@ -5149,7 +5149,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
-                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debugAndroidTest/classes [-]
+                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                     effectiveClassesDir           : <ROOT>/feature-b/build/tmp/kotlin-classes/debugAndroidTest [-]
                     resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debugAndroidTest [-]
                 platform                      : ANDROID
@@ -5239,7 +5239,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     pluginVersion                 : <CUT>
                 output                        : KotlinCompilationOutputImpl
                     - classesDirs                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
-                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
+                    - classesDirs                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                     effectiveClassesDir           : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
                     resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debugUnitTest [-]
                 platform                      : ANDROID
@@ -5824,8 +5824,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -5842,8 +5842,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:kmp-java:sample-test-MAIN
@@ -5855,7 +5855,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/kmp-java/sample-test/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/kmp-java/sample-test/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/kmp-java/sample-test/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -5869,8 +5869,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/kmp-java/sample-test/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:kmp-java:sample-test-MAIN
@@ -6142,8 +6142,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debug [-]
                 Dependencies
                     compileClasspath
@@ -6173,8 +6173,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugAndroidTest [-]
                 Dependencies
                     compileClasspath
@@ -6280,7 +6280,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/lib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/lib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -6294,8 +6294,8 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 ClassesFolder                 : <ROOT>/lib/build/tmp/kotlin-classes/debugUnitTest [-]
                 Dependencies
                     compileClasspath

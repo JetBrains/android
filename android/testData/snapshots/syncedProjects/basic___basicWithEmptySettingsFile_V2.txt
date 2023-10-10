@@ -91,7 +91,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -212,8 +212,8 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/classes
-            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -259,7 +259,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/project.main.iml [-]
@@ -346,8 +346,8 @@ PROJECT                       : project
         LIBRARY                       : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
         LIBRARY                       : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
         Classes
-            -                             : file://<PROJECT>/build/intermediates/javac/debug/classes
-            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -393,7 +393,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES

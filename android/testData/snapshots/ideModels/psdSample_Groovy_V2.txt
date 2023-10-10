@@ -692,37 +692,37 @@ LIBRARY_TABLE
         sourceSet                     : MAIN
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested1@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested1
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested1:deep@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested1:deep
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested2@basicDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2
         sourceSet                     : MAIN
         variant                       : basicDebug
     - library                     : <ROOT>::nested2:deep@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2:deep
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested2:trans:deep2@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2:trans:deep2
         sourceSet                     : MAIN
         variant                       : debug
@@ -2823,110 +2823,110 @@ MODULE                        : project.app
             VariantName                   : basicBarDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/createBasicBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : basicOtherBarDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicOtherBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : paidBarDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebug/createPaidBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : paidOtherBarDebug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidOtherBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : basicBarRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarRelease/createBasicBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : basicOtherBarRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicOtherBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : paidBarRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarRelease/createPaidBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : paidOtherBarRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidOtherBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : basicBarSpecialRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : basicOtherBarSpecialRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicOtherBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : paidBarSpecialRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : paidOtherBarSpecialRelease
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidOtherBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : basicBarDebug
@@ -2956,8 +2956,8 @@ MODULE                        : project.app
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicBarDebugSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : basicBarDebug
                     Manifest                      : <ROOT>/app/src/basicBarDebug/AndroidManifest.xml [-]
@@ -3245,11 +3245,11 @@ MODULE                        : project.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicBarDebug
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/createBasicBarDebugApkListingFileRedirect/redirect.txt [-]
                     BundleTaskName                : bundleBasicBarDebug
-                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugBundleListingFileRedirect/redirect.txt [-]
                     ApkFromBundleTaskName         : extractApksForBasicBarDebug
-                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
@@ -3259,8 +3259,8 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/processBasicBarDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestBasicBarDebug
                     Manifest                      : <ROOT>/app/src/androidTestBasicBarDebug/AndroidManifest.xml [-]
@@ -3505,7 +3505,7 @@ MODULE                        : project.app
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicBarDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/createBasicBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -3519,8 +3519,8 @@ MODULE                        : project.app
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : testBasicBarDebug
                     Manifest                      : <ROOT>/app/src/testBasicBarDebug/AndroidManifest.xml [-]
@@ -4019,12 +4019,12 @@ MODULE                        : project.dyn_feature
             VariantName                   : debug
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleDebug
-                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debug/createDebugApkListingFileRedirect/redirect.txt [-]
         VariantBuildInformation
             VariantName                   : release
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleRelease
-                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/release/createReleaseApkListingFileRedirect/redirect.txt [-]
     IdeVariants
         IdeVariant
             Name                          : debug
@@ -4041,8 +4041,8 @@ MODULE                        : project.dyn_feature
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -4050,7 +4050,7 @@ MODULE                        : project.dyn_feature
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                    AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debug/createDebugApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             AndroidTestArtifact
@@ -4060,8 +4060,8 @@ MODULE                        : project.dyn_feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:dyn_feature-MAIN
@@ -4071,7 +4071,7 @@ MODULE                        : project.dyn_feature
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/dyn_feature/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/dyn_feature/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4085,8 +4085,8 @@ MODULE                        : project.dyn_feature
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/dyn_feature/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/dyn_feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:dyn_feature-MAIN
@@ -4361,8 +4361,8 @@ MODULE                        : project.lib
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4611,8 +4611,8 @@ MODULE                        : project.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -4859,7 +4859,7 @@ MODULE                        : project.lib
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/lib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/lib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -4873,8 +4873,8 @@ MODULE                        : project.lib
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -5356,8 +5356,8 @@ MODULE                        : project.nested1
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -5374,8 +5374,8 @@ MODULE                        : project.nested1
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested1-MAIN
@@ -5387,7 +5387,7 @@ MODULE                        : project.nested1
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/nested1/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/nested1/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -5401,8 +5401,8 @@ MODULE                        : project.nested1
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested1/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested1-MAIN
@@ -5653,8 +5653,8 @@ MODULE                        : project.nested1.deep
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -5671,8 +5671,8 @@ MODULE                        : project.nested1.deep
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested1:deep-MAIN
@@ -5684,7 +5684,7 @@ MODULE                        : project.nested1.deep
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/nested1/deep/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/nested1/deep/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -5698,8 +5698,8 @@ MODULE                        : project.nested1.deep
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested1/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested1/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested1:deep-MAIN
@@ -6053,8 +6053,8 @@ MODULE                        : project.nested2
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateBasicDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebug/out [-]
-                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebug/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_r_class_jar/basicDebug/generateBasicDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebug/compileBasicDebugJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : basicDebug
                     Manifest                      : <ROOT>/nested2/src/basicDebug/AndroidManifest.xml [-]
@@ -6083,8 +6083,8 @@ MODULE                        : project.nested2
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateBasicDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugAndroidTest/processBasicDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugAndroidTest/compileBasicDebugAndroidTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : androidTestBasicDebug
                     Manifest                      : <ROOT>/nested2/src/androidTestBasicDebug/AndroidManifest.xml [-]
@@ -6108,7 +6108,7 @@ MODULE                        : project.nested2
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleBasicDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/nested2/build/intermediates/apk_ide_redirect_file/basicDebugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/nested2/build/intermediates/apk_ide_redirect_file/basicDebugAndroidTest/createBasicDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/build/generated/res/resValues/androidTest/basic/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -6122,8 +6122,8 @@ MODULE                        : project.nested2
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/build/generated/ap_generated_sources/basicDebugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicDebugUnitTest/generateBasicDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/build/intermediates/javac/basicDebugUnitTest/compileBasicDebugUnitTestJavaWithJavac/classes [-]
                 VariantSourceProvider
                     Name                          : testBasicDebug
                     Manifest                      : <ROOT>/nested2/src/testBasicDebug/AndroidManifest.xml [-]
@@ -6379,8 +6379,8 @@ MODULE                        : project.nested2.deep
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -6397,8 +6397,8 @@ MODULE                        : project.nested2.deep
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested2:deep-MAIN
@@ -6410,7 +6410,7 @@ MODULE                        : project.nested2.deep
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/nested2/deep/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/deep/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -6424,8 +6424,8 @@ MODULE                        : project.nested2.deep
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/deep/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/deep/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested2:deep-MAIN
@@ -6682,8 +6682,8 @@ MODULE                        : project.nested2.trans.deep2
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debug/out [-]
-                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -6700,8 +6700,8 @@ MODULE                        : project.nested2.trans.deep2
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested2:trans:deep2-MAIN
@@ -6713,7 +6713,7 @@ MODULE                        : project.nested2.trans.deep2
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
-                    AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                    AssembleTaskOutputListingFile : <ROOT>/nested2/trans/deep2/build/intermediates/apk_ide_redirect_file/debugAndroidTest/createDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>/nested2/trans/deep2/build/generated/res/resValues/androidTest/debug [-]
                 DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
@@ -6727,8 +6727,8 @@ MODULE                        : project.nested2.trans.deep2
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : createMockableJar
                 GeneratedSourceFolders        : <ROOT>/nested2/trans/deep2/build/generated/ap_generated_sources/debugUnitTest/out [-]
-                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
-                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/classes [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/generateDebugUnitTestStubRFile/R.jar [-]
+                ClassesFolder                 : <ROOT>/nested2/trans/deep2/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested2:trans:deep2-MAIN

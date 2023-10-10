@@ -125,8 +125,8 @@ class PlatformIntegrationTest {
 
     simpleApplication.open { project ->
       val compilerOutputs = listOf(
-        root.resolve("app/build/intermediates/javac/debug"),
-        root.resolve("app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar"),
+        root.resolve("app/build/intermediates/javac/debug/compileDebugJavaWithJavac"),
+        root.resolve("app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar"),
       )
       compilerOutputs.forEach {
         assertThat(it.exists()).isFalse()  // Verify test assumptions.

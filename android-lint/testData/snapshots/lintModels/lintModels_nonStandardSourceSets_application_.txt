@@ -97,8 +97,8 @@ MODULE                        : application.app
                     com.android.support:versionedparcelable : null => com.android.support:versionedparcelable:28.0.0@aar
                     com.android.support:viewpager : null => com.android.support:viewpager:28.0.0@aar
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
-            - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debug/classes [-]
+            - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
         TestArtifact
             Dependencies
                 CompileDependencies
@@ -177,8 +177,8 @@ MODULE                        : application.app
                     com.google.guava:guava        : null => com.google.guava:guava:19.0
                     junit:junit                   : null => junit:junit:4.12
                     org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
-            - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
-            - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debugUnitTest/classes [-]
+            - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar [-]
+            - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
         ApplicationId                 : google.simpleapplication.test
         - GeneratedResourceFolders    : <ROOT>/application/app/build/generated/res/resValues/androidTest/debug [-]
         - GeneratedSourceFolders      : <ROOT>/application/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -248,8 +248,8 @@ MODULE                        : application.app
                 org.hamcrest:hamcrest-core    : null => org.hamcrest:hamcrest-core:1.3
                 org.hamcrest:hamcrest-integration       : null => org.hamcrest:hamcrest-integration:1.3
                 org.hamcrest:hamcrest-library : null => org.hamcrest:hamcrest-library:1.3
-        - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
-        - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debugAndroidTest/classes [-]
+        - ClassOutputs                : <ROOT>/application/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar [-]
+        - ClassOutputs                : <ROOT>/application/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
         MinSdkVersion                 : API 19
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders

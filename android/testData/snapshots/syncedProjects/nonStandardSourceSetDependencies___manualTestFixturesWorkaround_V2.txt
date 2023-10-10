@@ -142,7 +142,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -281,7 +281,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/NonStandardSourceSetDependencies.app.main.iml [-]
@@ -363,9 +363,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.javaLibrary.main
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -411,7 +411,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1162,7 +1162,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1335,7 +1335,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/feature-a/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-a/NonStandardSourceSetDependencies.feature-a.main.iml [-]
@@ -1439,9 +1439,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         Classes
-            -                             : file://<PROJECT>/feature-a/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/feature-a/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/feature-a/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/feature-a/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/feature-a/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/feature-a/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1479,7 +1479,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-a
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-a/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1718,7 +1718,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2017,7 +2017,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/feature-b/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature-b/NonStandardSourceSetDependencies.feature-b.main.iml [-]
@@ -2159,7 +2159,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/feature-b
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature-b/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2752,7 +2752,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2845,7 +2845,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmp-java/sample-test/NonStandardSourceSetDependencies.kmp-java.sample-test.main.iml [-]
@@ -2899,8 +2899,8 @@ PROJECT                       : NonStandardSourceSetDependencies
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         Classes
-            -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/classes
-            -                             : jar://<PROJECT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
+            -                             : jar://<PROJECT>/kmp-java/sample-test/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/kmp-java/sample-test/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -2938,7 +2938,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/kmp-java/sample-test
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmp-java/sample-test/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3485,7 +3485,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -3636,7 +3636,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/lib/NonStandardSourceSetDependencies.lib.main.iml [-]
@@ -3713,9 +3713,9 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
-            -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/lib/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -3753,7 +3753,7 @@ PROJECT                       : NonStandardSourceSetDependencies
         LinkedProjectPath             : <PROJECT>/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/lib/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES

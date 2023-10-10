@@ -134,7 +134,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/ads-sdk-implementation
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -259,7 +259,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/ads-sdk-implementation
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/ads-sdk-implementation/project.ads-sdk-implementation.main.iml [-]
@@ -339,9 +339,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
-            -                             : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/ads-sdk-implementation/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/ads-sdk-implementation/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar!/
             -                             : file://<PROJECT>/ads-sdk-implementation/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -379,7 +379,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/ads-sdk-implementation
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/ads-sdk-implementation/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -657,7 +657,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app-with-dynamic-feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -732,7 +732,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -823,9 +823,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app-with-dynamic-feature.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -871,7 +871,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app-with-dynamic-feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app-with-dynamic-feature/project.app-with-dynamic-feature.main.iml [-]
@@ -944,7 +944,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
@@ -979,9 +979,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
-            -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/app-with-dynamic-feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app-with-dynamic-feature/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1027,7 +1027,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app-with-dynamic-feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app-with-dynamic-feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1097,7 +1097,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -1211,7 +1211,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1286,7 +1286,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -1375,9 +1375,9 @@ PROJECT                       : project
         ORDER_ENTRY                   : project.app.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1423,7 +1423,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/project.app.main.iml [-]
@@ -1496,7 +1496,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
@@ -1531,9 +1531,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1579,7 +1579,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1649,7 +1649,7 @@ PROJECT                       : project
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified [=]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar [=]
             Scope                         : Test
@@ -1838,7 +1838,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -1961,7 +1961,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/feature/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/feature/project.feature.main.iml [-]
@@ -2038,9 +2038,9 @@ PROJECT                       : project
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : project.app-with-dynamic-feature.main
         Classes
-            -                             : file://<PROJECT>/feature/build/intermediates/javac/debug/classes
+            -                             : file://<PROJECT>/feature/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
             -                             : file://<PROJECT>/feature/build/tmp/kotlin-classes/debug
-            -                             : jar://<PROJECT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : jar://<PROJECT>/feature/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/feature/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -2082,7 +2082,7 @@ PROJECT                       : project
         LinkedProjectPath             : <PROJECT>/feature
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/feature/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/feature/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -2198,8 +2198,8 @@ PROJECT                       : project
         ModuleName                    : project.app-with-dynamic-feature.main
         Module                        : project.app-with-dynamic-feature.main
     LIBRARY_TABLE
-        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified
-            *CLASSES                      : jar://<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar!/ [-]
+        LIBRARY                       : Gradle: __local_asars__:<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar:unspecified
+            *CLASSES                      : jar://<PROJECT>/ads-sdk/build/intermediates/stub_jar/single/privacySandboxClassesJarStubs/sdk-interface-descriptors.jar!/ [-]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/jars/classes.jar!/

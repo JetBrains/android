@@ -493,110 +493,110 @@ VariantBuildInformation
         VariantName                   : basicBarDebug
         BuildTasksAndOutputInformation
             AssembleTaskName              : assembleBasicBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/createBasicBarDebugApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundleBasicBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForBasicBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : basicOtherBarDebug
         BuildTasksAndOutputInformation
             AssembleTaskName              : assembleBasicOtherBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundleBasicOtherBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : paidBarDebug
         BuildTasksAndOutputInformation
             AssembleTaskName              : assemblePaidBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebug/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebug/createPaidBarDebugApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundlePaidBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForPaidBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : paidOtherBarDebug
         BuildTasksAndOutputInformation
             AssembleTaskName              : assemblePaidOtherBarDebug
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundlePaidOtherBarDebug
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : basicBarRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assembleBasicBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarRelease/createBasicBarReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundleBasicBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForBasicBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : basicOtherBarRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assembleBasicOtherBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundleBasicOtherBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : paidBarRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assemblePaidBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarRelease/createPaidBarReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundlePaidBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForPaidBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : paidOtherBarRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assemblePaidOtherBarRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundlePaidOtherBarRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : basicBarSpecialRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assembleBasicBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundleBasicBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : basicOtherBarSpecialRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assembleBasicOtherBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundleBasicOtherBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : paidBarSpecialRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assemblePaidBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundlePaidBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
     VariantBuildInformation
         VariantName                   : paidOtherBarSpecialRelease
         BuildTasksAndOutputInformation
             AssembleTaskName              : assemblePaidOtherBarSpecialRelease
-            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+            AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
             BundleTaskName                : bundlePaidOtherBarSpecialRelease
-            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+            BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
             ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
-            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+            ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
 LIBRARY_TABLE
     - library                     : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]
@@ -1220,37 +1220,37 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :lib
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested1@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested1/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested1
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested1:deep@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested1/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested1:deep
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested2@basicDebug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2
         sourceSet                     : MAIN
         variant                       : basicDebug
     - library                     : <ROOT>::nested2:deep@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested2/deep/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2:deep
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::nested2:trans:deep2@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        lintJar                       : <ROOT>/nested2/trans/deep2/build/intermediates/lint_publish_jar/global/prepareLintJarForPublish/lint.jar [-]
         projectPath                   : :nested2:trans:deep2
         sourceSet                     : MAIN
         variant                       : debug
@@ -1283,8 +1283,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebug/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebug/compileBasicBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : basicBarDebug
                 Manifest                      : <ROOT>/app/src/basicBarDebug/AndroidManifest.xml [-]
@@ -1608,11 +1608,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebug/createBasicBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarDebug/createBasicBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
@@ -1622,8 +1622,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugAndroidTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebugAndroidTest/processBasicBarDebugAndroidTestResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugAndroidTest/compileBasicBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : androidTestBasicBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestBasicBarDebug/AndroidManifest.xml [-]
@@ -1849,7 +1849,7 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarDebugAndroidTest/createBasicBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -1863,8 +1863,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarDebugUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarDebug/processBasicBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarDebugUnitTest/compileBasicBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testBasicBarDebug
                 Manifest                      : <ROOT>/app/src/testBasicBarDebug/AndroidManifest.xml [-]
@@ -2220,8 +2220,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebug/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/processBasicOtherBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebug/compileBasicOtherBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : basicOtherBarDebug
                 Manifest                      : <ROOT>/app/src/basicOtherBarDebug/AndroidManifest.xml [-]
@@ -2545,11 +2545,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicOtherBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarDebug/createBasicOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
@@ -2559,8 +2559,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generateBasicOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugAndroidTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebugAndroidTest/processBasicOtherBarDebugAndroidTestResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugAndroidTest/compileBasicOtherBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : androidTestBasicOtherBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestBasicOtherBarDebug/AndroidManifest.xml [-]
@@ -2786,7 +2786,7 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebugAndroidTest/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarDebugAndroidTest/createBasicOtherBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/basicOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -2800,8 +2800,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarDebugUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarDebug/processBasicOtherBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarDebugUnitTest/compileBasicOtherBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testBasicOtherBarDebug
                 Manifest                      : <ROOT>/app/src/testBasicOtherBarDebug/AndroidManifest.xml [-]
@@ -3158,8 +3158,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebug/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/processPaidBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebug/compilePaidBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : paidBarDebug
                 Manifest                      : <ROOT>/app/src/paidBarDebug/AndroidManifest.xml [-]
@@ -3483,11 +3483,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebug/createPaidBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarDebug/createPaidBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
@@ -3497,8 +3497,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugAndroidTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebugAndroidTest/processPaidBarDebugAndroidTestResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugAndroidTest/compilePaidBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : androidTestPaidBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestPaidBarDebug/AndroidManifest.xml [-]
@@ -3724,7 +3724,7 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebugAndroidTest/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarDebugAndroidTest/createPaidBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -3738,8 +3738,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarDebugUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarDebug/processPaidBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarDebugUnitTest/compilePaidBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testPaidBarDebug
                 Manifest                      : <ROOT>/app/src/testPaidBarDebug/AndroidManifest.xml [-]
@@ -4099,8 +4099,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarDebugSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebug/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/processPaidOtherBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebug/compilePaidOtherBarDebugJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : paidOtherBarDebug
                 Manifest                      : <ROOT>/app/src/paidOtherBarDebug/AndroidManifest.xml [-]
@@ -4424,11 +4424,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarDebug
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidOtherBarDebug
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarDebug
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarDebug/createPaidOtherBarDebugApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         AndroidTestArtifact
@@ -4438,8 +4438,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : generatePaidOtherBarDebugAndroidTestSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugAndroidTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebugAndroidTest/processPaidOtherBarDebugAndroidTestResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugAndroidTest/compilePaidOtherBarDebugAndroidTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : androidTestPaidOtherBarDebug
                 Manifest                      : <ROOT>/app/src/androidTestPaidOtherBarDebug/AndroidManifest.xml [-]
@@ -4665,7 +4665,7 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarDebugAndroidTest
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebugAndroidTest/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarDebugAndroidTest/createPaidOtherBarDebugAndroidTestApkListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/paidOtherBar/debug [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             TestOptions
@@ -4679,8 +4679,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarDebugUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarDebug/processPaidOtherBarDebugResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarDebugUnitTest/compilePaidOtherBarDebugUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testPaidOtherBarDebug
                 Manifest                      : <ROOT>/app/src/testPaidOtherBarDebug/AndroidManifest.xml [-]
@@ -5036,8 +5036,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/processBasicBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarRelease/compileBasicBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : basicBarRelease
                 Manifest                      : <ROOT>/app/src/basicBarRelease/AndroidManifest.xml [-]
@@ -5361,11 +5361,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarRelease/createBasicBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarRelease/createBasicBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -5375,8 +5375,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarRelease/processBasicBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarReleaseUnitTest/compileBasicBarReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testBasicBarRelease
                 Manifest                      : <ROOT>/app/src/testBasicBarRelease/AndroidManifest.xml [-]
@@ -5735,8 +5735,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/processBasicOtherBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarRelease/compileBasicOtherBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : basicOtherBarRelease
                 Manifest                      : <ROOT>/app/src/basicOtherBarRelease/AndroidManifest.xml [-]
@@ -6060,11 +6060,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicOtherBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarRelease/createBasicOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -6074,8 +6074,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarRelease/processBasicOtherBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarReleaseUnitTest/compileBasicOtherBarReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testBasicOtherBarRelease
                 Manifest                      : <ROOT>/app/src/testBasicOtherBarRelease/AndroidManifest.xml [-]
@@ -6435,8 +6435,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/processPaidBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarRelease/compilePaidBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : paidBarRelease
                 Manifest                      : <ROOT>/app/src/paidBarRelease/AndroidManifest.xml [-]
@@ -6760,11 +6760,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarRelease/createPaidBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarRelease/createPaidBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -6774,8 +6774,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarRelease/processPaidBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarReleaseUnitTest/compilePaidBarReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testPaidBarRelease
                 Manifest                      : <ROOT>/app/src/testPaidBarRelease/AndroidManifest.xml [-]
@@ -7138,8 +7138,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/processPaidOtherBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarRelease/compilePaidOtherBarReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : paidOtherBarRelease
                 Manifest                      : <ROOT>/app/src/paidOtherBarRelease/AndroidManifest.xml [-]
@@ -7463,11 +7463,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidOtherBarRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarRelease/createPaidOtherBarReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/release [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -7477,8 +7477,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarRelease/processPaidOtherBarReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarReleaseUnitTest/compilePaidOtherBarReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testPaidOtherBarRelease
                 Manifest                      : <ROOT>/app/src/testPaidOtherBarRelease/AndroidManifest.xml [-]
@@ -7831,8 +7831,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/processBasicBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialRelease/compileBasicBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : basicBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/basicBarSpecialRelease/AndroidManifest.xml [-]
@@ -8155,11 +8155,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicBarSpecialRelease/createBasicBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -8169,8 +8169,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicBarSpecialReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicBarSpecialRelease/processBasicBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicBarSpecialReleaseUnitTest/compileBasicBarSpecialReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testBasicBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testBasicBarSpecialRelease/AndroidManifest.xml [-]
@@ -8526,8 +8526,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generateBasicOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/processBasicOtherBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialRelease/compileBasicOtherBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : basicOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/basicOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -8850,11 +8850,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assembleBasicOtherBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundleBasicOtherBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForBasicOtherBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/basicOtherBarSpecialRelease/createBasicOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/basicOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -8864,8 +8864,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/basicOtherBarSpecialReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/basicOtherBarSpecialRelease/processBasicOtherBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/basicOtherBarSpecialReleaseUnitTest/compileBasicOtherBarSpecialReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testBasicOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testBasicOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -9222,8 +9222,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/processPaidBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialRelease/compilePaidBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : paidBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/paidBarSpecialRelease/AndroidManifest.xml [-]
@@ -9546,11 +9546,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidBarSpecialRelease/createPaidBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -9560,8 +9560,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidBarSpecialReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidBarSpecialRelease/processPaidBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidBarSpecialReleaseUnitTest/compilePaidBarSpecialReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testPaidBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testPaidBarSpecialRelease/AndroidManifest.xml [-]
@@ -9921,8 +9921,8 @@ IdeVariants
             IsTestArtifact                : false
             IdeSetupTaskNames             : generatePaidOtherBarSpecialReleaseSources
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialRelease/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/processPaidOtherBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialRelease/compilePaidOtherBarSpecialReleaseJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : paidOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/paidOtherBarSpecialRelease/AndroidManifest.xml [-]
@@ -10245,11 +10245,11 @@ IdeVariants
             CodeShrinker                  : null
             BuildTasksAndOutputInformation
                 AssembleTaskName              : assemblePaidOtherBarSpecialRelease
-                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApkListingFileRedirect/redirect.txt [-]
                 BundleTaskName                : bundlePaidOtherBarSpecialRelease
-                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseBundleListingFileRedirect/redirect.txt [-]
                 ApkFromBundleTaskName         : extractApksForPaidOtherBarSpecialRelease
-                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/redirect.txt [-]
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/paidOtherBarSpecialRelease/createPaidOtherBarSpecialReleaseApksFromBundleListingFileRedirect/redirect.txt [-]
             GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/paidOtherBar/specialRelease [-]
             DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         UnitTestArtifact
@@ -10259,8 +10259,8 @@ IdeVariants
             IsTestArtifact                : true
             IdeSetupTaskNames             : createMockableJar
             GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/paidOtherBarSpecialReleaseUnitTest/out [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/R.jar [-]
-            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialReleaseUnitTest/classes [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/paidOtherBarSpecialRelease/processPaidOtherBarSpecialReleaseResources/R.jar [-]
+            ClassesFolder                 : <ROOT>/app/build/intermediates/javac/paidOtherBarSpecialReleaseUnitTest/compilePaidOtherBarSpecialReleaseUnitTestJavaWithJavac/classes [-]
             VariantSourceProvider
                 Name                          : testPaidOtherBarSpecialRelease
                 Manifest                      : <ROOT>/app/src/testPaidOtherBarSpecialRelease/AndroidManifest.xml [-]
