@@ -71,10 +71,6 @@ open class StudioRenderService {
   }
 }
 
-fun RenderService.createHtmlLogger(project: Project?): RenderLogger {
-  return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory, ::StudioHtmlLinkManager)
-}
-
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
@@ -86,12 +82,6 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration)
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderService.RenderTaskBuilder =
   taskBuilder(AndroidFacetRenderModelModule(facet), configuration, logger)
-
-/**
- * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask] with HTML rendering of issues and fix actions.
- */
-fun RenderService.taskBuilderWithHtmlLogger(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createHtmlLogger(facet.module.project))
 
 fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
   val context = StudioLayoutlibContext(module.project)

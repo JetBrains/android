@@ -25,6 +25,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface RenderErrorContributor {
+  // These priorities can be used to promote certain issues to the top of the list
+  int HIGH_PRIORITY = 100;
+  @SuppressWarnings("unused") int MEDIUM_PRIORITY = 10;
+  @SuppressWarnings("unused") int LOW_PRIORITY = 10;
+
   Collection<RenderErrorModel.Issue> reportIssues();
 
   interface Provider {

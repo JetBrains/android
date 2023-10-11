@@ -256,6 +256,10 @@
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection"/>
   </extensions>
 
+  <extensions defaultExtensionNs="com.android.rendering">
+    <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributorImpl$Provider"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
     <infoCollector implementation="com.android.tools.idea.common.surface.DesignSurfaceTroubleInfoCollector" />
     <infoCollector implementation="com.android.tools.idea.common.error.IssuePanelServiceTroubleInfoCollector" />

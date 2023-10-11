@@ -42,7 +42,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.rendering.StudioRenderServiceKt;
+import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
@@ -1207,7 +1207,7 @@ public class Scene implements SelectionListener, Disposable {
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
 
-    return StudioRenderServiceKt.taskBuilderWithHtmlLogger(renderService, facet, model.getConfiguration())
+    return RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, facet, model.getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build()
       .thenCompose(task -> {

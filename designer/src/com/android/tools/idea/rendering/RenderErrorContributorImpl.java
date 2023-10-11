@@ -126,11 +126,6 @@ import org.jetbrains.annotations.Nullable;
 public class RenderErrorContributorImpl implements RenderErrorContributor {
   private static final String RENDER_SESSION_IMPL_FQCN = "com.android.layoutlib.bridge.impl.RenderSessionImpl";
 
-  // These priorities can be used to promote certain issues to the top of the list
-  protected static final int HIGH_PRIORITY = 100;
-  @SuppressWarnings("unused") protected static final int MEDIUM_PRIORITY = 10;
-  @SuppressWarnings("unused") protected static final int LOW_PRIORITY = 10;
-
   protected static final Logger LOG = Logger.getInstance(RenderErrorContributorImpl.class);
   private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
