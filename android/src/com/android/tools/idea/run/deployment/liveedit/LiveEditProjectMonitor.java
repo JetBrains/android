@@ -208,7 +208,7 @@ public class LiveEditProjectMonitor implements Disposable {
     this.adbEventsListener = liveEditService.getAdbEventsListener();
 
     Precompiler precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
-    this.precompileManager = new PrecompileManager(precompiler, LOGGER);
+    this.precompileManager = new PrecompileManager(project, precompiler, LOGGER);
 
     gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
@@ -384,30 +384,17 @@ public class LiveEditProjectMonitor implements Disposable {
 
   // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
   public void beforeFileChanged(KtFile ktFile) {
-    updateEditableStatus(LiveEditStatus.CopyingPsi.INSTANCE);
-    mainThreadExecutor.execute(() -> {
-      if (!shouldLiveEdit()) {
-        return;
-      }
-
-      Document document = FileDocumentManager.getInstance().getDocument(ktFile.getVirtualFile());
-      if (document == null) {
-        return;
-      }
-
-      precompileManager.copyForPrecompile(project, ktFile, document.getImmutableCharSequence());
-      updateEditableStatus(LiveEditStatus.UpToDate.INSTANCE);
-    });
+    if (shouldLiveEdit()) {
+      precompileManager.copyForPrecompile(ktFile);
+    }
   }
 
   // Called when a Kotlin file is modified. Only called on the class-differ code path.
   public void fileChanged(KtFile ktFile) {
-    mainThreadExecutor.execute(() -> {
-      if (shouldLiveEdit()) {
-        updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
-        precompileManager.getPrecompileTask(ktFile, new CompileCallbacks()).submit(mainThreadExecutor);
-      }
-    });
+    if (shouldLiveEdit()) {
+      updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
+      precompileManager.getPrecompileTask(ktFile, new CompileCallbacks()).submit(mainThreadExecutor);
+    }
   }
 
   private boolean shouldLiveEdit() {
