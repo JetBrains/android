@@ -82,7 +82,7 @@ val ISSUE1 =
       "Issue1",
       "com.google.crash.Crash",
       FailureType.FATAL,
-      "Sample Event",
+      "projects/814265703514/apps/1:814265703514:android:1199bc7542be2276/events/6525E9C102DC000122D0184211881FA3_1867297287814199602",
       "1.2.3",
       "2.0.0",
       8L,
@@ -95,6 +95,8 @@ val ISSUE1 =
       emptyList()
     ),
     Event(
+      name =
+        "projects/814265703514/apps/1:814265703514:android:1199bc7542be2276/events/6525E9C102DC000122D0184211881FA3_1867297287814199602",
       eventData =
         EventData(
           device = Device(manufacturer = "Google", model = "Pixel 4a"),
@@ -191,7 +193,7 @@ val ISSUE2 =
       "Issue2",
       "com.google.crash.Crash",
       FailureType.NON_FATAL,
-      "Sample Event 2",
+      "projects/814265703514/apps/1:814265703514:android:1199bc7542be2276/events/652731D4013400016ABAED130A6E5D76_1867295448974866474",
       "1.0.0",
       "2.0.0",
       12L,
@@ -204,6 +206,8 @@ val ISSUE2 =
       emptyList()
     ),
     Event(
+      name =
+        "projects/814265703514/apps/1:814265703514:android:1199bc7542be2276/events/652731D4013400016ABAED130A6E5D76_1867295448974866474",
       eventData =
         EventData(
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),

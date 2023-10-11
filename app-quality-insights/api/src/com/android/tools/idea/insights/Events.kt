@@ -193,6 +193,9 @@ data class EventData(
 
 /** Representation of an App crash or logged error, having been processed by Crashlytics. */
 data class Event(
+  // ID of the event
+  val name: String = "",
+
   // Event metadata
   val eventData: EventData = EventData(),
 

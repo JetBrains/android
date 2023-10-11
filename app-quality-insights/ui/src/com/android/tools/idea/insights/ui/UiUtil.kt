@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.sdklib.computeFullReleaseName
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FailureType
@@ -154,10 +153,7 @@ fun prettyRangeString(lower: Any, upper: Any = lower) =
     "$lower → $upper"
   }
 
-fun prettyApiLevelRangeString(lower: Int, upper: Int = lower) =
-  prettyRangeString(
-    computeFullReleaseName(lower, null, includeApiLevel = true),
-    computeFullReleaseName(upper, null, includeApiLevel = true)
-  )
-
 const val DETAIL_PANEL_HORIZONTAL_SPACING = 10
+
+fun String.shortenEventId() =
+  substringAfterLast('/').let { it.replaceRange(6..it.length - 7, "...") }

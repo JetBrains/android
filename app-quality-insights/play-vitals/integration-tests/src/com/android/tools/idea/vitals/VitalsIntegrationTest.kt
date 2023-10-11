@@ -97,7 +97,7 @@ class VitalsIntegrationTest {
         }
       )
 
-      studio.waitForComponentWithExactText("Android 2.2 (API 8) → Android 3.2 (API 13)")
+      studio.waitForComponentWithExactText("Android 3.1 (API 12)")
 
       studio.waitForComponentWithExactText("Most affected Android version: $MOST_AFFECTED_OS")
     }

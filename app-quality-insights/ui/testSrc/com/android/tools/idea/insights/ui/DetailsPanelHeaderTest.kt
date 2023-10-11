@@ -21,14 +21,12 @@ import com.android.tools.idea.insights.ISSUE_VARIANT
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.editor.Editor
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import kotlin.test.assertFailsWith
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 
 class DetailsPanelHeaderTest {
 
@@ -36,36 +34,32 @@ class DetailsPanelHeaderTest {
 
   @Test
   fun `header updates with issue`() {
-    val detailsPanelHeader =
-      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
 
     detailsPanelHeader.size = Dimension(500, 200)
-    detailsPanelHeader.toolbar.component.size = Dimension(50, 50)
 
     detailsPanelHeader.updateWithIssue(ISSUE1)
 
     assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
-    assertThat(detailsPanelHeader.toolbar.component.isVisible).isTrue()
+    assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
+    assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
 
     detailsPanelHeader.clear()
 
-    assertThat(detailsPanelHeader.toolbar.component.isVisible).isFalse()
     assertThat(detailsPanelHeader.titleLabel.text).isNull()
     assertThat(detailsPanelHeader.titleLabel.icon).isNull()
   }
 
   @Test
   fun `header is shown with bottom border`() {
-    val detailsPanelHeader =
-      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
 
     assertThat(detailsPanelHeader.border.getBorderInsets(detailsPanelHeader).bottom).isEqualTo(1)
   }
 
   @Test
   fun `header passes issue updates to combobox state flow`() {
-    val detailsPanelHeader =
-      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
 
     detailsPanelHeader.updateWithIssue(ISSUE1)
@@ -93,11 +87,9 @@ class DetailsPanelHeaderTest {
   @Ignore("b/303112785")
   @Test
   fun `header width affects class name and method name in title label`() {
-    val detailsPanelHeader =
-      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
 
     detailsPanelHeader.size = Dimension(300, 200)
-    detailsPanelHeader.toolbar.component.size = Dimension(50, 50)
     assertThat(detailsPanelHeader.generateTitleLabelText("DetailsPanelTest", "testMethod"))
       .isEqualTo("<html><B>...ethod</B></html>")
 
@@ -108,8 +100,7 @@ class DetailsPanelHeaderTest {
 
   @Test
   fun `header should not show variants if variants not supported`() {
-    val detailsPanelHeader =
-      DetailsPanelHeader(mock(Editor::class.java), FakeAppInsightsProjectLevelController(), false)
+    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), false)
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
 
     detailsPanelHeader.updateWithIssue(ISSUE1)

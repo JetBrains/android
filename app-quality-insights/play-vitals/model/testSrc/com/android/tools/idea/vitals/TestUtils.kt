@@ -58,6 +58,7 @@ val TEST_ISSUE1 =
       emptyList()
     ),
     Event(
+      name = "apps/com.labpixies.flood/MmRlYzYzZGRlODkyMTM4N2RkZTAxNTI0YWZlYzE4Mjc=",
       eventData =
         EventData(
           device = MOST_AFFECTED_DEVICE,
@@ -135,6 +136,7 @@ val TEST_ISSUE2 =
       emptyList()
     ),
     Event(
+      name = "apps/com.labpixies.flood/MzU4ZDdkMDc3YTljMzRlNWQ4MGY4MjQxYTFlMzdhODM=",
       eventData =
         EventData(
           device = Device(manufacturer = "Samsung", model = "Galaxy 9000"),

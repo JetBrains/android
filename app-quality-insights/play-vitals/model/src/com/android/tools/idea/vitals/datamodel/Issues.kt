@@ -48,6 +48,7 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
 
 internal fun ErrorReport.toSampleEvent(): Event {
   return Event(
+    name = name,
     eventData =
       EventData(
         device = Device.fromProto(deviceModel),
