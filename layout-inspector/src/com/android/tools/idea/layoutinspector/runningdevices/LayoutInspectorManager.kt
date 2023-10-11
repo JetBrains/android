@@ -396,7 +396,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
 
         val splitPanel =
-          OnePixelSplitter(true, SPLITTER_KEY, 0.5f).apply {
+          OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
             firstComponent = centerPanel
             secondComponent = toolsPanel
             setBlindZone { JBUI.insets(0, 1) }
