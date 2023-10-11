@@ -225,7 +225,7 @@ iml_studio_test(
     timeout = "long",
     data = apply_changes_data,
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # b/290891891
+    tags = [],
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
