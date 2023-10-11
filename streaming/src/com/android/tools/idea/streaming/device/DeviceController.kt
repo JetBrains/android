@@ -39,6 +39,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeout
 import java.io.EOFException
 import java.io.IOException
+import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicInteger
@@ -241,14 +242,33 @@ internal class DeviceController(
    * ```
    */
   private fun parseDeviceStates(text: String): List<FoldingState> {
-    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(, app_accessible=(?<accessible>true|false))?(, .*)?}")
+    val regex = Regex("DeviceState\\{identifier=(?<id>\\d+), name='(?<name>\\w+)'(?<flags>(, \\w+=\\w+)+)?}")
     return regex.findAll(text).map {
       val groups = it.groups
       val id = groups["id"]?.value?.toInt() ?: throw IllegalArgumentException()
       val name = groups["name"]?.value ?: throw IllegalArgumentException()
-      val accessible = groups["accessible"]?.value != "false"
-      FoldingState(id, deviceStateNameToFoldingStateName(name), accessible)
+      val flagsSection = groups["flags"]?.value ?: ""
+      val flags = parseDeviceStateFlags(flagsSection)
+      FoldingState(id, deviceStateNameToFoldingStateName(name), flags)
     }.toList()
+  }
+
+  private fun parseDeviceStateFlags(flagsText: String): Set<FoldingState.Flag> {
+    val flags = EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE)
+    for (keyValue in flagsText.split(", ")) {
+      val parts = keyValue.split('=')
+      if (parts.size == 2) {
+        for (flag in FoldingState.Flag.values()) {
+          if (parts[0].equals(flag.name, ignoreCase = true)) {
+            when (parts[1]) {
+              "true" -> flags.add(flag)
+              "false" -> flags.remove(flag)
+            }
+          }
+        }
+      }
+    }
+    return flags
   }
 
   private fun deviceStateNameToFoldingStateName(name: String): String {
@@ -336,8 +356,12 @@ internal class DeviceController(
   }
 }
 
-internal data class FoldingState(val id: Int, val name: String, val appAccessible: Boolean) {
+internal data class FoldingState(val id: Int, val name: String, val flags: Set<Flag>) {
   val icon: Icon? = FOLDING_STATE_ICONS[name]
+
+  enum class Flag {
+    APP_ACCESSIBLE, CANCEL_WHEN_REQUESTER_NOT_ON_TOP
+  }
 }
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096

@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -71,6 +72,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_P
 import java.nio.file.Path
+import java.util.EnumSet
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JViewport
 
@@ -253,17 +255,19 @@ class DeviceToolWindowPanelTest {
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
     assertThat(foldingActions).asList().containsExactly(
-      DeviceFoldingAction(FoldingState(0, "Closed", true)),
-      DeviceFoldingAction(FoldingState(1, "Tent", true)),
-      DeviceFoldingAction(FoldingState(2, "Half-Open", true)),
-      DeviceFoldingAction(FoldingState(3, "Open", true)),
-      DeviceFoldingAction(FoldingState(4, "Rear Display", true)),
-      DeviceFoldingAction(FoldingState(5, "Dual Displays", true)),
-      DeviceFoldingAction(FoldingState(6, "Flipped", true)))
+      DeviceFoldingAction(FoldingState(0, "Closed", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
+      DeviceFoldingAction(FoldingState(1, "Tent", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
+      DeviceFoldingAction(FoldingState(2, "Half-Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
+      DeviceFoldingAction(FoldingState(3, "Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
+      DeviceFoldingAction(FoldingState(4, "Rear Display", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
+      DeviceFoldingAction(FoldingState(5, "Dual Displays",
+                                       EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
+      DeviceFoldingAction(FoldingState(6, "Flipped", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))))
     for (action in foldingActions) {
       action.update(event)
-      assertThat(event.presentation.isEnabled).isTrue()
-      assertThat(event.presentation.isVisible).isTrue()
+      assertWithMessage("Unexpected enablement state of the ${action.templateText} action")
+          .that(event.presentation.isEnabled).isEqualTo(action.templateText != "Dual Displays")
+      assertWithMessage("Unexpected visibility of the ${action.templateText} action").that(event.presentation.isVisible).isTrue()
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
 
