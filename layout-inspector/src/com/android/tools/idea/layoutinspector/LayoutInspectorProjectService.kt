@@ -33,8 +33,10 @@ import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.TransportFlagController
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
+import com.android.tools.idea.transport.TransportDeviceManager
 import com.android.tools.idea.transport.manager.TransportStreamManagerService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
@@ -156,6 +158,8 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         layoutInspectorCoroutineScope
       )
 
+    registerTransportFlagController(disposable)
+
     return LayoutInspector(
       coroutineScope = layoutInspectorCoroutineScope,
       processModel = processesModel,
@@ -167,6 +171,11 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
       notificationModel = notificationModel,
       treeSettings = treeSettings
     )
+  }
+
+  private fun registerTransportFlagController(parentDisposable: Disposable) {
+    val connection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
+    connection.subscribe(TransportDeviceManager.TOPIC, TransportFlagController())
   }
 
   private fun createScheduledExecutor(disposable: Disposable): ScheduledExecutorService {

@@ -27,13 +27,11 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.TransportFlagController
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
-import com.android.tools.idea.transport.TransportDeviceManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.ide.DataManager
@@ -161,8 +159,6 @@ private constructor(
       newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
       renderModel.refresh()
     }
-
-    registerTransportFlagController()
   }
 
   val currentClient
@@ -284,13 +280,6 @@ private constructor(
         Messages.showErrorDialog(inspectorModel.project, errorMessage, "Inspector Error")
       }
     }
-  }
-
-  private fun registerTransportFlagController() {
-    val connection = ApplicationManager.getApplication().messageBus.connect()
-
-    // TODO(b/303051313) disconnect on dispose.
-    connection.subscribe(TransportDeviceManager.TOPIC, TransportFlagController())
   }
 
   companion object {
