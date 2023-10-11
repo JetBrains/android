@@ -1457,11 +1457,18 @@ class ComposePreviewRepresentation(
             composeWorkBench.refreshExistingPreviewElements(
               refreshProgressIndicator,
               previewElementModelAdapter::modelToElement,
-              this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement
-            ) { sceneManager ->
-              refreshRequest.type != RefreshType.QUALITY ||
-                qualityManager.needsQualityChange(sceneManager)
-            }
+              this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement,
+              refreshFilter = { sceneManager ->
+                refreshRequest.type != RefreshType.QUALITY ||
+                  qualityManager.needsQualityChange(sceneManager)
+              },
+              refreshOrder = { sceneManager ->
+                // decreasing quality before increasing
+                qualityManager
+                  .getTargetQuality(sceneManager)
+                  .compareTo(sceneManager.lastRenderQuality)
+              }
+            )
           } else {
             refreshProgressIndicator.text =
               message("refresh.progress.indicator.refreshing.all.previews")

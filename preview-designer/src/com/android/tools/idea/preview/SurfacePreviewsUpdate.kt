@@ -119,15 +119,14 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
   modelToPreview: NlModel.() -> T?,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,
-  refreshFilter: (LayoutlibSceneManager) -> Boolean = { true }
+  refreshFilter: (LayoutlibSceneManager) -> Boolean = { true },
+  refreshOrder: (LayoutlibSceneManager) -> Int = { 0 }
 ) {
   val previewElementsToSceneManagers =
-    sceneManagers
-      .filter { refreshFilter(it) }
-      .mapNotNull {
-        val previewElement = modelToPreview(it.model) ?: return@mapNotNull null
-        previewElement to it
-      }
+    sceneManagers.filter(refreshFilter).sortedBy(refreshOrder).mapNotNull {
+      val previewElement = modelToPreview(it.model) ?: return@mapNotNull null
+      previewElement to it
+    }
   previewElementsToSceneManagers.forEachIndexed { index, pair ->
     if (progressIndicator.isCanceled)
       return@refreshExistingPreviewElements // Return early if user cancels the refresh.
