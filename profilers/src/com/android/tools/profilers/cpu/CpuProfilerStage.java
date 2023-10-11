@@ -36,6 +36,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace.TraceInitiationType;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.LogUtils;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
@@ -47,10 +48,12 @@ import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
+import com.android.tools.profilers.cpu.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.registry.Registry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -417,6 +420,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   }
 
   private void goToCaptureStage(long traceId) {
+    // Trace ID handled by the Profiler
     if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
       CpuCaptureStage stage = CpuCaptureStage.create(
         getStudioProfilers(),
@@ -427,6 +431,16 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
         return;
       }
     }
+
+    // Trace ID handled by the PerfettoTraceWebLoader
+    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false) &&
+        PerfettoTraceWebLoader.INSTANCE.getHandledTraceIds().contains(traceId)) {
+      getStudioProfilers().getIdeServices().getMainExecutor().execute(
+        () -> getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
+      );
+      return;
+    }
+
     // Trace ID is not found or the capture stage cannot retrieve the trace.
     setCaptureState(CaptureState.IDLE);
     getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);

@@ -42,9 +42,12 @@ private const val origin = "https://ui.perfetto.dev"
  */
 object PerfettoTraceWebLoader {
   const val FEATURE_REGISTRY_KEY = "profiler.trace.open.mode.web" // determines whether the feature is enabled via Registry.is(<this key>)
+  const val TRACE_HANDLED_CAPTION = "The trace has been handed over to the Perfetto Web UI (ui.perfetto.dev)"
+  val handledTraceIds = mutableSetOf<Long>()
 
   private var server: HttpServer? = null
-  fun loadTrace(traceFile: File) {
+  fun loadTrace(traceFile: File, traceId: Long? = null) {
+    if (traceId != null) handledTraceIds.add(traceId)
     server?.stop() // TODO(297379481): close the server automatically once it fully serves one request
     server = HttpServer(traceFile).also { it.start() }
     val urlEncodedFileName = URLEncoder.encode(traceFile.name, Charsets.UTF_8)

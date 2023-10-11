@@ -236,7 +236,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
       var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
       if (traceType == TraceType.PERFETTO) {
-        PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile);
+        PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile, traceId);
         return null; // prevent Profiler UI from opening the trace
       }
     }

@@ -74,17 +74,21 @@ public class CpuProfiler implements StudioProfiler {
   }
 
   private void onImportSessionSelected() {
+    long traceId = profilers.getSession().getStartTimestamp();
     profilers.getIdeServices().runAsync(
       () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN,
-                                   profilers.getSession().getStartTimestamp()),
+                                   traceId),
       captureStage -> {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
         }
-        else if (captureStage == null && Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
+        else if (captureStage == null && Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false) &&
+                 PerfettoTraceWebLoader.INSTANCE.getHandledTraceIds().contains(traceId)) {
           // special case when [PerfettoTraceWebLoader] had intercepted [captureStage] creation and opened the trace in the browser
           // TODO(297379481): add verification that the trace was successfully loaded by [PerfettoTraceWebLoader]
-          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(new NullMonitorStage(profilers)));
+          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(
+            new NullMonitorStage(profilers, PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
+          );
         }
         else {
           profilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
