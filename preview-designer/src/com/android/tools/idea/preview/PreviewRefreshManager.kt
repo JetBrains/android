@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 enum class RefreshResult {
   SUCCESS,
@@ -188,9 +189,25 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
     }
   }
 
+  /** Add a [request] to the queue asynchronously. */
   fun requestRefresh(request: PreviewRefreshRequest) {
-    scope
-      .launch(AndroidDispatchers.workerThread) {
+    doRequestRefresh(request)
+  }
+
+  /**
+   * Add a [request] to the queue asynchronously.
+   *
+   * Returns the job executing the enqueueing of this request, which is not related with how the
+   * refresh manager will later decide to process the request itself.
+   *
+   * This is only intended to be used for synchronization purposes inside tests.
+   */
+  @TestOnly
+  fun requestRefreshForTest(request: PreviewRefreshRequest): Job = doRequestRefresh(request)
+
+  private fun doRequestRefresh(request: PreviewRefreshRequest): Job {
+    val enqueueingJob =
+      scope.launch(AndroidDispatchers.workerThread) {
         requestsLock.withLock {
           // If the running request is of the same client and has lower than
           // or equal priority to the new one, then it should be cancelled.
@@ -220,10 +237,11 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
           requestsFlow.tryEmit(Unit)
         }
       }
-      .invokeOnCompletion {
-        if (it != null) {
-          log.warn("Failure while trying to enqueue a new refresh request ($request)", it)
-        }
+    enqueueingJob.invokeOnCompletion {
+      if (it != null) {
+        log.warn("Failure while trying to enqueue a new refresh request ($request)", it)
       }
+    }
+    return enqueueingJob
   }
 }
