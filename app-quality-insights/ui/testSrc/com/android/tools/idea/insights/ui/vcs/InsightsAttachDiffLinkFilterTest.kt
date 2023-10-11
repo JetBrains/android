@@ -57,7 +57,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+    val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     // Act
@@ -86,7 +86,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+    val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
@@ -106,7 +106,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+    val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     val targetPsiFile = projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
@@ -141,7 +141,7 @@ class InsightsAttachDiffLinkFilterTest {
     val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
-    val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+    val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
     val targetPsiFile = projectRule.fixture.configureByText("MainActivity.kt", SAMPLE_KOTLIN_SOURCE)

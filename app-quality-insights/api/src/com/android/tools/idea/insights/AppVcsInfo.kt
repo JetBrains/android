@@ -27,18 +27,27 @@ const val PROJECT_ROOT_PREFIX = "\$PROJECT_DIR"
 const val ABOVE_PROJECT_ROOT_PREFIX = "\$ABOVE_PROJECT_DIR"
 
 /** Representation of the version control system used by an App. */
-data class AppVcsInfo(val repoInfo: List<RepoInfo>) {
-  companion object {
-    val NONE = AppVcsInfo(emptyList())
+sealed class AppVcsInfo {
+  data class ValidInfo(val repoInfo: List<RepoInfo>) : AppVcsInfo()
 
+  data class Error(val message: String) : AppVcsInfo()
+
+  object NONE : AppVcsInfo()
+
+  companion object {
     fun fromProto(textProto: String): AppVcsInfo {
       val proto = decode(textProto)
       return fromProto(proto)
     }
 
     private fun fromProto(proto: BuildStamp): AppVcsInfo {
-      val repositories = proto.repositoriesList.mapNotNull { RepoInfo.fromProto(it) }
-      return AppVcsInfo(repoInfo = repositories)
+      return if (proto.generateErrorReason.isNotEmpty()) {
+        Error(proto.generateErrorReason)
+      } else if (proto.repositoriesList.isNotEmpty()) {
+        ValidInfo(repoInfo = proto.repositoriesList.mapNotNull { RepoInfo.fromProto(it) })
+      } else {
+        NONE
+      }
     }
   }
 }

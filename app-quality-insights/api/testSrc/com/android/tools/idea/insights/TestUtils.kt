@@ -149,7 +149,7 @@ val ISSUE1 =
               )
             )
         ),
-      appVcsInfo = AppVcsInfo(listOf(REPO_INFO)),
+      appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO)),
       customKeys = SAMPLE_KEYS,
       logs = SAMPLE_LOGS
     )

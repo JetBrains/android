@@ -31,16 +31,23 @@ class AppVcsInfoKtTest {
     assertThat(AppVcsInfo.fromProto(textProto)).isEqualTo(AppVcsInfo.NONE)
   }
 
-  // TODO: add more for error cases
+  @Test
+  fun `decode sample text proto when debug info tagged`() {
+    val original = SAMPLE_ERROR_APP_VCS_INFO_BUILDER.build()
+    val textProto = TextFormat.printer().printToString(original)
+
+    assertThat(AppVcsInfo.fromProto(textProto))
+      .isEqualTo(AppVcsInfo.Error("No valid git project found."))
+  }
 
   @Test
-  fun `decode sample text proto`() {
-    val original = SAMPLE_APP_VCS_INFO_BUILDER.build()
+  fun `decode sample text proto when valid info tagged`() {
+    val original = SAMPLE_VALID_APP_VCS_INFO_BUILDER.build()
     val textProto = TextFormat.printer().printToString(original)
 
     assertThat(AppVcsInfo.fromProto(textProto))
       .isEqualTo(
-        AppVcsInfo(
+        AppVcsInfo.ValidInfo(
           listOf(
             RepoInfo(
               vcsKey = VCS_CATEGORY.GIT,
@@ -62,5 +69,8 @@ private val SAMPLE_REPO_BUILDER =
     revision = REVISION_74081e5f
   }
 
-private val SAMPLE_APP_VCS_INFO_BUILDER =
+private val SAMPLE_VALID_APP_VCS_INFO_BUILDER =
   BuildStamp.newBuilder().apply { addRepositories(SAMPLE_REPO_BUILDER.build()) }
+
+private val SAMPLE_ERROR_APP_VCS_INFO_BUILDER =
+  BuildStamp.newBuilder().apply { generateErrorReason = "No valid git project found." }

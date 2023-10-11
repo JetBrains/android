@@ -49,7 +49,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
   @Before
   fun setUp() {
     appVcsInfo =
-      AppVcsInfo(
+      AppVcsInfo.ValidInfo(
         listOf(
           RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "1")
         )

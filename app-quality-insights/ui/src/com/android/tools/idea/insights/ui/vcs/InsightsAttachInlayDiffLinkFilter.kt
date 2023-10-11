@@ -69,11 +69,10 @@ class InsightsAttachInlayDiffLinkFilter(
   private val project = containingConsole.project
   private val cache = ExceptionInfoCache(project, GlobalSearchScope.allScope(project))
 
-  private fun fetchVcsInfo(): AppVcsInfo? {
+  private fun fetchVcsInfo(): AppVcsInfo.ValidInfo? {
     if (!StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get()) return null
 
-    return (containingConsole.getClientProperty(VCS_INFO_OF_SELECTED_CRASH) as? AppVcsInfo)
-      ?.takeUnless { it == AppVcsInfo.NONE }
+    return containingConsole.getClientProperty(VCS_INFO_OF_SELECTED_CRASH) as? AppVcsInfo.ValidInfo
   }
 
   private fun fetchAssociatedConnection(): Connection? {
@@ -81,7 +80,7 @@ class InsightsAttachInlayDiffLinkFilter(
   }
 
   private fun createContextDataForDiff(
-    appVcsInfo: AppVcsInfo,
+    appVcsInfo: AppVcsInfo.ValidInfo,
     virtualFiles: List<VirtualFile>,
     lineNumber: Int
   ): ContextDataForDiff? {

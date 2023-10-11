@@ -40,8 +40,7 @@ fun AppInsight.tryCreateVcsDocumentOrNull(contextVFile: VirtualFile, project: Pr
 }
 
 fun AppInsight.createVcsDocument(contextVFile: VirtualFile, project: Project): Document? {
-  val appVcsInfo = issue.sampleEvent.appVcsInfo
-  if (appVcsInfo == AppVcsInfo.NONE) return null
+  val appVcsInfo = issue.sampleEvent.appVcsInfo as? AppVcsInfo.ValidInfo ?: return null
 
   val associatedVcs = contextVFile.getVcsManager(project) ?: return null
   val matchedRepoInfo =

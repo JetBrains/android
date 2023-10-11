@@ -56,7 +56,7 @@ class AppInsightsExternalAnnotatorTest(private val enableChangeAwareAnnotation: 
 
   @Before
   fun setUp() {
-    appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+    appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
   }
 
   @Test
