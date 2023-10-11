@@ -47,12 +47,14 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -62,11 +64,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.psi.KtFile
@@ -107,40 +109,16 @@ class LiveEditServiceImpl(val project: Project,
 
     deployMonitor = LiveEditProjectMonitor(this, project)
 
+    // Listen to changes in Kotlin files. The class-differ equivalent of listening to the PSI.
     EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
+      override fun beforeDocumentChange(event: DocumentEvent) {
+        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
+        file.letIfLiveEditable { deployMonitor.beforeFileChanged(it) }
+      }
+
       override fun documentChanged(event: DocumentEvent) {
-        if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-          return
-        }
-
-        // This listener is called from the EDT/UI thread, so per IntelliJ threading rules, this is safe to call from here.
-        // See: https://plugins.jetbrains.com/docs/intellij/general-threading-rules.html#read-access
-        if (project.isDisposed) {
-          return
-        }
-
-        // Because a DocumentListener receives events from all open projects, filter events to only documents from this project.
-        val index = ProjectFileIndex.getInstance(project)
-        val file = FileDocumentManager.getInstance().getFile(event.document)
-        if (file == null || !index.isInProject(file)) {
-          return
-        }
-
-        // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes an event is generated with a
-        // non-physical version of a given file, which will cause some Live Edit checks that assume a non-null VirtualFile to fail.
-        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(event.document)?.originalFile
-        if (psiFile !is KtFile) {
-          return
-        }
-
-        // Ignore changes to .kts files.
-        if (psiFile.isScript()) {
-          return
-        }
-
-        // Create a "fake" edit event until we refactor away the PSI event detection path.
-        val editEvent = EditEvent(psiFile, psiFile)
-        executor.execute { deployMonitor.onPsiChanged(editEvent) }
+        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
+        file.letIfLiveEditable { deployMonitor.fileChanged(it) }
       }
     }, this)
 
@@ -174,15 +152,6 @@ class LiveEditServiceImpl(val project: Project,
             .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/studio/run#limitations"))
             .notify(project)
           showMultiDeployNotification = false
-        }
-      }
-    })
-
-    // Listen for when a new Kotlin file opens.
-    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
-        if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
-          deployMonitor.notifyFileOpen(file)
         }
       }
     })
@@ -341,5 +310,46 @@ class LiveEditServiceImpl(val project: Project,
       val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
       serial?.let { s -> adapter.register(s) }
     }
+  }
+
+  private fun VirtualFile.letIfLiveEditable(block: (KtFile) -> Unit) {
+    val ktFile = ReadAction.compute<KtFile?, Throwable> {
+      if (shouldHandleFile(this)) {
+        return@compute getKtFile(this)
+      }
+      null
+    }
+    if (ktFile != null) {
+      block(ktFile)
+    }
+  }
+
+  @RequiresReadLock
+  private fun shouldHandleFile(file: VirtualFile): Boolean {
+    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
+      return false
+    }
+
+    if (project.isDisposed || !file.isValid || !file.isWritable) {
+      return false
+    }
+
+    // Filter to only files from this project.
+    val index = ProjectFileIndex.getInstance(project)
+    return index.isInProject(file)
+  }
+
+  @RequiresReadLock
+  private fun getKtFile(file: VirtualFile): KtFile? {
+    // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes an event is generated with a
+    // non-physical version of a given file, which will cause some Live Edit checks that assume a non-null VirtualFile to fail.
+    val ktFile = PsiManager.getInstance(project).findFile(file)?.originalFile as? KtFile ?: return null
+
+    // Ignore .kts files.
+    if (ktFile.isScript()) {
+      return null
+    }
+
+    return ktFile
   }
 }

@@ -201,7 +201,7 @@ private object CompileScopeImpl : CompileScope {
     errorElement?.let { throw LiveEditUpdateException.compilationError(it.errorDescription, it.containingFile, null)}
 
     compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME,
-                              module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input.get(0).virtualFile))
+                              module.project.getProjectSystem().getModuleSystem(module).getModuleNameForCompilation(input[0].originalFile.virtualFile))
     KotlinFacet.get(module)?.let { kotlinFacet ->
       (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
         compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, it)

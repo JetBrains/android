@@ -28,9 +28,8 @@ import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
@@ -78,7 +77,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.KotlinFileType;
+import org.jetbrains.kotlin.psi.KtFile;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -184,7 +183,8 @@ public class LiveEditProjectMonitor implements Disposable {
   private AtomicReference<Long> gradleTimeSync = new AtomicReference<>(Integer.toUnsignedLong(0));
 
   private final LiveEditCompiler compiler;
-  private final Precompiler precompiler;
+
+  private final PrecompileManager precompileManager;
 
   // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
   private final double LE_LOG_FRACTION = 0.1;
@@ -202,13 +202,13 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private final MutableIrClassCache irClassCache = new MutableIrClassCache();
 
-  private final Set<VirtualFile> precompiledFiles = new HashSet<>();
-
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
     this.compiler = new LiveEditCompiler(project, irClassCache);
-    this.precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
     this.adbEventsListener = liveEditService.getAdbEventsListener();
+
+    Precompiler precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
+    this.precompileManager = new PrecompileManager(precompiler, LOGGER);
 
     gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
@@ -232,6 +232,11 @@ public class LiveEditProjectMonitor implements Disposable {
     return filesWithCompilationErrors.size();
   }
 
+  @VisibleForTesting
+  IrClassCache getIrClassCache() {
+    return irClassCache;
+  }
+
   @NotNull
   public Set<IDevice> devices() {
     return liveEditDevices.devices();
@@ -249,7 +254,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (!hasAppBeenDeployed()) {
+    if (StringUtil.isEmpty(applicationId)) {
       return;
     }
 
@@ -309,6 +314,7 @@ public class LiveEditProjectMonitor implements Disposable {
    * @return true if multi-deploy is detected, false otherwise (this will be removed once multi-deploy is supported)
    */
   public boolean notifyExecution(@NotNull Collection<IDevice> devices) {
+    mainThreadExecutor.submit(precompileManager::reset);
     Set<IDevice> newDevices = new HashSet<>(devices);
     newDevices.removeIf(d -> !supportLiveEdits(d));
     Ref<Boolean> multiDeploy = new Ref<>(false);
@@ -364,79 +370,86 @@ public class LiveEditProjectMonitor implements Disposable {
 
     // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
     // we process our keystrokes {@link #methodChangesExecutor}
-    mainThreadExecutor.schedule(
-      () -> {
-        this.applicationId = applicationId;
-        this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
-        resetState();
-        deviceWatcher.setApplicationId(applicationId);
+    mainThreadExecutor.submit(() -> {
+      this.applicationId = applicationId;
+      this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
+      resetState();
+      deviceWatcher.setApplicationId(applicationId);
 
-        irClassCache.clear();
-        precompiledFiles.clear();
-        for (VirtualFile file : FileEditorManager.getInstance(project).getOpenFiles()) {
-          precompileFile(file);
-        }
-      },
-      0L,
-      TimeUnit.NANOSECONDS).get();
+      irClassCache.clear();
+    }).get();
 
     return true;
   }
 
-  private boolean hasAppBeenDeployed() {
-    return StringUtil.isNotEmpty(applicationId);
-  }
-
-  public void notifyFileOpen(VirtualFile file) {
-    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
-      return;
-    }
-
-    if (!hasAppBeenDeployed()) {
-      return;
-    }
-
-    // Precompile should only run the first time a file is opened after a deployment. Running precompile every time a given file opens may
-    // cause changes to be missed when running in MANUAL mode: user makes changes -> closes file -> re-opens file -> precompile incorrectly
-    // updates the IR cache with the new changes.
-    if (precompiledFiles.contains(file)) {
-      return;
-    }
-    mainThreadExecutor.schedule(() -> {
-      precompileFile(file);
-    }, 0L, TimeUnit.NANOSECONDS);
-  }
-
-  private void precompileFile(VirtualFile file) {
-    long startTimeNs = System.nanoTime();
-
-    if (file.getFileType() != KotlinFileType.INSTANCE) {
-      return;
-    }
-
-    List<byte[]> outputs;
-    try {
-      outputs = precompiler.compile(file);
-    } catch (Exception e) {
-      // TODO: handle compile failure
-      LOGGER.error(e, "Live Edit precompile of %s failed", file.getPath());
-      return;
-    }
-
-    for (byte[] output : outputs) {
-      try {
-        IrClass irClass = new IrClass(output);
-        irClassCache.update(irClass);
-        LOGGER.info("\tCached precompiled class %s", irClass.getName());
-      } catch (Exception e) {
-        // TODO: handle parse failure
+  // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
+  public void beforeFileChanged(KtFile ktFile) {
+    updateEditableStatus(LiveEditStatus.CopyingPsi.INSTANCE);
+    mainThreadExecutor.execute(() -> {
+      if (!shouldLiveEdit()) {
+        return;
       }
+
+      Document document = FileDocumentManager.getInstance().getDocument(ktFile.getVirtualFile());
+      if (document == null) {
+        return;
+      }
+
+      precompileManager.copyForPrecompile(project, ktFile, document.getImmutableCharSequence());
+      updateEditableStatus(LiveEditStatus.UpToDate.INSTANCE);
+    });
+  }
+
+  // Called when a Kotlin file is modified. Only called on the class-differ code path.
+  public void fileChanged(KtFile ktFile) {
+    mainThreadExecutor.execute(() -> {
+      if (shouldLiveEdit()) {
+        updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
+        precompileManager.getPrecompileTask(ktFile, new CompileCallbacks()).submit(mainThreadExecutor);
+      }
+    });
+  }
+
+  private boolean shouldLiveEdit() {
+    return LiveEditApplicationConfiguration.getInstance().isLiveEdit() &&
+           StringUtil.isNotEmpty(applicationId) &&
+           !liveEditDevices.isUnrecoverable() &&
+           !liveEditDevices.isDisabled();
+  }
+
+  // Callbacks for after a pre-compile completes; handles errors, updates the IR cache if needed, and schedules the Live Edit. Only used on
+  // the class-differ code path.
+  private class CompileCallbacks implements PrecompileCallbacks {
+    @Override
+    public void onPrecompileSuccess(@NotNull KtFile ktFile, @NotNull List<IrClass> irClasses) {
+      irClassCache.update(irClasses);
+      scheduleCompile(ktFile);
     }
 
-    precompiledFiles.add(file);
+    @Override
+    public void onPrecompileSkip(@NotNull KtFile ktFile) {
+      scheduleCompile(ktFile);
+    }
 
-    long durationNs = System.nanoTime() - startTimeNs;
-    LOGGER.info("Live Edit precompiled %s in %dms", file.getPath(), TimeUnit.NANOSECONDS.toMillis(durationNs));
+    @Override
+    public void onPrecompileError(@NotNull KtFile ktFile, @NotNull String message, @Nullable Throwable throwable) {
+      String errorMessage = throwable == null ? message : String.format("%s: %s", message, throwable);
+      updateEditableStatus(LiveEditStatus.createRerunnableErrorStatus(errorMessage));
+    }
+  }
+
+  private void scheduleCompile(KtFile ktFile) {
+    mainThreadExecutor.schedule(() -> {
+      GradleSyncState gradleSyncState = GradleSyncState.getInstance(project);
+      if (gradleSyncState.isSyncNeeded() != ThreeState.NO ||
+          gradleTimeSync.get().compareTo(gradleSyncState.getLastSyncFinishedTimeStamp()) != 0) {
+        updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
+        return;
+      }
+
+      changedMethodQueue.add(new EditEvent(ktFile, ktFile, new ArrayList<>(), new ArrayList<>()));
+      processQueuedChanges();
+    }, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
   }
 
   @VisibleForTesting
@@ -476,7 +489,6 @@ public class LiveEditProjectMonitor implements Disposable {
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
       updateEditableStatus(LiveEditStatus.OutOfDate.INSTANCE);
-
       if (bufferedEvents.size() < 2000) {
         bufferedEvents.addAll(changes);
       } else {

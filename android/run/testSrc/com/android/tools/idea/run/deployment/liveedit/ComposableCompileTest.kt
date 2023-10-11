@@ -20,6 +20,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.diff
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.onlyComposeDebugConstantChanges
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.utils.editor.commitToPsi
@@ -402,9 +403,9 @@ class ComposableCompileTest {
         var str = "hi"
         return str
       }
-    """.trimIndent())
+    """.trimIndent()) as KtFile
 
-    val firstClass = compiler.compile(file.virtualFile).map { IrClass(it) }.single { it.name == "FileKt" }
+    val firstClass = ReadAction.compute<IrClass, Throwable> { compiler.compile(file).map { IrClass(it) }.single { it.name == "FileKt" } }
     val firstMethod = firstClass.methods.first { it.name == "composableFun" }
 
     // Ensure we actually generated a traceEventStart() call
@@ -430,7 +431,7 @@ class ComposableCompileTest {
       document.commitToPsi(projectRule.project)
     }
 
-    val secondClass = compiler.compile(file.virtualFile).map { IrClass(it) }.single { it.name == "FileKt" }
+    val secondClass = ReadAction.compute<IrClass, Throwable> { compiler.compile(file).map { IrClass(it) }.single { it.name == "FileKt" } }
     val secondMethod = secondClass.methods.first { it.name == "composableFun" }
 
     // Ensure we actually generated a traceEventStart() call

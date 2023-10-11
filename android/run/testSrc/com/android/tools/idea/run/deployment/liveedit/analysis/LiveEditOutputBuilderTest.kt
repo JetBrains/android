@@ -25,10 +25,12 @@ import com.android.tools.idea.run.deployment.liveedit.compile
 import com.android.tools.idea.run.deployment.liveedit.findFunction
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import junit.framework.Assert
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.junit.After
@@ -64,8 +66,10 @@ class LiveEditOutputBuilderTest {
 
   @Test
   fun testNonCompose() {
-    Precompiler(myProject, inlineCache).compile(files["A.kt"]!!.virtualFile).forEach {
-      irClassCache.update( IrClass(it))
+    ReadAction.run<Throwable> {
+      Precompiler(myProject, inlineCache).compile(files["A.kt"]!! as KtFile).forEach {
+        irClassCache.update(IrClass(it))
+      }
     }
 
     var foo = findFunction(files["A.kt"], "foo")

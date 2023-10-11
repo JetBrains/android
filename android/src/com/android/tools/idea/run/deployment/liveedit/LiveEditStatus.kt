@@ -177,6 +177,14 @@ open class LiveEditStatus(
       REFRESHING
     )
 
+  object CopyingPsi :
+    LiveEditStatus(
+      AnimatedIcon.Default.INSTANCE,
+      message("le.status.pre_compiling.title"),
+      message("le.status.pre_compiling.description"),
+      REFRESHING
+    )
+
   object UpToDate :
     LiveEditStatus(
       AllIcons.General.InspectionsOK,
