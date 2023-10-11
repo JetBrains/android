@@ -92,6 +92,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.AnActionWrapper;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.Application;
@@ -1039,7 +1040,11 @@ public final class AndroidStudioSystemHealthMonitor {
    */
   public static void countActionInvocation(@NotNull AnAction anAction, @NotNull Presentation templatePresentation, @NotNull AnActionEvent event) {
     ourStudioActionCount.incrementAndGet();
-    Class actionClass = anAction.getClass();
+    AnAction action = anAction;
+    if (action instanceof AnActionWrapper) {
+      action = ((AnActionWrapper)action).getDelegate();
+    }
+    Class actionClass = action.getClass();
     synchronized (ACTION_INVOCATIONS_LOCK) {
       String actionName = getActionName(actionClass, templatePresentation);
       InvocationKind invocationKind = getInvocationKindFromEvent(event);
@@ -1060,8 +1065,8 @@ public final class AndroidStudioSystemHealthMonitor {
           .setInvocations(1)
           .setDirect(true)
           .setUiPlace(event.getPlace());
-        if (anAction instanceof ToggleAction) {
-          ToggleAction toggleAction = (ToggleAction)anAction;
+        if (action instanceof ToggleAction) {
+          ToggleAction toggleAction = (ToggleAction)action;
           // events are tracked right before they occur, therefore take the negation of the current state
           uiActionStatbuilder.setTogglingOn(!toggleAction.isSelected(event));
         }
