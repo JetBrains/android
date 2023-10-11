@@ -41,7 +41,7 @@ namespace {
 constexpr int BUFFER_SIZE = 4096;
 constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
-constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 500;
+constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 200;
 
 int64_t UptimeMillis() {
   timespec t = { 0, 0 };
