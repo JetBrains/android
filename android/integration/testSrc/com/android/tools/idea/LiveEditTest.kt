@@ -67,7 +67,7 @@ class LiveEditTest {
     enableLiveEdit()
     system.runAdb { adb ->
       // Live Edit requires an API level of at least 30.
-      system.runEmulator(Emulator.SystemImage.API_32) { emulator ->
+      system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
         println("Waiting for boot")
         emulator.waitForBoot()
 

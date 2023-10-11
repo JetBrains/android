@@ -181,12 +181,11 @@ iml_studio_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib-8.0",
-        "@system_image_android-32_default_x86_64//:x86_64-android-32-images",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.core.integration",
     tags_linux = [
         "block-network",
-        "manual",  # b/263397644
     ],
     tags_mac = [],
     tags_windows = [
