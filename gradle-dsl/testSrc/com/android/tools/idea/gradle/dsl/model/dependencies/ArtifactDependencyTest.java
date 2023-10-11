@@ -495,8 +495,6 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
   @Test
   public void testParseKotlinExtension() throws IOException {
-    isIrrelevantForKotlinScript("No multiple dependency configuration form in KotlinScript");
-    isIrrelevantForGroovy("No multiple dependency configuration form in Groovy");
     writeToBuildFile(TestFile.PARSE_KOTLIN_EXTENSION);
 
     GradleBuildModel buildModel = getGradleBuildModel();
