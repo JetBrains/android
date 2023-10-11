@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.profilers.capture;
 
-import com.android.tools.profilers.cpu.CpuCaptureParserUtil;
-import com.android.tools.profilers.cpu.perfetto.PerfettoTraceWebLoader;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorPolicy;
 import com.intellij.openapi.fileEditor.FileEditorProvider;
@@ -25,7 +22,6 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,17 +35,6 @@ public class AndroidProfilerCaptureEditorProvider implements FileEditorProvider,
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     String extension = file.getExtension();
     FileType fileType = FileTypeManager.getInstance().getFileTypeByFile(file);
-
-    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
-      var nioFile = file.toNioPath().toFile();
-      var traceType = CpuCaptureParserUtil.getFileTraceType(nioFile, TraceType.UNSPECIFIED);
-      if (traceType == TraceType.PERFETTO) {
-        PerfettoTraceWebLoader.INSTANCE.loadTrace(nioFile);
-        return false; // prevent Profiler UI from opening the trace
-      }
-    }
-
     return (fileType instanceof CpuCaptureFileType ||
             fileType instanceof MemoryAllocationFileType ||
             fileType instanceof MemoryCaptureFileType ||
