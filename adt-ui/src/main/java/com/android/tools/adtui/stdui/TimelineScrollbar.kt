@@ -50,7 +50,7 @@ private const val STREAMING_POSITION_THRESHOLD_PX = 10f
  *
  * If timeline is a StreamingTimeline, this control sets it into streaming mode if users drags the thumb all the way to the right.
  */
-class TimelineScrollbar(val timeline: StreamingTimeline, zoomPanComponent: JComponent) :
+class TimelineScrollbar(val timeline: Timeline, zoomPanComponent: JComponent) :
   JBScrollBar(HORIZONTAL) {
 
   private val aspectObserver = AspectObserver()
@@ -84,7 +84,7 @@ class TimelineScrollbar(val timeline: StreamingTimeline, zoomPanComponent: JComp
       if (isMenuKeyDown) {
         val anchor = (it.x.toFloat() / it.component.width).toDouble()
         timeline.zoom(getZoomWheelDelta() * count, anchor)
-      } else if (isScrollable()) {
+      } else if (isScrollable() && timeline is StreamingTimeline) {
         // Save the mouse wheel scroll event to be reflected in the timeline model and UI on next timeline update.
         timeline.addMouseScrollWheelEvent(getPanWheelDelta() * count)
       }
@@ -134,6 +134,7 @@ class TimelineScrollbar(val timeline: StreamingTimeline, zoomPanComponent: JComp
     // places.
     if (
       checkStream &&
+        timeline is StreamingTimeline &&
         !timeline.isStreaming &&
         isCloseToMax() &&
         timeline.canStream()
