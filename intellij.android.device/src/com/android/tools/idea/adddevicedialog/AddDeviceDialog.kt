@@ -15,27 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.wizard.ui.SimpleStudioWizardLayout
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.ui.DialogWrapper
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 internal object AddDeviceDialog {
-  internal fun build(): DialogWrapper {
-    val step = ConfigureDeviceStep(AddDeviceWizardModel())
-    val dialog = StudioWizardDialogBuilder(step, "Add Device").build(SimpleStudioWizardLayout())
-    val panel = step.component.deviceAndApiPanel
-
-    AndroidCoroutineScope(dialog.disposable, AndroidDispatchers.uiThread(ModalityState.stateForComponent(panel))).launch {
-      panel.setSystemImages(withContext(AndroidDispatchers.workerThread) {
-        SystemImage.getSystemImages()
-      })
-    }
-
-    return dialog
-  }
+  internal fun build(): DialogWrapper =
+    StudioWizardDialogBuilder(ConfigureDeviceStep(AddDeviceWizardModel()), "Add Device")
+      .build(SimpleStudioWizardLayout())
 }
