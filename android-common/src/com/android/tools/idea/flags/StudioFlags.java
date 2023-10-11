@@ -1434,14 +1434,6 @@ public final class StudioFlags {
       "Enable FTL DirectAccess",
       false);
 
-  public static final Flag<Boolean> USE_UXR_202309_FILTER =
-    Flag.create(
-      FIREBASE_TEST_LAB,
-      "direct.access.uxr202309",
-      "UXR 202309 Device Filter",
-      "Use custom device filter (for 2023-09 UXR study)",
-      false);
-
   public static final Flag<Boolean> DIRECT_ACCESS_ADD_DEVICE =
     Flag.create(
       FIREBASE_TEST_LAB,
