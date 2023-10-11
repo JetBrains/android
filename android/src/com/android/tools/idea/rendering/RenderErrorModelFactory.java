@@ -43,6 +43,11 @@ public class RenderErrorModelFactory {
         issues.addAll(provider.getContributor(surface, result).reportIssues());
       }
     }
+    for (RenderIssueCollectionConsumer.Provider provider : RenderIssueCollectionConsumer.Provider.EP_NAME.getExtensions()) {
+      if (provider.isApplicable(result.getProject())) {
+        provider.getConsumer(surface, result).consume(issues);
+      }
+    }
     return new RenderErrorModel(issues);
   }
 }

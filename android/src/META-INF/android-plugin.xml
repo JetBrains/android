@@ -701,6 +701,8 @@
                     interface="com.android.tools.idea.run.AndroidLaunchTaskContributor"/>
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
                     interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.rendering.renderIssueCollectionConsumer"
+                    interface="com.android.tools.idea.rendering.RenderIssueCollectionConsumer$Provider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
                     dynamic="false"/>
