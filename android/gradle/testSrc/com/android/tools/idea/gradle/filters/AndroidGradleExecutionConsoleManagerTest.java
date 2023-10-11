@@ -120,7 +120,6 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
   private ExternalSystemTask createResolveProjectTask() {
     ExternalSystemTask resolveProjectTask = new ExternalSystemResolveProjectTask(
       getProject(),
-      "SOME_PROJECT_NAME",
       "/some/project/path",
       new ImportSpecImpl(getProject(), GradleConstants.SYSTEM_ID)
     );
