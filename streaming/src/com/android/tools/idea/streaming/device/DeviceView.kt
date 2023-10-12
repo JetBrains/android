@@ -303,10 +303,11 @@ internal class DeviceView(
   }
 
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
-    if (displayId == PRIMARY_DISPLAY_ID) {
-      deviceClient.streamingSessionTracker.streamingEnded()
-    }
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
+    if (displayId != PRIMARY_DISPLAY_ID) {
+      return
+    }
+    deviceClient.streamingSessionTracker.streamingEnded()
     UIUtil.invokeLaterIfNeeded {
       if (disposed || connectionState == ConnectionState.DISCONNECTED) {
         return@invokeLaterIfNeeded
@@ -356,7 +357,7 @@ internal class DeviceView(
 
   override fun dispose() {
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
-    deviceClient.stopVideoStream(PRIMARY_DISPLAY_ID)
+    deviceClient.stopVideoStream(displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     disposed = true
   }
