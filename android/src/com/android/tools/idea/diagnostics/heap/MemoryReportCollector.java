@@ -364,7 +364,7 @@ public final class MemoryReportCollector implements Disposable {
     componentMask >>= Long.numberOfTrailingZeros(componentMask);
     for (int i = trailingZeros; componentMask != 0; i++, componentMask >>= 1) {
       if ((componentMask & 1) != 0) {
-        ComponentsSet.ComponentCategory currentCategory = statistics.getComponentStats().get(i).getComponent().getComponentCategory();
+        ComponentsSet.ComponentCategory currentCategory = statistics.getComponentStats().get(i).getCluster().getComponentCategory();
         if (result == null) {
           result = currentCategory;
         }

@@ -146,11 +146,11 @@ internal class HeapSnapshotMemoryUseMeasurement<T>(private val category: String,
     if (stats == null) stats = HeapSnapshotTraverseService.getInstance().collectMemoryStatistics(false, true)!!
     val bytes = (if (component == null ) {
       // Full category
-      stats!!.categoryComponentStats.single { it.componentCategory.componentCategoryLabel == category }
+      stats!!.categoryComponentStats.single { it.cluster.label == category }
     }
     else {
       // Specific component
-      stats!!.componentStats.single { it.component.componentCategory.componentCategoryLabel == category && it.component.componentLabel == component }
+      stats!!.componentStats.single { it.cluster.componentCategory.label == category && it.cluster.label == component }
     }).ownedClusterStat.objectsStatistics.totalSizeInBytes
     return MetricSample(Instant.now().toEpochMilli(), bytes)
   }

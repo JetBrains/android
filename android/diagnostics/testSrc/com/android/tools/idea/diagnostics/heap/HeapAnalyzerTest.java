@@ -97,13 +97,13 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     // instance of A, boxed int
     Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
 
     Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("B", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("B", componentStats.get(2).getCluster().getLabel());
     // instance of B
     Assert.assertEquals(1, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(16, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -126,8 +126,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     // A, B, Integer
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -154,13 +154,13 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     // A instance and B instance
     Assert.assertEquals(2, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
 
-    Assert.assertEquals("C", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("C", componentStats.get(2).getCluster().getLabel());
     // C class object and boxed 0 static field
     Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     checkObjectsUntagged(new Object[]{c, C.STATIC_INT});
@@ -184,11 +184,11 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
     Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(1).getCluster().getLabel());
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
     checkObjectsUntagged(new Object[]{a, b, d, a.myB, a.myInt, d.myArray});
@@ -215,12 +215,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
-    Assert.assertEquals("A", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("A", componentStats.get(1).getCluster().getLabel());
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(56, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
-    Assert.assertEquals("D", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(2).getCluster().getLabel());
     Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
     checkObjectsUntagged(new Object[]{a, b, d, a.myB, a.myInt, d.myArray});
@@ -243,9 +243,9 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
-    Assert.assertEquals("F", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("F", componentStats.get(1).getCluster().getLabel());
     // F, WeakReference, ReferenceQueue$Null and ReferenceQueue$Lock
     Assert.assertEquals(4, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(96, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -272,10 +272,10 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(3, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
-    Assert.assertEquals("B", componentStats.get(1).getComponent().getComponentLabel());
-    Assert.assertEquals("D", componentStats.get(2).getComponent().getComponentLabel());
+    Assert.assertEquals("B", componentStats.get(1).getCluster().getLabel());
+    Assert.assertEquals("D", componentStats.get(2).getCluster().getLabel());
 
     Assert.assertEquals(2, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
     Assert.assertEquals(40, componentStats.get(2).getOwnedClusterStat().getObjectsStatistics().getTotalSizeInBytes());
@@ -327,11 +327,11 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     List<HeapSnapshotStatistics.ComponentClusterObjectsStatistics> componentStats = stats.getComponentStats();
     Assert.assertEquals(2, componentStats.size());
     Assert.assertEquals(UNCATEGORIZED_CATEGORY_LABEL,
-                        componentStats.get(0).getComponent().getComponentCategory().getComponentCategoryLabel());
+                        componentStats.get(0).getCluster().getComponentCategory().getLabel());
 
     // HeapAnalyzerTest$A and underlying Integer
     Assert.assertEquals(2, componentStats.get(0).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
-    Assert.assertEquals("D", componentStats.get(1).getComponent().getComponentLabel());
+    Assert.assertEquals("D", componentStats.get(1).getCluster().getLabel());
     // HeapAnalyzerTest$D, underlying array and HeapAnalyzerTest$B
     Assert.assertEquals(3, componentStats.get(1).getOwnedClusterStat().getObjectsStatistics().getObjectsCount());
   }

@@ -329,7 +329,7 @@ public class RootPathTree {
     @NotNull
     private final ExtendedStackNode extendedStackNode;
     private final long size;
-    private long subtreeSize = 0;
+    private long subtreeSize;
 
     @NotNull
     private final RootPathTreeNode[][] rootPathTreeNodes;

@@ -125,7 +125,7 @@ public final class HeapSnapshotStatistics {
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
 
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size, isRoot,
+      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getCluster(), objectClassName, size, isRoot,
                                                                      isDisposedButReferenced);
     }
   }
@@ -145,7 +145,7 @@ public final class HeapSnapshotStatistics {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size, isRoot,
+      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getCluster(), objectClassName, size, isRoot,
                                                                     isDisposedButReferenced);
     }
   }
@@ -196,7 +196,7 @@ public final class HeapSnapshotStatistics {
       public void serialize(@NonNull final MultipartEntityBuilder builder) {
         super.serialize(builder);
         String exceededComponentsPresentation = exceededComponents.stream().map(
-          ComponentsSet.Component::getComponentLabel).collect(Collectors.joining(","));
+          ComponentsSet.Component::getLabel).collect(Collectors.joining(","));
         GoogleCrashReporter.addBodyToBuilder(builder, "Total used memory",
                                              getOptimalUnitsStatisticsPresentation(totalStats.getObjectsStatistics()));
         String totalPlatformObjectsPresentation =
@@ -214,7 +214,7 @@ public final class HeapSnapshotStatistics {
             String.format(Locale.US, "Owned: %s\n",
                           getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
           extendedReportStatistics.logCategoryHistogram((String s) -> categoryReportBuilder.append(s).append("\n"),
-                                                        stat.getComponentCategory());
+                                                        stat.getCluster());
           if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
             categoryReportBuilder.append("Number of instances of tracked classes:\n");
             for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
@@ -226,7 +226,7 @@ public final class HeapSnapshotStatistics {
                                                        stat.getOwnedClusterStat().platformObjectsSelfStats),
                                                      getOptimalUnitsStatisticsPresentation(
                                                        stat.getOwnedClusterStat().platformRetainedObjectsStats)));
-          GoogleCrashReporter.addBodyToBuilder(builder, "Category " + stat.getComponentCategory().getComponentCategoryLabel(),
+          GoogleCrashReporter.addBodyToBuilder(builder, "Category " + stat.getCluster().getLabel(),
                                                categoryReportBuilder.toString());
         }
 
@@ -235,7 +235,7 @@ public final class HeapSnapshotStatistics {
           componentReportBuilder.append(
             String.format(Locale.US, "Owned: %s\n",
                           getOptimalUnitsStatisticsPresentation(stat.getOwnedClusterStat().getObjectsStatistics())));
-          extendedReportStatistics.logComponentHistogram((String s) -> componentReportBuilder.append(s).append("\n"), stat.getComponent());
+          extendedReportStatistics.logComponentHistogram((String s) -> componentReportBuilder.append(s).append("\n"), stat.getCluster());
           if (!stat.getTrackedFQNInstanceCounter().isEmpty()) {
             componentReportBuilder.append("Number of instances of tracked classes:\n");
             for (String s : stat.getTrackedFQNInstanceCounter().keySet()) {
@@ -247,13 +247,13 @@ public final class HeapSnapshotStatistics {
                                                         stat.getOwnedClusterStat().platformObjectsSelfStats),
                                                       getOptimalUnitsStatisticsPresentation(
                                                         stat.getOwnedClusterStat().platformRetainedObjectsStats)));
-          if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getComponent())) {
+          if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getCluster())) {
             extendedReportStatistics.printExceededClusterStatisticsIfNeeded((String s) -> componentReportBuilder.append(s).append("\n"),
-                                                                            stat.getComponent());
+                                                                            stat.getCluster());
           }
 
           // truncate by 1.2mb
-          GoogleCrashReporter.addBodyToBuilder(builder, "Component " + stat.getComponent().getComponentLabel(),
+          GoogleCrashReporter.addBodyToBuilder(builder, "Component " + stat.getCluster().getLabel(),
                                                Ascii.truncate(componentReportBuilder.toString(), MAX_BYTES_FOR_COMPONENT_REPORT,
                                                               "[truncated]"));
         }
@@ -300,11 +300,11 @@ public final class HeapSnapshotStatistics {
 
     writer.accept(String.format(Locale.US, "%d Categories:", categoryComponentStats.size()));
     for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
-      writer.accept(String.format(Locale.US, "  Category %s:", stat.getComponentCategory().getComponentCategoryLabel()));
+      writer.accept(String.format(Locale.US, "  Category %s:", stat.getCluster().getLabel()));
       writer.accept(String.format(Locale.US, "    Owned: %s",
                                   objectsStatsPresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics())));
       if (config.collectHistograms && extendedReportStatistics != null) {
-        extendedReportStatistics.logCategoryHistogram(writer, stat.getComponentCategory());
+        extendedReportStatistics.logCategoryHistogram(writer, stat.getCluster());
       }
       if (presentationConfig.shouldLogRetainedSizes) {
         writer.accept(String.format(Locale.US, "    Retained: %s",
@@ -325,13 +325,13 @@ public final class HeapSnapshotStatistics {
 
     writer.accept(String.format(Locale.US, "%d Components:", componentStats.size()));
     for (ComponentClusterObjectsStatistics stat : componentStats) {
-      writer.accept(String.format(Locale.US, "  Component %s:", stat.getComponent().getComponentLabel()));
+      writer.accept(String.format(Locale.US, "  Component %s:", stat.getCluster().getLabel()));
       writer.accept(String.format(Locale.US, "    Owned: %s",
                                   objectsStatsPresentation.apply(stat.getOwnedClusterStat().getObjectsStatistics())));
       if (config.collectHistograms && extendedReportStatistics != null) {
-        extendedReportStatistics.logComponentHistogram(writer, stat.getComponent());
-        if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getComponent())) {
-          extendedReportStatistics.printExceededClusterStatisticsIfNeeded(writer, stat.getComponent());
+        extendedReportStatistics.logComponentHistogram(writer, stat.getCluster());
+        if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getCluster())) {
+          extendedReportStatistics.printExceededClusterStatisticsIfNeeded(writer, stat.getCluster());
         }
       }
       if (presentationConfig.shouldLogRetainedSizes) {
@@ -367,7 +367,7 @@ public final class HeapSnapshotStatistics {
   static String getSharedClusterPresentationLabel(@NotNull final SharedClusterStatistics clusterStats,
                                                   @NotNull final HeapSnapshotStatistics stats) {
     return clusterStats.getComponentIds(stats.getConfig()).stream()
-      .map(id -> stats.getComponentStats().get(id).getComponent().getComponentLabel())
+      .map(id -> stats.getComponentStats().get(id).getCluster().getLabel())
       .toList().toString();
   }
 
@@ -408,7 +408,7 @@ public final class HeapSnapshotStatistics {
   }
 
   @NotNull
-  private MemoryUsageReportEvent.ClusterObjectsStatistics buildClusterObjectsStatistics(@NotNull final ClusterObjectsStatistics componentStatistics) {
+  private MemoryUsageReportEvent.ClusterObjectsStatistics buildClusterObjectsStatistics(@NotNull final ClusterObjectsStatistics<?> componentStatistics) {
     return MemoryUsageReportEvent.ClusterObjectsStatistics.newBuilder()
       .setOwnedClusterStats(buildMemoryTrafficStatistics(componentStatistics.getOwnedClusterStat()))
       .setRetainedClusterStats(buildMemoryTrafficStatistics(
@@ -425,7 +425,7 @@ public final class HeapSnapshotStatistics {
     for (ComponentClusterObjectsStatistics componentStat : componentStats) {
       builder.addComponentStats(
         MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder()
-          .setLabel(componentStat.getComponent().getComponentLabel())
+          .setLabel(componentStat.getCluster().getLabel())
           .setStats(buildClusterObjectsStatistics(componentStat))
           .putAllInstanceCountPerClassName(componentStat.getTrackedFQNInstanceCounter()));
     }
@@ -440,7 +440,7 @@ public final class HeapSnapshotStatistics {
     for (CategoryClusterObjectsStatistics categoryStat : categoryComponentStats) {
       builder.addComponentCategoryStats(
         MemoryUsageReportEvent.ClusterMemoryUsage.newBuilder()
-          .setLabel(categoryStat.getComponentCategory().getComponentCategoryLabel())
+          .setLabel(categoryStat.getCluster().getLabel())
           .setStats(buildClusterObjectsStatistics(categoryStat))
           .putAllInstanceCountPerClassName(categoryStat.getTrackedFQNInstanceCounter()));
     }
@@ -498,41 +498,31 @@ public final class HeapSnapshotStatistics {
     }
   }
 
-  public static class ComponentClusterObjectsStatistics extends ClusterObjectsStatistics {
-    @NotNull
-    private final ComponentsSet.Component component;
-
+  public static class ComponentClusterObjectsStatistics extends ClusterObjectsStatistics<ComponentsSet.Component> {
     private ComponentClusterObjectsStatistics(@NotNull final ComponentsSet.Component component) {
-      this.component = component;
-    }
-
-    @NotNull
-    public ComponentsSet.Component getComponent() {
-      return component;
+      super(component);
     }
   }
 
-  public static class CategoryClusterObjectsStatistics extends ClusterObjectsStatistics {
-    @NotNull
-    private final ComponentsSet.ComponentCategory componentCategory;
-
+  public static class CategoryClusterObjectsStatistics extends ClusterObjectsStatistics<ComponentsSet.ComponentCategory> {
     private CategoryClusterObjectsStatistics(@NotNull final ComponentsSet.ComponentCategory category) {
-      componentCategory = category;
-    }
-
-    @NotNull
-    public ComponentsSet.ComponentCategory getComponentCategory() {
-      return componentCategory;
+      super(category);
     }
   }
 
-  public static class ClusterObjectsStatistics {
+  public static abstract class ClusterObjectsStatistics <T extends ComponentsSet.Cluster> {
     @NotNull
     private final ObjectsStatisticsWithPlatformTracking retainedClusterStat = new ObjectsStatisticsWithPlatformTracking();
     @NotNull
     private final ObjectsStatisticsWithPlatformTracking ownedClusterStat = new ObjectsStatisticsWithPlatformTracking();
     @NotNull
     private final Object2IntMap<String> trackedFQNInstanceCounter = new Object2IntOpenHashMap<>();
+    @NotNull
+    private final T cluster;
+
+    public ClusterObjectsStatistics(@NotNull final T cluster) {
+      this.cluster = cluster;
+    }
 
     void addOwnedObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
       ownedClusterStat.addObject(size, isPlatformObject, isRetainedByPlatform);
@@ -559,6 +549,11 @@ public final class HeapSnapshotStatistics {
 
     void addTrackedFQNInstance(String name) {
       trackedFQNInstanceCounter.put(name, trackedFQNInstanceCounter.getOrDefault(name, 0) + 1);
+    }
+
+    @NotNull
+    public T getCluster() {
+      return cluster;
     }
 
     public static class ObjectsStatisticsWithPlatformTracking {
