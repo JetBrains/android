@@ -23,7 +23,6 @@ import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeArtifact;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeFile;
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeSettings;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.ClassifiedIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue;
@@ -34,6 +33,8 @@ import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.IncludeResol
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.VirtualFiles;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.CppHeadersViewEvent;
@@ -149,7 +150,11 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   private Collection<? extends AbstractTreeNode<?>> getChildrenImpl() {
     List<AbstractTreeNode<?>> result = new ArrayList<>();
     Project project = getProject();
-    if (project == null || GradleSyncState.getInstance(project).isSyncInProgress()) {
+    if (project == null) {
+      return result;
+    }
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    if (projectSystem.getSyncManager().isSyncInProgress()) {
       return result;
     }
     Collection<File> includeSet = distinctIncludes(myDependencyInfo);
