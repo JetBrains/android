@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.projectstructure;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -40,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 public class DependenciesTestUtil {
 
   protected static final String APP_NAME = "App";
-  protected static final int MIN_SDK_API = 21;
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
 
@@ -81,7 +82,7 @@ public class DependenciesTestUtil {
       .enterText("\n\nimport android.com." + modeule2 + "." + CLASS_NAME_2 + ";")
       .moveBetween("public class " + CLASS_NAME_1 + " {", "")
       .enterText("\n" + CLASS_NAME_2 + " className2 = new " + CLASS_NAME_2 + "();");
-    BuildStatus result = ideFrame.invokeProjectMake();
+    BuildStatus result = ideFrame.invokeProjectMake(Wait.seconds(240));
     assertTrue(result.isBuildSuccessful());
 
     // Accessing both Library1 and Library2 classes in app module, and verify.
@@ -93,7 +94,7 @@ public class DependenciesTestUtil {
       .moveBetween("protected void onCreate(Bundle savedInstanceState) {", "")
       .enterText("\n" + CLASS_NAME_1 + " classNameA = new " + CLASS_NAME_1 + "();")
       .enterText("\n" + CLASS_NAME_2 + " classNameB = new " + CLASS_NAME_2 + "();");
-    result = ideFrame.invokeProjectMake();
+    result = ideFrame.invokeProjectMake(Wait.seconds(240));
     assertTrue(result.isBuildSuccessful());
   }
 
@@ -103,12 +104,9 @@ public class DependenciesTestUtil {
                                                         @NotNull String anotherModule,
                                                         @NotNull String scope) {
     ideFrame.focus();
-    ideFrame.getProjectView()
-      .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, APP_NAME, anotherModule);
+    PaneClickPath(ideFrame, anotherModule);
 
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     guiTest.robot().findActivePopupMenu();
     ideFrame.invokeMenuPath("Open Module Settings");
 
@@ -191,4 +189,25 @@ public class DependenciesTestUtil {
       return "Failed to print UI tree";
     }
   }
+
+  private static ProjectViewFixture.PaneFixture PaneClickPath(@NotNull IdeFrameFixture ideFrame, @NotNull String anotherModule) {
+    ProjectViewFixture.PaneFixture paneFixture;
+    try {
+      paneFixture = ideFrame.getProjectView().selectProjectPane();
+    }
+    catch (WaitTimedOutError timeout) {
+      throw new RuntimeException(getUiHierarchy(ideFrame), timeout);
+    }
+
+    Wait.seconds(30).expecting("Path is loaded for clicking").until(() -> {
+      try {
+        paneFixture.clickPath(RIGHT_BUTTON, APP_NAME, anotherModule);
+        return true;
+      } catch (LocationUnavailableException e) {
+        return false;
+      }
+    });
+    return paneFixture;
+  }
+
 }
