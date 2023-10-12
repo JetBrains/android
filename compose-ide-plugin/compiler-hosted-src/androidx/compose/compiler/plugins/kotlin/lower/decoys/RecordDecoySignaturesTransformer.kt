@@ -21,7 +21,7 @@ package androidx.compose.compiler.plugins.kotlin.lower.decoys
 import androidx.compose.compiler.plugins.kotlin.ModuleMetrics
 import androidx.compose.compiler.plugins.kotlin.lower.ModuleLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
+import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureFactory
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -42,7 +42,7 @@ class RecordDecoySignaturesTransformer(
   pluginContext: IrPluginContext,
   symbolRemapper: DeepCopySymbolRemapper,
   bindingTrace: BindingTrace,
-  override val signatureBuilder: IdSignatureSerializer,
+  override val signatureBuilder: IdSignatureFactory,
   metrics: ModuleMetrics,
   private val mangler: KotlinMangler.IrMangler
 ) : AbstractDecoysLowering(
