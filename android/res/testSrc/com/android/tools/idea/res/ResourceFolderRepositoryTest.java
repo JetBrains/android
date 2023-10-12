@@ -4717,4 +4717,21 @@ public class ResourceFolderRepositoryTest {
       FolderConfiguration.getConfig(new String[] { "values", "fr" })
     );
   }
+
+  @Test
+  public void reparseLayoutFile() throws Exception {
+    VirtualFile file = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository).isNotNull();
+
+    long generation = repository.getModificationCount();
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1")).isTrue();
+
+    PsiDocumentManager.getInstance(myProject).reparseFiles(List.of(file), true);
+
+    waitForUpdates(repository);
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.LAYOUT, "layout1")).isTrue();
+    assertThat(repository.getModificationCount()).isEqualTo(generation);
+  }
 }

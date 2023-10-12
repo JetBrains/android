@@ -293,7 +293,7 @@ public class AndroidFileChangeListener implements Disposable {
           onFileOrDirectoryRemoved(((VFileDeleteEvent)event).getFile());
         }
         else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+                 ((VFilePropertyChangeEvent)event).isRename()) {
           onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
         }
       }
@@ -315,7 +315,7 @@ public class AndroidFileChangeListener implements Disposable {
           onFileOrDirectoryCreated(moveEvent.getNewParent(), moveEvent.getFile().getName());
         }
         else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+                 ((VFilePropertyChangeEvent)event).isRename()) {
           VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
           VirtualFile parentFile = renameEvent.getFile().getParent();
           if (parentFile != null) {
