@@ -30,6 +30,10 @@ struct DisplayInfo {
       int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags,
       int32_t type, int32_t state) noexcept;
 
+  bool IsValid() const {
+    return logical_size.width != 0 && logical_size.height != 0;
+  }
+
   // Returns the display dimensions in the canonical orientation.
   Size NaturalSize() const {
     return logical_size.Rotated(-rotation);

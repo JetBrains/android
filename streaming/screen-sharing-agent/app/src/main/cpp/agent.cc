@@ -238,7 +238,7 @@ void Agent::SetVideoOrientation(int32_t display_id, int32_t orientation) {
 void Agent::SetVideoOrientationOfInternalDisplays(int32_t orientation) {
   for (auto& it : display_streamers_) {
     DisplayInfo display_info = GetDisplayInfo(it.first);
-    if (display_info.type == DisplayInfo::TYPE_INTERNAL) {
+    if (display_info.IsValid() && display_info.type == DisplayInfo::TYPE_INTERNAL) {
       DisplayStreamer& display_streamer = it.second;
       display_streamer.SetVideoOrientation(orientation);
     }

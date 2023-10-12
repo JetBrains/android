@@ -73,7 +73,8 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
   JObject display_info = display_manager_global_.CallObjectMethod(jni, get_display_info_method_, display_id);
   if (display_info.IsNull()) {
-    Log::Fatal(DISPLAY_MANAGER_ERROR, jni.GetAndClearException(), "Unable to obtain a android.view.DisplayInfo");
+    Log::W(jni.GetAndClearException(), "DisplayManagerGlobal.getDisplayInfo(%d) returned null", display_id);
+    return DisplayInfo();
   }
   if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("display_info=%s", display_info.ToString().c_str());

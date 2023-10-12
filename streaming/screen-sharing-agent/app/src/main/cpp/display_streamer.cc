@@ -261,6 +261,9 @@ void DisplayStreamer::Run() {
                  display_id_, codec_info_->name.c_str());
     }
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
+    if (!display_info.IsValid()) {
+      break;
+    }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
     VirtualDisplay virtual_display;
     JObject display_token;

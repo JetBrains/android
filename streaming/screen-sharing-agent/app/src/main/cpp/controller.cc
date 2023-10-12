@@ -307,6 +307,9 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   }
 
   DisplayInfo display_info = Agent::GetDisplayInfo(message.display_id());
+  if (!display_info.IsValid()) {
+    return;
+  }
 
   for (auto& pointer : message.pointers()) {
     JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
