@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsSigningConfig
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -54,6 +55,8 @@ class SigningConfigsPanel(
         e.presentation.isEnabled = selectedConfigurable != null
       }
 
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
       override fun actionPerformed(e: AnActionEvent) {
         if (Messages.showYesNoDialog(
             e.project,
@@ -76,6 +79,8 @@ class SigningConfigsPanel(
         e.presentation.isEnabled = selectedConfigurable != null
       }
 
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
       override fun actionPerformed(e: AnActionEvent) {
         renameWithDialog(
           "Enter a new name for signing config '${selectedConfigurable?.displayName}':",
@@ -95,6 +100,8 @@ class SigningConfigsPanel(
   override fun getCreateActions(): List<AnAction> {
     return listOf<DumbAwareAction>(
         object : DumbAwareAction("Add Signing Config", "", IconUtil.addIcon) {
+          override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(

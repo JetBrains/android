@@ -32,6 +32,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
@@ -340,13 +341,18 @@ abstract class BasePerspectiveConfigurable protected constructor(
           }
         }
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
     }
+
     val removeModuleAction = object : DumbAwareAction("Remove Module", "Remove module", IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
         if (uiDisposed) return
         super.update(e)
         e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
       override fun actionPerformed(e: AnActionEvent) {
         val module = (selectedObject as? PsModule) ?: return
