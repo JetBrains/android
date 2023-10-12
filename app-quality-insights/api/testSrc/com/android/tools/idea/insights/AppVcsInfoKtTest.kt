@@ -60,8 +60,6 @@ class AppVcsInfoKtTest {
   }
 }
 
-private const val REVISION_74081e5f = "74081e5f56a58788f3243fe8410c4b66e9c7c902"
-
 private val SAMPLE_REPO_BUILDER =
   RepositoryInfo.newBuilder().apply {
     system = VersionControlSystem.GIT

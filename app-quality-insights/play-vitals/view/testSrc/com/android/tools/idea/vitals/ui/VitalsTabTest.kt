@@ -198,13 +198,14 @@ class VitalsTabTest {
         assertThat(findComponent<HyperlinkLabel>()!!.text).isEqualTo("View on Android Vitals")
       }
 
-      // Device, OS Version, Timestamp
+      // Device, OS Version, Timestamp, VCS Commit
       with(FakeUi(rows[2])) {
-        assertThat(findAllComponents<JLabel>().map { it.text })
+        assertThat(findAllComponents<JLabel>().filter { it.isVisible }.map { it.text })
           .containsExactly(
             "Google Pixel 4a",
             "Android 3.1 (API 12)",
-            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime)
+            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime),
+            "74081e5f"
           )
       }
 

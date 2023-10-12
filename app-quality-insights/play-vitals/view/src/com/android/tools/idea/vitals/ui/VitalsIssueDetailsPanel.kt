@@ -41,6 +41,7 @@ import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.shortenEventId
 import com.android.tools.idea.insights.ui.transparentPanel
+import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -179,10 +180,11 @@ class VitalsIssueDetailsPanel(
       maximumSize = preferredSize
     }
 
-  // Device, SDK level, Timestamp
+  // Device, SDK level, Timestamp, VCS Commit
   private val deviceLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN)
   private val affectedApiLevelsLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
   private val timestampLabel = JLabel(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
+  private val commitLabel = VcsCommitLabel()
 
   // Sdk insights
   private val insightsPanel = transparentPanel().apply { layout = BoxLayout(this, Y_AXIS) }
@@ -339,6 +341,8 @@ class VitalsIssueDetailsPanel(
           add(affectedApiLevelsLabel)
           add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
           add(timestampLabel)
+          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(commitLabel)
           add(Box.createHorizontalGlue())
         }
       )
@@ -356,6 +360,8 @@ class VitalsIssueDetailsPanel(
         includeApiLevel = true
       )
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
+
+    commitLabel.updateOnIssueChange(issue)
 
     affectedVersionsLabel.text =
       "Versions affected: ${prettyRangeString(issue.issueDetails.firstSeenVersion, issue.issueDetails.lastSeenVersion)}"

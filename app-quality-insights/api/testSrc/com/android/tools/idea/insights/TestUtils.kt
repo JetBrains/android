@@ -69,8 +69,14 @@ const val NOTE2_BODY = "Update: I managed to reproduce this issue."
 
 val NOW = Instant.parse("2022-06-08T10:00:00Z")
 
+const val REVISION_74081e5f = "74081e5f56a58788f3243fe8410c4b66e9c7c902"
+
 val REPO_INFO =
-  RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
+  RepoInfo(
+    vcsKey = VCS_CATEGORY.TEST_VCS,
+    rootPath = PROJECT_ROOT_PREFIX,
+    revision = REVISION_74081e5f
+  )
 
 val SAMPLE_KEYS = listOf(CustomKey("CSRF_TOKEN", "screen_view"), CustomKey("RAY_ID", "abcdeefg"))
 val SAMPLE_LOGS = listOf(Log(FAKE_10_HOURS_AGO, "fake_log", mapOf("key" to "value")))
