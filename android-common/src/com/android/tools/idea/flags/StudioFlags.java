@@ -1332,6 +1332,17 @@ public final class StudioFlags {
     true);
   // endregion
 
+  // region Wear Health Services
+
+  private static final FlagGroup WEAR_HEALTH_SERVICES = new FlagGroup(FLAGS, "wear.health.services", "Wear Health Services");
+
+  public static final Flag<Boolean> SYNTHETIC_HAL_PANEL = Flag.create(
+    WEAR_HEALTH_SERVICES, "synthetic.hal.panel.enabled", "Enable synthetic HAL panel",
+    "If enabled, a button to display panel for modifying emulator sensors will appear",
+    false
+  );
+  // endregion
+
   // region App Inspection
   private static final FlagGroup APP_INSPECTION = new FlagGroup(FLAGS, "appinspection", "App Inspection");
   public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = Flag.create(
