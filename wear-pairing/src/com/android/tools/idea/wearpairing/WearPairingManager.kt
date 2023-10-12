@@ -320,13 +320,20 @@ class WearPairingManager(
       }
 
       val connectedDevices = getConnectedDevices()
-      connectedDevices[phoneWearPair.phone.deviceID]?.apply {
+      val phoneDevice = connectedDevices[phoneWearPair.phone.deviceID]
+      val wearDevice = connectedDevices[phoneWearPair.wear.deviceID]
+      phoneDevice?.apply {
         LOG.warn("[$name] Remove AUTO-forward")
         runCatching { removeForward(5601) } // Make sure there is no manual connection hanging around
         runCatching { if (phoneWearPair.hostPort > 0) removeForward(phoneWearPair.hostPort) }
+        if (wearDevice?.getCompanionAppIdForWatch() == PIXEL_COMPANION_APP_ID) {
+          // The Pixel OEM app will re-connect via CloudSync even if we unpair. This will ensure
+          // that the data for the Companion app is cleared forcing unpair to happen.
+          runShellCommand("pm clear com.google.android.apps.wear.companion")
+        }
       }
 
-      connectedDevices[phoneWearPair.wear.deviceID]?.apply {
+      wearDevice?.apply {
         LOG.warn("[$name] Remove AUTO-reverse")
         runCatching { removeReverse(5601) }
         if (restartWearGmsCore) {
