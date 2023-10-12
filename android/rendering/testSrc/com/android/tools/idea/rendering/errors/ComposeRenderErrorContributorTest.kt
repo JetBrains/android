@@ -26,23 +26,24 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.rendering.RenderLogger
 import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
+import javax.swing.event.HyperlinkListener
+import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.event.HyperlinkListener
-import kotlin.test.assertNotNull
 
 class ComposeRenderErrorContributorTest {
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
   private val linkManager = StudioHtmlLinkManager()
-  private val nopLinkHandler = HyperlinkListener { }
+  private val nopLinkHandler = HyperlinkListener {}
 
   @Test
   fun `composition local stack trace is found`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
       java.lang.IllegalStateException: Not provided
       	at com.google.adux.shrine.ExpandedCartKt${'$'}provider${'$'}1.invoke(ExpandedCart.kt:219)
       	at com.google.adux.shrine.ExpandedCartKt${'$'}provider${'$'}1.invoke(ExpandedCart.kt:219)
@@ -74,24 +75,32 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
       	at java.base/java.lang.Thread.run(Thread.java:834)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
     assertEquals("Failed to instantiate Composition Local", issues[0].summary)
     assertEquals(
       "This preview was unable to find a <A HREF=\"https://developer.android.com/jetpack/compose/compositionlocal\">CompositionLocal</A>. " +
-      "You might need to define it so it can render correctly.<BR/>" +
-      "<A HREF=\"runnable:0\">Show Exception</A>", issues[0].htmlContent)
+        "You might need to define it so it can render correctly.<BR/>" +
+        "<A HREF=\"runnable:0\">Show Exception</A>",
+      issues[0].htmlContent
+    )
   }
 
   @Test
   fun `preview element not found`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
       java.lang.NoSuchMethodException: Not provided
       	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
       	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:188)
@@ -111,27 +120,36 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
       	at java.base/java.lang.Thread.run(Thread.java:834)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.WARNING, issues[0].severity)
     assertEquals("Unable to find @Preview 'Not provided'", issues[0].summary)
 
     assertBottomPanelEquals(
       issues[0],
-      MessageTip(AllIcons.General.Information, "The preview will display after rebuilding the project.<BR/>" +
-                                               "Tip: <A HREF=\"action:build\">Build</A> the project.")
+      MessageTip(
+        AllIcons.General.Information,
+        "The preview will display after rebuilding the project.<BR/>" +
+          "Tip: <A HREF=\"action:build\">Build</A> the project."
+      )
     )
   }
 
   @Test
   fun `view model usage`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
       java.lang.Throwable: lateinit property okHttpClient has not been initialized
       	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
       	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
@@ -165,26 +183,34 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
-    assertEquals("This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
-                 "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-                 "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
-                 " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
-                 issues[0].htmlContent)
+    assertEquals(
+      "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
+        "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
+        " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+      issues[0].htmlContent
+    )
   }
 
   @Test
   fun `view model usage non-inflate error`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
       java.lang.Throwable: lateinit property okHttpClient has not been initialized
       	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:149)
       	at com.example.jetcaster.Graph.getOkHttpClient(Graph.kt:42)
@@ -218,26 +244,34 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_BROKEN, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_BROKEN, "Error", throwable, null, null)
+      }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.INFORMATION, issues[0].severity)
     assertEquals("Failed to instantiate a ViewModel", issues[0].summary)
-    assertEquals("This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
-                 "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-                 "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
-                 " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
-                 issues[0].htmlContent)
+    assertEquals(
+      "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
+        "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
+        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
+        " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
+      issues[0].htmlContent
+    )
   }
 
   @Test
   fun `compose parameter provider mismatch`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
       java.lang.IllegalArgumentException: argument type mismatch
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
@@ -280,26 +314,35 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.util.concurrent.ThreadPoolExecutor${'$'}Worker.run(ThreadPoolExecutor.java:628)
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("PreviewParameterProvider/@Preview type mismatch.", issues[0].summary)
 
     assertBottomPanelEquals(
       issues[0],
-      MessageTip(AllIcons.General.Information, "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.<BR/>Tip: <A HREF=\"action:build\">Build</A> the project."),
+      MessageTip(
+        AllIcons.General.Information,
+        "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.<BR/>Tip: <A HREF=\"action:build\">Build</A> the project."
+      ),
     )
   }
 
   @Test
   fun `compose preview parameter provider fails to load`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
       java.lang.NoSuchMethodException: com.example.demo.DownloadPreviewParameterProvider.${'$'}FailToLoadPreviewParameterProvider
       	at androidx.compose.ui.tooling.ComposableInvoker.findComposableMethod(ComposableInvoker.kt:83)
       	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.kt:190)
@@ -324,42 +367,55 @@ class ComposeRenderErrorContributorTest {
       	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
       	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:402)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
 
     assertBottomPanelEquals(
       issues[0],
-      MessageTip(AllIcons.General.Error, "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
-                                               "implementation. The IDE logs should contain the full exception stack trace."),
+      MessageTip(
+        AllIcons.General.Error,
+        "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
+          "implementation. The IDE logs should contain the full exception stack trace."
+      ),
     )
   }
 
   @Test
   fun `compose preview timeout exception`() {
-    val throwable = createExceptionFromDesc("""
+    val throwable =
+      createExceptionFromDesc(
+        """
      java.util.concurrent.TimeoutException: The render action was too slow to execute (100000ms)
 
-      """.trimIndent())
-    val logger = RenderLogger(androidProjectRule.project).apply {
-      error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
-    }
+      """
+          .trimIndent()
+      )
+    val logger =
+      RenderLogger(androidProjectRule.project).apply {
+        error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
+      }
 
     assertTrue(isHandledByComposeContributor(throwable))
-    val issues = reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
+    val issues =
+      reportComposeErrors(logger, linkManager, nopLinkHandler, androidProjectRule.project)
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Timeout error", issues[0].summary)
     assertEquals(
       "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code." +
-      "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
+        "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
       issues[0].htmlContent
     )
 
@@ -369,7 +425,10 @@ class ComposeRenderErrorContributorTest {
     )
   }
 
-  private fun assertBottomPanelEquals(issue: RenderErrorModel.Issue, vararg expectedMessageTips: MessageTip) {
+  private fun assertBottomPanelEquals(
+    issue: RenderErrorModel.Issue,
+    vararg expectedMessageTips: MessageTip
+  ) {
     val actualMessageTips = issue.messageTip
     assertNotNull(actualMessageTips)
     assert(actualMessageTips.isNotEmpty())
