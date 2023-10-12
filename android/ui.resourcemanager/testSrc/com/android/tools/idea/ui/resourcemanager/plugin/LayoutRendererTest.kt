@@ -22,7 +22,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
-import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModelImpl
@@ -134,7 +134,7 @@ class LayoutRendererTest {
 }
 
 private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
-  StudioRenderService.getInstance(facet.module.project).taskBuilderWithHtmlLogger(facet, configuration)
+  StudioRenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
     .withPsiFile(PsiXmlFile(xmlFile))
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)
     .disableDecorations()
