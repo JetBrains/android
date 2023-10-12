@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers
 
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.getTokenOrNull
@@ -45,7 +44,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import java.awt.BorderLayout
@@ -65,9 +63,10 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     if (profile !is RunConfiguration) {
       return false
     }
+    val projectSystem = profile.project.getProjectSystem()
     if (StudioFlags.PROFILEABLE_BUILDS.get()) {
       // There are multiple profiler executors. The project's build system determines their applicability.
-      if (profile.project.getProjectSystem().supportsProfilingMode()) {
+      if (projectSystem.supportsProfilingMode()) {
         if (AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(executorId) == null) {
           // Anything other than "Profile with low overhead" and "Profile with complete data" cannot run.
           return false
@@ -78,8 +77,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
         return false
       }
     }
-    val syncState = GradleSyncState.getInstance(profile.project)
-    return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
+    return projectSystem.getSyncManager().run { !isSyncInProgress() && !isSyncNeeded() }
   }
 
   override val supportedConfigurationTypeIds = listOf(
