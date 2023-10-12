@@ -295,12 +295,4 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
     consoleView.println("$dateFormat: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
-
-  override fun applyChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Changes are not supported for Instrumented tests"
-  )
-
-  override fun applyCodeChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Code Changes are not supported for Instrumented tests"
-  )
 }

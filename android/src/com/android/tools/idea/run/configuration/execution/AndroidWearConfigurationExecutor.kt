@@ -50,14 +50,6 @@ abstract class AndroidWearConfigurationExecutor(
   deployer
 ) {
 
-  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
-    throw RuntimeException("Unsupported operation")
-  }
-
-  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor {
-    throw RuntimeException("Unsupported operation")
-  }
-
   override suspend fun startDebugSession(
     device: IDevice,
     applicationContext: ApplicationProjectContext,

@@ -206,12 +206,4 @@ open class GradleAndroidTestRunConfigurationExecutor(
   @VisibleForTesting
   protected open fun gradleConnectedAndroidTestInvoker() =
     GradleConnectedAndroidTestInvoker(env, requireNotNull(GradleUtil.findGradleModuleData(module)?.data))
-
-  override fun applyChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Changes are not supported for Instrumented tests"
-  )
-
-  override fun applyCodeChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Code Changes are not supported for Instrumented tests"
-  )
 }

@@ -175,12 +175,6 @@ class BlazeAndroidConfigurationExecutor(
     myLaunchTasksProvider.startDebugSession(env, device, console, indicator, applicationId).runContentDescriptor
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor =
-    throw UnsupportedOperationException("Apply Changes are not supported for Blaze")
-
-  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor =
-    throw UnsupportedOperationException("Apply Code Changes are not supported for Blaze")
-
   private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView = withContext(uiThread) {
     consoleProvider.createAndAttach(project, processHandler, env.executor)
   }
