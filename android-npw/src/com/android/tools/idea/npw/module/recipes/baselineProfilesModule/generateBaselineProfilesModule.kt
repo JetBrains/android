@@ -48,9 +48,9 @@ const val GENERATOR_CLASS_NAME = "BaselineProfileGenerator"
 const val MACROBENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val BENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val RUN_CONFIGURATION_NAME = "Generate Baseline Profile"
-const val PROFILE_INSTALLER_MIN_REV = "1.3.0-beta01"
-const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-beta05"
-const val MACROBENCHMARK_MIN_REV = "1.2.0-beta01"
+const val PROFILE_INSTALLER_MIN_REV = "1.3.1"
+const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-rc02"
+const val MACROBENCHMARK_MIN_REV = "1.2.0-rc02"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,

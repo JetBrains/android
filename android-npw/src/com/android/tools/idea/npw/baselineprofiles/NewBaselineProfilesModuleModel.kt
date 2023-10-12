@@ -50,7 +50,7 @@ class NewBaselineProfilesModuleModel(
     get() = AndroidStudioEvent.TemplateRenderer.BASELINE_PROFILES_MODULE
 
   val targetModule = OptionalValueProperty<Module>()
-  val useGmd = BoolValueProperty(true)
+  val useGmd = BoolValueProperty(false)
 
   override val renderer: MultiTemplateRenderer.TemplateRenderer
     get() = object : ModuleTemplateRenderer() {

@@ -1,10 +1,10 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
-load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
-load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
 
 java_proto_library(
     name = "android-core-proto",
@@ -436,7 +436,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.0-rc02",
         "@maven//:androidx.compose.foundation.foundation_1.5.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.5.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",

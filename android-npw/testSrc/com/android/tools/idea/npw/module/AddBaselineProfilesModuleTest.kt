@@ -133,8 +133,8 @@ class ConfigureBaselineProfilesModuleStepTest {
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(4, step.targetModuleCombo.itemCount)
     assertTrue(step.useGmdCheck.isEnabled)
-    assertTrue(step.useGmdCheck.isSelected)
-    assertTrue(model.useGmd.get())
+    assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
 
     step.targetModuleCombo.selectedItem = projectRule.project.findModule("automotiveApp")
     assertFalse(step.useGmdCheck.isEnabled)
@@ -153,8 +153,8 @@ class ConfigureBaselineProfilesModuleStepTest {
 
     step.targetModuleCombo.selectedItem = projectRule.project.findAppModule()
     assertTrue(step.useGmdCheck.isEnabled)
-    assertTrue(step.useGmdCheck.isSelected)
-    assertTrue(model.useGmd.get())
+    // Can be true or false depending on GMD selection state.
+    assertEquals(step.useGmdCheck.isSelected, model.useGmd.get())
   }
 
   @Test
@@ -175,8 +175,8 @@ class ConfigureBaselineProfilesModuleStepTest {
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(1, step.targetModuleCombo.itemCount)
     assertTrue(step.useGmdCheck.isEnabled)
-    assertTrue(step.useGmdCheck.isSelected)
-    assertTrue(model.useGmd.get())
+    assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
   }
 
   @Test

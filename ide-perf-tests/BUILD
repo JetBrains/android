@@ -79,7 +79,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.0-rc02",
         "@maven//:androidx.compose.compiler.compiler_1.2.0",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.2.0",

@@ -142,8 +142,8 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.0-beta05",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.0-rc02",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.0-rc02",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",  # TODO(b/273872043) Remove once tests pass without 2.1.3
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
@@ -154,7 +154,7 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
-        "@maven//:androidx.profileinstaller.profileinstaller_1.3.0-beta01",
+        "@maven//:androidx.profileinstaller.profileinstaller_1.3.1",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",

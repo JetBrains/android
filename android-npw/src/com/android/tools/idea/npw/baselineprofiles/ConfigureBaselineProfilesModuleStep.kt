@@ -74,7 +74,7 @@ class ConfigureBaselineProfilesModuleStep(
 
   @VisibleForTesting
   @Suppress("DialogTitleCapitalization")
-  val useGmdCheck = JBCheckBox("Use Gradle Managed Device")
+  val useGmdCheck = JBCheckBox("Use Gradle Managed Device", false)
 
   init {
     bindTargetModule()
@@ -101,10 +101,8 @@ class ConfigureBaselineProfilesModuleStep(
     }
 
     targetModuleCombo.addItemListener { itemEvent ->
-      appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv()?.let {
-        useGmdCheck.isEnabled = !it
-        useGmdCheck.isSelected = !it
-      }
+      useGmdCheck.isEnabled = appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv() == false
+      useGmdCheck.isSelected = false
     }
 
     // Tries to select the first non automotive, tv, wear project
@@ -115,7 +113,7 @@ class ConfigureBaselineProfilesModuleStep(
       ?.let {
         model.targetModule.value = it
         useGmdCheck.isEnabled = true
-        useGmdCheck.isSelected = true
+        useGmdCheck.isSelected = false
       }
 
     // If nothing was selected, then select the first of the list and set `use gmd` false
