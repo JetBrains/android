@@ -15,22 +15,27 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.io.delete
+import com.jetbrains.rd.util.AtomicInteger
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 internal class EmbeddedCompilerClientImplTest {
   @get:Rule
@@ -216,6 +221,50 @@ internal class EmbeddedCompilerClientImplTest {
           "Message",
           (result as CompilationResult.RequestException).e?.message?.trim())
       }
+    }
+  }
+
+  @Test
+  fun `write action aborts current compilation`() = runBlocking {
+    val file = projectRule.fixture.addFileToProject(
+      "src/com/test/Source.kt",
+      """
+        object Test {
+          fun method() {}
+        }
+
+        fun testMethod() {
+        }
+      """.trimIndent())
+
+    val compilationHasStarted = CompletableDeferred<Unit>()
+    val countDownLatch = CountDownLatch(1)
+    val beforeCompileCallCount = AtomicInteger(0)
+    run {
+      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
+                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
+                                                isKotlinPluginBundled = true
+      ) {
+        beforeCompileCallCount.incrementAndGet()
+        compilationHasStarted.complete(Unit)
+        while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+          ProgressManager.checkCanceled()
+        }
+      }
+      launch(workerThread) {
+        compilationHasStarted.await()
+
+        // Trigger a write action that should abort the compilation
+        runWriteActionAndWait {}
+        // Now we can let the compilation proceed in the next attempt
+        countDownLatch.countDown()
+      }
+
+      val outputDirectory = Files.createTempDirectory("out")
+
+      val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+      assertEquals(CompilationResult.Success, result)
+      assertTrue("Write Action should trigger a compilation re-start", beforeCompileCallCount.get() > 1)
     }
   }
 }

@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -36,12 +36,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutionException
 
 private fun Throwable?.isCompilationError(): Boolean =
   this is LiveEditUpdateException
@@ -85,7 +85,7 @@ class EmbeddedCompilerClientImpl private constructor(
   private val project: Project,
   private val log: Logger,
   private val isKotlinPluginBundled: () -> Boolean,
-  private val beforeCompilationStarts: () -> Unit) : CompilerDaemonClient {
+  private val beforeCompilationStarts: suspend () -> Unit) : CompilerDaemonClient {
 
   constructor(project: Project, log: Logger):
     this(project, log, ::isKotlinPluginBundled, {})
@@ -94,7 +94,7 @@ class EmbeddedCompilerClientImpl private constructor(
   constructor(project: Project,
               log: Logger,
               isKotlinPluginBundled: Boolean = true,
-              beforeCompilationStarts: () -> Unit = {}) :
+              beforeCompilationStarts: suspend () -> Unit = {}) :
     this(project, log,
          isKotlinPluginBundled = { isKotlinPluginBundled },
          beforeCompilationStarts = beforeCompilationStarts)
@@ -113,11 +113,11 @@ class EmbeddedCompilerClientImpl private constructor(
    * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
    * will be updated in the given [ProgressIndicator].
    */
-  private fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path, indicator: ProgressIndicator) {
+  private suspend fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
 
-    val generationState = try {
-      ReadAction.nonBlocking(Callable {
+    val generationState =
+      readAction {
         runWithCompileLock {
           beforeCompilationStarts()
 
@@ -161,12 +161,7 @@ class EmbeddedCompilerClientImpl private constructor(
             backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates)
           }
         }
-      })
-        .wrapProgress(indicator)
-        .submit(AndroidExecutors.getInstance().workerThreadExecutor).get()
-    } catch (e: ExecutionException) {
-      throw e.cause!!
-    }
+      }
     log.debug("backCodeGen completed")
 
     generationState.factory.asList().forEach {
@@ -182,11 +177,11 @@ class EmbeddedCompilerClientImpl private constructor(
     module: Module,
     outputDirectory: Path,
     indicator: ProgressIndicator): CompilationResult = coroutineScope {
-    daemonLock.lock(this)
-    return@coroutineScope try {
+    daemonLock.withLock(this) {
       val inputs = files.filterIsInstance<KtFile>().toList()
       val result = CompletableDeferred<CompilationResult>()
       val compilationIndicator = ProgressWrapper.wrap(indicator)
+
 
       // When the coroutine completes, make sure we also stop or cancel the indicator
       // depending on what happened with the co-routine.
@@ -203,7 +198,7 @@ class EmbeddedCompilerClientImpl private constructor(
       }
 
       try {
-        compileKtFiles(inputs, module, outputDirectory = outputDirectory, compilationIndicator)
+        compileKtFiles(inputs, module, outputDirectory = outputDirectory)
         result.complete(CompilationResult.Success)
       }
       catch (t: CancellationException) {
@@ -220,14 +215,12 @@ class EmbeddedCompilerClientImpl private constructor(
             // we can not guarantee Fast Preview to work.
             result.complete(CompilationResult.RequestException(NotUsingKotlinBundledPlugin(t)))
           }
+
           else -> result.complete(CompilationResult.RequestException(t))
         }
       }
 
       result.await()
-    }
-    finally {
-      daemonLock.unlock(this)
     }
   }
 

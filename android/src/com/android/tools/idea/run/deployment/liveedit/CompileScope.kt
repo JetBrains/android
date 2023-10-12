@@ -21,6 +21,9 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
@@ -48,8 +51,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 private fun handleCompilerErrors(e: Throwable): Nothing {
   // These should be rethrown as per the javadoc for ProcessCanceledException. This allows the
@@ -133,7 +134,7 @@ private object CompileScopeImpl : CompileScope {
   /**
    * Lock that ensures that [runWithCompileLock] only allows one execution at a time.
    */
-  val compileLock = ReentrantLock()
+  val compileLock = Semaphore(1)
 
   override fun fetchResolution(project: Project, input: List<KtFile>): ResolutionFacade {
     val kotlinCacheService = KotlinCacheService.getInstance(project)
@@ -265,6 +266,8 @@ private object CompileScopeImpl : CompileScope {
  * phases.
  * Only one caller of this method will have access to the [CompileScope] at the moment.
  */
-fun <T> runWithCompileLock(callable: CompileScope.() -> T) = CompileScopeImpl.compileLock.withLock {
-  CompileScopeImpl.callable()
+fun <T> runWithCompileLock(callable: suspend CompileScope.() -> T) = runBlocking {
+  CompileScopeImpl.compileLock.withPermit {
+    CompileScopeImpl.callable()
+  }
 }
