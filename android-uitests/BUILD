@@ -2428,7 +2428,10 @@ java_test(
 
 java_test(
     name = "UnusedResourceEvaluationTest2",
-    data = COMMON_DATA,
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.UnusedResourceEvaluationTest2"],
     tags = COMMON_TAGS + [
         "no_windows",

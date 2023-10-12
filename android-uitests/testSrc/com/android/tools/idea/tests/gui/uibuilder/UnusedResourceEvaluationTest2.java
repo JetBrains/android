@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -22,11 +23,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RefactorToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RefactoringDialogFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,13 +35,28 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class UnusedResourceEvaluationTest2 {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
   private Path myStringsXmlPath;
 
+  protected static final String BASIC_VIEW_ACTIVITY_TEMPLATE = "Basic Views Activity";
+  protected static final String APP_NAME = "App";
+  protected static final String PACKAGE_NAME = "android.com.app";
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
+
+  private IdeFrameFixture ideFrame;
+
+
   @Before
   public void setUp() {
-    WizardUtils.createNewProject(guiTest, "Basic Views Activity");
+    WizardUtils.createNewProject(guiTest, BASIC_VIEW_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrame = guiTest.ideFrame();
+
+    //Clearing notifications present on the screen.
+    ideFrame.clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
@@ -65,11 +81,6 @@ public class UnusedResourceEvaluationTest2 {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void keepLavoutFiles() throws Exception {
-
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-
-    ideFrame.clearNotificationsPresentOnIdeFrame();
-
     ideFrame.getProjectView().assertFilesExist(
       "app/src/main/res/layout/activity_main.xml",
       "app/src/main/res/layout/content_main.xml",
@@ -90,7 +101,6 @@ public class UnusedResourceEvaluationTest2 {
 
   public void doRefactor() throws InterruptedException {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     ideFrame.invokeMenuPath("Refactor", "Remove Unused Resources...");
 
