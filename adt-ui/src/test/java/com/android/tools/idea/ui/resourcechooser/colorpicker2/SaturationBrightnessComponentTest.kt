@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Color
@@ -24,7 +23,6 @@ import java.awt.event.MouseEvent
 
 class SaturationBrightnessComponentTest {
 
-  @Ignore("b/303116558")
   @Test
   fun testPickColor() {
     val model = ColorPickerModel()
