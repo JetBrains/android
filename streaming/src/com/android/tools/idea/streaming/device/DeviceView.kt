@@ -493,7 +493,8 @@ internal class DeviceView(
     }
   }
 
-  private fun sendMotionEventDisplayCoordinates(p: Point, action: Int, modifiers: Int, button: Int, axisValues: Int2FloatOpenHashMap? = null) {
+  private fun sendMotionEventDisplayCoordinates(
+      point: Point, action: Int, modifiers: Int, button: Int, axisValues: Int2FloatOpenHashMap? = null) {
     if (!isConnected) {
       return
     }
@@ -509,12 +510,13 @@ internal class DeviceView(
     }
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
-          MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0, displayId)
+          MotionEventMessage(originalAndMirroredPointer(point), action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0,
+                             displayId)
       isHardwareInputEnabled() && (action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP) ->
-          MotionEventMessage(originalPointer(p, axisValues), action, buttonState, androidActionButton, displayId)
-      isHardwareInputEnabled() -> MotionEventMessage(originalPointer(p, axisValues), action, buttonState, 0, displayId)
-      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, 0, 0, displayId)
-      else -> MotionEventMessage(originalPointer(p, axisValues), action, 0, 0, displayId)
+          MotionEventMessage(originalPointer(point, axisValues), action, buttonState, androidActionButton, displayId)
+      isHardwareInputEnabled() -> MotionEventMessage(originalPointer(point, axisValues), action, buttonState, 0, displayId)
+      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(point), action, 0, 0, displayId)
+      else -> MotionEventMessage(originalPointer(point, axisValues), action, 0, 0, displayId)
     }
     deviceController?.sendControlMessage(message)
   }
