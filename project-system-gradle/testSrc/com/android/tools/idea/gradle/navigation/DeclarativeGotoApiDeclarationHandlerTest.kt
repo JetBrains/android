@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,6 +37,11 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   @Before
   fun onBefore(){
     StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
+  }
+
+  @After
+  fun tearDown(){
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
   }
 
   @Test
