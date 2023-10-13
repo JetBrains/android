@@ -111,8 +111,6 @@
     <projectViewNodeDecorator id="android.build.node.decorator" implementation="com.android.tools.idea.gradle.projectView.BuildNodeDecorator"/>
     <generatedSourcesFilter implementation="com.android.tools.idea.gradle.roots.AndroidGeneratedSourcesFilter"/>
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider"/>
-    <editorNotificationProvider implementation="com.android.tools.idea.gradle.service.notification.ProjectJarFileTracker$JarFileNotificationProvider"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.service.notification.ProjectJarFileTracker"/>
 
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.sync.idea.data.IdeaSyncCachesInvalidator"/>
     <completion.contributor language="any"
