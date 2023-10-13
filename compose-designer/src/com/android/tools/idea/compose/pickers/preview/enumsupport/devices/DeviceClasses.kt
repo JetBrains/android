@@ -116,7 +116,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[type]?.add(enumValue)
   }
 
-  fun addWearDevice(
+  private fun addWearDevice(
     isRound: Boolean,
     chinSizePx: Int,
     displayName: String
@@ -138,7 +138,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
-  fun addTvDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
+  private fun addTvDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Tv,
       widthPx = widthPx,
@@ -147,7 +147,11 @@ internal class DeviceEnumValueBuilder {
       orientation = Orientation.landscape
     )
 
-  fun addAutoDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
+  private fun addAutoDevice(
+    widthPx: Int,
+    heightPx: Int,
+    diagonalIn: Double
+  ): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Auto,
       widthPx = widthPx,
@@ -177,30 +181,31 @@ internal class DeviceEnumValueBuilder {
   fun addDesktop(device: Device): DeviceEnumValueBuilder =
     addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
 
-  fun addPhoneById(
+  private fun addPhoneById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Phone)
 
-  fun addTabletById(
+  private fun addTabletById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Tablet)
 
-  fun addGenericById(
+  private fun addGenericById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Generic)
 
-  fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder = apply {
-    val enumValue =
-      PsiEnumValue.indented(
-        "$DEVICE_BY_ID_PREFIX$id",
-        displayName,
-        PreviewPickerValue.DEVICE_REF_NONE
-      )
-    deviceEnumValues[type]?.add(enumValue)
-  }
+  private fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder =
+    apply {
+      val enumValue =
+        PsiEnumValue.indented(
+          "$DEVICE_BY_ID_PREFIX$id",
+          displayName,
+          PreviewPickerValue.DEVICE_REF_NONE
+        )
+      deviceEnumValues[type]?.add(enumValue)
+    }
 
   /**
    * The returned [EnumValue]s is guaranteed to contain a set of pre-defined device options.

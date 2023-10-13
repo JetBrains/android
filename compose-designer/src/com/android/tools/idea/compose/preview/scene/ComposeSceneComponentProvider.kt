@@ -78,7 +78,7 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
 
   /** Walks the given list of [SceneComponent] for debugging displaying all children. */
   private fun debugResult(result: List<SceneComponent>, indent: Int = 0): List<SceneComponent> =
-    if (LOG.isDebugEnabled()) {
+    if (LOG.isDebugEnabled) {
       result
     } else {
       result.onEach {
@@ -101,7 +101,7 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
         .getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
         ?.displaySettings
         ?.name
-        ?.let { LOG.debug(" ${it} component=${component} model=${component.model}") }
+        ?.let { LOG.debug(" $it component=${component} model=${component.model}") }
     }
 
     val sceneComponents =

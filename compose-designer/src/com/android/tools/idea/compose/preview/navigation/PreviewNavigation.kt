@@ -110,9 +110,7 @@ fun findNavigatableComponentHit(
 
   if (LOG.isDebugEnabled) {
     LOG.debug("${hits.size} hits found in")
-    hits
-      .filter { it.toNavigatable(module) != null }
-      .forEach { LOG.debug("  Navigatable hit: ${it}") }
+    hits.filter { it.toNavigatable(module) != null }.forEach { LOG.debug("  Navigatable hit: $it") }
   }
 
   return hits.mapNotNull { runReadAction { it.toNavigatable(module) } }.firstOrNull()

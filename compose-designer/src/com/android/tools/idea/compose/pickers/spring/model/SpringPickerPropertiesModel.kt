@@ -80,7 +80,8 @@ internal class SpringPickerPropertiesModel(
  * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known
  * parameters of the annotation.
  */
-internal class SpringPropertiesProvider(val resolvedCall: ResolvedCall<*>) : PsiPropertiesProvider {
+internal class SpringPropertiesProvider(private val resolvedCall: ResolvedCall<*>) :
+  PsiPropertiesProvider {
   private fun addNewValueArgument(
     newValueArgument: KtValueArgument,
     psiFactory: KtPsiFactory
@@ -126,7 +127,8 @@ internal class SpringPropertiesProvider(val resolvedCall: ResolvedCall<*>) : Psi
   }
 }
 
-internal class SpringPropertiesProviderK2(val callElement: KtCallElement) : PsiPropertiesProvider {
+internal class SpringPropertiesProviderK2(private val callElement: KtCallElement) :
+  PsiPropertiesProvider {
   private fun addNewValueArgument(
     newValueArgument: KtValueArgument,
     psiFactory: KtPsiFactory
