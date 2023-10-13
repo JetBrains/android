@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.RenderQualityPolicy
+import com.android.tools.idea.preview.getDefaultPreviewQuality
 
 /**
  * Implementation of [RenderQualityPolicy] specific for Compose Preview. A
@@ -67,5 +67,3 @@ class ComposePreviewRenderQualityPolicy(val screenScalingFactorProvider: () -> D
     active = false
   }
 }
-
-internal fun getDefaultPreviewQuality() = if (EssentialsMode.isEnabled()) 0.75f else 0.95f

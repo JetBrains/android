@@ -161,4 +161,19 @@ class RenderQualityManagerTest {
     tool.targetQuality = 0.35f
     assertFalse(qualityManager.needsQualityChange(sceneManagerMock))
   }
+
+  @Test
+  fun testPause() = runBlocking {
+    tool.errorMargin = 0.2f
+    tool.currentQuality = 0.5f
+
+    tool.targetQuality = 0.75f
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+
+    qualityManager.pause()
+    assertFalse(qualityManager.needsQualityChange(sceneManagerMock))
+
+    qualityManager.resume()
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+  }
 }

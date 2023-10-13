@@ -63,6 +63,7 @@ import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
+import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
@@ -229,12 +230,10 @@ fun configureLayoutlibSceneManager(
     // The Compose Preview has its own way to track out of date files so we ask the Layoutlib
     // Scene Manager to not report it via the regular log.
     doNotReportOutOfDateUserClasses()
+    setQuality(quality)
     if (runAtfChecks || runVisualLinting) {
-      // Visual Linting and ATF need full quality for accurate results.
-      setQuality(getDefaultPreviewQuality())
       setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
     } else {
-      setQuality(quality)
       setCustomContentHierarchyParser(null)
     }
     layoutScannerConfig.isLayoutScannerEnabled = runAtfChecks
@@ -608,6 +607,7 @@ class ComposePreviewRepresentation(
     log.debug(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
+    qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
     surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     withContext(uiThread) {
@@ -631,6 +631,7 @@ class ComposePreviewRepresentation(
   }
 
   private suspend fun onUiCheckPreviewStop() {
+    qualityManager.resume()
     uiCheckFilterFlow.value.basePreviewInstance?.let {
       IssuePanelService.getInstance(project)
         .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
