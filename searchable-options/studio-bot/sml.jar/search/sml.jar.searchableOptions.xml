@@ -30,11 +30,10 @@
     <option name="not" hit=" Do not share information from your codebase" />
     <option name="share" hit=" Do not share information from your codebase" />
     <option name="your" hit=" Do not share information from your codebase" />
-    <option name="ai-based" hit="Enable AI-based inline code completions" />
-    <option name="code" hit="Enable AI-based inline code completions" />
-    <option name="completions" hit="Enable AI-based inline code completions" />
-    <option name="enable" hit="Enable AI-based inline code completions" />
-    <option name="inline" hit="Enable AI-based inline code completions" />
+    <option name="ai" hit="Enable AI code completion" />
+    <option name="code" hit="Enable AI code completion" />
+    <option name="completion" hit="Enable AI code completion" />
+    <option name="enable" hit="Enable AI code completion" />
     <option name="privacy" hit="Privacy Settings" />
     <option name="settings" hit="Privacy Settings" />
     <option name="bot" hit="Studio Bot" />
