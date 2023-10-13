@@ -37,8 +37,8 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.progress.withBackgroundProgress
 import com.intellij.openapi.project.Project
+import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.util.PathUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.guava.await
