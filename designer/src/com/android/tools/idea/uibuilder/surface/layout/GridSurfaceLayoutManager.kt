@@ -276,7 +276,7 @@ open class GridSurfaceLayoutManager(
       nextY = maxBottomInRow + verticalViewDelta
     }
 
-    return positionMap + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
+    return positionMap + content.filterNot { it.isVisible }.associateWith { INVISIBLE_POINT }
   }
 
   /**

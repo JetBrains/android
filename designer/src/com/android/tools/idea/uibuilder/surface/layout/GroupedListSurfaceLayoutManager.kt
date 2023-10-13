@@ -189,7 +189,7 @@ class GroupedListSurfaceLayoutManager(
       nextY += heightMap[view]!!
     }
 
-    content.filterNot { it.isVisible }.forEach { positionMap.setContentPosition(it, -1, -1) }
+    content.filterNot { it.isVisible }.forEach { positionMap[it] = INVISIBLE_POINT }
     return positionMap
   }
 

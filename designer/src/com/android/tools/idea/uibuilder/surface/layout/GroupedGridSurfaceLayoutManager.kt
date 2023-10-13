@@ -276,7 +276,7 @@ class GroupedGridSurfaceLayoutManager(
       val point = getSingleContentPosition(singleContent, availableWidth, availableHeight)
 
       return mapOf(singleContent to point) +
-        content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
+        content.filterNot { it.isVisible }.associateWith { INVISIBLE_POINT }
     }
 
     val groupedViews = transform(content)
@@ -319,7 +319,7 @@ class GroupedGridSurfaceLayoutManager(
       nextGroupY = nextY
     }
 
-    return positionMap + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
+    return positionMap + content.filterNot { it.isVisible }.associateWith { INVISIBLE_POINT }
   }
 
   @SwingCoordinate
