@@ -21,8 +21,6 @@ import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
-import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
@@ -160,6 +158,10 @@ class NavigationResourcesModificationListener(project: Project) :
         subscriber.listener.dispatchResourcesChanged(null)
       }
     }
+
+    fun ensureSubscribed(project: Project) {
+      subscriber.ensureSubscribed()
+    }
   }
 
   private fun dispatchResourcesChanged(module: Module?) {
@@ -175,7 +177,7 @@ class NavigationResourcesModificationListener(project: Project) :
      */
     @TestOnly
     fun ensureSubscribed(project: Project) {
-      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
+      project.getService(Subscriber::class.java).ensureSubscribed(project)
     }
   }
 }

@@ -17,13 +17,12 @@ package com.android.tools.idea.nav.safeargs.module
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
-import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.util.messages.Topic
 import java.util.concurrent.atomic.AtomicReference
 
@@ -56,27 +55,15 @@ class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
     }
 
   init {
-    // As this class is a (lazily instantiated) service, it's possible Gradle was already
+    // As this class is a (lazily instantiated) service, it's possible the project was already
     // initialized before here, so call update immediately just in case.
     updateSafeArgsMode()
-
-    GradleSyncState.subscribe(
-      module.project,
-      object : GradleSyncListener {
-        override fun syncSucceeded(project: Project) {
-          updateSafeArgsMode()
-        }
-
-        override fun syncFailed(project: Project, errorMessage: String) {
-          updateSafeArgsMode()
-        }
-
-        override fun syncSkipped(project: Project) {
-          updateSafeArgsMode()
-        }
-      },
-      this
-    )
+    module.project.messageBus
+      .connect(this)
+      .subscribe(
+        PROJECT_SYSTEM_SYNC_TOPIC,
+        ProjectSystemSyncManager.SyncResultListener { updateSafeArgsMode() }
+      )
   }
 
   private fun updateSafeArgsMode() {
