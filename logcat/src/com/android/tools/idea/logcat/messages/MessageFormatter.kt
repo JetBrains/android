@@ -61,6 +61,8 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
           textAttributes = if (formattingOptions.tagFormat.colorize) logcatColors.getTagColor(tag) else null)
         textAccumulator.accumulate(
           text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid))
+        textAccumulator.accumulate(
+          text = formattingOptions.processNameFormat.format(header.processName, header.pid, previousPid))
 
         formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 

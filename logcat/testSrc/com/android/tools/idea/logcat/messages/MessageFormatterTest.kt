@@ -320,6 +320,27 @@ class MessageFormatterTest {
   }
 
   @Test
+  fun formatMessages_withProcessName() {
+    val textAccumulator = TextAccumulator()
+    formattingOptions.processNameFormat = ProcessNameFormat(enabled = true)
+
+    messageFormatter.formatMessages(
+      formattingOptions,
+      textAccumulator,
+      listOf(
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "process1", "Tag1", TIMESTAMP), "message"),
+        LogcatMessage(LogcatHeader(WARN, 1, 2, "com.example.app1", "process1", "Tag1", TIMESTAMP), "multiline\nmessage"),
+      ))
+
+    assertThat(textAccumulator.text).isEqualTo("""
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                    process1                             W  message
+      1970-01-01 04:00:01.000     1-2     Tag1                    com.example.app1                    process1                             W  multiline
+                                                                                                                                              message
+
+    """.trimIndent())
+  }
+
+  @Test
   fun formatMessages_levelColors() {
     val messages = mutableListOf<LogcatMessage>()
     for (level in LogLevel.values()) {

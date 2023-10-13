@@ -63,24 +63,25 @@ private const val MIN_TAG_LENGTH = 10
 private const val MAX_TAG_LENGTH = 35
 private const val MIN_APP_NAME_LENGTH = 10
 private const val MAX_APP_NAME_LENGTH = 45
+private const val MAX_PROCESS_NAME_LENGTH = 45
 private val previewZoneId = ZoneId.of("GMT")
 private val previewFormatter = MessageFormatter(LogcatColors(), previewZoneId)
 private val previewTimestamp = Instant.from(ZonedDateTime.of(2021, 10, 4, 11, 0, 14, 234000000, previewZoneId))
 private val previewMessages = listOf(
   LogcatMessage(
-    LogcatHeader(LogLevel.DEBUG, 27217, 3814, "com.example.app1", "", "ExampleTag1", previewTimestamp),
+    LogcatHeader(LogLevel.DEBUG, 27217, 3814, "com.example.app1", "com.example.app1:process", "ExampleTag1", previewTimestamp),
     "Sample logcat message 1."
   ),
   LogcatMessage(
-    LogcatHeader(LogLevel.INFO, 27217, 3814, "com.example.app1", "", "ExampleTag1", previewTimestamp),
+    LogcatHeader(LogLevel.INFO, 27217, 3814, "com.example.app1", "com.example.app1:process", "ExampleTag1", previewTimestamp),
     "Sample logcat message 2."
   ),
   LogcatMessage(
-    LogcatHeader(LogLevel.WARN, 24395, 24395, "com.example.app2", "", "ExampleTag2", previewTimestamp),
+    LogcatHeader(LogLevel.WARN, 24395, 24395, "com.example.app2", "com.example.app2:process", "ExampleTag2", previewTimestamp),
     "Sample logcat message 3."
   ),
   LogcatMessage(
-    LogcatHeader(LogLevel.ERROR, 24395, 24395, "com.example.app2", "", "ExampleTag2", previewTimestamp),
+    LogcatHeader(LogLevel.ERROR, 24395, 24395, "com.example.app2", "com.example.app2:process", "ExampleTag2", previewTimestamp),
     "Sample logcat multiline\nmessage."
   ),
 )
@@ -89,6 +90,7 @@ private val MAX_SAMPLE_DOCUMENT_TEXT_LENGTH =
     BOTH.width +
     MAX_TAG_LENGTH + 1 +
     MAX_APP_NAME_LENGTH + 1 +
+    MAX_PROCESS_NAME_LENGTH + 1 +
     3 + 1 +
     "Sample logcat message #.".length
 private const val MAX_PREVIEW_DOCUMENT_BUFFER_SIZE = Int.MAX_VALUE
@@ -130,6 +132,11 @@ internal class LogcatFormatDialog(
   private var showPackage = observableProperty(initialFormatting.formattingOptions.appNameFormat.enabled)
   private var packageWidth = observableProperty(initialFormatting.formattingOptions.appNameFormat.maxLength)
   private var packageShowDuplicates = observableProperty(!initialFormatting.formattingOptions.appNameFormat.hideDuplicates)
+
+  // Process name
+  private var showProcess = observableProperty(initialFormatting.formattingOptions.processNameFormat.enabled)
+  private var processWidth = observableProperty(initialFormatting.formattingOptions.processNameFormat.maxLength)
+  private var processShowDuplicates = observableProperty(!initialFormatting.formattingOptions.processNameFormat.hideDuplicates)
 
   // Preview area
   @VisibleForTesting
@@ -219,8 +226,9 @@ internal class LogcatFormatDialog(
         .align(AlignY.TOP)
         .resizableColumn()
       panel {
-        processGroup()
+        pidGroup()
         packageGroup()
+        processGroup()
       }.align(AlignY.TOP)
         .resizableColumn()
     }.bottomGap(BottomGap.MEDIUM)
@@ -273,7 +281,7 @@ internal class LogcatFormatDialog(
     }
   }
 
-  private fun Panel.processGroup() {
+  private fun Panel.pidGroup() {
     group(LogcatBundle.message("logcat.header.options.process.id.title"), indent = false) {
       row { checkBox(LogcatBundle.message("logcat.header.options.process.id.show.pid")).bindSelected(showPid).named("showPid") }
       indent { row { checkBox(LogcatBundle.message("logcat.header.options.process.id.show.tid")).bindSelected(showTid).named("showTid") } }
@@ -298,6 +306,23 @@ internal class LogcatFormatDialog(
     }
   }
 
+  private fun Panel.processGroup() {
+    group(LogcatBundle.message("logcat.header.options.process.title"), indent = false) {
+      row { checkBox(LogcatBundle.message("logcat.header.options.process.show")).bindSelected(showProcess).named("showPackage") }
+      indent {
+        row {
+          label(LogcatBundle.message("logcat.header.options.process.width")).named("packageWidthLabel")
+          spinner(IntRange(MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH), step = 1).bindIntValue(processWidth).named("processNameWidth")
+        }
+        row {
+          checkBox(LogcatBundle.message("logcat.header.options.process.show.repeated"))
+            .bindSelected(processShowDuplicates)
+            .named("showRepeatedProcessNames")
+        }
+      }.enabledIf(showProcess)
+    }
+  }
+
   private fun applyComponentsToOptions(options: FormattingOptions) {
     if (doNotApplyComponentsToOptions) {
       return
@@ -307,6 +332,7 @@ internal class LogcatFormatDialog(
       processThreadFormat = ProcessThreadFormat(if (showTid.get()) BOTH else PID, showPid.get())
       tagFormat = TagFormat(tagWidth.get(), !tagShowDuplicates.get(), showTag.get(), tagColorize.get())
       appNameFormat = AppNameFormat(packageWidth.get(), !packageShowDuplicates.get(), showPackage.get())
+      processNameFormat = ProcessNameFormat(processWidth.get(), !processShowDuplicates.get(), showProcess.get())
       levelFormat = LevelFormat(showLevel.get())
     }
   }
@@ -330,6 +356,11 @@ internal class LogcatFormatDialog(
       showPackage.set(it.enabled)
       packageWidth.set(it.maxLength)
       packageShowDuplicates.set(!it.hideDuplicates)
+    }
+    options.processNameFormat.let {
+      showProcess.set(it.enabled)
+      processWidth.set(it.maxLength)
+      processShowDuplicates.set(!it.hideDuplicates)
     }
     options.levelFormat.let {
       showLevel.set(it.enabled)

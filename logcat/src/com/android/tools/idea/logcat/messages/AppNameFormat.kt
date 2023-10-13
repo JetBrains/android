@@ -21,10 +21,13 @@ private const val DEFAULT_LENGTH = 35
 private const val MIN_LENGTH = 10
 private const val PREFIX_LEN = 6
 
+internal typealias AppNameFormat = NameFormat
+internal typealias ProcessNameFormat = NameFormat
+
 /**
  * Provides formatting for the app name.
  */
-internal data class AppNameFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
+internal data class NameFormat(val maxLength: Int = DEFAULT_LENGTH, val hideDuplicates: Boolean = false, val enabled: Boolean = true) {
   init {
     assert(maxLength >= MIN_LENGTH)
   }

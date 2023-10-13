@@ -56,14 +56,16 @@ internal class AndroidLogcatFormattingOptions @VisibleForTesting constructor() :
       TimestampFormat(TimestampFormat.Style.DATETIME, enabled = true),
       ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = true),
       TagFormat(maxLength = 23, hideDuplicates = false, enabled = true, colorize = true),
-      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true)
+      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = true),
+      ProcessNameFormat(maxLength = 35, hideDuplicates = false, enabled = false),
     )
 
     val DEFAULT_COMPACT = FormattingOptions(
       TimestampFormat(TimestampFormat.Style.TIME, enabled = true),
       ProcessThreadFormat(ProcessThreadFormat.Style.BOTH, enabled = false),
       TagFormat(maxLength = 23, hideDuplicates = false, enabled = false, colorize = true),
-      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false)
+      AppNameFormat(maxLength = 35, hideDuplicates = false, enabled = false),
+      ProcessNameFormat(maxLength = 35, hideDuplicates = false, enabled = false),
     )
   }
 
