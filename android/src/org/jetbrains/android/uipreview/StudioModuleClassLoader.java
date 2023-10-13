@@ -333,10 +333,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return myImpl.getResource(name);
   }
 
-  public boolean isClassLoaded(@NotNull String className) {
-    return findLoadedClass(className) != null;
-  }
-
   @Override
   protected void onBeforeLoadClass(@NotNull String fqcn) { myDiagnostics.classLoadStart(fqcn); }
 
@@ -376,14 +372,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @TestOnly
   void injectProjectClassFile(@NotNull String fqcn, @NotNull VirtualFile file) {
     myImpl.injectProjectClassFile(fqcn, file);
-  }
-
-  /**
-   * Injects the given [fqcn] as if it had been loaded by the overlay loader. Only for testing.
-   */
-  @TestOnly
-  void injectProjectOvelaryLoadedClass(@NotNull String fqcn) {
-    myImpl.injectProjectOvelaryLoadedClass(fqcn);
   }
 
   /**
