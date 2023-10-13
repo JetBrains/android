@@ -249,12 +249,12 @@ class GalleryTabs<Key : TitledKey>(
             "Gallery Tabs",
             GalleryActionGroup(labelActions.values.toList())
           )
-          .apply { background = Colors.DEFAULT_BACKGROUND_COLOR }
           .component
 
       updateToolbarExecutor.execute {
         centerPanel.add(toolbar, BorderLayout.CENTER)
         previousToolbar = toolbar
+        previousToolbar?.background = Colors.DEFAULT_BACKGROUND_COLOR
         // If selectedKey was removed select first key. If it was only updated (i.e. if a
         // parameter value has changed), we select the new key corresponding to it.
         val newSelectedKey =
