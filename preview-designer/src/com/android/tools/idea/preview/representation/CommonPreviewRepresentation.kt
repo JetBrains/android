@@ -26,7 +26,6 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.log.LoggerWithFixedInfo
-import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
@@ -473,7 +472,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private suspend fun onEnter(mode: PreviewMode) {
     when (mode) {
       is PreviewMode.Default -> {
-        surface.background = Colors.DEFAULT_BACKGROUND_COLOR
         createRefreshJob(invalidate = true)?.join()
         surface.repaint()
       }
@@ -482,6 +480,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       }
       else -> {}
     }
+    surface.background = mode.backgroundColor
   }
 
   private suspend fun startInteractivePreview(element: PreviewElement) {
@@ -491,7 +490,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     singleElementFlow.value = element as T
     createRefreshJob(invalidate = true)?.join()
     interactiveManager.start()
-    surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     ActivityTracker.getInstance().inc()
   }
 

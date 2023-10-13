@@ -17,17 +17,21 @@ package com.android.tools.idea.preview
 
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.JBColor
+import java.awt.Color
 
 object Colors {
 
   /**
-   * Default background used by the surface. This is used to restore the state after disabling the
-   * interactive preview.
+   * Default background used by the surface. This is used to restore the state after exiting the
+   * active modes.
    */
   val DEFAULT_BACKGROUND_COLOR = JBColor(0xFFFFFF, 0x1E1F22)
 
-  /** Background color for the surface while "Interactive" is enabled. */
+  /**
+   * Background color for the surface while some of the active modes are enabled - for example,
+   * Interactive Preview, Animation Preview, UI Check.
+   */
   @Suppress("UnstableApiUsage")
-  val INTERACTIVE_BACKGROUND_COLOR =
+  val ACTIVE_BACKGROUND_COLOR: Color =
     if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
 }

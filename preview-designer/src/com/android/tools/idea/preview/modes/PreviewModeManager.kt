@@ -17,8 +17,10 @@ package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.compose.preview.LayoutMode
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.Colors
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataKey
+import java.awt.Color
 
 /**
  * Interface used for Preview Representations that support [PreviewMode]s. Classes implementing this
@@ -83,9 +85,12 @@ sealed class PreviewMode {
   /** Type if [LayoutMode] to be used with this [PreviewMode]. */
   open val layoutMode: LayoutMode = LayoutMode.Default
 
+  /** Background color. */
+  open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
+
   sealed class Transitive : PreviewMode()
 
-  open class Settable : PreviewMode()
+  open class Settable : PreviewMode() {}
 
   object Default : Settable()
 
@@ -95,15 +100,21 @@ sealed class PreviewMode {
     selected: PreviewElement,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
-  ) : Focus<PreviewElement>(selected)
+  ) : Focus<PreviewElement>(selected) {
+    override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
+  }
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
   class Gallery(selected: PreviewElement) : Focus<PreviewElement>(selected) {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
   }
 
-  class Interactive(selected: PreviewElement) : Focus<PreviewElement>(selected)
+  class Interactive(selected: PreviewElement) : Focus<PreviewElement>(selected) {
+    override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
+  }
 
-  class AnimationInspection(selected: PreviewElement) : Focus<PreviewElement>(selected)
+  class AnimationInspection(selected: PreviewElement) : Focus<PreviewElement>(selected) {
+    override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
+  }
 
   /**
    * The preview is currently transitioning from [currentMode] to [newMode]. If a state needs a

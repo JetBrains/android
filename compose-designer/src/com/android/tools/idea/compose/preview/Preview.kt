@@ -607,8 +607,6 @@ class ComposePreviewRepresentation(
       .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
     interactiveManager.start()
     requestVisibilityAndNotificationsUpdate()
-
-    surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     ActivityTracker.getInstance().inc()
   }
 
@@ -618,7 +616,6 @@ class ComposePreviewRepresentation(
     )
     qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
-    surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     withContext(uiThread) {
       if (
         (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
@@ -1688,7 +1685,6 @@ class ComposePreviewRepresentation(
     when (mode) {
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
-        surface.background = Colors.DEFAULT_BACKGROUND_COLOR
         singlePreviewElementInstance = null
         forceRefresh().join()
         surface.repaint()
@@ -1717,12 +1713,10 @@ class ComposePreviewRepresentation(
             updateAnimationPanelVisibility()
           }
           updateAnimationPanelVisibility()
-          surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
         }
         forceRefresh().join()
       }
       is PreviewMode.Gallery -> {
-        surface.background = Colors.DEFAULT_BACKGROUND_COLOR
         singlePreviewElementInstance = mode.selected as ComposePreviewElementInstance
         withContext(uiThread) {
           val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
@@ -1736,7 +1730,7 @@ class ComposePreviewRepresentation(
       is PreviewMode.Switching,
       is PreviewMode.Settable -> {}
     }
-
+    surface.background = mode.backgroundColor
     withUiContext { currentLayoutMode = mode.layoutMode }
   }
 
