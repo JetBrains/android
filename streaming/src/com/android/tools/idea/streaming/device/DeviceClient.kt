@@ -131,8 +131,6 @@ internal class DeviceClient(
     private set
   val streamingSessionTracker: DeviceStreamingSessionTracker = DeviceStreamingSessionTracker(deviceConfig)
   private val clientScope = AndroidCoroutineScope(this)
-  private lateinit var controlChannel: SuspendingSocketChannel
-  private lateinit var videoChannel: SuspendingSocketChannel
   private val connectionState = AtomicReference<CompletableDeferred<Unit>>()
   private val logger = thisLogger()
   private val agentTerminationListeners = createLockFreeCopyOnWriteList<AgentTerminationListener>()
@@ -197,24 +195,27 @@ internal class DeviceClient(
     val asyncChannel = AsynchronousServerSocketChannel.open().bind(InetSocketAddress(0))
     val port = (asyncChannel.localAddress as InetSocketAddress).port
     logger.debug("Using port $port")
+    var channels: Channels? = null
     SuspendingServerSocketChannel(asyncChannel).use { serverSocketChannel ->
       val socketName = "screen-sharing-agent-$port"
       ClosableReverseForwarding(deviceSelector, SocketSpec.LocalAbstract(socketName), SocketSpec.Tcp(port), adb).use {
         it.startForwarding()
         agentPushed.await()
         startAgent(deviceSelector, adb, socketName, maxVideoSize, initialDisplayOrientation, startVideoStream)
-        connectChannels(serverSocketChannel)
+        channels = connectChannels(serverSocketChannel)
         // Port forwarding can be removed since the already established connections will continue to work without it.
       }
+      channels?.let {
+        try {
+          deviceController = DeviceController(this, it.controlChannel)
+        }
+        catch (e: IncorrectOperationException) {
+          return // Already disposed.
+        }
+        videoDecoder = VideoDecoder(it. videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker)
+            .apply { start(startVideoStream) }
+      }
     }
-    try {
-      deviceController = DeviceController(this, controlChannel)
-    }
-    catch (e: IncorrectOperationException) {
-      return // Already disposed.
-    }
-    videoDecoder =
-        VideoDecoder(videoChannel, clientScope, deviceConfig.deviceProperties, streamingSessionTracker).apply { start(startVideoStream) }
   }
 
   fun addAgentTerminationListener(listener: AgentTerminationListener) {
@@ -262,8 +263,10 @@ internal class DeviceClient(
     }
   }
 
-  private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel) {
-    withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
+  private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel): Channels {
+    return withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
+      var videoChannel: SuspendingSocketChannel? = null
+      var controlChannel: SuspendingSocketChannel? = null
       val channel1 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
       val channel2 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
       // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
@@ -284,6 +287,7 @@ internal class DeviceClient(
         throw RuntimeException("Unexpected channel markers: $m1, $m2")
       }
       controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
+      return@withVerboseTimeout Channels(videoChannel, controlChannel)
     }
   }
 
@@ -475,14 +479,18 @@ internal class DeviceClient(
     }
   }
 
-  private fun onDisconnection() {
+  private suspend fun onDisconnection() {
+    deviceController?.let { Disposer.dispose(it) }
     deviceController = null
+    videoDecoder?.closeChannel()
     videoDecoder = null
     connectionState.set(null)
   }
 
   private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(parentDisposable: Disposable): SuspendingSocketChannel =
       accept().also { Disposer.register(parentDisposable, DisposableCloser(it)) }
+
+  private data class Channels(var videoChannel: SuspendingSocketChannel, var controlChannel: SuspendingSocketChannel)
 
   interface AgentTerminationListener {
     fun agentTerminated(exitCode: Int)
@@ -554,4 +562,4 @@ internal class DeviceClient(
   }
 }
 
-internal class AgentTerminatedException(val exitCode: Int) : RuntimeException()
+internal class AgentTerminatedException(val exitCode: Int) : RuntimeException("Exit code $exitCode")

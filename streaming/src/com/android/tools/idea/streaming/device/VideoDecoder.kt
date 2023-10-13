@@ -172,6 +172,10 @@ internal class VideoDecoder(
     }
   }
 
+  suspend fun closeChannel() {
+    videoChannel.close()
+  }
+
   private suspend fun readChannelHeaderAndInitializeCodec() {
     val header = ByteBuffer.allocate(CHANNEL_HEADER_LENGTH)
     videoChannel.readFully(header)
@@ -218,7 +222,7 @@ internal class VideoDecoder(
 
       try {
         if (av_new_packet(packet, packetSize) != 0) {
-          throw VideoDecoderException("Could not allocate packet")
+          throw VideoDecoderException("Display ${header.displayId}: could not allocate packet of $packetSize bytes")
         }
 
         videoChannel.readFully(packet.data().asByteBufferOfSize(packetSize))
@@ -272,12 +276,13 @@ internal class VideoDecoder(
       var codecContext: AVCodecContext? = null
       var parserContext: AVCodecParserContext? = null
       try {
-        codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
+        codecContext = avcodec_alloc_context3(codec) ?:
+            throw VideoDecoderException("Display $displayId: could not allocate decoder context")
         parserContext = av_parser_init(codec.id())?.apply {
           flags(flags() or PARSER_FLAG_COMPLETE_FRAMES)
-        } ?: throw VideoDecoderException("Could not initialize parser")
+        } ?: throw VideoDecoderException("Display $displayId: could not initialize parser")
         if (avcodec_open2(codecContext, codec, null as AVDictionary?) < 0) {
-          throw VideoDecoderException("Could not open codec ${codec.name()}")
+          throw VideoDecoderException("Display $displayId: could not open codec ${codec.name()}")
         }
       }
       catch (e: VideoDecoderException) {
@@ -338,12 +343,12 @@ internal class VideoDecoder(
         if (hasPendingPacket) {
           offset = pendingPacket.size()
           if (av_grow_packet(pendingPacket, packet.size()) != 0) {
-            throw VideoDecoderException("Could not grow packet")
+            throw VideoDecoderException("Display $displayId: could not grow packet")
           }
         } else {
           offset = 0
           if (av_new_packet(pendingPacket, packet.size()) != 0) {
-            throw VideoDecoderException("Could not create packet")
+            throw VideoDecoderException("Display $displayId: could not create packet for display $displayId")
           }
           hasPendingPacket = true
         }
@@ -397,11 +402,11 @@ internal class VideoDecoder(
     private fun processFrame(packet: AVPacket, header: PacketHeader) {
       val ret = avcodec_send_packet(codecContext, packet)
       if (ret < 0) {
-        throw VideoDecoderException("Video packet was rejected by the decoder: $ret")
+        throw VideoDecoderException("Display $displayId: video packet was rejected by the decoder: $ret")
       }
 
       if (avcodec_receive_frame(codecContext, decodingFrame) != 0) {
-        throw VideoDecoderException("Could not receive video frame")
+        throw VideoDecoderException("Display $displayId: could not receive video frame")
       }
 
       val frameWidth = decodingFrame.width()
@@ -473,7 +478,7 @@ internal class VideoDecoder(
       val context = sws_getCachedContext(swsContext, decodingFrame.width(), decodingFrame.height(), decodingFrame.format(),
                                          renderingFrame.width(), renderingFrame.height(), renderingFrame.format(),
                                          SWS_BILINEAR, null, null, null as DoublePointer?) ?:
-          throw VideoDecoderException("Could not allocate SwsContext")
+          throw VideoDecoderException("Display $displayId: could not allocate SwsContext")
       swsContext = context
       return context
     }

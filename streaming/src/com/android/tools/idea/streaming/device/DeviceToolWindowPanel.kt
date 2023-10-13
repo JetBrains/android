@@ -28,9 +28,9 @@ import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
-import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.core.SplitNode
 import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.StreamingDevicePanel
 import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -173,6 +173,7 @@ internal class DeviceToolWindowPanel(
           ConnectionState.DISCONNECTED -> {
             deviceClient.deviceController?.apply {
               if (displayConfigurator != null) {
+                displayConfigurator.reconfigureDisplayPanels(emptyList())
                 removeDisplayListener(displayConfigurator)
               }
               removeDeviceStateListener(deviceStateListener)
@@ -249,26 +250,25 @@ internal class DeviceToolWindowPanel(
           val displays = deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             if (contentDisposable != null) {
-              displayConfigurationReceived(displays)
+              reconfigureDisplayPanels(displays)
             }
           }
         }
       }
     }
 
-    private fun displayConfigurationReceived(newDisplays: List<DisplayDescriptor>) {
+    fun reconfigureDisplayPanels(newDisplays: List<DisplayDescriptor>) {
       adjustDisplayDescriptors(newDisplays)
       if (newDisplays.size == 1 && displayDescriptors.size <= 1 || newDisplays == displayDescriptors) {
         return
       }
 
-      displayPanels.int2ObjectEntrySet().removeIf { (displayId, displayPanel) ->
-        if (!newDisplays.any { it.displayId == displayId }) {
+      val each = displayPanels.iterator()
+      while (each.hasNext()) {
+        val (displayId, displayPanel) = each.next()
+        if (displayId != PRIMARY_DISPLAY_ID && !newDisplays.any { it.displayId == displayId }) {
+          each.remove()
           Disposer.dispose(displayPanel)
-          true
-        }
-        else {
-          false
         }
       }
       val layoutRoot = computeBestLayout(centerPanel.sizeWithoutInsets, newDisplays.map { it.size })
