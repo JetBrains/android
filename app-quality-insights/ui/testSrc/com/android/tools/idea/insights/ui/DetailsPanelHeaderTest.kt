@@ -15,15 +15,10 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.FakeAppInsightsProjectLevelController
 import com.android.tools.idea.insights.ISSUE1
-import com.android.tools.idea.insights.ISSUE_VARIANT
-import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.Selection
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
-import kotlin.test.assertFailsWith
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -34,11 +29,11 @@ class DetailsPanelHeaderTest {
 
   @Test
   fun `header updates with issue`() {
-    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader()
 
     detailsPanelHeader.size = Dimension(500, 200)
 
-    detailsPanelHeader.updateWithIssue(ISSUE1)
+    detailsPanelHeader.updateWithIssue(ISSUE1.issueDetails)
 
     assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
     assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
@@ -52,42 +47,15 @@ class DetailsPanelHeaderTest {
 
   @Test
   fun `header is shown with bottom border`() {
-    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader()
 
     assertThat(detailsPanelHeader.border.getBorderInsets(detailsPanelHeader).bottom).isEqualTo(1)
-  }
-
-  @Test
-  fun `header passes issue updates to combobox state flow`() {
-    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
-    assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
-
-    detailsPanelHeader.updateWithIssue(ISSUE1)
-    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
-    assertThat(detailsPanelHeader.comboBoxStateFlow.value).isEqualTo(DisabledComboBoxState.loading)
-
-    detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.Ready(Selection.emptySelection()))
-    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
-    assertThat(detailsPanelHeader.comboBoxStateFlow.value).isEqualTo(DisabledComboBoxState.empty)
-
-    val selection = Selection(null, listOf(ISSUE_VARIANT))
-    detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.Ready(selection))
-    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
-    assertThat(detailsPanelHeader.comboBoxStateFlow.value)
-      .isEqualTo(PopulatedComboBoxState(ISSUE1, selection))
-
-    detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.NetworkFailure("failed"))
-    assertThat(detailsPanelHeader.variantPanel.isVisible).isTrue()
-    assertThat(detailsPanelHeader.comboBoxStateFlow.value).isEqualTo(DisabledComboBoxState.failure)
-
-    detailsPanelHeader.clear()
-    assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
   }
 
   @Ignore("b/303112785")
   @Test
   fun `header width affects class name and method name in title label`() {
-    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), true)
+    val detailsPanelHeader = DetailsPanelHeader()
 
     detailsPanelHeader.size = Dimension(300, 200)
     assertThat(detailsPanelHeader.generateTitleLabelText("DetailsPanelTest", "testMethod"))
@@ -100,14 +68,10 @@ class DetailsPanelHeaderTest {
 
   @Test
   fun `header should not show variants if variants not supported`() {
-    val detailsPanelHeader = DetailsPanelHeader(FakeAppInsightsProjectLevelController(), false)
+    val detailsPanelHeader = DetailsPanelHeader()
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
 
-    detailsPanelHeader.updateWithIssue(ISSUE1)
+    detailsPanelHeader.updateWithIssue(ISSUE1.issueDetails)
     assertThat(detailsPanelHeader.variantPanel.isVisible).isFalse()
-
-    assertFailsWith<IllegalArgumentException> {
-      detailsPanelHeader.updateComboBox(ISSUE1, LoadingState.Ready(Selection.emptySelection()))
-    }
   }
 }

@@ -29,7 +29,7 @@ class VcsCommitLabelTest {
     val label = VcsCommitLabel()
 
     // Check valid vcs info case
-    label.updateOnIssueChange(ISSUE1)
+    label.updateOnIssueChange(ISSUE1.sampleEvent.appVcsInfo)
     label.refreshUnderlyingLabels()
 
     assertThat(commitLabel.text).isEqualTo("74081e5f")
@@ -37,16 +37,14 @@ class VcsCommitLabelTest {
     assertThat(tooltip).isNull()
 
     // Check error/debug info case
-    label.updateOnIssueChange(
-      ISSUE1.copy(sampleEvent = ISSUE1.sampleEvent.copy(appVcsInfo = AppVcsInfo.Error("Invalid"))),
-    )
+    label.updateOnIssueChange(AppVcsInfo.Error("Invalid"))
     label.refreshUnderlyingLabels()
     assertThat(commitLabel.text).isEqualTo(NO_DATA)
     assertThat(infoIconForCommitLabel.isVisible).isTrue()
     assertThat(tooltip).isNotNull()
 
     // Check no vcs info case
-    label.updateOnIssueChange(ISSUE2)
+    label.updateOnIssueChange(ISSUE2.sampleEvent.appVcsInfo)
     label.refreshUnderlyingLabels()
     assertThat(commitLabel.text).isEqualTo(NO_DATA)
     assertThat(infoIconForCommitLabel.isVisible).isFalse()

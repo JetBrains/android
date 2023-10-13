@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
-import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppVcsInfo
 import com.intellij.icons.AllIcons
 import com.intellij.ide.HelpTooltip
@@ -44,10 +43,10 @@ class VcsCommitLabel : JPanel() {
     add(infoIconForCommitLabel)
   }
 
-  fun updateOnIssueChange(issue: AppInsightsIssue) {
-    when (val appVcsInfo = issue.sampleEvent.appVcsInfo) {
+  fun updateOnIssueChange(vcsInfo: AppVcsInfo) {
+    when (vcsInfo) {
       is AppVcsInfo.ValidInfo -> {
-        commitLabel.text = HashImpl.build(appVcsInfo.repoInfo.first().revision).toShortString()
+        commitLabel.text = HashImpl.build(vcsInfo.repoInfo.first().revision).toShortString()
 
         HelpTooltip.dispose(infoIconForCommitLabel)
         infoIconForCommitLabel.isVisible = false
@@ -57,7 +56,7 @@ class VcsCommitLabel : JPanel() {
 
         HelpTooltip().apply {
           setTitle("Version control information is missing")
-          setDescription("<html><div width=\"250\">${appVcsInfo.message}</html>")
+          setDescription("<html><div width=\"250\">${vcsInfo.message}</html>")
           installOn(infoIconForCommitLabel)
         }
         infoIconForCommitLabel.isVisible = true

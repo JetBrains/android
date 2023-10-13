@@ -17,68 +17,73 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.IssueVariant
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
-import kotlinx.coroutines.CoroutineScope
+import com.intellij.openapi.Disposable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import org.jetbrains.annotations.VisibleForTesting
 
-/** Represents the different states the variant combobox could have. */
-sealed interface VariantComboBoxState
+const val LOADING_COMBOBOX_MESSAGE = "Loading variants..."
+const val EMPTY_COMBOBOX_MESSAGE = "No variants available."
+const val FAILURE_COMBOBOX_MESSAGE = "Failed to load variants."
 
-data class DisabledComboBoxState(val message: String) : VariantComboBoxState {
-  companion object {
-    val loading = DisabledComboBoxState("Loading variants...")
-    val empty = DisabledComboBoxState("No variants available.")
-    val failure = DisabledComboBoxState("Failed to load variants.")
-  }
-}
-
-data class PopulatedComboBoxState(
-  val issue: AppInsightsIssue,
-  val variants: Selection<IssueVariant>
-) : VariantComboBoxState
-
-class VariantComboBox(scope: CoroutineScope, flow: Flow<VariantComboBoxState>) :
+class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable) :
   CommonComboBox<Row, DefaultCommonComboBoxModel<Row>>(
     DefaultCommonComboBoxModel<Row>("All variants").apply { editable = false }
   ) {
   private var isDisabledIndex = false
   private var currentVariantSelection: Selection<IssueVariant>? = null
+  private val scope = AndroidCoroutineScope(parentDisposable, AndroidDispatchers.uiThread)
 
   init {
     flow
+      .mapNotNull {
+        (it.issues as? LoadingState.Ready)?.value?.value?.selected?.let { issue ->
+          issue to it.currentIssueVariants
+        }
+      }
       .distinctUntilChanged()
-      .onEach { state ->
-        when (state) {
-          is DisabledComboBoxState -> {
-            model.removeAllElements()
-            model.addElement(DisabledTextRow(state.message))
-            model.enabled = false
-          }
-          is PopulatedComboBoxState -> {
-            val variantSize = state.variants.items.size
-            if (currentVariantSelection?.items != state.variants.items) {
-              model.removeAllElements()
-              val allItem = state.issue.toVariantRow(variantSize)
-              model.addElement(HeaderRow)
-              model.addElement(allItem)
-              model.addAll(state.variants.items.map { it.toVariantRow() })
-              model.selectedItem = allItem
-            }
-            if (currentVariantSelection?.selected != state.variants.selected) {
-              if (state.variants.selected == null) {
-                model.selectedItem = state.issue.toVariantRow(variantSize)
-              } else {
-                model.selectedItem = state.variants.selected!!.toVariantRow()
+      .onEach { (issue, variantsLoadingState) ->
+        when (variantsLoadingState) {
+          is LoadingState.Ready -> {
+            val variants = variantsLoadingState.value
+            if (variants?.items.isNullOrEmpty()) {
+              setDisableText(EMPTY_COMBOBOX_MESSAGE)
+            } else {
+              val variantSize = variants!!.items.size
+              if (currentVariantSelection?.items != variants.items) {
+                model.removeAllElements()
+                val allItem = issue.toVariantRow(variantSize)
+                model.addElement(HeaderRow)
+                model.addElement(allItem)
+                model.addAll(variants.items.map { it.toVariantRow() })
+                model.selectedItem = allItem
               }
+              if (currentVariantSelection?.selected != variants.selected) {
+                if (variants.selected == null) {
+                  model.selectedItem = issue.toVariantRow(variantSize)
+                } else {
+                  model.selectedItem = variants.selected!!.toVariantRow()
+                }
+              }
+              currentVariantSelection = variants
+              model.enabled = true
             }
-            currentVariantSelection = state.variants
-            model.enabled = true
+          }
+          is LoadingState.Failure -> {
+            setDisableText(FAILURE_COMBOBOX_MESSAGE)
+          }
+          is LoadingState.Loading -> {
+            setDisableText(LOADING_COMBOBOX_MESSAGE)
           }
         }
       }
@@ -108,6 +113,12 @@ class VariantComboBox(scope: CoroutineScope, flow: Flow<VariantComboBoxState>) :
     } else {
       super.setSelectedItem(anObject)
     }
+  }
+
+  private fun setDisableText(message: String) {
+    model.removeAllElements()
+    model.addElement(DisabledTextRow(message))
+    model.enabled = false
   }
 }
 

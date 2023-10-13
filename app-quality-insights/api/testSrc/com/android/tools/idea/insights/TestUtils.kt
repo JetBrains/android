@@ -338,6 +338,16 @@ val ISSUE_VARIANT =
     event = ISSUE1.sampleEvent
   )
 
+val ISSUE_VARIANT2 =
+  IssueVariant(
+    id = "variant2",
+    sampleEvent = "sample_event_2",
+    uri = "firebase.google.com",
+    impactedDevicesCount = 1,
+    eventsCount = 1,
+    event = ISSUE2.sampleEvent
+  )
+
 // Used for testing cached issues because their counts are zeroed out.
 fun IssueDetails.zeroCounts() = copy(impactedDevicesCount = 0, eventsCount = 0)
 // Used for testing cached issues because their counts are zeroed out.

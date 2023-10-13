@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -25,8 +26,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.diff.DiffManager
 import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.ide.DataManager
-import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.impl.EditorImpl
@@ -35,6 +34,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.EditorMouseFixture
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -46,8 +46,14 @@ import org.mockito.Mockito
 class InsightsTrackerTest {
   private val projectRule = AndroidProjectRule.onDisk()
   private val vcsInsightsRule = InsightsVcsTestRule(projectRule)
+  private val controllerRule = AppInsightsProjectLevelControllerRule(projectRule)
 
-  @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule()).around(vcsInsightsRule)
+  @get:Rule
+  val rule =
+    RuleChain.outerRule(projectRule)
+      .around(EdtRule())
+      .around(vcsInsightsRule)
+      .around(controllerRule)
 
   private lateinit var console: ConsoleViewImpl
   private lateinit var tracker: AppInsightsTracker
@@ -64,20 +70,16 @@ class InsightsTrackerTest {
     ApplicationManager.getApplication()
       .replaceService(DiffManager::class.java, mockDiffManager, projectRule.testRootDisposable)
 
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { dataId ->
-      when {
-        StackTraceConsole.CURRENT_ISSUE.`is`(dataId) -> ISSUE1
-        StackTraceConsole.CURRENT_CONNECTION_MODE.`is`(dataId) -> ConnectionMode.ONLINE
-        else -> null
-      }
-    }
-
     console =
       initConsoleWithFilters(projectRule.project, tracker).apply {
         Disposer.register(projectRule.testRootDisposable, this)
       }
 
-    val listenerForTracking = ListenerForTracking(console, tracker, projectRule.project)
+    val state =
+      MutableStateFlow(
+        StackTraceConsoleState(null, ConnectionMode.ONLINE, ISSUE1, ISSUE1.sampleEvent)
+      )
+    val listenerForTracking = ListenerForTracking(console, tracker, projectRule.project, state)
     editor.addEditorMouseListener(listenerForTracking, projectRule.testRootDisposable)
 
     projectRule.fixture.addClass(

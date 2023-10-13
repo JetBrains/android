@@ -13,117 +13,141 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:OptIn(ExperimentalCoroutinesApi::class)
-
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.concurrency.createChildScope
+import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE_VARIANT
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
+import com.android.tools.idea.insights.TEST_FILTERS
+import com.android.tools.idea.insights.Timed
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import java.time.Instant
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
 class VariantComboBoxTest {
 
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
-  fun `selection of header row is disabled in combobox`() = runTest {
-    val scope = createChildScope()
-    val flow = MutableSharedFlow<VariantComboBoxState>(1)
-    val comboBox = VariantComboBox(scope, flow)
+  fun `selection of header row is disabled in combobox`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
-    flow.emit(PopulatedComboBoxState(ISSUE1, Selection(null, listOf(ISSUE_VARIANT))))
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT)))
+        )
+      )
 
-    advanceUntilIdle()
+      delayUntilCondition(200) { comboBox.model.selectedItem != null }
 
-    val headerRow = comboBox.model.getElementAt(0)
-    assertThat(headerRow).isSameAs(HeaderRow)
-    assertThat(comboBox.selectedIndex).isEqualTo(1)
+      val headerRow = comboBox.model.getElementAt(0)
+      assertThat(headerRow).isSameAs(HeaderRow)
+      assertThat(comboBox.selectedIndex).isEqualTo(1)
 
-    // Verify selected item doesn't change when selecting a header row
-    comboBox.selectedIndex = 0
-    assertThat(comboBox.selectedIndex).isEqualTo(1)
+      // Verify selected item doesn't change when selecting a header row
+      comboBox.selectedIndex = 0
+      assertThat(comboBox.selectedIndex).isEqualTo(1)
 
-    comboBox.selectedItem = headerRow
-    assertThat(comboBox.selectedIndex).isEqualTo(1)
-
-    scope.cancel()
-  }
-
-  @Test
-  fun `combo box shows disabled text when no variants are available`() = runTest {
-    val scope = createChildScope()
-    val flow = MutableSharedFlow<VariantComboBoxState>(1)
-    val comboBox = VariantComboBox(scope, flow)
-
-    flow.emit(DisabledComboBoxState.empty)
-
-    advanceUntilIdle()
-
-    assertThat(comboBox.selectedItem).isEqualTo(DisabledTextRow("No variants available."))
-
-    scope.cancel()
-  }
+      comboBox.selectedItem = headerRow
+      assertThat(comboBox.selectedIndex).isEqualTo(1)
+    }
 
   @Test
-  fun `combo box shows disabled text when variants fail to load`() = runTest {
-    val scope = createChildScope()
-    val flow = MutableSharedFlow<VariantComboBoxState>(1)
-    val comboBox = VariantComboBox(scope, flow)
+  fun `combo box shows disabled text when no variants are available`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
-    flow.emit(DisabledComboBoxState.failure)
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.Ready(Selection.emptySelection())
+        )
+      )
 
-    advanceUntilIdle()
-
-    assertThat(comboBox.selectedItem).isEqualTo(DisabledTextRow("Failed to load variants."))
-
-    scope.cancel()
-  }
-
-  @Test
-  fun `combo box shows loading text when in between requests`() = runTest {
-    val scope = createChildScope()
-    val flow = MutableSharedFlow<VariantComboBoxState>(1)
-    val comboBox = VariantComboBox(scope, flow)
-
-    flow.emit(DisabledComboBoxState.loading)
-
-    advanceUntilIdle()
-
-    assertThat(comboBox.selectedItem).isEqualTo(DisabledTextRow("Loading variants..."))
-
-    scope.cancel()
-  }
+      delayUntilCondition(200) {
+        comboBox.selectedItem == DisabledTextRow("No variants available.")
+      }
+    }
 
   @Test
-  fun `combo box shows selection of variants when they exist`() = runTest {
-    val scope = createChildScope()
-    val flow = MutableSharedFlow<VariantComboBoxState>(1)
-    val comboBox = VariantComboBox(scope, flow)
+  fun `combo box shows disabled text when variants fail to load`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
-    val variant1 = ISSUE_VARIANT
-    val variant2 = ISSUE_VARIANT.copy(id = "variant2")
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.UnknownFailure("failed variants call")
+        )
+      )
 
-    flow.emit(PopulatedComboBoxState(ISSUE1, Selection(variant2, listOf(variant1, variant2))))
+      delayUntilCondition(200) {
+        comboBox.selectedItem == DisabledTextRow("Failed to load variants.")
+      }
+    }
 
-    advanceUntilIdle()
+  @Test
+  fun `combo box shows loading text when in between requests`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
 
-    // Verify list of variants and selected variant.
-    assertThat(comboBox.model.getElementAt(0)).isSameAs(HeaderRow)
-    assertThat(comboBox.model.getElementAt(1)).isEqualTo(ISSUE1.toVariantRow(2))
-    assertThat(comboBox.model.getElementAt(2)).isEqualTo(variant1.toVariantRow())
-    assertThat(comboBox.model.getElementAt(3)).isEqualTo(variant2.toVariantRow())
-    assertThat(comboBox.selectedIndex).isEqualTo(3)
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.Loading
+        )
+      )
 
-    scope.cancel()
-  }
+      delayUntilCondition(200) { comboBox.selectedItem == DisabledTextRow("Loading variants...") }
+    }
+
+  @Test
+  fun `combo box shows selection of variants when they exist`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val flow = MutableSharedFlow<AppInsightsState>(1)
+      val comboBox = VariantComboBox(flow, projectRule.testRootDisposable)
+
+      val variant1 = ISSUE_VARIANT
+      val variant2 = ISSUE_VARIANT.copy(id = "variant2")
+
+      flow.emit(
+        AppInsightsState(
+          connections = Selection.emptySelection(),
+          filters = TEST_FILTERS,
+          issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), Instant.now())),
+          currentIssueVariants = LoadingState.Ready(Selection(variant2, listOf(variant1, variant2)))
+        )
+      )
+
+      delayUntilCondition(200) { comboBox.model.selectedItem != null }
+
+      // Verify list of variants and selected variant.
+      assertThat(comboBox.model.getElementAt(0)).isSameAs(HeaderRow)
+      assertThat(comboBox.model.getElementAt(1)).isEqualTo(ISSUE1.toVariantRow(2))
+      assertThat(comboBox.model.getElementAt(2)).isEqualTo(variant1.toVariantRow())
+      assertThat(comboBox.model.getElementAt(3)).isEqualTo(variant2.toVariantRow())
+      assertThat(comboBox.selectedIndex).isEqualTo(3)
+    }
 }

@@ -165,7 +165,7 @@ class VitalsIssueDetailsPanel(
   @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
 
   // Title
-  private val header = DetailsPanelHeader(controller, false)
+  private val header = DetailsPanelHeader()
 
   // Affected versions
   private val affectedVersionsLabel = JLabel()
@@ -231,7 +231,7 @@ class VitalsIssueDetailsPanel(
           if (issue == null) {
             header.clear()
           } else {
-            header.updateWithIssue(issue)
+            header.updateWithIssue(issue.issueDetails)
           }
         }
     }
@@ -361,7 +361,7 @@ class VitalsIssueDetailsPanel(
       )
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
-    commitLabel.updateOnIssueChange(issue)
+    commitLabel.updateOnIssueChange(issue.sampleEvent.appVcsInfo)
 
     affectedVersionsLabel.text =
       "Versions affected: ${prettyRangeString(issue.issueDetails.firstSeenVersion, issue.issueDetails.lastSeenVersion)}"

@@ -26,4 +26,12 @@ class UiUtilTest {
     assertThat(1230599L.formatNumberToPrettyString()).isEqualTo("1,230,599")
     assertThat(0L.formatNumberToPrettyString()).isEqualTo("-")
   }
+
+  @Test
+  fun shortenEventIdTest() {
+    assertThat("event_123456789".shortenEventId()).isEqualTo("123456789")
+    assertThat("event_123456789012345".shortenEventId()).isEqualTo("123456789012345")
+    assertThat("event_1234567890123456".shortenEventId()).isEqualTo("123456...123456")
+    assertThat("event_12345678901234567890".shortenEventId()).isEqualTo("123456...567890")
+  }
 }

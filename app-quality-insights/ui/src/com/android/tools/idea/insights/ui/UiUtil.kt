@@ -155,5 +155,15 @@ fun prettyRangeString(lower: Any, upper: Any = lower) =
 
 const val DETAIL_PANEL_HORIZONTAL_SPACING = 10
 
+/**
+ * Shortens the full even id to a form friendly for presentation in the UI.
+ *
+ * Vitals event IDs follow the format: sessionId_eventId. If the eventId is longer than 15
+ * characters, it is to be shortened to the 6 prefix and suffix characters with ellipses in between.
+ *
+ * Crashlytics eventIds do not come with the sessionId so the call to substringAfterLast is a noop.
+ */
 fun String.shortenEventId() =
-  substringAfterLast('/').let { it.replaceRange(6..it.length - 7, "...") }
+  substringAfterLast('_').let {
+    if (it.length > 15) it.replaceRange(6..it.length - 7, "...") else it
+  }

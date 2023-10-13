@@ -83,6 +83,13 @@ data class AppInsightsState(
   val selectedIssue: AppInsightsIssue?
     get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
 
+  val selectedVariant: IssueVariant?
+    get() =
+      if (currentIssueVariants is LoadingState.Ready) currentIssueVariants.value?.selected else null
+
+  val selectedEvent: Event?
+    get() = selectedVariant?.event ?: selectedIssue?.sampleEvent
+
   /** Returns a new state with a new [TimeIntervalFilter] selected. */
   fun selectTimeInterval(value: TimeIntervalFilter?): AppInsightsState =
     copy(filters = filters.withTimeInterval(value))
