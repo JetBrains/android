@@ -18,8 +18,12 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.commands.HeapDump
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -30,6 +34,7 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.MemoryProfilerTestUtils
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
@@ -41,19 +46,20 @@ import kotlin.test.assertFailsWith
 
 class HeapDumpTaskHandlerTest {
   private val myTimer = FakeTimer()
-  private val myTransportService = FakeTransportService(myTimer, false)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply {
+    enableTaskBasedUx(true)
+  }
+  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("HeapDumpTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
-  private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var myManager: SessionsManager
   private lateinit var myHeapDumpTaskHandler: HeapDumpTaskHandler
 
   @Before
   fun setup() {
-    ideProfilerServices = FakeIdeProfilerServices()
     myProfilers = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -65,7 +71,6 @@ class HeapDumpTaskHandlerTest {
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
-    ideProfilerServices.enableTaskBasedUx(true)
   }
 
   @Test
@@ -124,6 +129,22 @@ class HeapDumpTaskHandlerTest {
     assertThat(myHeapDumpTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo("There was an error with the Heap Dump task. Error message: Cannot start the task as the " +
                                             "InterimStage was null.")
+  }
+
+  @Test
+  fun testStopTaskSuccessfullyTerminatesTasksSession() {
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.HEAP_DUMP)
+
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.HEAP_DUMP) as HeapDump).apply {
+      dumpStatus = Memory.HeapDumpStatus.Status.SUCCESS
+    }
+    myHeapDumpTaskHandler.setupStage()
+    myHeapDumpTaskHandler.startTask()
+    // Wait for successful end event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Issuing a heap dump command should result in the session terminating as well.
+    assertThat(myManager.isSessionAlive).isFalse()
   }
 
   @Test

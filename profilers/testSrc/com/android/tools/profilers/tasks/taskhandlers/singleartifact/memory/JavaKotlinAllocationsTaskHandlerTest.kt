@@ -18,8 +18,12 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.Memory.TrackStatus
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
@@ -32,6 +36,7 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationStage
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
+import com.android.tools.profilers.memory.MemoryProfilerTestUtils
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.JavaKotlinAllocationsTaskArgs
@@ -44,19 +49,20 @@ import kotlin.test.assertFailsWith
 
 class JavaKotlinAllocationsTaskHandlerTest {
   private val myTimer = FakeTimer()
-  private val myTransportService = FakeTransportService(myTimer, false)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply {
+    enableTaskBasedUx(true)
+  }
+  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("JavaKotlinAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
-  private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var myManager: SessionsManager
   private lateinit var myJavaKotlinAllocationsTaskHandler: JavaKotlinAllocationsTaskHandler
 
   @Before
   fun setup() {
-    ideProfilerServices = FakeIdeProfilerServices()
     myProfilers = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -68,7 +74,6 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
-    ideProfilerServices.enableTaskBasedUx(true)
   }
 
   @Test
@@ -149,6 +154,35 @@ class JavaKotlinAllocationsTaskHandlerTest {
     assertThat(myJavaKotlinAllocationsTaskHandler.stage).isNull()
     assertThat(exception.message).isEqualTo(
       "There was an error with the Java/Kotlin Allocations task. Error message: Cannot start the task as the InterimStage was null.")
+  }
+
+  @Test
+  fun testStopTaskSuccessfullyTerminatesTasksSession() {
+    TaskHandlerTestUtils.startSession(ExposureLevel.DEBUGGABLE, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS)
+    // Set the start allocation tracking status to be successful.
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING) as MemoryAllocTracking).apply {
+      trackStatus = TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).build()
+    }
+    // In order to proceed with the allocation tracking, a MEMORY_ALLOC_TRACKING event is expected with underlying data populated.
+    // This data is faked (as well as the hard coded range) to simulate the data that would normally be fetched in a production scenario.
+    myTransportService.addEventToStream(1234, Common.Event.newBuilder().setPid(1).setKind(
+      Common.Event.Kind.MEMORY_ALLOC_TRACKING).setMemoryAllocTracking(
+      Memory.MemoryAllocTrackingData.newBuilder().setInfo(
+        Memory.AllocationsInfo.newBuilder().setStartTime(0).setEndTime(1).setLegacy(false).build()).build()).build())
+    myProfilers.timeline.dataRange.set(0.0, 1.0)
+
+    myJavaKotlinAllocationsTaskHandler.setupStage()
+    myJavaKotlinAllocationsTaskHandler.startTask()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    // Because the Java/Kotlin task's stop is self-contained within the AllocationStage, we must force stop tracking allocations.
+    MemoryProfilerTestUtils.stopTrackingHelper(myJavaKotlinAllocationsTaskHandler.stage!!, myTransportService, myTimer, 0,
+                                               TrackStatus.Status.SUCCESS, false)
+    // Wait for successful end event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Issuing a stop allocation tracking command should result in the session terminating as well.
+    assertThat(myManager.isSessionAlive).isFalse()
   }
 
   @Test

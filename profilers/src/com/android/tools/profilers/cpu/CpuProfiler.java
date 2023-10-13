@@ -392,6 +392,7 @@ public class CpuProfiler implements StudioProfiler {
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
+      .setSessionId(session.getSessionId())
       .setType(Commands.Command.CommandType.STOP_TRACE)
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.CPU)

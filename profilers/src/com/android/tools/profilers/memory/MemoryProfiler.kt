@@ -77,7 +77,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
   override fun stopProfiling(session: Common.Session) =
     try {
       // Stop any ongoing allocation tracking sessions (either legacy or jvmti-based).
-      trackAllocations(profilers, session, false, null)
+      trackAllocations(profilers, session, false, false, null)
     }
     catch (e: StatusRuntimeException) {
       logger.info(e)
@@ -96,7 +96,7 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
       else -> try {
         // Attempts to stop an existing tracking session.
         // This should only happen if we are restarting Studio and reconnecting to an app that already has an agent attached.
-        trackAllocations(profilers, session, false, null)
+        trackAllocations(profilers, session, false, false, null)
       }
       catch (e: StatusRuntimeException) {
         logger.info(e)
@@ -252,10 +252,12 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         .build()
         .let { client.transportClient.getEventGroups(it).groupsList.map(mapper) }
 
+
     @JvmStatic
     fun trackAllocations(profilers: StudioProfilers,
                          session: Common.Session,
                          enable: Boolean,
+                         endSession: Boolean,
                          responseHandler: Consumer<TrackStatus?>?) {
       val timeNs = profilers.client.transportClient
         .getCurrentTime(TimeRequest.newBuilder().setStreamId(session.streamId).build())
@@ -269,6 +271,10 @@ class MemoryProfiler(private val profilers: StudioProfilers) : StudioProfiler {
         }
         else {
           type = Commands.Command.CommandType.STOP_ALLOC_TRACKING
+          // To indicate to the STOP_ALLOC_TRACKING command handler to end the current session, we set the session id.
+          if (endSession) {
+            sessionId = session.sessionId
+          }
           setStopAllocTracking(Memory.StopAllocTracking.newBuilder().setRequestTime(timeNs))
         }
       }

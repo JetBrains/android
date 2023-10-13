@@ -47,19 +47,20 @@ import kotlin.test.assertFailsWith
 @RunWith(Parameterized::class)
 class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
   private val myTimer = FakeTimer()
-  private val myTransportService = FakeTransportService(myTimer, false)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply {
+    enableTaskBasedUx(true)
+  }
+  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("JavaKotlinMethodTraceTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
-  private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var myManager: SessionsManager
   private lateinit var myJavaKotlinMethodTraceTaskHandler: JavaKotlinMethodTraceTaskHandler
 
   @Before
   fun setup() {
-    ideProfilerServices = FakeIdeProfilerServices()
     myProfilers = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -71,7 +72,6 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
-    ideProfilerServices.enableTaskBasedUx(true)
   }
 
   @Test
@@ -153,6 +153,33 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
     // Wait for successful end event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(myJavaKotlinMethodTraceTaskHandler.stage!!.recordingModel.isRecording).isFalse()
+  }
+
+  @Test
+  fun testStopTaskSuccessfullyTerminatesTaskSession() {
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer,
+                                      Common.ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE)
+    // First start the task successfully.
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
+      .startStatus = Trace.TraceStartStatus.newBuilder()
+      .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
+      .build()
+    myJavaKotlinMethodTraceTaskHandler.setupStage()
+    myJavaKotlinMethodTraceTaskHandler.startTask()
+    assertThat(myManager.isSessionAlive).isTrue()
+
+    // Wait for successful start event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Stop the task successfully.
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_TRACE) as StopTrace)
+      .stopStatus = Trace.TraceStopStatus.newBuilder()
+      .setStatus(Trace.TraceStopStatus.Status.SUCCESS)
+      .build()
+    myJavaKotlinMethodTraceTaskHandler.stopTask()
+    // Wait for successful end event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Issuing a stop trace command should result in the session terminating as well.
+    assertThat(myManager.isSessionAlive).isFalse()
   }
 
   @Test

@@ -27,7 +27,7 @@ import com.android.tools.profiler.proto.Memory
  * specified in |trackStatus|. For the end tracking command, an event (start timestamp + 1) is only added if a start event already
  * exists in the input event list.
  */
-class MemoryAllocTracking(timer: FakeTimer) : CommandHandler(timer) {
+class MemoryAllocTracking(timer: FakeTimer, isTaskBasedUxEnabled: Boolean) : CommandHandler(timer, isTaskBasedUxEnabled) {
   var legacyTracking = false
   var trackStatus = Memory.TrackStatus.getDefaultInstance()
   var lastInfo = Memory.AllocationsInfo.getDefaultInstance()
@@ -81,6 +81,8 @@ class MemoryAllocTracking(timer: FakeTimer) : CommandHandler(timer) {
             info = lastInfo
           }.build()
         }.build())
+
+        addSessionEndedEvent(command, events)
       }
     }
   }

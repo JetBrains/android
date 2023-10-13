@@ -299,6 +299,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
         Common.Session session = sessionItem.getSession().toBuilder().setEndTimestamp(group.getEvents(1).getTimestamp()).build();
         sessionItem.setSession(session);
         sessionStateChanged = true;
+        setProfilingSession(Common.Session.getDefaultInstance());
         LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
                                       myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }

@@ -330,6 +330,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
+      .setSessionId(getSessionData().getSessionId())
       .setType(Commands.Command.CommandType.STOP_TRACE)
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.MEMORY)
@@ -461,6 +462,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
+      .setSessionId(getSessionData().getSessionId())
       .setType(Commands.Command.CommandType.HEAP_DUMP)
       .build();
     CompletableFuture.runAsync(() -> {
@@ -509,7 +511,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enable) {
-    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, status -> {
+    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, true, status -> {
       switch (status.getStatus()) {
         case SUCCESS:
           setTrackingAllocations(enable);

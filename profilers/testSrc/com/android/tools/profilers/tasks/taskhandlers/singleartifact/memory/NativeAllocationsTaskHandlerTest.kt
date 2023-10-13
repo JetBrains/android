@@ -18,8 +18,12 @@ package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.idea.transport.faketransport.commands.StartTrace
+import com.android.tools.idea.transport.faketransport.commands.StopTrace
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionArtifactUtils.createHeapProfdSessionArtifact
@@ -43,19 +47,20 @@ import kotlin.test.assertFailsWith
 @RunWith(Parameterized::class)
 class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLevel){
   private val myTimer = FakeTimer()
-  private val myTransportService = FakeTransportService(myTimer, false)
+  private val ideProfilerServices = FakeIdeProfilerServices().apply {
+    enableTaskBasedUx(true)
+  }
+  private val myTransportService = FakeTransportService(myTimer, false,  ideProfilerServices.featureConfig.isTaskBasedUxEnabled)
 
   @get:Rule
   var myGrpcChannel = FakeGrpcChannel("NativeAllocationsTaskHandlerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
-  private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private lateinit var myManager: SessionsManager
   private lateinit var myNativeAllocationsTaskHandler: NativeAllocationsTaskHandler
 
   @Before
   fun setup() {
-    ideProfilerServices = FakeIdeProfilerServices()
     myProfilers = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),
       ideProfilerServices,
@@ -67,7 +72,6 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
     assertThat(myManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
-    ideProfilerServices.enableTaskBasedUx(true)
   }
 
   @Test
@@ -143,6 +147,28 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // Wait for successful end event to be consumed.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     assertThat(myNativeAllocationsTaskHandler.stage!!.recordingOptionsModel.isRecording).isFalse()
+  }
+
+  @Test
+  fun testStopTaskSuccessfullyTerminatesTaskSession() {
+    TaskHandlerTestUtils.startSession(myExposureLevel, myProfilers, myTransportService, myTimer, Common.ProfilerTaskType.NATIVE_ALLOCATIONS)
+    // First start the task successfully.
+    (myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_TRACE) as StartTrace)
+      .startStatus = Trace.TraceStartStatus.newBuilder()
+      .setStatus(Trace.TraceStartStatus.Status.SUCCESS)
+      .build()
+    myNativeAllocationsTaskHandler.setupStage()
+    myNativeAllocationsTaskHandler.startTask()
+    assertThat(myManager.isSessionAlive).isTrue()
+
+    // Wait for successful start event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Stop the task successfully.
+    myNativeAllocationsTaskHandler.stopTask()
+    // Wait for successful end event to be consumed.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    // Issuing a stop trace command should result in the session terminating as well.
+    assertThat(myManager.isSessionAlive).isFalse()
   }
 
   @Test
