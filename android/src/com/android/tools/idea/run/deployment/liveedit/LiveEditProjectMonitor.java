@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
@@ -22,16 +23,15 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
@@ -180,7 +180,7 @@ public class LiveEditProjectMonitor implements Disposable {
   // LE status remains in Paused state.
   private final Set<String> filesWithCompilationErrors = new HashSet<>();
 
-  private AtomicReference<Long> gradleTimeSync = new AtomicReference<>(Integer.toUnsignedLong(0));
+  private final AtomicReference<Boolean> intermediateSyncs = new AtomicReference<>(Boolean.FALSE);
 
   private final LiveEditCompiler compiler;
 
@@ -210,8 +210,10 @@ public class LiveEditProjectMonitor implements Disposable {
     Precompiler precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
     this.precompileManager = new PrecompileManager(project, precompiler, LOGGER);
 
-    gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
+    project.getMessageBus().connect(this)
+      .subscribe(PROJECT_SYSTEM_SYNC_TOPIC,
+                 (ProjectSystemSyncManager.SyncResultListener)result -> intermediateSyncs.set(Boolean.TRUE));
 
     // TODO: This maze of listeners is complicated. LiveEditDevices should directly implement LiveEditAdbEventsListener.
     deviceWatcher.addListener(liveEditDevices::handleDeviceLifecycleEvents);
@@ -262,8 +264,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO ||
-        gradleTimeSync.get().compareTo(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp()) != 0) {
+    if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
       updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
       return;
     }
@@ -372,7 +373,7 @@ public class LiveEditProjectMonitor implements Disposable {
     // we process our keystrokes {@link #methodChangesExecutor}
     mainThreadExecutor.submit(() -> {
       this.applicationId = applicationId;
-      this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
+      intermediateSyncs.set(Boolean.FALSE);
       resetState();
       deviceWatcher.setApplicationId(applicationId);
 
@@ -427,9 +428,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private void scheduleCompile(KtFile ktFile) {
     mainThreadExecutor.schedule(() -> {
-      GradleSyncState gradleSyncState = GradleSyncState.getInstance(project);
-      if (gradleSyncState.isSyncNeeded() != ThreeState.NO ||
-          gradleTimeSync.get().compareTo(gradleSyncState.getLastSyncFinishedTimeStamp()) != 0) {
+      if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
         updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
         return;
       }
