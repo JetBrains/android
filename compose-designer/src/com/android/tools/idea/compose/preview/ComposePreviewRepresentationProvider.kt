@@ -59,7 +59,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditor
@@ -191,7 +191,7 @@ class ComposePreviewRepresentationProvider(
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() &&
-      (runReadAction { psiFile.getModuleSystem()?.usesCompose ?: false && !psiFile.isInLibrary() })
+      (readAction { psiFile.getModuleSystem()?.usesCompose ?: false && !psiFile.isInLibrary() })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {

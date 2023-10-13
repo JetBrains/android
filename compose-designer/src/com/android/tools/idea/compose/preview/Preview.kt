@@ -101,6 +101,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -1186,10 +1187,10 @@ class ComposePreviewRepresentation(
     val numberOfPreviewsToRender = filteredPreviews.size
     if (log.isDebugEnabled) log.debug("doRefresh of $numberOfPreviewsToRender elements.")
     val psiFile =
-      runReadAction {
+      readAction {
         val element = psiFilePointer.element
 
-        return@runReadAction if (element == null || !element.isValid) {
+        return@readAction if (element == null || !element.isValid) {
           log.warn("doRefresh with invalid PsiFile")
           null
         } else {
@@ -1523,7 +1524,7 @@ class ComposePreviewRepresentation(
           IllegalStateException("Preview File is no valid")
         )
     val previewFileModule =
-      runReadAction { previewFile.module }
+      readAction { previewFile.module }
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File does not have a valid module")
         )
@@ -1532,7 +1533,7 @@ class ComposePreviewRepresentation(
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
-          val modifiedFileModule = runReadAction { modifiedFile.module } ?: return@filter false
+          val modifiedFileModule = readAction { modifiedFile.module } ?: return@filter false
 
           // Keep the file if the file is from this module or from a module we depend on
           modifiedFileModule == previewFileModule ||
