@@ -272,14 +272,14 @@ internal class DeviceController(
   }
 
   private fun deviceStateNameToFoldingStateName(name: String): String {
-    var correctedName = name.removeSuffix("_STATE")
+    var correctedName = name.replaceSuffix("_STATE", "_MODE")
     correctedName = when (correctedName) {
       "CLOSE" -> "CLOSED"
       "OPENED" -> "OPEN"
       "HALF_CLOSED" -> "HALF_OPEN"
       "HALF_FOLDED" -> "HALF_OPEN"
       "HALF_OPENED" -> "HALF_OPEN"
-      "CONCURRENT_INNER_DEFAULT" -> "DUAL_DISPLAYS"
+      "CONCURRENT_INNER_DEFAULT" -> "DUAL_DISPLAY_MODE"
       else -> correctedName
     }
     if (correctedName.startsWith("HALF_")) {
@@ -309,6 +309,10 @@ internal class DeviceController(
     for (listener in displayListeners) {
       listener.onDisplayRemoved(message.displayId)
     }
+  }
+
+  private fun String.replaceSuffix(old: String, new: String): String {
+    return if (endsWith(old)) substring(0, length - old.length) + new else this
   }
 
   internal interface DeviceClipboardListener {

@@ -259,14 +259,14 @@ class DeviceToolWindowPanelTest {
       DeviceFoldingAction(FoldingState(1, "Tent", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
       DeviceFoldingAction(FoldingState(2, "Half-Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
       DeviceFoldingAction(FoldingState(3, "Open", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(4, "Rear Display", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
-      DeviceFoldingAction(FoldingState(5, "Dual Displays",
+      DeviceFoldingAction(FoldingState(4, "Rear Display Mode", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))),
+      DeviceFoldingAction(FoldingState(5, "Dual Display Mode",
                                        EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE, FoldingState.Flag.CANCEL_WHEN_REQUESTER_NOT_ON_TOP))),
       DeviceFoldingAction(FoldingState(6, "Flipped", EnumSet.of(FoldingState.Flag.APP_ACCESSIBLE))))
     for (action in foldingActions) {
       action.update(event)
       assertWithMessage("Unexpected enablement state of the ${action.templateText} action")
-          .that(event.presentation.isEnabled).isEqualTo(action.templateText != "Dual Displays")
+          .that(event.presentation.isEnabled).isEqualTo(action.templateText != "Dual Display Mode")
       assertWithMessage("Unexpected visibility of the ${action.templateText} action").that(event.presentation.isVisible).isTrue()
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
