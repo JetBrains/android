@@ -37,21 +37,24 @@ fun createRenderTaskFuture(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
+  useLayoutScanner: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
 ) =
   createRenderTaskFuture(
-    facet,
-    ComposeAdapterLightVirtualFile(
-      "singlePreviewElement.xml",
-      previewElement.toPreviewXml().buildString()
-    ) {
-      previewElement.previewElementDefinitionPsi?.virtualFile
-    },
-    privateClassLoader,
-    classesToPreload,
-    customViewInfoParser,
-    previewElement::applyTo
+    facet = facet,
+    file =
+      ComposeAdapterLightVirtualFile(
+        "singlePreviewElement.xml",
+        previewElement.toPreviewXml().buildString()
+      ) {
+        previewElement.previewElementDefinitionPsi?.virtualFile
+      },
+    privateClassLoader = privateClassLoader,
+    useLayoutScanner = useLayoutScanner,
+    classesToPreload = classesToPreload,
+    customViewInfoParser = customViewInfoParser,
+    configure = previewElement::applyTo
   )
 
 /**
@@ -63,16 +66,18 @@ fun renderPreviewElementForResult(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
+  useLayoutScanner: Boolean = false,
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
-  executor: Executor = AppExecutorUtil.getAppExecutorService()
+  executor: Executor = AppExecutorUtil.getAppExecutorService(),
 ): CompletableFuture<RenderResult?> {
   val renderTaskFuture =
     createRenderTaskFuture(
-      facet,
-      previewElement,
-      privateClassLoader,
-      emptyList(),
-      customViewInfoParser
+      facet = facet,
+      previewElement = previewElement,
+      privateClassLoader = privateClassLoader,
+      useLayoutScanner = useLayoutScanner,
+      classesToPreload = emptyList(),
+      customViewInfoParser = customViewInfoParser
     )
 
   val renderResultFuture =

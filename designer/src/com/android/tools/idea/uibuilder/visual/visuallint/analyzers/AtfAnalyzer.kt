@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
@@ -44,8 +45,15 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   }
 
   private fun createVisualLintIssueContent(issue: VisualLintAtfIssue): VisualLintIssueContent {
-    val content = { _: Int -> HtmlBuilder().addHtml(issue.description) }
-    return VisualLintIssueContent(issue.component.viewInfo, issue.summary, content)
+    var issueDescription = issue.description
+    var issueSummary = issue.summary
+    if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE) {
+      issueDescription =
+        colorBLindModeDescriptionFirstLine(issue.appliedColorBlindFilter(), issueDescription)
+      issueSummary = colorBlindModeSummaryMessage(issue.appliedColorBlindFilter())
+    }
+    val content = { _: Int -> HtmlBuilder().addHtml(issueDescription) }
+    return VisualLintIssueContent(issue.component.viewInfo, issueSummary, content)
   }
 }
 
@@ -54,3 +62,14 @@ class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atf
     var atfBackground = true
   }
 }
+
+private val colorBlindModeSummaryMessage =
+  { colorBlindFilter: ColorBlindMode,
+    ->
+    "Insufficient color contrast ratio applying ${colorBlindFilter.displayName} filter"
+  }
+
+private val colorBLindModeDescriptionFirstLine =
+  { colorBlindFilter: ColorBlindMode, description: String ->
+    "Colorblind filter ${colorBlindFilter.displayName} have some contrast issues.\n\n$description\""
+  }

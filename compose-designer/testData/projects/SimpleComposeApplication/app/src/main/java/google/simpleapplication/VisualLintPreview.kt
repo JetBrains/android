@@ -15,6 +15,7 @@
  */
 package google.simpleapplication
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.Button
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 
@@ -56,4 +58,24 @@ fun NoVisualLintErrorPreview() {
     Button(onClick = {}) { Text(text = "This is a narrow button") }
     Text(text = "This is a short text")
   }
+}
+
+@Preview
+@Composable
+fun ColorContrastIssuePreview() {
+  val veryDarkGrayColor = Color(0xFF00000F)
+  val blackColor = Color(0xFF000000)
+  Text(
+    color = veryDarkGrayColor,
+    text = "Hello Android!",
+    modifier = Modifier.background(blackColor)
+  )
+}
+
+@Preview
+@Composable
+fun ColorBlindErrorPreview() {
+  val purpleColor = Color(0xFFB3003D)
+  val veryLightColor = Color(0xFFBCD5E2)
+  Text(color = purpleColor, text = "Hello Android!", modifier = Modifier.background(veryLightColor))
 }

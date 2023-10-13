@@ -39,9 +39,10 @@ fun createRenderTaskFuture(
   facet: AndroidFacet,
   file: VirtualFile,
   privateClassLoader: Boolean = false,
+  useLayoutScanner: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
   customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
-  configure: (Configuration) -> Unit = {}
+  configure: (Configuration) -> Unit = {},
 ): CompletableFuture<RenderTask> {
   val project = facet.module.project
 
@@ -69,6 +70,7 @@ fun createRenderTaskFuture(
         }
       }
       .withRenderingMode(SessionParams.RenderingMode.SHRINK)
+      .withLayoutScanner(useLayoutScanner)
       // Compose Preview has its own out-of-date reporting mechanism
       .doNotReportOutOfDateUserClasses()
 

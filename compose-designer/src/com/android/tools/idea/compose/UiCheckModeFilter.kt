@@ -34,6 +34,7 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val DEVICE_CLASS_LANDSCAPE_PHONE_ID = "$DEVICE_CLASS_PHONE_ID-landscape"
 private val idToName =
@@ -114,7 +115,8 @@ sealed class UiCheckModeFilter {
       }
     }
 
-    private companion object {
+    @VisibleForTesting
+    companion object {
       fun calculatePreviews(
         base: ComposePreviewElementInstance
       ): Collection<ComposePreviewElementInstance> {

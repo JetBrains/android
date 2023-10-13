@@ -86,12 +86,13 @@ class ComposeVisualLintSuppressTaskTest {
       }
     val renderTaskFuture =
       createRenderTaskFuture(
-        facet,
-        file,
-        false,
-        emptyList(),
-        accessibilityBasedHierarchyParser,
-        previewElement::applyTo
+        facet = facet,
+        file = file,
+        privateClassLoader = false,
+        useLayoutScanner = false,
+        classesToPreload = emptyList(),
+        customViewInfoParser = accessibilityBasedHierarchyParser,
+        configure = previewElement::applyTo
       )
 
     val renderResultFuture =
