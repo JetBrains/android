@@ -107,6 +107,7 @@ maven_repository(
         "@maven//:androidx.activity.activity-compose_1.7.2",
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
+        "@maven//:androidx.activity.activity-ktx_1.8.0",
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
