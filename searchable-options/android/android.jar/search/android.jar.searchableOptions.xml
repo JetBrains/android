@@ -336,10 +336,35 @@
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
+    <option name="baseline" path="ActionManager" hit="Generate Baseline Profile" />
+    <option name="generate" path="ActionManager" hit="Generate Baseline Profile" />
+    <option name="profile" path="ActionManager" hit="Generate Baseline Profile" />
     <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="a" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="always" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="and" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="app" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="baseline" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="be" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="cannot" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="class" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="done" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="for" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="generate" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="generation" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="is" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="method" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="note" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="or" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="per" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="profile" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="selected" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="single" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="that" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="the" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="hardware" path="ActionManager" hit="Hardware Input" />
     <option name="input" path="ActionManager" hit="Hardware Input" />
     <option name="help" path="ActionManager" hit="Help" />

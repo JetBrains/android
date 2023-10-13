@@ -105,7 +105,6 @@ public final class StudioFlags {
     NPW, "new.baseline.profiles.module", "New Baseline Profile Module",
     "Show template to create a new Baseline Profile module in the new module wizard.",
     true);
-
   public static final Flag<Boolean> NPW_ENABLE_GRADLE_VERSION_CATALOG = Flag.create(
     NPW, "enable.version.catalog", "Enable Gradle Version Catalog",
     "Use Gradle Version Catalogs for dependencies added in the new project/module wizard. (when existing project already uses Version Catalogs for new modules)",
@@ -294,6 +293,13 @@ public final class StudioFlags {
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
     "Changing the value of this flag requires restarting Android Studio.",
     true);
+
+  public static final Flag<Boolean> GENERATE_BASELINE_PROFILE_GUTTER_ICON = Flag.create(
+    RUNDEBUG,
+    "baselineprofile.guttericon.enabled",
+    "Enables generating baseline profiles from gutter icon",
+    "When opening a UI test with applied BaselineProfileRule, an option to generate baseline profiles is shown in the gutter popup.",
+    false);
 
   public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
     RUNDEBUG,
