@@ -335,14 +335,6 @@ public class AndroidStudio implements AutoCloseable {
     }
   }
 
-  /**
-   * @deprecated use {@link #waitForComponentWithExactText(String)} instead
-   */
-  @Deprecated
-  public void waitForComponent(String componentText) {
-    waitForComponentWithExactText(componentText);
-  }
-
   /** Waits for a {@code Component} whose <b>entire</b> text matches {@code componentText}.*/
   public void waitForComponentWithExactText(String componentText) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();

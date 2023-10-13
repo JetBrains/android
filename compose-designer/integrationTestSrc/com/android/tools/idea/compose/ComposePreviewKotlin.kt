@@ -69,7 +69,7 @@ class ComposePreviewKotlin {
       // A build is necessary for Compose Preview to show.
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
-      studio.waitForComponent("DefaultPreview")
+      studio.waitForComponentWithExactText("DefaultPreview")
 
       system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
     }
