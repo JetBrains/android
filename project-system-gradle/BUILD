@@ -73,6 +73,10 @@ iml_module(
             ],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
+        "kts.indexes": {
+            "test_filter": "com.android.tools.idea.gradle.navigation.DeclarativeGotoApiDeclarationHandlerTest",
+            "shard_count": 2,
+        },
         "other": {
             "shard_count": 27,
         },
