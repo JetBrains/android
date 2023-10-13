@@ -54,7 +54,7 @@ object ComposePreviewElementsModel {
     }
 
     /** Filter that selects a single element. */
-    class Single(val instance: ComposePreviewElementInstance) : Filter() {
+    data class Single(val instance: ComposePreviewElementInstance) : Filter() {
       override fun filter(
         input: Collection<ComposePreviewElementInstance>
       ): Collection<ComposePreviewElementInstance> = input.filter { it == instance }

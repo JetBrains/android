@@ -512,23 +512,15 @@ class ComposePreviewRepresentation(
   /**
    * Filter that can be applied to select a single instance. Setting this filter will trigger a
    * refresh.
-   *
-   * TODO(b/290579075): replace this variable with a method
    */
-  private var singlePreviewElementInstance: ComposePreviewElementInstance?
-    get() = (filterFlow.value as? ComposePreviewElementsModel.Filter.Single)?.instance
-    set(newValue) {
-      val previousValue = (filterFlow.value as? ComposePreviewElementsModel.Filter.Single)?.instance
-      if (newValue != previousValue) {
-        log.debug("New instance selection: $newValue")
-        filterFlow.value =
-          if (newValue != null) {
-            ComposePreviewElementsModel.Filter.Single(newValue)
-          } else {
-            ComposePreviewElementsModel.Filter.Disabled
-          }
+  private fun setSingleFilterFlowValue(newValue: ComposePreviewElementInstance?) {
+    filterFlow.value =
+      if (newValue != null) {
+        ComposePreviewElementsModel.Filter.Single(newValue)
+      } else {
+        ComposePreviewElementsModel.Filter.Disabled
       }
-    }
+  }
 
   override val availableGroupsFlow: MutableStateFlow<Set<PreviewGroup.Named>> =
     MutableStateFlow(setOf())
@@ -596,7 +588,7 @@ class ComposePreviewRepresentation(
     // We should call this before assigning the instance to singlePreviewElementInstance
     val quickRefresh = shouldQuickRefresh()
     val peerPreviews = filteredPreviewElementsInstancesFlow.value.size
-    singlePreviewElementInstance = instance
+    setSingleFilterFlowValue(instance)
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
     forceRefresh(if (quickRefresh) RefreshType.QUICK else RefreshType.NORMAL).join()
@@ -1679,7 +1671,7 @@ class ComposePreviewRepresentation(
     when (mode) {
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
-        singlePreviewElementInstance = null
+        setSingleFilterFlowValue(null)
         forceRefresh().join()
         surface.repaint()
       }
@@ -1691,7 +1683,7 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.AnimationInspection -> {
         ComposePreviewAnimationManager.onAnimationInspectorOpened()
-        singlePreviewElementInstance = mode.selected as ComposePreviewElementInstance
+        setSingleFilterFlowValue(mode.selected as ComposePreviewElementInstance)
         sceneComponentProvider.enabled = false
 
         withContext(uiThread) {
@@ -1711,7 +1703,7 @@ class ComposePreviewRepresentation(
         forceRefresh().join()
       }
       is PreviewMode.Gallery -> {
-        singlePreviewElementInstance = mode.selected as ComposePreviewElementInstance
+        setSingleFilterFlowValue(mode.selected as ComposePreviewElementInstance)
         withContext(uiThread) {
           val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
           if (!layoutManager.isLayoutManagerSelected(PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager)) {
