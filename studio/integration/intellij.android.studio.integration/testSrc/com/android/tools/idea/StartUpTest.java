@@ -76,7 +76,7 @@ public class StartUpTest {
         "Copyright",
         "Eclipse Keymap",
         "EditorConfig",
-        "Firebase Direct Access",
+        "Device Streaming",
         "Firebase Services",
         "Firebase Testing",
         "Git for App Insights",
