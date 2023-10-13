@@ -18,10 +18,7 @@ package com.android.tools.idea.uibuilder.visual.analytics
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.analytics.setApplicationId
-import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.VisualLintEvent
@@ -34,18 +31,6 @@ import org.jetbrains.android.facet.AndroidFacet
 interface VisualLintUsageTracker {
   fun trackIssueCreation(issueType: VisualLintErrorType, facet: AndroidFacet) {
     track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet)
-  }
-
-  fun trackIssueExpanded(issue: Issue, facet: AndroidFacet) {
-    val issueType =
-      when (issue) {
-        is VisualLintAtfIssue -> VisualLintErrorType.ATF
-        is VisualLintRenderIssue -> issue.type
-        else -> null
-      }
-    if (issueType != null) {
-      track(VisualLintEvent.IssueEvent.EXPAND_ISSUE, issueType, facet)
-    }
   }
 
   fun trackIssueIgnored(issueType: VisualLintErrorType, facet: AndroidFacet) {
