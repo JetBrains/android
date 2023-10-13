@@ -611,6 +611,17 @@ class ComposePreviewRepresentation(
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
     surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     withContext(uiThread) {
+      if (
+        (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
+          PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager
+        )
+      ) {
+        // Gallery layout does not make sense for UI Check mode. So if coming from Gallery mode,
+        // switch to the default layout.
+        (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(
+          DEFAULT_PREVIEW_LAYOUT_MANAGER
+        )
+      }
       IssuePanelService.getInstance(project).startUiCheck(
         this@ComposePreviewRepresentation,
         instance.instanceId,
@@ -1808,6 +1819,14 @@ class ComposePreviewRepresentation(
       is PreviewMode.Gallery -> {
         surface.background = Colors.DEFAULT_BACKGROUND_COLOR
         singlePreviewElementInstance = mode.selected as ComposePreviewElementInstance
+        withContext(uiThread) {
+          val layoutManager = surface.sceneViewLayoutManager as LayoutManagerSwitcher
+          if (!layoutManager.isLayoutManagerSelected(PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager)) {
+            // The only allowed layout manager for Gallery mode is the one from
+            // PREVIEW_LAYOUT_GALLERY_OPTION
+            layoutManager.setLayoutManager(PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager)
+          }
+        }
       }
       is PreviewMode.Switching,
       is PreviewMode.Settable -> {}
