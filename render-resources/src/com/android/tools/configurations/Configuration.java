@@ -69,8 +69,10 @@ import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -206,6 +208,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
   private boolean myUseThemedIcon = false;
   private Wallpaper myWallpaper = null;
+  private Consumer<BufferedImage> myImageTransformation = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -908,6 +911,26 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   @Nullable
   public String getWallpaperPath() {
     return myWallpaper != null ? myWallpaper.getResourcePath() : null;
+  }
+
+  /**
+   * Sets the consumer that applies a transformation function to the rendered image.
+   *
+   * @param imageTransformation the consumer containing a transformation function to be applied to the rendered image
+   */
+  public void setImageTransformation(@Nullable Consumer<BufferedImage> imageTransformation) {
+    myImageTransformation = imageTransformation;
+  }
+
+
+  /**
+   * Returns the transformation function to apply to the rendered image
+   *
+   * @return the image transformation consumer
+   */
+  @Nullable
+  public Consumer<BufferedImage> getImageTransformation() {
+    return myImageTransformation;
   }
 
   /**

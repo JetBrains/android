@@ -42,7 +42,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Dimension
+import java.awt.image.BufferedImage
 import java.util.Objects
+import java.util.function.Consumer
 import kotlin.math.max
 import kotlin.math.min
 import org.jetbrains.annotations.TestOnly
@@ -102,7 +104,7 @@ private fun PreviewConfiguration.applyTo(
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
   defaultDeviceProvider: (Configuration) -> Device?,
-  @AndroidDpCoordinate customSize: Dimension? = null
+  @AndroidDpCoordinate customSize: Dimension? = null,
 ) {
   fun updateRenderConfigurationTargetIfChanged(newTarget: IAndroidTarget) {
     if (renderConfiguration.target?.hashString() != newTarget.hashString()) {
@@ -111,6 +113,7 @@ private fun PreviewConfiguration.applyTo(
   }
 
   renderConfiguration.startBulkEditing()
+  renderConfiguration.imageTransformation = imageTransformation
   if (apiLevel != UNDEFINED_API_LEVEL) {
     val newTarget =
       renderConfiguration.settings.targets.firstOrNull { it.version.apiLevel == apiLevel }
@@ -187,9 +190,9 @@ fun PreviewConfiguration.applyConfigurationForTest(
   renderConfiguration: Configuration,
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?
+  defaultDeviceProvider: (Configuration) -> Device?,
 ) {
-  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, null)
+  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider)
 }
 
 @TestOnly
@@ -197,7 +200,7 @@ fun ComposePreviewElement.applyConfigurationForTest(
   renderConfiguration: Configuration,
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?
+  defaultDeviceProvider: (Configuration) -> Device?,
 ) {
   configuration.applyTo(
     renderConfiguration,
@@ -220,6 +223,7 @@ internal constructor(
   val uiMode: Int,
   val deviceSpec: String,
   val wallpaper: Int,
+  val imageTransformation: Consumer<BufferedImage>?,
 ) {
   companion object {
     /**
@@ -237,6 +241,7 @@ internal constructor(
       uiMode: Int? = null,
       device: String? = null,
       wallpaper: Int? = null,
+      imageTransformation: Consumer<BufferedImage>? = null,
     ): PreviewConfiguration =
       // We only limit the sizes. We do not limit the API because using an incorrect API level will
       // throw an exception that
@@ -253,6 +258,7 @@ internal constructor(
         uiMode = uiMode ?: 0,
         deviceSpec = device ?: NO_DEVICE_SPEC,
         wallpaper = wallpaper ?: NO_WALLPAPER_SELECTED,
+        imageTransformation = imageTransformation,
       )
   }
 }
@@ -270,7 +276,7 @@ data class PreviewParameter(
   val name: String,
   val index: Int,
   val providerClassFqn: String,
-  val limit: Int
+  val limit: Int,
 )
 
 /** Definition of a Composable preview element */
@@ -350,7 +356,7 @@ class SingleComposePreviewElementInstance(
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-  override val configuration: PreviewConfiguration
+  override val configuration: PreviewConfiguration,
 ) : ComposePreviewElementInstance() {
   override val instanceId: String = methodFqn
 
@@ -365,7 +371,7 @@ class SingleComposePreviewElementInstance(
       showBackground: Boolean = false,
       backgroundColor: String? = null,
       displayPositioning: DisplayPositioning = DisplayPositioning.NORMAL,
-      configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet()
+      configuration: PreviewConfiguration = PreviewConfiguration.cleanAndGet(),
     ) =
       SingleComposePreviewElementInstance(
         composableMethodFqn,
@@ -389,7 +395,7 @@ class ParametrizedComposePreviewElementInstance(
   parameterName: String,
   val providerClassFqn: String,
   val index: Int,
-  val maxIndex: Int
+  val maxIndex: Int,
 ) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
   override val instanceId: String = "$methodFqn#$parameterName$index"
 
@@ -429,7 +435,7 @@ open class ParametrizedComposePreviewElementTemplate(
    * will be populated with data from the parameter providers.
    */
   override fun instances(
-    renderContext: ModuleRenderContext?
+    renderContext: ModuleRenderContext?,
   ): Sequence<ComposePreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
@@ -453,7 +459,7 @@ open class ParametrizedComposePreviewElementTemplate(
 
   private fun loadPreviewParameterProvider(
     classLoader: ClassLoader,
-    previewParameter: PreviewParameter
+    previewParameter: PreviewParameter,
   ): Sequence<ComposePreviewElementInstance> {
     try {
       val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)

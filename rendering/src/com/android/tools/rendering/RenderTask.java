@@ -48,21 +48,21 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
+import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
-import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.rendering.api.IncludeReference;
 import com.android.tools.rendering.api.RenderModelManifest;
 import com.android.tools.rendering.api.RenderModelModule;
-import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.ClassLoaderPreloaderKt;
+import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
-import com.android.tools.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.LayoutPullParsers;
+import com.android.tools.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.rendering.security.RenderSecurityManager;
@@ -651,6 +651,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
+    params.setImageTransformation(configuration.getImageTransformation());
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request

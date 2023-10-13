@@ -54,6 +54,7 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
+import com.android.tools.idea.flags.StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
@@ -82,10 +83,13 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
+import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
@@ -1625,37 +1629,67 @@ class ComposePreviewRepresentation(
                 "spec:parent=${DEVICE_CLASS_PHONE_ID},orientation=landscape" to
                   "${DEVICE_CLASS_PHONE_ID}-landscape",
               )
-          return effectiveDeviceIds.keys
-            .map { device ->
+
+          val composePreviewInstances = mutableListOf<ComposePreviewElementInstance>()
+          composePreviewInstances.addAll(
+            effectiveDeviceIds.keys.map { device ->
               val config = baseConfig.copy(deviceSpec = device)
               val displaySettings =
                 baseDisplaySettings.copy(
                   name = "${baseDisplaySettings.name} - ${effectiveDeviceIds[device]}",
                   group = message("ui.check.mode.screen.size.group"),
-                  showDecoration = true
+                  showDecoration = true,
                 )
-
-              val singleInstance =
-                SingleComposePreviewElementInstance(
-                  base.methodFqn,
-                  displaySettings,
-                  base.previewElementDefinitionPsi,
-                  base.previewBodyPsi,
-                  config
-                )
-              if (base is ParametrizedComposePreviewElementInstance) {
-                ParametrizedComposePreviewElementInstance(
-                  singleInstance,
-                  "",
-                  base.providerClassFqn,
-                  base.index,
-                  base.maxIndex,
-                )
-              } else {
-                singleInstance
-              }
+              base.createDerivedInstance(displaySettings, config)
             }
-            .toList()
+          )
+
+          val isColorBlindModeUICheckEnabled = NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
+          if (isColorBlindModeUICheckEnabled) {
+            composePreviewInstances.addAll(
+              ColorBlindMode.values().map { colorBlindMode ->
+                val colorFilterBaseConfig =
+                  baseConfig.copy(
+                    imageTransformation = { image ->
+                      ColorConverter(colorBlindMode).convert(image, image)
+                    },
+                  )
+                val displaySettings =
+                  baseDisplaySettings.copy(
+                    name = colorBlindMode.displayName,
+                    group = message("ui.check.mode.screen.accessibility.group"),
+                    showDecoration = false,
+                  )
+                base.createDerivedInstance(displaySettings, colorFilterBaseConfig)
+              }
+            )
+          }
+          return composePreviewInstances
+        }
+
+        private fun ComposePreviewElementInstance.createDerivedInstance(
+          displaySettings: PreviewDisplaySettings,
+          config: PreviewConfiguration
+        ): ComposePreviewElementInstance {
+          val singleInstance =
+            SingleComposePreviewElementInstance(
+              methodFqn,
+              displaySettings,
+              previewElementDefinitionPsi,
+              previewBodyPsi,
+              config,
+            )
+          return if (this is ParametrizedComposePreviewElementInstance) {
+            ParametrizedComposePreviewElementInstance(
+              singleInstance,
+              "",
+              providerClassFqn,
+              index,
+              maxIndex,
+            )
+          } else {
+            singleInstance
+          }
         }
       }
     }
