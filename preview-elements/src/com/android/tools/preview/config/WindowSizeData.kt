@@ -35,12 +35,6 @@ data class WindowSizeData(val id: String, val name: String, val widthDp: Double,
  */
 internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 160.0)).roundToInt()
 
-/**
- * Convert dp to px.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Int.toPx(density: Density): Int = this.toDouble().toPx(density)
-
 val DeviceWindowsNames = mapOf(
   DEVICE_CLASS_PHONE_ID to "Medium Phone",
   DEVICE_CLASS_FOLDABLE_ID to "Foldable",
