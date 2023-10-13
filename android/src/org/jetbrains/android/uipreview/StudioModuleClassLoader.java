@@ -47,6 +47,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -287,7 +288,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     Module module = getModule();
     if (module == null) return true;
 
-    List<Path> currentlyLoadedLibraries = myImpl.getExternalLibraries();
+    Set<Path> currentlyLoadedLibraries = new HashSet<>(myImpl.getExternalLibraries());
     List<Path> moduleLibraries = ModuleClassLoaderUtil.getExternalLibraries(module);
 
     return currentlyLoadedLibraries.size() == moduleLibraries.size() &&
