@@ -82,15 +82,13 @@ sealed class ProjectStatus {
    * preview should be ok dealing with that. However, adding or removing a resource will always
    * require a rebuild since the R class needs to change.
    *
-   * @param isCodeOutOfDate true if the code is out of date.
    * @param areResourcesOutOfDate true if resources might be out of date.
    */
   sealed class OutOfDate
-  private constructor(val isCodeOutOfDate: Boolean, val areResourcesOutOfDate: Boolean) :
+  private constructor(val areResourcesOutOfDate: Boolean) :
     ProjectStatus() {
-    object Code : OutOfDate(true, false)
-    object Resources : OutOfDate(false, true)
-    object CodeAndResources : OutOfDate(true, true)
+    object Code : OutOfDate(false)
+    object Resources : OutOfDate(true)
   }
 
   /** The project is compiled and up to date */
@@ -239,11 +237,8 @@ private class ProjectBuildStatusManagerImpl(
           currentProjectBuildStatus == ProjectBuildStatus.NotReady -> ProjectStatus.NotReady
           currentProjectBuildStatus == ProjectBuildStatus.Building || isFastPreviewCompiling -> ProjectStatus.Building
           currentProjectBuildStatus == ProjectBuildStatus.NeedsBuild -> ProjectStatus.NeedsBuild
-          isCodeOutOfDate || areResourcesOutOfDate ->
-            if (isCodeOutOfDate) {
-              if (areResourcesOutOfDate) ProjectStatus.OutOfDate.CodeAndResources
-              else ProjectStatus.OutOfDate.Code
-            } else ProjectStatus.OutOfDate.Resources
+          areResourcesOutOfDate -> ProjectStatus.OutOfDate.Resources
+          isCodeOutOfDate -> ProjectStatus.OutOfDate.Code
           else -> ProjectStatus.Ready
         }
       }
