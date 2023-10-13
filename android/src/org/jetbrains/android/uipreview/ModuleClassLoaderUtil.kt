@@ -328,11 +328,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   fun getResource(name: String): URL? = externalLibrariesClassLoader.getResource(name)
 
   /**
-   * Finds the [VirtualFile] for the `.class` associated to the given [fqcn].
-   */
-  fun findClassVirtualFile(fqcn: String): VirtualFile? = projectSystemLoader.findClassVirtualFile(fqcn)
-
-  /**
    * Injects the given [virtualFile] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
    */
   @TestOnly
@@ -340,14 +335,6 @@ internal class ModuleClassLoaderImpl(module: Module,
     recordFirstLoadModificationCount()
     _projectLoadedClassNames.add(fqcn)
     projectSystemLoader.injectClassFile(fqcn, virtualFile)
-  }
-
-  /**
-   * Injects the given [fqcn] as if it had been loaded by the overlay loader. Only for testing.
-   */
-  @TestOnly
-  fun injectProjectOvelaryLoadedClass(fqcn: String) {
-    recordOverlayLoadedClass(fqcn)
   }
 
   override fun dispose() {
