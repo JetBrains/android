@@ -73,7 +73,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   model, message("android.wizard.project.new.choose")
 ) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
-  private val tabsPanel = CommonTabbedPane()
   private val leftList = JBList<FormFactorInfo>()
   private val rightPanel = JPanel(BorderLayout())
   private val listEntriesListeners = ListenerManager()
@@ -88,11 +87,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
       ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf())
     )
-  }
-
-  private fun createUIComponents() {
-    loadingPanel = JBLoadingPanel(BorderLayout(), this, ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS)
-    loadingPanel.setLoadingText("Loading Android project template files")
   }
 
   override fun onWizardStarting(wizard: Facade) {
