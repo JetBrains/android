@@ -21,6 +21,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+
 #include <android/input.h>
 
 #include "accessors/display_info.h"
