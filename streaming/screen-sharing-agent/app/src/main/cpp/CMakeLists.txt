@@ -31,6 +31,7 @@ add_library(
         agent.cc
         base128_input_stream.cc
         base128_output_stream.cc
+        concurrent_list.cc
         control_messages.cc
         controller.cc
         display_streamer.cc

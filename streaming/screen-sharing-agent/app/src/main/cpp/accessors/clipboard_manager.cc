@@ -76,10 +76,10 @@ void ClipboardManager::RemoveClipboardListener(ClipboardListener* listener) {
   }
 }
 
-void ClipboardManager::OnPrimaryClipChanged() const {
-  for (auto listener : clipboard_listeners_.Get()) {
+void ClipboardManager::OnPrimaryClipChanged() {
+  clipboard_listeners_.ForEach([](auto listener) {
     listener->OnPrimaryClipChanged();
-  }
+  });
 }
 
 extern "C"

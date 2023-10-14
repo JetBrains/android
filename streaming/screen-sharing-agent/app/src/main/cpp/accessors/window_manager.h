@@ -16,10 +16,8 @@
 
 #pragma once
 
-#include <memory>
-#include <set>
-
 #include "common.h"
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -53,8 +51,8 @@ private:
   jmethodID is_rotation_frozen_method_;
   std::atomic_int32_t rotation_;
   JObject watcher_object_;
-  // Copy-on-write set of display_rotation watchers.
-  std::atomic<std::set<RotationWatcher*>*> rotation_watchers_;
+  // List of display rotation watchers.
+  ConcurrentList<RotationWatcher> rotation_watchers_;
 
   DISALLOW_COPY_AND_ASSIGN(WindowManager);
 };

@@ -20,7 +20,7 @@
 
 #include "accessors/display_info.h"
 #include "accessors/virtual_display.h"
-#include "copy_on_write_list.h"
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -84,7 +84,7 @@ private:
   static jmethodID create_virtual_display_method_;
 
   // List of display listeners.
-  static CopyOnWriteList<DisplayListener*> display_listeners_;
+  static ConcurrentList<DisplayListener> display_listeners_;
 
   static DisplayListenerDispatcher* display_listener_dispatcher_;
 

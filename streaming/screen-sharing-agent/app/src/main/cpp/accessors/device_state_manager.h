@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "copy_on_write_list.h"
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -72,7 +72,7 @@ private:
   static JClass binder_class_;  // GUARDED_BY(static_initialization_mutex_)
   static jmethodID binder_constructor_;  // GUARDED_BY(static_initialization_mutex_)
   // List of device state listeners.
-  static CopyOnWriteList<DeviceStateListener*> device_state_listeners_;
+  static ConcurrentList<DeviceStateListener> device_state_listeners_;
 
   static std::mutex state_mutex_;
   static int32_t current_base_state_;  // GUARDED_BY(state_mutex_)

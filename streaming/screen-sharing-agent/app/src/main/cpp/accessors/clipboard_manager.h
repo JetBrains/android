@@ -18,11 +18,8 @@
 
 #include <android/input.h>
 
-#include <memory>
-#include <vector>
-
 #include "common.h"
-#include "copy_on_write_list.h"
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -43,7 +40,7 @@ public:
   void AddClipboardListener(ClipboardListener* listener);
   void RemoveClipboardListener(ClipboardListener* listener);
 
-  void OnPrimaryClipChanged() const;
+  void OnPrimaryClipChanged();
 
 private:
   ClipboardManager(Jni jni);
@@ -56,7 +53,7 @@ private:
   jmethodID enable_primary_clip_changed_listener_method_;
   jmethodID disable_primary_clip_changed_listener_method_;
   // List of clipboard listeners.
-  CopyOnWriteList<ClipboardListener*> clipboard_listeners_;
+  ConcurrentList<ClipboardListener> clipboard_listeners_;
 
   DISALLOW_COPY_AND_ASSIGN(ClipboardManager);
 };

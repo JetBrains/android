@@ -140,25 +140,25 @@ void DisplayManager::RemoveAllDisplayListeners(Jni jni) {
 void DisplayManager::OnDisplayAdded(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
   Log::D("DisplayManager::OnDisplayAdded %d", display_id);
-  for (auto listener : display_listeners_.Get()) {
+  display_listeners_.ForEach([display_id](auto listener) {
     listener->OnDisplayAdded(display_id);
-  }
+  });
 }
 
 void DisplayManager::OnDisplayRemoved(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
   Log::D("DisplayManager::OnDisplayRemoved %d", display_id);
-  for (auto listener : display_listeners_.Get()) {
+  display_listeners_.ForEach([display_id](auto listener) {
     listener->OnDisplayRemoved(display_id);
-  }
+  });
 }
 
 void DisplayManager::OnDisplayChanged(Jni jni, int32_t display_id) {
   InitializeStatics(jni);
   Log::D("DisplayManager::OnDisplayChanged %d", display_id);
-  for (auto listener : display_listeners_.Get()) {
+  display_listeners_.ForEach([display_id](auto listener) {
     listener->OnDisplayChanged(display_id);
-  }
+  });
 }
 
 VirtualDisplay DisplayManager::CreateVirtualDisplay(
@@ -187,7 +187,7 @@ jfieldID DisplayManager::type_field_ = nullptr;
 jfieldID DisplayManager::state_field_ = nullptr;
 JClass DisplayManager::display_manager_class_;
 jmethodID DisplayManager::create_virtual_display_method_ = nullptr;
-CopyOnWriteList<DisplayManager::DisplayListener*> DisplayManager::display_listeners_;
+ConcurrentList<DisplayManager::DisplayListener> DisplayManager::display_listeners_;
 DisplayListenerDispatcher* DisplayManager::display_listener_dispatcher_ = nullptr;
 
 }  // namespace screensharing

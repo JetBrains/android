@@ -148,9 +148,9 @@ void DeviceStateManager::OnDeviceStateChanged(Jni jni, jobject device_state_info
 }
 
 void DeviceStateManager::NotifyListeners(int32_t device_state) {
-  for (auto listener : device_state_listeners_.Get()) {
+  device_state_listeners_.ForEach([device_state](auto listener) {
     listener->OnDeviceStateChanged(device_state);
-  }
+  });
 }
 
 std::mutex DeviceStateManager::static_initialization_mutex_;
@@ -162,7 +162,7 @@ jfieldID DeviceStateManager::base_state_field_ = nullptr;
 jfieldID DeviceStateManager::current_state_field_ = nullptr;
 JClass DeviceStateManager::binder_class_;
 jmethodID DeviceStateManager::binder_constructor_ = nullptr;
-CopyOnWriteList<DeviceStateManager::DeviceStateListener*> DeviceStateManager::device_state_listeners_;
+ConcurrentList<DeviceStateManager::DeviceStateListener> DeviceStateManager::device_state_listeners_;
 std::mutex DeviceStateManager::state_mutex_;
 int32_t DeviceStateManager::current_base_state_ = -1;
 int32_t DeviceStateManager::current_state_ = -1;

@@ -34,8 +34,7 @@ WindowManager* window_manager_instance = nullptr;
 
 WindowManager::WindowManager(Jni jni)
     : window_manager_(ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager")),
-      rotation_(),
-      rotation_watchers_(new set<RotationWatcher*>()) {
+      rotation_() {
   JClass window_manager_class(window_manager_.GetClass());
   // The getDefaultDisplayRotation method was called getRotation before API 26.
   // See https://android.googlesource.com/platform/frameworks/base/+/5406e7ade87c33f70c83a283781dcc48fb67cdb9%5E%21/#F2.
@@ -97,36 +96,19 @@ bool WindowManager::IsRotationFrozen(Jni jni) {
 
 int32_t WindowManager::WatchRotation(Jni jni, RotationWatcher* watcher) {
   WindowManager& instance = GetInstance(jni);
-  for (;;) {
-    auto old_watchers = instance.rotation_watchers_.load();
-    auto new_watchers = new set<RotationWatcher*>(*old_watchers);
-    if (new_watchers->insert(watcher).second && instance.rotation_watchers_.compare_exchange_strong(old_watchers, new_watchers)) {
-      delete old_watchers;
-      break;
-    }
-    delete new_watchers;
-  }
+  instance.rotation_watchers_.Add(watcher);
   return instance.rotation_;
 }
 
 void WindowManager::RemoveRotationWatcher(Jni jni, RotationWatcher* watcher) {
-  WindowManager& instance = GetInstance(jni);
-  for (;;) {
-    auto old_watchers = instance.rotation_watchers_.load();
-    auto new_watchers = new set<RotationWatcher*>(*old_watchers);
-    if (new_watchers->erase(watcher) != 0 && instance.rotation_watchers_.compare_exchange_strong(old_watchers, new_watchers)) {
-      delete old_watchers;
-      break;
-    }
-    delete new_watchers;
-  }
+  GetInstance(jni).rotation_watchers_.Remove(watcher);
 }
 
 void WindowManager::OnRotationChanged(int32_t rotation) {
   rotation_ = rotation;
-  for (auto watcher : *rotation_watchers_.load()) {
+  rotation_watchers_.ForEach([rotation](auto watcher) {
     watcher->OnRotationChanged(rotation);
-  }
+  });
 }
 
 extern "C"
