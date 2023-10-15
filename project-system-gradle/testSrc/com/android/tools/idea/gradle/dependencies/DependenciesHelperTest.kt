@@ -47,6 +47,20 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
+  fun testAddToBuildscriptWithCatalog() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { moduleModel, helper ->
+             helper.addClasspathDependency("com.example.libs:lib2:1.0")
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
+             assertThat(project.getTextForFile("build.gradle"))
+               .contains("classpath libs.lib2")
+           })
+  }
+
+  @Test
   fun testSimpleAddNoCatalog() {
     doTest(SIMPLE_APPLICATION,
            { moduleModel, helper ->
@@ -55,6 +69,18 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            {
              assertThat(project.getTextForFile("app/build.gradle"))
                .contains("api \'com.example.libs:lib2:1.0\'")
+           })
+  }
+
+  @Test
+  fun testAddToClasspathNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { moduleModel, helper ->
+             helper.addClasspathDependency("com.example.libs:lib2:1.0")
+           },
+           {
+             assertThat(project.getTextForFile("build.gradle"))
+               .contains("classpath \'com.example.libs:lib2:1.0\'")
            })
   }
 
@@ -72,6 +98,22 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
                .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
              val buildFileContent = project.getTextForFile("app/build.gradle")
              assertThat(buildFileContent).contains("api libs.lib2")
+             assertThat(buildFileContent).contains("exclude group: 'com.example.libs', module: 'lib3'")
+           })
+  }
+
+  @Test
+  fun testAddToBuildScriptWithExceptions() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { moduleModel, helper ->
+             helper.addClasspathDependency("com.example.libs:lib2:1.0",
+                                  listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!))
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .contains("{ group = \"com.example.libs\", name = \"lib2\", version.ref = \"")
+             val buildFileContent = project.getTextForFile("build.gradle")
+             assertThat(buildFileContent).contains("classpath libs.lib2")
              assertThat(buildFileContent).contains("exclude group: 'com.example.libs', module: 'lib3'")
            })
   }

@@ -25,6 +25,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
@@ -283,8 +284,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val targetDependencyModel = buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
       toBeAddedDependency.equalsIgnoreVersion(it.spec)
     }
-    if (targetDependencyModel == null) {
-      buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
+    if (targetDependencyModel == null && projectBuildModel != null) {
+      DependenciesHelper(projectBuildModel!!).addClasspathDependency(toBeAddedDependency.compactNotation())
     }
   }
 

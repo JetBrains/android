@@ -27,24 +27,44 @@ import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 import com.intellij.openapi.diagnostic.Logger
+import org.gradle.api.plugins.JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME
 
 typealias Alias = String
 
 class DependenciesHelper(private val projectModel: ProjectBuildModel) {
 
+  @JvmOverloads
+  fun addClasspathDependency(dependency: String,
+                             excludes: List<ArtifactDependencySpec> = listOf()) {
+    val buildModel = projectModel.projectBuildModel ?: return
+    when (calculateAddDependencyPolicy(projectModel)) {
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency)?.let { alias ->
+        val buildscriptDependencies = buildModel.buildscript().dependencies()
+        val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes)
+      }
+      AddDependencyPolicy.BUILD_FILE -> {
+        val buildscriptDependencies = buildModel.buildscript().dependencies()
+        buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, dependency, excludes)
+      }
+    }
+  }
 
   fun addDependency(configuration: String,
                     dependency: String,
                     excludes: List<ArtifactDependencySpec>,
                     parsedModel: GradleBuildModel) {
     when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> addDependencyToCatalog(configuration, dependency, excludes, parsedModel)
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency)?.let { alias ->
+        val dependenciesModel = parsedModel.dependencies()
+        val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
+        dependenciesModel.addArtifact(configuration, reference, excludes)
+      }
       AddDependencyPolicy.BUILD_FILE -> {
         val dependenciesModel = parsedModel.dependencies()
         dependenciesModel.addArtifact(configuration, dependency, excludes);
@@ -52,31 +72,24 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     }
   }
 
+  private fun getCatalogModel(): GradleVersionCatalogModel {
+    val catalogModel = projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
+    // check invariant that at this point catalog must be available as algorithm chose to add dependency to catalog
+    check(catalogModel != null) { "Catalog ${VersionCatalogModel.DEFAULT_CATALOG_NAME} must be available to add dependency" }
+    return catalogModel
+  }
+
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
     addDependency(configuration, dependency, listOf(), parsedModel)
 
-  private fun addDependencyToCatalog(configuration: String,
-                                     dependency: String,
-                                     excludes:List<ArtifactDependencySpec>,
-                                     parsedModel: GradleBuildModel) {
-    val catalogModel = projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
-    val dependenciesModel = parsedModel.dependencies()
-    assert(catalogModel != null) { "Catalog ${VersionCatalogModel.DEFAULT_CATALOG_NAME} must be available on add dependency" }
-    val alias = findCatalogDeclaration(catalogModel!!, dependency) ?: addCatalogLibrary(catalogModel, dependency)
+  private fun getOrAddDependencyToCatalog(dependency: String): Alias? {
+    val catalogModel = getCatalogModel()
+    val alias = findCatalogDeclaration(catalogModel, dependency) ?: addCatalogLibrary(catalogModel, dependency)
     if (alias == null) {
       log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
-      return
+      return null
     }
-    addCatalogReference(alias, configuration, excludes, catalogModel, dependenciesModel)
-  }
-
-  private fun addCatalogReference(alias: Alias,
-                                  configName: String,
-                                  excludes:List<ArtifactDependencySpec>,
-                                  catalogModel: GradleVersionCatalogModel,
-                                  dependenciesModel: DependenciesModel) {
-    val reference = ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel)
-    dependenciesModel.addArtifact(configName, reference, excludes)
+    return alias
   }
 
   private fun findCatalogDeclaration(catalogModel: GradleVersionCatalogModel,
