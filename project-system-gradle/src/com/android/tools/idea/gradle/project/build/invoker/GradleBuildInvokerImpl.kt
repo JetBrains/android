@@ -577,7 +577,9 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       if (startBuildEventPosted) {
         val title = "$executionName failed"
         val dataContext: DataContext = BuildConsoleUtils.getDataContext(id, buildViewManager)
-        val failureResult: FailureResult = ExternalSystemUtil.createFailureResult(title, e, GRADLE_SYSTEM_ID, project, dataContext)
+        val failureResult: FailureResult = ExternalSystemUtil.createFailureResult(
+          title, e, GRADLE_SYSTEM_ID, project, request.rootProjectPath.absolutePath, dataContext
+        )
         buildEventDispatcher.onEvent(id, FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult))
       }
       super.onFailure(id, e)
