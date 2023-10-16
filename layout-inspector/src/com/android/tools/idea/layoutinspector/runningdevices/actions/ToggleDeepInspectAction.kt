@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -36,6 +37,8 @@ class ToggleDeepInspectAction(
   override fun isSelected(e: AnActionEvent) = isSelected()
 
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)

@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -59,6 +60,8 @@ class AlphaSliderAction(private val renderModelProvider: () -> RenderModel) :
     panel.putClientProperty(SLIDER_KEY, slider)
     return panel
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     val hasOverlay = (renderModelProvider().overlay != null)

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -29,6 +30,8 @@ object DimensionUnitAction :
     "Units",
     listOf(
       object : ToggleAction("dp") {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun isSelected(event: AnActionEvent): Boolean =
           PropertiesSettings.dimensionUnits == DimensionUnits.DP
 
@@ -39,6 +42,8 @@ object DimensionUnitAction :
         }
       },
       object : ToggleAction("pixels") {
+        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
         override fun isSelected(event: AnActionEvent): Boolean =
           PropertiesSettings.dimensionUnits == DimensionUnits.PIXELS
 
@@ -50,6 +55,9 @@ object DimensionUnitAction :
       }
     )
   ) {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     val model = LayoutInspector.get(event)?.inspectorModel
     event.presentation.isEnabled = model?.resourceLookup?.dpi != null

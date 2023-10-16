@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.tree.isActionActive
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -105,6 +106,8 @@ private class ToggleRenderSettingsAction(
 class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
   DefaultActionGroup("Recomposition Highlight Color", true) {
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     val layoutInspector = LayoutInspector.get(event)
@@ -139,4 +142,6 @@ private class ColorSettingAction(
     renderSettingsProvider().highlightColor = color
     LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

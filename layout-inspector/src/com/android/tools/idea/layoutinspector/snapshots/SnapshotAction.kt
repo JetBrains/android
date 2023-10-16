@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -53,6 +54,9 @@ object ExportSnapshotAction :
     AllIcons.ToolbarDecorator.Export
   ),
   TooltipDescriptionProvider {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isEnabled =
