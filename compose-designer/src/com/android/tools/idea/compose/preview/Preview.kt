@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.ComposePreviewElementsModel
+import com.android.tools.idea.compose.buildlisteners.PreviewBuildListenersManager
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
@@ -72,9 +73,7 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
-import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.needsBuild
-import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -293,6 +292,8 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
+  private val previewBuildListenersManager: PreviewBuildListenersManager
+
   private val previewModeManager: PreviewModeManager =
     CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
 
@@ -424,6 +425,14 @@ class ComposePreviewRepresentation(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
           )
         }
+      )
+
+    previewBuildListenersManager =
+      PreviewBuildListenersManager(
+        { psiFilePointer },
+        ::invalidate,
+        ::requestRefresh,
+        ::requestVisibilityAndNotificationsUpdate
       )
   }
 
@@ -803,11 +812,6 @@ class ComposePreviewRepresentation(
   override val component: JComponent
     get() = composeWorkBench.component
 
-  // region Lifecycle handling
-  @VisibleForTesting
-  var buildListenerSetupFinished = false
-    private set
-
   /**
    * Completes the initialization of the preview. This method is only called once after the first
    * [onActivate] happens.
@@ -817,117 +821,15 @@ class ComposePreviewRepresentation(
     if (isDisposed.get()) {
       log.info("Preview was closed before the initialization completed.")
     }
-    val psiFile = psiFilePointer.element
-    requireNotNull(psiFile) { "PsiFile was disposed before the preview initialization completed." }
-    val module = runReadAction { psiFile.module }
 
-    setupBuildListener(
-      project,
-      object : BuildListener {
-        /**
-         * True if the animation inspection was open at the beginning of the build. If open, we will
-         * force a refresh after the build has completed since the animations preview panel
-         * refreshes only when a refresh happens.
-         */
-        private var animationInspectionsEnabled = false
-
-        override fun startedListening() {
-          buildListenerSetupFinished = true
-        }
-
-        override fun buildSucceeded() {
-          log.debug("buildSucceeded")
-          module?.let {
-            // When the build completes successfully, we do not need the overlay until a new
-            // modification happens. But invalidation should not be done when this listener is
-            // called during setup, as a consequence of an old build (see startedListening)
-            if (buildListenerSetupFinished) {
-              ModuleClassLoaderOverlays.getInstance(it).invalidateOverlayPaths()
-            }
-          }
-
-          val file = psiFilePointer.element
-          if (file == null) {
-            log.debug("invalid PsiFile")
-            return
-          }
-
-          // If Fast Preview is enabled, prefetch the daemon for the current configuration.
-          // This should not happen when essentials mode is enabled.
-          if (
-            module != null &&
-              !module.isDisposed &&
-              FastPreviewManager.getInstance(project).isEnabled &&
-              !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-          ) {
-            FastPreviewManager.getInstance(project).preStartDaemon(module)
-          }
-
-          afterBuildComplete(isSuccessful = true)
-        }
-
-        override fun buildFailed() {
-          log.debug("buildFailed")
-
-          afterBuildComplete(isSuccessful = false)
-
-          // This ensures the animations panel is showed again after the build completes.
-          if (animationInspectionsEnabled) requestRefresh()
-        }
-
-        override fun buildCleaned() {
-          log.debug("buildCleaned")
-
-          buildFailed()
-        }
-
-        override fun buildStarted() {
-          log.debug("buildStarted")
-          animationInspectionsEnabled = isAnimationPreviewEnabled
-
-          composeWorkBench.updateProgress(message("panel.building"))
-          afterBuildStarted()
-        }
-      },
-      this
-    )
-
-    FastPreviewManager.getInstance(project)
-      .addListener(
-        this,
-        object : FastPreviewManager.Companion.FastPreviewManagerListener {
-          override fun onCompilationStarted(files: Collection<PsiFile>) {
-            psiFilePointer.element?.let { editorFile ->
-              if (files.any { it.isEquivalentTo(editorFile) }) afterBuildStarted()
-            }
-          }
-
-          override fun onCompilationComplete(
-            result: CompilationResult,
-            files: Collection<PsiFile>
-          ) {
-            // Notify on any Fast Preview compilation to ensure we refresh all the previews
-            // correctly.
-            afterBuildComplete(result == CompilationResult.Success)
-          }
-        }
-      )
-  }
-
-  /** Called after a project build has completed. */
-  private fun afterBuildComplete(isSuccessful: Boolean) {
-    if (isSuccessful) {
-      invalidate()
-      requestRefresh()
-    } else requestVisibilityAndNotificationsUpdate()
-  }
-
-  private fun afterBuildStarted() {
-    // When building, invalidate the Animation Inspector, since the animations are now obsolete and
-    // new ones will be subscribed once
-    // build is complete and refresh is triggered.
-    ComposePreviewAnimationManager.invalidate(psiFilePointer)
-    requestVisibilityAndNotificationsUpdate()
+    // This callback is passed to setupPreviewBuildListeners, which will check for its value to
+    // decide if refresh should be called when the build fails (by default, we don't refresh). We
+    // want that to happen if the animation inspection was open at the beginning of the build. This
+    // ensures the animations panel is showed again after the build completes
+    val shouldRefreshAfterBuildFailed = { isAnimationPreviewEnabled }
+    previewBuildListenersManager.setupPreviewBuildListeners(this, shouldRefreshAfterBuildFailed) {
+      composeWorkBench.updateProgress(message("panel.building"))
+    }
   }
 
   /** Initializes the flows that will listen to different events and will call [requestRefresh]. */
@@ -1083,6 +985,9 @@ class ComposePreviewRepresentation(
       }
     }
   }
+
+  @TestOnly
+  fun hasBuildListenerSetupFinished() = previewBuildListenersManager.buildListenerSetupFinished
 
   /**
    * Whether fast preview is available. In addition to checking its normal availability from

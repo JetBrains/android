@@ -523,7 +523,7 @@ class ComposePreviewRepresentationTest {
       ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
 
       val job = launch {
-        while (!previewRepresentation.buildListenerSetupFinished) {
+        while (!previewRepresentation.hasBuildListenerSetupFinished()) {
           delay(500)
         }
       }
@@ -532,10 +532,10 @@ class ComposePreviewRepresentationTest {
       assertTrue(overlayClassLoader.state.paths.isEmpty())
       overlayClassLoader.pushOverlayPath(Path.of("/tmp/test"))
       assertFalse(overlayClassLoader.state.paths.isEmpty())
-      assertFalse(previewRepresentation.buildListenerSetupFinished)
+      assertFalse(previewRepresentation.hasBuildListenerSetupFinished())
       previewRepresentation.onActivate()
       job.join()
-      assertTrue(previewRepresentation.buildListenerSetupFinished)
+      assertTrue(previewRepresentation.hasBuildListenerSetupFinished())
       assertFalse(overlayClassLoader.state.paths.isEmpty())
     }
 
