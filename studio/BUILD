@@ -1049,7 +1049,10 @@ iml_studio_test(
     ],
     module = ":intellij.android.studio.integration",
     tags_linux = ["block-network"],
-    tags_windows = ["block-network"],
+    tags_windows = [
+        "block-network",
+        "manual",  # b/305290519
+    ],
     test_class = "com.android.tools.idea.UpdateTest",
 )
 
