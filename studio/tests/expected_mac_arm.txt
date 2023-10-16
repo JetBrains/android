@@ -3232,7 +3232,7 @@ Android Studio Preview.app/Contents/plugins/vcs-github/lib/vcs-github.jar
 Android Studio Preview.app/Contents/plugins/vcs-gitlab/lib/vcs-gitlab.jar
 Android Studio Preview.app/Contents/plugins/vcs-hg/lib/vcs-hg.jar
 Android Studio Preview.app/Contents/plugins/vcs-svn/lib/vcs-svn.jar
-Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/mac/libwebp_jni64.dylib
+Android Studio Preview.app/Contents/plugins/webp/lib/libwebp/mac/libwebp_jni.dylib
 Android Studio Preview.app/Contents/plugins/webp/lib/webp.jar
 Android Studio Preview.app/Contents/plugins/yaml/lib/yaml.jar
 _codesign/entitlements.xml

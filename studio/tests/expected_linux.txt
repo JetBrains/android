@@ -3222,7 +3222,6 @@ android-studio/plugins/vcs-gitlab/lib/vcs-gitlab.jar
 android-studio/plugins/vcs-hg/lib/vcs-hg.jar
 android-studio/plugins/vcs-svn/lib/vcs-svn.jar
 android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni.so
-android-studio/plugins/webp/lib/libwebp/linux/libwebp_jni64.so
 android-studio/plugins/webp/lib/webp.jar
 android-studio/plugins/yaml/lib/yaml.jar
 android-studio/product-info.json

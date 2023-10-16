@@ -47,7 +47,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     settings.previewConversion = false
     settings.skipTransparentImages = false
     settings.skipLargerImages = true
-    settings.quality = 75
+    settings.quality = 90
     val mdpi = myFixture.copyFileToProject("webp/ic_action_name-mdpi.png", "res/drawable-mdpi/ic_action_name.png")
     val xhdpi = myFixture.copyFileToProject("webp/ic_action_name-xhdpi.png", "res/drawable-xhdpi/ic_action_name.png")
     val mdpiFolder = mdpi.parent
@@ -58,7 +58,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
     assertThat(notifications[0].content).isEqualTo(
-        "1 file was converted<br/>31 bytes saved<br>1 file was skipped because there was no net space saving")
+        "1 file was converted<br/>55 bytes saved<br>1 file was skipped because there was no net space saving")
     // Check that we only converted the xhdpi image (the mdpi image encodes to a larger image)
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
@@ -73,7 +73,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     settings.previewConversion = false
     settings.skipTransparentImages = false
     settings.skipLargerImages = false
-    settings.quality = 75
+    settings.quality = 100
     val mdpi = myFixture.copyFileToProject("webp/ic_action_name-mdpi.png", "res/drawable-mdpi/ic_action_name.png")
     // test conversion of a transparent gray issue
     val gray = myFixture.copyFileToProject("webp/ic_arrow_back.png", "res/drawable-mdpi/ic_arrow_back.png")
@@ -85,7 +85,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
 
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].content).isEqualTo("3 files were converted<br/>size increased by 361 bytes")
+    assertThat(notifications[0].content).isEqualTo("3 files were converted<br/>size increased by 139 bytes")
     // Check that we converted both images
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()
