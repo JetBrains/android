@@ -18,7 +18,8 @@ package com.android.tools.idea.run.editor;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
@@ -31,7 +32,7 @@ public class AndroidAppAndroidDebuggerInfoProvider implements AndroidDebuggerInf
 
   @Override
   public boolean supportsProject(@NotNull Project project) {
-    return GradleProjectInfo.getInstance(project).isBuildWithGradle();
+    return ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem;
   }
 
   @NotNull
