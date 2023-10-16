@@ -72,7 +72,7 @@ public:
   // Removes an element from the list if it is present there. Returns the size of the list
   // immediately after removal. Safe to call while iterating over the list.
   size_t Remove(T* element) {
-    Impl::Remove(element);
+    return Impl::Remove(element);
   }
 
   void Clear() {
