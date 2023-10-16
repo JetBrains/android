@@ -76,6 +76,38 @@ sealed class PreviewMode {
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
   class Gallery(selected: PreviewElement) : Focus<PreviewElement>(selected) {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
+
+    /**
+     * If list of previews is updated while [PreviewMode.Gallery] is selected - [selected] element
+     * might become invalid and new [Gallery] mode with new corresponding [selected] element should
+     * be created. At the moment there is no exact match which preview element is which after
+     * update. So we are doing our best guess to select new element.
+     */
+    fun newMode(
+      newElements: Collection<PreviewElement>,
+      previousElements: Set<PreviewElement>,
+    ): Gallery? {
+      // Try to match which element was selected before
+      // If selectedKey was removed select first key. If it was only updated (i.e. if a
+      // parameter value has changed), we select the new key corresponding to it.
+
+      // That is a trivial case. When the selected key is present, keep the selection.
+      if (newElements.contains(selected)) return this
+
+      // Try to guess which exactly element was updated. Select the only element what changed.
+      // For example: the element what was selected before was updated. In this case only one
+      // element has changed compare to previously available elements. So we are trying to find
+      // this updated element.
+      val newSelected =
+        (newElements subtract previousElements).singleOrNull()
+          // We couldn't find any best match. Default to the first key.
+          ?: newElements.firstOrNull()
+
+      // TODO(b/292482974): Find the correct key when there are Multipreview changes
+
+      // TODO(b/292057010) Handle the case if there is nothing to select.
+      return newSelected?.let { Gallery(it) }
+    }
   }
 
   class Interactive(selected: PreviewElement) : Focus<PreviewElement>(selected) {

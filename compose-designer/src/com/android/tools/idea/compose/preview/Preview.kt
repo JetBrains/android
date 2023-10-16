@@ -403,7 +403,7 @@ class ComposePreviewRepresentation(
     // If Preview is inactive - don't update Gallery.
     if (!lifecycleManager.isActive()) return
     val essentialsModeIsEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-    val galleryModeIsSet = composeWorkBench.galleryMode != null
+    val galleryModeIsSet = previewModeManager.mode.value is PreviewMode.Gallery
     // Only update gallery mode if needed
     if (essentialsModeIsEnabled == galleryModeIsSet) return
 
@@ -411,7 +411,10 @@ class ComposePreviewRepresentation(
       // There is no need to switch back to Default mode as toolbar is available.
       // When exiting Essentials mode - preview will stay in Gallery mode.
     } else {
-      currentLayoutMode = LayoutMode.Gallery
+      allPreviewElementsInFileFlow.value.firstOrNull()?.let {
+        // TODO(b/301513969) What if allPreviewElementsInFileFlow is empty?
+        previewModeManager.setMode(PreviewMode.Gallery(it))
+      }
     }
     logComposePreviewLiteModeEvent(sourceEventType)
     requestRefresh()
@@ -813,7 +816,7 @@ class ComposePreviewRepresentation(
     composePreviewFlowManager.run {
       this@activate.initializeFlows(
         this@ComposePreviewRepresentation,
-        previewModeManager.mode,
+        previewModeManager,
         psiCodeFileChangeDetectorService,
         psiFilePointer,
         ::invalidate,
@@ -1318,6 +1321,7 @@ class ComposePreviewRepresentation(
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
             allPreviewElementsInFileFlow.value.firstOrNull()?.let { previewElement ->
+              // TODO(b/301513969) What if allPreviewElementsInFileFlow is empty?
               previewModeManager.setMode(PreviewMode.Gallery(previewElement))
             }
           }

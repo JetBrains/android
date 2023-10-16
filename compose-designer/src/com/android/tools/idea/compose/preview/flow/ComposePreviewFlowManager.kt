@@ -31,6 +31,7 @@ import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
@@ -180,7 +181,7 @@ internal class ComposePreviewFlowManager {
   @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
   fun CoroutineScope.initializeFlows(
     disposable: Disposable,
-    modeFlow: StateFlow<PreviewMode>,
+    previewModeManager: PreviewModeManager,
     psiCodeFileChangeDetectorService: PsiCodeFileChangeDetectorService,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     invalidate: () -> Unit,
@@ -198,7 +199,16 @@ internal class ComposePreviewFlowManager {
         ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
             previewElementFlowForFile(psiFilePointer).map { it.sortByDisplayAndSourcePosition() },
           )
-          .collectLatest { allPreviewElementsInFileFlow.value = it }
+          .collectLatest {
+            val previousElements = allPreviewElementsInFileFlow.value.toSet()
+            allPreviewElementsInFileFlow.value = it
+            (previewModeManager.mode.value as? PreviewMode.Gallery)?.let { oldMode ->
+              oldMode.newMode(allPreviewElementsInFileFlow.value, previousElements)?.let { newMode
+                ->
+                previewModeManager.setMode(newMode)
+              }
+            }
+          }
       }
 
       launch(workerThread) {
@@ -241,7 +251,9 @@ internal class ComposePreviewFlowManager {
         val isInitialValue = AtomicBoolean(true)
         filteredPreviewElementsInstancesFlow
           .filter {
-            return@filter if (it.isEmpty() && modeFlow.value is PreviewMode.UiCheck) {
+            return@filter if (
+              it.isEmpty() && previewModeManager.mode.value is PreviewMode.UiCheck
+            ) {
               // If there are no previews for UI Check mode, then the original composable
               // was renamed or removed. We should quit UI Check mode and filter out this
               // value from the flow
@@ -347,8 +359,8 @@ internal class ComposePreviewFlowManager {
 
             if (
               !EssentialsMode.isEnabled() &&
-                modeFlow.value !is PreviewMode.Interactive &&
-                modeFlow.value !is PreviewMode.AnimationInspection &&
+                previewModeManager.mode.value !is PreviewMode.Interactive &&
+                previewModeManager.mode.value !is PreviewMode.AnimationInspection &&
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             )
               requestRefresh()

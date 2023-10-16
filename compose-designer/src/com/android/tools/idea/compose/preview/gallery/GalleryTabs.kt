@@ -57,16 +57,17 @@ interface TitledKey {
 }
 
 /**
- * Shows a tab for each [Key].
+ * Shows a tab for each [Key]. [GalleryTabs] always track the list of currently available tabs using
+ * [keysProvider] and currently selected tab using [selectedProvider]. [tabChangeListener] is called
+ * only if tab is changed by interacting with [GalleryTabs].
  *
  * @param root a root [JComponent] for this [GalleryTabs].
- * @param keysProvider a provider of [Key]s
- * @param tabChangeListener is called when new [Key] is selected. It is also called after
- *   [GalleryTabs] initialization with first selected [Key]. [GalleryTabs] insures
+ * @param tabChangeListener is called when new [Key] is selected. [GalleryTabs] insures
  *   [tabChangeListener] is not called twice if same [Key] set twice.
  */
 class GalleryTabs<Key : TitledKey>(
   private val root: JComponent,
+  private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
   private val tabChangeListener: (DataContext, Key?) -> Unit
 ) : JPanel(BorderLayout()) {
@@ -181,6 +182,10 @@ class GalleryTabs<Key : TitledKey>(
   var selectedKey: Key? = null
     private set
 
+  /**
+   * Notify [tabChangeListener] about change in [selectedKey]. Should only be called if
+   * [selectedKey] is modified by interaction with [GalleryTabs].
+   */
   private fun updateSelectedKey(e: AnActionEvent, key: Key?) {
     // Avoid setting same value twice.
     if (selectedKey == key) return
@@ -225,19 +230,21 @@ class GalleryTabs<Key : TitledKey>(
   }
 
   /**
-   * Update all available [Key]s. Toolbar is recreated if there are any changes in [keys]. It also
-   * insures that if there are no changes in [keys] toolbar will not be updated.
+   * Update all available [Key]s and currently [selectedKey]. Toolbar is recreated if there are any
+   * changes in [keys]. It also ensures that if there are no changes in [keys] toolbar will not be
+   * updated.
    */
-  private fun updateKeys(e: AnActionEvent, keys: Set<Key>) {
+  private fun updateKeys(keys: Set<Key>, selected: Key?) {
 
     // If [GalleryTabs] needs update, [previousToolbar] will be removed and new toolbar will be
     // created and added with available [labelActions].
     val needsUpdate =
       labelActions.keys.any { !keys.contains(it) } || keys.any { !labelActions.keys.contains(it) }
 
+    selectedKey = selected
+
     // Only update toolbar if there are any changes.
     if (needsUpdate) {
-      val currentKeys = labelActions.keys.toSet()
       labelActions.clear()
       keys.forEach { labelActions[it] = TabLabelAction(it) }
       // Remove previous toolbar if exists.
@@ -254,26 +261,6 @@ class GalleryTabs<Key : TitledKey>(
       updateToolbarExecutor.execute {
         centerPanel.add(toolbar, BorderLayout.CENTER)
         previousToolbar = toolbar
-        previousToolbar?.background = Colors.DEFAULT_BACKGROUND_COLOR
-        // If selectedKey was removed select first key. If it was only updated (i.e. if a
-        // parameter value has changed), we select the new key corresponding to it.
-        val newSelectedKey =
-          // TODO(b/292482974): Find the correct key when there are Multipreview changes
-          when {
-            keys.contains(selectedKey) -> {
-              // Trivial case. When the selected key is present, keep the selection
-              selectedKey
-            }
-            keys.size == currentKeys.size -> {
-              // The selectedKey was updated so we need to find the new corresponding key
-              (keys subtract currentKeys).singleOrNull() ?: keys.firstOrNull()
-            }
-            else -> {
-              // Default to the first key if we can't match it to an existing key
-              keys.firstOrNull()
-            }
-          }
-        updateSelectedKey(e, newSelectedKey)
       }
     }
   }
@@ -286,7 +273,7 @@ class GalleryTabs<Key : TitledKey>(
   private inner class GalleryActionGroup(actions: List<AnAction>) : DefaultActionGroup(actions) {
     override fun update(e: AnActionEvent) {
       super.update(e)
-      updateKeys(e, keysProvider(e.dataContext))
+      e.dataContext.let { updateKeys(keysProvider(it), selectedProvider(it)) }
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
