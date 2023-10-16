@@ -96,7 +96,7 @@ class DeviceFileDropHandlerTest {
 
     waitForCondition(2, SECONDS) { device.cmdLogs.size >= 3 }
     assertThat(device.cmdLogs).containsExactly("package install-create -t --user current --full",
-                                               "package install-write -S 675 1234 0_test.apk -", "package install-commit 1234")
+                                               "package install-write -S 675 1234 test.apk -", "package install-commit 1234")
   }
 
   @Test
