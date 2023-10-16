@@ -2890,6 +2890,7 @@ java_test(
 
 java_test(
     name = "ShortcutNavigationTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/debugger/NdkHelloJni/**",
     ]),
@@ -2897,8 +2898,6 @@ java_test(
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_fast",
-        "qa_fast_unreliable",  # b/115567466
-        "qa_unreliable",  # b/115567466
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
