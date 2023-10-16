@@ -1,0 +1,8 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <toolWindow id="Wear Health Services"
+                    anchor="right"
+                    icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS"
+                    factoryClass="com.android.tools.idea.wearwhs.widget.WearHealthServicesToolWindowFactory"/>
+  </extensions>
+</idea-plugin>
