@@ -50,7 +50,7 @@ class VersionCatalogFindKtsUsagesTest {
       }
     """.trimIndent(), { null }) {
       assertThat(it).hasSize(1)
-      assertThat(it.first().file ).isInstanceOf(KtFile::class.java)
+      assertThat(it.first().file).isInstanceOf(KtFile::class.java)
     }
   }
 

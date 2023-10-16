@@ -160,6 +160,7 @@ iml_module(
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
     ],
 )
 

@@ -17,7 +17,8 @@ package com.android.tools.idea.gradle.declarative
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.util.findCatalogKey
+import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.android.tools.idea.gradle.util.generateExistingPath
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.patterns.PatternCondition
@@ -31,14 +32,10 @@ import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.PsiReferenceContributor
 import com.intellij.psi.PsiReferenceProvider
 import com.intellij.psi.PsiReferenceRegistrar
-import com.intellij.psi.util.childrenOfType
-import com.intellij.psi.util.findParentOfType
 import com.intellij.util.ProcessingContext
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
-import org.toml.lang.psi.TomlTable
-import org.toml.lang.psi.ext.name
 
 class DeclarativeCatalogDependencyReferenceContributor: PsiReferenceContributor() {
 
@@ -71,19 +68,8 @@ private class VersionCatalogReferenceProvider : PsiReferenceProvider() {
   private class VersionCatalogDeclarationReference(literal: TomlLiteral, val reference: String) : PsiReferenceBase<TomlLiteral>(literal) {
     override fun resolve(): PsiElement? {
       val project = element.project
-      val versionCatalogModel = ProjectBuildModel.get(project).versionCatalogsModel
-      val catalogName = reference.substringBefore(".")
-      val declarationRef = reference.substringAfter(".")
-      val file = versionCatalogModel.getVersionCatalogModel(catalogName)?.psiFile ?: return null
-      val prefix = declarationRef.substringBefore(".")
-      val (tableName, suffix) = if (prefix == "bundles") {
-        "bundles" to declarationRef.substringAfter(".")
-      } else {
-        "libraries" to declarationRef
-      }
-      val table = file.childrenOfType<TomlTable>().find { it.header.key?.name == tableName }
-      val declarations = table?.childrenOfType<TomlKeyValue>()?.mapNotNull { it.key.segments.singleOrNull() }
-      return declarations?.find { it.name?.replace("_",".")?.replace("-",".") == suffix }
+      val file = findVersionCatalog(reference, project)?: return null
+      return findCatalogKey(file, reference.substringAfter("."))
     }
   }
 

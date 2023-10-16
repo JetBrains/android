@@ -52,7 +52,7 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
         { alias = "libs.gu^ava" }
       ]
     """.trimIndent(),
-      "guava",
+      "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }",
       "libs.versions.toml"
     )
   }
@@ -66,7 +66,7 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
         { alias = "libs.bundles.bo^th" }
       ]
     """.trimIndent(),
-      "both",
+      "both = [\"constraint-layout\", \"guava\"]",
       "libs.versions.toml"
     )
   }
@@ -80,7 +80,7 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
         { alias = "libsTest.jun^it" }
       ]
     """.trimIndent(),
-      "junit",
+      "junit = { module = \"junit:junit\", version.ref = \"junit\" }",
       "libsTest.versions.toml"
     )
   }
@@ -94,7 +94,7 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
         { alias = "lib^s.constraint.layout" }
       ]
     """.trimIndent(),
-      "constraint-layout",
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
       "libs.versions.toml"
     )
   }
@@ -107,7 +107,7 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
         { alias = "lib^s.constraint.layout" }
       ]
     """.trimIndent(),
-      "constraint-layout",
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
       "libs.versions.toml"
     )
   }
@@ -119,7 +119,7 @@ class DeclarativeCatalogDependencyReferenceContributorTest {
       [[dependencies.implementation]]
        alias = "lib^s.constraint.layout"
     """.trimIndent(),
-      "constraint-layout",
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }",
       "libs.versions.toml"
     )
   }

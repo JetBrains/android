@@ -16,13 +16,11 @@
 package com.android.tools.idea.gradle.navigation
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.keysMatch
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
+import com.android.tools.idea.gradle.util.findCatalogKey
+import com.android.tools.idea.gradle.util.findVersionCatalog
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
@@ -33,7 +31,6 @@ import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
-import org.toml.lang.psi.TomlTable
 import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
 
@@ -57,7 +54,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     // Reference from build.gradle.kts to dependency?
     if (grandParent is KtDotQualifiedExpression) {
       val key = grandParent.text
-      val catalog = findVersionCatalog(key.substringBefore("."), sourceElement.project)
+      val catalog = findVersionCatalog(key, sourceElement.project)
       if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_KTS)) {
         // If you have dashes in the library name, Gradle will convert this into dotted notation, and will actually
         // create a "group" DSL object for the libraries sharing the same prefix. But we typically don't have a
@@ -78,7 +75,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     // That means current handler will not be called. System works with multiple handlers cover same cases -
     // first in line wins.
     if (parent is GrReferenceExpression) {
-      val catalog = findVersionCatalog(parent.text.substringBefore("."), parent.project)
+      val catalog = findVersionCatalog(parent.text, parent.project)
       if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_GRADLE)) {
         val key = parent.text
         if (key != null) {
@@ -118,7 +115,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
    * - GrArgumentList for 'api libs.my.lib'
    * - GrCommandArgumentList 'alias(libs.plugins.myplugin)'
    */
-  fun getWholeKey(sourceElement: PsiElement): String? {
+  private fun getWholeKey(sourceElement: PsiElement): String? {
     var currElement = sourceElement
     while (currElement.parent != null) {
       if (currElement.parent is GrArgumentList || currElement.parent is GrCommandArgumentList) {
@@ -129,59 +126,6 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     return null
   }
 
-  /**
-   * Given a [TomlFile] and a path, returns the corresponding key element.
-   * For example, given "versions.foo", it will locate the `foo =` key/value
-   * pair under the `\[versions]` table and return it. As a special case,
-   * `libraries` don't have to be explicitly named in the path.
-   */
-  private fun findCatalogKey(tomlFile: TomlFile, path: String): PsiElement? {
-    val section: String
-    val target: String
-    if (path.startsWith("versions.") ||
-      path.startsWith("bundles.") ||
-      path.startsWith("plugins.")
-    ) {
-      section = path.substringBefore('.')
-      target = path.substringAfter('.')
-    } else {
-      section = "libraries"
-      target = path
-    }
-    var sectionElement = tomlFile.firstChild
-    // At the root level, look for the right section (versions, libraries, etc)
-    while (sectionElement != null) {
-      if (sectionElement is TomlTable) {
-        val keyText = sectionElement.header.key?.text
-        if (keysMatch(keyText, section)) {
-          // Found the right section; now search for the specific key
-          for (entry in sectionElement.entries) {
-            val entryKeyText = entry.key.text
-            if (keysMatch(entryKeyText, target)) {
-              return entry
-            }
-          }
-        } else if (keysMatch(keyText, target)) {
-          return sectionElement
-        }
-      }
-      sectionElement = sectionElement.nextSibling
-    }
-
-    return null
-  }
-
-  private fun findVersionCatalog(reference: String, project: Project): TomlFile? {
-    val view = GradleModelProvider.getInstance().getVersionCatalogView(project);
-    val file = view.catalogToFileMap[reference] ?: return null
-
-    val psiFile = PsiManager.getInstance(project).findFile(file)
-    if (psiFile is TomlFile) {
-      return psiFile
-    }
-
-    return null
-  }
 }
 
 private fun TomlLiteral.getString(): String =
