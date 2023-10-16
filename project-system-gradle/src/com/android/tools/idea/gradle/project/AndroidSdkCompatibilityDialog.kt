@@ -31,12 +31,14 @@ import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
+import java.awt.Desktop
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.ScrollPaneConstants
+import javax.swing.event.HyperlinkEvent
 
 class AndroidSdkCompatibilityDialog(
   val project: Project,
@@ -78,14 +80,24 @@ class AndroidSdkCompatibilityDialog(
       border = JBUI.Borders.empty(3)
       isEditable = false
       background = UIUtil.getComboBoxDisabledBackground()
+
+      addHyperlinkListener { e ->
+        if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
+          if (Desktop.isDesktopSupported()) {
+            Desktop.getDesktop().browse(e.url.toURI());
+          }
+        }
+      }
     }
+
     return JBUI.Panels.simplePanel(10, 10).apply {
       addToCenter(ScrollPaneFactory.createScrollPane(
         messageArea,
-        ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
       ))
-      preferredSize = JBDimension(700, 300)
+      preferredSize = JBDimension(400, 300)
+      minimumSize = JBDimension(400, 300)
     }
   }
 
