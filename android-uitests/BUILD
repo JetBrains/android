@@ -2362,6 +2362,21 @@ java_test(
 )
 
 java_test(
+    name = "VerifyNpwPhoneAndTabletViewsTemplatesTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletViewsTemplatesTest"],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "VerifyNpwWearOSTemplatesTest",
     size = "large",
     data = COMMON_DATA + [
