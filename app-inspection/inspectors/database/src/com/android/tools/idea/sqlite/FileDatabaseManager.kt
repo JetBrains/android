@@ -18,8 +18,8 @@ package com.android.tools.idea.sqlite
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
-import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileDownloaderService
-import com.android.tools.idea.file.explorer.toolwindow.fs.DownloadProgress
+import com.android.tools.idea.device.explorer.files.external.services.DeviceFileDownloaderService
+import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sqlite.model.DatabaseFileData
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId

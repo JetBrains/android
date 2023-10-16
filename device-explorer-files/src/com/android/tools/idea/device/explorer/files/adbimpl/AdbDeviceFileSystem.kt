@@ -66,6 +66,26 @@ class AdbDeviceFileSystem(
       }
     }
 
+  override suspend fun getEntry(path: String): DeviceFileEntry {
+    val root = rootDirectory()
+    if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
+      return root
+    }
+    val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toList()
+    return resolvePathSegments(root, pathSegments)
+  }
+
+  private suspend fun resolvePathSegments(
+    rootEntry: DeviceFileEntry,
+    segments: List<String>
+  ): DeviceFileEntry {
+    var currentEntry = rootEntry
+    for (segment in segments) {
+      currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
+    }
+    return currentEntry
+  }
+
   companion object {
     private fun createDirectFileEntry(entry: AdbDeviceFileEntry): AdbDeviceDirectFileEntry {
       return AdbDeviceDirectFileEntry(entry.fileSystem, entry.myEntry, entry.parent, null)
