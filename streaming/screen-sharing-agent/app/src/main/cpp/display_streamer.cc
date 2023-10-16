@@ -216,6 +216,7 @@ void DisplayStreamer::Start() {
       Jvm::AttachCurrentThread((string("DisplayStreamer ") + to_string(display_id_)).c_str());
       Run();
       Jvm::DetachCurrentThread();
+      Log::D("Display %d: streaming terminated", display_id_);
     });
   }
 }
