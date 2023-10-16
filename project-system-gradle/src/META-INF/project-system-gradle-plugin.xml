@@ -157,6 +157,9 @@
       <category>Android</category>
     </intentionAction>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.actions">
+    <exportProjectZipExcludesContributor implementation="com.android.tools.idea.actions.ExportProjectZipExcludesGradleContributor"/>
+  </extensions>
   <extensions defaultExtensionNs="org.jetbrains.kotlin.idea">
     <extrasSerialization implementation="org.jetbrains.kotlin.android.extensions.KotlinAndroidExtrasSerializationService"/>
   </extensions>

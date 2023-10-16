@@ -101,22 +101,13 @@ public class ExportProjectZip extends AnAction implements DumbAware {
 
     excludes.add(new File(basePath, SdkConstants.FN_LOCAL_PROPERTIES));
 
-    boolean gradle = GradleProjectInfo.getInstance(project).isBuildWithGradle();
-    if (gradle) {
-      excludes.add(new File(basePath, SdkConstants.DOT_GRADLE));
-      excludes.add(new File(basePath, GradleUtil.BUILD_DIR_DEFAULT_NAME));
-      excludes.add(new File(basePath, Project.DIRECTORY_STORE_FOLDER));
+    for (ExportProjectZipExcludesContributor contributor : ExportProjectZipExcludesContributor.EP_NAME.getExtensionList()) {
+      if (contributor.isApplicable(project)) {
+        excludes.addAll(contributor.excludes(project));
+      }
     }
 
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      if (gradle) {
-        // if this is a gradle project, exclude .iml file
-        VirtualFile moduleFile = module.getModuleFile();
-        if (moduleFile != null) {
-          excludes.add(VfsUtilCore.virtualToIoFile(moduleFile));
-        }
-      }
-
       ModuleRootManager roots = ModuleRootManager.getInstance(module);
 
       VirtualFile[] contentRoots = roots.getContentRoots();
