@@ -16,17 +16,11 @@
 package com.android.tools.idea.adddevicedialog.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import org.jetbrains.jewel.ExperimentalJewelApi
 import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.bridge.SwingBridgeTheme
 
 @Composable
 internal fun ConfigureDevicePanel() {
-  val dark by remember { mutableStateOf(false) }
-  val theme = if (dark) IntUiTheme.darkThemeDefinition() else IntUiTheme.lightThemeDefinition()
-  val mode by remember { mutableStateOf(false) }
-
-  IntUiTheme(theme, mode) { Text("Hello, Compose for Desktop!") }
+  @OptIn(ExperimentalJewelApi::class) SwingBridgeTheme { Text("Hello, Compose for Desktop!") }
 }
