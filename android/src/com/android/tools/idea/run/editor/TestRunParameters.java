@@ -21,7 +21,7 @@ import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunCo
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
 import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_METHOD;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpressions;
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
@@ -39,6 +39,7 @@ import com.intellij.execution.MethodListDlg;
 import com.intellij.execution.configuration.BrowseModuleValueActionListener;
 import com.intellij.execution.junit.JUnitUtil;
 import com.intellij.execution.ui.ConfigurationModuleSelector;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.util.PackageChooserDialog;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -106,7 +107,7 @@ public class TestRunParameters implements ConfigurationSpecificEditor<AndroidTes
   public TestRunParameters(Project project, ConfigurationModuleSelector moduleSelector) {
     myProject = project;
     myModuleSelector = moduleSelector;
-    isBuildWithGradle = GradleProjectInfo.getInstance(myProject).isBuildWithGradle();
+    isBuildWithGradle = ProjectFacetManager.getInstance(project).hasFacets(GradleFacet.getFacetTypeId());
 
     myBindingsManager = new BindingsManager();
     mySelectedTestType = new SelectedRadioButtonProperty<>(

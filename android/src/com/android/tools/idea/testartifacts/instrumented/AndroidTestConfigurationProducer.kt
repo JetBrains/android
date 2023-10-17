@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.androidProjectType
@@ -34,6 +34,7 @@ import com.intellij.execution.junit.JUnitUtil
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
@@ -106,7 +107,7 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
   override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean = when {
     // This configuration producer works best for Gradle based project. If the configuration is generated
     // for non-Gradle project and other configuration is available, prefer the other one.
-    !GradleProjectInfo.getInstance(self.configuration.project).isBuildWithGradle -> false
+    !ProjectFacetManager.getInstance(self.configuration.project).hasFacets(GradleFacet.getFacetTypeId()) -> false
 
     // If the other configuration type is JUnitConfigurationType or GradleExternalTaskConfigurationType, prefer our configuration.
     // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
