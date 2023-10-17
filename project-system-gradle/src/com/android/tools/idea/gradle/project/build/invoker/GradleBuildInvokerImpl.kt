@@ -55,6 +55,7 @@ import com.intellij.build.events.impl.StartBuildEventImpl
 import com.intellij.build.events.impl.SuccessResultImpl
 import com.intellij.icons.AllIcons
 import com.intellij.ide.SaveAndSyncHandler
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -601,6 +602,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
       e.presentation.isEnabled = !buildStopper.contains(myRequest.taskId)
     }
 
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun actionPerformed(e: AnActionEvent) {
       val newRequest: GradleBuildInvoker.Request = GradleBuildInvoker.Request.copyRequest(myRequest)
 
@@ -615,6 +618,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = buildStopper.contains(myRequest.taskId)
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
       buildStopper.attemptToStopBuild(myRequest.taskId, null)
