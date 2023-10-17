@@ -30,7 +30,6 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
-        "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

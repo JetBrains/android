@@ -99,7 +99,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/api:app-inspection.api[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
-        "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module, test]",
+        "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module, test]",
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",

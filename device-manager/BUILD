@@ -21,7 +21,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/intellij.android.device[module]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module]",
-        "//tools/adt/idea/device-file-explorer-toolwindow:intellij.android.device-file-explorer-toolwindow[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",

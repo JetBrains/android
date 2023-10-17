@@ -23,9 +23,9 @@ import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.deviceProperties
 import com.android.adblib.shellCommand
 import com.android.adblib.withLineCollector
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceCapabilities
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileOperations
-import com.android.tools.idea.file.explorer.toolwindow.adbimpl.selector
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceCapabilities
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileOperations
+import com.android.tools.idea.device.explorer.files.adbimpl.selector
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.Executors
