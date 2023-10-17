@@ -573,7 +573,7 @@ void Controller::StartDisplayPolling() {
     DisplayManager::OnDisplayChanged(jni_, display.first);
   }
   current_displays_ = displays;
-  Log::D("Controller::StartDisplayPolling current_displays_.size()=%d", current_displays_.size());
+  Log::D("Controller::StartDisplayPolling current_displays_.size()=%d", static_cast<int>(current_displays_.size()));
   poll_displays_until_ = steady_clock::now() + 2s;
 }
 
@@ -590,7 +590,8 @@ void Controller::PollDisplays() {
       StopDisplayPolling();
     }
   } else {
-    Log::D("Controller::PollDisplays: detected display change; displays.size()=%d current_displays_.size()=%d", displays.size(), current_displays_.size());
+    Log::D("Controller::PollDisplays: detected display change; displays.size()=%d current_displays_.size()=%d",
+           static_cast<int>(displays.size()), static_cast<int>(current_displays_.size()));
     for (auto d1 = displays.begin(), d2 = current_displays_.begin(); d1 != displays.end() || d2 != current_displays_.end();) {
       if (d2 == current_displays_.end()) {
         // Due to uncertain timing of events we have to assume that the display was both added and changed.

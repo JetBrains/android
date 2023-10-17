@@ -26,98 +26,147 @@ namespace screensharing {
 
 using namespace std;
 
-namespace {
+static mutex static_initialization_mutex; // Protects initialization of static fields.
 
-WindowManager* window_manager_instance = nullptr;
+void WindowManager::InitializeStatics(Jni jni) {
+  scoped_lock lock(static_initialization_mutex);
 
-}  // namespace
+  if (window_manager_.IsNull()) {
+    window_manager_ = ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager");
+    window_manager_class_ = window_manager_.GetClass();
+    if (Agent::api_level() < 29) {
+      freeze_display_rotation_method_ = window_manager_class_.FindMethod("freezeRotation", "(I)V");
+      thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawRotation", "()V");
+      is_display_rotation_frozen_method_ = window_manager_class_.GetMethod("isRotationFrozen", "()Z");
+    } else {
+      freeze_display_rotation_method_ = Agent::api_level() >= 34 ? // The "String caller" parameter was introduced in Android V.
+          window_manager_class_.FindMethod("freezeDisplayRotation", "(II)V") :
+          window_manager_class_.GetMethod("freezeDisplayRotation", "(II)V");
+      if (freeze_display_rotation_method_ == nullptr) {
+        freeze_display_rotation_method_ = window_manager_class_.GetMethod("freezeDisplayRotation", "(IILjava/lang/String;)V");
+        thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawDisplayRotation", "(ILjava/lang/String;)V");
+        caller_parameter_used_ = true;
+      } else {
+        thaw_display_rotation_method_ = window_manager_class_.GetMethod("thawDisplayRotation", "(I)V");
+      }
+      is_display_rotation_frozen_method_ = window_manager_class_.GetMethod("isDisplayRotationFrozen", "(I)Z");
+    }
+    // The second parameter was added in API 26.
+    // See https://android.googlesource.com/platform/frameworks/base/+/35fa3c26adcb5f6577849fd0df5228b1f67cf2c6%5E%21/#F4.
+    const char* signature = Agent::api_level() >= 26 ? "(Landroid/view/IRotationWatcher;I)I" : "(Landroid/view/IRotationWatcher;)I";
+    watch_rotation_method_ = window_manager_class_.GetMethod("watchRotation", signature);
 
-WindowManager::WindowManager(Jni jni)
-    : window_manager_(ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager")),
-      rotation_() {
-  JClass window_manager_class(window_manager_.GetClass());
-  // The getDefaultDisplayRotation method was called getRotation before API 26.
-  // See https://android.googlesource.com/platform/frameworks/base/+/5406e7ade87c33f70c83a283781dcc48fb67cdb9%5E%21/#F2.
-  const char* method_name = Agent::api_level() >= 26 ? "getDefaultDisplayRotation" : "getRotation";
-  get_default_display_rotation_method_ = window_manager_class.GetMethod(method_name, "()I");
-  freeze_rotation_method_ = window_manager_class.GetMethod("freezeRotation", "(I)V");
-  thaw_rotation_method_ = window_manager_class.GetMethod("thawRotation", "()V");
-  is_rotation_frozen_method_ = window_manager_class.GetMethod("isRotationFrozen", "()Z");
-  // The second parameter was added in API 26.
-  // See https://android.googlesource.com/platform/frameworks/base/+/35fa3c26adcb5f6577849fd0df5228b1f67cf2c6%5E%21/#F4.
-  const char* signature = Agent::api_level() >= 26 ? "(Landroid/view/IRotationWatcher;I)I" : "(Landroid/view/IRotationWatcher;)I";
-  jmethodID watch_rotation_method_ = window_manager_class.GetMethod("watchRotation", signature);
-  JClass rotation_watcher_class = jni.GetClass("com/android/tools/screensharing/RotationWatcher");
-  jmethodID rotation_watcher_constructor = rotation_watcher_class.GetConstructor("()V");
-  watcher_object_ = rotation_watcher_class.NewObject(rotation_watcher_constructor);
-  rotation_ = Agent::api_level() >= 26 ?
-      window_manager_.CallIntMethod(watch_rotation_method_, watcher_object_.ref(), DEFAULT_DISPLAY) :
-      window_manager_.CallIntMethod(watch_rotation_method_, watcher_object_.ref());
-  window_manager_.MakeGlobal();
-  watcher_object_.MakeGlobal();
-}
+    rotation_watcher_class_ = jni.GetClass("com/android/tools/screensharing/RotationWatcher");
+    rotation_watcher_constructor_ = rotation_watcher_class_.GetConstructor("(I)V");
 
-WindowManager::~WindowManager() {
-  Jni jni = Jvm::GetJni();
-  JClass window_manager_class(window_manager_.GetClass(jni));
-  jmethodID remove_rotation_watcher_method =
-      window_manager_class.GetMethod("removeRotationWatcher", "(Landroid/view/IRotationWatcher;)V");
-  window_manager_.CallVoidMethod(jni, remove_rotation_watcher_method);
-}
-
-WindowManager& WindowManager::GetInstance(Jni jni) {
-  if (window_manager_instance == nullptr) {
-    window_manager_instance = new WindowManager(jni);
+    window_manager_.MakeGlobal();
+    window_manager_class_.MakeGlobal();
+    rotation_watcher_class_.MakeGlobal();
   }
-  return *window_manager_instance;
 }
 
-int WindowManager::GetDefaultDisplayRotation(Jni jni) {
-  WindowManager& instance = GetInstance(jni);
-  return instance.window_manager_.CallIntMethod(jni, instance.get_default_display_rotation_method_);
+void WindowManager::FreezeRotation(Jni jni, int32_t display_id, int32_t rotation) {
+  Log::D("WindowManager::FreezeRotation(%d, %d)", display_id, rotation);
+  InitializeStatics(jni);
+  if (Agent::api_level() < 29) {
+    window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, rotation);
+  } else if (caller_parameter_used_) {
+    window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation, ATTRIBUTION_TAG);
+  } else {
+    window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation);
+  }
 }
 
-void WindowManager::FreezeRotation(Jni jni, int32_t rotation) {
-  Log::D("WindowManager::FreezeRotation: setting display orientation to %d", rotation);
-  WindowManager& instance = GetInstance(jni);
-  instance.window_manager_.CallVoidMethod(jni, instance.freeze_rotation_method_, rotation);
+void WindowManager::ThawRotation(Jni jni, int32_t display_id) {
+  Log::D("WindowManager::ThawRotation(%d)", display_id);
+  InitializeStatics(jni);
+  if (Agent::api_level() < 29) {
+    window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_);
+  } else if (caller_parameter_used_) {
+    window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id, ATTRIBUTION_TAG);
+  } else {
+    window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id);
+  }
 }
 
-void WindowManager::ThawRotation(Jni jni) {
-  Log::D("WindowManager::ThawRotation");
-  WindowManager& instance = GetInstance(jni);
-  instance.window_manager_.CallVoidMethod(jni, instance.thaw_rotation_method_);
+bool WindowManager::IsRotationFrozen(Jni jni, int32_t display_id) {
+  InitializeStatics(jni);
+  if (Agent::api_level() < 29) {
+    return window_manager_.CallBooleanMethod(jni, is_display_rotation_frozen_method_);
+  } else {
+    return window_manager_.CallBooleanMethod(jni, is_display_rotation_frozen_method_, display_id);
+  }
 }
 
-bool WindowManager::IsRotationFrozen(Jni jni) {
-  WindowManager& instance = GetInstance(jni);
-  return instance.window_manager_.CallBooleanMethod(jni, instance.is_rotation_frozen_method_);
+int32_t WindowManager::WatchRotation(Jni jni, int32_t display_id, RotationWatcher* watcher) {
+  InitializeStatics(jni);
+  unique_lock lock(mutex_);
+  auto res = rotation_trackers_.try_emplace(display_id);
+  auto& tracker = res.first->second;
+  if (res.second) {
+    tracker.watcher_adapter = rotation_watcher_class_.NewObject(jni, rotation_watcher_constructor_, display_id);
+    tracker.rotation = Agent::api_level() >= 26 ?
+                window_manager_.CallIntMethod(jni, watch_rotation_method_, tracker.watcher_adapter.ref(), display_id) :
+                window_manager_.CallIntMethod(jni, watch_rotation_method_, tracker.watcher_adapter.ref());
+    tracker.watcher_adapter.MakeGlobal();
+  }
+  tracker.rotation_watchers.Add(watcher);
+  return tracker.rotation;
 }
 
-int32_t WindowManager::WatchRotation(Jni jni, RotationWatcher* watcher) {
-  WindowManager& instance = GetInstance(jni);
-  instance.rotation_watchers_.Add(watcher);
-  return instance.rotation_;
+void WindowManager::RemoveRotationWatcher(Jni jni, int32_t display_id, RotationWatcher* watcher) {
+  {
+    scoped_lock lock(static_initialization_mutex);
+    if (window_manager_.IsNull()) {
+      return;
+    }
+  }
+
+  unique_lock lock(mutex_);
+  auto pos = rotation_trackers_.find(display_id);
+  if (pos == rotation_trackers_.end()) {
+    return;
+  }
+  DisplayRotationTracker& tracker = pos->second;
+  if (tracker.rotation_watchers.Remove(watcher) == 0) {
+    jmethodID remove_rotation_watcher_method =
+        window_manager_class_.GetMethod(jni, "removeRotationWatcher", "(Landroid/view/IRotationWatcher;)V");
+    window_manager_.CallVoidMethod(jni, remove_rotation_watcher_method, tracker.watcher_adapter.ref());
+    rotation_trackers_.erase(pos);
+  }
 }
 
-void WindowManager::RemoveRotationWatcher(Jni jni, RotationWatcher* watcher) {
-  GetInstance(jni).rotation_watchers_.Remove(watcher);
+void WindowManager::OnRotationChanged(int32_t display_id, int32_t rotation) {
+  Log::D("WindowManager::OnRotationChanged(%d, %d)", display_id, rotation);
+  auto tracker = rotation_trackers_.find(display_id);
+  if (tracker != rotation_trackers_.end()) {
+    int i = 0;
+    tracker->second.rotation_watchers.ForEach([rotation, &i](auto watcher) {
+      Log::D("WindowManager::OnRotationChanged: calling watcher %d", i++);
+      watcher->OnRotationChanged(rotation);
+    });
+  }
 }
 
-void WindowManager::OnRotationChanged(int32_t rotation) {
-  rotation_ = rotation;
-  rotation_watchers_.ForEach([rotation](auto watcher) {
-    watcher->OnRotationChanged(rotation);
-  });
-}
+WindowManager::DisplayRotationTracker::DisplayRotationTracker() = default;
+
+JObject WindowManager::window_manager_;
+JClass WindowManager::window_manager_class_;
+jmethodID WindowManager::freeze_display_rotation_method_;
+jmethodID WindowManager::thaw_display_rotation_method_;
+bool WindowManager::caller_parameter_used_;
+jmethodID WindowManager::is_display_rotation_frozen_method_;
+JClass WindowManager::rotation_watcher_class_;
+jmethodID WindowManager::rotation_watcher_constructor_;
+jmethodID WindowManager::watch_rotation_method_;
+mutex WindowManager::mutex_;
+map<int32_t, WindowManager::DisplayRotationTracker> WindowManager::rotation_trackers_;
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_android_tools_screensharing_RotationWatcher_onRotationChanged(JNIEnv* jni_env, jobject thiz, jint rotation) {
-  Log::D("RotationWatcher.onRotationChanged");
-  if (window_manager_instance != nullptr) {
-    window_manager_instance->OnRotationChanged(rotation);
-  }
+Java_com_android_tools_screensharing_RotationWatcher_onRotationChanged(JNIEnv* jni_env, jobject thiz, jint display_id, jint rotation) {
+  Log::D("RotationWatcher.onRotationChanged(%d, %d)", display_id, rotation);
+  WindowManager::OnRotationChanged(display_id, rotation);
 }
 
 }  // namespace screensharing

@@ -22,6 +22,17 @@ import android.view.IRotationWatcher;
  * in window_manager.cc.
  */
 public class RotationWatcher extends IRotationWatcher.Stub {
+  private final int displayId;
+
+  // Called through JNI.
+  public RotationWatcher(int displayId) {
+    this.displayId = displayId;
+  }
+
   @Override
-  public native void onRotationChanged(int rotation);
+  public void onRotationChanged(int rotation) {
+    onRotationChanged(displayId, rotation);
+  };
+
+  public native void onRotationChanged(int displayId, int rotation);
 }

@@ -26,6 +26,7 @@
 
 namespace screensharing {
 
+extern const char ATTRIBUTION_TAG[];  // The tag used in system logs.
 constexpr int32_t PRIMARY_DISPLAY_ID = 0;
 
 // The main class of the screen sharing agent.

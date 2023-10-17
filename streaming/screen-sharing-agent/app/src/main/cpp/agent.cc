@@ -35,6 +35,8 @@ namespace screensharing {
 using namespace std;
 using namespace std::chrono;
 
+const char ATTRIBUTION_TAG[] = "studio.screen.sharing";
+
 namespace {
 
 constexpr int CHANNEL_HEADER_LENGTH = 20;

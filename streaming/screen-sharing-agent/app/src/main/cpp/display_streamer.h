@@ -79,12 +79,13 @@ public:
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
     DisplayRotationWatcher(DisplayStreamer* display_streamer);
-    virtual ~DisplayRotationWatcher();
 
     void OnRotationChanged(int rotation) override;
 
     DisplayStreamer* display_streamer;
     std::atomic_int32_t display_rotation;
+
+    DISALLOW_COPY_AND_ASSIGN(DisplayRotationWatcher);
   };
 
   void Run();

@@ -113,7 +113,7 @@ void DisplayManager::AddDisplayListener(Jni jni, DisplayListener* listener) {
   }
 }
 
-void DisplayManager::RemoveDisplayListener(Jni jni, DisplayListener* listener) {
+void DisplayManager::RemoveDisplayListener(DisplayListener* listener) {
   {
     scoped_lock lock(static_initialization_mutex);
     if (display_listener_dispatcher_ == nullptr) {

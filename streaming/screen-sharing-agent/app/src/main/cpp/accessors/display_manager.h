@@ -25,8 +25,6 @@
 
 namespace screensharing {
 
-constexpr int32_t DEFAULT_DISPLAY = 0; // See android.view.Display.DEFAULT_DISPLAY
-
 class DisplayListenerDispatcher;
 
 // Provides access to the android.hardware.display.IDisplayManager.getDisplayInfo method.
@@ -43,7 +41,7 @@ public:
   static DisplayInfo GetDisplayInfo(Jni jni, int32_t display_id);
   static std::vector<int32_t> GetDisplayIds(Jni jni);
   static void AddDisplayListener(Jni jni, DisplayListener* listener);
-  static void RemoveDisplayListener(Jni jni, DisplayListener* listener);
+  static void RemoveDisplayListener(DisplayListener* listener);
   static void RemoveAllDisplayListeners(Jni jni);
 
   static void OnDisplayAdded(Jni jni, int32_t display_id);
