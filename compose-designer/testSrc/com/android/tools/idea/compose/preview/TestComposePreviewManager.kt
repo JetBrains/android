@@ -39,7 +39,6 @@ open class TestComposePreviewManager : ComposePreviewManager {
   override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
     MutableStateFlow(emptySet())
   override var groupFilter: PreviewGroup = PreviewGroup.All
-  override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
 
   override fun invalidate() {}

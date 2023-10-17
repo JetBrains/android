@@ -67,12 +67,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   var groupFilter: PreviewGroup
 
   /**
-   * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo
-   * object.
-   */
-  val hasDesignInfoProviders: Boolean
-
-  /**
    * The [PsiFile] that this preview is representing, if any. For cases where the preview is
    * rendering synthetic previews or elements from multiple files, this can be null.
    */
@@ -120,7 +114,6 @@ class NopComposePreviewManager : ComposePreviewManager {
   override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
     MutableStateFlow(emptySet())
   override var groupFilter: PreviewGroup = PreviewGroup.All
-  override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false

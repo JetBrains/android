@@ -28,7 +28,6 @@ import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.buildlisteners.PreviewBuildListenersManager
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
-import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
@@ -580,7 +579,6 @@ class ComposePreviewRepresentation(
           .toPreviewXml()
           // Whether to paint the debug boundaries or not
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
-          .toolsAttribute("findDesignInfoProviders", hasDesignInfoProviders.toString())
           .apply {
             if (isAnimationPreviewEnabled) {
               // If the animation inspection is active, start the PreviewAnimationClock with
@@ -674,10 +672,6 @@ class ComposePreviewRepresentation(
         else -> null
       }
   }
-
-  override val hasDesignInfoProviders: Boolean
-    get() =
-      runReadAction { psiFilePointer.element?.module }?.let { hasDesignInfoProviders(it) } ?: false
 
   override var showDebugBoundaries: Boolean = false
     set(value) {

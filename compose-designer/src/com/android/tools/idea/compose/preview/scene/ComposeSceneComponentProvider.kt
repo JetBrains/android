@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.compose.DESIGN_INFO_LIST_KEY
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.DefaultHitProvider
@@ -24,7 +23,6 @@ import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PxBounds
-import com.android.tools.idea.compose.preview.designinfo.parseDesignInfoList
 import com.android.tools.idea.compose.preview.isEmpty
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
@@ -104,16 +102,11 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
         ?.let { LOG.debug(" $it component=${component} model=${component.model}") }
     }
 
-    val sceneComponents =
-      debugResult(
-        parseViewInfo(viewInfo, logger = LOG).flatMap {
-          it.mapToSceneComponent(manager, component, mutableSetOf())
-        }
-      )
-
-    sceneComponents.getOrNull(0)?.myCache?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
-
-    return sceneComponents
+    return debugResult(
+      parseViewInfo(viewInfo, logger = LOG).flatMap {
+        it.mapToSceneComponent(manager, component, mutableSetOf())
+      }
+    )
   }
 
   // We do not sync information from the NlComponents back to SceneComponents in Compose
