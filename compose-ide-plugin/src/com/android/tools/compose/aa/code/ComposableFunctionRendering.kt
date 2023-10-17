@@ -85,6 +85,7 @@ internal fun KtAnalysisSession.isRequiredTrailingLambda(
   // parameter is a function type returns false. On the other hand, K2's value parameter symbol
   // deliberately unwraps it and returns the element type as a symbol's returnType. Thus, we need
   // a separate check for a vararg.
-  return !valueParamSymbol.isVararg &&
+  return isRequired(valueParamSymbol) &&
+    !valueParamSymbol.isVararg &&
     valueParamSymbol.returnType.let { it.isFunctionType || it.isSuspendFunctionType }
 }
