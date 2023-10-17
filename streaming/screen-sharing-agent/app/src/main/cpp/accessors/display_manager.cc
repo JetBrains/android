@@ -57,9 +57,9 @@ void DisplayManager::InitializeStatics(Jni jni) {
       display_listener_dispatcher_ = new DisplayListenerDispatcher();
     }
 
-    if (Agent::api_level() >= 33) {
+    if (Agent::api_level() >= 34) {
       display_manager_class_ = jni.GetClass("android/hardware/display/DisplayManager");
-      create_virtual_display_method_ = display_manager_class_.FindStaticMethod(
+      create_virtual_display_method_ = display_manager_class_.GetStaticMethod(
           "createVirtualDisplay", "(Ljava/lang/String;IIILandroid/view/Surface;)Landroid/hardware/display/VirtualDisplay;");
     }
 
@@ -164,11 +164,6 @@ void DisplayManager::OnDisplayChanged(Jni jni, int32_t display_id) {
 VirtualDisplay DisplayManager::CreateVirtualDisplay(
     Jni jni, const char* name, int32_t width, int32_t height, int32_t display_id, ANativeWindow* surface) {
   InitializeStatics(jni);
-  if (create_virtual_display_method_ == nullptr) {
-    Log::E("The DisplayManager.createVirtualDisplay static method is unavailable");
-    return VirtualDisplay();
-  }
-
   return VirtualDisplay(jni, display_manager_class_.CallStaticObjectMethod(
       jni, create_virtual_display_method_, JString(jni, name).ref(), width, height, display_id, SurfaceToJava(jni, surface).ref()));
 }

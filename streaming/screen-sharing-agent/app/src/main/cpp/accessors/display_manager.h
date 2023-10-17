@@ -48,11 +48,7 @@ public:
   static void OnDisplayChanged(Jni jni, int32_t display_id);
   static void OnDisplayRemoved(Jni jni, int32_t display_id);
 
-  static bool CanCreateVirtualDisplay(Jni jni) {
-    InitializeStatics(jni);
-    return create_virtual_display_method_ != nullptr;
-  }
-
+  // Requires API 34+.
   static VirtualDisplay CreateVirtualDisplay(
       Jni jni, const char* name, int32_t width, int32_t height, int32_t display_id, ANativeWindow* surface);
 

@@ -269,7 +269,7 @@ void DisplayStreamer::Run() {
     VirtualDisplay virtual_display;
     JObject display_token;
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
-    if (DisplayManager::CanCreateVirtualDisplay(jni)) {
+    if (Agent::api_level() >= 34) {
       virtual_display = DisplayManager::CreateVirtualDisplay(
           jni, display_name.c_str(), display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
     } else {
