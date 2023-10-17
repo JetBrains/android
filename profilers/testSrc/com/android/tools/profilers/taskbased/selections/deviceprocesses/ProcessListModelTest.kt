@@ -107,6 +107,70 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceProcessList.value.first().process.name).isEqualTo("FakeProcess2")
   }
 
+  @Test
+  fun `test preferred process selection and related processes are at top of device process list`() {
+    assertThat(processListModel.deviceProcessList.value).isEmpty()
+
+    addDeviceWithProcess("FakeDevice1", Common.Device.State.ONLINE, 20, "FakeProcess1:X", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice1", Common.Device.State.ONLINE, 10, "FakeProcess1", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice2", Common.Device.State.ONLINE, 50, "FakeProcess2:X", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice1", Common.Device.State.ONLINE, 30, "FakeProcess1:Y", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice2", Common.Device.State.ONLINE, 60, "FakeProcess2:Y", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice2", Common.Device.State.ONLINE, 40, "FakeProcess2", Common.Process.State.ALIVE)
+
+    // PREFERRED_PROCESS aspect should be fired via the call to set the preferred process.
+    myProfilers.setPreferredProcess("FakeDevice2", "FakeProcess2:X", null)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(processListModel.deviceProcessList.value).isNotEmpty()
+    assertThat(processListModel.deviceProcessList.value.size).isEqualTo(6)
+
+    assertThat(processListModel.getPreferredProcessName()).isEqualTo("FakeProcess2:X")
+    var deviceProcessesSorted = processListModel.deviceProcessList.value
+    assertThat(deviceProcessesSorted[0].process.name).isEqualTo("FakeProcess2:X")
+    assertThat(deviceProcessesSorted[1].process.name).isEqualTo("FakeProcess2")
+    assertThat(deviceProcessesSorted[2].process.name).isEqualTo("FakeProcess2:Y")
+    assertThat(deviceProcessesSorted[3].process.name).isEqualTo("FakeProcess1")
+    assertThat(deviceProcessesSorted[4].process.name).isEqualTo("FakeProcess1:X")
+    assertThat(deviceProcessesSorted[5].process.name).isEqualTo("FakeProcess1:Y")
+
+    myProfilers.setPreferredProcess("FakeDevice1", "FakeProcess1", null)
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
+    assertThat(processListModel.getPreferredProcessName()).isEqualTo("FakeProcess1")
+    deviceProcessesSorted = processListModel.deviceProcessList.value
+    assertThat(deviceProcessesSorted[0].process.name).isEqualTo("FakeProcess1")
+    assertThat(deviceProcessesSorted[1].process.name).isEqualTo("FakeProcess1:X")
+    assertThat(deviceProcessesSorted[2].process.name).isEqualTo("FakeProcess1:Y")
+    assertThat(deviceProcessesSorted[3].process.name).isEqualTo("FakeProcess2")
+    assertThat(deviceProcessesSorted[4].process.name).isEqualTo("FakeProcess2:X")
+    assertThat(deviceProcessesSorted[5].process.name).isEqualTo("FakeProcess2:Y")
+  }
+
+  @Test
+  fun `test device process list is lexicographically sorted without setting preferred process`() {
+    assertThat(processListModel.deviceProcessList.value).isEmpty()
+
+    addDeviceWithProcess("FakeDevice1", Common.Device.State.ONLINE, 20, "FakeProcess1:X", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice1", Common.Device.State.ONLINE, 10, "FakeProcess1", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice2", Common.Device.State.ONLINE, 50, "FakeProcess2:X", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice1", Common.Device.State.ONLINE, 30, "FakeProcess1:Y", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice2", Common.Device.State.ONLINE, 60, "FakeProcess2:Y", Common.Process.State.ALIVE)
+    addDeviceWithProcess("FakeDevice2", Common.Device.State.ONLINE, 40, "FakeProcess2", Common.Process.State.ALIVE)
+
+    // PREFERRED_PROCESS aspect should be fired via the call to set the preferred process.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    assertThat(processListModel.deviceProcessList.value).isNotEmpty()
+    assertThat(processListModel.deviceProcessList.value.size).isEqualTo(6)
+
+    val deviceProcessesSorted = processListModel.deviceProcessList.value
+    assertThat(deviceProcessesSorted[0].process.name).isEqualTo("FakeProcess1")
+    assertThat(deviceProcessesSorted[1].process.name).isEqualTo("FakeProcess1:X")
+    assertThat(deviceProcessesSorted[2].process.name).isEqualTo("FakeProcess1:Y")
+    assertThat(deviceProcessesSorted[3].process.name).isEqualTo("FakeProcess2")
+    assertThat(deviceProcessesSorted[4].process.name).isEqualTo("FakeProcess2:X")
+    assertThat(deviceProcessesSorted[5].process.name).isEqualTo("FakeProcess2:Y")
+  }
+
   private fun addDeviceWithProcess(deviceName: String,
                                    deviceState: Common.Device.State,
                                    processId: Int,

@@ -64,22 +64,44 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
 
   /**
    * Reorders the device process list by process name in increasing lexicographic order. One exception to this sort/order is that the
-   * preferred process will always be the first entry in the list.
+   * preferred processes will always be the first entries in the list.
+   *
+   * Preferred processes are defined to be processes with names that have the same content leading up to the first colon (':') character
+   * in the process name as the preferred process name. The preferred process names themselves are sorted lexicographically, with the
+   * process whose name fully matches the preferred process name being at the top of the list.
    */
   private fun reorderProcessList() {
-    val reorderedProcessList = mutableListOf<DeviceProcess>()
-    reorderedProcessList.addAll(_deviceProcessList.value)
-    reorderedProcessList.sortBy { it.process.name }
+    // The following collection of indices (sorted by a custom comparator) of device process names that have the same substring up to the
+    // first ":" instance as the preferred process name. These are the device processes that will be brought to the top of the device
+    // process list and are considered to be the "preferred processes".
+    val preferredProcessesWithIndicesSorted = if (!preferredProcessName.isNullOrBlank()) {
+      _deviceProcessList.value.withIndex().filter { (_, value) ->
+        value.process.name.split(':').first() == preferredProcessName!!.split(':').first()
+      }.sortedWith { a, b ->
+        // The following comparator gives priority to a device process if the process name is equal to the preferred process name.
+        // Otherwise, it uses a regular lexicographic comparison.
+        val processNameA = a.value.process.name
+        val processNameB = b.value.process.name
+        when {
+          processNameA == preferredProcessName && processNameB != preferredProcessName -> -1
+          processNameA != preferredProcessName && processNameB == preferredProcessName -> 1
+          else -> processNameA.compareTo(processNameB)
+        }
+      }.map { it.index }
 
-    // Move the preferred process, if it exists, to the front of the device process list.
-    if (!preferredProcessName.isNullOrBlank()){
-      val preferredProcessIdx = reorderedProcessList.indexOfFirst { it.process.name ==  preferredProcessName}
-      if (preferredProcessIdx != -1) {
-        val preferredProcess = reorderedProcessList.removeAt(preferredProcessIdx)
-        reorderedProcessList.add(0, preferredProcess)
-      }
+    }
+    // If there is no preferred process name, then we should not prioritize any processes, hence the empty list.
+    else {
+      listOf()
     }
 
+    val reorderedProcessList = mutableListOf<DeviceProcess>()
+    // Populate the new, reordered list with the non-preferred processes and sort it lexicographically.
+    reorderedProcessList.addAll(
+      _deviceProcessList.value.withIndex().filter { !preferredProcessesWithIndicesSorted.contains(it.index) }.map { it.value })
+    reorderedProcessList.sortBy { it.process.name }
+    // Add the preferred processes to the top of the new, reordered list.
+    reorderedProcessList.addAll(0, preferredProcessesWithIndicesSorted.map { _deviceProcessList.value[it] })
     _deviceProcessList.value = reorderedProcessList
   }
 
