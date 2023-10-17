@@ -25,40 +25,41 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
-  private val _deviceProcessList = MutableStateFlow(listOf<DeviceProcess>())
-  val deviceProcessList = _deviceProcessList.asStateFlow()
+  private val _deviceToProcesses = MutableStateFlow(mapOf<Common.Device, List<Common.Process>>())
+  val deviceToProcesses = _deviceToProcesses.asStateFlow()
 
-  private val _selectedDeviceProcess = MutableStateFlow(
-    DeviceProcess(Common.Device.getDefaultInstance(), Common.Process.getDefaultInstance()))
-  val selectedDeviceProcess = _selectedDeviceProcess.asStateFlow()
+  private val _selectedDevice = MutableStateFlow(Common.Device.getDefaultInstance())
+  val selectedDevice = _selectedDevice.asStateFlow()
+  private val _selectedProcess = MutableStateFlow(Common.Process.getDefaultInstance())
+  val selectedProcess = _selectedProcess.asStateFlow()
 
   private var preferredProcessName: String? = null
 
-  data class DeviceProcess(
-    val device: Common.Device,
-    val process: Common.Process
-  )
-
   init {
     profilers.addDependency(this)
-      .onChange(ProfilerAspect.PROCESSES) { deviceProcessListUpdated() }
+      .onChange(ProfilerAspect.PROCESSES) { deviceToProcessesUpdated() }
       .onChange(ProfilerAspect.PREFERRED_PROCESS) { preferredProcessUpdated() }
   }
 
-  private fun deviceProcessListUpdated() {
-    val newDeviceProcessList = mutableListOf<DeviceProcess>()
-    profilers.deviceProcessMap.map { (device, deviceProcesses) ->
+  fun getSelectedDeviceProcesses() = _deviceToProcesses.value.getOrDefault(_selectedDevice.value, listOf())
+
+  private fun deviceToProcessesUpdated() {
+    val newDeviceToProcesses = mutableMapOf<Common.Device, List<Common.Process>>()
+    profilers.deviceProcessMap.forEach { (device, processes) ->
       if (device.state != Common.Device.State.ONLINE) {
-        return@map
+        return
       }
-      for (process in deviceProcesses) {
+      val newProcesses = mutableListOf<Common.Process>()
+      for (process in processes) {
         if (process.state == Common.Process.State.ALIVE) {
-          newDeviceProcessList.add(DeviceProcess(device = device, process = process))
+          newProcesses.add(process)
         }
       }
+
+      newDeviceToProcesses[device] = newProcesses
     }
 
-    _deviceProcessList.value = newDeviceProcessList
+    _deviceToProcesses.value = newDeviceToProcesses
     reorderProcessList()
   }
 
@@ -71,17 +72,21 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
    * process whose name fully matches the preferred process name being at the top of the list.
    */
   private fun reorderProcessList() {
+    if (!isDeviceSelected()) {
+      return
+    }
+
     // The following collection of indices (sorted by a custom comparator) of device process names that have the same substring up to the
     // first ":" instance as the preferred process name. These are the device processes that will be brought to the top of the device
     // process list and are considered to be the "preferred processes".
     val preferredProcessesWithIndicesSorted = if (!preferredProcessName.isNullOrBlank()) {
-      _deviceProcessList.value.withIndex().filter { (_, value) ->
-        value.process.name.split(':').first() == preferredProcessName!!.split(':').first()
+      getSelectedDeviceProcesses().withIndex().filter { (_, value) ->
+        value.name.split(':').first() == preferredProcessName!!.split(':').first()
       }.sortedWith { a, b ->
         // The following comparator gives priority to a device process if the process name is equal to the preferred process name.
         // Otherwise, it uses a regular lexicographic comparison.
-        val processNameA = a.value.process.name
-        val processNameB = b.value.process.name
+        val processNameA = a.value.name
+        val processNameB = b.value.name
         when {
           processNameA == preferredProcessName && processNameB != preferredProcessName -> -1
           processNameA != preferredProcessName && processNameB == preferredProcessName -> 1
@@ -95,18 +100,26 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
       listOf()
     }
 
-    val reorderedProcessList = mutableListOf<DeviceProcess>()
+    val reorderedProcessList = mutableListOf<Common.Process>()
     // Populate the new, reordered list with the non-preferred processes and sort it lexicographically.
     reorderedProcessList.addAll(
-      _deviceProcessList.value.withIndex().filter { !preferredProcessesWithIndicesSorted.contains(it.index) }.map { it.value })
-    reorderedProcessList.sortBy { it.process.name }
+      getSelectedDeviceProcesses().withIndex().filter { !preferredProcessesWithIndicesSorted.contains(it.index) }.map { it.value })
+    reorderedProcessList.sortBy { it.name }
     // Add the preferred processes to the top of the new, reordered list.
-    reorderedProcessList.addAll(0, preferredProcessesWithIndicesSorted.map { _deviceProcessList.value[it] })
-    _deviceProcessList.value = reorderedProcessList
+    reorderedProcessList.addAll(0, preferredProcessesWithIndicesSorted.map { getSelectedDeviceProcesses()[it] })
+    // Create and set new mapping of devices to sorted processes.
+    val newDeviceToProcesses = mutableMapOf<Common.Device, List<Common.Process>>()
+    newDeviceToProcesses.putAll(_deviceToProcesses.value)
+    newDeviceToProcesses[_selectedDevice.value] = reorderedProcessList
+    _deviceToProcesses.value = newDeviceToProcesses
   }
 
-  fun onDeviceProcessSelection(newDeviceProcess: DeviceProcess) {
-    _selectedDeviceProcess.value = newDeviceProcess
+  fun onDeviceSelection(newDevice: Common.Device) {
+    _selectedDevice.value = newDevice
+  }
+
+  fun onProcessSelection(newProcess: Common.Process) {
+    _selectedProcess.value = newProcess
   }
 
   private fun preferredProcessUpdated() {
@@ -117,4 +130,6 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
 
   @VisibleForTesting
   fun getPreferredProcessName() = preferredProcessName
+
+  private fun isDeviceSelected() = selectedDevice.value != Common.Device.getDefaultInstance()
 }
