@@ -95,9 +95,4 @@ class ProcessListModel(val profilers: StudioProfilers) : AspectObserver() {
 
   @VisibleForTesting
   fun getPreferredProcessName() = preferredProcessName
-
-  companion object {
-    // Utility function to determine if selected process is profileable or not.
-    fun Common.Process.isProfileable() = SupportLevel.of(this.exposureLevel) == SupportLevel.PROFILEABLE
-  }
 }
