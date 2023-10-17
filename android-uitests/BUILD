@@ -1906,6 +1906,8 @@ java_test(
 
 java_test(
     name = "NavigateToLayoutFromNavGraphTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
@@ -1930,8 +1932,7 @@ java_test(
 
 java_test(
     name = "RefactoringFlowTest",
-    size = "enormous",
-    timeout = "long",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
