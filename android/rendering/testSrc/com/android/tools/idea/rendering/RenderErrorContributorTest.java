@@ -145,6 +145,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertSame(target, configuration.getRealTarget());
 
     RenderLogger logger = new RenderLogger(myModule.getProject());
+    RenderLogger.ignoreFidelityWarning(
+      "The current rendering only supports APIs up to 33. You may encounter crashes if using with higher APIs. To avoid, you can set a lower API for your previews.");
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
 
     RenderTestUtil.withRenderTask(facet, file, configuration, logger, task -> {
