@@ -48,6 +48,11 @@ class RecordingListModel(val profilers: StudioProfilers,
     _selectedRecording.value = newRecording
   }
 
+  fun isSelectedRecordingExportable(): Boolean {
+    val recording = selectedRecording.value
+    return recording != null && recording.containsExactlyOneArtifact() && (recording.getChildArtifacts().firstOrNull()?.canExport ?: false)
+  }
+
   private fun sessionItemsUpdated() {
     val sessionItems = profilers.sessionsManager.sessionArtifacts.filterIsInstance<SessionItem>()
     val newRecordingList = mutableListOf<SessionItem>()

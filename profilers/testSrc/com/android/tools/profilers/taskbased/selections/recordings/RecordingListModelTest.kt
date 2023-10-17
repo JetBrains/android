@@ -201,6 +201,56 @@ class RecordingListModelTest {
     assertThat(supportedTasksString).isEqualTo("Java/Kotlin Allocations")
   }
 
+  @Test
+  fun `recording with one artifact is exportable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val artifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers, session, 0L, 1L)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(artifact))
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isSelectedRecordingExportable()).isTrue()
+  }
+
+  @Test
+  fun `recording with zero artifacts is not exportable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf())
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
+  }
+
+  @Test
+  fun `recording with more than one artifact is not exportable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val artifact1 = SessionArtifactUtils.createHprofSessionArtifact(myProfilers, session, 0L, 1L)
+    val artifact2 = SessionArtifactUtils.createHprofSessionArtifact(myProfilers, session, 0L, 1L)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(artifact1, artifact2))
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
+  }
+
+  @Test
+  fun `recording with one, ongoing artifact is not exportable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val artifact = SessionArtifactUtils.createHprofSessionArtifact(myProfilers, session, 0L, Long.MAX_VALUE)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(artifact))
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
+  }
+
+  @Test
+  fun `recording with one non-exportable artifact is not exportable`() {
+    val sessionId = 1L
+    val session = Common.Session.newBuilder().setSessionId(sessionId).build()
+    val javaKotlinAllocationsArtifact = SessionArtifactUtils.createAllocationSessionArtifact(myProfilers, session, 0L, 1L)
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, sessionId, listOf(javaKotlinAllocationsArtifact))
+    recordingListModel.onRecordingSelection(sessionItem)
+    assertThat(recordingListModel.isSelectedRecordingExportable()).isFalse()
+  }
+
   private fun startAndStopSession(device: Common.Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
     myManager.beginSession(1, device, process, taskType)
     myManager.update()
