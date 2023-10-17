@@ -23,8 +23,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
@@ -50,7 +50,7 @@ import org.mockito.Mock;
  */
 @RunWith(Parameterized.class)
 public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
-  @Mock private GradleProjectInfo myProjectInfo;
+  @Mock private Info myProjectInfo;
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleVersionCatalogDetector myVersionCatalogDetector;
   @Mock private GradleFiles myGradleFiles;

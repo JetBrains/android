@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.projectsystem.AndroidProjectSystemProvider
 import com.intellij.openapi.project.Project
 
@@ -36,5 +36,5 @@ class GradleProjectSystemProvider(val project: Project) : AndroidProjectSystemPr
   // which subscribe to various events. To prevent this from happening we instantiate GradleProjectSystem via a thread-safe lazy property.
   override val projectSystem by lazy { GradleProjectSystem(project) }
 
-  override fun isApplicable() = GradleProjectInfo.getInstance(project).isBuildWithGradle
+  override fun isApplicable() = Info.getInstance(project).isBuildWithGradle
 }

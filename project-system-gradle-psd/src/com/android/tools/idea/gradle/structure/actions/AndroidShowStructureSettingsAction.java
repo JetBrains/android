@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.actions;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
@@ -63,7 +63,7 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
       return;
     }
 
-    if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    if (project != null && Info.getInstance(project).isBuildWithGradle()) {
       showAndroidProjectStructure(project);
       return;
     }

@@ -25,7 +25,7 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.tools.idea.actions.HideAndroidBannerAction;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -64,17 +64,17 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
-  @NotNull private final GradleProjectInfo myProjectInfo;
+  @NotNull private final Info myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
   private static final long HIDE_ACTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(30);
 
   @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
-    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
+    this(Info.getInstance(project), GradleSyncState.getInstance(project));
   }
 
   @NonInjectable
-  public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo,
+  public ProjectSyncStatusNotificationProvider(@NotNull Info projectInfo,
                                                @NotNull GradleSyncState syncState) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
@@ -133,14 +133,14 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     enum Type {
       NONE() {
         @Override
-        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull Info projectInfo) {
           return null;
         }
       },
       PROJECT_STRUCTURE() {
         @Override
         @Nullable
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull Info projectInfo) {
           if (ProjectStructureNotificationPanel.userAllowsShow()) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
@@ -164,14 +164,14 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       IN_PROGRESS() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull Info projectInfo) {
           return new NotificationPanel("Gradle project sync in progress...");
         }
       },
       FAILED() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull Info projectInfo) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
           return new SyncProblemNotificationPanel(project, text);
         }
@@ -179,7 +179,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       SYNC_NEEDED() {
         @Override
         @NotNull
-        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+        NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull Info projectInfo) {
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
@@ -188,7 +188,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       };
 
       @Nullable
-      abstract NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo);
+      abstract NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull Info projectInfo);
     }
 
     NotificationPanel(@NotNull String text) {

@@ -66,7 +66,7 @@ private fun notifyOnLegacyAndroidProject(project: Project) {
   if (AndroidProjectInfo.getInstance(project).isLegacyIdeaAndroidProject
       && !AndroidProjectInfo.getInstance(project).isApkProject) {
     legacyAndroidProjects.trackProject()
-    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle) {
+    if (!Info.getInstance(project).isBuildWithGradle) {
       // Suggest that Android Studio users use Gradle instead of IDEA project builder.
       legacyAndroidProjects.showMigrateToGradleWarning()
     }

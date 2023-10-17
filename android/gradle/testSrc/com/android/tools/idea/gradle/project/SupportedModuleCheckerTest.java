@@ -41,7 +41,7 @@ import org.mockito.Mock;
  * Tests for {@link SupportedModuleChecker}.
  */
 public class SupportedModuleCheckerTest extends PlatformTestCase {
-  @Mock private GradleProjectInfo myGradleProjectInfo;
+  @Mock private Info myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 
   @Override
@@ -50,7 +50,7 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
+    new IdeComponents(project).replaceProjectService(Info.class, myGradleProjectInfo);
     myModuleChecker = new SupportedModuleChecker();
   }
 

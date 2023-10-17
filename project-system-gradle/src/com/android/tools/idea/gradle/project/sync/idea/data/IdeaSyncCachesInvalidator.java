@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -25,7 +25,7 @@ public class IdeaSyncCachesInvalidator extends CachesInvalidator {
   public void invalidateCaches() {
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     for (Project project : openProjects) {
-      if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+      if (Info.getInstance(project).isBuildWithGradle()) {
         DataNodeCaches.getInstance(project).clearCaches();
       }
     }

@@ -86,6 +86,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 class AndroidGradleProjectStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
+    val info = Info.getInstance(project)
 
     fun shouldSyncOrAttachModels(): Boolean {
       if (gradleProjectInfo.isSkipStartupActivity) return false
@@ -94,7 +95,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       if (gradleProjectInfo.androidModules.isNotEmpty()) return true
 
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-      return IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle
+      return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
     }
 
     // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.

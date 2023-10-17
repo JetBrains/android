@@ -32,7 +32,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.NotificationModel
@@ -420,8 +420,8 @@ class ComposeLayoutInspectorClientTest {
       .thenReturn(Paths.get("/foo/bar"))
     ApplicationManager.getApplication()
       .registerServiceInstance(InspectorArtifactService::class.java, artifactService)
-    projectRule.mockProjectService(GradleProjectInfo::class.java)
-    whenever(GradleProjectInfo.getInstance(projectRule.project).isBuildWithGradle).thenReturn(true)
+    projectRule.mockProjectService(Info::class.java)
+    whenever(Info.getInstance(projectRule.project).isBuildWithGradle).thenReturn(true)
 
     checkLaunch(
       apiServices,

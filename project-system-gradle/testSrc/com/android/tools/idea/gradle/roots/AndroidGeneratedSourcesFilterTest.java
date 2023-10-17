@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.roots;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,7 +44,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
 public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
-  @Mock private GradleProjectInfo myProjectInfo;
+  @Mock private Info myInfo;
   private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 
   @Override
@@ -51,7 +52,7 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
     super.setUp();
     initMocks(this);
 
-    new IdeComponents(getProject()).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(getProject()).replaceProjectService(Info.class, myInfo);
     myGeneratedSourcesFilter = new AndroidGeneratedSourcesFilter();
   }
 
@@ -61,7 +62,7 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
     VirtualFile target = createFile(buildFolder, "foo.txt");
     GradleAndroidModel androidModel = createAndroidModel(buildFolder);
 
-    assertTrue(isGeneratedSource(target, getProject(), myProjectInfo, androidModel));
+    assertTrue(isGeneratedSource(target, getProject(), myInfo, androidModel));
   }
 
   public void testIsGeneratedSourceWithAndroidModelAndFileOutsideBuildFolder() throws IOException {
@@ -70,7 +71,7 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
     VirtualFile target = createFile(rootFolder, "foo.txt");
     GradleAndroidModel androidModel = createAndroidModel(buildFolder);
 
-    assertFalse(isGeneratedSource(target, getProject(), myProjectInfo, androidModel));
+    assertFalse(isGeneratedSource(target, getProject(), myInfo, androidModel));
   }
 
   @NotNull
@@ -84,18 +85,18 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
     VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
-    when(myProjectInfo.isBuildWithGradle()).thenReturn(true);  // Project is Gradle project.
+    when(myInfo.isBuildWithGradle()).thenReturn(true);  // Project is Gradle project.
 
-    assertTrue(isGeneratedSource(target, getProject(), myProjectInfo, null));
+    assertTrue(isGeneratedSource(target, getProject(), myInfo, null));
   }
 
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileInsideBuildFolderInNonGradleProject() throws IOException {
     VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile buildFolder = createBuildFolder(rootFolder);
     VirtualFile target = createFile(buildFolder, "foo.txt");
-    when(myProjectInfo.isBuildWithGradle()).thenReturn(false); // Project is not Gradle project
+    when(myInfo.isBuildWithGradle()).thenReturn(false); // Project is not Gradle project
 
-    assertFalse(isGeneratedSource(target, getProject(), myProjectInfo, null));
+    assertFalse(isGeneratedSource(target, getProject(), myInfo, null));
   }
 
   @NotNull
@@ -111,9 +112,9 @@ public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
   public void testIsGeneratedSourceWithAndroidModelNotFoundAndFileOutsideBuildFolderInGradleProject() throws IOException {
     VirtualFile rootFolder = PlatformTestUtil.getOrCreateProjectBaseDir(getProject());
     VirtualFile target = createFile(rootFolder, "foo.txt");
-    when(myProjectInfo.isBuildWithGradle()).thenReturn(true);  // Project is Gradle project.
+    when(myInfo.isBuildWithGradle()).thenReturn(true);  // Project is Gradle project.
 
-    assertFalse(isGeneratedSource(target, getProject(), myProjectInfo, null));
+    assertFalse(isGeneratedSource(target, getProject(), myInfo, null));
   }
 
   @NotNull

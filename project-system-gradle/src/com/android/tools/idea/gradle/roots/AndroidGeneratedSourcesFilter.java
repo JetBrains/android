@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.roots;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.intellij.openapi.project.Project;
@@ -39,7 +40,7 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
 
   @Override
   public boolean isGeneratedSource(@NotNull VirtualFile file, @NotNull Project project) {
-    GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
+    Info projectInfo = Info.getInstance(project);
     GradleAndroidModel androidModel = GradleProjectSystemUtil.findAndroidModelInModule(project, file);
     return isGeneratedSource(file, project, projectInfo, androidModel);
   }
@@ -47,7 +48,7 @@ public class AndroidGeneratedSourcesFilter extends GeneratedSourcesFilter {
   @VisibleForTesting
   public static boolean isGeneratedSource(@NotNull VirtualFile file,
                                           @NotNull Project project,
-                                          GradleProjectInfo projectInfo, GradleAndroidModel androidModel) {
+                                          Info projectInfo, GradleAndroidModel androidModel) {
     if (androidModel != null) {
       return isAncestor(androidModel.getAndroidProject().getBuildFolder(), virtualToIoFile(file), false);
     }

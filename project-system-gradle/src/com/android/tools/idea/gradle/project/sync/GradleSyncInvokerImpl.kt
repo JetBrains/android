@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
@@ -84,8 +84,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
   companion object {
     private val LOG = Logger.getInstance(GradleSyncInvoker::class.java)
     private fun prepareProject(project: Project, listener: GradleSyncListener?): Boolean {
-      val projectInfo = GradleProjectInfo.getInstance(project)
-      if (projectInfo.isBuildWithGradle) {
+      if (Info.getInstance(project).isBuildWithGradle) {
         FileDocumentManager.getInstance().saveAllDocuments()
         return true // continue with sync.
       }

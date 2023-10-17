@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -107,7 +107,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   protected void analyze(@NotNull Project project, @NotNull AnalysisScope scope) {
     setUpNullityAnnotationDefaults(project);
 
-    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    if (!Info.getInstance(project).isBuildWithGradle()) {
       super.analyze(project, scope);
       return;
     }
@@ -368,7 +368,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   @Override
   protected JComponent getAdditionalActionSettings(@NotNull Project project, BaseAnalysisActionDialog dialog) {
     JComponent panel = super.getAdditionalActionSettings(project, dialog);
-    if (panel != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    if (panel != null && Info.getInstance(project).isBuildWithGradle()) {
       panel.setVisible(false);
     }
     return panel;

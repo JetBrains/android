@@ -53,7 +53,7 @@ public class SupportedModuleChecker {
    */
   public void checkForSupportedModules(@NotNull Project project) {
     Module[] modules = ModuleManager.getInstance(project).getModules();
-    if (modules.length == 0 || !GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    if (modules.length == 0 || !Info.getInstance(project).isBuildWithGradle()) {
       return;
     }
     List<Module> unsupportedModules = new ArrayList<>();

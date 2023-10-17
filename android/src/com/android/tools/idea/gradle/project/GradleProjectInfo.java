@@ -97,56 +97,6 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether Gradle is used to build at least one module in this project.
-   * Note: {@link ProjectSystemUtil#requiresAndroidModel(Project))} indicates whether a project requires an {@link AndroidModel}.
-   * That method should be preferred in almost all cases. Use this method only if you explicitly need to check whether the model is
-   * Gradle-specific.
-   */
-  public boolean isBuildWithGradle() {
-    return ReadAction.compute(() -> {
-      if (myProject.isDisposed()) {
-        return false;
-      }
-      if (isBeingInitializedAsGradleProject(myProject)) {
-        return true;
-      }
-      if (Arrays.stream(ModuleManager.getInstance(myProject).getModules())
-        .anyMatch(it -> ExternalSystemApiUtil.isExternalSystemAwareModule(GRADLE_SYSTEM_ID, it))) {
-        return true;
-      }
-      if (myFacetManager.hasFacets(GradleFacet.getFacetTypeId())) {
-        return true;
-      }
-      // See https://code.google.com/p/android/issues/detail?id=203384
-      // This could be a project without modules. Check that at least it synced with Gradle.
-      if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
-        return true;
-      }
-      if (!GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()){
-        return true;
-      }
-      return hasTopLevelGradleFile();
-    });
-  }
-
-  /**
-   * Indicates whether the project has a file which gradle could use to perform initialization, either of a "single project" or a
-   * "multi-project" build.
-   *
-   * @return {@code true} if the project has a Gradle build or settings file in the project's root folder; {@code false} otherwise.
-   */
-  public boolean hasTopLevelGradleFile() {
-    if (myProject.isDefault()) {
-      return false;
-    }
-    VirtualFile baseDir = myProject.getBaseDir();
-    if (baseDir != null) {
-      return ((findGradleBuildFile(baseDir) != null) || (findGradleSettingsFile(baseDir) != null));
-    }
-    return false;
-  }
-
-  /**
    * @return the modules in a Gradle-based project that contain an {@code AndroidFacet}.
    */
   @NotNull
@@ -201,39 +151,6 @@ public class GradleProjectInfo {
       return isProjectModule(module) ? ModuleManager.getInstance(myProject).getModules() : new Module[]{module};
     }
     return Module.EMPTY_ARRAY;
-  }
-
-  private static final Key<Set<File>> PROJECTS_BEING_INITIALIZED = Key.create("PROJECTS_BEING_INITIALIZED");
-
-  /**
-   * Registers the given location as the location of a new Gradle project which is being initialized.
-   *
-   * <p>This makes {@link #isBuildWithGradle()} return true for projects at this location.
-   *
-   * @return an access token which should be finalized when the project is initialized.
-   */
-  public static AccessToken beginInitializingGradleProjectAt(@NotNull File projectFolderPath) {
-    UserDataHolderEx userData = (UserDataHolderEx)ApplicationManager.getApplication();
-    Set<File> projectsBeingInitialized = userData.putUserDataIfAbsent(PROJECTS_BEING_INITIALIZED,
-                                                                      ConcurrentCollectionFactory.createConcurrentSet());
-    if (!projectsBeingInitialized.add(projectFolderPath)) {
-      throw new IllegalStateException(
-        "Cannot initialize two projects at the same location at the same time. Project location: " + projectFolderPath);
-    }
-    return new AccessToken() {
-      @Override
-      public void finish() {
-        projectsBeingInitialized.remove(projectFolderPath);
-      }
-    };
-  }
-
-  private static boolean isBeingInitializedAsGradleProject(@NotNull Project project) {
-    String basePath = project.getBasePath();
-    if (basePath == null) return false;
-    Set<File> projectsBeingInitialized = ApplicationManager.getApplication().getUserData(PROJECTS_BEING_INITIALIZED);
-    if (projectsBeingInitialized == null) return false;
-    return projectsBeingInitialized.contains(new File(basePath));
   }
 
   private static boolean isProjectModule(@NotNull Module module) {

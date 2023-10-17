@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import static com.intellij.notification.NotificationType.ERROR;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.project.AndroidNotification;
@@ -71,6 +71,6 @@ public class BuildBundleAction extends DumbAwareAction {
 
   private static boolean isProjectBuildWithGradle(@Nullable Project project) {
     return project != null &&
-           GradleProjectInfo.getInstance(project).isBuildWithGradle();
+           Info.getInstance(project).isBuildWithGradle();
   }
 }
