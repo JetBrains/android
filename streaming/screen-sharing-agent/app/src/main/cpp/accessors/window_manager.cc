@@ -71,7 +71,7 @@ void WindowManager::FreezeRotation(Jni jni, int32_t display_id, int32_t rotation
   if (Agent::api_level() < 29) {
     window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, rotation);
   } else if (caller_parameter_used_) {
-    window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation, ATTRIBUTION_TAG);
+    window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation, JString(jni, ATTRIBUTION_TAG).ref());
   } else {
     window_manager_.CallVoidMethod(jni, freeze_display_rotation_method_, display_id, rotation);
   }
@@ -83,7 +83,7 @@ void WindowManager::ThawRotation(Jni jni, int32_t display_id) {
   if (Agent::api_level() < 29) {
     window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_);
   } else if (caller_parameter_used_) {
-    window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id, ATTRIBUTION_TAG);
+    window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id, JString(jni, ATTRIBUTION_TAG).ref());
   } else {
     window_manager_.CallVoidMethod(jni, thaw_display_rotation_method_, display_id);
   }
