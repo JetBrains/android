@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project
 import com.android.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -29,6 +30,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.shouldDisableForceUpgrades
+import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -250,7 +252,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       // For other types of root we do not perform any validations since urls are intentionally or unintentionally not removed
       // from libraries if the location changes. See TODO: b/160088430.
       val expectedUrls = library.getUrls(OrderRootType.CLASSES)
-      if (expectedUrls.none { url: String -> VirtualFileManager.getInstance().findFileByUrl(url) != null }) {
+      if (expectedUrls.isNotEmpty() && expectedUrls.none { url: String -> VirtualFileManager.getInstance().findFileByUrl(url) != null }) {
         requestSync(
           "Cannot find any of:\n ${expectedUrls.joinToString(separator = ",\n") { it }}\n in ${library.name}"
         )
@@ -282,10 +284,12 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           if (sourceSets.isEmpty()) {
             listOf(ModuleSetupData(module, node, modelFactory))
           } else {
-            sourceSets.map {
-              val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
-              ModuleSetupData(moduleId, it, modelFactory)
-            } + ModuleSetupData(module, node, modelFactory)
+            sourceSets
+              .filter { it.isAndroidSourceSet() }
+              .map {
+                val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
+                ModuleSetupData(moduleId, it, modelFactory)
+              } + ModuleSetupData(module, node, modelFactory)
           }
         }
     }
@@ -381,3 +385,6 @@ private fun Module.hasOnlyNativeRoots() =
     roots.sourceRoots.isNotEmpty() &&
     roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
   }
+
+private fun DataNode<GradleSourceSetData>.isAndroidSourceSet() =
+  data.getIdeModuleSourceSet() is IdeModuleWellKnownSourceSet

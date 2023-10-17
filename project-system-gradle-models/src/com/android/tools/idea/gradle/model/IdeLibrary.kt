@@ -183,7 +183,8 @@ enum class IdeModuleWellKnownSourceSet(
   ANDROID_TEST("androidTest", false);
 
   companion object {
-    fun fromName(name: String): IdeModuleWellKnownSourceSet? = values().firstOrNull { it.sourceSetName == name }
+    private val nameToValue = values().associateBy { it.sourceSetName }
+    fun fromName(name: String): IdeModuleWellKnownSourceSet? = nameToValue[name]
   }
 }
 

@@ -150,10 +150,6 @@ object ModuleUtil {
   fun GradleSourceSetData.getIdeModuleSourceSet(): IdeModuleSourceSet = IdeModuleSourceSetImpl.wellKnownOrCreate(moduleName)
 }
 
-fun String.removeSourceSetSuffixFromExternalProjectID() : String = removeSourceSetSuffix(":")
-
-fun String.removeSourceSetSuffixFromModuleName() : String = removeSourceSetSuffix(".")
-
 private fun String.removeSourceSetSuffix(delimiter: String) : String = IdeArtifactName.values().firstNotNullOfOrNull { artifactName ->
   val moduleName = getModuleName(artifactName)
   val suffix = "$delimiter$moduleName"

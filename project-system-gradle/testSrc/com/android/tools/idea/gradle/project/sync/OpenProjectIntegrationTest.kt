@@ -84,6 +84,17 @@ class OpenProjectIntegrationTest {
   }
 
   @Test
+  fun testReopenProject_kmpWithJs() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS)
+    val before = preparedProject.open { project -> project.saveAndDump() }
+    val after = preparedProject.open { project ->
+      verifySyncSkipped(project, projectRule.testRootDisposable)
+      project.saveAndDump()
+    }
+    assertThat(after).isEqualTo(before)
+  }
+
+  @Test
   fun testReopenProject_withCustomEntry() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project ->
