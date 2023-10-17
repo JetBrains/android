@@ -298,6 +298,9 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
 
     // Clean up all the children panels to avoid accidental memory leaks.
     myMainPanel.removeAll();
+    mySplitter.setInnerComponent(null);
+    mySplitter.setFirstComponent(null);
+    mySplitter.setLastComponent(null);
     mySplitter.removeAll();
     myLoadingPanel.removeAll();
   }
