@@ -24,9 +24,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
-import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.project.DefaultProjectSystem;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.editor.colors.ColorKey;
@@ -50,7 +51,6 @@ import org.mockito.Mock;
  */
 @RunWith(Parameterized.class)
 public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
-  @Mock private Info myProjectInfo;
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleVersionCatalogDetector myVersionCatalogDetector;
   @Mock private GradleFiles myGradleFiles;
@@ -88,9 +88,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     initMocks(this);
     new IdeComponents(myProject).replaceProjectService(GradleFiles.class, myGradleFiles);
 
-    when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
-
-    myNotificationProvider = new ProjectSyncStatusNotificationProvider(myProjectInfo, mySyncState);
+    myNotificationProvider = new ProjectSyncStatusNotificationProvider(new GradleProjectSystem(myProject), mySyncState);
     myFile = VfsUtil.findFileByIoFile(createTempFile(myFilepath, "whatever"), true);
 
     myPropertiesComponent = new PropertiesComponentMock();
@@ -126,7 +124,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
 
   @Test
   public void testNotificationPanelTypeWithProjectNotBuiltWithGradle() {
-    when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
+    myNotificationProvider = new ProjectSyncStatusNotificationProvider(new DefaultProjectSystem(myProject), mySyncState);
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
@@ -246,6 +244,6 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
   }
 
   private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {
-    return type.create(myProject, myFile, myProjectInfo);
+    return type.create(myProject, myFile);
   }
 }

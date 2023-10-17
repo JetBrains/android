@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.Info;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.ide.impl.TrustedProjects;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -79,6 +80,6 @@ public abstract class AndroidStudioGradleAction extends AnAction {
 
   protected static boolean isGradleProject(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    return project != null && Info.getInstance(project).isBuildWithGradle();
+    return project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem;
   }
 }
