@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.device.settings
 
-import com.android.tools.idea.IdeInfo
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 
@@ -24,8 +23,5 @@ import com.intellij.openapi.options.ConfigurableProvider
  */
 class DeviceMirroringConfigurableProvider : ConfigurableProvider() {
 
-  override fun canCreateConfigurable(): Boolean {
-    return IdeInfo.getInstance().isAndroidStudio
-  }
   override fun createConfigurable(): Configurable = DeviceMirroringSettingsPage()
 }
