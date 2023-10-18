@@ -102,7 +102,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   // i.e. the project state will be loaded from a cache.
   // If the callback is accepted with the SKIPPED status, the code/split/design panes will be shown as expected.
   if (lastSyncResult == SyncResult.UNKNOWN) {
-    LOG.debug { "say something todo=${callback}" }
+    LOG.debug { "last sync result is in unknown state=${callback}" }
     listenUntilNextSync(parentDisposable) { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     return
   }
