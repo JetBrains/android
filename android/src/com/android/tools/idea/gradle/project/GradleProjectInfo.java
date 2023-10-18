@@ -15,51 +15,32 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableList;
-import com.intellij.concurrency.ConcurrentCollectionFactory;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.application.AccessToken;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.UserDataHolderEx;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
   private volatile boolean myNewProject;
-  private volatile boolean myImportedProject;
-  private final ProjectFacetManager myFacetManager;
   /**
    * See <a href="https://issuetracker.google.com/291935296">this bug</a> for more info.
    * <p>
@@ -75,7 +56,6 @@ public class GradleProjectInfo {
 
   public GradleProjectInfo(@NotNull Project project) {
     myProject = project;
-    myFacetManager = ProjectFacetManager.getInstance(myProject);
   }
 
   public boolean isNewProject() {
