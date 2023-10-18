@@ -728,6 +728,7 @@ android_studio(
         ],
     }),
     searchable_options = "//tools/adt/idea/searchable-options",
+    selector = "AndroidStudio",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
     version_micro_patch = STUDIO_MICRO_PATCH,

@@ -88,7 +88,10 @@ def _replace_build_number(content, info_file):
   build_info = _read_status_file(info_file)
   bid = _get_build_id(build_info)
   return content.replace("__BUILD_NUMBER__", bid)
-  
+
+def _replace_selector(content, selector):
+  return content.replace("_ANDROID_STUDIO_SYSTEM_SELECTOR_", selector)
+
 
 def _read_file(file, entry = None, optional_entry = False):
   if entry:
@@ -125,6 +128,9 @@ def main(argv):
       "--replace_build_number",
       action="store_true",
       help="Replaces __BUILD_NUMBER__ on the given file using --info_file.")
+  parser.add_argument(
+      "--replace_selector",
+      help="Replaces _ANDROID_STUDIO_SYSTEM_SELECTOR_ with the given value")
   parser.add_argument(
       "--stamp_app_info",
       action="store_true",
@@ -185,6 +191,9 @@ def main(argv):
   if content:
     if args.replace_build_number:
       content = _replace_build_number(content, args.info_file)
+    
+    if args.replace_selector:
+      content= _replace_selector(content, args.replace_selector)
 
     if args.stamp_app_info:
       content = _stamp_app_info(args.version_file, args.build_txt, args.version_micro, args.version_patch, args.version_full, args.eap, content)

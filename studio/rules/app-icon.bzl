@@ -60,8 +60,8 @@ def _modify_exe_launcher(ctx, out, windows_exe, ico_file):
     ctx.actions.run(
         inputs = [ico_file, windows_exe],
         outputs = [out],
-        arguments = [windows_exe.path, ico_file.path, icon_id, out.path],
-        executable = ctx.executable._replace_exe_icon,
+        arguments = [windows_exe.path, out.path, "--replace_icon", icon_id, ico_file.path],
+        executable = ctx.executable._patch_exe,
         mnemonic = "ModifyExeIcon",
     )
 
