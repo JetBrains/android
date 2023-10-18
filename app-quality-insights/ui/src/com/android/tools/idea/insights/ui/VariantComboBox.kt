@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.IssueVariant
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -39,12 +40,14 @@ const val FAILURE_COMBOBOX_MESSAGE = "Failed to load variants."
 class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable) :
   CommonComboBox<Row, DefaultCommonComboBoxModel<Row>>(
     DefaultCommonComboBoxModel<Row>("All variants").apply { editable = false }
-  ) {
+  ),
+  Disposable {
   private var isDisabledIndex = false
   private var currentVariantSelection: Selection<IssueVariant>? = null
-  private val scope = AndroidCoroutineScope(parentDisposable, AndroidDispatchers.uiThread)
+  private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
 
   init {
+    Disposer.register(parentDisposable, this)
     flow
       .mapNotNull {
         (it.issues as? LoadingState.Ready)?.value?.value?.selected?.let { issue ->
@@ -119,6 +122,10 @@ class VariantComboBox(flow: Flow<AppInsightsState>, parentDisposable: Disposable
     model.removeAllElements()
     model.addElement(DisabledTextRow(message))
     model.enabled = false
+  }
+
+  override fun dispose() {
+    model.removeAllElements()
   }
 }
 

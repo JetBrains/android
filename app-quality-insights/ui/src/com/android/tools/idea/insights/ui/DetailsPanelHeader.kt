@@ -44,7 +44,7 @@ import org.jetbrains.annotations.VisibleForTesting
 
 class DetailsPanelHeader(
   private val variantComboBox: VariantComboBox? = null,
-  private val onVariantSelected: (IssueVariant?) -> Unit = {}
+  onVariantSelected: (IssueVariant?) -> Unit = {}
 ) : JPanel(BorderLayout()) {
   @VisibleForTesting val titleLabel = JBLabel()
 
