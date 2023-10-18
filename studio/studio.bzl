@@ -609,13 +609,12 @@ def _stamp_platform(ctx, platform, platform_files):
         args.add("--replace_build_number")
         _stamp(ctx, args, [ctx.info_file], info_plist, stamped_info_plist)
 
-    if platform != WIN:
-        product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
-        args = ctx.actions.args()
-        args.add("--info_file", ctx.info_file)
-        args.add("--build_txt", stamped_build_txt)
-        args.add("--stamp_product_info")
-        _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
+    product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
+    args = ctx.actions.args()
+    args.add("--info_file", ctx.info_file)
+    args.add("--build_txt", stamped_build_txt)
+    args.add("--stamp_product_info")
+    _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
 
     return ret
 
