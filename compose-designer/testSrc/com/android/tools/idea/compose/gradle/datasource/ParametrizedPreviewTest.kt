@@ -284,8 +284,12 @@ class ParametrizedPreviewTest {
     preview.onActivate()
 
     val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance
-    preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-    delayUntilCondition(250) { preview.isUiCheckPreview }
+    run {
+      var refreshCompleted = false
+      composeView.refreshCompletedListeners.add { refreshCompleted = true }
+      preview.mode = PreviewMode.UiCheck(uiCheckElement)
+      delayUntilCondition(250) { refreshCompleted }
+    }
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 

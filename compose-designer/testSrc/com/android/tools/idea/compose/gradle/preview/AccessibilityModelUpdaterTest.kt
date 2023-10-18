@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
@@ -112,18 +111,20 @@ class AccessibilityModelUpdaterTest {
 
     val uiCheckElement =
       twoElementsPreviewModel.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)!!
-    composePreviewRepresentation.setMode(
+
+    val onRefreshCompletable = previewView.getOnRefreshCompletable()
+    composePreviewRepresentation.mode =
       PreviewMode.UiCheck(
         uiCheckElement,
         atfChecksEnabled = true,
-      ),
-    )
-    runBlocking { delayUntilCondition(250) { composePreviewRepresentation.isUiCheckPreview } }
+      )
 
+    runBlocking { onRefreshCompletable.join() }
     val twoElementsPreviewRoot =
       previewView.mainSurface.models
         .first { it.modelDisplayName == "TwoElementsPreview - Medium Phone" }
         .components[0]
+
     assertNotEquals(-1, twoElementsPreviewRoot.accessibilityId)
 
     var children = twoElementsPreviewRoot.children

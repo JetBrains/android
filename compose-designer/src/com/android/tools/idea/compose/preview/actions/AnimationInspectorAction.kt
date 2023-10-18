@@ -59,6 +59,6 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
   override fun actionPerformed(e: AnActionEvent) {
     val manager = dataContextProvider().getData(PreviewModeManager.KEY) ?: return
     val previewElement = dataContextProvider().getData(PREVIEW_ELEMENT_INSTANCE) ?: return
-    manager.setMode(PreviewMode.AnimationInspection(previewElement))
+    manager.mode = PreviewMode.AnimationInspection(previewElement)
   }
 }

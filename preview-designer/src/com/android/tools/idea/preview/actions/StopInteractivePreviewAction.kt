@@ -40,9 +40,7 @@ class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) 
       findPreviewModeManagersForContext(e.dataContext).any { it.isInteractiveModeReady() } &&
         !forceDisable(e)
     e.presentation.isVisible =
-      findPreviewModeManagersForContext(e.dataContext).any {
-        it.isInteractiveModeStartingStartedOrStopping()
-      }
+      findPreviewModeManagersForContext(e.dataContext).any { it.mode is PreviewMode.Interactive }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -54,11 +52,4 @@ class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   private fun PreviewModeManager.isInteractiveModeReady() = mode is PreviewMode.Interactive
-
-  private fun PreviewModeManager.isInteractiveModeStartingStartedOrStopping(): Boolean {
-    val isInteractiveModeStopping =
-      (mode as? PreviewMode.Switching)?.currentMode is PreviewMode.Interactive
-    val isInteractiveModeStartingOrStarted = currentOrNextMode is PreviewMode.Interactive
-    return isInteractiveModeStartingOrStarted || isInteractiveModeStopping
-  }
 }

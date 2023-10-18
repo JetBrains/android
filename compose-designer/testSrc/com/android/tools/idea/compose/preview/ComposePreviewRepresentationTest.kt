@@ -85,6 +85,8 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override var hasRendered: Boolean = true
   override var galleryMode: ComposeGalleryMode? = null
 
+  val refreshCompletedListeners: MutableList<() -> Unit> = mutableListOf()
+
   override fun updateNotifications(parentEditor: FileEditor) {}
 
   override fun updateVisibilityAndNotifications() {}
@@ -93,7 +95,9 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
 
   override fun onRefreshCancelledByTheUser() {}
 
-  override fun onRefreshCompleted() {}
+  override fun onRefreshCompleted() {
+    refreshCompletedListeners.forEach { it.invoke() }
+  }
 
   override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
 }
@@ -236,8 +240,12 @@ class ComposePreviewRepresentationTest {
       assertEquals(0, contentManager.contents.size)
 
       // Start UI Check mode
-      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-      delayUntilCondition(250) { preview.isUiCheckPreview }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        delayUntilCondition(250) { refresh }
+      }
 
       assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
@@ -320,9 +328,14 @@ class ComposePreviewRepresentationTest {
         assertFalse(actionEvent.presentation.isEnabled)
       }
 
-      // Stop UI Check mode
-      preview.setMode(PreviewMode.Default)
-      delayUntilCondition(250) { preview.isInNormalMode }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        // Stop UI Check mode
+        preview.mode = PreviewMode.Default
+        delayUntilCondition(250) { refresh }
+      }
+
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       // Check that the surface scale is reset to its original value
@@ -360,7 +373,7 @@ class ComposePreviewRepresentationTest {
 
       // Re-run UI check with the problems panel action
       launch(uiThread) { rerunAction.actionPerformed(TestActionEvent.createTestEvent()) }
-      delayUntilCondition(250) { preview.isUiCheckPreview }
+      delayUntilCondition(250) { preview.uiCheckFilterFlow.value is UiCheckModeFilter.Enabled }
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         5.seconds
@@ -422,21 +435,34 @@ class ComposePreviewRepresentationTest {
         }
       )
 
-      // Stop UI Check mode
-      preview.setMode(PreviewMode.Default)
-      delayUntilCondition(250) { preview.isInNormalMode }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        // Stop UI Check mode
+        preview.mode = PreviewMode.Default
+        delayUntilCondition(250) { refresh }
+      }
 
       // Restart UI Check mode on the same preview
-      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-      delayUntilCondition(250) { preview.isUiCheckPreview }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        delayUntilCondition(250) { refresh }
+      }
 
       // Check that the UI Check tab is being reused
       assertEquals(2, contentManager.contents.size)
       val tab = contentManager.findContent(uiCheckElement.displaySettings.name)
       assertNotNull(tab)
 
-      preview.setMode(PreviewMode.Default)
-      delayUntilCondition(250) { preview.isInNormalMode }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        // Stop UI Check mode
+        preview.mode = PreviewMode.Default
+        delayUntilCondition(250) { refresh }
+      }
 
       preview.onDeactivate()
     }
@@ -492,8 +518,12 @@ class ComposePreviewRepresentationTest {
       assertEquals(0, contentManager.contents.size)
 
       // Start UI Check mode
-      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-      delayUntilCondition(250) { preview.isUiCheckPreview }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        delayUntilCondition(250) { refresh }
+      }
 
       assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
@@ -595,8 +625,12 @@ class ComposePreviewRepresentationTest {
       }
 
       // Stop UI Check mode
-      preview.setMode(PreviewMode.Default)
-      delayUntilCondition(250) { preview.isInNormalMode }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.Default
+        delayUntilCondition(250) { refresh }
+      }
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
@@ -715,21 +749,32 @@ class ComposePreviewRepresentationTest {
       )
 
       // Stop UI Check mode
-      preview.setMode(PreviewMode.Default)
-      delayUntilCondition(250) { preview.isInNormalMode }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.Default
+        delayUntilCondition(250) { refresh }
+      }
 
       // Restart UI Check mode on the same preview
-      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-      delayUntilCondition(250) { preview.isUiCheckPreview }
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        delayUntilCondition(250) { refresh }
+      }
 
       // Check that the UI Check tab is being reused
       assertEquals(2, contentManager.contents.size)
       val tab = contentManager.findContent(uiCheckElement.displaySettings.name)
       assertNotNull(tab)
 
-      preview.setMode(PreviewMode.Default)
-      delayUntilCondition(250) { preview.isInNormalMode }
-
+      run {
+        var refresh = false
+        composeView.refreshCompletedListeners.add { refresh = true }
+        preview.mode = PreviewMode.Default
+        delayUntilCondition(250) { refresh }
+      }
       preview.onDeactivate()
     }
   }

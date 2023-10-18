@@ -83,11 +83,11 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
 
   /** Flag to indicate whether ATF checks should be run on the preview. */
   val atfChecksEnabled: Boolean
-    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
+    get() = (mode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
 
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
   val visualLintingEnabled: Boolean
-    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
+    get() = (mode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
   val isUiCheckPreview: Boolean
     get() = mode is PreviewMode.UiCheck
@@ -119,10 +119,6 @@ class NopComposePreviewManager : ComposePreviewManager {
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false
   override var mode: PreviewMode = PreviewMode.Default
-
-  override fun setMode(newMode: PreviewMode.Settable) {
-    mode = newMode
-  }
 
   override fun invalidate() {}
 

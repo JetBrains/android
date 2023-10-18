@@ -61,6 +61,6 @@ class EnableInteractiveAction(
     val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
     val previewElement = modelDataContext.getData(PREVIEW_ELEMENT_INSTANCE) ?: return
 
-    manager.setMode(PreviewMode.Interactive(previewElement))
+    manager.mode = PreviewMode.Interactive(previewElement)
   }
 }

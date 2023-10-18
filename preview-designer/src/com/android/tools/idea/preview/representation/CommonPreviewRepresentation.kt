@@ -450,12 +450,9 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 
   private val isStartingOrInInteractiveMode: Boolean
-    get() = currentOrNextMode is PreviewMode.Interactive
+    get() = mode is PreviewMode.Interactive
 
-  override val mode: PreviewMode
-    get() = previewModeManager.mode
-
-  override fun setMode(newMode: PreviewMode.Settable) = previewModeManager.setMode(newMode)
+  override var mode by previewModeManager::mode
 
   override fun restorePrevious() = previewModeManager.restorePrevious()
 

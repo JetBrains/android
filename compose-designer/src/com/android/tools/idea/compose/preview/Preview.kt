@@ -291,11 +291,8 @@ class ComposePreviewRepresentation(
 
   private val previewBuildListenersManager: PreviewBuildListenersManager
 
-  private val previewModeManager: PreviewModeManager =
-    CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
-
   private val isStartingOrInInteractiveMode: Boolean
-    get() = currentOrNextMode is PreviewMode.Interactive
+    get() = mode is PreviewMode.Interactive
 
   private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
 
@@ -319,10 +316,10 @@ class ComposePreviewRepresentation(
       },
       onDelayedDeactivate = {
         // If currently selected mode is not Normal mode, switch for Default normal mode.
-        if (!isInNormalMode) setMode(PreviewMode.Default)
+        if (!mode.isNormal) mode = PreviewMode.Default
         log.debug("Delayed surface deactivation")
         surface.deactivate()
-      }
+      },
     )
 
   /**
@@ -392,7 +389,7 @@ class ComposePreviewRepresentation(
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
   private val isAnimationPreviewEnabled: Boolean
-    get() = currentOrNextMode is PreviewMode.AnimationInspection
+    get() = mode is PreviewMode.AnimationInspection
 
   init {
     val project = psiFile.project
@@ -791,6 +788,9 @@ class ComposePreviewRepresentation(
       }
     }
 
+  private val previewModeManager: PreviewModeManager =
+    CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
+
   init {
     updateGalleryMode()
   }
@@ -825,9 +825,7 @@ class ComposePreviewRepresentation(
       launch(workerThread) {
         // Launch all the listeners that are bound to the current activation.
         ComposePreviewElementsModel.instantiatedPreviewElementsFlow(
-            previewElementFlowForFile(psiFilePointer).map {
-              it.toList().sortByDisplayAndSourcePosition()
-            }
+            previewElementFlowForFile(psiFilePointer).map { it.sortByDisplayAndSourcePosition() },
           )
           .collectLatest { allPreviewElementsInFileFlow.value = it }
       }
@@ -1344,7 +1342,7 @@ class ComposePreviewRepresentation(
 
           val previewsToRender =
             withContext(workerThread) {
-              filteredPreviewElementsInstancesFlow.value.toList().sortByDisplayAndSourcePosition()
+              filteredPreviewElementsInstancesFlow.value.sortByDisplayAndSourcePosition()
             }
           composeWorkBench.hasContent = previewsToRender.isNotEmpty() || isUiCheckPreview
           if (!needsFullRefresh) {
@@ -1458,7 +1456,7 @@ class ComposePreviewRepresentation(
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
             allPreviewElementsInFileFlow.value.firstOrNull()?.let { previewElement ->
-              setMode(PreviewMode.Gallery(previewElement))
+              mode = PreviewMode.Gallery(previewElement)
             }
           }
         }
@@ -1570,10 +1568,7 @@ class ComposePreviewRepresentation(
     allPreviewElementsInFileFlow.filter { it.isNotEmpty() }.take(1).collect()
   }
 
-  override val mode
-    get() = previewModeManager.mode
-
-  override fun setMode(newMode: PreviewMode.Settable) = previewModeManager.setMode(newMode)
+  override var mode by previewModeManager::mode
 
   override fun restorePrevious() = previewModeManager.restorePrevious()
 
@@ -1623,8 +1618,6 @@ class ComposePreviewRepresentation(
           }
         }
       }
-      is PreviewMode.Switching,
-      is PreviewMode.Settable -> {}
     }
     surface.background = mode.backgroundColor
     withUiContext { currentLayoutMode = mode.layoutMode }
@@ -1651,9 +1644,7 @@ class ComposePreviewRepresentation(
         // Swap the components back
         updateAnimationPanelVisibility()
       }
-      is PreviewMode.Gallery,
-      is PreviewMode.Switching,
-      is PreviewMode.Settable -> {}
+      is PreviewMode.Gallery -> {}
     }
   }
 }

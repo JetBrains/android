@@ -108,12 +108,12 @@ internal class ComposeSceneUpdateListenerTest {
   @Test
   fun `check hasAnimations is not updated in interactive`() {
     val previewManager =
-      TestComposePreviewManager().apply { setMode(PreviewMode.Interactive(composable)) }
+      TestComposePreviewManager().apply { mode = PreviewMode.Interactive(composable) }
     val fakeView = FakeView(true)
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertFalse(composable.hasAnimations)
 
-    previewManager.setMode(PreviewMode.Default)
+    previewManager.mode = PreviewMode.Default
     updateAnimationInspectorToolbarIcon(fakeView, previewManager, composable) { logTracker }
     assertTrue(composable.hasAnimations)
   }

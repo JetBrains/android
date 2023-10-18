@@ -293,13 +293,12 @@ class RenderErrorTest {
           ?.also { uiCheckElement = it } != null
       }
 
-      composePreviewRepresentation.setMode(
+      composePreviewRepresentation.mode =
         PreviewMode.UiCheck(
           selected = uiCheckElement,
           atfChecksEnabled = true,
           visualLintingEnabled = true,
-        ),
-      )
+        )
 
       delayUntilCondition(
         250,
@@ -312,13 +311,13 @@ class RenderErrorTest {
 
   private fun stopUiCheck() {
     runBlocking {
-      composePreviewRepresentation.setMode(PreviewMode.Default)
+      composePreviewRepresentation.mode = PreviewMode.Default
 
       delayUntilCondition(
         250,
         timeout = 2.minutes,
       ) {
-        composePreviewRepresentation.isInNormalMode
+        composePreviewRepresentation.mode.isNormal
       }
     }
   }

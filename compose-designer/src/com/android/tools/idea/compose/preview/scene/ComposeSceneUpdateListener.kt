@@ -42,7 +42,7 @@ fun updateAnimationInspectorToolbarIcon(
   previewElement: ComposePreviewElementInstance,
   animationToolingUsageTrackerFactory: () -> AnimationToolingUsageTracker
 ) {
-  if (!previewManager.isInNormalMode) return
+  if (!previewManager.mode.isNormal) return
   try {
     val hasAnimationsMethod =
       viewObj::class

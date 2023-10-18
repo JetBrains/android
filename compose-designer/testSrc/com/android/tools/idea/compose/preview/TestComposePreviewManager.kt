@@ -53,10 +53,6 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   override var mode: PreviewMode = PreviewMode.Default
 
-  override fun setMode(newMode: PreviewMode.Settable) {
-    mode = newMode
-  }
-
   override fun restorePrevious() {}
 
   override fun dispose() {}

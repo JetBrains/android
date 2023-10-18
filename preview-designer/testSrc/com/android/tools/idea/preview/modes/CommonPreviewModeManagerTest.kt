@@ -1,13 +1,11 @@
 package com.android.tools.idea.preview.modes
 
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewElement
 import com.google.common.truth.Truth.assertThat
-import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
@@ -54,48 +52,12 @@ class CommonPreviewModeManagerTest {
         onExit = { onExitArguments += it },
       )
 
-    for (newMode in newModes) {
-      manager.setMode(newMode)
-      delayUntilCondition(250) { manager.mode == newMode }
+    for (i in newModes.indices) {
+      manager.mode = newModes[i]
+      delayUntilCondition(200) { onExitArguments.size == i + 1 }
     }
 
     assertThat(onEnterArguments).isEqualTo(newModes)
     assertThat(onExitArguments).isEqualTo(oldModes)
-  }
-
-  @Test
-  fun testModeIsSwitchingUntilOnEnterAndOnExitHaveCompleted() {
-    val onExitLatch = CountDownLatch(1)
-    val onEnterLatch = CountDownLatch(1)
-    val newMode = PreviewMode.Interactive(mock<PreviewElement>())
-
-    val manager =
-      CommonPreviewModeManager(
-        scope = scope,
-        onEnter = { onEnterLatch.await() },
-        onExit = { onExitLatch.await() },
-      )
-    assertThat(manager.mode).isEqualTo(PreviewMode.Default)
-
-    manager.setMode(newMode)
-    assertThat(manager.mode)
-      .isEqualTo(
-        PreviewMode.Switching(
-          currentMode = PreviewMode.Default,
-          newMode = newMode,
-        ),
-      )
-
-    onExitLatch.countDown()
-    assertThat(manager.mode)
-      .isEqualTo(
-        PreviewMode.Switching(
-          currentMode = PreviewMode.Default,
-          newMode = newMode,
-        ),
-      )
-
-    onEnterLatch.countDown()
-    TestUtils.eventually { assertThat(manager.mode).isEqualTo(newMode) }
   }
 }

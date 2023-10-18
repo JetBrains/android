@@ -17,18 +17,13 @@ package com.android.tools.idea.preview.modes
 
 import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 private val log = Logger.getInstance(CommonPreviewModeManager::class.java)
 
 /**
- * Common implementation of a [PreviewModeManager] which uses a [PreviewMode.Switching] mode to
- * transition between the current mode and the new mode. Switching from one mode to another can take
- * some time.
+ * Common implementation of a [PreviewModeManager].
  *
  * @param onEnter a function that will be called with the new mode when switching to a new mode.
  * @param onExit a function that will be called with the current mode when switching to a new mode.
@@ -39,12 +34,6 @@ class CommonPreviewModeManager(
   private val onExit: suspend (PreviewMode) -> Unit,
 ) : PreviewModeManager {
 
-  /**
-   * Flow representing the [CommonPreviewModeManager]'s current [PreviewMode]. This flow is used by
-   * [mode] in order to implement the [PreviewModeManager] interface. The flow is collected and, if
-   * the current mode in the flow is [PreviewMode.Switching], then the [onExit] and [onEnter]
-   * methods are called.
-   */
   private val modeFlow = MutableStateFlow<PreviewMode>(PreviewMode.Default)
 
   /**
@@ -53,7 +42,7 @@ class CommonPreviewModeManager(
    *
    * TODO(b/293257529) Need to restore selected tab as well in Gallery mode.
    */
-  private var restoreMode: PreviewMode.Settable? = null
+  private var restoreMode: PreviewMode? = null
 
   init {
     // Keep track of the last mode that was set to ensure it is correctly disposed
@@ -61,41 +50,18 @@ class CommonPreviewModeManager(
 
     // Launch handling of Preview modes
     scope.launch {
-      modeFlow.collectLatest {
-        when (it) {
-          is PreviewMode.Switching -> {
-            // We can not interrupt the state change to ensure the change is done correctly
-            withContext(NonCancellable) {
-              onExit(lastMode)
-              onEnter(it.newMode)
-              lastMode = it.newMode
-              restoreMode = it.currentMode
-            }
-            modeFlow.value = it.newMode
-          }
-          else -> Unit
-        }
+      modeFlow.collect {
+        onExit(lastMode)
+        restoreMode = lastMode
+        onEnter(it)
+        lastMode = it
       }
     }
   }
 
-  override val mode: PreviewMode
-    get() = modeFlow.value
-
-  override fun setMode(newMode: PreviewMode.Settable) {
-    val currentMode = currentOrNextMode
-    if (currentMode == newMode) {
-      log.debug("Mode was already $newMode")
-      return
-    }
-
-    modeFlow.value = PreviewMode.Switching(currentMode, newMode)
-  }
+  override var mode by modeFlow::value
 
   override fun restorePrevious() {
-    restoreMode?.let {
-      setMode(it)
-      restoreMode = null
-    }
+    restoreMode?.let { mode = it }
   }
 }

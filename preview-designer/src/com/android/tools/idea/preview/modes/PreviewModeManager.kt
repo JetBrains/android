@@ -28,41 +28,8 @@ import java.awt.Color
  * [PreviewMode.Interactive].
  */
 interface PreviewModeManager {
-  /**
-   * The current [PreviewMode]. This can be a [PreviewMode.Transitive] mode if the manager is
-   * transitioning from one [PreviewMode.Settable] to another. It can also be a
-   * [PreviewMode.Settable] mode.
-   */
-  val mode: PreviewMode
-
-  /**
-   * The current [PreviewMode.Settable] mode if the manager is not transitioning from one mode to
-   * another or the next [PreviewMode.Settable] mode that will be set after a transition if the
-   * manager is currently transitioning from one mode to another. This is to help determine certain
-   * values that are defined in the "next" mode. For example, when transitioning to the
-   * [PreviewMode.UiCheck] mode, we need to check the value of
-   * [PreviewMode.UiCheck.atfChecksEnabled] before the transition is finished.
-   */
-  val currentOrNextMode: PreviewMode.Settable
-    get() =
-      when (val currentMode = mode) {
-        is PreviewMode.Switching -> currentMode.newMode
-        is PreviewMode.Settable -> currentMode
-      }
-
-  /**
-   * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
-   * normal modes.
-   */
-  val isInNormalMode: Boolean
-    get() = mode is PreviewMode.Default || mode is PreviewMode.Gallery
-
-  /**
-   * Changes the current mode to [newMode]. Depending on the implementation, [mode] might be
-   * [PreviewMode.Transitive] before being set to [mode].
-   */
-  fun setMode(newMode: PreviewMode.Settable)
+  /** The current [PreviewMode]. */
+  var mode: PreviewMode
 
   /** Sets the mode to the previous mode, if any. */
   fun restorePrevious()
@@ -74,13 +41,17 @@ interface PreviewModeManager {
 
 /**
  * A class that represents a Preview Mode. Each [PreviewMode] stores data that is specific to a
- * Preview Mode. There are two main types of [PreviewMode]:
- * * [PreviewMode.Settable] which represents a "final" mode and is a type of mode that can be set
- *   through the [PreviewModeManager].
- * * [PreviewMode.Transitive] which represents a transitory mode when going from one
- *   [PreviewMode.Settable] to another.
+ * Preview Mode.
  */
 sealed class PreviewMode {
+
+  /**
+   * Indicates whether the preview is in its default mode by opposition to one of the special modes
+   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
+   * normal modes.
+   */
+  val isNormal: Boolean
+    get() = this is Default || this is Gallery
 
   /** Type if [LayoutMode] to be used with this [PreviewMode]. */
   open val layoutMode: LayoutMode = LayoutMode.Default
@@ -88,13 +59,9 @@ sealed class PreviewMode {
   /** Background color. */
   open val backgroundColor: Color = Colors.DEFAULT_BACKGROUND_COLOR
 
-  sealed class Transitive : PreviewMode()
+  object Default : PreviewMode()
 
-  open class Settable : PreviewMode() {}
-
-  object Default : Settable()
-
-  sealed class Focus<T : PreviewElement>(val selected: T) : Settable()
+  sealed class Focus<T : PreviewElement>(val selected: T) : PreviewMode()
 
   class UiCheck(
     selected: PreviewElement,
@@ -115,12 +82,4 @@ sealed class PreviewMode {
   class AnimationInspection(selected: PreviewElement) : Focus<PreviewElement>(selected) {
     override val backgroundColor: Color = Colors.ACTIVE_BACKGROUND_COLOR
   }
-
-  /**
-   * The preview is currently transitioning from [currentMode] to [newMode]. If a state needs a
-   * start-up process that might take a while, this mode will be used while the switch is happening.
-   * This is the case for example for [Interactive] where the transition from and to the state might
-   * take some time.
-   */
-  data class Switching(val currentMode: Settable, val newMode: Settable) : Transitive()
 }
