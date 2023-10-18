@@ -39,7 +39,7 @@ protected:
   void ClearList();
 
   std::recursive_mutex mutex_;
-  std::vector<void*>* elements_;  // GUARDED_BY(mutex_)
+  std::vector<void*>* elements_ = nullptr;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(Impl);
 };
