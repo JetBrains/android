@@ -17,14 +17,12 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
-import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.annotations.getUAnnotations
 import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
@@ -36,7 +34,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.util.containers.sequenceOfNotNull
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.tryResolve
@@ -68,15 +65,6 @@ private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
     else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
   } == true
 }
-
-/** Returns true if the [KtAnnotationEntry] is a `@Preview` annotation. */
-internal fun KtAnnotationEntry.isPreviewAnnotation() =
-  ReadAction.compute<Boolean, Throwable> {
-    // getQualifiedName is fairly expensive, so we check first that short name matches before
-    // calling it.
-    shortName?.identifier == COMPOSE_PREVIEW_ANNOTATION_NAME &&
-      COMPOSE_PREVIEW_ANNOTATION_FQN == getQualifiedName()
-  }
 
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
 internal fun UAnnotation.isPreviewAnnotation() =
