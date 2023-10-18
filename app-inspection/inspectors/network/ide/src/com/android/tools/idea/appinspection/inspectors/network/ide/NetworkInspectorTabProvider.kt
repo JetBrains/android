@@ -32,6 +32,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -98,7 +99,9 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
       init {
         scope.launch {
           messenger.awaitForDisposal()
-          networkInspectorTab.stopInspection()
+          if (!StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+            networkInspectorTab.stopInspection()
+          }
         }
       }
     }

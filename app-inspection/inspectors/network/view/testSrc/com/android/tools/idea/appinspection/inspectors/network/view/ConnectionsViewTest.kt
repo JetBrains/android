@@ -97,10 +97,11 @@ class ConnectionsViewTest {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
+    val fakeNetworkInspectorDataSource = FakeNetworkInspectorDataSource()
     model =
       NetworkInspectorModel(
         services,
-        FakeNetworkInspectorDataSource(),
+        fakeNetworkInspectorDataSource,
         scope,
         object : HttpDataModel {
           private val dataList = FAKE_DATA
@@ -113,6 +114,7 @@ class ConnectionsViewTest {
           }
         }
       )
+    model.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(34).toDouble())
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
     inspectorView =
@@ -169,8 +171,6 @@ class ConnectionsViewTest {
   fun dataRangeControlsVisibleConnections() {
     val view = inspectorView.connectionsView
     val table = getConnectionsTable(view)
-    // With no selection, table should show all connections.
-    model.timeline.reset(0, TimeUnit.SECONDS.toNanos(50))
     assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
       .isEqualTo(model.timeline.dataRange)
     assertThat(table.rowCount).isEqualTo(4)
@@ -199,6 +199,7 @@ class ConnectionsViewTest {
     val activeData = FAKE_DATA[arbitraryIndex]
     model.setSelectedConnection(activeData)
     val latchSelected = CountDownLatch(1)
+    model.timeline.selectionRange.set(0.0, activeData.requestStartTimeUs.toDouble() - 1)
     table.selectionModel.addListSelectionListener { e ->
       selectedRow = e.firstIndex
       latchSelected.countDown()

@@ -172,7 +172,7 @@ class ThreadsViewTest {
 
   @Test
   fun shouldHandleEmptySelection() {
-    model.timeline.reset(0, TimeUnit.SECONDS.toNanos(150))
+    model.timeline.dataRange.set(0.0, TimeUnit.SECONDS.toMicros(1000).toDouble())
     val selection = model.timeline.selectionRange
     assertThat(table.model.rowCount).isEqualTo(4)
     selection[0.0] = TimeUnit.SECONDS.toMicros(22).toDouble()

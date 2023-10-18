@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 import com.android.tools.adtui.TooltipComponent
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.AspectObserver
-import com.android.tools.adtui.model.StreamingTimeline
+import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.android.tools.adtui.stdui.BorderlessTableCellRenderer
 import com.android.tools.adtui.stdui.TimelineTable
@@ -327,7 +327,7 @@ class ConnectionsView(
     }
   }
 
-  private class TimelineRenderer(private val table: JTable, timeline: StreamingTimeline) :
+  private class TimelineRenderer(private val table: JTable, timeline: Timeline) :
     TimelineTable.CellRenderer(timeline, true), TableModelListener {
     /**
      * Keep in sync 1:1 with [ConnectionsTableModel.dataList]. When the table asks for the chart to

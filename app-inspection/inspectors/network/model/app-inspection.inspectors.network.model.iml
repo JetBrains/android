@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="codenavigation" />
     <orderEntry type="library" name="mockito" level="project" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
   </component>
 </module>

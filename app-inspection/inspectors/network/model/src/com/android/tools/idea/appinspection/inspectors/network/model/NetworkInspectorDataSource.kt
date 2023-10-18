@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.Intention.Q
 import com.android.tools.idea.appinspection.inspectors.network.model.Intention.QueryForSpeedData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.concurrency.createChildScope
+import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.TimeUnit.MICROSECONDS
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -50,6 +51,8 @@ interface NetworkInspectorDataSource {
   suspend fun queryForHttpData(range: Range): List<HttpData>
 
   suspend fun queryForSpeedData(range: Range): List<Event>
+
+  fun addOnExtendTimelineListener(listener: (Long) -> Unit)
 }
 
 class NetworkInspectorDataSourceImpl(
@@ -59,6 +62,8 @@ class NetworkInspectorDataSourceImpl(
 ) : NetworkInspectorDataSource {
   val scope = parentScope.createChildScope()
   private val channel = Channel<Intention>()
+  private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(Long) -> Unit>()
+
   override val connectionEventFlow: Flow<HttpConnectionEvent> =
     messenger.eventFlow
       .map { data -> Event.parseFrom(data) }
@@ -68,6 +73,10 @@ class NetworkInspectorDataSourceImpl(
 
   init {
     scope.launch { processEvents() }
+  }
+
+  override fun addOnExtendTimelineListener(listener: (Long) -> Unit) {
+    listeners.add(listener)
   }
 
   override suspend fun queryForHttpData(range: Range) =
@@ -101,13 +110,19 @@ class NetworkInspectorDataSourceImpl(
         is QueryForSpeedData -> command.deferred.complete(searchRange(speedData, command.range))
         is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
         is InsertData -> {
+          val event = command.event
+          notifyTimelineExtended(event.timestamp)
           when {
-            command.event.hasSpeedEvent() -> speedData.add(command.event)
-            command.event.hasHttpConnectionEvent() -> httpData.processEvent(command.event)
+            event.hasSpeedEvent() -> speedData.add(event)
+            event.hasHttpConnectionEvent() -> httpData.processEvent(event)
           }
         }
       }
     }
+  }
+
+  private fun notifyTimelineExtended(timestampNs: Long) {
+    listeners.forEach { listener -> listener(timestampNs) }
   }
 }
 

@@ -50,6 +50,7 @@ class NetworkInspectorModelTest {
         ),
         CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
       )
+    model.timeline.dataRange.set(0.0, SECONDS.toMicros(20).toDouble())
     model.timeline.viewRange.set(0.0, SECONDS.toMicros(5).toDouble())
   }
 
@@ -65,9 +66,13 @@ class NetworkInspectorModelTest {
     val networkLegends = model.legends
     assertThat(networkLegends.rxLegend.name).isEqualTo("Receiving")
     assertThat(networkLegends.txLegend.name).isEqualTo("Sending")
+    assertThat(networkLegends.legends).hasSize(2)
+    model.timeline.dataRange.set(0.0, 0.0)
     assertThat(networkLegends.rxLegend.value).isEqualTo("1 B/s")
     assertThat(networkLegends.txLegend.value).isEqualTo("2 B/s")
-    assertThat(networkLegends.legends).hasSize(2)
+    model.timeline.dataRange.set(0.0, SECONDS.toMicros(10).toDouble())
+    assertThat(networkLegends.rxLegend.value).isEqualTo("3 B/s")
+    assertThat(networkLegends.txLegend.value).isEqualTo("4 B/s")
   }
 
   @Test

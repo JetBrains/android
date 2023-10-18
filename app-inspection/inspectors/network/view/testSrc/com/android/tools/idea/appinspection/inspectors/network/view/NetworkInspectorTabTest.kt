@@ -18,7 +18,6 @@ package com.android.tools.idea.appinspection.inspectors.network.view
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.adtui.stdui.CommonToggleButton
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeCodeNavigationProvider
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
@@ -27,7 +26,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.TestNetwork
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.Executors
-import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.emptyFlow
@@ -80,20 +78,16 @@ class NetworkInspectorTabTest {
 
       tab.launchJob.join()
 
-      assertThat(tab.actionsToolBar.componentCount).isEqualTo(5)
-
       val zoomOut = tab.actionsToolBar.getComponent(0) as CommonButton
       val zoomIn = tab.actionsToolBar.getComponent(1) as CommonButton
       val resetZoom = tab.actionsToolBar.getComponent(2) as CommonButton
       val zoomToSelection = tab.actionsToolBar.getComponent(3) as CommonButton
-      val subToolBar = tab.actionsToolBar.getComponent(4) as JPanel
-      val goLive = subToolBar.getComponent(1) as CommonToggleButton
 
-      tab.model.timeline.selectionRange[0.0] = 4.0
+      tab.model.timeline.dataRange.set(0.0, 10.0)
+      tab.model.timeline.selectionRange.set(0.0, 4.0)
       zoomToSelection.doClick()
       timer.step()
       assertThat(tab.model.timeline.viewRange.isSameAs(Range(0.0, 4.0)))
-      assertThat(tab.model.timeline.isStreaming).isFalse()
 
       val defaultViewRange =
         Range(tab.model.timeline.viewRange.min, tab.model.timeline.viewRange.max)
@@ -112,10 +106,5 @@ class NetworkInspectorTabTest {
       resetZoom.doClick()
       timer.step()
       assertThat(tab.model.timeline.viewRange.length).isGreaterThan(defaultViewRange.length)
-
-      goLive.doClick()
-      assertThat(tab.model.timeline.isStreaming).isTrue()
-      goLive.doClick()
-      assertThat(tab.model.timeline.isStreaming).isFalse()
     }
 }

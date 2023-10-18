@@ -30,6 +30,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H4_FONT
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLBAR_HEIGHT
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -45,6 +46,7 @@ import java.awt.GridBagLayout
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.KeyEvent
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
@@ -73,7 +75,7 @@ class NetworkInspectorTab(
 
   @VisibleForTesting val model: NetworkInspectorModel
   private val view: NetworkInspectorView
-  private val goLiveButton: CommonToggleButton
+  private val goLiveButton = CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE)
   @VisibleForTesting val launchJob: Job
   @VisibleForTesting val actionsToolBar: JPanel
 
@@ -100,8 +102,14 @@ class NetworkInspectorTab(
     model = NetworkInspectorModel(services, dataSource, scope)
     launchJob =
       scope.launch(services.workerDispatcher) {
-        val startTimeStampNs = services.client.getStartTimeStampNs()
-        model.timeline.reset(startTimeStampNs, startTimeStampNs)
+        if (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+          val startTimeStampUs =
+            TimeUnit.NANOSECONDS.toMicros(services.client.getStartTimeStampNs()).toDouble()
+          model.timeline.dataRange.set(startTimeStampUs, startTimeStampUs)
+        } else {
+          val startTimeStampNs = services.client.getStartTimeStampNs()
+          (model.timeline as StreamingTimeline).reset(startTimeStampNs, startTimeStampNs)
+        }
       }
 
     view =
@@ -182,62 +190,62 @@ class NetworkInspectorTab(
     zoomToSelection.toolTipText = zoomToSelectionAction.defaultToolTipText
     actionsToolBar.add(zoomToSelection)
 
-    val goLiveToolbar = JPanel(GridBagLayout())
-    goLiveToolbar.add(FlatSeparator())
+    if (!StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+      val goLiveToolbar = JPanel(GridBagLayout())
+      goLiveToolbar.add(FlatSeparator())
 
-    goLiveButton = CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE)
-    goLiveButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE)
-    goLiveButton.font = H4_FONT
-    goLiveButton.horizontalTextPosition = SwingConstants.LEFT
-    goLiveButton.horizontalAlignment = SwingConstants.LEFT
-    goLiveButton.border = JBUI.Borders.empty(3, 7)
-    val attachAction =
-      DefaultContextMenuItem.Builder(ATTACH_LIVE)
-        .setContainerComponent(splitter)
-        .setActionRunnable { goLiveButton.doClick(0) }
-        .setEnableBooleanSupplier { goLiveButton.isEnabled && !goLiveButton.isSelected }
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
-        .build()
-    val detachAction =
-      DefaultContextMenuItem.Builder(DETACH_LIVE)
-        .setContainerComponent(splitter)
-        .setActionRunnable { goLiveButton.doClick(0) }
-        .setEnableBooleanSupplier { goLiveButton.isEnabled && goLiveButton.isSelected }
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0))
-        .build()
+      goLiveButton.disabledIcon = IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE)
+      goLiveButton.font = H4_FONT
+      goLiveButton.horizontalTextPosition = SwingConstants.LEFT
+      goLiveButton.horizontalAlignment = SwingConstants.LEFT
+      goLiveButton.border = JBUI.Borders.empty(3, 7)
+      val attachAction =
+        DefaultContextMenuItem.Builder(ATTACH_LIVE)
+          .setContainerComponent(splitter)
+          .setActionRunnable { goLiveButton.doClick(0) }
+          .setEnableBooleanSupplier { goLiveButton.isEnabled && !goLiveButton.isSelected }
+          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
+          .build()
+      val detachAction =
+        DefaultContextMenuItem.Builder(DETACH_LIVE)
+          .setContainerComponent(splitter)
+          .setActionRunnable { goLiveButton.doClick(0) }
+          .setEnableBooleanSupplier { goLiveButton.isEnabled && goLiveButton.isSelected }
+          .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0))
+          .build()
 
-    goLiveButton.toolTipText = detachAction.defaultToolTipText
-    goLiveButton.addActionListener {
-      val currentStageTimeline: Timeline = model.timeline
-      assert(currentStageTimeline is StreamingTimeline)
-      (currentStageTimeline as StreamingTimeline).toggleStreaming()
+      goLiveButton.toolTipText = detachAction.defaultToolTipText
+      goLiveButton.addActionListener {
+        val currentStageTimeline: Timeline = model.timeline
+        assert(currentStageTimeline is StreamingTimeline)
+        (currentStageTimeline as StreamingTimeline).toggleStreaming()
+      }
+      goLiveButton.addChangeListener {
+        val isSelected: Boolean = goLiveButton.isSelected
+        goLiveButton.icon =
+          if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE
+          else StudioIcons.Profiler.Toolbar.GOTO_LIVE
+        goLiveButton.toolTipText =
+          if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
+      }
+      val streamingTimeline = model.timeline as StreamingTimeline
+      streamingTimeline.addDependency(this@NetworkInspectorTab).onChange(
+        StreamingTimeline.Aspect.STREAMING
+      ) {
+        goLiveButton.isSelected = streamingTimeline.isStreaming
+      }
+      goLiveToolbar.add(goLiveButton)
+      actionsToolBar.add(goLiveToolbar)
     }
-    goLiveButton.addChangeListener {
-      val isSelected: Boolean = goLiveButton.isSelected
-      goLiveButton.icon =
-        if (isSelected) StudioIcons.Profiler.Toolbar.PAUSE_LIVE
-        else StudioIcons.Profiler.Toolbar.GOTO_LIVE
-      goLiveButton.toolTipText =
-        if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
-    }
-    model.timeline.addDependency(this@NetworkInspectorTab).onChange(
-      StreamingTimeline.Aspect.STREAMING
-    ) {
-      goLiveButton.isSelected = model.timeline.isStreaming
-    }
-    goLiveToolbar.add(goLiveButton)
-    actionsToolBar.add(goLiveToolbar)
-
     zoomOut.isEnabled = true
     zoomIn.isEnabled = true
     resetZoom.isEnabled = true
     zoomToSelection.isEnabled = zoomToSelectionAction.isEnabled
-    goLiveButton.isEnabled = true
-    goLiveButton.isSelected = true
   }
 
   fun stopInspection() {
-    model.timeline.setIsPaused(true)
+    assert(!StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get())
+    (model.timeline as StreamingTimeline).setIsPaused(true)
     goLiveButton.isEnabled = false
   }
 

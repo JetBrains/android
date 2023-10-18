@@ -39,4 +39,6 @@ class FakeNetworkInspectorDataSource(
 
   override suspend fun queryForSpeedData(range: Range) =
     speedEventList.filter { it.isInRange(range) }
+
+  override fun addOnExtendTimelineListener(listener: (Long) -> Unit) {}
 }

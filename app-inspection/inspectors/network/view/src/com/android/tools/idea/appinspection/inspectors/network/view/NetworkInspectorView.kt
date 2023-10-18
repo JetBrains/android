@@ -36,6 +36,7 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangeSelectionListener
 import com.android.tools.adtui.model.RangedContinuousSeries
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.adtui.model.StreamingTimeline
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.ViewBinder
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel
@@ -295,10 +296,22 @@ class NetworkInspectorView(
     }
 
     // Note - relative time conversion happens in nanoseconds
-    val selectionMinUs =
-      timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.min.toLong()))
-    val selectionMaxUs =
-      timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.max.toLong()))
+    val selectionMinUs: Long
+    val selectionMaxUs: Long
+    if (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+      selectionMinUs = (selectionRange.min - timeline.dataRange.min).toLong()
+      selectionMaxUs = (selectionRange.max - timeline.dataRange.min).toLong()
+    } else {
+      val streamingTimeline = timeline as StreamingTimeline
+      selectionMinUs =
+        streamingTimeline.convertToRelativeTimeUs(
+          TimeUnit.MICROSECONDS.toNanos(selectionRange.min.toLong())
+        )
+      selectionMaxUs =
+        streamingTimeline.convertToRelativeTimeUs(
+          TimeUnit.MICROSECONDS.toNanos(selectionRange.max.toLong())
+        )
+    }
     selectionTimeLabel.icon = StudioIcons.Profiler.Toolbar.CLOCK
     if (selectionRange.isPoint) {
       selectionTimeLabel.text = TimeFormatter.getSimplifiedClockString(selectionMinUs)

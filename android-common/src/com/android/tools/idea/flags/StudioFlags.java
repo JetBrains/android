@@ -1383,6 +1383,11 @@ public final class StudioFlags {
     "Enables interceptions on network requests and responses",
     true
   );
+  public static final Flag<Boolean> NETWORK_INSPECTOR_STATIC_TIMELINE = Flag.create(
+    NETWORK_INSPECTOR, "static.timeline", "Use static timeline in Network Inspector",
+    "Use static timeline in Network Inspector",
+    true
+  );
   // endregion
 
   // region BackgroundTask Inspector
