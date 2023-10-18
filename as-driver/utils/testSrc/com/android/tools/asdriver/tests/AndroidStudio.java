@@ -47,19 +47,22 @@ public class AndroidStudio implements AutoCloseable {
   private VideoStitcher videoStitcher = null;
 
   static public AndroidStudio run(AndroidStudioInstallation installation,
+                                  Display display,
+                                  Map<String, String> env,
+                                  String[] args) throws IOException, InterruptedException {
+    return run(installation, display, env, args, false);
+  }
+
+  static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
                        Map<String, String> env,
-                       String[] args) throws IOException, InterruptedException {
+                       String[] args,
+                       boolean safeMode) throws IOException, InterruptedException {
     Path workDir = installation.getWorkDir();
 
     ArrayList<String> command = new ArrayList<>(args.length + 1);
 
-    String studioExecutable = "android-studio/bin/studio.sh";
-    if (SystemInfo.isMac) {
-      studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
-    } else if (SystemInfo.isWindows) {
-      studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
-    }
+    String studioExecutable = getStudioExecutable(safeMode);
     command.add(workDir.resolve(studioExecutable).toString());
     command.addAll(Arrays.asList(args));
     ProcessBuilder pb = new ProcessBuilder(command);
@@ -89,6 +92,28 @@ public class AndroidStudio implements AutoCloseable {
     AndroidStudio studio = attach(installation);
     studio.startCapturingScreenshotsOnWindows();
     return studio;
+  }
+
+  static private String getStudioExecutable(boolean useSafeMode) {
+    String studioExecutable;
+
+    if (useSafeMode) {
+      studioExecutable = "android-studio/bin/studio_safe.sh";
+      if (SystemInfo.isMac) {
+        studioExecutable = "Android Studio Preview.app/Contents/bin/studio_safe.sh";
+      } else if (SystemInfo.isWindows) {
+        studioExecutable = "android-studio/bin/studio_safe.bat";
+      }
+    } else {
+      studioExecutable = "android-studio/bin/studio.sh";
+      if (SystemInfo.isMac) {
+        studioExecutable = "Android Studio Preview.app/Contents/MacOS/studio";
+      } else if (SystemInfo.isWindows) {
+        studioExecutable = String.format("android-studio/bin/studio%s.exe", CpuArch.isIntel32() ? "" : "64");
+      }
+    }
+
+    return studioExecutable;
   }
 
   static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
