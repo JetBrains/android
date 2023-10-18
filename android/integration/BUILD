@@ -550,7 +550,7 @@ maven_repository(
         "@maven//:com.android.tools.utp.android-test-plugin-result-listener-gradle_30.2.0",
         "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:com.google.testing.platform.android-device-provider-local_0.0.8-alpha07",
-        "@maven//:com.google.testing.platform.android-driver-instrumentation_0.0.8-alpha07",
+        "@maven//:com.google.testing.platform.android-driver-instrumentation_0.0.9-alpha01",
         "@maven//:com.google.testing.platform.android-test-plugin_0.0.8-alpha07",
         "@maven//:com.google.testing.platform.core-proto_0.0.8-alpha08",
         "@maven//:com.google.testing.platform.core_0.0.8-alpha07",
