@@ -1950,6 +1950,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     myIssueListeners.add(listener);
   }
 
+  public void removeIssueListener(@NotNull IssueListener listener) {
+    myIssueListeners.remove(listener);
+  }
+
   @NotNull
   public IssueListener getIssueListener() {
     return myIssueListener;

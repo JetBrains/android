@@ -33,10 +33,12 @@ import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.geom.Area
 
-class WarningLayer(private val screenView: ScreenView, private val shouldDisplay: () -> Boolean) :
-  Layer() {
+open class WarningLayer(
+  protected val screenView: ScreenView,
+  private val shouldDisplay: () -> Boolean
+) : Layer() {
 
-  private var componentsToHighlight: List<NlComponent> = emptyList()
+  protected var componentsToHighlight: List<NlComponent> = emptyList()
 
   init {
     screenView.surface.addIssueListener(

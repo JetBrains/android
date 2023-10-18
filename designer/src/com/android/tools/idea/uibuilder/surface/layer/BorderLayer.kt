@@ -21,6 +21,7 @@ import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.GradientPaint
 import java.awt.Graphics2D
 import java.awt.RadialGradientPaint
@@ -71,56 +72,41 @@ constructor(
   }
 }
 
-private object BorderPainter {
+object BorderPainter {
   fun paint(g2d: Graphics2D, screenView: SceneView, colorConfig: BorderColor) {
-    val borderSize = JBUI.scale(colorConfig.size)
-    val gradLeft =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorOutside,
-        borderSize.toFloat(),
-        0f,
-        colorConfig.colorInside
-      )
-    val gradTop =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorOutside,
-        0f,
-        borderSize.toFloat(),
-        colorConfig.colorInside
-      )
-    val gradRight =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorInside,
-        borderSize.toFloat(),
-        0f,
-        colorConfig.colorOutside
-      )
-    val gradBottom =
-      GradientPaint(
-        0f,
-        0f,
-        colorConfig.colorInside,
-        0f,
-        borderSize.toFloat(),
-        colorConfig.colorOutside
-      )
+    paint(
+      g2d,
+      screenView.x,
+      screenView.y,
+      screenView.scaledContentSize,
+      colorConfig.size,
+      colorConfig.colorInside,
+      colorConfig.colorOutside
+    )
+  }
+
+  fun paint(
+    g2d: Graphics2D,
+    x: Int,
+    y: Int,
+    size: Dimension,
+    thickness: Int,
+    colorInside: Color,
+    colorOutside: Color
+  ) {
+    val borderSize = JBUI.scale(thickness)
+    val gradLeft = GradientPaint(0f, 0f, colorOutside, borderSize.toFloat(), 0f, colorInside)
+    val gradTop = GradientPaint(0f, 0f, colorOutside, 0f, borderSize.toFloat(), colorInside)
+    val gradRight = GradientPaint(0f, 0f, colorInside, borderSize.toFloat(), 0f, colorOutside)
+    val gradBottom = GradientPaint(0f, 0f, colorInside, 0f, borderSize.toFloat(), colorOutside)
     val gradCorner =
       RadialGradientPaint(
         borderSize.toFloat(),
         borderSize.toFloat(),
         borderSize.toFloat(),
         floatArrayOf(0f, 1f),
-        arrayOf(colorConfig.colorInside, colorConfig.colorOutside)
+        arrayOf(colorInside, colorOutside)
       )
-    val size = screenView.scaledContentSize
-    val x = screenView.x
-    val y = screenView.y
     val hints = g2d.renderingHints
     val tx = g2d.transform
     val paint = g2d.paint
