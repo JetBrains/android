@@ -73,7 +73,7 @@ sealed class Action {
   }
 
   /** Fetch issue details. */
-  data class FetchDetails(override val id: IssueId) : IssueAction() {
+  data class FetchDetails(override val id: IssueId, val variantId: String? = null) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchDetails || shouldCancelFetch(it) }
   }

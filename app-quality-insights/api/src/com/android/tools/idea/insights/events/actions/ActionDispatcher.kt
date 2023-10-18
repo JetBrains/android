@@ -275,7 +275,10 @@ class ActionDispatcher(
           return@launch
         }
         eventEmitter(
-          IssueDetailsChanged(action.id, appInsightsClient.getIssueDetails(action.id, issueRequest))
+          IssueDetailsChanged(
+            action.id,
+            appInsightsClient.getIssueDetails(action.id, issueRequest, action.variantId)
+          )
         )
       }
       .toToken(action)

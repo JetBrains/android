@@ -59,7 +59,8 @@ interface AppInsightsClient {
 
   suspend fun getIssueDetails(
     issueId: IssueId,
-    request: IssueRequest
+    request: IssueRequest,
+    variantId: String? = null
   ): LoadingState.Done<DetailedIssueStats?>
 
   suspend fun updateIssueState(

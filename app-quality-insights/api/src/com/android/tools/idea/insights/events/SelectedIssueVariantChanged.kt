@@ -17,13 +17,28 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.IssueVariant
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 
 data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : ChangeEvent {
-  override fun transition(state: AppInsightsState, tracker: AppInsightsTracker) =
-    StateTransition(
-      state.copy(currentIssueVariants = state.currentIssueVariants.map { it?.select(variant) }),
-      Action.NONE
+  override fun transition(
+    state: AppInsightsState,
+    tracker: AppInsightsTracker
+  ): StateTransition<Action> {
+    if (variant == state.selectedVariant) {
+      return StateTransition(state, Action.NONE)
+    }
+    val selectedIssueId = (state.issues as? LoadingState.Ready)?.value?.value?.selected?.id
+    val shouldFetchDetails =
+      state.currentIssueVariants is LoadingState.Ready && selectedIssueId != null
+    return StateTransition(
+      state.copy(
+        currentIssueVariants = state.currentIssueVariants.map { it?.select(variant) },
+        currentIssueDetails =
+          if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null)
+      ),
+      if (shouldFetchDetails) Action.FetchDetails(selectedIssueId!!, variant?.id) else Action.NONE
     )
+  }
 }

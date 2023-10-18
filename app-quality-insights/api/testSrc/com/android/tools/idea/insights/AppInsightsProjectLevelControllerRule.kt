@@ -288,7 +288,8 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
 
   override suspend fun getIssueDetails(
     issueId: IssueId,
-    request: IssueRequest
+    request: IssueRequest,
+    variantId: String?
   ): LoadingState.Done<DetailedIssueStats?> = detailsCall.initiateCall()
 
   suspend fun completeDetailsCallWith(value: LoadingState.Done<DetailedIssueStats?>) {

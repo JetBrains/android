@@ -148,7 +148,8 @@ class VitalsClient(
 
   override suspend fun getIssueDetails(
     issueId: IssueId,
-    request: IssueRequest
+    request: IssueRequest,
+    variantId: String?
   ): LoadingState.Done<DetailedIssueStats?> = supervisorScope {
     val failure = LoadingState.UnknownFailure("Unable to fetch issue details.")
     runGrpcCatching(failure) {
