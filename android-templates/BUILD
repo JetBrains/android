@@ -150,7 +150,7 @@ maven_repository(
         "@maven//:androidx.core.core-splashscreen_1.0.1",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
-        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta04",  # Necessary for Compose for TV.
         "@maven//:androidx.games.games-activity_1.2.2",
         "@maven//:androidx.leanback.leanback_1.0.0",
@@ -222,12 +222,15 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
