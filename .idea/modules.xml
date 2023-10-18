@@ -67,7 +67,6 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" filepath="$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/repository/android.sdktools.repository.iml" filepath="$PROJECT_DIR$/../../base/repository/android.sdktools.repository.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/resource-repository/android.sdktools.resource-repository.iml" filepath="$PROJECT_DIR$/../../base/resource-repository/android.sdktools.resource-repository.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../base/previewlib/cli/android.sdktools.screenshot.cli.iml" filepath="$PROJECT_DIR$/../../base/previewlib/cli/android.sdktools.screenshot.cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/android.sdktools.sdk-common.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdk-common/gradle/android.sdktools.sdk-common.gradle.iml" filepath="$PROJECT_DIR$/../../base/sdk-common/gradle/android.sdktools.sdk-common.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" filepath="$PROJECT_DIR$/../../base/sdklib/android.sdktools.sdklib.iml" />
