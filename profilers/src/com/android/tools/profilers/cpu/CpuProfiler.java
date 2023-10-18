@@ -21,6 +21,7 @@ import static com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent;
 import static com.android.tools.profilers.cpu.CpuCaptureParserUtil.getFileTraceType;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
@@ -34,7 +35,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TraceConfigOptionsUtils;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
-import com.android.tools.profilers.cpu.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.transporteventutils.TransportUtils;

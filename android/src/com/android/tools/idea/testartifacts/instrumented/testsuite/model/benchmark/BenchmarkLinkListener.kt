@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark
 
+import com.android.tools.idea.perfetto.PerfettoTraceWebLoader
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.profilers.cpu.perfetto.PerfettoTraceWebLoader
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor

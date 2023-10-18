@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.perfetto
+package com.android.tools.idea.perfetto
 
 import com.intellij.ide.browsers.BrowserLauncher
 import org.apache.http.HttpStatus
