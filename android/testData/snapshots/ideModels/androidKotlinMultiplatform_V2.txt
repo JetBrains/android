@@ -2479,7 +2479,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : android (KotlinTargetImpl)
             - compilations                : instrumentedTest (KotlinCompilationImpl)
                 - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
@@ -2739,7 +2739,7 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3046,7 +3046,7 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : android (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)

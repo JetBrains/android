@@ -3271,7 +3271,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -4996,7 +4996,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -5422,7 +5422,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)

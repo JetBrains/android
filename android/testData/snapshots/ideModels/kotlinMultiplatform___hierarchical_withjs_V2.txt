@@ -2329,7 +2329,7 @@ Required by:
                 major                         : 1
                 minor                         : 9
                 patch                         : 20
-                versionString                 : 1.9.20-Beta
+                versionString                 : 1.9.20-RC
             - targets                     : js (KotlinTargetImpl)
                 - compilations                : main (KotlinCompilationImpl)
                     - allSourceSets               : main (KotlinSourceSetImpl)
@@ -2900,7 +2900,7 @@ Required by:
                 major                         : 1
                 minor                         : 9
                 patch                         : 20
-                versionString                 : 1.9.20-Beta
+                versionString                 : 1.9.20-RC
             - targets                     : android (KotlinTargetImpl)
                 - compilations                : debug (KotlinCompilationImpl)
                     - allSourceSets               : androidMain (KotlinSourceSetImpl)

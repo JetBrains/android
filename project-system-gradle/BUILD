@@ -282,7 +282,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_1.9.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_1.9.20-RC",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",

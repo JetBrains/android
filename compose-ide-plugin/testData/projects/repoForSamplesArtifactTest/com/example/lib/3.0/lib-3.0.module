@@ -27,7 +27,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-jdk8",
           "version": {
-            "requires": "1.9.20-Beta"
+            "requires": "1.9.20-RC"
           }
         }
       ],
@@ -56,7 +56,7 @@
           "group": "org.jetbrains.kotlin",
           "module": "kotlin-stdlib-jdk8",
           "version": {
-            "requires": "1.9.20-Beta"
+            "requires": "1.9.20-RC"
           }
         }
       ],

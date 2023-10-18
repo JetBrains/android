@@ -2358,7 +2358,7 @@ MODULE                        : kotlinMultiPlatform.app
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3195,7 +3195,7 @@ MODULE                        : kotlinMultiPlatform.module2
             major                         : 1
             minor                         : 9
             patch                         : 20
-            versionString                 : 1.9.20-Beta
+            versionString                 : 1.9.20-RC
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
