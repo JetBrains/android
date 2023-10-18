@@ -152,6 +152,7 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta04",  # Necessary for Compose for TV.
+        "@maven//:androidx.fragment.fragment-ktx_1.5.6",  # Needed for TemplateDiffTest#testNewViewModelFragmentWithKotlin (viewModelFragmentRecipe.kt)
         "@maven//:androidx.games.games-activity_1.2.2",
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
