@@ -22,7 +22,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.updateTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.android.uipreview.JavacUtil.getJavac;
+import static com.android.tools.idea.testing.JavacUtil.getJavac;
 
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.rendering.api.ResourceNamespace;

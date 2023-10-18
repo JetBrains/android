@@ -48,8 +48,7 @@
       <module name="intellij.android.adt.swingp" options="--add-exports java.desktop/sun.java2d=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED" />
       <module name="intellij.android.adt.ui" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED" />
       <module name="intellij.android.core" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED" />
-      <module name="intellij.android.core.jetbrains" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
-      <module name="intellij.android.core.rendering" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
+      <module name="intellij.android.testFramework" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
     </option>
   </component>
 </project>

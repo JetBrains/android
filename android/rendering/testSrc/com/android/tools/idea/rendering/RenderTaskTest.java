@@ -21,6 +21,7 @@ import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
 import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRenderingTopicForTest;
 import static com.android.tools.idea.rendering.RenderTestUtil.getLowPriorityRenderingTopicForTest;
+import static com.android.tools.idea.testing.JavacUtil.getJavac;
 import static com.intellij.util.TimeoutUtil.sleep;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.isNotNull;
@@ -47,7 +48,6 @@ import com.android.tools.rendering.RenderTask;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.SourceFolder;
@@ -57,7 +57,6 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PsiTestUtil;
-import com.sun.tools.javac.api.JavacTool;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -995,16 +994,5 @@ public class RenderTaskTest extends AndroidTestCase {
     catch (Exception e) {
       fail("RenderTask dispose not happening before low priority render tasks.");
     }
-  }
-
-  @NotNull
-  private static JavaCompiler getJavac() {
-    JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
-    if (javac == null) {
-      // http://b/285585692
-      // PathClassLoader does not support modules yet so ToolProvider will not be able to locate the JavaCompiler.
-      javac = JavacTool.create();
-    }
-    return javac;
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview;
+package com.android.tools.idea.testing;
 
 import com.sun.tools.javac.api.JavacTool;
 import javax.tools.JavaCompiler;

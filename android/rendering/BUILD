@@ -4,10 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.core.rendering",
     iml_files = ["intellij.android.core.rendering.iml"],
-    javacopts_from_jps = [
-        "--add-exports",
-        "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-    ],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [

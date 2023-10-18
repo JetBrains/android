@@ -28,7 +28,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.uipreview.JavacUtil.getJavac
+import com.android.tools.idea.testing.JavacUtil.getJavac
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager.Companion.get
 import org.junit.Test
 import java.io.File
