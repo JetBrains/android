@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.analysis.Confidence
 import com.android.tools.idea.insights.analysis.CrashFrame
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
-import com.android.tools.idea.insights.analysis.candidateFileNames
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -342,7 +341,7 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   private fun issuesForFile(file: PsiFile): List<IssueInFrame> =
-    file.candidateFileNames.flatMap { issuesPerFilename.get(it) }
+    issuesPerFilename.get(file.virtualFile.name).toList()
 
   private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {
     if (issues.isEmpty()) return
