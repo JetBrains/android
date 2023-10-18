@@ -25,7 +25,7 @@ import com.intellij.util.messages.MessageBusConnection
 import org.gradle.util.GradleVersion
 
 /**
- * NOTE: Do not use this interface. Most callers should use `ProjectSystemSyncManager` instead.
+ * NOTE: non-Gradle-specific users should probably use `ProjectSystemSyncManager` instead.
  */
 interface GradleSyncState {
   val isSyncInProgress: Boolean
