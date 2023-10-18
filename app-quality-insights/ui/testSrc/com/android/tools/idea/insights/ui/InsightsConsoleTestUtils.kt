@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
+import com.android.tools.idea.insights.ui.vcs.InsightsExceptionInfoCache
 import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
@@ -41,8 +42,9 @@ fun initConsoleWithFilters(project: Project, tracker: AppInsightsTracker): Conso
     }
 
   val console = (consoleBuilder.console as ConsoleViewImpl)
+  val exceptionInfoCache = InsightsExceptionInfoCache(project, GlobalSearchScope.allScope(project))
 
-  console.addMessageFilter(InsightsAttachInlayDiffLinkFilter(console, tracker))
+  console.addMessageFilter(InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker))
   console.component // call to init editor
 
   return console

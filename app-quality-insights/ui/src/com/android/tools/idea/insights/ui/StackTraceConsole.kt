@@ -27,7 +27,10 @@ import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
+import com.android.tools.idea.insights.ui.vcs.InsightsExceptionInfoCache
 import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -37,9 +40,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.unscramble.AnalyzeStacktraceUtil
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +71,8 @@ class StackTraceConsole(
   private val tracker: AppInsightsTracker
 ) : Disposable {
 
+  private val resolvedInfoCache =
+    InsightsExceptionInfoCache(project, GlobalSearchScope.allScope(project))
   private val scope = AndroidCoroutineScope(this)
 
   private val stackTraceConsoleState =
@@ -90,6 +97,21 @@ class StackTraceConsole(
       .onEach { printStack(it.event!!, it.connection, consoleView) }
       .flowOn(AndroidDispatchers.uiThread)
       .launchIn(scope)
+
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        PROJECT_SYSTEM_SYNC_TOPIC,
+        ProjectSystemSyncManager.SyncResultListener { clearResolvedInfoCacheAndRehighlight() }
+      )
+  }
+
+  private fun clearResolvedInfoCacheAndRehighlight() {
+    resolvedInfoCache.clear()
+
+    DumbService.getInstance(project).smartInvokeLater {
+      synchronized(CONSOLE_LOCK) { consoleView.rehighlightHyperlinksAndFoldings() }
+    }
   }
 
   private fun printStack(event: Event, connection: Connection?, consoleView: ConsoleViewImpl) {
@@ -157,7 +179,9 @@ class StackTraceConsole(
     builder.filters(AnalyzeStacktraceUtil.EP_NAME.getExtensions(project))
     val consoleView = builder.console as ConsoleViewImpl
     @Suppress("UNUSED_VARIABLE") val unused = consoleView.component // causes editor to be created
-    consoleView.addMessageFilter(InsightsAttachInlayDiffLinkFilter(consoleView, tracker))
+    consoleView.addMessageFilter(
+      InsightsAttachInlayDiffLinkFilter(resolvedInfoCache, consoleView, tracker)
+    )
     (consoleView.editor as EditorEx).apply {
       backgroundColor = primaryContentBackground
       contentComponent.isFocusCycleRoot = false

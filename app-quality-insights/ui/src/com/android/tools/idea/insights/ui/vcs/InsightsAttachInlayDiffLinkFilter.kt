@@ -28,7 +28,6 @@ import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.InlayTextMetrics
 import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.PresentationRenderer
-import com.intellij.execution.filters.ExceptionInfoCache
 import com.intellij.execution.filters.ExceptionWorker.parseExceptionLine
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
@@ -45,7 +44,6 @@ import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.editor.impl.FontInfo
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.search.GlobalSearchScope
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.font.FontRenderContext
@@ -63,11 +61,11 @@ import kotlin.math.ceil
  *    along with a crash)
  */
 class InsightsAttachInlayDiffLinkFilter(
+  private val exceptionInfoCache: InsightsExceptionInfoCache,
   private val containingConsole: ConsoleViewImpl,
   private val tracker: AppInsightsTracker
 ) : Filter {
   private val project = containingConsole.project
-  private val cache = ExceptionInfoCache(project, GlobalSearchScope.allScope(project))
 
   private fun fetchVcsInfo(): AppVcsInfo.ValidInfo? {
     if (!StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get()) return null
@@ -116,7 +114,7 @@ class InsightsAttachInlayDiffLinkFilter(
 
     val className = parsedLineInfo.classFqnRange.substring(line).trim()
     val fileName = parsedLineInfo.fileName
-    val resolvedInfo = cache.resolveClassOrFile(className, fileName)
+    val resolvedInfo = exceptionInfoCache.resolveClassOrFile(className, fileName)
 
     // TODO: if the class is not really resolvable, there's a chance the class is
     //   "stale" (renamed or deleted), maybe we can do better in the future as we have

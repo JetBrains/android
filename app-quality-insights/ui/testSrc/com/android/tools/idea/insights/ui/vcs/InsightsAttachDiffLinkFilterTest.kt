@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.openapi.util.Disposer
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -41,12 +42,18 @@ class InsightsAttachDiffLinkFilterTest {
 
   @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule()).around(vcsInsightsRule)
 
+  private lateinit var exceptionInfoCache: InsightsExceptionInfoCache
   private lateinit var console: ConsoleViewImpl
   private lateinit var tracker: AppInsightsTracker
 
   @Before
   fun setUp() {
     tracker = mock()
+    exceptionInfoCache =
+      InsightsExceptionInfoCache(
+        projectRule.project,
+        GlobalSearchScope.allScope(projectRule.project)
+      )
     console =
       ConsoleViewImpl(projectRule.project, true).also {
         Disposer.register(projectRule.testRootDisposable, it)
@@ -55,7 +62,7 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `no attached inlay when trace is not resolvable`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
+    val filter = InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
@@ -70,10 +77,10 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `no attached inlay when no vcs info`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
+    val filter = InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker)
 
     // Prepare
-    projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
+    projectRule.fixture.addFileToProject("src/MainActivity.java", SAMPLE_JAVA_SOURCE)
 
     // Act
     val result = filter.applyFilter(SAMPLE_JAVA_TRACE, 93)
@@ -84,13 +91,13 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `no attached inlay when misMatched Vcs configured`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
+    val filter = InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
-    projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
+    projectRule.fixture.addFileToProject("src/MainActivity.java", SAMPLE_JAVA_SOURCE)
 
     vcsInsightsRule.clearUpMappingToRootStructure()
     vcsInsightsRule.addNewMappingToRootStructure("feature", vcsInsightsRule.vcs)
@@ -104,13 +111,14 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `has attached inlay for java trace`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
+    val filter = InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
-    val targetPsiFile = projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
+    val targetPsiFile =
+      projectRule.fixture.addFileToProject("src/MainActivity.java", SAMPLE_JAVA_SOURCE)
 
     // Act
     val result = filter.applyFilter(SAMPLE_JAVA_TRACE, 93)
@@ -139,13 +147,14 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `has attached inlay for kotlin trace`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
+    val filter = InsightsAttachInlayDiffLinkFilter(exceptionInfoCache, console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo.ValidInfo(listOf(REPO_INFO))
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, appVcsInfo)
 
-    val targetPsiFile = projectRule.fixture.configureByText("MainActivity.kt", SAMPLE_KOTLIN_SOURCE)
+    val targetPsiFile =
+      projectRule.fixture.addFileToProject("src/MainActivity.kt", SAMPLE_KOTLIN_SOURCE)
 
     // Act
     val result = filter.applyFilter(SAMPLE_KOTLIN_TRACE, 98)
