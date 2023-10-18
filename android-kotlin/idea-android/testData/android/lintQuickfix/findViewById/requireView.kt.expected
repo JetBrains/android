@@ -14,7 +14,7 @@ class OtherActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_other)
 
-        val tvHello = requireViewById<TextView>(R.id.tvHello)
+        val tvHello: TextView = requireViewById(R.id.tvHello)
     }
 }
 

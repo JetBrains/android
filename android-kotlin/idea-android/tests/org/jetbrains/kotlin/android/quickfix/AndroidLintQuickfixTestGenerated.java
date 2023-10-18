@@ -50,6 +50,16 @@ public class AndroidLintQuickfixTestGenerated {
             doTest(fileName);
         }
 
+        public void testPlatformNotNullExpression() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/platformNotNullExpression.kt");
+            doTest(fileName);
+        }
+
+        public void testPlatformNullableExpression() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/platformNullableExpression.kt");
+            doTest(fileName);
+        }
+
         public void testQualifiedRequireView() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/qualifiedRequireView.kt");
             doTest(fileName);
@@ -65,6 +75,16 @@ public class AndroidLintQuickfixTestGenerated {
             doTest(fileName);
         }
 
+        public void testSafeCallOfNotNullFunction() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/safeCallOfNotNullFunction.kt");
+            doTest(fileName);
+        }
+
+        public void testSafeCallOfNotNullFunctionWithNonNullCast() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/safeCallOfNotNullFunctionWithNonNullCast.kt");
+            doTest(fileName);
+        }
+
         public void testSafeCast() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/safeCast.kt");
             doTest(fileName);
@@ -77,6 +97,11 @@ public class AndroidLintQuickfixTestGenerated {
 
         public void testTooManyTypeParameters() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/tooManyTypeParameters.kt");
+            doTest(fileName);
+        }
+
+        public void testVariableTypeAlreadyExists() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea-android/testData/android/lintQuickfix/findViewById/variableTypeAlreadyExists.kt");
             doTest(fileName);
         }
     }

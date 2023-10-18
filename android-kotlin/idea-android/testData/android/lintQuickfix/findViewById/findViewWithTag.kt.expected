@@ -14,7 +14,7 @@ class OtherActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_other)
 
-        val tvHello = window.decorView.findViewWithTag<TextView>("tag")
+        val tvHello: TextView = window.decorView.findViewWithTag("tag")
     }
 }
 

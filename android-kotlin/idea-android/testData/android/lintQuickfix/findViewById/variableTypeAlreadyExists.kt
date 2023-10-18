@@ -4,7 +4,7 @@
 
 import android.app.Activity
 import android.os.Bundle
-import android.view.View
+import android.widget.Button
 import android.widget.TextView
 
 
@@ -14,9 +14,7 @@ class OtherActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_other)
 
-        val tvHello: TextView? = (run {
-                    SomeObject.InnerClass()
-                })?.findViewById(this, R.id.tvHello)
+        val tvHello: View = <caret>findViewById(R.id.tvHello) as TextView
     }
 }
 
@@ -27,12 +25,5 @@ class R {
 
     object id {
         val tvHello = 0
-    }
-}
-
-object SomeObject {
-    class InnerClass {
-        fun <T : View> findViewById(activity: Activity, id: Int): T? =
-            activity.findViewById(id)
     }
 }

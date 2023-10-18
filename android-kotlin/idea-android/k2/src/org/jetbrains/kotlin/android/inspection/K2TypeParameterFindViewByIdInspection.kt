@@ -32,20 +32,34 @@ import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtCallExpression
 
 class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectionBase() {
-    override fun KtCallExpression.isValidFindViewByIdCallForCast(cast: KtBinaryExpressionWithTypeRHS): Boolean = analyze(cast) {
-        val calleeSymbol = resolveCall()?.successfulFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return false
-        if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return false
+    override fun KtCallExpression.classifyFindViewCall(
+        cast: KtBinaryExpressionWithTypeRHS
+    ): FindViewCallInfo? = analyze(this) {
+        val calleeSymbol = resolveCall()?.successfulFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return null
+        if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return null
 
         // The function must take a single type parameter (T)...
-        val typeParameterSymbol = calleeSymbol.typeParameters.singleOrNull() ?: return false
+        val typeParameterSymbol = calleeSymbol.typeParameters.singleOrNull() ?: return null
         // ... and return T (or T?).
-        if (unwrapToTypeParameterSymbol(calleeSymbol.returnType) != typeParameterSymbol) return false
+        val returnType = calleeSymbol.returnType
+        if (unwrapToTypeParameterSymbol(returnType) != typeParameterSymbol) return null
 
         // The target type of the cast must satisfy all of T's bounds.
         // We discard the ? on the cast target type when we execute the quickfix, so we need to check
         // against the non-nullable type here.
-        val castTargetType = cast.right?.getKtType()?.withNullability(KtTypeNullability.NON_NULLABLE) ?: return false
-        return castTargetType !is KtErrorType && typeParameterSymbol.upperBounds.all { castTargetType isSubTypeOf it }
+        val castTargetType = cast.right?.getKtType() ?: return null
+        if (castTargetType is KtErrorType) return null
+
+        val castTargetTypeNonNull = castTargetType.withNullability(KtTypeNullability.NON_NULLABLE)
+        if (!typeParameterSymbol.upperBounds.all { castTargetTypeNonNull isSubTypeOf it }) return null
+
+        return FindViewCallInfo(
+            returnTypeNullability = when {
+                returnType.hasFlexibleNullability -> ReturnTypeNullability.PLATFORM_TYPE
+                returnType.isMarkedNullable -> ReturnTypeNullability.NULLABLE
+                else -> ReturnTypeNullability.NOT_NULL
+            }
+        )
     }
 
     companion object {
