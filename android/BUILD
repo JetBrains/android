@@ -131,6 +131,7 @@ iml_module(
         "//prebuilts/r8",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
     ],
 )
 

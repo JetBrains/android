@@ -17,6 +17,7 @@ iml_module(
         "//tools/base/zipflinger:studio.android.sdktools.zipflinger[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
     ],
 )
 
@@ -36,6 +37,7 @@ kotlin_library(
         "//tools/base/apkparser:tools.binary-resources",
         "//tools/base/apkparser/analyzer:tools.analyzer",
         "//tools/base/common:tools.common",
+        "//tools/base/environment-services:tools.environment-services",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/resource-repository:tools.resource-repository",
         "//tools/base/sdk-common:tools.sdk-common",

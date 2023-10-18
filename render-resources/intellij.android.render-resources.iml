@@ -15,5 +15,6 @@
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" />
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
+    <orderEntry type="module" module-name="intellij.android.environment-services" />
   </component>
 </module>
