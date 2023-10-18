@@ -40,7 +40,6 @@ import com.android.tools.rendering.tracking.RenderTaskAllocationTrackerImpl;
 import com.android.tools.rendering.tracking.StackTraceCapture;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.IncorrectOperationException;
@@ -80,8 +79,6 @@ final public class RenderService implements Disposable {
 
   @TestOnly
   public static void initializeRenderExecutor() {
-    assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
-
     synchronized (ourExecutorLock) {
       ourExecutor = RenderExecutor.create();
     }
@@ -98,8 +95,6 @@ final public class RenderService implements Disposable {
    */
   @TestOnly
   public static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
-    assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
-
     // We avoid using getExecutor here since we do not want to create a new one if it doesn't exist
     RenderExecutor currentExecutor = getExistingExecutor();
     if (currentExecutor != null) currentExecutor.shutdown(timeoutSeconds);
@@ -411,9 +406,6 @@ final public class RenderService implements Disposable {
     @VisibleForTesting
     @NotNull
     public RenderTaskBuilder disableSecurityManager() {
-      if (!ApplicationManager.getApplication().isUnitTestMode()) {
-        throw new IllegalStateException("This method can only be called in unit test mode");
-      }
       this.isSecurityManagerEnabled = false;
       return this;
     }
