@@ -1507,12 +1507,21 @@ public final class StudioFlags {
       "Set Crashlytics to be in integration test mode.",
       false);
 
-  public static final Flag<Boolean> CRASHLYTICS_2023H2_UI =
+  public static final Flag<Boolean> CRASHLYTICS_VARIANTS =
+    Flag.create(
+      APP_INSIGHTS,
+      "crashlytics.variants",
+      "Crashlytics Variants Support",
+      "Enabled Variant Selection in AQI Crashlytics",
+      false
+    );
+
+  public static final Flag<Boolean> CRASHLYTICS_J_UI =
     Flag.create(
       APP_INSIGHTS,
       "crashlytics.2023h2.ui",
-      "Crashlytics UI changes for 2023H2",
-      "Enabled Variants, Logs & Keys, Multi-event",
+      "Crashlytics UI changes for J",
+      "Enabled Logs & Keys, Multi-event",
       false
     );
 
