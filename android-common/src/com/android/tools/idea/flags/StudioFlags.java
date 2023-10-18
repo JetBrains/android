@@ -868,6 +868,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "multiple.displays", "Mirror All Displays",
     "Mirror all device displays",
     true);
+  public static final Flag<Boolean> B_303684492_WORKAROUND = Flag.create(
+    DEVICE_MIRRORING, "b.303684492.workaround", "Workaround for Bug 303684492",
+    "Workaround for Android bug 303684492",
+    true);
   public static final Flag<Boolean> DEVICE_MIRRORING_TAB_DND = Flag.create(
     DEVICE_MIRRORING, "tab.dnd", "Drag and Drop of Device Tabs",
     "Allow drag and drop of device tabs",

@@ -104,6 +104,7 @@ private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 internal const val MIRROR_ALL_DISPLAYS = 0x04
+internal const val B_303684492_WORKAROUND = 0x08
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -382,7 +383,8 @@ internal class DeviceClient(
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
-                (if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) MIRROR_ALL_DISPLAYS else 0)
+                (if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) MIRROR_ALL_DISPLAYS else 0) or
+                (if (StudioFlags.B_303684492_WORKAROUND.get()) B_303684492_WORKAROUND else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""

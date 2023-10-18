@@ -210,7 +210,7 @@ void Controller::Run() {
 
         if (poll_displays_until_ != steady_clock::time_point()) {
           PollDisplays();
-          socket_timeout /= 10;  // Reduce socket timeout to increase polling frequency.
+          socket_timeout /= 5;  // Reduce socket timeout to increase polling frequency.
         }
 
         SendPendingDisplayEvents();
@@ -526,7 +526,7 @@ void Controller::SendDeviceStateNotification() {
     notification.Serialize(output_stream_);
     output_stream_.Flush();
     previous_device_state_ = device_state;
-    if (Agent::api_level() >= 34) {
+    if ((Agent::flags() & B_303684492_WORKAROUND) != 0 && Agent::api_level() >= 34) {
       StartDisplayPolling();  // Workaround for b/303684492.
     }
   }
@@ -575,11 +575,13 @@ void Controller::SendPendingDisplayEvents() {
       DisplayAddedNotification notification(event.display_id);
       notification.Serialize(output_stream_);
       output_stream_.Flush();
+      Log::D("Sent DisplayAddedNotification(%d)", event.display_id);
     }
     else if (event.type == DisplayEvent::Type::REMOVED) {
       DisplayRemovedNotification notification(event.display_id);
       notification.Serialize(output_stream_);
       output_stream_.Flush();
+      Log::D("Sent DisplayRemovedNotification(%d)", event.display_id);
     }
   }
 }
@@ -593,7 +595,7 @@ void Controller::StartDisplayPolling() {
   }
   current_displays_ = displays;
   Log::D("Controller::StartDisplayPolling current_displays_.size()=%d", static_cast<int>(current_displays_.size()));
-  poll_displays_until_ = steady_clock::now() + 2s;
+  poll_displays_until_ = steady_clock::now() + 500ms;
 }
 
 void Controller::StopDisplayPolling() {
@@ -604,36 +606,34 @@ void Controller::StopDisplayPolling() {
 
 void Controller::PollDisplays() {
   auto displays = GetDisplays();
-  if (displays == current_displays_) {
-    if (steady_clock::now() > poll_displays_until_) {
-      StopDisplayPolling();
-    }
-  } else {
-    Log::D("Controller::PollDisplays: detected display change; displays.size()=%d current_displays_.size()=%d",
-           static_cast<int>(displays.size()), static_cast<int>(current_displays_.size()));
-    for (auto d1 = displays.begin(), d2 = current_displays_.begin(); d1 != displays.end() || d2 != current_displays_.end();) {
-      if (d2 == current_displays_.end()) {
-        // Due to uncertain timing of events we have to assume that the display was both added and changed.
-        DisplayManager::OnDisplayAdded(jni_, d1->first);
+  for (auto d1 = displays.begin(), d2 = current_displays_.begin(); d1 != displays.end() || d2 != current_displays_.end();) {
+    if (d2 == current_displays_.end()) {
+      // Due to uncertain timing of events we have to assume that the display was both added and changed.
+      DisplayManager::OnDisplayAdded(jni_, d1->first);
+      DisplayManager::OnDisplayChanged(jni_, d1->first);
+      d1++;
+    } else if (d1 == displays.end()) {
+      DisplayManager::OnDisplayRemoved(jni_, d2->first);
+      d2++;
+    } else if (d1->first < d2->first) {
+      // Due to uncertain timing of events we have to assume that the display was both added and changed.
+      DisplayManager::OnDisplayAdded(jni_, d1->first);
+      DisplayManager::OnDisplayChanged(jni_, d1->first);
+      d1++;
+    } else if (d1->first > d2->first) {
+      DisplayManager::OnDisplayRemoved(jni_, d2->first);
+      d2++;
+    } else {
+      if (d1->second != d2->second) {
         DisplayManager::OnDisplayChanged(jni_, d1->first);
-        d1++;
-      } else if (d1 == displays.end()) {
-        DisplayManager::OnDisplayRemoved(jni_, d2->first);
-        d2++;
-      } else if (d1->first < d2->first) {
-        // Due to uncertain timing of events we have to assume that the display was both added and changed.
-        DisplayManager::OnDisplayAdded(jni_, d1->first);
-        DisplayManager::OnDisplayChanged(jni_, d1->first);
-        d1++;
-      } else if (d1->first > d2->first) {
-        DisplayManager::OnDisplayRemoved(jni_, d2->first);
-        d2++;
-      } else if (d1->second != d2->second) {
-        DisplayManager::OnDisplayChanged(jni_, d1->first);
-        d1++;
-        d2++;
       }
+      d1++;
+      d2++;
     }
+  }
+
+  current_displays_ = displays;
+  if (steady_clock::now() > poll_displays_until_) {
     StopDisplayPolling();
   }
 }
