@@ -98,7 +98,7 @@ bool CheckVideoSize(Size video_resolution) {
 
 void InjectMotionEvent(Jni jni, const MotionEvent& event, InputEventInjectionSync mode) {
   JObject motion_event = event.ToJava();
-  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE && Log::IsEnabled(Log::Level::VERBOSE)) {
+  if (event.action == AMOTION_EVENT_ACTION_HOVER_MOVE || Log::IsEnabled(Log::Level::VERBOSE)) {
     Log::V("motion_event: %s", motion_event.ToString().c_str());
   } else if (Log::IsEnabled(Log::Level::DEBUG)) {
     Log::D("motion_event: %s", motion_event.ToString().c_str());
