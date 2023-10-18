@@ -256,16 +256,16 @@ void DisplayStreamer::Run() {
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
   while (continue_streaming && !streamer_stopped_ && !Agent::IsShuttingDown()) {
-    AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
-    if (codec == nullptr) {
-      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
-                 display_id_, codec_info_->name.c_str());
-    }
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     if (!display_info.IsValid()) {
       break;
     }
     Log::D("Display %d: display_info: %s", display_id_, display_info.ToDebugString().c_str());
+    AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
+    if (codec == nullptr) {
+      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Display %d: unable to create a %s video encoder",
+                 display_id_, codec_info_->name.c_str());
+    }
     VirtualDisplay virtual_display;
     JObject display_token;
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
