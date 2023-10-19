@@ -235,7 +235,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   }
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
-    surface.zoom(type, mouseX, mouseY)
+    surface.zoomable.zoom(type, mouseX, mouseY)
   }
 
   override fun hoverWhenNoInteraction(

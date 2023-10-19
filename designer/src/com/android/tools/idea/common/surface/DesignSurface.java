@@ -129,7 +129,7 @@ import org.jetbrains.annotations.TestOnly;
  * A generic design surface for use in a graphical editor.
  */
 public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
-  implements Disposable, InteractableScenesSurface, Zoomable, ZoomableViewport {
+  implements Disposable, InteractableScenesSurface, ZoomController, ZoomableViewport {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -171,6 +171,12 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     HIDDEN,
     /** The zoom controls will only be visible when the mouse is over the surface. */
     AUTO_HIDE
+  }
+
+  @NotNull
+  @Override
+  public ZoomController getZoomable() {
+    return this;
   }
 
   /**
@@ -1011,6 +1017,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   protected abstract Dimension getScrollToVisibleOffset();
 
   @UiThread
+  @Override
   final public boolean zoomToFit() {
     return zoom(ZoomType.FIT, -1, -1);
   }
@@ -1169,17 +1176,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @SwingCoordinate
   public Dimension getViewSize() {
     return getViewport().getViewSize();
-  }
-
-  /**
-   * Set the scale factor used to multiply the content size.
-   *
-   * @param scale The scale factor. Can be any value but it will be capped between -1 and 10
-   *              (value below 0 means zoom to fit)
-   * @return True if the scaling was changed, false if this was a noop.
-   */
-  public boolean setScale(double scale) {
-    return setScale(scale, -1, -1);
   }
 
   @SurfaceScale protected double getBoundedScale(@SurfaceScale double scale) {
