@@ -581,6 +581,14 @@ public final class StudioFlags {
     "Enable Export/Import feature",
     true
   );
+
+  public static final Flag<Boolean> LOGCAT_PROTOBUF_ENABLED = Flag.create(
+    LOGCAT,
+    "protobuf.enable",
+    "Enable Logcat Protobuf format",
+    "Enable Logcat Protobuf format",
+    true
+  );
   //endregion
 
   //region Gradle Project System

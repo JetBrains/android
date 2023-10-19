@@ -147,7 +147,35 @@ class LogcatServiceImplTest {
     yieldUntil { logcatHandler.lastDeviceId == "device" }
     job.cancel()
 
-    assertThat(logcatHandler.lastArgs).isEqualTo("-v long -T 0")
+    assertThat(logcatHandler.lastArgs).isEqualTo("-v long -T 1")
+  }
+
+  @Test
+  fun readLogcat_launchesLogcat_sdk35(): Unit = runBlocking {
+    val service = logcatServiceImpl()
+    val logcatHandler = CheckFormatLogcatHandler(ShellProtocolType.SHELL_V2)
+    fakeAdb.addDeviceCommandHandler(logcatHandler)
+    fakeAdb.attachDevice("device", manufacturer = "", model = "", release = "", sdk = "35")
+
+    val job = launch { service.readLogcat("device", 35, newMessagesOnly = false).collect {} }
+    yieldUntil { logcatHandler.lastDeviceId == "device" }
+    job.cancel()
+
+    assertThat(logcatHandler.lastArgs).isEqualTo("--proto")
+  }
+
+  @Test
+  fun readLogcat_newMessagesOnly_launchesLogcat_sdk35(): Unit = runBlocking {
+    val service = logcatServiceImpl()
+    val logcatHandler = CheckFormatLogcatHandler(ShellProtocolType.SHELL_V2)
+    fakeAdb.addDeviceCommandHandler(logcatHandler)
+    fakeAdb.attachDevice("device", manufacturer = "", model = "", release = "", sdk = "35")
+
+    val job = launch { service.readLogcat("device", 35, newMessagesOnly = true).collect {} }
+    yieldUntil { logcatHandler.lastDeviceId == "device" }
+    job.cancel()
+
+    assertThat(logcatHandler.lastArgs).isEqualTo("--proto -T 1")
   }
 
   /**
@@ -354,7 +382,8 @@ class LogcatServiceImplTest {
     return LogcatServiceImpl(project, lastMessageDelayMs)
   }
 
-  private class CheckFormatLogcatHandler : LogcatCommandHandler(ShellProtocolType.SHELL) {
+  private class CheckFormatLogcatHandler(protocol: ShellProtocolType = ShellProtocolType.SHELL) :
+    LogcatCommandHandler(protocol) {
     var lastDeviceId: String? = null
     var lastArgs: String? = null
 

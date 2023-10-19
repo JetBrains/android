@@ -3,9 +3,11 @@ package com.android.tools.idea.logcat.service
 import com.android.adblib.DeviceSelector
 import com.android.adblib.LineBatchShellCollector
 import com.android.adblib.shellAsText
+import com.android.adblib.shellCommand
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
@@ -31,19 +33,33 @@ private const val LOGCAT_IDLE_TIMEOUT_MILLIS = 100L
 internal class LogcatServiceImpl
 @VisibleForTesting
 constructor(
-  private val project: Project,
+  project: Project,
   private val lastMessageDelayMs: Long = LOGCAT_IDLE_TIMEOUT_MILLIS,
 ) : LogcatService {
   @Suppress("unused") // Used by XML registration
   constructor(project: Project) : this(project, LOGCAT_IDLE_TIMEOUT_MILLIS)
 
   private val deviceServices = AdbLibService.getSession(project).deviceServices
+  private val processNameMonitor: ProcessNameMonitor =
+    project.getService(ProcessNameMonitor::class.java)
 
   override suspend fun readLogcat(
     serialNumber: String,
     sdk: Int,
     duration: Duration,
     newMessagesOnly: Boolean
+  ): Flow<List<LogcatMessage>> {
+    return when (sdk >= 35 && StudioFlags.LOGCAT_PROTOBUF_ENABLED.get()) {
+      true -> readLogcatProtobuf(serialNumber, duration, newMessagesOnly)
+      false -> readLogcatText(serialNumber, sdk, duration, newMessagesOnly)
+    }
+  }
+
+  private suspend fun readLogcatText(
+    serialNumber: String,
+    sdk: Int,
+    duration: Duration,
+    newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
     val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
     return channelFlow {
@@ -56,7 +72,7 @@ constructor(
           append(" -v epoch")
         }
         if (cutoffTimeSupported && newMessagesOnly) {
-          append(" -T 0")
+          append(" -T 1")
         }
       }
 
@@ -76,7 +92,7 @@ constructor(
           serialNumber,
           logcatFormat,
           channel,
-          project.getService(ProcessNameMonitor::class.java),
+          processNameMonitor,
           coroutineContext,
           lastMessageDelayMs,
           cutoffTime
@@ -113,6 +129,34 @@ constructor(
         }
       } finally {
         Disposer.dispose(messageAssembler)
+      }
+    }
+  }
+
+  private suspend fun readLogcatProtobuf(
+    serialNumber: String,
+    duration: Duration,
+    newMessagesOnly: Boolean
+  ): Flow<List<LogcatMessage>> {
+    return channelFlow {
+      val command = buildString {
+        append("logcat --proto")
+        if (newMessagesOnly) {
+          append(" -T 1")
+        }
+      }
+
+      val deviceSelector = DeviceSelector.fromSerialNumber(serialNumber)
+      try {
+        deviceServices
+          .shellCommand(deviceSelector, command)
+          .withCollector(LogcatProtoShellCollector(serialNumber, processNameMonitor))
+          .execute()
+          .collect { send(it) }
+      } catch (e: TimeoutException) {
+        LOGGER.debug { "Done collecting Logcat from device $serialNumber after $duration" }
+        channel.close()
+        return@channelFlow
       }
     }
   }
