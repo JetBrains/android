@@ -21,6 +21,7 @@ import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrit
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -183,11 +184,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   internal val projectOverlayLoadedClassNames: Set<String> get() = _projectOverlayLoadedClassNames
 
   /**
-   * List of the [VirtualFile] of the `.class` files loaded from the project.
-   */
-  val projectLoadedClassVirtualFiles get() = projectSystemLoader.loadedVirtualFiles
-
-  /**
    * [ModificationTracker] that changes every time the classes overlay has changed.
    */
   private val overlayManager: ModuleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
@@ -328,13 +324,13 @@ internal class ModuleClassLoaderImpl(module: Module,
   fun getResource(name: String): URL? = externalLibrariesClassLoader.getResource(name)
 
   /**
-   * Injects the given [virtualFile] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
+   * Injects the given [classContent] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
    */
   @TestOnly
-  fun injectProjectClassFile(fqcn: String, virtualFile: VirtualFile) {
+  fun injectProjectClassFile(fqcn: String, classContent: ClassContent) {
     recordFirstLoadModificationCount()
     _projectLoadedClassNames.add(fqcn)
-    projectSystemLoader.injectClassFile(fqcn, virtualFile)
+    projectSystemLoader.injectClassFile(fqcn, classContent)
   }
 
   override fun dispose() {
@@ -345,19 +341,14 @@ internal class ModuleClassLoaderImpl(module: Module,
    * Returns if the overlay is up-to-date.
    */
   internal fun isOverlayUpToDate() = synchronized(overlayManager) {
-                                       overlayManager.modificationCount == overlayFirstLoadModificationCount
-                                     }
+    overlayManager.modificationCount == overlayFirstLoadModificationCount
+  }
+
+  /**
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
+   */
+  fun isUserCodeUpToDate() = !hasLoadedAnyUserCode || (projectSystemLoader.isUpToDate() && isOverlayUpToDate())
 }
 
 private val ModuleClassLoaderImpl.hasLoadedAnyUserCode: Boolean
   get() = projectLoadedClassNames.isNotEmpty() || projectOverlayLoadedClassNames.isNotEmpty()
-
-/**
- * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
- */
-internal val ModuleClassLoaderImpl.isUserCodeUpToDate: Boolean
-  get() = !hasLoadedAnyUserCode ||
-          (projectLoadedClassVirtualFiles
-             .all { (_, virtualFile, modificationTimestamp) ->
-               virtualFile.isValid && modificationTimestamp.isUpToDate(virtualFile)
-             } && isOverlayUpToDate())

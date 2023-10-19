@@ -74,8 +74,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.imageio.ImageIO;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -270,9 +268,7 @@ public class RenderTaskTest extends AndroidTestCase {
 
         // Drop PSI cache
         ApplicationManager.getApplication().invokeAndWait(() -> PsiManager.getInstance(getProject()).dropPsiCaches());
-        getJavac().run(null, null, null, customView.getAbsolutePath());
-        FileUtil.copy(new File(srcDir, "com/google/test/CustomView.class"), outputFile);
-        VfsUtil.findFileByIoFile(outputFile, true);
+        assertTrue("Simulation of file change", outputFile.setLastModified(outputFile.lastModified() + 1));
 
         result = task.render().get();
         assertTrue(result.hasRequestedCustomViews());

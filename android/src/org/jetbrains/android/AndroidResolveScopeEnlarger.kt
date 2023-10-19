@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
+import com.android.tools.idea.res.RClassResources
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
@@ -42,9 +43,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
@@ -77,7 +76,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
     @JvmField
     val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     @JvmField
-    val BACKING_CLASS: Key<SmartPsiElementPointer<PsiClass>> = Key.create(::BACKING_CLASS.qualifiedName<AndroidResolveScopeEnlarger>())
+    val BACKING_CLASS: Key<RClassResources> = Key.create(::BACKING_CLASS.qualifiedName<AndroidResolveScopeEnlarger>())
     @JvmField
     val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())

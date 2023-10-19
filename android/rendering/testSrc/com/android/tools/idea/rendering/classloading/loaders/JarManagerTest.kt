@@ -109,7 +109,7 @@ class JarManagerUtilTest {
     val jarFilePath = createSampleJarFile()
 
     run {
-      val jarManagerNoPrefetch = JarManager.withCache()
+      val jarManagerNoPrefetch = JarManager()
       assertEquals(
         "contents1",
         String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
@@ -128,7 +128,7 @@ class JarManagerUtilTest {
     }
 
     run {
-      val jarManagerPrefetch = JarManager.withCache()
+      val jarManagerPrefetch = JarManager()
       assertEquals(
         "contents1",
         String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
@@ -192,6 +192,24 @@ class JarManagerUtilTest {
         .trimIndent(),
       backingMap.first().value.keys.sorted().joinToString("\n")
     )
+  }
+
+  @Test
+  fun `check no-preload cache misses`() {
+    val jarFilePath = createSampleJarFile()
+    var cacheMisses = 0
+    val jarManager = JarManager.forTesting(maxPrefetchFileSizeBytes = 0L) { cacheMisses++ }
+
+    assertEquals(
+      "contents1",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+    )
+
+    assertEquals(
+      "contents2",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+    )
+    assertEquals(2, cacheMisses)
   }
 
   @Test

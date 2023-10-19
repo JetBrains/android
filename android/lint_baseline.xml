@@ -277,28 +277,6 @@
     </issue>
 
     <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="      virtualFileCache[fqcn] = Pair(vFile, ClassModificationTimestamp.fromVirtualFile(vFile))"
-        errorLine2="                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
-            line="81"
-            column="44"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope"
-        errorLine1="      virtualFileCache[fqcn] = Pair(vFile, ClassModificationTimestamp.fromVirtualFile(vFile))"
-        errorLine2="                                                                      ~~~~~~~~~~~~~~~">
-        <location
-            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
-            line="81"
-            column="71"/>
-    </issue>
-
-    <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization"
         errorLine1="  override val logger: StatisticsEventLogger by lazy { createLogger() }"

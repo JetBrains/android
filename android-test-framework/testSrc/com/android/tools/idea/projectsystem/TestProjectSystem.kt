@@ -23,7 +23,6 @@ import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.model.ClassJarProvider
-import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
@@ -144,7 +143,7 @@ class TestProjectSystem @JvmOverloads constructor(
       override val module = module
 
       override val moduleClassFileFinder: ClassFileFinder = object : ClassFileFinder {
-        override fun findClassFile(fqcn: String): VirtualFile? = null
+        override fun findClassFile(fqcn: String): ClassContent? = null
       }
 
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)

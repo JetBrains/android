@@ -97,18 +97,18 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
       fieldModifier: AndroidLightField.FieldModifier
     ): Array<PsiField> {
       val factory = JavaPsiFacade.getElementFactory(context.project)
-      val innerRClass = context.containingFile.viewProvider.virtualFile.getUserData(AndroidResolveScopeEnlarger.BACKING_CLASS)
-        ?.element?.findInnerClassByName(resourceType.getName(), false)
+      val innerRClassFields = context.containingFile.viewProvider.virtualFile.getUserData(AndroidResolveScopeEnlarger.BACKING_CLASS)
+        ?.getResources(resourceType)
 
       val startId = resourceType.ordinal * 100_000
-      val otherLightFields = otherFields.toLightFields(innerRClass, factory, startId, PsiTypes.intType(), context, fieldModifier)
+      val otherLightFields = otherFields.toLightFields(innerRClassFields, factory, startId, PsiTypes.intType(), context, fieldModifier)
 
       val styleableStartId = startId + otherFields.size
       val styleableLightFields = styleableFields.toLightFields(
-        innerRClass, factory, styleableStartId, PsiTypes.intType().createArrayType(), context, fieldModifier)
+        innerRClassFields, factory, styleableStartId, PsiTypes.intType().createArrayType(), context, fieldModifier)
 
       val attrStartId = styleableStartId + styleableFields.size
-      val styleableAttrLightFields = styleableAttrFields.toLightFields(innerRClass, factory, attrStartId, context, fieldModifier)
+      val styleableAttrLightFields = styleableAttrFields.toLightFields(innerRClassFields, factory, attrStartId, context, fieldModifier)
 
       return (otherLightFields + styleableLightFields + styleableAttrLightFields).toTypedArray()
     }
@@ -153,32 +153,29 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
       return attributeResourceReferences.map { StyleableAttrFieldUrl(resourceReference, it) }
     }
 
-    /** Returns the inner R class [Int] ID for the given [fieldName]. */
-    private fun PsiClass.findBackingField(fieldName: String) = findFieldByName(fieldName, false)?.computeConstantValue() as? Int
-
     /** Converts the resources in [this] to [ResourceLightField]s. */
     private fun Map<String, ResourceVisibility>.toLightFields(
-      innerRClass: PsiClass?,
+      innerRClassFields: Map<String, Int>?,
       factory: PsiElementFactory,
       nextId: Int,
       psiType: PsiType,
       context: PsiClass,
       fieldModifier: AndroidLightField.FieldModifier,
     ): List<ResourceLightField> = entries.mapIndexed { i, (fieldName, visibility) ->
-        val fieldId = innerRClass?.findBackingField(fieldName) ?: (nextId + i)
+        val fieldId = innerRClassFields?.get(fieldName) ?: (nextId + i)
         ResourceLightField(fieldName, context, psiType, fieldModifier, fieldId.takeIf { fieldModifier == FINAL }, visibility)
           .apply { initializer = factory.createExpressionFromText(fieldId.toString(), this) }
       }
 
     /** Converts the attributes in [this] to [StyleableAttrLightField]s. */
     private fun Collection<StyleableAttrFieldUrl>.toLightFields(
-      innerRClass: PsiClass?,
+      innerRClass: Map<String, Int>?,
       factory: PsiElementFactory,
       nextId: Int,
       context: PsiClass,
       fieldModifier: AndroidLightField.FieldModifier,
     ) : List<StyleableAttrLightField> = mapIndexed { i, fieldContents ->
-      val fieldId = innerRClass?.findBackingField(fieldContents.toFieldName()) ?: (nextId + i)
+      val fieldId = innerRClass?.get(fieldContents.toFieldName()) ?: (nextId + i)
       StyleableAttrLightField(fieldContents, context, fieldModifier, fieldId.takeIf { fieldModifier == FINAL })
         .apply { initializer = factory.createExpressionFromText(fieldId.toString(), this) }
     }

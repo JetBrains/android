@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.project
 
+import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.projectsystem.ClassFileFinder
-import com.android.tools.idea.projectsystem.findClassFileInOutputRoot
+import com.android.tools.idea.projectsystem.getPathFromFqcn
 import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.rendering.classloading.loaders.JarManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.CompilerModuleExtension
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.io.URLUtil
+import java.io.File
 
 private val LOG = Logger.getInstance(ModuleBasedClassFileFinder::class.java)
 
@@ -39,13 +42,17 @@ private fun Logger.debugIfEnabled(msg: String) {
  * outputs.
  */
 open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
-  override fun findClassFile(fqcn: String) = findClassFile(module, fqcn, mutableSetOf())
+  private val jarManager = JarManager.getInstance(module.project)
+
+  override fun findClassFile(fqcn: String): ClassContent? {
+    return findClassFile(module, fqcn, mutableSetOf())
+  }
 
   /**
    * Searches for the class file corresponding to [fqcn] by looking in the given
    * [module] and its transitive dependencies.
    */
-  private fun findClassFile(module: Module, fqcn: String, visited: MutableSet<Module>): VirtualFile? {
+  private fun findClassFile(module: Module, fqcn: String, visited: MutableSet<Module>): ClassContent? {
     if (!visited.add(module) || module.isDisposed) return null
 
     LOG.debugIfEnabled("findClassFile(module=$module, fqcn=$fqcn)})")
@@ -68,26 +75,22 @@ open class ModuleBasedClassFileFinder(val module: Module): ClassFileFinder {
     return null
   }
 
-  /**
-   * Wraps the call to [findClassFileInModule] with debug logging.
-   */
-  private fun findClassFileInModuleWithLogging(module: Module, fqcn: String): VirtualFile? {
+  private fun findClassFileInModuleWithLogging(module: Module, fqcn: String): ClassContent? {
     LOG.debugIfEnabled("findClassInModule(module=$module, fqcn=$fqcn)")
 
-    return findClassFileInModule(module, fqcn).also {
-      if (it == null) LOG.debugIfEnabled("  Class not found")
-    }
-  }
+    val compilerOutput = CompilerModuleExtension.getInstance(module)?.compilerOutputUrl?.let { File(URLUtil.urlToPath(it)) } ?: return null
+    if (!compilerOutput.exists()) return null
 
-  /**
-   * [findClassFile] calls this method for each module in the transitive closure of
-   * [ModuleBasedClassFileFinder.module] until this method returns a non-null file.
-   *
-   * By default, this method simply checks the compiler output directory as given
-   * by [CompilerModuleExtension.getCompilerOutputPath], which is where modules built
-   * with JPS store their compiled output.
-   */
-  protected open fun findClassFileInModule(module: Module, fqcn: String): VirtualFile? {
-    return CompilerModuleExtension.getInstance(module)?.compilerOutputPath?.let { findClassFileInOutputRoot(it, fqcn) }
+    val classFileRelativePath = getPathFromFqcn(fqcn)
+    return if (compilerOutput.isDirectory) {
+      val classFile = compilerOutput.resolve(classFileRelativePath).takeIf { it.isFile() } ?: return null
+      ClassContent.loadFromFile(classFile)
+    } else if (compilerOutput.isFile && compilerOutput.extension == "jar") {
+      val bytes = jarManager.loadFileFromJar(compilerOutput.toPath(), classFileRelativePath) ?: return null
+      ClassContent.fromJarEntryContent(compilerOutput, bytes)
+    } else {
+      LOG.warn("$compilerOutput is neither a directory nor a jar.")
+      null
+    }
   }
 }
