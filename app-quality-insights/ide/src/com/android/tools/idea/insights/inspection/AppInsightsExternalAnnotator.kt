@@ -91,7 +91,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
       insights.mapNotNull { insight ->
         ProgressManager.checkCanceled()
         if (collectedInfo.editor.isDisposed) return@mapNotNull null
-        if (insight.issue.sampleEvent.appVcsInfo == AppVcsInfo.NONE) return@mapNotNull insight
+        if (insight.issue.sampleEvent.appVcsInfo !is AppVcsInfo.ValidInfo) return@mapNotNull insight
 
         insight.updateToCurrentLineNumber(
           collectedInfo.vFile,
