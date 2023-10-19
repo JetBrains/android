@@ -15,17 +15,10 @@
  */
 package com.android.tools.asdriver.tests;
 
-import java.io.IOException;
-
 /**
  * The native display (as opposed to a virtual display like Xvfb).
  */
 public class NativeDisplay implements Display {
-  @Override
-  public void debugTakeScreenshot(String fileName) throws IOException {
-    System.out.println("The native display cannot take screenshots yet");
-  }
-
   @Override
   public String getDisplay() {
     return null;

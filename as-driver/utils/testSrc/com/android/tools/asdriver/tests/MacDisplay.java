@@ -61,11 +61,6 @@ public class MacDisplay implements Display {
   }
 
   @Override
-  public void debugTakeScreenshot(String fileName) throws IOException {
-    System.out.println("MacDisplay cannot take screenshots yet");
-  }
-
-  @Override
   public String getDisplay() {
     return null;
   }
