@@ -152,6 +152,7 @@ iml_studio_test(
 
 iml_studio_test(
     name = "EmulatorAfterStudioTest",
+    timeout = "long",
     data = [
         ":minapp",
         "//prebuilts/studio/sdk:emulator",
@@ -162,7 +163,6 @@ iml_studio_test(
     module = ":intellij.android.core.integration",
     tags_linux = [
         "block-network",
-        "manual",  # b/271006743: emulator can't fully boot
     ],
     tags_windows = [
         "block-network",
