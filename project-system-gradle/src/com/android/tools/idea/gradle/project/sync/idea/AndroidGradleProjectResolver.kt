@@ -765,8 +765,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH -> GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
     AndroidSyncExceptionType.NO_VALID_NATIVE_ABI_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND
     AndroidSyncExceptionType.NO_VARIANTS_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
-    //TODO(b/292231180): at the moment there is no value for this failure generated in JdkImportCheck.validateProjectGradleJdk
-    AndroidSyncExceptionType.JDK_IMPORT_CHECK -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
+    AndroidSyncExceptionType.JDK_IMPORT_CHECK -> GradleSyncFailure.ANDROID_SYNC_JDK_IMPORT_CHECK
   }
 
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {

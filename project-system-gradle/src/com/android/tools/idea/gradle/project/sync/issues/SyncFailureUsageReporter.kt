@@ -22,6 +22,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.issue.BuildIssueException
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.concurrentMapOf
 import org.jetbrains.annotations.SystemIndependent
@@ -54,22 +55,26 @@ class SyncFailureUsageReporter {
     }
   }
 
-  fun reportFailure(syncStateHolder: GradleSyncStateHolder, rootProjectPath: @SystemIndependent String) {
-    collectedFailures.remove(rootProjectPath).let {
-      UsageTracker.log(
-        syncStateHolder.generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
-          .setGradleSyncFailure(it ?: AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE)
-      )
+  fun reportFailure(syncStateHolder: GradleSyncStateHolder, rootProjectPath: @SystemIndependent String, processedError: Throwable?) {
+    // If nothing was collected by the issue checkers try to derive a bit more details from the processed error.
+    // e.g. if it has a BuildIssue attached then something just did not report the recognized failure.
+    val failureType = collectedFailures.remove(rootProjectPath) ?: deriveSyncFailureFromProcessedError(processedError)
+    UsageTracker.log(
+      syncStateHolder
+        .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
+        .setGradleSyncFailure(failureType)
+    )
+  }
+
+  private fun deriveSyncFailureFromProcessedError(error: Throwable?) = if (error is BuildIssueException) {
+    if (error.buildIssue.javaClass.packageName.startsWith("com.android.tools.")) {
+      AndroidStudioEvent.GradleSyncFailure.ANDROID_BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
+    }
+    else {
+      AndroidStudioEvent.GradleSyncFailure.BUILD_ISSUE_CREATED_UNKNOWN_FAILURE
     }
   }
-}
-
-class FailuresReporterSyncListener : GradleSyncListenerWithRoot {
-  override fun syncStarted(project: Project, rootProjectPath: String) {
-    SyncFailureUsageReporter.getInstance().onSyncStart(rootProjectPath)
-  }
-
-  override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: String) {
-    SyncFailureUsageReporter.getInstance().reportFailure(GradleSyncStateHolder.getInstance(project), rootProjectPath)
+  else {
+    AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
   }
 }
