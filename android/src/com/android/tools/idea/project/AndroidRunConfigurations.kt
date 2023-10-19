@@ -38,12 +38,14 @@ import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
@@ -86,19 +88,11 @@ class AndroidRunConfigurations {
         return
       }
     }
-    val hasDefaultLauncherActivity = DefaultActivityLocator.hasDefaultLauncherActivity(facet);
-    if (LaunchUtils.isWatchFeatureRequired(facet) && !hasDefaultLauncherActivity) {
+    if (LaunchUtils.isWatchFeatureRequired(facet) && !hasDefaultLauncherActivity(facet)) {
       // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
       return
     }
-    val launchUrl =
-      when (facet.configuration.projectType) {
-        AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP -> InstantApps.getDefaultInstantAppUrl(facet)
-        else -> null
-      }
-    ApplicationManager.getApplication().invokeAndWait {
-      addAndroidRunConfiguration(facet.mainModule, launchUrl, hasDefaultLauncherActivity)
-    }
+    ApplicationManager.getApplication().invokeAndWait { addAndroidRunConfiguration(facet) }
   }
 
   @Slow
@@ -130,7 +124,8 @@ class AndroidRunConfigurations {
     }
   }
 
-  private fun addAndroidRunConfiguration(module: Module, launchUrl: String?, hasDefaultLauncherActivity: Boolean) {
+  private fun addAndroidRunConfiguration(facet: AndroidFacet) {
+    val module = facet.mainModule
     val runManager = RunManager.getInstance(module.project)
     val projectNameInExternalSystemStyle = PathUtil.suggestFileName(module.project.name, true, false)
     val moduleName = module.getHolderModule().name
@@ -138,10 +133,11 @@ class AndroidRunConfigurations {
     val settings = runManager.createConfiguration(configurationName, AndroidRunConfigurationType::class.java)
     val configuration = settings.configuration as AndroidRunConfiguration
     configuration.setModule(module)
-    when {
-      launchUrl != null -> configuration.setLaunchUrl(launchUrl)
-      hasDefaultLauncherActivity -> configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
-      else -> configuration.MODE = AndroidRunConfiguration.DO_NOTHING
+    if (facet.configuration.projectType == AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP) {
+      configuration.setLaunchUrl(InstantApps.getDefaultInstantAppUrl(facet))
+    }
+    else {
+      configuration.MODE = AndroidRunConfiguration.LAUNCH_DEFAULT_ACTIVITY
     }
 
     configuration.deployTargetContext.targetSelectionMode = TargetSelectionMode.DEVICE_AND_SNAPSHOT_COMBO_BOX
@@ -150,6 +146,11 @@ class AndroidRunConfigurations {
       runManager.addConfiguration(settings)
       runManager.selectedConfiguration = settings
     }
+  }
+
+  private fun hasDefaultLauncherActivity(facet: AndroidFacet): Boolean {
+    val manifest = Manifest.getMainManifest(facet) ?: return false
+    return runReadAction { DefaultActivityLocator.hasDefaultLauncherActivity(manifest) }
   }
 
   @Slow

@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
-import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActivitiesFromManifestIndex;
+import static com.android.tools.idea.run.activity.DefaultActivityLocator.getActivitiesFromMergedManifest;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ACTIVITY;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_DEFAULT;
@@ -60,7 +60,7 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
 
   @Nullable
   private static String computeDefaultActivity(@NotNull AndroidFacet facet, @Nullable IDevice device) {
-    List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromManifestIndex(facet);
+    List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromMergedManifest(facet);
     if (device == null) {
       return DefaultActivityLocator.computeDefaultActivity(activities);
     }
