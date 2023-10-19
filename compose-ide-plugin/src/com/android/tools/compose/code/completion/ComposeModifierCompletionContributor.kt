@@ -563,9 +563,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     private fun handleInsertK2(context: InsertionContext) {
       val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
       val ktFile = context.file as KtFile
-      // Compose plugin inserts Modifier if completion character is '\n', doesn't happened with
-      // '\t'. Looks like a bug.
-      if (insertModifier && context.completionChar != '\n') {
+      if (insertModifier) {
         val modifierObjectAsQualifier = "$COMPOSE_MODIFIER_FQN."
         val startOffset = context.startOffset
         val endOffset = startOffset + modifierObjectAsQualifier.length
