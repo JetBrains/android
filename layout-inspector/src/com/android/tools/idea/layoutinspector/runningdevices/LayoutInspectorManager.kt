@@ -403,6 +403,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         toolsPanel.add(workBench, BorderLayout.CENTER)
         workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
 
+        val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
+        DataManager.registerDataProvider(workBench, layoutInspectorProvider)
+        DataManager.registerDataProvider(toolbar.component,layoutInspectorProvider)
+
+        Disposer.register(disposable) {
+          DataManager.removeDataProvider(workBench)
+          DataManager.removeDataProvider(toolbar.component)
+        }
+
         val splitPanel =
           OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
             firstComponent = centerPanel
@@ -504,9 +513,6 @@ private fun createLayoutInspectorWorkbench(
   val toolsDefinition =
     listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
   workbench.init(layoutInspector, toolsDefinition, false)
-  DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
-
-  Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
 
   return workbench
 }

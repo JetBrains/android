@@ -222,23 +222,34 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testWorkbenchHasDataProvider() = withEmbeddedLayoutInspector {
+  fun testHasDataProvider() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
+    // Verify workbench has access to data provider
     val workbench =
       tab1.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
-    val dataContext1 = DataManager.getInstance().getDataContext(workbench)
-    val layoutInspector1 = dataContext1.getData(LAYOUT_INSPECTOR_DATA_KEY)
-    assertThat(layoutInspector1).isEqualTo(layoutInspector1)
+    val dataProvider = DataManager.getDataProvider(workbench)
+    val layoutInspector1 = dataProvider!!.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
+    assertThat(layoutInspector1).isEqualTo(layoutInspector)
+
+    // Verify toolbar has access to data provider
+    val toolbar =
+      tab1.container.allChildren().filterIsInstance<ActionToolbar>().first {
+        it.component.name == "LayoutInspector.MainToolbar"
+      }
+    val dataProvider2 = DataManager.getDataProvider(toolbar.component)
+    val layoutInspector2 = dataProvider2!!.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
+    assertThat(layoutInspector2).isEqualTo(layoutInspector)
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
-    val dataContext2 = DataManager.getInstance().getDataContext(workbench)
-    val layoutInspector2 = dataContext2.getData(LAYOUT_INSPECTOR_DATA_KEY)
+    val dataContext3 = DataManager.getDataProvider(workbench)
+    assertThat(dataContext3).isNull()
 
-    assertThat(layoutInspector2).isNull()
+    val dataContext4 = DataManager.getDataProvider(toolbar.component)
+    assertThat(dataContext4).isNull()
   }
 
   @Test
