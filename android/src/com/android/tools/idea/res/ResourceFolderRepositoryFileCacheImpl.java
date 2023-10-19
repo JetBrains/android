@@ -26,6 +26,7 @@ import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.extensions.ExtensionNotApplicableException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
@@ -419,13 +420,16 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     }
   }
 
-  public static class PopulateCachesActivity implements StartupActivity {
+  public static class PopulateCachesActivity implements StartupActivity.DumbAware {
+    public PopulateCachesActivity() {
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        throw ExtensionNotApplicableException.create();
+      }
+    }
+
     @Override
     public void runActivity(@NotNull Project project) {
-      if (ApplicationManager.getApplication().isUnitTestMode()) return;
-
-      if (!IdeInfo.getInstance().isAndroidStudio()
-          && AndroidSdks.getInstance().getAllAndroidSdks().isEmpty()) {
+      if (!IdeInfo.getInstance().isAndroidStudio() && AndroidSdks.getInstance().getAllAndroidSdks().isEmpty()) {
         return; // do not activate in IDEA without Android SDKs
       }
 

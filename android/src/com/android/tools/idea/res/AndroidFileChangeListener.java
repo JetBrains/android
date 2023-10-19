@@ -116,7 +116,7 @@ public class AndroidFileChangeListener implements Disposable {
     return project.getService(AndroidFileChangeListener.class);
   }
 
-  public static class MyStartupActivity implements StartupActivity {
+  static final class MyStartupActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
       AndroidFileChangeListener listener = getInstance(project);

@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
  * TODO? (b/235832774): Consider to move the setup of [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] from [IssuePanelService] to
  * here?
  */
-class IssuePanelStartupActivity : StartupActivity {
+class IssuePanelStartupActivity : StartupActivity.DumbAware {
   override fun runActivity(project: Project) {
     // Needs to call setupIssuePanel() proactively to test it.
     if (!isUnitTestMode()) {
