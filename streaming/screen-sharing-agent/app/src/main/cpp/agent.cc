@@ -266,12 +266,12 @@ DisplayInfo Agent::GetDisplayInfo(int32_t display_id) {
 
 void Agent::InitializeSessionEnvironment() {
   ServiceManager::GetService(Jvm::GetJni(), "settings");  // Wait for the "settings" service to initialize.
-  scoped_lock lock(environment_mutex_);
+  unique_lock lock(environment_mutex_);
   session_environment_ = new SessionEnvironment((flags_ & TURN_OFF_DISPLAY_WHILE_MIRRORING) != 0);
 }
 
 void Agent::RestoreEnvironment() {
-  scoped_lock lock(environment_mutex_);
+  unique_lock lock(environment_mutex_);
   delete session_environment_;
   session_environment_ = nullptr;
 }

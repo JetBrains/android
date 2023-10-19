@@ -281,7 +281,7 @@ void DisplayStreamer::Run() {
     }
     ANativeWindow* surface = nullptr;
     {
-      scoped_lock lock(mutex_);
+      unique_lock lock(mutex_);
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
       if (display_info.rotation == 2 && rotation_correction == 0) {
@@ -411,7 +411,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   Log::D("Display %d: setting video orientation %d", display_id_, orientation);
   if (orientation == CURRENT_DISPLAY_ORIENTATION) {
-    scoped_lock lock(mutex_);
+    unique_lock lock(mutex_);
     if (video_orientation_ >= 0) {
       Agent::session_environment().RestoreAccelerometerRotation();
       video_orientation_ = -1;
@@ -425,7 +425,7 @@ void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   Jni jni = Jvm::GetJni();
   bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni, display_id_);
 
-  scoped_lock lock(mutex_);
+  unique_lock lock(mutex_);
   if (orientation == CURRENT_VIDEO_ORIENTATION) {
     orientation = video_orientation_;
   }
@@ -444,7 +444,7 @@ void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
 }
 
 void DisplayStreamer::SetMaxVideoResolution(Size max_video_resolution) {
-  scoped_lock lock(mutex_);
+  unique_lock lock(mutex_);
   if (max_video_resolution_ != max_video_resolution) {
     max_video_resolution_ = max_video_resolution;
     StopCodecUnlocked();
@@ -452,12 +452,12 @@ void DisplayStreamer::SetMaxVideoResolution(Size max_video_resolution) {
 }
 
 DisplayInfo DisplayStreamer::GetDisplayInfo() {
-  scoped_lock lock(mutex_);
+  unique_lock lock(mutex_);
   return display_info_;
 }
 
 void DisplayStreamer::StopCodec() {
-  scoped_lock lock(mutex_);
+  unique_lock lock(mutex_);
   StopCodecUnlocked();
 }
 
@@ -471,7 +471,7 @@ void DisplayStreamer::StopCodecUnlocked() {
 }
 
 bool DisplayStreamer::IsCodecRunning() {
-  scoped_lock lock(mutex_);
+  unique_lock lock(mutex_);
   return running_codec_ != nullptr;
 }
 

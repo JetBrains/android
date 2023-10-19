@@ -29,7 +29,7 @@ using namespace std;
 static mutex static_initialization_mutex; // Protects initialization of static fields.
 
 void SurfaceControl::InitializeStatics(Jni jni) {
-  scoped_lock lock(static_initialization_mutex);
+  unique_lock lock(static_initialization_mutex);
 
   if (surface_control_class_.IsNull()) {
     surface_control_class_ = jni.GetClass("android/view/SurfaceControl");
@@ -53,7 +53,7 @@ void SurfaceControl::InitializeStatics(Jni jni) {
 JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
   InitializeStatics(jni);
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (get_internal_display_token_method_not_available_) {
       return JObject();
     }
@@ -139,7 +139,7 @@ void SurfaceControl::ConfigureProjection(
 void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, DisplayPowerMode mode) {
   InitializeStatics(jni);
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (set_display_power_mode_method_ == nullptr) {
       set_display_power_mode_method_ = surface_control_class_.GetStaticMethod(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
     }

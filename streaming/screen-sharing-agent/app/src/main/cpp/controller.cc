@@ -551,12 +551,12 @@ void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& re
 }
 
 void Controller::OnDisplayAdded(int32_t display_id) {
-  scoped_lock lock(display_events_mutex_);
+  unique_lock lock(display_events_mutex_);
   pending_display_events_.emplace_back(display_id, DisplayEvent::Type::ADDED);
 }
 
 void Controller::OnDisplayRemoved(int32_t display_id) {
-  scoped_lock lock(display_events_mutex_);
+  unique_lock lock(display_events_mutex_);
   pending_display_events_.emplace_back(display_id, DisplayEvent::Type::REMOVED);
 }
 
@@ -566,7 +566,7 @@ void Controller::OnDisplayChanged(int32_t display_id) {
 void Controller::SendPendingDisplayEvents() {
   vector<DisplayEvent> display_events;
   {
-    scoped_lock lock(display_events_mutex_);
+    unique_lock lock(display_events_mutex_);
     swap(display_events, pending_display_events_);
   }
 

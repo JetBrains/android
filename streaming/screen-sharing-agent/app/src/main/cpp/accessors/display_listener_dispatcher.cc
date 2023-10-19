@@ -76,7 +76,7 @@ void DisplayListenerDispatcher::Run() {
 }
 
 void DisplayListenerDispatcher::Stop() {
-  scoped_lock lock(mutex_);
+  unique_lock lock(mutex_);
   if (thread_.joinable()) {
     Jni jni = Jvm::GetJni();
     JObject looper = looper_promise_.get_future().get();

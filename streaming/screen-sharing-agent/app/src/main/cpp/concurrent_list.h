@@ -55,7 +55,7 @@ public:
   // Iterates over the list calling fun for each element.
   template<typename F>
   void ForEach(F fun) {
-    std::lock_guard lock(mutex_);
+    std::unique_lock lock(mutex_);
     if (elements_ != nullptr) {
       for (auto element: *elements_) {
         fun(static_cast<T*>(element));

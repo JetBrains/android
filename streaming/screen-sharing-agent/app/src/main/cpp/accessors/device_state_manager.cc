@@ -37,7 +37,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
   }
 
   {
-    scoped_lock lock(static_initialization_mutex_);
+    unique_lock lock(static_initialization_mutex_);
 
     if (device_state_manager_.IsNull()) {
       device_state_manager_ =
@@ -68,7 +68,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
     }
   }
 
-  scoped_lock lock(state_mutex_);
+  unique_lock lock(state_mutex_);
   if (current_state_ < 0) {
     JObject state_info = device_state_manager_.CallObjectMethod(jni, get_device_state_info_method_);
     if (state_info.IsNull()) {
@@ -106,14 +106,14 @@ void DeviceStateManager::RequestState(Jni jni, int32_t state_id, int32_t flags) 
   // Call IDeviceStateManager.requestState.
   device_state_manager_.CallVoidMethod(jni, request_state_method_, token.ref(), state_id, flags);
   {
-    scoped_lock lock(state_mutex_);
+    unique_lock lock(state_mutex_);
     state_overridden_ = true;
   }
 }
 
 void DeviceStateManager::AddDeviceStateListener(DeviceStateListener* listener) {
   device_state_listeners_.Add(listener);
-  scoped_lock lock(state_mutex_);
+  unique_lock lock(state_mutex_);
   if (current_state_ >= 0) {
     listener->OnDeviceStateChanged(current_state_);
   }
@@ -130,7 +130,7 @@ void DeviceStateManager::OnDeviceStateChanged(Jni jni, jobject device_state_info
   bool cancel_state_override;
   bool state_changed;
   {
-    scoped_lock lock(state_mutex_);
+    unique_lock lock(state_mutex_);
     cancel_state_override = state_overridden_ && base_state != current_base_state_;
     state_changed = current_state != current_state_;
     current_base_state_ = base_state;

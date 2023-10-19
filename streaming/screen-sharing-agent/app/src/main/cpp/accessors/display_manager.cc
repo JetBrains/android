@@ -32,7 +32,7 @@ using namespace std;
 static mutex static_initialization_mutex; // Protects initialization of static fields.
 
 void DisplayManager::InitializeStatics(Jni jni) {
-  scoped_lock lock(static_initialization_mutex);
+  unique_lock lock(static_initialization_mutex);
 
   if (display_manager_global_class_.IsNull()) {
     display_manager_global_class_ = jni.GetClass("android/hardware/display/DisplayManagerGlobal");
@@ -115,7 +115,7 @@ void DisplayManager::AddDisplayListener(Jni jni, DisplayListener* listener) {
 
 void DisplayManager::RemoveDisplayListener(DisplayListener* listener) {
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (display_listener_dispatcher_ == nullptr) {
       return;
     }
@@ -128,7 +128,7 @@ void DisplayManager::RemoveDisplayListener(DisplayListener* listener) {
 
 void DisplayManager::RemoveAllDisplayListeners(Jni jni) {
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (display_listener_dispatcher_ == nullptr) {
       return;
     }

@@ -29,7 +29,7 @@ using namespace std;
 static mutex static_initialization_mutex; // Protects initialization of static fields.
 
 void WindowManager::InitializeStatics(Jni jni) {
-  scoped_lock lock(static_initialization_mutex);
+  unique_lock lock(static_initialization_mutex);
 
   if (window_manager_.IsNull()) {
     window_manager_ = ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager");
@@ -116,7 +116,7 @@ int32_t WindowManager::WatchRotation(Jni jni, int32_t display_id, RotationWatche
 
 void WindowManager::RemoveRotationWatcher(Jni jni, int32_t display_id, RotationWatcher* watcher) {
   {
-    scoped_lock lock(static_initialization_mutex);
+    unique_lock lock(static_initialization_mutex);
     if (window_manager_.IsNull()) {
       return;
     }
