@@ -44,6 +44,8 @@ public class AndroidStudio implements AutoCloseable {
   private final AndroidStudioInstallation install;
   private final Instant creationTime;
 
+  private VideoStitcher videoStitcher = null;
+
   static public AndroidStudio run(AndroidStudioInstallation installation,
                        Display display,
                        Map<String, String> env,
@@ -84,7 +86,9 @@ public class AndroidStudio implements AutoCloseable {
     // the shell process, not the idea one.
     pb.start();
     // Now we attach to the real one from the logs
-    return attach(installation);
+    AndroidStudio studio = attach(installation);
+    studio.startCapturingScreenshotsOnWindows();
+    return studio;
   }
 
   static AndroidStudio attach(AndroidStudioInstallation installation) throws IOException, InterruptedException {
@@ -146,6 +150,7 @@ public class AndroidStudio implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
+    createVideos();
     quitAndWaitForShutdown();
     // We must terminate the process on close. If we don't and expect the test to gracefully terminate it always, it means
     // that if the test has an assertEquals, when the assertion exception is thrown the try-catch will attempt to close
@@ -239,6 +244,35 @@ public class AndroidStudio implements AutoCloseable {
       case ERROR -> throw new IllegalStateException(String.format("Failed to execute action: %s. %s",
                                                                   action, formatErrorMessage(response.getErrorMessage())));
       default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+  }
+
+  private void startCapturingScreenshotsOnWindows() throws IOException {
+    if (!SystemInfo.isWindows) {
+      return;
+    }
+
+    Path destination = VideoStitcher.getScreenshotFolder();
+    System.out.printf("Setting up screenshot capture (to %s) since this is Windows%n", destination);
+
+    ASDriver.StartCapturingScreenshotsRequest rq =
+      ASDriver.StartCapturingScreenshotsRequest.newBuilder().setDestinationPath(destination.toString())
+        .setScreenshotNameFormat(VideoStitcher.SCREENSHOT_NAME_FORMAT).build();
+    ASDriver.StartCapturingScreenshotsResponse response = androidStudio.startCapturingScreenshots(rq);
+    switch (response.getResult()) {
+      case OK -> {}
+      case ERROR -> throw new IllegalStateException(String.format("Failed to start capturing screenshots: %s",
+                                                                  formatErrorMessage(response.getErrorMessage())));
+      default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
+    }
+
+    videoStitcher = new VideoStitcher();
+    Runtime.getRuntime().addShutdownHook(new Thread(this::createVideos));
+  }
+
+  private void createVideos() {
+    if (videoStitcher != null) {
+      videoStitcher.createVideos();
     }
   }
 

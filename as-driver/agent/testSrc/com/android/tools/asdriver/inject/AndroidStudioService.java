@@ -107,6 +107,30 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     responseObserver.onCompleted();
   }
 
+  /**
+   * Kicks off a scheduled thread to capture screenshots. This is only intended to be called on
+   * Windows where we don't have a better way of visually representing what's going on in the
+   * tests. If we could ever get proper screen capturing on Windows, then this wouldn't be needed.
+   */
+  @Override
+  public void startCapturingScreenshots(ASDriver.StartCapturingScreenshotsRequest request, StreamObserver<ASDriver.StartCapturingScreenshotsResponse> responseObserver) {
+    ASDriver.StartCapturingScreenshotsResponse.Builder builder = ASDriver.StartCapturingScreenshotsResponse.newBuilder();
+
+    try {
+      Path destination = Path.of(request.getDestinationPath());
+      String screenshotNameFormat = request.getScreenshotNameFormat();
+      ScreenshotCapturer screenshotCapturer = new ScreenshotCapturer(destination, screenshotNameFormat);
+      screenshotCapturer.start();
+      builder.setResult(ASDriver.StartCapturingScreenshotsResponse.Result.OK);
+    } catch (Exception e) {
+      builder.setErrorMessage(e.getMessage());
+      builder.setResult(ASDriver.StartCapturingScreenshotsResponse.Result.ERROR);
+    }
+
+    responseObserver.onNext(builder.build());
+    responseObserver.onCompleted();
+  }
+
   @Override
   public void getSystemProperty(ASDriver.GetSystemPropertyRequest request, StreamObserver<ASDriver.GetSystemPropertyResponse> responseObserver) {
     String value = System.getProperty(request.getSystemProperty());

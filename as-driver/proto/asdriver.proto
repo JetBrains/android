@@ -28,6 +28,8 @@ service AndroidStudio {
   rpc AnalyzeFile(AnalyzeFileRequest) returns (AnalyzeFileResponse) {}
 
   rpc TakeBleakSnapshot(TakeBleakSnapshotRequest) returns (TakeBleakSnapshotResponse) {}
+
+  rpc StartCapturingScreenshots(StartCapturingScreenshotsRequest) returns (StartCapturingScreenshotsResponse) {}
 }
 
 message GetVersionRequest {}
@@ -229,4 +231,19 @@ message TakeBleakSnapshotResponse {
   TakeBleakSnapshotResponse.Result result = 1;
   optional string leak_info = 2;
   string error_message = 3;
+}
+
+message StartCapturingScreenshotsRequest {
+  string destination_path = 1;
+
+  string screenshot_name_format = 2;
+}
+
+message StartCapturingScreenshotsResponse {
+  enum Result {
+    OK = 0;
+    ERROR = 1;
+  }
+  StartCapturingScreenshotsResponse.Result result = 1;
+  string error_message = 2;
 }
