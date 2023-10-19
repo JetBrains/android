@@ -25,13 +25,14 @@ import com.android.tools.idea.logcat.filters.parser.LogcatFilterTypes.VALUE
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [LogcatFilterSyntaxHighlighter]
- */
+/** Tests for [LogcatFilterSyntaxHighlighter] */
 class LogcatFilterSyntaxHighlighterTest {
   @Test
   fun factory() {
-    assertThat(LogcatFilterSyntaxHighlighterFactory().getSyntaxHighlighter(project = null, virtualFile = null))
+    assertThat(
+        LogcatFilterSyntaxHighlighterFactory()
+          .getSyntaxHighlighter(project = null, virtualFile = null)
+      )
       .isInstanceOf(LogcatFilterSyntaxHighlighter::class.java)
   }
 

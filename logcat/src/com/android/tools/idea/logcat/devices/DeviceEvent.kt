@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.logcat.devices
 
-/**
- * An event that signals a device has been added on changed.
- */
+/** An event that signals a device has been added on changed. */
 internal sealed class DeviceEvent {
   data class Added(val device: Device) : DeviceEvent()
+
   data class StateChanged(val device: Device) : DeviceEvent()
 }

@@ -27,12 +27,9 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [ClearLogcatAction]
- */
+/** Tests for [ClearLogcatAction] */
 class ClearLogcatActionTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
@@ -91,7 +88,7 @@ class ClearLogcatActionTest {
 
     assertThat(fakeLogcatPresenter.isLogcatEmpty()).isTrue()
   }
-
 }
 
-private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))
+private fun testEvent(logcatPresenter: LogcatPresenter) =
+  TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))

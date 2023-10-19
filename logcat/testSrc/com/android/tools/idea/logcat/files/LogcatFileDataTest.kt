@@ -5,9 +5,7 @@ import com.android.tools.idea.logcat.files.LogcatFileData.Metadata
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [LogcatFileData]
- */
+/** Tests for [LogcatFileData] */
 class LogcatFileDataTest {
   private val device = Device.createPhysical("device", true, "11", 30, "Google", "Pixel")
 

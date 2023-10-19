@@ -26,18 +26,18 @@ import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [ConnectedDeviceFinder]
- */
+/** Tests for [ConnectedDeviceFinder] */
 class ConnectedDeviceFinderTest {
   private val deviceProvisionerRule = DeviceProvisionerRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(deviceProvisionerRule, disposableRule)
+  @get:Rule val rule = RuleChain(deviceProvisionerRule, disposableRule)
 
-  private val deviceProvisioner get() = deviceProvisionerRule.deviceProvisioner
-  private val plugin get() = deviceProvisionerRule.deviceProvisionerPlugin
+  private val deviceProvisioner
+    get() = deviceProvisionerRule.deviceProvisioner
+
+  private val plugin
+    get() = deviceProvisionerRule.deviceProvisionerPlugin
 
   @Test
   fun findDevice_deviceIsOnline(): Unit = runBlockingWithTimeout {

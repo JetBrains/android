@@ -32,7 +32,9 @@ internal class FakeProjectApplicationIdsProvider(
     val newIds = value.toSet()
     if (applicationIds != newIds) {
       applicationIds = newIds
-      project.messageBus.syncPublisher(PROJECT_APPLICATION_IDS_CHANGED_TOPIC).applicationIdsChanged(newIds)
+      project.messageBus
+        .syncPublisher(PROJECT_APPLICATION_IDS_CHANGED_TOPIC)
+        .applicationIdsChanged(newIds)
     }
   }
 

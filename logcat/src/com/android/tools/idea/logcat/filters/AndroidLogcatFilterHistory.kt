@@ -28,7 +28,8 @@ private const val MAX_HISTORY_SIZE = 20
 /**
  * A list of filters used as history for [FilterTextField].
  *
- * This is actually maintained as 2 separate lists. A favorites list followed by a non-favorite list.
+ * This is actually maintained as 2 separate lists. A favorites list followed by a non-favorite
+ * list.
  */
 @State(name = "AndroidLogcatFilterHistory", storages = [Storage("androidLogcatFilterHistory.xml")])
 internal class AndroidLogcatFilterHistory(
@@ -36,11 +37,11 @@ internal class AndroidLogcatFilterHistory(
   var named: MutableList<String> = mutableListOf(),
   var nonFavorites: MutableList<String> = mutableListOf(),
   var mostRecentlyUsed: String = AndroidLogcatSettings.getInstance().defaultFilter,
-  @Transient
-  private val maxNonFavoriteItems: Int = MAX_HISTORY_SIZE,
+  @Transient private val maxNonFavoriteItems: Int = MAX_HISTORY_SIZE,
 ) : PersistentStateComponent<AndroidLogcatFilterHistory> {
 
-  val items get() = favorites + named + nonFavorites
+  val items
+    get() = favorites + named + nonFavorites
 
   fun add(filterParser: LogcatFilterParser, filter: String, isFavorite: Boolean) {
     remove(filter)

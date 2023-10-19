@@ -22,9 +22,9 @@ import org.junit.Test
 /**
  * Tests for [MostRecentlyAddedSet]
  *
- * Note:
- * While the implementation makes it possible to assert contents with [com.google.common.truth.Ordered.inOrder], the contract doesn't
- * require it so assertions will be made without it.
+ * Note: While the implementation makes it possible to assert contents with
+ * [com.google.common.truth.Ordered.inOrder], the contract doesn't require it so assertions will be
+ * made without it.
  */
 class MostRecentlyAddedSetTest {
 

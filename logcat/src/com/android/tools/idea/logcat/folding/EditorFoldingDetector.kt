@@ -26,15 +26,16 @@ private val consoleView = ConsoleViewForFolding()
 /**
  * A [FoldingDetector] that adds [com.intellij.openapi.editor.FoldRegion] to an [Editor].
  *
- * This code is based on ConsoleViewImpl.updateFoldings() but simplified considerably due to additional assumptions that can be made about
- * the text being processed.
+ * This code is based on ConsoleViewImpl.updateFoldings() but simplified considerably due to
+ * additional assumptions that can be made about the text being processed.
  *
- * The original code seems to have been designed to handle folding regions that can span between consecutive calls to the updateFoldings()
- * method. However, this code can safely assume that folding regions are contained in a single call to [detectFoldings] because Logcat
- * messages are always added as a whole piece of text and never split.
+ * The original code seems to have been designed to handle folding regions that can span between
+ * consecutive calls to the updateFoldings() method. However, this code can safely assume that
+ * folding regions are contained in a single call to [detectFoldings] because Logcat messages are
+ * always added as a whole piece of text and never split.
  *
- * The simplified code also has a side effect of handling nested folding better than the original. For example, given the following stack
- * trace:
+ * The simplified code also has a side effect of handling nested folding better than the original.
+ * For example, given the following stack trace:
  * ```
  * java.lang.RuntimeException: Fail
  *   at com.example.myapplication.MainActivity.printToLogcat(MainActivity.java:32)
@@ -50,25 +51,23 @@ private val consoleView = ConsoleViewForFolding()
  *   at com.example.myapplication.MainActivity.printToLogcat(MainActivity.java:30)
  *   ... 7 more
  * ```
- * This stack trace results in nested folding regions. The "`7 more`" line is expanded into the 7 lines of the top level exception which
- * themselves contains 2 regions (Method.invoke).
+ *
+ * This stack trace results in nested folding regions. The "`7 more`" line is expanded into the 7
+ * lines of the top level exception which themselves contains 2 regions (Method.invoke).
  *
  * The original code combines the nested regions with the outer one and shows the hint:
- *
  * ```
  * <1 more...> <1 internal line> <3 more...> <1 internal line> <1 more...>
  * ```
  *
  * Which is very confusing and results in unexpected behavior when expanding the regions,
  *
- *The new code results in:
- *
+ * The new code results in:
  * ```
  * <7 more...>
  * ```
  *
  * And when expanded, shows 5 lines with 2 regions of:
- *
  * ```
  * <1 internal line>
  * ```
@@ -106,13 +105,15 @@ internal class EditorFoldingDetector(
     }
   }
 
-  private fun shouldFoldLine(folding: ConsoleFolding, line: Int) = folding.shouldFoldLine(project, getLineText(line))
+  private fun shouldFoldLine(folding: ConsoleFolding, line: Int) =
+    folding.shouldFoldLine(project, getLineText(line))
 
   private fun addFoldRegion(folding: ConsoleFolding, startLine: Int, endLine: Int) {
     val lines = (startLine..endLine).map(this::getLineText)
-    val startOffset = document.getLineStartOffset(startLine).let {
-      if (folding.shouldBeAttachedToThePreviousLine() && it > 0) it - 1 else it
-    }
+    val startOffset =
+      document.getLineStartOffset(startLine).let {
+        if (folding.shouldBeAttachedToThePreviousLine() && it > 0) it - 1 else it
+      }
     val endOffset = document.getLineEndOffset(endLine)
     val placeholder = folding.getPlaceholderText(project, lines) ?: return
 
@@ -121,6 +122,6 @@ internal class EditorFoldingDetector(
     }
   }
 
-  private fun getLineText(line: Int) = EditorHyperlinkSupport.getLineText(document, line, /* includeEol */ false)
+  private fun getLineText(line: Int) =
+    EditorHyperlinkSupport.getLineText(document, line, /* includeEol */ false)
 }
-

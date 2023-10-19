@@ -22,9 +22,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.project.DumbAware
 
-/**
- * Toggles Soft Wrap for Logcat panels.
- */
+/** Toggles Soft Wrap for Logcat panels. */
 internal class LogcatToggleUseSoftWrapsToolbarAction : ToggleAction(), DumbAware {
   init {
     ActionUtil.copyFrom(this, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS)
@@ -40,5 +38,5 @@ internal class LogcatToggleUseSoftWrapsToolbarAction : ToggleAction(), DumbAware
     logcatPresenter.setSoftWrapEnabled(state)
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }

@@ -18,18 +18,17 @@ package com.android.tools.idea.logcat.filters
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
+import org.junit.Test
 
 private val TIMESTAMP = Instant.ofEpochMilli(1000)
 private val ZONE_ID = ZoneId.of("Asia/Yerevan")
 
-/**
- * Tests for [LogcatMessageWrapper]
- */
+/** Tests for [LogcatMessageWrapper] */
 class LogcatMessageWrapperTest {
-  private val logcatMessage = logcatMessage(WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message")
+  private val logcatMessage =
+    logcatMessage(WARN, pid = 1, tid = 2, "app", "tag", TIMESTAMP, "message")
 
   @Test
   fun logLine() {

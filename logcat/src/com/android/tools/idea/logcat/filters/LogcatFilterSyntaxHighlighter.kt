@@ -48,23 +48,27 @@ internal enum class LogcatFilterTextAttributes(fallback: TextAttributesKey? = nu
   val keys = arrayOf(key)
 }
 
-/**
- * A [com.intellij.openapi.fileTypes.SyntaxHighlighter] for the Logcat Filter language.
- */
+/** A [com.intellij.openapi.fileTypes.SyntaxHighlighter] for the Logcat Filter language. */
 internal class LogcatFilterSyntaxHighlighter : SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = LogcatFilterLexerAdapter()
 
-  override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> = when (tokenType) {
-    KEY, STRING_KEY, REGEX_KEY -> LogcatFilterTextAttributes.KEY.keys
-    KVALUE -> LogcatFilterTextAttributes.KVALUE.keys
-    STRING_KVALUE -> LogcatFilterTextAttributes.STRING_KVALUE.keys
-    REGEX_KVALUE -> LogcatFilterTextAttributes.REGEX_KVALUE.keys
-    VALUE -> LogcatFilterTextAttributes.VALUE.keys
-    TokenType.BAD_CHARACTER -> LogcatFilterTextAttributes.BAD_CHARACTER.keys
-    else -> EMPTY_ARRAY
-  }
+  override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> =
+    when (tokenType) {
+      KEY,
+      STRING_KEY,
+      REGEX_KEY -> LogcatFilterTextAttributes.KEY.keys
+      KVALUE -> LogcatFilterTextAttributes.KVALUE.keys
+      STRING_KVALUE -> LogcatFilterTextAttributes.STRING_KVALUE.keys
+      REGEX_KVALUE -> LogcatFilterTextAttributes.REGEX_KVALUE.keys
+      VALUE -> LogcatFilterTextAttributes.VALUE.keys
+      TokenType.BAD_CHARACTER -> LogcatFilterTextAttributes.BAD_CHARACTER.keys
+      else -> EMPTY_ARRAY
+    }
 }
 
 internal class LogcatFilterSyntaxHighlighterFactory : SyntaxHighlighterFactory() {
-  override fun getSyntaxHighlighter(project: Project?, virtualFile: VirtualFile?): SyntaxHighlighter = LogcatFilterSyntaxHighlighter()
+  override fun getSyntaxHighlighter(
+    project: Project?,
+    virtualFile: VirtualFile?
+  ): SyntaxHighlighter = LogcatFilterSyntaxHighlighter()
 }

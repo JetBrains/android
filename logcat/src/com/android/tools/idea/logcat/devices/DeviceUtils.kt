@@ -20,9 +20,7 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 
-/**
- * Convert a [DeviceState] to a [Device]
- */
+/** Convert a [DeviceState] to a [Device] */
 internal fun DeviceState.toDevice(): Device? {
   val serialNumber = connectedDevice?.serialNumber ?: return null
   val properties = this.properties
@@ -34,7 +32,9 @@ internal fun DeviceState.toDevice(): Device? {
   val model = properties.model ?: "Unknown"
 
   return when (properties) {
-    is LocalEmulatorProperties -> Device.createEmulator(serialNumber, true, release, sdk, properties.avdName, featureLevel)
-    else -> Device.createPhysical(serialNumber, true, release, sdk, manufacturer, model, featureLevel)
+    is LocalEmulatorProperties ->
+      Device.createEmulator(serialNumber, true, release, sdk, properties.avdName, featureLevel)
+    else ->
+      Device.createPhysical(serialNumber, true, release, sdk, manufacturer, model, featureLevel)
   }
 }

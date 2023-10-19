@@ -63,7 +63,9 @@ internal class LogcatFileParser(
           currentMessage.clear()
           continue
         }
-        val result = headerRegex.find(line) ?: throw IllegalArgumentException("Error parsing $path. Invalid logcat line: $line")
+        val result =
+          headerRegex.find(line)
+            ?: throw IllegalArgumentException("Error parsing $path. Invalid logcat line: $line")
         val header = result.toLogcatHeader(path.creationYear())
         if (header != currentHeader) {
           if (currentHeader != null) {
@@ -98,15 +100,22 @@ internal class LogcatFileParser(
     val pid = getGroup("pid").toInt()
     val tid = runCatching { groups["tid"]?.value?.toInt() }.getOrNull() ?: 0
     val levelLetter = getGroup("level")
-    val level = LogLevel.getByLetter(levelLetter) ?: throw IllegalArgumentException("Invalid log level: $levelLetter")
+    val level =
+      LogLevel.getByLetter(levelLetter)
+        ?: throw IllegalArgumentException("Invalid log level: $levelLetter")
     val tag = getGroup("tag").trim()
     val processName = "pid-$pid"
-    val timestamp = Instant.from(ZonedDateTime.of(year, month, day, hour, minute, second, nanos, zoneId))
+    val timestamp =
+      Instant.from(ZonedDateTime.of(year, month, day, hour, minute, second, nanos, zoneId))
     return LogcatHeader(level, pid, tid, processName, processName, tag, timestamp)
   }
 
   private fun Path.creationYear(): Int =
-    Files.readAttributes(this, BasicFileAttributes::class.java).creationTime().toInstant().atZone(zoneId).year
+    Files.readAttributes(this, BasicFileAttributes::class.java)
+      .creationTime()
+      .toInstant()
+      .atZone(zoneId)
+      .year
 }
 
 private fun MatchResult.getGroup(group: String): String =

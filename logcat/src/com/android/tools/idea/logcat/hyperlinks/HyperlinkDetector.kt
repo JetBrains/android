@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-/**
- * Interface for detecting hyperlinks.
- */
+/** Interface for detecting hyperlinks. */
 internal interface HyperlinkDetector {
   /**
    * Detects hyperlinks in a region of text.

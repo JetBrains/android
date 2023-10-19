@@ -19,9 +19,8 @@ import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * Production implementation of [AndroidProjectDetector]
- */
+/** Production implementation of [AndroidProjectDetector] */
 class AndroidProjectDetectorImpl : AndroidProjectDetector {
-  override fun isAndroidProject(project: Project): Boolean = ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+  override fun isAndroidProject(project: Project): Boolean =
+    ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
 }

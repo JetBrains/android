@@ -53,7 +53,7 @@ internal data class FormattingOptions(
 
   fun getHeaderWidth() =
     appNameFormat.width() +
-    processNameFormat.width() +
+      processNameFormat.width() +
       tagFormat.width() +
       processThreadFormat.width() +
       timestampFormat.width() +

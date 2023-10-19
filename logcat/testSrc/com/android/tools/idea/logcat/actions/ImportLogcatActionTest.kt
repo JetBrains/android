@@ -31,25 +31,25 @@ import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
-import org.junit.Rule
-import org.junit.Test
-import org.mockito.Mockito.verify
 import java.awt.Component
 import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.writeText
+import org.junit.Rule
+import org.junit.Test
+import org.mockito.Mockito.verify
 
-/**
- * Tests for [ImportLogcatAction]
- */
+/** Tests for [ImportLogcatAction] */
 class ImportLogcatActionTest {
   private val projectRule = ProjectRule()
   private val fakeFileChooserFactory = FakeFileChooserFactory()
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory))
+  val rule =
+    RuleChain(
+      projectRule,
+      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory)
+    )
 
   @Test
   fun actionPerformed() {
@@ -61,22 +61,30 @@ class ImportLogcatActionTest {
     verify(mockLogcatPresenter).openLogcatFile(fakeFileChooserFactory.virtualFile.toNioPath())
   }
 
-  private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent.createTestEvent(
-    MapDataContext(mapOf(
-      CommonDataKeys.PROJECT to projectRule.project,
-      LogcatPresenter.LOGCAT_PRESENTER_ACTION to logcatPresenter,
-    )))
+  private fun testEvent(logcatPresenter: LogcatPresenter) =
+    TestActionEvent.createTestEvent(
+      MapDataContext(
+        mapOf(
+          CommonDataKeys.PROJECT to projectRule.project,
+          LogcatPresenter.LOGCAT_PRESENTER_ACTION to logcatPresenter,
+        )
+      )
+    )
 
   private class FakeFileChooserFactory : FileChooserFactoryImpl() {
     private val fileSystem = createInMemoryFileSystem()
-    private val path = this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply {
-      writeText("")
-    }
-    val virtualFile = object : LightVirtualFile(path.name) {
-      override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
-    }
+    private val path =
+      this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply { writeText("") }
+    val virtualFile =
+      object : LightVirtualFile(path.name) {
+        override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
+      }
 
-    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
+    override fun createFileChooser(
+      descriptor: FileChooserDescriptor,
+      project: Project?,
+      parent: Component?
+    ): FileChooserDialog {
       return object : FileChooserDialog {
         @Deprecated("Deprecated in Java", ReplaceWith("NA"))
         override fun choose(toSelect: VirtualFile?, project: Project?) = TODO("Not yet implemented")
@@ -87,6 +95,4 @@ class ImportLogcatActionTest {
       }
     }
   }
-
-
 }

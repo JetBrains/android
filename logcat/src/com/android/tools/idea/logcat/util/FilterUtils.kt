@@ -27,21 +27,34 @@ import com.intellij.openapi.project.Project
  *
  * If the resulting filter is invalid, this method will return null.
  */
-internal fun toggleFilterTerm(logcatFilterParser: LogcatFilterParser, filter: String, term: String) : String? {
-  val newFilter = when {
-    filter.contains(term) -> filter.replace("""\b+${term.toRegex(RegexOption.LITERAL)}\b+""".toRegex(), " ").trim()
-    filter.isEmpty() -> term
-    else -> "$filter $term"
-  }
+internal fun toggleFilterTerm(
+  logcatFilterParser: LogcatFilterParser,
+  filter: String,
+  term: String
+): String? {
+  val newFilter =
+    when {
+      filter.contains(term) ->
+        filter.replace("""\b+${term.toRegex(RegexOption.LITERAL)}\b+""".toRegex(), " ").trim()
+      filter.isEmpty() -> term
+      else -> "$filter $term"
+    }
 
   return if (logcatFilterParser.isValid(newFilter)) newFilter else null
 }
 
-internal fun getDefaultFilter(project: Project, androidProjectDetector: AndroidProjectDetector): String {
+internal fun getDefaultFilter(
+  project: Project,
+  androidProjectDetector: AndroidProjectDetector
+): String {
   val logcatSettings = AndroidLogcatSettings.getInstance()
-  val filter = when {
-    logcatSettings.mostRecentlyUsedFilterIsDefault -> AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed
-    else -> logcatSettings.defaultFilter
-  }
-  return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine")) "" else filter
+  val filter =
+    when {
+      logcatSettings.mostRecentlyUsedFilterIsDefault ->
+        AndroidLogcatFilterHistory.getInstance().mostRecentlyUsed
+      else -> logcatSettings.defaultFilter
+    }
+  return if (!androidProjectDetector.isAndroidProject(project) && filter.contains("package:mine"))
+    ""
+  else filter
 }

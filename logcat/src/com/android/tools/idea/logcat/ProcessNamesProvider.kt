@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-/**
- * Provides a set of process names.
- */
+/** Provides a set of process names. */
 internal interface ProcessNamesProvider {
   fun getProcessNames(): Set<String>
 }

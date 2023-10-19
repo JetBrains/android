@@ -44,21 +44,28 @@ class AskStudioBotActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  private val mockIssueExplainer = spy(object : IssueExplainer() {
-    override fun isAvailable() = true
-  })
+  private val mockIssueExplainer =
+    spy(
+      object : IssueExplainer() {
+        override fun isAvailable() = true
+      }
+    )
 
   @get:Rule
-  val rule = RuleChain(
-    ApplicationRule(),
-    ApplicationServiceRule(IssueExplainer::class.java, mockIssueExplainer),
-    projectRule,
-    logcatEditorRule,
-    EdtRule(),
-  )
+  val rule =
+    RuleChain(
+      ApplicationRule(),
+      ApplicationServiceRule(IssueExplainer::class.java, mockIssueExplainer),
+      projectRule,
+      logcatEditorRule,
+      EdtRule(),
+    )
 
-  private val editor get() = logcatEditorRule.editor
-  private val project get() = projectRule.project
+  private val editor
+    get() = logcatEditorRule.editor
+
+  private val project
+    get() = projectRule.project
 
   @Test
   fun update_noSelection() {
@@ -76,11 +83,9 @@ class AskStudioBotActionTest {
   @Test
   fun update_noSelectionWithStackTrace() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(
-      tag = "MyTag",
-      message =
-      "Exception\n" +
-      "\tat com.example(File.kt:1)"))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(tag = "MyTag", message = "Exception\n" + "\tat com.example(File.kt:1)")
+    )
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
     val action = AskStudioBotAction()
 
@@ -93,8 +98,13 @@ class AskStudioBotActionTest {
   @Test
   fun update_withSelection() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "prefix <This is the selection> suffix"))
-    editor.selectionModel.setSelection(editor.document.text.indexOf("<") + 1, editor.document.text.indexOf(">"))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(tag = "MyTag", message = "prefix <This is the selection> suffix")
+    )
+    editor.selectionModel.setSelection(
+      editor.document.text.indexOf("<") + 1,
+      editor.document.text.indexOf(">")
+    )
     val action = AskStudioBotAction()
 
     action.update(event)
@@ -131,37 +141,42 @@ class AskStudioBotActionTest {
   @Test
   fun actionPerformed_noSelectionWithStackTrace() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(
-      tag = "MyTag",
-      message =
-      "Exception\n" +
-      "\tat com.example(File.kt:1)"))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(tag = "MyTag", message = "Exception\n" + "\tat com.example(File.kt:1)")
+    )
     editor.caretModel.moveToOffset(editor.document.textLength / 2)
     val action = AskStudioBotAction()
 
     action.actionPerformed(event)
 
-    verify(mockIssueExplainer).explain(
-      project,
-      """
+    verify(mockIssueExplainer)
+      .explain(
+        project,
+        """
         Exception
         at com.example(File.kt:1) with tag MyTag
-      """.trimIndent(),
-      LOGCAT)
+      """
+          .trimIndent(),
+        LOGCAT
+      )
   }
 
   @Test
   fun actionPerformed_withSelection() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(tag = "MyTag", message = "prefix <This is the selection> suffix"))
-    editor.selectionModel.setSelection(editor.document.text.indexOf("<") + 1, editor.document.text.indexOf(">"))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(tag = "MyTag", message = "prefix <This is the selection> suffix")
+    )
+    editor.selectionModel.setSelection(
+      editor.document.text.indexOf("<") + 1,
+      editor.document.text.indexOf(">")
+    )
     val action = AskStudioBotAction()
 
     action.actionPerformed(event)
 
     verify(mockIssueExplainer).explain(project, "This is the selection", LOGCAT)
   }
-
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
     return TestActionEvent.createTestEvent(

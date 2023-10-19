@@ -21,38 +21,38 @@ import org.junit.Test
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
-/**
- * Tests for [ReschedulableTask]
- */
+/** Tests for [ReschedulableTask] */
 @Suppress("OPT_IN_USAGE") // runTest is experimental
 class ReschedulableTaskTest {
 
   @Test
-  fun runsDelayed() = runTest(dispatchTimeoutMs = 5_000) {
-    val reschedulableTask = ReschedulableTask(this)
-    val mockTask = mock<Runnable>()
+  fun runsDelayed() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val reschedulableTask = ReschedulableTask(this)
+      val mockTask = mock<Runnable>()
 
-    val task = mockTask::run
-    reschedulableTask.reschedule(1000, task)
+      val task = mockTask::run
+      reschedulableTask.reschedule(1000, task)
 
-    verify(mockTask, never()).run()
-    testScheduler.advanceTimeBy(1010)
-    testScheduler.runCurrent()
-    verify(mockTask).run()
-  }
+      verify(mockTask, never()).run()
+      testScheduler.advanceTimeBy(1010)
+      testScheduler.runCurrent()
+      verify(mockTask).run()
+    }
 
   @Test
-  fun rescheduled_runsOnce() = runTest(dispatchTimeoutMs = 5_000) {
-    val reschedulableTask = ReschedulableTask(this)
-    val mockTask = mock<Runnable>()
+  fun rescheduled_runsOnce() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val reschedulableTask = ReschedulableTask(this)
+      val mockTask = mock<Runnable>()
 
-    reschedulableTask.reschedule(1000, mockTask::run)
-    testScheduler.advanceTimeBy(500)
-    testScheduler.runCurrent()
-    reschedulableTask.reschedule(1000, mockTask::run)
+      reschedulableTask.reschedule(1000, mockTask::run)
+      testScheduler.advanceTimeBy(500)
+      testScheduler.runCurrent()
+      reschedulableTask.reschedule(1000, mockTask::run)
 
-    testScheduler.advanceTimeBy(1010)
-    testScheduler.runCurrent()
-    verify(mockTask).run()
-  }
+      testScheduler.advanceTimeBy(1010)
+      testScheduler.runCurrent()
+      verify(mockTask).run()
+    }
 }

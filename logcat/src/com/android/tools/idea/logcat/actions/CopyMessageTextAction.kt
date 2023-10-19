@@ -36,7 +36,12 @@ internal class CopyMessageTextAction : DumbAwareAction(null as Icon?) {
   override fun getActionUpdateThread() = BGT
 
   override fun actionPerformed(e: AnActionEvent) {
-    val transferable = TextBlockTransferable(e.getLogcatMessages().joinToString("\n", postfix = "\n") { it.message }, emptyList(), null)
+    val transferable =
+      TextBlockTransferable(
+        e.getLogcatMessages().joinToString("\n", postfix = "\n") { it.message },
+        emptyList(),
+        null
+      )
     CopyPasteManager.getInstance().setContents(transferable)
   }
 }

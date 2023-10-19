@@ -35,9 +35,7 @@ import javax.swing.GroupLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-/**
- * A header for the Logcat panel.
- */
+/** A header for the Logcat panel. */
 internal class LogcatHeaderPanel(
   project: Project,
   val logcatPresenter: LogcatPresenter,
@@ -47,35 +45,40 @@ internal class LogcatHeaderPanel(
   initialItem: DeviceComboItem?,
 ) : JPanel() {
   val deviceComboBox = DeviceComboBox(project, initialItem)
-  private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
+  private val filterTextField =
+    FilterTextField(project, logcatPresenter, filterParser, filter, filterMatchCase)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 
   init {
     filterTextField.apply {
       font = Font.getFont(Font.MONOSPACED)
-      addFilterChangedListener(object : FilterTextField.FilterChangedListener {
-        override fun onFilterChanged(filter: String, matchCase: Boolean) {
-          runInEdt {
-            logcatPresenter.applyFilter(filterParser.parse(filter, matchCase))
+      addFilterChangedListener(
+        object : FilterTextField.FilterChangedListener {
+          override fun onFilterChanged(filter: String, matchCase: Boolean) {
+            runInEdt { logcatPresenter.applyFilter(filterParser.parse(filter, matchCase)) }
           }
         }
-      })
+      )
     }
 
-    addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(event: ComponentEvent) {
-        layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
+    addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(event: ComponentEvent) {
+          layout = if (width > JBUI.scale(500)) createWideLayout() else createNarrowLayout()
+        }
       }
-    })
+    )
     layout = createWideLayout()
 
     helpIcon.let {
       toolTipText = LogcatBundle.message("logcat.help.tooltip")
-      it.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          BrowserUtil.browse("https://d.android.com/r/studio-ui/logcat/help")
+      it.addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseClicked(e: MouseEvent) {
+            BrowserUtil.browse("https://d.android.com/r/studio-ui/logcat/help")
+          }
         }
-      })
+      )
     }
   }
 
@@ -85,7 +88,8 @@ internal class LogcatHeaderPanel(
       filterTextField.text = value
     }
 
-  val filterMatchCase: Boolean get() = filterTextField.matchCase
+  val filterMatchCase: Boolean
+    get() = filterTextField.matchCase
 
   private fun createWideLayout(): LayoutManager {
     val layout = GroupLayout(this)
@@ -94,13 +98,25 @@ internal class LogcatHeaderPanel(
     layout.autoCreateGaps = true
 
     layout.setHorizontalGroup(
-      layout.createSequentialGroup()
-        .addComponent(deviceComboBox, ComboBox<String>().minimumSize.width, GroupLayout.DEFAULT_SIZE, JBUI.scale(400))
-        .addComponent(filterTextField, JBUI.scale(350), GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE)
+      layout
+        .createSequentialGroup()
+        .addComponent(
+          deviceComboBox,
+          ComboBox<String>().minimumSize.width,
+          GroupLayout.DEFAULT_SIZE,
+          JBUI.scale(400)
+        )
+        .addComponent(
+          filterTextField,
+          JBUI.scale(350),
+          GroupLayout.DEFAULT_SIZE,
+          GroupLayout.DEFAULT_SIZE
+        )
         .addComponent(helpIcon)
     )
     layout.setVerticalGroup(
-      layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+      layout
+        .createParallelGroup(GroupLayout.Alignment.CENTER)
         .addComponent(deviceComboBox)
         .addComponent(filterTextField)
         .addComponent(helpIcon)
@@ -114,14 +130,18 @@ internal class LogcatHeaderPanel(
     layout.autoCreateGaps = true
 
     layout.setHorizontalGroup(
-      layout.createParallelGroup()
+      layout
+        .createParallelGroup()
         .addGroup(layout.createSequentialGroup().addComponent(deviceComboBox))
         .addGroup(layout.createSequentialGroup().addComponent(filterTextField))
     )
     layout.setVerticalGroup(
-      layout.createSequentialGroup()
+      layout
+        .createSequentialGroup()
         .addGroup(layout.createParallelGroup().addComponent(deviceComboBox))
-        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField))
+        .addGroup(
+          layout.createParallelGroup(GroupLayout.Alignment.CENTER).addComponent(filterTextField)
+        )
     )
     return layout
   }

@@ -23,23 +23,27 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.util.Locale
 
-private val DATE_TIME_FORMATTER = DateTimeFormatterBuilder()
-  .append(DateTimeFormatter.ISO_LOCAL_DATE)
-  .appendLiteral(' ')
-  .appendValue(ChronoField.HOUR_OF_DAY, 2)
-  .appendLiteral(':')
-  .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
-  .appendLiteral(':')
-  .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
-  .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
-  .appendLiteral(' ')
-  .toFormatter(Locale.ROOT)
+private val DATE_TIME_FORMATTER =
+  DateTimeFormatterBuilder()
+    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+    .appendLiteral(' ')
+    .appendValue(ChronoField.HOUR_OF_DAY, 2)
+    .appendLiteral(':')
+    .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+    .appendLiteral(':')
+    .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+    .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+    .appendLiteral(' ')
+    .toFormatter(Locale.ROOT)
 
 /**
- * A wrapper around LogcatMessage that holds the complete log lne as a lazy property so it doesn't have to be computed for each filter
- * evaluation.
+ * A wrapper around LogcatMessage that holds the complete log lne as a lazy property so it doesn't
+ * have to be computed for each filter evaluation.
  */
-internal class LogcatMessageWrapper(val logcatMessage: LogcatMessage, zoneId: ZoneId = ZoneId.systemDefault()) {
+internal class LogcatMessageWrapper(
+  val logcatMessage: LogcatMessage,
+  zoneId: ZoneId = ZoneId.systemDefault()
+) {
   val logLine by lazy { toLine(zoneId) }
 
   /**

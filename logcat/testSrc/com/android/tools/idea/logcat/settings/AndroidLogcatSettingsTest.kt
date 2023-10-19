@@ -19,9 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.PersistentStateComponent
 import org.junit.Test
 
-/**
- * Tests for [AndroidLogcatSettings]
- */
+/** Tests for [AndroidLogcatSettings] */
 class AndroidLogcatSettingsTest {
   @Test
   fun defaults() {

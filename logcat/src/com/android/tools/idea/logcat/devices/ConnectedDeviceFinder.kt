@@ -24,15 +24,24 @@ import com.intellij.serviceContainer.NonInjectable
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Implementation of [DeviceFinder] that finds a connected device using a  [com.android.sdklib.deviceprovisioner.DeviceProvisioner]
+ * Implementation of [DeviceFinder] that finds a connected device using a
+ * [com.android.sdklib.deviceprovisioner.DeviceProvisioner]
  */
-internal class ConnectedDeviceFinder @NonInjectable @VisibleForTesting constructor(
+internal class ConnectedDeviceFinder
+@NonInjectable
+@VisibleForTesting
+constructor(
   private val deviceProvisioner: DeviceProvisioner,
 ) : DeviceFinder {
 
   @Suppress("unused") // Used by system in create a project service
-  constructor(project: Project) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
+  constructor(
+    project: Project
+  ) : this(project.service<DeviceProvisionerService>().deviceProvisioner)
 
   override suspend fun findDevice(serialNumber: String): Device? =
-    deviceProvisioner.findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))?.state?.toDevice()
+    deviceProvisioner
+      .findConnectedDeviceHandle(DeviceSelector.fromSerialNumber(serialNumber))
+      ?.state
+      ?.toDevice()
 }

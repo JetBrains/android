@@ -27,12 +27,9 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [ToggleViewFormatAction]
- */
+/** Tests for [ToggleViewFormatAction] */
 class ToggleViewFormatActionTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private val dataContext = MapDataContext()
   private val fakeLogcatPresenter = FakeLogcatPresenter()
