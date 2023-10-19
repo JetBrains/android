@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.3.0-alpha07" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-alpha07">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="ImplicitExecutor"
@@ -274,6 +274,17 @@
             file="src/com/android/tools/idea/diagnostics/hprof/action/AnalysisRunnable.kt"
             line="103"
             column="7"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This class should only be accessed from tests or within package private scope"
+        errorLine1="    fun fromClass(loadClass: Class&lt;*>, classLocator: PseudoClassLocatorForLoader) ="
+        errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/ClassWriterWithPseudoClassLocator.kt"
+            line="164"
+            column="54"/>
     </issue>
 
     <issue
