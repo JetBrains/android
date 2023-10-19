@@ -52,9 +52,4 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean
-
-  /**
-   * Whether VCS metadata file is generated in APK/Bundle for this project.
-   */
-  val enableVcsInfo: Boolean
 }

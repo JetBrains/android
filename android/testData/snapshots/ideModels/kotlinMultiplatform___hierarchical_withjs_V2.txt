@@ -1231,7 +1231,6 @@
             UseAndroidX                   : false
             UsesCompose                   : false
             MlModelBindingEnabled         : false
-            EnableVcsInfo                 : false
         - basicVariant:               : debug
             applicationId                 : com.example.android.kotlin
             testApplicationId             : com.example.android.kotlin.test
@@ -2534,7 +2533,6 @@ Required by:
             UseAndroidX                   : false
             UsesCompose                   : false
             MlModelBindingEnabled         : false
-            EnableVcsInfo                 : false
         - basicVariant:               : debug
             testApplicationId             : com.example.test.multiproject.module2.test
         - basicVariant:               : release

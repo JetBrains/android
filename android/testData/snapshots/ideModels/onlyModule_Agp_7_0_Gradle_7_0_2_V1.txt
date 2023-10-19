@@ -988,7 +988,6 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app
         testApplicationId             : com.example.android.app.test
@@ -1410,7 +1409,6 @@ MODULE                        : project.benchmark
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.benchmark
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
@@ -1689,7 +1687,6 @@ MODULE                        : project.test
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app.testmodule
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
@@ -1949,7 +1946,6 @@ MODULE                        : project.test2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.test2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar

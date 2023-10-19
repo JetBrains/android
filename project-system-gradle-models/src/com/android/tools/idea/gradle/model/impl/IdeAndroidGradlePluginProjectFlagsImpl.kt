@@ -60,9 +60,4 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
 
   override val useAndroidX: Boolean,
 
-  /**
-   * Whether VCS metadata file is generated in APK/Bundle for this project.
-   */
-  override val enableVcsInfo: Boolean
-
 ) : Serializable, IdeAndroidGradlePluginProjectFlags

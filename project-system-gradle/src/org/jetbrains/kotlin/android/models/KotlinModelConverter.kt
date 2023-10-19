@@ -189,9 +189,6 @@ class KotlinModelConverter {
     useAndroidX = booleanFlagValuesList.first {
       it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X
     }.value,
-    enableVcsInfo = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_VCS_INFO
-    }.value
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(

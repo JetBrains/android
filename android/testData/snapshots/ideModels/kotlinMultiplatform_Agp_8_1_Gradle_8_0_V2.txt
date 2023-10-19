@@ -1175,7 +1175,6 @@ MODULE                        : kotlinMultiPlatform.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.kotlin
         testApplicationId             : com.example.android.kotlin.test
@@ -2268,7 +2267,6 @@ MODULE                        : kotlinMultiPlatform.module2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.test.multiproject.module2.test
     - basicVariant:               : release
