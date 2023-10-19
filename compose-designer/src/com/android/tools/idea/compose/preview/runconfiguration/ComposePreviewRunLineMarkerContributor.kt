@@ -37,7 +37,9 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  */
 class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
 
-  override fun getInfo(element: PsiElement): Info? {
+  override fun getInfo(element: PsiElement): Info? = null
+
+  override fun getSlowInfo(element: PsiElement): Info? {
     if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return null
     // Marker should be in a single LeafPsiElement. We choose the identifier and return null for
     // other elements within the function.
