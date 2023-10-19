@@ -243,6 +243,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon MODE_PHONE = load("studio/icons/emulator/menu/mode-phone.svg", -1837259461, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_TABLET = load("studio/icons/emulator/menu/mode-tablet.svg", -2132974672, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_CLOSED = load("studio/icons/emulator/menu/posture-closed.svg", 530537582, 2);
+      /** 16x16 */ public static final @NotNull Icon POSTURE_DUAL_DISPLAY = load("studio/icons/emulator/menu/posture-dual-display.svg", 1035656284, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_FLIPPED = load("studio/icons/emulator/menu/posture-flipped.svg", -983518983, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_HALF_FOLDED = load("studio/icons/emulator/menu/posture-half-folded.svg", 1192834193, 2);
       /** 16x16 */ public static final @NotNull Icon POSTURE_OPEN = load("studio/icons/emulator/menu/posture-open.svg", 1960772461, 2);

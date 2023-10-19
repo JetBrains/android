@@ -160,7 +160,14 @@
           "mode-desktop.svg": "studio/icons/emulator/menu/mode-desktop.svg",
           "mode-foldable.svg": "studio/icons/emulator/menu/mode-foldable.svg",
           "mode-phone.svg": "studio/icons/emulator/menu/mode-phone.svg",
-          "mode-tablet.svg": "studio/icons/emulator/menu/mode-tablet.svg"
+          "mode-tablet.svg": "studio/icons/emulator/menu/mode-tablet.svg",
+          "posture-closed.svg": "studio/icons/emulator/menu/posture-closed.svg",
+          "posture-dual-display.svg": "studio/icons/emulator/menu/posture-dual-display.svg",
+          "posture-flipped.svg": "studio/icons/emulator/menu/posture-flipped.svg",
+          "posture-half-folded.svg": "studio/icons/emulator/menu/posture-half-folded.svg",
+          "posture-open.svg": "studio/icons/emulator/menu/posture-open.svg",
+          "posture-rear-display.svg": "studio/icons/emulator/menu/posture-rear-display.svg",
+          "posture-tent.svg": "studio/icons/emulator/menu/posture-tent.svg"
         },
         "snapshots": {
           "invalid-snapshot-decorator.svg": "studio/icons/emulator/snapshots/invalid-snapshot-decorator.svg",
