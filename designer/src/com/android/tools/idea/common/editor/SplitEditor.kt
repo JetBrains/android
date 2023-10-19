@@ -22,11 +22,13 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.editor.ex.EditorEx
@@ -97,7 +99,7 @@ abstract class SplitEditor<P : FileEditor>(
     listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction)
   }
 
-  private var shortcutsRegistered = false
+  private var isComponentInitialized = false
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
@@ -111,9 +113,17 @@ abstract class SplitEditor<P : FileEditor>(
         .orNull()
         ?.let { it.isVisible = false }
     }
-    if (!shortcutsRegistered) {
-      shortcutsRegistered = true
+    if (!isComponentInitialized) {
+      isComponentInitialized = true
       registerModeNavigationShortcuts(thisComponent)
+
+      val textEditorComponent = textEditor.component
+      if (textEditorComponent is DataProvider) {
+        DataManager.registerDataProvider(
+          thisComponent,
+          SplitEditorDataProvider(textEditorComponent)
+        )
+      }
     }
     return thisComponent
   }
@@ -196,6 +206,42 @@ abstract class SplitEditor<P : FileEditor>(
       KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB),
       applicableTo
     )
+  }
+
+  /**
+   * Some actions require access to data provided by the contained text editor. This data provider
+   * redirects to it as needed.
+   */
+  private class SplitEditorDataProvider(private val wrappedDataProvider: DataProvider) :
+    DataProvider {
+
+    override fun getData(dataId: String): Any? {
+      if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
+        val wrappedBackgroundProvider = wrappedDataProvider.getData(dataId)
+        if (wrappedBackgroundProvider is DataProvider) {
+          return SplitEditorBackgroundDataProvider(wrappedBackgroundProvider)
+        }
+      }
+
+      return null
+    }
+  }
+
+  /**
+   * The contained text editor's data provider has a corresponding background data provider that
+   * also needs to be wrapped.
+   */
+  private class SplitEditorBackgroundDataProvider(
+    private val wrappedBackgroundProvider: DataProvider
+  ) : DataProvider {
+
+    override fun getData(dataId: String): Any? {
+      if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
+        return wrappedBackgroundProvider.getData(dataId)
+      }
+
+      return null
+    }
   }
 
   /**
