@@ -67,7 +67,7 @@ public class SupportedModuleCheckerTest extends PlatformTestCase {
     verify(androidNotification, never()).showBalloon(any(), any(), any());
   }
 
-  private void setupMixedGradleJpsProject(Project project) {
+  private static void setupMixedGradleJpsProject(Project project) {
     // These will be the "unsupported" modules, since they are not marked as "Gradle" modules.
     doCreateRealModuleIn("lib1", project, StdModuleTypes.JAVA);
     doCreateRealModuleIn("lib2", project, StdModuleTypes.JAVA);
