@@ -28,11 +28,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Restores the layout of tool windows.
  */
-public class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
+public final class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
   private final RestoreDefaultLayoutAction myDelegate;
 
   public RestoreDefaultWindowLayoutAction() {
-    super(ActionsBundle.messagePointer("action.RestoreDefaultLayout.text"), ActionsBundle.messagePointer("action.RestoreDefaultLayout.description"), null);
+    super(ActionsBundle.messagePointer("action.RestoreDefaultLayout.text"), ActionsBundle.messagePointer("action.RestoreDefaultLayout.description"));
     myDelegate = new RestoreDefaultLayoutAction();
   }
 

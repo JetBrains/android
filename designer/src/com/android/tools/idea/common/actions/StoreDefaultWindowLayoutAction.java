@@ -26,11 +26,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Stores the layout of tool windows.
  */
-public class StoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
+public final class StoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
   private final StoreDefaultLayoutAction myDelegate;
 
   public StoreDefaultWindowLayoutAction() {
-    super(ActionsBundle.messagePointer("action.StoreDefaultLayout.text"), ActionsBundle.messagePointer("action.StoreDefaultLayout.description"), null);
+    super(ActionsBundle.messagePointer("action.StoreDefaultLayout.text"), ActionsBundle.messagePointer("action.StoreDefaultLayout.description"));
     myDelegate = new StoreDefaultLayoutAction();
   }
 
