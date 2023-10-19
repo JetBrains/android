@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["intellij.android.wear-whs.iml"],
     resources = ["resources"],
     test_class = "com.android.tools.idea.wearwhs.WearHealthServicesTestSuite",
+    test_data = glob(["testData/**"]),
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -19,5 +20,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
     ],
 )

@@ -18,7 +18,7 @@ package com.android.tools.idea.wearwhs
 import com.android.tools.idea.localization.MessageBundleReference
 import org.jetbrains.annotations.PropertyKey
 
-private const val BUNDLE_NAME = "messages.WearWhsBundle"
+const val BUNDLE_NAME = "messages.WearWhsBundle"
 
 internal object WearWhsBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
