@@ -21,11 +21,11 @@ namespace screensharing::impl {
 using namespace std;
 
 size_t Impl::Add(void* element) {
-  std::lock_guard lock(mutex_);
+  lock_guard lock(mutex_);
   auto old_elements = elements_;
   auto new_elements = old_elements == nullptr ?
-                      new std::vector<void*>(1, element) :
-                      new std::vector<void*>(*old_elements);
+                      new vector<void*>(1, element) :
+                      new vector<void*>(*old_elements);
   if (old_elements != nullptr) {
     new_elements->push_back(element);
   }
@@ -35,13 +35,13 @@ size_t Impl::Add(void* element) {
 }
 
 size_t Impl::Remove(void* element) {
-  std::lock_guard lock(mutex_);
+  lock_guard lock(mutex_);
   auto old_elements = elements_;
   if (old_elements == nullptr) {
     return 0;
   }
-  auto new_elements = new std::vector<void*>(*old_elements);
-  auto pos = std::find(new_elements->begin(), new_elements->end(), element);
+  auto new_elements = new vector<void*>(*old_elements);
+  auto pos = find(new_elements->begin(), new_elements->end(), element);
   if (pos == new_elements->end()) {
     return new_elements->size();
   }

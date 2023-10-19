@@ -25,8 +25,8 @@ namespace screensharing {
 using namespace std;
 
 string RTrim(string str) {
-  str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
-    return !std::isspace(ch);
+  str.erase(find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
+    return !isspace(ch);
   }).base(), str.end());
   return str;
 }

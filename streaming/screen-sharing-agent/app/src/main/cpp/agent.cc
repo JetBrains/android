@@ -308,7 +308,7 @@ CodecInfo* Agent::codec_info_(nullptr);
 int32_t Agent::flags_(0);
 int Agent::video_socket_fd_(0);
 int Agent::control_socket_fd_(0);
-std::map<int32_t, DisplayStreamer> Agent::display_streamers_;
+map<int32_t, DisplayStreamer> Agent::display_streamers_;
 DisplayStreamer* Agent::primary_display_streamer_(nullptr);
 Controller* Agent::controller_(nullptr);
 mutex Agent::environment_mutex_;

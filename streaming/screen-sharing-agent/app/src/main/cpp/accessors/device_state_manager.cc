@@ -153,7 +153,7 @@ void DeviceStateManager::NotifyListeners(int32_t device_state) {
   });
 }
 
-std::mutex DeviceStateManager::static_initialization_mutex_;
+mutex DeviceStateManager::static_initialization_mutex_;
 JObject DeviceStateManager::device_state_manager_;
 jmethodID DeviceStateManager::get_device_state_info_method_ = nullptr;
 jmethodID DeviceStateManager::request_state_method_ = nullptr;
@@ -163,7 +163,7 @@ jfieldID DeviceStateManager::current_state_field_ = nullptr;
 JClass DeviceStateManager::binder_class_;
 jmethodID DeviceStateManager::binder_constructor_ = nullptr;
 ConcurrentList<DeviceStateManager::DeviceStateListener> DeviceStateManager::device_state_listeners_;
-std::mutex DeviceStateManager::state_mutex_;
+mutex DeviceStateManager::state_mutex_;
 int32_t DeviceStateManager::current_base_state_ = -1;
 int32_t DeviceStateManager::current_state_ = -1;
 bool DeviceStateManager::state_overridden_ = false;
