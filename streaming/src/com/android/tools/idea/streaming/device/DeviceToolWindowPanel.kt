@@ -248,6 +248,9 @@ internal class DeviceToolWindowPanel(
       contentDisposable?.let {
         AndroidCoroutineScope(it).launch {
           val displays = deviceClient.deviceController?.getDisplayConfigurations() ?: return@launch
+          if (displays.isEmpty()) {
+            return@launch // All displays are turned off.
+          }
           EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
             if (contentDisposable != null) {
               reconfigureDisplayPanels(displays)
