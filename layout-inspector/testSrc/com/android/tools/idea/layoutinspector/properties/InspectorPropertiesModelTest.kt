@@ -63,23 +63,15 @@ class InspectorPropertiesModelTest {
     val inspectorPropertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     inspectorPropertiesModel.layoutInspector = layoutInspector
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(1)
-    var connectionListenersCount1 = 0
-    layoutInspector.inspectorModel.connectionListeners.forEach { connectionListenersCount1 += 1 }
-    assertThat(connectionListenersCount1).isEqualTo(1)
-    var modificationListenerCount1 = 0
-    layoutInspector.inspectorModel.modificationListeners.forEach { modificationListenerCount1++ }
-    assertThat(modificationListenerCount1).isEqualTo(3)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(1)
+    assertThat(layoutInspector.inspectorModel.connectionListeners.size()).isEqualTo(1)
+    assertThat(layoutInspector.inspectorModel.modificationListeners.size()).isEqualTo(3)
 
     Disposer.dispose(disposableRule.disposable)
 
-    assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(0)
-    var connectionListenersCount2 = 0
-    layoutInspector.inspectorModel.connectionListeners.forEach { connectionListenersCount2 += 1 }
-    assertThat(connectionListenersCount2).isEqualTo(0)
-    var modificationListenerCount2 = 0
-    layoutInspector.inspectorModel.modificationListeners.forEach { modificationListenerCount2++ }
-    assertThat(modificationListenerCount2).isEqualTo(2)
+    assertThat(layoutInspector.inspectorModel.selectionListeners.size()).isEqualTo(0)
+    assertThat(layoutInspector.inspectorModel.connectionListeners.size()).isEqualTo(0)
+    assertThat(layoutInspector.inspectorModel.modificationListeners.size()).isEqualTo(2)
   }
 
   private fun createLayoutInspector(): LayoutInspector {

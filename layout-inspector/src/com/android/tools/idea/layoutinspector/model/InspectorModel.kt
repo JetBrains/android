@@ -73,7 +73,7 @@ class InspectorModel(
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
 
-  val selectionListeners = mutableListOf<SelectionListener>()
+  val selectionListeners = ListenerCollection.createWithDirectExecutor<SelectionListener>()
   val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
   val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
 
