@@ -24,8 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BENCHMARKS_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_FILTERING_SUPPORTED
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.GENERATOR_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.RUN_CONFIGURATION_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.baselineProfileTaskName
@@ -34,6 +32,8 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.getModul
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.runConfigurationFilterArgument
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.runConfigurationGradleTask
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.setupRunConfigurations
+import com.android.tools.idea.run.configuration.BP_PLUGIN_FILTERING_SUPPORTED
+import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
@@ -120,7 +120,7 @@ class BaselineProfilesModuleTest {
     val appModule = projectRule.project.findAppModule()
     val runManager = RunManager.getInstance(appModule.project)
 
-    setupRunConfigurations(emptyList(), appModule, BP_PLUGIN_FILTERING_SUPPORTED, runManager)
+    setupRunConfigurations(emptyList(), appModule, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, 1)
 
@@ -137,7 +137,7 @@ class BaselineProfilesModuleTest {
     val runManager = RunManager.getInstance(appModule.project)
     val variants = listOf("release")
 
-    setupRunConfigurations(variants, appModule, BP_PLUGIN_FILTERING_SUPPORTED, runManager)
+    setupRunConfigurations(variants, appModule, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
 
@@ -153,7 +153,7 @@ class BaselineProfilesModuleTest {
     val runManager = RunManager.getInstance(appModule.project)
     val variants = listOf("demoFree", "demoPaid", "prodFree", "prodPaid")
 
-    setupRunConfigurations(variants, appModule, BP_PLUGIN_FILTERING_SUPPORTED, runManager)
+    setupRunConfigurations(variants, appModule, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
 

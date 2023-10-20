@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-material:intellij.android.android-material[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",

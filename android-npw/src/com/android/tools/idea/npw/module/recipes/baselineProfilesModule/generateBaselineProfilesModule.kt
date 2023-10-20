@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_FILTERING_SUPPORTED
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.createModule
@@ -28,6 +27,9 @@ import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.base
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileBenchmarksKt
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileGeneratorJava
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileGeneratorKt
+import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfiguration
+import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType
+import com.android.tools.idea.run.configuration.BP_PLUGIN_FILTERING_SUPPORTED
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -37,8 +39,6 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.idea.gradleTooling.capitalize
-import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
-import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import java.io.File
 
 const val GMD_DEVICE = "Pixel 6"
@@ -57,8 +57,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean,
-  agpVersion: AgpVersion,
+  useVersionCatalog: Boolean
 ) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
   val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
@@ -99,7 +98,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   // Only do the actions for the default executor, not when just finding references.
   if (this !is FindReferencesRecipeExecutor) {
-    setupRunConfigurations(variants, targetModule, agpVersion)
+    setupRunConfigurations(variants, targetModule)
   }
 }
 
@@ -194,12 +193,11 @@ fun RecipeExecutor.createTestClasses(
 fun setupRunConfigurations(
   variants: List<String>,
   targetModule: Module,
-  agpVersion: AgpVersion,
   runManager: RunManager = RunManager.getInstance(targetModule.project)
 ) {
   val project = targetModule.project
 
-  val gradleConfigFactory = GradleExternalTaskConfigurationType.getInstance().factory
+  val configFactory = AndroidBaselineProfileRunConfigurationType.getInstance().factory
 
   variants
     .ifEmpty { listOf(null) } // If there's no variant, we add one placeholder, so that we create at least one run configuration
@@ -209,16 +207,11 @@ fun setupRunConfigurations(
         runName += " [$variantName]"
       }
 
-      val runConfig = GradleRunConfiguration(project, gradleConfigFactory, runName).also {
-        it.rawCommandLine = runConfigurationGradleTask(
-          moduleName = targetModule.getModuleNameForGradleTask(),
-          flavorName = variantName,
-          filterArgument = runConfigurationFilterArgument(agpVersion),
-        )
-        it.settings.externalProjectPath = project.basePath
+      val runConfig = AndroidBaselineProfileRunConfiguration(project, configFactory, runName).apply {
+        setModule(targetModule)
       }
 
-      val runConfigSettings = runManager.createConfiguration(runConfig, gradleConfigFactory)
+      val runConfigSettings = runManager.createConfiguration(runConfig, configFactory)
       // Persists in .idea folder
       runConfigSettings.storeInDotIdeaFolder()
       runManager.addConfiguration(runConfigSettings)

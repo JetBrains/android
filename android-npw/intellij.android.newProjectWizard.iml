@@ -19,6 +19,7 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.android-material" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />

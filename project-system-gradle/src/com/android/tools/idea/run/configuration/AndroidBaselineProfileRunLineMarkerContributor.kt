@@ -19,11 +19,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManagerEx
-import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.psi.JavaTokenType
@@ -36,14 +34,11 @@ import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
-import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
 
 class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
@@ -163,29 +158,19 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
 class BaselineProfileAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
-
     val project = e.project ?: return
-    val configurationType = GradleExternalTaskConfigurationType.getInstance()
-
     val runManager = RunManagerEx.getInstanceEx(project)
-    val runConfiguration = runManager.findConfigurationByTypeAndName(configurationType,
-                                                                     BaselineProfileConfigurationProducer.CONFIGURATION_NAME)
+    val runConfiguration = runManager.findConfigurationByTypeAndName(
+      AndroidBaselineProfileRunConfigurationType.getInstance(),
+      AndroidBaselineProfileRunConfigurationType.NAME)
       .let {
 
         // If the configuration was found, use this one
         if (it != null) return@let it
 
-        // Otherwise create a new one
-        val configurationContext = ConfigurationContext.getFromContext(e.dataContext, ActionPlaces.EDITOR_GUTTER_POPUP)
-        val module = AndroidUtils.getAndroidModule(configurationContext) ?: return
-
         val runnerAndConfigSettings = runManager.createConfiguration(
-          BaselineProfileConfigurationProducer.CONFIGURATION_NAME,
-          BaselineProfileConfigurationProducer.factory
-        )
-        BaselineProfileConfigurationProducer.configure(
-          configuration = (runnerAndConfigSettings.configuration) as GradleRunConfiguration,
-          module = module
+          AndroidBaselineProfileRunConfigurationType.NAME,
+          AndroidBaselineProfileRunConfigurationType.getInstance().factory
         )
         runManager.addConfiguration(runnerAndConfigSettings)
         return@let runnerAndConfigSettings

@@ -1,0 +1,154 @@
+package com.android.tools.idea.run.configuration
+
+import ai.grazie.utils.capitalize
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.help.AndroidWebHelpProvider
+import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
+import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.run.AndroidRunConfigurationFactoryBase
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.PreferGradleMake
+import com.android.tools.idea.run.ValidationError
+import com.android.tools.idea.run.editor.DeployTargetProvider
+import com.intellij.execution.BeforeRunTask
+import com.intellij.execution.Executor
+import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.ConfigurationType
+import com.intellij.execution.configurations.ConfigurationTypeUtil
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
+import com.intellij.execution.ui.ConfigurationModuleSelector
+import com.intellij.execution.ui.RunConfigurationFragmentedEditor
+import com.intellij.execution.ui.SettingsEditorFragment
+import com.intellij.openapi.externalSystem.service.execution.configuration.SettingsFragmentsContainer
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Pair
+import icons.StudioIcons
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle
+import javax.swing.Icon
+
+/**
+ * Baseline profiles Gradle plugin is only available from this version of AGP.
+ */
+val BP_PLUGIN_MIN_SUPPORTED = AgpVersion(8, 0, 0)
+
+/**
+ * Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP.
+ */
+val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion.parse("8.2.0-alpha03")
+
+class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
+  companion object {
+    const val ID = "AndroidBaselineProfileRunConfigurationType"
+    const val NAME = "Generate Baseline Profile"
+
+    fun getInstance(): AndroidBaselineProfileRunConfigurationType {
+      return ConfigurationTypeUtil.findConfigurationType(AndroidBaselineProfileRunConfigurationType::class.java)
+    }
+  }
+
+  val factory: ConfigurationFactory
+    get() = object : AndroidRunConfigurationFactoryBase(this) {
+      override fun getId(): String {
+        return "Android Baseline Profile Configuration Factory"
+      }
+
+      override fun createTemplateConfiguration(project: Project): RunConfiguration {
+        return AndroidBaselineProfileRunConfiguration(project, this, NAME)
+      }
+    }
+
+  override fun getDisplayName(): String {
+    return AndroidBundle.message("android.baseline.profile.run.configuration.type.name")
+  }
+
+  override fun getConfigurationTypeDescription(): String? {
+    return AndroidBundle.message("android.baseline.profile.run.configuration.type.description")
+  }
+
+  override fun getIcon(): Icon {
+    return StudioIcons.Wizards.Modules.BASELINE_PROFILE
+  }
+
+  override fun getId(): String = ID
+
+  override fun getConfigurationFactories(): Array<ConfigurationFactory> {
+    return arrayOf(factory)
+  }
+
+  override fun getHelpTopic(): String {
+    return AndroidWebHelpProvider.HELP_PREFIX + "r/studio-ui/rundebugconfig.html"
+  }
+}
+
+class AndroidBaselineProfileRunConfiguration(project: Project, factory: ConfigurationFactory, name: String? = factory.name) :
+  AndroidRunConfigurationBase(project, factory, name, true), RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake {
+
+  override fun setModule(module: Module?) {
+    super.setModule(module)
+  }
+
+  override fun getBeforeRunTasks(): MutableList<BeforeRunTask<*>> {
+    // Do not allow build, as the gradle task will do it for us.
+    return mutableListOf()
+  }
+
+  override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
+    return AndroidBaselineProfileRunConfigurationEditor(project, this)
+  }
+
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String> = Pair(false, AndroidBundle.message("android.cannot.run.library.project.error"))
+
+  override fun checkConfiguration(facet: AndroidFacet): MutableList<ValidationError> {
+    return mutableListOf()
+  }
+
+  override fun getApplicableDeployTargetProviders(): MutableList<DeployTargetProvider> {
+    return deployTargetContext.getApplicableDeployTargetProviders(true);
+  }
+
+  override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet?, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
+    return AndroidBaselineProfileConfigurationExecutor(env, deployFutures)
+  }
+
+  fun getVariant(): String? {
+    return configurationModule.module?.let {
+      GradleAndroidModel.get(it)?.selectedVariant?.name?.let { name ->
+        // Force name to be "Release" instead of "Debug".
+        if (name.lowercase().endsWith("debug")) name.substring(0, name.length - "debug".length) + "Release" else name
+      }
+    }
+  }
+
+  fun getTaskNames(): List<String> {
+    return listOf("generate${(getVariant() ?: "").capitalize()}BaselineProfile")
+  }
+
+  fun getPath(): String? {
+    return ExternalSystemApiUtil.getExternalRootProjectPath(configurationModule.module)
+  }
+
+  fun getFilterArgument(): String? {
+    val agpVersion = configurationModule.module?.getGradlePluginVersion() ?: return null
+    return if (agpVersion >= BP_PLUGIN_FILTERING_SUPPORTED)
+      null
+    else
+      "-Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=baselineprofile"
+  }
+
+  override fun validate(executor: Executor?): MutableList<ValidationError> {
+    val validationErrors = mutableListOf<ValidationError>()
+    applicationIdProvider ?: return validationErrors.apply { add(ValidationError.fatal("No application ID provider supplied")) }
+    configurationModule.module ?: return validationErrors.apply { add(ValidationError.fatal("No module specified in configuration")) }
+    configurationModule.module?.getGradlePluginVersion() ?: return validationErrors.apply { add(ValidationError.fatal("Could not determine AGP version")) }
+    return validationErrors
+  }
+}

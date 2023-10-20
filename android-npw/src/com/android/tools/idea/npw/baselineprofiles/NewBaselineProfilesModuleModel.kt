@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.baselineprofiles
 
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.npw.model.ExistingProjectModelData
@@ -24,7 +23,6 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.generateBaselineProfilesModule
 import com.android.tools.idea.observable.core.BoolValueProperty
-import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -61,8 +59,7 @@ class NewBaselineProfilesModuleModel(
             useGradleKts = useGradleKts.get(),
             useGmd = useGmd.get(),
             targetModule = targetModule.value,
-            useVersionCatalog = useVersionCatalog.get(),
-            agpVersion = agpVersion.get()
+            useVersionCatalog = useVersionCatalog.get()
           )
         }
     }

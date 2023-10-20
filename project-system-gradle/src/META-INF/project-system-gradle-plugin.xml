@@ -160,6 +160,8 @@
     </intentionAction>
     <runLineMarkerContributor language="JAVA" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor"/>
     <runLineMarkerContributor language="kotlin" implementationClass="com.android.tools.idea.run.configuration.BaselineProfileRunLineMarkerContributor"/>
+    <configurationType implementation="com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType"/>
+    <programRunner implementation="com.android.tools.idea.run.AndroidBaselineProfileProgramRunner" order="after DefaultStudioProgramRunner"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.tools.idea.actions">
     <exportProjectZipExcludesContributor implementation="com.android.tools.idea.actions.ExportProjectZipExcludesGradleContributor"/>

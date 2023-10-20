@@ -350,7 +350,7 @@
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidTileConfigurationType"/>
     <configurationType implementation="com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType"/>
-    <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first"/>
+    <programRunner implementation="com.android.tools.idea.run.DefaultStudioProgramRunner" order="first" id="DefaultStudioProgramRunner"/>
     <facetType implementation="org.jetbrains.android.facet.AndroidFacetType"/>
     <facetType implementation="com.android.tools.idea.facet.AndroidArtifactFacetType"/>
     <facetType implementation="com.android.tools.idea.gradle.project.facet.gradle.GradleFacetType"/>

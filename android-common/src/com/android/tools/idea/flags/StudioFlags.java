@@ -304,7 +304,7 @@ public final class StudioFlags {
     "baselineprofile.guttericon.enabled",
     "Enables generating baseline profiles from gutter icon",
     "When opening a UI test with applied BaselineProfileRule, an option to generate baseline profiles is shown in the gutter popup.",
-    false);
+    true);
 
   public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
     RUNDEBUG,

@@ -28,12 +28,12 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable

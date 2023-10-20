@@ -92,8 +92,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
   private final boolean myIsTestConfiguration;
 
-  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, boolean isTestConfiguration) {
-    super(new AndroidRunConfigurationModule(project, isTestConfiguration), factory);
+  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, String name, boolean isTestConfiguration) {
+    super(name, new AndroidRunConfigurationModule(project, isTestConfiguration), factory);
 
     myIsTestConfiguration = isTestConfiguration;
     myProfilerState = new ProfilerState();
@@ -105,6 +105,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     putUserData(DeployableToDevice.getKEY(), getDeployTargetContext().getCurrentDeployTargetProvider().canDeployToLocalDevice());
+  }
+
+  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, boolean isTestConfiguration) {
+    this(project, factory, null, isTestConfiguration);
   }
 
   @Override
