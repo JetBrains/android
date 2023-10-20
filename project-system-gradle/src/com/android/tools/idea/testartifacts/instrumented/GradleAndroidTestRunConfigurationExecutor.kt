@@ -140,7 +140,14 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
     val device = devices.single()
 
-    val session = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageName, facet), console)
+    val packageNameForDebug = if (
+      GradleAndroidModel.get(facet)?.selectedVariant?.runTestInSeparateProcess == true) {
+      testPackageName
+    } else {
+      packageName
+    }
+
+    val session = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageNameForDebug, facet), console)
     session.runContentDescriptor
   }
 

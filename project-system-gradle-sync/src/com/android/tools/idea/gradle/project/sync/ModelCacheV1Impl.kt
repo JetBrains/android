@@ -1004,6 +1004,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       testInstrumentationRunner = mergedFlavor.testInstrumentationRunner,
       testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments,
       testedTargetVariants = getTestedTargetVariants(variant),
+      runTestInSeparateProcess = false,
       resValues = merge({ resValues }, { resValues }, ::combineMaps),
       proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
       consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),

@@ -1119,6 +1119,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
                                                )
             .associate { it.key to it.value },
           testedTargetVariants = listOf(),
+          runTestInSeparateProcess = false,
           deprecatedPreMergedApplicationId = (flavors.firstNotNullOfOrNull { it.applicationId }
                                               ?: defaultConfig.productFlavor.applicationId
                                              ) +

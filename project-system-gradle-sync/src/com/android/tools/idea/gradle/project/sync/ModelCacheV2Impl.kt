@@ -971,7 +971,8 @@ internal fun modelCacheV2Impl(
         testInstrumentationRunner = mergedFlavor.testInstrumentationRunner?.deduplicate(),
         testInstrumentationRunnerArguments = mergedFlavor.testInstrumentationRunnerArguments.deduplicateStrings(),
         testedTargetVariants = getTestedTargetVariants(variant),
-
+        runTestInSeparateProcess = agpVersion.isAtLeast(8, 3, 0, "alpha", 11, true)
+                                && variant.runTestInSeparateProcess,
         resValues = merge({ resValues }, { resValues }, ::combineMaps),
         proguardFiles = merge({ proguardFiles }, { proguardFiles }, ::combineSets),
         consumerProguardFiles = merge({ consumerProguardFiles }, { consumerProguardFiles }, ::combineSets),

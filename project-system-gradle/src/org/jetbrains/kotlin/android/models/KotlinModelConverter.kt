@@ -585,6 +585,7 @@ class KotlinModelConverter {
       testInstrumentationRunner = androidTestAndroidCompilation?.instrumentedTestInfo?.testInstrumentationRunner,
       testInstrumentationRunnerArguments = androidTestAndroidCompilation?.instrumentedTestInfo?.testInstrumentationRunnerArgumentsMap?.toMap() ?: emptyMap(),
       testedTargetVariants = emptyList(),
+      runTestInSeparateProcess = false,
       deprecatedPreMergedApplicationId = null,
       deprecatedPreMergedTestApplicationId = null,
       desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate()
