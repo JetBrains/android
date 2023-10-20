@@ -69,6 +69,14 @@ class InspectorModel(
     )
   }
 
+  fun interface HoverListener {
+    fun onHover(oldNode: ViewNode?, newNode: ViewNode?)
+  }
+
+  fun interface AttachStageListener {
+    fun update(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
+  }
+
   init {
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
@@ -76,6 +84,8 @@ class InspectorModel(
   val selectionListeners = ListenerCollection.createWithDirectExecutor<SelectionListener>()
   val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
   val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
+  val hoverListeners = ListenerCollection.createWithDirectExecutor<HoverListener>()
+  val attachStageListeners = ListenerCollection.createWithDirectExecutor<AttachStageListener>()
 
   override val resourceLookup = ResourceLookup(project)
   var lastGeneration = 0
@@ -92,19 +102,12 @@ class InspectorModel(
   override var selection: ViewNode? = null
     private set
 
-  val hoverListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
   var hoveredNode: ViewNode? by
     Delegates.observable(null as ViewNode?) { _, old, new ->
       if (new != old) {
-        hoverListeners.forEach { it(old, new) }
+        hoverListeners.forEach { it.onHover(old, new) }
       }
     }
-
-  // TODO: update all listeners to use ListenerCollection
-  val attachStageListeners =
-    ListenerCollection.createWithDirectExecutor<
-      (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
-    >()
 
   val windows = ConcurrentHashMap<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
@@ -201,7 +204,7 @@ class InspectorModel(
     ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
 
   fun fireAttachStateEvent(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
-    attachStageListeners.forEach { it.invoke(state) }
+    attachStageListeners.forEach { it.update(state) }
   }
 
   /**
