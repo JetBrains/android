@@ -47,7 +47,7 @@ import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
 import com.android.tools.idea.welcome.install.InstallableComponent;
 import com.android.tools.idea.welcome.install.InstallationCancelledException;
-import com.android.tools.idea.welcome.install.InstallationIntention;
+import com.android.tools.idea.welcome.install.VmInstallationIntention;
 import com.android.tools.idea.welcome.install.Platform;
 import com.android.tools.idea.welcome.install.WizardException;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -121,8 +121,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (platforms != null) {
       components.add(platforms);
     }
-    InstallationIntention installationIntention = myInstallUpdates ? InstallationIntention.INSTALL_WITH_UPDATES
-                                                                   : InstallationIntention.INSTALL_WITHOUT_UPDATES;
+    VmInstallationIntention installationIntention = myInstallUpdates ? VmInstallationIntention.INSTALL_WITH_UPDATES
+                                                                     : VmInstallationIntention.INSTALL_WITHOUT_UPDATES;
     if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.InstallerInfo.canRun()) {
       components.add(new Haxm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
