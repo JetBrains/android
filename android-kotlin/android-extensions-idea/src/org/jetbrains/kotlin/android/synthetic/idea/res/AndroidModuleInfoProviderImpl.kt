@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea.res
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviderManager
