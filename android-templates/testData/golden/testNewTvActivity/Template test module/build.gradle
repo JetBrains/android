@@ -29,6 +29,6 @@ android {
 
 dependencies {
 
-    implementation libs.leanback
+    implementation libs.androidx.leanback
     implementation libs.glide
 }

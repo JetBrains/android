@@ -1,3 +1,3 @@
 dependencies {
-    implementation(libs.androidx.lifecycle.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 }

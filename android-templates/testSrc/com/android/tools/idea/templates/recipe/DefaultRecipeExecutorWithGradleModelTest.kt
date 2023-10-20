@@ -75,27 +75,31 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
 
   @Test
   fun testAddDependencyWithVersionCatalog() {
+    writeToVersionCatalogFile("""
+      [versions]
+      [libraries]
+      """.trimIndent())
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
 
     applyChanges(recipeExecutor.projectBuildModel!!)
 
     verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
-    """)
+      [versions]
+      lifecycleRuntimeKtx = "2.3.1"
+      [libraries]
+      androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+    """.trimIndent())
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
   }
 
   @Test
   fun testAddDependencyWithVersionCatalog_alreadyExists() {
     writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
-    """)
+      [versions]
+      lifecycle-runtime-ktx = "2.3.1"
+      [libraries]
+      androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+    """.trimIndent())
     writeToBuildFile(TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
 
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
@@ -104,22 +108,22 @@ lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtim
 
     // Verify library is not duplicated in the toml file and the build file
     verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
-    """)
+      [versions]
+      lifecycle-runtime-ktx = "2.3.1"
+      [libraries]
+      androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+    """.trimIndent())
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
   }
 
   @Test
   fun testAddDependencyWithVersionCatalog_alreadyExists_asModuleRepresentation() {
     writeToVersionCatalogFile("""
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
-    """)
+      [versions]
+      lifecycle-runtime-ktx = "2.3.1"
+      [libraries]
+      androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+    """.trimIndent())
     writeToBuildFile(TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
 
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
@@ -128,11 +132,11 @@ lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", v
 
     // Verify library is not duplicated in the toml file and the build file
     verifyFileContents(myVersionCatalogFile, """
-[versions]
-lifecycle-runtime-ktx = "2.3.1"
-[libraries]
-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
-    """)
+      [versions]
+      lifecycle-runtime-ktx = "2.3.1"
+      [libraries]
+      androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+    """.trimIndent())
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
   }
 
@@ -141,8 +145,10 @@ lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", v
     writeToVersionCatalogFile("""
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
+lifecycle-lifecycle-runtime-ktx = "2.3.1"
 [libraries]
 lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
+lifecycle-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-lifecycle-runtime-ktx" }
     """)
 
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
@@ -153,10 +159,12 @@ lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecyc
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+lifecycle-lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 [libraries]
 lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+lifecycle-lifecycle-runtime-ktx = { group="group", name="name", version.ref = "lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-runtime-ktx" }
     """)
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME)
   }
@@ -166,10 +174,10 @@ androidx-lifecycle-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name 
     writeToVersionCatalogFile("""
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 [libraries]
 lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
     """)
 
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
@@ -180,12 +188,12 @@ androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
 [libraries]
 lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
+androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
     """)
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_WITH_GROUP)
   }
@@ -195,12 +203,12 @@ androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "androidx.lifecycle", na
     writeToVersionCatalogFile("""
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
 [libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
+lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
     """)
 
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
@@ -211,14 +219,14 @@ androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "f
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2312 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx2 = "2.3.1"
 [libraries]
-lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
-androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2312" }
+lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx2 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2" }
     """)
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK)
   }
@@ -228,14 +236,14 @@ androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "androidx.lifecycle", n
     writeToVersionCatalogFile("""
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2312 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx2 = "2.3.1"
 [libraries]
 lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
-androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2312" }
+androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx2 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2" }
     """)
 
     recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
@@ -247,16 +255,16 @@ androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "fake.group3", name = "
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2312 = "2.3.1"
-androidx-lifecycle-lifecycle-runtime-ktx2313 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx2 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx3 = "2.3.1"
 [libraries]
 lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
-androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
-androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2312" }
-androidx-lifecycle-lifecycle-runtime-ktx2313 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2313" }
+androidx-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx2 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2" }
+androidx-lifecycle-lifecycle-runtime-ktx3 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx3" }
     """)
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP)
   }
@@ -278,25 +286,29 @@ lifecycle-runtime-ktx = "2.5.0"
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 lifecycle-runtime-ktx = "2.5.0"
-androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-runtime-ktx = "2.3.1"
 [libraries]
-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-runtime-ktx" }
     """)
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
   }
 
   @Test
   fun testAddPlatformDependencyWithVersionCatalog() {
+    writeToVersionCatalogFile("""
+      [versions]
+      [libraries]
+      """.trimIndent())
     recipeExecutor.addPlatformDependency("androidx.compose:compose-bom:2022.10.00")
 
     applyChanges(recipeExecutor.projectBuildModel!!)
 
     verifyFileContents(myVersionCatalogFile, """
-[versions]
-compose-bom = "2022.10.00"
-[libraries]
-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
-    """)
+      [versions]
+      composeBom = "2022.10.00"
+      [libraries]
+      androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+    """.trimIndent())
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY)
   }
 

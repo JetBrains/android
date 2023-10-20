@@ -103,6 +103,20 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
         declaration.getMapValue("version").setValue(version)
         return MapDependencyDeclarationModel(declaration.element as GradleDslExpressionMap)
       }
+
+      /**
+       * For special cases when version is missed in declaration and will be taken from BOM
+       */
+      @JvmStatic
+      fun createNew(parent: GradlePropertiesDslElement,
+                    alias: String,
+                    name: String,
+                    group: String): MapDependencyDeclarationModel {
+        val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
+        declaration.getMapValue("group").setValue(group)
+        declaration.getMapValue("name").setValue(name)
+        return MapDependencyDeclarationModel(declaration.element as GradleDslExpressionMap)
+      }
     }
 
     override fun name(): ResolvedPropertyModel =

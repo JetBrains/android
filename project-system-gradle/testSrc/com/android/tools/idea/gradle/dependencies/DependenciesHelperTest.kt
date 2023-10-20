@@ -91,6 +91,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
              helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+                                  ExactDependencyMatcher("com.example.libs:lib2:1.0"),
                                   moduleModel)
            },
            {
@@ -107,7 +108,9 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
            { moduleModel, helper ->
              helper.addClasspathDependency("com.example.libs:lib2:1.0",
-                                  listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!))
+                                           listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+                                           ExactDependencyMatcher("com.example.libs:lib2:1.0"),
+             )
            },
            {
              assertThat(project.getTextForFile("gradle/libs.versions.toml"))
@@ -119,12 +122,50 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
+  fun testAddToBuildScriptWithNoVersion() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { moduleModel, helper ->
+             helper.addDependency("implementation", "com.example.libs:lib2", moduleModel)
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .contains("{ group = \"com.example.libs\", name = \"lib2\"")
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("implementation libs.lib2")
+           })
+  }
+
+  /**
+   * In this test we verify that with GroupName matcher we ignore version when looking for
+   * suitable dependency in toml catalog file.
+   * So we'll switch to existing junit declaration
+   */
+  @Test
+  fun testAddToBuildScriptWithExistingDependency() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { moduleModel, helper ->
+             helper.addDependency("implementation",
+                                  "junit:junit:999",
+                                  listOf(),
+                                  GroupNameDependencyMatcher("junit:junit:999"),
+                                  moduleModel)
+           },
+           {
+             assertThat(project.getTextForFile("gradle/libs.versions.toml"))
+               .doesNotContain("= \"999\"")
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("implementation libs.junit")
+           })
+  }
+
+  @Test
   fun testSimpleAddNoCatalogWithExceptions() {
     doTest(SIMPLE_APPLICATION,
            { moduleModel, helper ->
              helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
+                                  ExactDependencyMatcher("com.example.libs:lib2:1.0"),
                                   moduleModel)
            },
            {

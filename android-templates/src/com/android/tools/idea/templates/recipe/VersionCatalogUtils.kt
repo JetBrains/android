@@ -24,59 +24,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 
 /**
- * Add the dependency or get the existing dependency using Gradle Version Catalogs.
- *
- * Checks if the existing matching dependency is present in the [catalogModel] and adds the entry if it's not present.
- *
- * @return the reference to the added dependency when the [catalogModel] doesn't have the matching dependency.
- * Return the existing dependency as a reference when the [catalogModel] has the matching dependency.
- */
-fun getOrAddDependencyToVersionCatalog(
-  catalogModel: GradleVersionCatalogModel?,
-  resolvedMavenCoordinate: String,
-): ReferenceTo? {
-  catalogModel?.run {
-    // Dereference the sections so that the order of the sections is expected in case the toml file is empty
-    versions()
-    libraries()
-  } ?: return null
-
-  val splitCoordinate = resolvedMavenCoordinate.split(":")
-  val groupName = splitCoordinate[0]
-  val libraryName = splitCoordinate[1]
-  // dependency using BOM may not have the version at the end. In that case, the resolved version is null
-  val resolvedVersion = if (splitCoordinate.size < 3) null else splitCoordinate[2]
-  val libraryInToml = findLibraryInCatalog(catalogModel, groupName, libraryName)
-  return if (libraryInToml != null) {
-    ReferenceTo(libraryInToml)
-  } else {
-    val versions = catalogModel.versions()
-    val libraries = catalogModel.libraries()
-    val pickedNameForLib = pickNameInToml(
-      sectionInCatalog = libraries,
-      libraryName = libraryName,
-      groupName = groupName,
-      resolvedVersion = resolvedVersion)
-    val pickedNameForVersion = pickNameInToml(
-      sectionInCatalog = versions,
-      libraryName = libraryName,
-      groupName = groupName,
-      resolvedVersion = resolvedVersion)
-    val libProperty = libraries.findProperty(pickedNameForLib)
-    libProperty.getMapValue("group")?.setValue(groupName)
-    libProperty.getMapValue("name")?.setValue(libraryName)
-
-    if (resolvedVersion != null) {
-      val versionProperty = versions.findProperty(pickedNameForVersion)
-      versionProperty.setValue(resolvedVersion)
-
-      libProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
-    }
-    return ReferenceTo(libProperty)
-  }
-}
-
-/**
  *  Add the plugin or get the existing plugin using Gradle Version Catalogs.
  *
  *  Checks if the existing matching plugin is present in the [catalogModel] and adds the entry if it's not present.
@@ -113,32 +60,6 @@ fun getOrAddPluginToVersionCatalog(
       resolvedVersion = resolvedVersion)
     pluginProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
     return ReferenceTo(pluginProperty)
-  }
-}
-
-/**
- * Checks if the matching dependency is present in the version catalog model
- */
-private fun findLibraryInCatalog(
-  versionCatalogModel: GradleVersionCatalogModel,
-  groupName: String,
-  libraryName: String,
-): GradlePropertyModel? {
-  val mavenModuleName = buildString {
-    append(groupName)
-    append(":")
-    append(libraryName)
-  }
-  val libraries = versionCatalogModel.libraries()
-  return libraries.properties.firstOrNull {
-    when (it.valueType) {
-      ValueType.MAP -> {
-        (it.getMapValue("module")?.getValue(STRING_TYPE) == mavenModuleName ||
-         (it.getMapValue("group")?.getValue(STRING_TYPE) == groupName &&
-          it.getMapValue("name")?.getValue(STRING_TYPE) == libraryName))
-      }
-      else -> false
-    }
   }
 }
 

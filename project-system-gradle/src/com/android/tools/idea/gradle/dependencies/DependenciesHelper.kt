@@ -39,17 +39,36 @@ typealias Alias = String
 class DependenciesHelper(private val projectModel: ProjectBuildModel) {
 
   @JvmOverloads
-  fun addClasspathDependency(dependency: String,
-                             excludes: List<ArtifactDependencySpec> = listOf()) {
-    val buildModel = projectModel.projectBuildModel ?: return
+  fun addPlatformDependency(
+    configuration: String,
+    dependency: String,
+    enforced: Boolean,
+    matcher: DependencyMatcher = ExactDependencyMatcher(dependency),
+    parsedModel: GradleBuildModel) {
+    val buildscriptDependencies = parsedModel.dependencies()
     when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency)?.let { alias ->
-        val buildscriptDependencies = buildModel.buildscript().dependencies()
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
+        val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
+        buildscriptDependencies.addPlatformArtifact(configuration, reference, enforced)
+      }
+      AddDependencyPolicy.BUILD_FILE -> {
+        buildscriptDependencies.addPlatformArtifact(configuration, dependency, enforced)
+      }
+    }
+  }
+
+  @JvmOverloads
+  fun addClasspathDependency(dependency: String,
+                             excludes: List<ArtifactDependencySpec> = listOf(),
+                             matcher: DependencyMatcher = ExactDependencyMatcher(dependency)) {
+    val buildModel = projectModel.projectBuildModel ?: return
+    val buildscriptDependencies = buildModel.buildscript().dependencies()
+    when (calculateAddDependencyPolicy(projectModel)) {
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), buildscriptDependencies)
         buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, reference, excludes)
       }
       AddDependencyPolicy.BUILD_FILE -> {
-        val buildscriptDependencies = buildModel.buildscript().dependencies()
         buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, dependency, excludes)
       }
     }
@@ -58,9 +77,10 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   fun addDependency(configuration: String,
                     dependency: String,
                     excludes: List<ArtifactDependencySpec>,
+                    matcher: DependencyMatcher,
                     parsedModel: GradleBuildModel) {
     when (calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency)?.let { alias ->
+      AddDependencyPolicy.VERSION_CATALOG -> getOrAddDependencyToCatalog(dependency, matcher)?.let { alias ->
         val dependenciesModel = parsedModel.dependencies()
         val reference = ReferenceTo(getCatalogModel().libraries().findProperty(alias), dependenciesModel)
         dependenciesModel.addArtifact(configuration, reference, excludes)
@@ -79,12 +99,16 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     return catalogModel
   }
 
+  /**
+   * This is short version of addDependency function.
+   * Assuming there is no excludes and algorithm will search exact dependency declaration in catalog if exists.
+   */
   fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) =
-    addDependency(configuration, dependency, listOf(), parsedModel)
+    addDependency(configuration, dependency, listOf(), ExactDependencyMatcher(dependency), parsedModel)
 
-  private fun getOrAddDependencyToCatalog(dependency: String): Alias? {
+  private fun getOrAddDependencyToCatalog(dependency: String, matcher: DependencyMatcher): Alias? {
     val catalogModel = getCatalogModel()
-    val alias = findCatalogDeclaration(catalogModel, dependency) ?: addCatalogLibrary(catalogModel, dependency)
+    val alias = findCatalogDeclaration(catalogModel, matcher) ?: addCatalogLibrary(catalogModel, dependency)
     if (alias == null) {
       log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
       return null
@@ -93,9 +117,9 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
   }
 
   private fun findCatalogDeclaration(catalogModel: GradleVersionCatalogModel,
-                                     coordinate: String): Alias? {
+                                     matcher: DependencyMatcher): Alias? {
     val declarations = catalogModel.libraryDeclarations().getAll()
-    return declarations.filter { it.value.compactNotation() == coordinate }.map { it.key }.firstOrNull()
+    return declarations.filter { matcher.match(it.value) }.map { it.key }.firstOrNull()
   }
 
   companion object {
@@ -104,19 +128,26 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
                                      dependency: Dependency): Alias? {
       val libraries = catalogModel.libraryDeclarations()
       val names = libraries.getAllAliases()
-      val version = addCatalogVersion(catalogModel, dependency)
-      if (version == null) {
-        log.warn("Cannot add catalog library (wrong version format): $dependency") // this depends on correct version syntax
-        return null
-      }
+
       val group = dependency.group
       if (group == null) {
         log.warn("Cannot add catalog library (missing group): $dependency")
         return null
       }
+
       val alias: Alias = pickLibraryVariableName(dependency, false, names)
 
-      libraries.addDeclaration(alias, dependency.name, group, ReferenceTo(version, libraries))
+      if(dependency.version != null) {
+        val version = addCatalogVersion(catalogModel, dependency)
+        if (version == null) {
+          log.warn("Cannot add catalog library (wrong version format): $dependency") // this depends on correct version syntax
+          return null
+        }
+
+        libraries.addDeclaration(alias, dependency.name, group, ReferenceTo(version, libraries))
+      } else {
+        libraries.addDeclaration(alias, dependency.name, group)
+      }
       return alias
     }
 
@@ -124,7 +155,7 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
                                      coordinate: String): Alias? {
 
       val dependency = Dependency.parse(coordinate)
-      if(dependency.group == null || dependency.version == null) {
+      if(dependency.group == null) {
         log.warn("Cannot add catalog library. Wrong format: $coordinate")
         return null
       }

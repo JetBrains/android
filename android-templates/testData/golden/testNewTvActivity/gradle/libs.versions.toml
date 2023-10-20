@@ -3,7 +3,7 @@ leanback = "1.0.0"
 glide = "4.11.0"
 
 [libraries]
-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
+androidx-leanback = { group = "androidx.leanback", name = "leanback", version.ref = "leanback" }
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 
 [plugins]

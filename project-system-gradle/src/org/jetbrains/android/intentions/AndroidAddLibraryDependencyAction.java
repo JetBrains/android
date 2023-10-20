@@ -24,6 +24,7 @@ import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
+import com.android.tools.idea.gradle.dependencies.ExactDependencyMatcher;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -143,7 +144,8 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
     WriteCommandAction.runWriteCommandAction(project, () -> {
       DependenciesHelper helper = new DependenciesHelper(projectModel);
-      helper.addDependency(CommonConfigurationNames.IMPLEMENTATION, newDependency.compactNotation(), buildModel);
+      String compactNotation = newDependency.compactNotation();
+      helper.addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
       projectModel.applyChanges();
     });
   }

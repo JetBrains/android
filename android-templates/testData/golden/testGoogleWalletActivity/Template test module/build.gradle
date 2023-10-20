@@ -40,6 +40,6 @@ dependencies {
     implementation libs.lifecycle.livedata.ktx
     implementation libs.constraintlayout
     testImplementation libs.junit
-    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }

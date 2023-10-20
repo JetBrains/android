@@ -26,6 +26,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
+import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
@@ -284,8 +285,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val targetDependencyModel = buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
       toBeAddedDependency.equalsIgnoreVersion(it.spec)
     }
-    if (targetDependencyModel == null && projectBuildModel != null) {
-      DependenciesHelper(projectBuildModel!!).addClasspathDependency(toBeAddedDependency.compactNotation())
+    projectBuildModel?.let {
+      if (targetDependencyModel == null) {
+        DependenciesHelper(it).addClasspathDependency(toBeAddedDependency.compactNotation())
+      }
     }
   }
 
@@ -343,14 +346,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
         resolvedConfiguration = GRADLE_API_CONFIGURATION
     }
 
-    if (versionCatalogModel != null) {
-      val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
-      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null && referenceToDepToAdd != null) {
-        buildModel.dependencies().addArtifact(resolvedConfiguration, referenceToDepToAdd)
-      }
-    } else {
+    projectBuildModel?.let {
       if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
-        buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
+        DependenciesHelper(it).addDependency(resolvedConfiguration,
+                                             resolvedMavenCoordinate,
+                                             listOf(),
+                                             GroupNameDependencyMatcher(resolvedMavenCoordinate),
+                                             buildModel)
       }
     }
   }
@@ -372,13 +374,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // Note that unlike in addDependency, we allow adding a dependency to multiple configurations,
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
-    if (versionCatalogModel != null) {
-      val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
-      if (referenceToDepToAdd != null) {
-        buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
-      }
-    } else {
-      buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
+    projectBuildModel?.let {
+      DependenciesHelper(it).addPlatformDependency(configuration,
+                                                   resolvedMavenCoordinate,
+                                                   enforced,
+                                                   GroupNameDependencyMatcher(resolvedMavenCoordinate),
+                                                   buildModel)
     }
   }
 
