@@ -253,23 +253,23 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone-landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
@@ -339,23 +339,23 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone-landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
@@ -455,23 +455,23 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone-landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
@@ -562,23 +562,23 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - _device_class_foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - _device_class_tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - _device_class_desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - _device_class_phone-landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)

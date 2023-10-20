@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.compose
 
+import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
+import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
+import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.message
@@ -28,6 +31,16 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
+
+private const val DEVICE_CLASS_LANDSCAPE_PHONE_ID = "$DEVICE_CLASS_PHONE_ID-landscape"
+private val idToName =
+  mapOf(
+    DEVICE_CLASS_PHONE_ID to "Medium Phone",
+    DEVICE_CLASS_FOLDABLE_ID to "Unfolded Foldable",
+    DEVICE_CLASS_TABLET_ID to "Medium Tablet",
+    DEVICE_CLASS_DESKTOP_ID to "Desktop",
+    DEVICE_CLASS_LANDSCAPE_PHONE_ID to "Medium Phone-Landscape"
+  )
 
 /**
  * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance
@@ -82,7 +95,7 @@ sealed class UiCheckModeFilter {
           referenceDeviceIds +
             mapOf(
               "spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to
-                "$DEVICE_CLASS_PHONE_ID-landscape",
+                DEVICE_CLASS_LANDSCAPE_PHONE_ID,
             )
 
         val composePreviewInstances = mutableListOf<ComposePreviewElementInstance>()
@@ -91,7 +104,7 @@ sealed class UiCheckModeFilter {
             val config = baseConfig.copy(deviceSpec = device)
             val displaySettings =
               baseDisplaySettings.copy(
-                name = "${baseDisplaySettings.name} - ${effectiveDeviceIds[device]}",
+                name = "${baseDisplaySettings.name} - ${idToName[effectiveDeviceIds[device]]}",
                 group = message("ui.check.mode.screen.size.group"),
                 showDecoration = true,
               )
