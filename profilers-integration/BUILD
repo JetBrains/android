@@ -32,13 +32,10 @@ iml_studio_test(
     name = "ProfileWithCompleteDataTest",
     timeout = "long",
     data = profilers_test_common_data + [
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
     module = ":intellij.android.profilers.integration",
-    tags_linux = [
-        "very_flaky",  # b/282881259
-        "block-network",
-    ],
+    tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
         "block-network",
