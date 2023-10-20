@@ -92,7 +92,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       if (gradleProjectInfo.isSkipStartupActivity) return false
 
       // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
-      if (gradleProjectInfo.androidModules.isNotEmpty()) return true
+      if (info.androidModules.isNotEmpty()) return true
 
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
       return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle

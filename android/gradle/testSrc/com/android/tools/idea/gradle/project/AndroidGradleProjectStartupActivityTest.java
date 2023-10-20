@@ -36,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
  * Tests for {@link AndroidGradleProjectStartupActivity}.
  */
 public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCase {
-  private GradleProjectInfo myGradleProjectInfo;
   private Info myInfo;
   private AndroidGradleProjectStartupActivity myStartupActivity;
   private GradleSyncInvoker mySyncInvoker;
@@ -57,8 +56,6 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
       }
     };
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleSyncInvoker.class, mySyncInvoker, project);
-    myGradleProjectInfo = mock(GradleProjectInfo.class);
-    ServiceContainerUtil.replaceService(myProject, GradleProjectInfo.class, myGradleProjectInfo, project);
     myInfo = mock(Info.class);
     ServiceContainerUtil.replaceService(myProject, Info.class, myInfo, project);
 
@@ -68,7 +65,6 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
   @Override
   protected void tearDown() throws Exception {
     try {
-      myGradleProjectInfo = null;
       myInfo = null;
     }
     finally {
@@ -90,7 +86,7 @@ public class AndroidGradleProjectStartupActivityTest extends HeavyPlatformTestCa
 
   public void testRunActivityWithExistingGradleProject() {
     when(myInfo.isBuildWithGradle()).thenReturn(true);
-    when(myGradleProjectInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(getTestRootDisposable())));
+    when(myInfo.getAndroidModules()).thenReturn(Collections.singletonList(new MockModule(getTestRootDisposable())));
 
     Project project = getProject();
     myStartupActivity.runActivity(project);

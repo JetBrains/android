@@ -15,28 +15,8 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
-
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.google.common.collect.ImmutableList;
-import com.intellij.ide.DataManager;
-import com.intellij.ide.projectView.ProjectView;
-import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import java.io.File;
-import java.util.List;
-import javax.swing.JComponent;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
@@ -74,26 +54,5 @@ public class GradleProjectInfo {
   @Deprecated
   public void setSkipStartupActivity(boolean skipStartupActivity) {
     mySkipStartupActivity = skipStartupActivity;
-  }
-
-  /**
-   * @return the modules in a Gradle-based project that contain an {@code AndroidFacet}.
-   */
-  @NotNull
-  public List<Module> getAndroidModules() {
-    ImmutableList.Builder<Module> modules = ImmutableList.builder();
-
-    ReadAction.run(() -> {
-      if (myProject.isDisposed()) {
-        return;
-      }
-
-      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
-        if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
-          modules.add(module);
-        }
-      }
-    });
-    return modules.build();
   }
 }

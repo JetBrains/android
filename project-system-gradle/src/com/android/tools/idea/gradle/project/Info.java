@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.google.common.collect.ImmutableList;
 import com.intellij.concurrency.ConcurrentCollectionFactory;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.DataManager;
@@ -45,8 +46,10 @@ import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import javax.swing.JComponent;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -193,5 +196,26 @@ public class Info {
     }
     String basePath = module.getProject().getBasePath();
     return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !GradleFacet.isAppliedTo(module);
+  }
+
+  /**
+   * @return the modules in a Gradle-based project that contain an {@code AndroidFacet}.
+   */
+  @NotNull
+  public List<Module> getAndroidModules() {
+    ImmutableList.Builder<Module> modules = ImmutableList.builder();
+
+    ReadAction.run(() -> {
+      if (myProject.isDisposed()) {
+        return;
+      }
+
+      for (Module module : ProjectSystemUtil.getAndroidModulesForDisplay(myProject, null)) {
+        if (AndroidFacet.getInstance(module) != null && GradleFacet.getInstance(module) != null) {
+          modules.add(module);
+        }
+      }
+    });
+    return modules.build();
   }
 }

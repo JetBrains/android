@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
+import org.jetbrains.android.facet.AndroidFacet;
 
 public class InfoTest extends PlatformTestCase {
   private Info myInfo;
@@ -133,6 +135,35 @@ public class InfoTest extends PlatformTestCase {
     assertSame(myModule, selectedModules[0]);
 
     verify(dataContext).getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName());
+  }
+
+
+  public void testGetAndroidModulesUsingGradleProject() {
+    // Simulate this is a module built with Gradle
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      FacetManager facetManager = FacetManager.getInstance(getModule());
+      facetManager.addFacet(GradleFacet.getFacetType(), GradleFacet.getFacetName(), null);
+      facetManager.addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
+    });
+
+    assertThat(myInfo.getAndroidModules()).hasSize(1);
+    assertEquals(myInfo.getAndroidModules().get(0), getModule());
+  }
+
+  public void testGetAndroidModulesUsingNonGradleProject() {
+    // Ensure this module is *not* build by Gradle.
+    removeGradleFacetFromModule();
+
+    assertEmpty(myInfo.getAndroidModules());
+  }
+
+  public void testGetAndroidModulesUsingGradleProjectWithoutGradleModules() {
+    // Ensure this module is *not* build by Gradle.
+    removeGradleFacetFromModule();
+
+    registerLastSyncTimestamp(1L);
+
+    assertEmpty(myInfo.getAndroidModules());
   }
 
   private void removeGradleFacetFromModule() {
