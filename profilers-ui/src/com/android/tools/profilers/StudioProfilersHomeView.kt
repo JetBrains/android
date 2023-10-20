@@ -15,47 +15,13 @@
  */
 package com.android.tools.profilers
 
-import com.android.tools.profilers.tasks.ProfilerTaskTabs
-import com.android.tools.profilers.tasks.ProfilerTaskType
-import com.intellij.openapi.project.Project
-import com.intellij.ui.JBColor
-import java.awt.Component
-import javax.swing.Box
-import javax.swing.BoxLayout
-import javax.swing.JButton
-import javax.swing.JLabel
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.tabs.home.TaskHomeTabComponent
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 
 /**
  * The top-level view of the home tab in the Profiler tool window.
  */
-class StudioProfilersHomeView(project: Project, profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
-  val panel: JPanel = JPanel()
-
-  init {
-    panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-    panel.add(Box.createVerticalGlue())
-    panel.background = ProfilerColors.DEFAULT_BACKGROUND
-
-    val title = JLabel()
-    title.horizontalAlignment = SwingConstants.CENTER
-    title.verticalAlignment = SwingConstants.TOP
-    title.alignmentX = Component.CENTER_ALIGNMENT
-    title.font = ProfilerFonts.H1_FONT
-    title.foreground = JBColor(0x000000, 0xFFFFFF)
-    title.text = "New Compose-based home page goes here"
-    panel.add(title)
-
-    val createTaskTabButton = JButton("Create task tab")
-    createTaskTabButton.horizontalAlignment = SwingConstants.CENTER
-    createTaskTabButton.verticalAlignment = SwingConstants.CENTER
-    createTaskTabButton.alignmentX = Component.CENTER_ALIGNMENT
-    createTaskTabButton.addActionListener {
-      ProfilerTaskTabs.open(project = project, taskType = ProfilerTaskType.UNSPECIFIED, null)
-    }
-    panel.add(createTaskTabButton)
-
-    panel.add(Box.createVerticalGlue())
-  }
+class StudioProfilersHomeView(taskHomeTabModel: TaskHomeTabModel, ideProfilerComponents: IdeProfilerComponents) {
+  val panel: JPanel = TaskHomeTabComponent(taskHomeTabModel, ideProfilerComponents)
 }

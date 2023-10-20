@@ -18,11 +18,11 @@ package com.android.tools.idea.profilers
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersHomeView
-import com.intellij.openapi.project.Project
+import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 
 /**
  * A tab in the Profiler tool window, wrapping a [StudioProfilersHomeView].
  */
-class StudioProfilersHomeTab(project: Project, profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
-  val view = StudioProfilersHomeView(project, profilers, ideProfilerComponents)
+class StudioProfilersHomeTab(profilers: StudioProfilers, ideProfilerComponents: IdeProfilerComponents) {
+  val view = StudioProfilersHomeView(TaskHomeTabModel(profilers), ideProfilerComponents)
 }

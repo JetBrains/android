@@ -110,7 +110,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     initializeTaskHandlers()
 
     if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) {
-      homeTab = StudioProfilersHomeTab(project, profilers, ideProfilerComponents)
+      homeTab = StudioProfilersHomeTab(profilers, ideProfilerComponents)
       homePanel = JPanel(BorderLayout())
       homePanel.removeAll()
       homePanel.add(homeTab.view.panel)

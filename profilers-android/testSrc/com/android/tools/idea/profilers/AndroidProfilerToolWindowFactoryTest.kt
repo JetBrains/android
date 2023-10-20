@@ -15,9 +15,10 @@ import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.args.singleartifact.memory.NativeAllocationsTaskArgs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import org.jetbrains.uast.util.isInstanceOf
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -29,9 +30,12 @@ import kotlin.test.fail
 /**
  * Tests for [AndroidProfilerToolWindowFactory]
  */
+@RunsInEdt
 class AndroidProfilerToolWindowFactoryTest {
   @get:Rule
   val projectRule = ProjectRule()
+  @get:Rule
+  val edtRule = EdtRule()
 
   private val project get() = projectRule.project
 
