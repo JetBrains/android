@@ -19,7 +19,6 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class GradleProjectInfo {
-  @NotNull private final Project myProject;
   private volatile boolean myNewProject;
   /**
    * See <a href="https://issuetracker.google.com/291935296">this bug</a> for more info.
@@ -34,9 +33,7 @@ public class GradleProjectInfo {
     return project.getService(GradleProjectInfo.class);
   }
 
-  public GradleProjectInfo(@NotNull Project project) {
-    myProject = project;
-  }
+  public GradleProjectInfo(@NotNull Project ignoredProject) { }
 
   public boolean isNewProject() {
     return myNewProject;

@@ -472,7 +472,6 @@
                                     implementationClass="org.jetbrains.android.AndroidResourceExternalAnnotatorBase$LineMarkerProvider"/>
 
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectInfo"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.GradleProjectInfo"/>
     <projectService serviceImplementation="com.android.tools.idea.apk.debugging.DexSourceFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidNotification"/>
     <applicationService serviceImplementation="com.android.tools.idea.run.DeploymentService"/>
