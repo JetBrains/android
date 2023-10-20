@@ -46,7 +46,6 @@ import com.android.tools.idea.insights.events.VersionsChanged
 import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
-import com.android.tools.idea.insights.events.actions.AppInsightsActionQueue
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.google.common.collect.HashMultimap
@@ -96,7 +95,6 @@ class AppInsightsProjectLevelControllerImpl(
   private val tracker: AppInsightsTracker,
   private val clock: Clock,
   private val project: Project,
-  queue: AppInsightsActionQueue,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
   cache: AppInsightsCache
@@ -111,7 +109,6 @@ class AppInsightsProjectLevelControllerImpl(
       dispatcherScope,
       clock,
       appInsightsClient,
-      queue,
       defaultFilters,
       cache,
       ::doEmit,
@@ -195,11 +192,7 @@ class AppInsightsProjectLevelControllerImpl(
                 else lastGoodState
             )
             .also { (currentState, lastGoodState) ->
-              if (currentState.mode == ConnectionMode.OFFLINE && action.supportsOfflineQueueing) {
-                queue.offer(action)
-              } else {
-                actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState))
-              }
+              actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState))
             }
         }
         .map { it.currentState }

@@ -25,7 +25,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import java.time.Duration
 import kotlinx.coroutines.runBlocking
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -1170,14 +1169,11 @@ class AppInsightsProjectLevelControllerTest {
             listOf(NOTE2_BODY to NoteState.CREATING, NOTE1_BODY to NoteState.CREATED)
           )
       }
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(1)
-
     client.completeCreateNoteCallWith(LoadingState.PermissionDenied("Permission Denied."))
 
     newModel = controllerRule.consumeNext()
     assertThat(newModel.permission).isEqualTo(Permission.READ_ONLY)
     assertThat(newModel.currentNotes).isEqualTo(LoadingState.Ready(listOf(NOTE1)))
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(0)
   }
 
   @Test
@@ -1209,14 +1205,12 @@ class AppInsightsProjectLevelControllerTest {
             listOf(NOTE2_BODY to NoteState.CREATED, NOTE1_BODY to NoteState.DELETING)
           )
       }
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(1)
 
     client.completeDeleteNoteCallWith(LoadingState.PermissionDenied("Permission Denied."))
 
     newModel = controllerRule.consumeNext()
     assertThat(newModel.permission).isEqualTo(Permission.READ_ONLY)
     assertThat(newModel.currentNotes).isEqualTo(LoadingState.Ready(listOf(NOTE2, NOTE1)))
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(0)
   }
 
   @Test
@@ -1324,72 +1318,8 @@ class AppInsightsProjectLevelControllerTest {
     }
 
   @Test
-  fun `fetch notes in offline mode includes pending note additions and deletions`() = runBlocking {
-    val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))
-    // discard initial loading state, already tested above
-    var state =
-      controllerRule.consumeInitialState(
-        state =
-          LoadingState.Ready(
-            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-          ),
-        notesState = LoadingState.Ready(listOf(NOTE1))
-      )
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-
-    // Switch into offline mode to queue some pending actions
-    controllerRule.enterOfflineMode()
-    controllerRule.consumeNext()
-    state =
-      controllerRule.consumeFetchState(
-        state =
-          LoadingState.Ready(
-            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-          ),
-        notesState = LoadingState.Ready(listOf(NOTE1))
-      )
-    assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE1)
-
-    controllerRule.controller.addNote(ISSUE1, NOTE2_BODY)
-    controllerRule.consumeNext()
-    controllerRule.controller.deleteNote(NOTE1)
-    state = controllerRule.consumeNext()
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(2)
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-
-    // Switch into online mode and verify pending actions are retried
-    controllerRule.refreshAndConsumeLoadingState()
-    controllerRule.consumeFetchState(
-      state =
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(testIssue.copy(pendingRequests = 2)),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            Permission.FULL
-          )
-        ),
-      notesState = LoadingState.Ready(listOf(NOTE1)),
-      isTransitionToOnlineMode = true
-    )
-
-    client.completeCreateNoteCallWith(LoadingState.Ready(NOTE2))
-    state = controllerRule.consumeNext()
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(2)
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(1)
-    client.completeDeleteNoteCallWith(LoadingState.Ready(Unit))
-    state = controllerRule.consumeNext()
-    assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE2)
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-  }
-
-  @Test
-  @Ignore("b/303113113")
-  fun `add and delete notes during network failure, causes offline mode, results in requests being queued and retried later`() =
-    runBlocking {
+  fun `add and delete note triggers offline mode on network failure`() =
+    runBlocking<Unit> {
       val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))
       // discard initial loading state, already tested above
       var state =
@@ -1406,40 +1336,26 @@ class AppInsightsProjectLevelControllerTest {
             ),
           notesState = LoadingState.Ready(listOf(NOTE1))
         )
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
       assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
 
-      // Fail add and delete actions.
-      controllerRule.controller.addNote(testIssue, NOTE2_BODY)
+      // Create note and fail the call
+      controllerRule.controller.addNote(ISSUE1, NOTE2_BODY)
       state = controllerRule.consumeNext()
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(1)
-      client.completeCreateNoteCallWith(LoadingState.NetworkFailure(null))
+      assertThat((state.currentNotes as LoadingState.Ready).value).hasSize(2)
+      client.completeCreateNoteCallWith(LoadingState.NetworkFailure("failed"))
+      state = controllerRule.consumeNext()
+      assertThat((state.currentNotes as LoadingState.Ready).value).hasSize(1)
+      state = controllerRule.consumeNext()
+      assertThat(state.mode).isEqualTo(ConnectionMode.OFFLINE)
+      controllerRule.consumeFetchState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
+          ),
+        notesState = LoadingState.Ready(listOf(NOTE1)),
+      )
 
-      // The failure above should cause AQI to automatically jump into offline mode and perform
-      // fetch.
-      controllerRule.consumeNext()
-      state =
-        controllerRule.consumeFetchState(
-          state =
-            LoadingState.Ready(
-              IssueResponse(
-                listOf(testIssue),
-                emptyList(),
-                emptyList(),
-                emptyList(),
-                Permission.FULL
-              )
-            ),
-          notesState = LoadingState.Ready(listOf(NOTE1))
-        )
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(1)
-      assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-
-      // Delete note in offline mode should go straight to the cache, without calling the client.
-      controllerRule.controller.deleteNote(NOTE1)
-      controllerRule.consumeNext()
-
-      // Perform refresh to go back online.
+      // Flip back into online mode
       controllerRule.refreshAndConsumeLoadingState()
       state =
         controllerRule.consumeFetchState(
@@ -1453,27 +1369,28 @@ class AppInsightsProjectLevelControllerTest {
                 Permission.FULL
               )
             ),
-          detailsState = LoadingState.Ready(null),
           notesState = LoadingState.Ready(listOf(NOTE1)),
           isTransitionToOnlineMode = true
         )
+      assertThat(state.mode).isEqualTo(ConnectionMode.ONLINE)
 
-      val offlineNotes = (state.currentNotes as LoadingState.Ready).value!!
-      assertThat(offlineNotes).hasSize(2)
-      assertThat(offlineNotes[0].id.noteId).isEmpty()
-      assertThat(offlineNotes[0].id.sessionId).isNotEmpty()
-      assertThat(offlineNotes[0].state).isEqualTo(NoteState.CREATING)
-      assertThat(offlineNotes[1]).isEqualTo(NOTE1.copy(state = NoteState.DELETING))
-
-      // Complete the note retries and check they are propagated to the state.
-      client.completeCreateNoteCallWith(LoadingState.Ready(NOTE2))
+      // Delete note and fail the call
+      controllerRule.controller.deleteNote(NOTE1)
       state = controllerRule.consumeNext()
-      assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(2)
-      client.completeDeleteNoteCallWith(LoadingState.Ready(Unit))
+      assertThat((state.currentNotes as LoadingState.Ready).value)
+        .containsExactly(NOTE1.copy(state = NoteState.DELETING))
+      client.completeDeleteNoteCallWith(LoadingState.NetworkFailure("failed"))
       state = controllerRule.consumeNext()
-      assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE2)
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
-      assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
+      assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE1)
+      state = controllerRule.consumeNext()
+      assertThat(state.mode).isEqualTo(ConnectionMode.OFFLINE)
+      controllerRule.consumeFetchState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
+          ),
+        notesState = LoadingState.Ready(listOf(NOTE1)),
+      )
     }
 
   @Test

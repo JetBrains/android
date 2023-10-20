@@ -49,11 +49,7 @@ data class AddNoteRequested(val issueId: IssueId, val message: String, val clock
       )
 
     return StateTransition(
-      newState =
-        state.copy(
-          issues = state.issues.incrementPendingRequests(issueId),
-          currentNotes = state.currentNotes.addDraft(draft)
-        ),
+      newState = state.copy(currentNotes = state.currentNotes.addDraft(draft)),
       action = Action.AddNote(draft)
     )
   }
@@ -79,7 +75,6 @@ data class RollbackAddNoteRequest(val noteId: NoteId, val cause: LoadingState.Fa
     return StateTransition(
       newState =
         state.copy(
-          issues = state.issues.decrementPendingRequests(noteId.issueId),
           currentNotes = state.currentNotes.deleteDraft(noteId.sessionId!!),
           permission = state.permission.updatePermissionIfApplicable(cause)
         ),
@@ -118,10 +113,7 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
     return StateTransition(
       newState =
         state.copy(
-          issues =
-            state.issues
-              .decrementPendingRequests(note.id.issueId)
-              .incrementNotesCount(note.id.issueId),
+          issues = state.issues.incrementNotesCount(note.id.issueId),
           currentNotes =
             if (state.selectedIssue?.id == note.id.issueId)
               state.currentNotes.markDraftDone(note, sessionId)
@@ -143,14 +135,6 @@ data class NoteAdded(val note: Note, val sessionId: String) : ChangeEvent {
     }
   }
 }
-
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementPendingRequests(
-  issueId: IssueId
-) = applyUpdate(issueId, AppInsightsIssue::incrementPendingRequests)
-
-internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.decrementPendingRequests(
-  issueId: IssueId
-) = applyUpdate(issueId, AppInsightsIssue::decrementPendingRequests)
 
 internal fun LoadingState<Timed<Selection<AppInsightsIssue>>>.incrementNotesCount(
   issueId: IssueId

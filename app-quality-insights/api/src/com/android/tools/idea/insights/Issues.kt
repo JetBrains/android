@@ -32,14 +32,9 @@ enum class IssueState {
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
-  val state: IssueState = IssueState.OPEN,
-  val pendingRequests: Int = 0
+  val state: IssueState = IssueState.OPEN
 ) {
   val id: IssueId = issueDetails.id
-
-  fun incrementPendingRequests() = copy(pendingRequests = pendingRequests.inc())
-
-  fun decrementPendingRequests() = copy(pendingRequests = pendingRequests.dec().coerceAtLeast(0))
 
   fun incrementNotesCount() =
     copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))

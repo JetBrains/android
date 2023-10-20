@@ -32,7 +32,6 @@ import com.android.tools.idea.insights.client.AppInsightsCache
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.ExplicitRefresh
-import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.insights.getHolderModules
 import com.android.tools.idea.insights.isAndroidApp
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
@@ -50,7 +49,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import java.time.Clock
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -122,7 +120,6 @@ class VitalsConfigurationManager(
       tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
       clock = Clock.systemDefaultZone(),
       project = project,
-      queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
       onErrorAction = { msg, hyperlinkListener ->
         AppInsightsToolWindowFactory.showBalloon(project, MessageType.ERROR, msg, hyperlinkListener)
       },

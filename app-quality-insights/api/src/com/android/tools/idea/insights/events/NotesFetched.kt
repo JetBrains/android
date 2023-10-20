@@ -30,11 +30,7 @@ data class NotesFetched(
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker
-  ): StateTransition<Action> =
-    StateTransition(
-      state.copy(currentNotes = notes),
-      action = if (shouldRetryPendingNotes) Action.RetryPendingActions else Action.NONE
-    )
+  ): StateTransition<Action> = StateTransition(state.copy(currentNotes = notes), Action.NONE)
 
   override fun toString() = "NotesFetched(issueId=$issueId)"
 }

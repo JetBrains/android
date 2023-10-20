@@ -27,7 +27,6 @@ import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
-import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
@@ -40,7 +39,6 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.event.HyperlinkListener
 import kotlinx.coroutines.CoroutineScope
@@ -112,7 +110,6 @@ class AppInsightsProjectLevelControllerRule(
         tracker = tracker,
         clock = clock,
         project = projectProvider(),
-        queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
         onErrorAction = onErrorAction,
         defaultFilters = TEST_FILTERS,
         cache = cache

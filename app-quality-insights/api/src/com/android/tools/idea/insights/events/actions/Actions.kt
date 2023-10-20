@@ -27,9 +27,6 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
  * interpreted, see [ActionDispatcher].
  */
 sealed class Action {
-  /** Denotes this action can be queued when AQI is in offline mode. */
-  open val supportsOfflineQueueing: Boolean = false
-
   /** Denotes a single(non-composite) action. */
   sealed class Single : Action()
 
@@ -117,7 +114,6 @@ sealed class Action {
   /** Add a note to an issue. */
   data class AddNote(val note: Note) : IssueAction() {
     override val id = note.id.issueId
-    override val supportsOfflineQueueing = true
 
     override fun maybeDoCancel(reasons: List<Single>) = this
   }
@@ -125,16 +121,9 @@ sealed class Action {
   /** Delete note. */
   data class DeleteNote(val noteId: NoteId) : IssueAction() {
     override val id = noteId.issueId
-    override val supportsOfflineQueueing = true
 
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is DeleteNote && it.noteId == noteId }
-  }
-
-  /** Retry pending requests. Currently only note requests are retried. */
-  object RetryPendingActions : Single() {
-    override fun maybeDoCancel(reasons: List<Single>) =
-      cancelIf(reasons) { it is RetryPendingActions }
   }
 
   /** Cancel all outstanding fetches. */

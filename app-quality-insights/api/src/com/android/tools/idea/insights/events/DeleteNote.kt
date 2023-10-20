@@ -35,11 +35,7 @@ data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
     }
 
     return StateTransition(
-      newState =
-        state.copy(
-          issues = state.issues.incrementPendingRequests(id.issueId),
-          currentNotes = state.currentNotes.markDeletePending(id)
-        ),
+      newState = state.copy(currentNotes = state.currentNotes.markDeletePending(id)),
       action = Action.DeleteNote(id)
     )
   }
@@ -67,7 +63,6 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
     return StateTransition(
       newState =
         state.copy(
-          issues = state.issues.decrementPendingRequests(id.issueId),
           currentNotes = state.currentNotes.revertMarkDeletePending(id),
           permission = state.permission.updatePermissionIfApplicable(cause),
         ),
@@ -109,8 +104,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
     return StateTransition(
       newState =
         state.copy(
-          issues =
-            state.issues.decrementPendingRequests(id.issueId).decrementNotesCount(id.issueId),
+          issues = state.issues.decrementNotesCount(id.issueId),
           currentNotes =
             if (state.selectedIssue?.id == id.issueId) state.currentNotes.delete(id)
             else state.currentNotes
