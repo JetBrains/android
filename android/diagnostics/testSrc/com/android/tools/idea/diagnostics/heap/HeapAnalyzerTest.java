@@ -45,6 +45,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -630,6 +631,94 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   }
 
   @Test
+  public void testExtendedReportRepeatedNodes()  throws IOException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        1,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("java.util.LinkedList"),
+                                                        Collections.emptyList(),
+                                                        Collections.emptyList());
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    List<String> strings = new LinkedList<>();
+    strings.add("hello1");
+    strings.add("hello2");
+    strings.add("hello3");
+    strings.add("hello4");
+    strings.add("hello5");
+    WeakList<Object> roots = new WeakList<>();
+    roots.add(strings);
+
+    MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots);
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+
+    assertRequestContainsField(serializedExtendedReport, "Component D", """
+      Owned: 392B/16 objects
+            Histogram:
+              120B/5 objects: java.util.LinkedList$Node
+              120B/5 objects: [B
+              120B/5 objects: java.lang.String
+              32B/1 objects: java.util.LinkedList
+            Studio objects histogram:
+            Component roots histogram:
+              120B/5 objects: java.util.LinkedList$Node
+              32B/1 objects: java.util.LinkedList
+      Platform object: 0B/0 objects[0B/0 objects]
+      ======== INSTANCES OF EACH NOMINATED CLASS ========
+      Nominated classes:
+       --> [120B/5 objects] java.util.LinkedList$Node
+       --> [120B/5 objects] [B
+       --> [120B/5 objects] java.lang.String
+       --> [32B/1 objects] java.util.LinkedList
+            
+      CLASS: java.util.LinkedList$Node (5 objects)
+      Root 1:
+      [    4/100%/  120B]      320B/1 objects          (root): java.util.LinkedList
+      [    2/ 60%/   72B]      144B/1 objects *        +-last: java.util.LinkedList$Node
+      [    1/ 40%/   48B]       72B/1 objects * (rep)  | prev: java.util.LinkedList$Node
+      [    2/ 40%/   48B]      144B/1 objects *        \\-first: java.util.LinkedList$Node
+      [    1/ 20%/   24B]       72B/1 objects *          next: java.util.LinkedList$Node
+      CLASS: [B (5 objects)
+      Root 1:
+      [    5/100%/  120B]      320B/1 objects          (root): java.util.LinkedList
+      [    3/ 60%/   72B]      144B/1 objects          +-last: java.util.LinkedList$Node
+      [    2/ 40%/   48B]      120B/1 objects   (rep)  | +-prev: java.util.LinkedList$Node
+      [    2/ 40%/   48B]       96B/2 objects          | | item: java.lang.String
+      [    2/ 40%/   48B]       48B/2 objects *        | | value: [B
+      [    1/ 20%/   24B]       48B/1 objects          | \\-item: java.lang.String
+      [    1/ 20%/   24B]       24B/1 objects *        |   value: [B
+      [    2/ 40%/   48B]      144B/1 objects          \\-first: java.util.LinkedList$Node
+      [    1/ 20%/   24B]       72B/1 objects            +-next: java.util.LinkedList$Node
+      [    1/ 20%/   24B]       48B/1 objects            | item: java.lang.String
+      [    1/ 20%/   24B]       24B/1 objects *          | value: [B
+      [    1/ 20%/   24B]       48B/1 objects            \\-item: java.lang.String
+      [    1/ 20%/   24B]       24B/1 objects *            value: [B
+      CLASS: java.lang.String (5 objects)
+      Root 1:
+      [    5/100%/  120B]      320B/1 objects          (root): java.util.LinkedList
+      [    3/ 60%/   72B]      144B/1 objects          +-last: java.util.LinkedList$Node
+      [    2/ 40%/   48B]      120B/1 objects   (rep)  | +-prev: java.util.LinkedList$Node
+      [    2/ 40%/   48B]       96B/2 objects *        | | item: java.lang.String
+      [    1/ 20%/   24B]       48B/1 objects *        | \\-item: java.lang.String
+      [    2/ 40%/   48B]      144B/1 objects          \\-first: java.util.LinkedList$Node
+      [    1/ 20%/   24B]       72B/1 objects            +-next: java.util.LinkedList$Node
+      [    1/ 20%/   24B]       48B/1 objects *          | item: java.lang.String
+      [    1/ 20%/   24B]       48B/1 objects *          \\-item: java.lang.String
+      CLASS: java.util.LinkedList (1 objects)
+      Root 1:
+      [    1/100%/   32B]      320B/1 objects *        (root): java.util.LinkedList""");
+  }
+
+  @Test
   public void testExtendedReportNominatedClassesTree() throws IOException {
     ComponentsSet componentsSet = new ComponentsSet();
 
@@ -1077,7 +1166,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     Assert.assertEquals(StatusCode.NO_ERROR,
                         new MemoryReportCollector(statistics).walkObjects(List.of(new A(b1), new A(b2), new ReferenceToB(b1),
-                                                                                             new ReferenceToB(b2))));
+                                                                                  new ReferenceToB(b2))));
     Assert.assertNotNull(statistics.getExtendedReportStatistics());
 
     Assert.assertEquals(1, statistics.getExtendedReportStatistics().sharedClustersHistograms.size());
@@ -1137,10 +1226,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(0, statistics.getComponentStats().get(2).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
 
-    Assert.assertEquals(1, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats().getObjectsCount());
+    Assert.assertEquals(1, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
+      .getObjectsCount());
     Assert.assertEquals(32, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformObjectsSelfStats()
       .getTotalSizeInBytes());
-    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats().getObjectsCount());
+    Assert.assertEquals(5, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
+      .getObjectsCount());
     Assert.assertEquals(120, statistics.getCategoryComponentStats().get(1).getOwnedClusterStat().getPlatformRetainedObjectsStats()
       .getTotalSizeInBytes());
   }

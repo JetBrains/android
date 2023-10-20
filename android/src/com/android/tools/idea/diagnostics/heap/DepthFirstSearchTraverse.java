@@ -229,7 +229,7 @@ abstract class DepthFirstSearchTraverse {
       }
 
       RootPathTree.RootPathElement element = pathToRoot.pop();
-      if (!pathToRoot.empty()) {
+      if (!pathToRoot.empty() && !element.extendedStackNode.equals(pathToRoot.peek().extendedStackNode)) {
         pathToRoot.peek().addSubtreeSize(element.getSubtreeSize());
       }
       MemoryReportJniHelper.setObjectTag(stackNode.getObject(), 0);
