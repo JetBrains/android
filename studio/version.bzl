@@ -3,5 +3,5 @@ visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio", "//t
 
 STUDIO_CODENAME = "Iguana"
 STUDIO_VERSION = "Canary"
-STUDIO_MICRO_PATCH = "1.9"
-STUDIO_RELEASE_NUMBER = 9
+STUDIO_MICRO_PATCH = "1.10"
+STUDIO_RELEASE_NUMBER = 10
