@@ -19,7 +19,6 @@ import static com.android.tools.idea.diagnostics.heap.ExtendedReportStatistics.N
 import static com.google.common.base.Strings.padStart;
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Comparator;
@@ -28,6 +27,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -45,7 +45,7 @@ public class RootPathTree {
   private static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION =
     IntSet.of(DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
   @NotNull
-  private final List<RootPathTreeNode> roots = Lists.newArrayList();
+  private final Map<ExtendedStackNode, RootPathTreeNode> roots = Maps.newHashMap();
   @NotNull
   private final ObjectsStatistics totalNominatedLoadersReferringObjectsStatistics = new ObjectsStatistics();
   private int numberOfRootPathTreeNodes = 0;
@@ -86,19 +86,22 @@ public class RootPathTree {
     // Iterate in reverse.
     while (rootPathIterator.hasPrevious()) {
       pathElement = rootPathIterator.previous();
-      if (pathElement.getRootPathTreeNode(exceededClusterId, nominatedNodeTypeId) != null) {
+      if (pathElement.rootPathTreeNode != null && pathElement.rootPathTreeNodeWasPropagated[exceededClusterId][nominatedNodeTypeId]) {
         rootPathIterator.next();
-        rootPathTreeNode = pathElement.getRootPathTreeNode(exceededClusterId, nominatedNodeTypeId);
+        rootPathTreeNode = pathElement.rootPathTreeNode;
         break;
       }
     }
 
     if (rootPathTreeNode == null) {
       pathElement = rootPathIterator.next();
-      rootPathTreeNode = createRootPathTreeNode(pathElement, extendedReportStatistics);
+      if (pathElement.rootPathTreeNode != null) {
+        rootPathTreeNode = pathElement.rootPathTreeNode;
+      } else {
+        rootPathTreeNode = roots.getOrDefault(pathElement.extendedStackNode, createRootPathTreeNode(pathElement, extendedReportStatistics));
+        roots.put(pathElement.extendedStackNode, rootPathTreeNode);
+      }
       rootPathTreeNode.incrementNumberOfInstances(exceededClusterId, nominatedNodeTypeId, pathElement.subtreeSize);
-
-      roots.add(rootPathTreeNode);
       pathElement.setRootPathTreeNode(rootPathTreeNode, exceededClusterId, nominatedNodeTypeId);
     }
 
@@ -121,11 +124,11 @@ public class RootPathTree {
       node.markNodeAsNominated(exceededClusterId, nominatedNodeTypeId, currentRootPathElement.size);
       return;
     }
-    assert currentRootPathElement.rootPathTreeNodes[exceededClusterId][nominatedNodeTypeId] == node;
     RootPathElement rootPathElement = iterator.next();
 
     if (node.label.equals(rootPathElement.getLabel()) && node.className.equals(rootPathElement.getClassName())) {
       node.isRepeated = true;
+      assert rootPathElement.rootPathTreeNode == null || rootPathElement.rootPathTreeNode == node;
       rootPathElement.setRootPathTreeNode(node, exceededClusterId, nominatedNodeTypeId);
       addPathElementIteration(node, rootPathElement, iterator, exceededClusterId, nominatedNodeTypeId);
       return;
@@ -133,12 +136,14 @@ public class RootPathTree {
 
     RootPathTreeNode childNode = node.children.get(rootPathElement.extendedStackNode);
     if (childNode == null) {
-      childNode = createRootPathTreeNode(rootPathElement, extendedReportStatistics);
+      childNode = Objects.requireNonNullElseGet(rootPathElement.rootPathTreeNode,
+                                                () -> createRootPathTreeNode(rootPathElement, extendedReportStatistics));
       node.children.put(rootPathElement.extendedStackNode, childNode);
     }
 
     childNode.incrementNumberOfInstances(exceededClusterId, nominatedNodeTypeId, rootPathElement.subtreeSize);
 
+    assert rootPathElement.rootPathTreeNode == null || rootPathElement.rootPathTreeNode == childNode;
     rootPathElement.setRootPathTreeNode(childNode, exceededClusterId, nominatedNodeTypeId);
     addPathElementIteration(childNode, rootPathElement, iterator, exceededClusterId, nominatedNodeTypeId);
   }
@@ -174,12 +179,12 @@ public class RootPathTree {
                                                         int nominatedNodeTypeId,
                                                         @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
     Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
-    for (RootPathTreeNode root : roots) {
+    for (RootPathTreeNode root : roots.values()) {
       calculateNominatedObjectsStatisticsInTheSubtree(root, exceededClusterStatistics.exceededClusterIndex, nominatedNodeTypeId,
                                                       nominatedObjectsStatsInTheNodeSubtree);
     }
     AtomicInteger rootIndex = new AtomicInteger(1);
-    roots.stream().filter(r -> {
+    roots.values().stream().filter(r -> {
       ObjectsStatistics rootSubtreeStatistics = nominatedObjectsStatsInTheNodeSubtree.get(r);
       return (rootSubtreeStatistics != null) &&
              !shouldSkipPrintingNodeSubtree(totalNominatedTypeStatistics, rootSubtreeStatistics, nominatedNodeTypeId);
@@ -327,17 +332,19 @@ public class RootPathTree {
 
   public static class RootPathElement {
     @NotNull
-    private final ExtendedStackNode extendedStackNode;
+    final ExtendedStackNode extendedStackNode;
     private final long size;
     private long subtreeSize;
 
-    @NotNull
-    private final RootPathTreeNode[][] rootPathTreeNodes;
+    @Nullable
+    private RootPathTreeNode rootPathTreeNode;
+    private final boolean[][] rootPathTreeNodeWasPropagated;
+
 
     public RootPathElement(@NotNull ExtendedStackNode node, long size, @NotNull final ExtendedReportStatistics extendedReportStatistics) {
       extendedStackNode = node;
-      rootPathTreeNodes =
-        new RootPathTreeNode[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
+      rootPathTreeNodeWasPropagated =
+        new boolean[extendedReportStatistics.componentToExceededClustersStatistics.size()][MAX_NUMBER_OF_NOMINATED_NODE_TYPES];
       this.size = size;
       this.subtreeSize = size;
     }
@@ -358,12 +365,8 @@ public class RootPathTree {
     public void setRootPathTreeNode(@Nullable RootPathTreeNode rootPathTreeNode,
                                     int exceededClusterId,
                                     int nominatedNodeTypeId) {
-      rootPathTreeNodes[exceededClusterId][nominatedNodeTypeId] = rootPathTreeNode;
-    }
-
-    @Nullable
-    public RootPathTreeNode getRootPathTreeNode(int exceededClusterId, int nominatedNodeTypeId) {
-      return rootPathTreeNodes[exceededClusterId][nominatedNodeTypeId];
+      this.rootPathTreeNode = rootPathTreeNode;
+      rootPathTreeNodeWasPropagated[exceededClusterId][nominatedNodeTypeId] = true;
     }
 
     public long getSize() {
@@ -377,17 +380,17 @@ public class RootPathTree {
     public void addSubtreeSize(long size) {
       subtreeSize += size;
 
+      if (rootPathTreeNode == null) {
+        return;
+      }
       // When we add subtree size to the node it may already participate in some object paths - we need to reflect the subtree size
       // change there as well to avoid out of sync.
-      for (int i = 0; i < rootPathTreeNodes.length; i++) {
-        RootPathTreeNode[] nodes = rootPathTreeNodes[i];
+      for (int i = 0; i < rootPathTreeNodeWasPropagated.length; i++) {
+        boolean[] nodes = rootPathTreeNodeWasPropagated[i];
         for (int j = 0; j < nodes.length; j++) {
-          if (nodes[j] == null) {
-            continue;
+          if (nodes[j]) {
+            rootPathTreeNode.instancesStatistics[i][j].addStats(0, size);
           }
-          assert nodes[j].instancesStatistics[i][j] != null;
-          assert nodes[j].instancesStatistics[i][j].getObjectsCount() > 0;
-          nodes[j].instancesStatistics[i][j].addStats(0, size);
         }
       }
     }

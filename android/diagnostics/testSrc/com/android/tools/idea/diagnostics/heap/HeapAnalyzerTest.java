@@ -568,13 +568,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         defaultCategory,
                                                         Collections.emptyList(),
                                                         List.of(
-                                                          "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray"));
+                                                          "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray",
+                                                          "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2"));
     FakeCrushReporter crushReporter = new FakeCrushReporter();
     getApplication().registerService(StudioCrashReporter.class, crushReporter);
 
     WeakList<Object> roots = new WeakList<>();
     roots.add(new ReferenceToObjectArray(new int[]{1}, new int[]{2}, new int[]{3}));
-    roots.add(new ReferenceToObjectArray(new int[]{1, 2, 3, 4, 5, 6}, new int[]{7, 8, 9, 10, 11, 12}));
+    roots.add(new ReferenceToObjectArray.ReferenceToObjectArray2(new int[]{1, 2, 3, 4, 5, 6}, new int[]{7, 8, 9, 10, 11, 12}));
 
     MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots);
     assertSize(1, crushReporter.crashReports);
@@ -588,39 +589,44 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
             Histogram:
               152B/5 objects: [I
               56B/2 objects: [Ljava.lang.Object;
-              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
             Studio objects histogram:
-              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
             Component roots histogram:
-              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
       Platform object: 0B/0 objects[0B/0 objects]
       ======== INSTANCES OF EACH NOMINATED CLASS ========
       Nominated classes:
        --> [152B/5 objects] [I
-       --> [32B/2 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
        --> [56B/2 objects] [Ljava.lang.Object;
+       --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+       --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
 
       CLASS: [I (5 objects)
       Root 1:
-      [    2/ 52%/   80B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      [    2/ 52%/   80B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
       [    2/ 52%/   80B]      104B/1 objects          myArray: [Ljava.lang.Object;
       [    2/ 52%/   80B]       80B/2 objects *        []: [I
       Root 2:
       [    3/ 47%/   72B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
       [    3/ 47%/   72B]      104B/1 objects          myArray: [Ljava.lang.Object;
       [    3/ 47%/   72B]       72B/3 objects *        []: [I
-      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray (2 objects)
-      Root 1:
-      [    1/ 50%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
-      Root 2:
-      [    1/ 50%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
       CLASS: [Ljava.lang.Object; (2 objects)
       Root 1:
       [    1/ 57%/   32B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
       [    1/ 57%/   32B]      104B/1 objects *        myArray: [Ljava.lang.Object;
       Root 2:
-      [    1/ 42%/   24B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
-      [    1/ 42%/   24B]      104B/1 objects *        myArray: [Ljava.lang.Object;""");
+      [    1/ 42%/   24B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+      [    1/ 42%/   24B]      104B/1 objects *        myArray: [Ljava.lang.Object;
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray (1 objects)
+      Root 1:
+      [    1/100%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2 (1 objects)
+      Root 1:
+      [    1/100%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2""");
   }
 
   @Test
@@ -674,12 +680,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       Platform object: 0B/0 objects[0B/0 objects]
       ================= DISPOSED OBJECTS ================
       Root 1:
-      [    1/ 50%/   16B]       32B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
-      [    1/ 50%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
-      Root 2:
       [    1/ 50%/   16B]       72B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
       [    1/ 50%/   16B]       56B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
       [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+      Root 2:
+      [    1/ 50%/   16B]       32B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
+      [    1/ 50%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
       ======== INSTANCES OF EACH NOMINATED CLASS ========
       Nominated classes:
        --> [96B/4 objects] [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
@@ -688,26 +694,11 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
       CLASS: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; (4 objects)
       Root 1:
-      [    1/ 25%/   24B]       40B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/ 25%/   24B]       24B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      Root 2:
-      [    1/ 25%/   24B]       40B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/ 25%/   24B]       24B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      Root 3:
-      [    1/ 25%/   24B]       72B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/ 25%/   24B]       56B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      Root 4:
-      [    1/ 25%/   24B]       40B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/ 25%/   24B]       24B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      [    4/100%/   96B]      192B/4 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      [    4/100%/   96B]      128B/4 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
       CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D (4 objects)
       Root 1:
-      [    1/ 25%/   16B]       40B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      Root 2:
-      [    1/ 25%/   16B]       40B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      Root 3:
-      [    1/ 25%/   16B]       72B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      Root 4:
-      [    1/ 25%/   16B]       40B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      [    4/100%/   64B]      192B/4 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
       CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (3 objects)
       Root 1:
       [    2/ 66%/   32B]       72B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
@@ -1200,6 +1191,12 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
     private ReferenceToObjectArray(Object... b) {
       myArray = b;
+    }
+
+    private static class ReferenceToObjectArray2 extends ReferenceToObjectArray {
+      private ReferenceToObjectArray2(Object... b) {
+        super(b);
+      }
     }
   }
 
