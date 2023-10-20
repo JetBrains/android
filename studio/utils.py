@@ -18,9 +18,9 @@ def read_zip_entry(zip_path, entry, none_if_missing=False):
   return data.decode("utf-8")
 
 def read_file(file_path):
-  with open(file_path, "r") as f:
+  with open(file_path, "r", newline="") as f:
     return f.read()
 
 def write_file(file_path, data):
-  with open(file_path, "w") as f:
+  with open(file_path, "w", newline="") as f:
     f.write(data)
