@@ -454,7 +454,7 @@ class InspectorModelDescriptor(
       )
     }
     // This is usually added by DeviceViewPanel
-    model.modificationListeners.add { _, new, _ -> new?.refreshImages(1.0) }
+    model.addModificationListener { _, new, _ -> new?.refreshImages(1.0) }
 
     return model
   }

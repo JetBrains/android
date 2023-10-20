@@ -405,7 +405,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
         val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
         DataManager.registerDataProvider(workBench, layoutInspectorProvider)
-        DataManager.registerDataProvider(toolbar.component,layoutInspectorProvider)
+        DataManager.registerDataProvider(toolbar.component, layoutInspectorProvider)
 
         Disposer.register(disposable) {
           DataManager.removeDataProvider(workBench)
@@ -426,7 +426,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       }
       tabComponents.displayView.add(layoutInspectorRenderer)
 
-      layoutInspector.inspectorModel.selectionListeners.add(selectionChangedListener)
+      layoutInspector.inspectorModel.addSelectionListener(selectionChangedListener)
       layoutInspector.processModel?.addSelectedProcessListeners(
         EdtExecutorService.getInstance(),
         selectedProcessListener
@@ -445,7 +445,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       wrapLogic.unwrapComponent()
       tabComponents.displayView.remove(layoutInspectorRenderer)
-      layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)
+      layoutInspector.inspectorModel.removeSelectionListener(selectionChangedListener)
       layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
 
       tabComponents.tabContentPanelContainer.revalidate()

@@ -273,7 +273,7 @@ class DeviceViewPanel(
     val model = layoutInspector.inspectorModel
     val notificationModel = layoutInspector.notificationModel
 
-    model.attachStageListeners.add { state ->
+    model.addAttachStageListener() { state ->
       val text =
         when (state) {
           DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE ->
@@ -369,7 +369,7 @@ class DeviceViewPanel(
     var shouldZoomToFit = true
     layoutInspector.processModel?.addSelectedProcessListeners { shouldZoomToFit = true }
 
-    model.modificationListeners.add { oldWindow, newWindow, _ ->
+    model.addModificationListener { oldWindow, newWindow, _ ->
       if (oldWindow == null && newWindow != null) {
         // TODO(b/265150325) move to a more generic place
         layoutInspector.currentClient.stats.recompositionHighlightColor =

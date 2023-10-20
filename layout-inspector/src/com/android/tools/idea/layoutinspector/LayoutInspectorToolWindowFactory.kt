@@ -60,7 +60,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector()
     val devicePanel = createDevicePanel(disposable, layoutInspector)
 
-    layoutInspector.inspectorModel.connectionListeners.add { client ->
+    layoutInspector.inspectorModel.addConnectionListener { client ->
       if (client != null) {
         showTryEmbeddedLayoutInspectorBanner(
           layoutInspector.inspectorModel.project,

@@ -76,9 +76,9 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
     newInspector: LayoutInspector?
   ) {
     cleanUp(oldInspector)
-    newInspector?.inspectorModel?.selectionListeners?.add(selectionListener)
-    newInspector?.inspectorModel?.modificationListeners?.add(modificationListener)
-    newInspector?.inspectorModel?.connectionListeners?.add(connectionListener)
+    newInspector?.inspectorModel?.addSelectionListener(selectionListener)
+    newInspector?.inspectorModel?.addModificationListener(modificationListener)
+    newInspector?.inspectorModel?.addConnectionListener(connectionListener)
   }
 
   override fun deactivate() {
@@ -99,9 +99,9 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   }
 
   private fun cleanUp(layoutInspector: LayoutInspector?) {
-    layoutInspector?.inspectorModel?.selectionListeners?.remove(selectionListener)
-    layoutInspector?.inspectorModel?.modificationListeners?.remove(modificationListener)
-    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+    layoutInspector?.inspectorModel?.removeSelectionListener(selectionListener)
+    layoutInspector?.inspectorModel?.removeModificationListener(modificationListener)
+    layoutInspector?.inspectorModel?.removeConnectionListener(connectionListener)
   }
 
   @Suppress("UNUSED_PARAMETER")

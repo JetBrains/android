@@ -196,9 +196,9 @@ class DeviceViewContentPanel(
       }
     }
     isOpaque = true
-    inspectorModel.selectionListeners.add { _, _, origin -> autoScrollAndRepaint(origin) }
-    inspectorModel.hoverListeners.add { _, _ -> repaint() }
-    inspectorModel.connectionListeners.add { renderModel.resetRotation() }
+    inspectorModel.addSelectionListener { _, _, origin -> autoScrollAndRepaint(origin) }
+    inspectorModel.addHoverListener { _, _ -> repaint() }
+    inspectorModel.addConnectionListener { renderModel.resetRotation() }
     addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) {
@@ -296,7 +296,7 @@ class DeviceViewContentPanel(
     renderSettings.modificationListeners.add { repaint() }
     // If we get three consecutive pictures where SKPs aren't needed, reset to bitmap.
     var toResetCount = 0
-    inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorModel.addModificationListener { _, _, _ ->
       // SKP is needed if the view is rotated or if anything is hidden. We have to check on each
       // update, since previously-hidden nodes
       // may have been removed.

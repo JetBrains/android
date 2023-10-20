@@ -326,7 +326,7 @@ class AppInspectionInspectorClientTest {
     // without the fix included in the same commit
 
     val modelUpdatedLatch = ReportingCountDownLatch(1)
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -889,7 +889,7 @@ class AppInspectionInspectorClientTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -908,7 +908,7 @@ class AppInspectionInspectorClientTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -928,7 +928,7 @@ class AppInspectionInspectorClientTest {
 
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -946,7 +946,7 @@ class AppInspectionInspectorClientTest {
     inspectorState.createFakeComposeTree()
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -981,7 +981,7 @@ class AppInspectionInspectorClientTest {
     inspectorState.createFakeLargeComposeTree()
     val modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -1122,7 +1122,7 @@ class AppInspectionInspectorClientTest {
 
     var modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener() { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 
@@ -1150,7 +1150,7 @@ class AppInspectionInspectorClientTest {
 
     var modelUpdatedLatch =
       ReportingCountDownLatch(2) // We'll get two tree layout events on start fetch
-    inspectorRule.inspectorModel.modificationListeners.add { _, _, _ ->
+    inspectorRule.inspectorModel.addModificationListener { _, _, _ ->
       modelUpdatedLatch.countDown()
     }
 

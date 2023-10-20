@@ -32,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 import kotlin.properties.Delegates
+import org.jetbrains.annotations.VisibleForTesting
 
 const val REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY =
   "android.ddms.notification.layoutinspector.reboot.live.inspector"
@@ -81,13 +82,22 @@ class InspectorModel(
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
 
+  @VisibleForTesting
   val selectionListeners = ListenerCollection.createWithDirectExecutor<SelectionListener>()
+  @VisibleForTesting
   val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
+  @VisibleForTesting
   val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
+  @VisibleForTesting
   val hoverListeners = ListenerCollection.createWithDirectExecutor<HoverListener>()
+  @VisibleForTesting
   val attachStageListeners = ListenerCollection.createWithDirectExecutor<AttachStageListener>()
 
+  private var lastInspectorClient: InspectorClient? = null
+  private var lastAttachState: DynamicLayoutInspectorErrorInfo.AttachErrorState? = null
+
   override val resourceLookup = ResourceLookup(project)
+
   var lastGeneration = 0
   var updating = false
 
@@ -99,8 +109,14 @@ class InspectorModel(
 
   private val idLookup = ConcurrentHashMap<Long, ViewNode>()
 
-  override var selection: ViewNode? = null
-    private set
+  private data class Selection(val selection: ViewNode?, val origin: SelectionOrigin)
+
+  private var lastSelection: Selection? = null
+
+  override val selection: ViewNode?
+    get() {
+      return lastSelection?.selection
+    }
 
   var hoveredNode: ViewNode? by
     Delegates.observable(null as ViewNode?) { _, old, new ->
@@ -204,6 +220,7 @@ class InspectorModel(
     ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
 
   fun fireAttachStateEvent(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
+    lastAttachState = state
     attachStageListeners.forEach { it.update(state) }
   }
 
@@ -256,9 +273,9 @@ class InspectorModel(
   }
 
   fun setSelection(new: ViewNode?, origin: SelectionOrigin) {
-    val old = selection
-    selection = new
-    selectionListeners.forEach { it.onSelection(old, new, origin) }
+    val previousSelection = lastSelection
+    lastSelection = Selection(new, origin)
+    selectionListeners.forEach { it.onSelection(previousSelection?.selection, new, origin) }
   }
 
   fun resetRecompositionCounts() {
@@ -277,6 +294,7 @@ class InspectorModel(
   }
 
   fun updateConnection(client: InspectorClient) {
+    lastInspectorClient = client
     connectionListeners.forEach { it.onConnectionChanged(client) }
   }
 
@@ -328,7 +346,7 @@ class InspectorModel(
 
         updateRoot(allIds)
         if (selection?.parentSequence?.lastOrNull() !== root) {
-          selection = null
+          lastSelection = null
         }
         if (hoveredNode?.parentSequence?.lastOrNull() !== root) {
           hoveredNode = null
@@ -358,6 +376,51 @@ class InspectorModel(
     notifyUpdateCompleted()
     val window = if (newWindow != null) windows[newWindow.id] else null
     modificationListeners.forEach { it.onModification(oldWindow, window, structuralChange) }
+  }
+
+  fun addSelectionListener(listener: SelectionListener) {
+    lastSelection?.let { listener.onSelection(it.selection, it.selection, it.origin) }
+    selectionListeners.add(listener)
+  }
+
+  fun removeSelectionListener(listener: SelectionListener) {
+    selectionListeners.remove(listener)
+  }
+
+  fun addModificationListener(listener: ModificationListener) {
+    windows.values.forEach { window -> listener.onModification(window, window, false) }
+    modificationListeners.add(listener)
+  }
+
+  fun removeModificationListener(listener: ModificationListener) {
+    modificationListeners.remove(listener)
+  }
+
+  fun addConnectionListener(listener: ConnectionListener) {
+    lastInspectorClient?.let { listener.onConnectionChanged(it) }
+    connectionListeners.add(listener)
+  }
+
+  fun removeConnectionListener(listener: ConnectionListener) {
+    connectionListeners.remove(listener)
+  }
+
+  fun addHoverListener(listener: HoverListener) {
+    listener.onHover(hoveredNode, hoveredNode)
+    hoverListeners.remove(listener)
+  }
+
+  fun removeHoverListener(listener: HoverListener) {
+    hoverListeners.remove(listener)
+  }
+
+  fun addAttachStageListener(listener: AttachStageListener) {
+    lastAttachState?.let { listener.update(it) }
+    attachStageListeners.add(listener)
+  }
+
+  fun removeAttachStageListener(listener: AttachStageListener) {
+    attachStageListeners.remove(listener)
   }
 
   private fun decreaseHighlights() {

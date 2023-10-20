@@ -209,7 +209,7 @@ class AppInspectionInspectorClient(
           completableDeferred.complete(Unit)
         }
 
-        model.modificationListeners.add(updateListener)
+        model.addModificationListener(updateListener)
 
         if (inspectorClientSettings.disableBitmapScreenshot) {
           disableBitmapScreenshots(true)
@@ -223,7 +223,7 @@ class AppInspectionInspectorClient(
 
         // wait until we start receiving updates
         completableDeferred.await()
-        model.modificationListeners.remove(updateListener)
+        model.removeModificationListener(updateListener)
       }
       .recover { t ->
         val error = getOriginalError(t)

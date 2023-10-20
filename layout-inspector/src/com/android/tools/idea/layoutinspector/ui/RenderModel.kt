@@ -115,7 +115,7 @@ class RenderModel(
   private var rootBounds = Rectangle()
 
   init {
-    model.modificationListeners.add { _, new, _ ->
+    model.addModificationListener { _, new, _ ->
       if (new == null) {
         overlay = null
       }

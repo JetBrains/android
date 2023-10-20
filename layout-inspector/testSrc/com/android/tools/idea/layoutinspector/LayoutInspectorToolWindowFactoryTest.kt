@@ -307,7 +307,7 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       )
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)
-      deviceViewContentPanel.inspectorModel.modificationListeners.add { _, _, _ ->
+      deviceViewContentPanel.inspectorModel.addModificationListener { _, _, _ ->
         modelUpdatedLatch.countDown()
       }
       discovery.fireConnected(MODERN_PROCESS)

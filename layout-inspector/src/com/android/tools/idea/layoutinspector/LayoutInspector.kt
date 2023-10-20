@@ -155,7 +155,7 @@ private constructor(
 
   init {
     // refresh the rendering each time the inspector model changes
-    inspectorModel.modificationListeners.add { _, newAndroidWindow, _ ->
+    inspectorModel.addModificationListener { _, newAndroidWindow, _ ->
       newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
       renderModel.refresh()
     }

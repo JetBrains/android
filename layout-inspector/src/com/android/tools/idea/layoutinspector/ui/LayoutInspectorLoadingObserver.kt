@@ -65,7 +65,7 @@ class LayoutInspectorLoadingObserver(
       Executors.newSingleThreadExecutor(),
       selectedProcessListener
     )
-    layoutInspector.inspectorModel.modificationListeners.add(inspectorModelModificationListener)
+    layoutInspector.inspectorModel.addModificationListener(inspectorModelModificationListener)
   }
 
   override fun dispose() {
@@ -73,7 +73,7 @@ class LayoutInspectorLoadingObserver(
 
     layoutInspector.stopInspectorListeners.remove(stopInspectorListener)
     layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
-    layoutInspector.inspectorModel.modificationListeners.remove(inspectorModelModificationListener)
+    layoutInspector.inspectorModel.removeModificationListener(inspectorModelModificationListener)
   }
 
   private fun setIsLoading(isLoading: Boolean) {

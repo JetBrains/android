@@ -77,7 +77,7 @@ class RootPanel(
 
       // Set up new listeners.
       layoutInspectorLoadingObserver = createLoadingObserver(value)
-      value.inspectorModel.connectionListeners.add(connectionListener)
+      value.inspectorModel.addConnectionListener(connectionListener)
       if (isEmbedded) {
         // Add the listener only if we're running in Embedded Layout Inspector.
         // Outside of Layout Inspector the "app not debuggable" indicator is in the main panel.
@@ -124,7 +124,7 @@ class RootPanel(
     private set
 
   private fun removeListeners() {
-    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+    layoutInspector?.inspectorModel?.removeConnectionListener(connectionListener)
     layoutInspector
       ?.foregroundProcessDetection
       ?.removeForegroundProcessListener(foregroundProcessListener)

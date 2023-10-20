@@ -428,7 +428,7 @@ class LayoutInspectorTreePanelTest {
 
     var selectedView: ViewNode? = null
     var selectionOrigin = SelectionOrigin.INTERNAL
-    model.selectionListeners.add { _, newSelection, origin ->
+    model.addSelectionListener { _, newSelection, origin ->
       selectedView = newSelection
       selectionOrigin = origin
     }
@@ -953,7 +953,7 @@ class LayoutInspectorTreePanelTest {
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
     var selectionUpdate = 0
-    model.selectionListeners.add { _, _, _ -> selectionUpdate++ }
+    model.addSelectionListener { _, _, _ -> selectionUpdate++ }
 
     assertThat(compose1.recompositions.count).isEqualTo(7)
     assertThat(compose1.recompositions.skips).isEqualTo(14)

@@ -173,24 +173,12 @@ class RootPanelTest {
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(1)
-
-    var connectionListenersCount1 = 0
-    layoutInspectorRule.inspectorModel.connectionListeners.forEach {
-      connectionListenersCount1 += 1
-    }
-    assertThat(connectionListenersCount1).isEqualTo(1)
+    assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(1)
 
     Disposer.dispose(androidProjectRule.testRootDisposable)
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(0)
-
-    var connectionListenersCount2 = 0
-    layoutInspectorRule.inspectorModel.connectionListeners.forEach {
-      connectionListenersCount2 += 1
-    }
-    assertThat(connectionListenersCount2).isEqualTo(0)
-
-    assertThat(connectionListenersCount2).isEqualTo(0)
+    assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(0)
   }
 }

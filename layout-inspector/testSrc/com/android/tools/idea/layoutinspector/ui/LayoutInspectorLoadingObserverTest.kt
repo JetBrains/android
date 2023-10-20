@@ -119,17 +119,11 @@ class LayoutInspectorLoadingObserverTest {
       }
     )
 
-    var modificationListeners1 = 0
-    inspectorRule.inspectorModel.modificationListeners.forEach { modificationListeners1 += 1 }
-    assertThat(modificationListeners1).isEqualTo(3)
-    assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(3)
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(3)
 
     Disposer.dispose(layoutInspectorLoadingObserver)
 
-    var modificationListeners2 = 0
-    inspectorRule.inspectorModel.modificationListeners.forEach { modificationListeners2 += 1 }
-    assertThat(modificationListeners2).isEqualTo(2)
-
+    assertThat(inspectorRule.inspectorModel.modificationListeners.size()).isEqualTo(2)
     assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(2)
 
     assertThat(layoutInspectorLoadingObserver.listeners.size()).isEqualTo(0)

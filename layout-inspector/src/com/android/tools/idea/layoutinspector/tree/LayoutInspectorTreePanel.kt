@@ -324,9 +324,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     // register listeners on new layout inspector
     nodeType.model = inspectorModel
     componentTreeModel.treeRoot = root
-    inspectorModel?.modificationListeners?.add(modelModifiedListener)
-    inspectorModel?.selectionListeners?.add(selectionChangedListener)
-    inspectorModel?.connectionListeners?.add(connectionListener)
+    inspectorModel?.addModificationListener(modelModifiedListener)
+    inspectorModel?.addSelectionListener(selectionChangedListener)
+    inspectorModel?.addConnectionListener(connectionListener)
     inspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
     rootPanel.layoutInspector = toolContext
 
@@ -335,9 +335,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   /** Remove all listeners registered on Layout Inspector */
   private fun cleanUp() {
-    inspectorModel?.modificationListeners?.remove(modelModifiedListener)
-    inspectorModel?.selectionListeners?.remove(selectionChangedListener)
-    inspectorModel?.connectionListeners?.remove(connectionListener)
+    inspectorModel?.removeModificationListener(modelModifiedListener)
+    inspectorModel?.removeSelectionListener(selectionChangedListener)
+    inspectorModel?.removeConnectionListener(connectionListener)
   }
 
   override fun getAdditionalActions() = additionalActions
