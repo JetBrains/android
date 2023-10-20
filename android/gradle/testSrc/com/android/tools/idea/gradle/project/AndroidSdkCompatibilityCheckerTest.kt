@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -46,9 +47,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private val PROJECT_ROOT = File("/")
 private val APP_MODULE_ROOT = File("/app")
@@ -67,7 +67,11 @@ class AndroidSdkCompatibilityCheckerTest {
       stableChannel = StudioVersionRecommendation.getDefaultInstance()
     }.build()
   )
-  private val timeout: Duration = 1.seconds
+  private val timeout: Long = 5
+
+  private fun findDialog(): AndroidSdkCompatibilityDialog? {
+    return findModelessDialog { it is AndroidSdkCompatibilityDialog } as AndroidSdkCompatibilityDialog?
+  }
 
   @Before
   fun setUp() {
@@ -87,9 +91,9 @@ class AndroidSdkCompatibilityCheckerTest {
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
-      createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, null) }, timeout) {
-        throw Exception("Should not have created a dialog")
-      }
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+      waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+      throw Exception("Should not have created a dialog")
     }
   }
 
@@ -101,9 +105,9 @@ class AndroidSdkCompatibilityCheckerTest {
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
-      createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }, timeout) {
-        throw Exception("Should not have created a dialog")
-      }
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+      waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+      throw Exception("Should not have created a dialog")
     }
   }
 
@@ -116,9 +120,9 @@ class AndroidSdkCompatibilityCheckerTest {
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
-      createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }, timeout) {
-        throw Exception("Should not have created a dialog")
-      }
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+      waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+      throw Exception("Should not have created a dialog")
     }
   }
 
@@ -131,9 +135,9 @@ class AndroidSdkCompatibilityCheckerTest {
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
-      createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }, timeout) {
-        throw Exception("Should not have created a dialog")
-      }
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+      waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+      throw Exception("Should not have created a dialog")
     }
   }
 
@@ -148,11 +152,12 @@ class AndroidSdkCompatibilityCheckerTest {
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = false
 
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(2)
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(2)
   }
 
   @Test
@@ -165,11 +170,12 @@ class AndroidSdkCompatibilityCheckerTest {
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
 
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
   }
 
   @Test
@@ -183,9 +189,9 @@ class AndroidSdkCompatibilityCheckerTest {
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
-      createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }, timeout) {
-        throw Exception("Should not have created a dialog")
-      }
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+      waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+      throw Exception("Should not have created a dialog")
     }
   }
 
@@ -201,9 +207,9 @@ class AndroidSdkCompatibilityCheckerTest {
     val androidModels = getGradleAndroidModels(projectRule.project)
 
     assertThrows(TimeoutException::class.java) {
-      createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }, timeout) {
-        throw Exception("Should not have created a dialog")
-      }
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+      waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+      throw Exception("Should not have created a dialog")
     }
   }
 
@@ -221,14 +227,15 @@ class AndroidSdkCompatibilityCheckerTest {
       appModuleBuilder(compileSdk = "android-1000"),
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue()
-      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
-      assertThat(it.potentialFallbackVersion).isNull()
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
+    assertThat(dialog.recommendedVersion.versionReleased).isTrue()
+    assertThat(dialog.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
+    assertThat(dialog.potentialFallbackVersion).isNull()
   }
 
   @Test
@@ -246,14 +253,15 @@ class AndroidSdkCompatibilityCheckerTest {
     )
 
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue()
-      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Beta Y")
-      assertThat(it.potentialFallbackVersion).isNull()
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
+    assertThat(dialog.recommendedVersion.versionReleased).isTrue()
+    assertThat(dialog.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Beta Y")
+    assertThat(dialog.potentialFallbackVersion).isNull()
   }
 
   @Test
@@ -271,14 +279,15 @@ class AndroidSdkCompatibilityCheckerTest {
     )
 
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue()
-      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Stable Z")
-      assertThat(it.potentialFallbackVersion).isNull()
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
+    assertThat(dialog.recommendedVersion.versionReleased).isTrue()
+    assertThat(dialog.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Stable Z")
+    assertThat(dialog.potentialFallbackVersion).isNull()
   }
 
   @Test
@@ -300,16 +309,17 @@ class AndroidSdkCompatibilityCheckerTest {
     )
 
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isFalse()
-      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Beta Y")
-      assertThat(it.potentialFallbackVersion).isNotNull()
-      assertThat(it.potentialFallbackVersion!!.versionReleased).isTrue()
-      assertThat(it.potentialFallbackVersion!!.buildDisplayName).isEqualTo("Android Studio Canary X")
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
+    assertThat(dialog.recommendedVersion.versionReleased).isFalse()
+    assertThat(dialog.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Beta Y")
+    assertThat(dialog.potentialFallbackVersion).isNotNull()
+    assertThat(dialog.potentialFallbackVersion!!.versionReleased).isTrue()
+    assertThat(dialog.potentialFallbackVersion!!.buildDisplayName).isEqualTo("Android Studio Canary X")
   }
 
   @Test
@@ -327,14 +337,15 @@ class AndroidSdkCompatibilityCheckerTest {
     )
 
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isFalse()
-      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
-      assertThat(it.potentialFallbackVersion).isNull()
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
+    assertThat(dialog.recommendedVersion.versionReleased).isFalse()
+    assertThat(dialog.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
+    assertThat(dialog.potentialFallbackVersion).isNull()
   }
 
   @Test
@@ -357,14 +368,15 @@ class AndroidSdkCompatibilityCheckerTest {
       appModuleBuilder(compileSdk = "android-TiramisuPrivacySandbox")
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
+    val dialog = findDialog()!!
 
-    createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
-      assertThat(it is AndroidSdkCompatibilityDialog)
-      assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue()
-      assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
-      assertThat(it.potentialFallbackVersion).isNull()
-    }
+    assertThat(dialog).isNotNull()
+    assertThat(dialog.modulesViolatingSupportRules).hasSize(1)
+    assertThat(dialog.recommendedVersion.versionReleased).isTrue()
+    assertThat(dialog.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
+    assertThat(dialog.potentialFallbackVersion).isNull()
   }
 
   private fun getGradleAndroidModels(project: Project): List<DataNode<GradleAndroidModelData>> {

@@ -85,7 +85,7 @@ class AndroidSdkCompatibilityChecker {
       else -> return
     }
 
-    ApplicationManager.getApplication().invokeLater({
+    ApplicationManager.getApplication().invokeLater {
       if (!project.isDisposed) {
         val dialog = AndroidSdkCompatibilityDialog(
           project,
@@ -95,7 +95,7 @@ class AndroidSdkCompatibilityChecker {
         )
         dialog.show()
       }
-    }, ModalityState.nonModal())
+    }
   }
 
   private fun getChannelFromUpdateSettings(): ProductDetails.SoftwareLifeCycleChannel {

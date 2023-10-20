@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.project
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
-import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.idea.serverflags.protos.StudioVersionRecommendation
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -28,6 +29,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JEditorPane
 
@@ -39,6 +41,10 @@ class AndroidSdkCompatibilityDialogTest {
 
   val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
   @get:Rule val rule = RuleChain(projectRule, HeadlessDialogRule())
+
+  private fun findDialog(): AndroidSdkCompatibilityDialog? {
+    return findModelessDialog { it is AndroidSdkCompatibilityDialog } as AndroidSdkCompatibilityDialog?
+  }
 
   @Test
   fun `test dialog content with same channel recommendation`() {
@@ -55,8 +61,10 @@ class AndroidSdkCompatibilityDialogTest {
         ".myapp" to AndroidVersion(1000)
       )
     )
+    dialog.show()
+    waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
 
-    createModalDialogAndInteractWithIt(dialog::show) {
+    dialog.let {
       assertThat(it.title).isEqualTo("Android Studio upgrade recommended")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
@@ -102,7 +110,10 @@ class AndroidSdkCompatibilityDialogTest {
       )
     )
 
-    createModalDialogAndInteractWithIt(dialog::show) {
+    dialog.show()
+    waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
+
+    dialog.let {
       assertThat(it.title).isEqualTo("Android Studio upgrade recommended")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
@@ -132,7 +143,10 @@ class AndroidSdkCompatibilityDialogTest {
       emptyList()
     )
 
-    createModalDialogAndInteractWithIt(dialog::show) {
+    dialog.show()
+    waitForCondition(5, TimeUnit.SECONDS) { findDialog() != null }
+
+    dialog.let {
       assertThat(it.title).isEqualTo("Android Studio upgrade recommended")
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)

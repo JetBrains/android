@@ -45,7 +45,7 @@ class AndroidSdkCompatibilityDialog(
   val recommendedVersion: StudioVersionRecommendation,
   val potentialFallbackVersion: StudioVersionRecommendation?,
   val modulesViolatingSupportRules: List<Pair<String, AndroidVersion>>
-) : DialogWrapper(project) {
+) : DialogWrapper(project, true, IdeModalityType.MODELESS) {
 
   init {
     title = AndroidBundle.message("project.upgrade.studio.notification.title")
