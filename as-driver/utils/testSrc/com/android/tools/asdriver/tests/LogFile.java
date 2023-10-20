@@ -66,7 +66,11 @@ public class LogFile {
 
   /**
    * Find all the lines in studio logs that match the regex and return all the matching regex groups.
-   *
+   * <p>
+   * Be mindful that this method does not <i>wait</i> for the lines to exist; it simply reads the
+   * log once when the method is invoked. This means you could potentially hit a race condition
+   * where a line that you're looking for has been emitted to the log, but it hasn't been persisted
+   * to disk yet. In those cases, consider using {@link LogFile#waitForMatchingLine}.
    * @param regex Regular expression to match
    * @return All matching regex groups for every single matching line.
    */
