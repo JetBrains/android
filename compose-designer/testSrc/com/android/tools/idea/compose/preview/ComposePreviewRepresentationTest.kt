@@ -206,6 +206,8 @@ class ComposePreviewRepresentationTest {
           }
         }
       )
+      val originalScale = 0.6
+      mainSurface.setScale(originalScale)
 
       val composeView = TestComposePreviewView(mainSurface)
       val preview =
@@ -280,6 +282,9 @@ class ComposePreviewRepresentationTest {
         }
       )
 
+      // Change the scale of the surface
+      mainSurface.setScale(originalScale + 0.5)
+
       // Check that the UI Check tab has been created
       assertEquals(2, contentManager.contents.size)
       assertNotNull(contentManager.findContent(uiCheckElement.displaySettings.name))
@@ -295,6 +300,9 @@ class ComposePreviewRepresentationTest {
       preview.setMode(PreviewMode.Default)
       delayUntilCondition(250) { preview.isInNormalMode }
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
+
+      // Check that the surface scale is reset to its original value
+      assertEquals(originalScale, mainSurface.scale, 0.001)
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",

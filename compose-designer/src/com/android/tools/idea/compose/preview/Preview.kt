@@ -603,7 +603,7 @@ class ComposePreviewRepresentation(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
     qualityManager.pause()
-    uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
+    uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, surface.scale)
     withContext(uiThread) {
       if (
         (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
@@ -641,8 +641,13 @@ class ComposePreviewRepresentation(
       IssuePanelService.getInstance(project)
         .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
     }
+    withContext(uiThread) {
+      surface.updateSceneViewVisibilities { true }
+      (uiCheckFilterFlow.value as? UiCheckModeFilter.Enabled)?.let {
+        surface.setScale(it.surfaceScale)
+      }
+    }
     uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
-    withContext(uiThread) { surface.updateSceneViewVisibilities { true } }
     forceRefresh().join()
   }
 
