@@ -144,7 +144,7 @@ public class JavaToKotlinConversionTest {
                  .contains("org.jetbrains.kotlin.android"))
       .isTrue();
 
-    //Manually changing the kotlin version to the latest version, and this step needs to be updated with every new release.
+    //Manually changing the kotlin version to the latest version.
     ConversionTestUtil.changeKotlinVersion(guiTest, "build.gradle");
 
     //Manually syncing after changing the kotlin version.

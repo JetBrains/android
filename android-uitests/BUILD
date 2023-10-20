@@ -123,12 +123,6 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-api-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-script-runtime-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven//:android.arch.navigation.navigation-fragment_1.0.0",
         "@maven//:android.arch.navigation.navigation-ui_1.0.0",
         "@maven//:android.arch.persistence.room.runtime_1.0.0",

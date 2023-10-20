@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.fest.swing.timing.Wait;
@@ -39,7 +40,7 @@ public class ConversionTestUtil {
     ideFrameFixture.getEditor()
       .open(gradleFile)
       .select("(id 'org.jetbrains.kotlin.android.*)")
-      .pasteText("id(\"org.jetbrains.kotlin.android\") version \"1.9.0\" apply false");
+      .pasteText("id(\"org.jetbrains.kotlin.android\") version \"" + TestUtils.KOTLIN_VERSION_FOR_TESTS + "\" apply false");
 
     guiTest.waitForBackgroundTasks();
     // TODO End hack
