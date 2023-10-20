@@ -24,6 +24,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 
 #include "accessors/service_manager.h"
 #include "flags.h"
@@ -107,6 +108,15 @@ void WriteChannelHeader(const string& codec_name, int socket_fd) {
   }
 }
 
+int GetFeatureLevel() {
+  int api_level = android_get_device_api_level();
+  char codename[92] = {0 };
+  if (__system_property_get("ro.build.version.codename", codename) < 1) {
+    return api_level;
+  }
+  return *codename == '\0' || strcmp(codename, "REL") == 0 ? api_level : api_level + 1;
+}
+
 }  // namespace
 
 void Agent::Initialize(const vector<string>& args) {
@@ -164,7 +174,7 @@ void Agent::Initialize(const vector<string>& args) {
     }
   }
 
-  api_level_ = android_get_device_api_level();
+  feature_level_ = GetFeatureLevel();
 }
 
 void Agent::Run(const vector<string>& args) {
@@ -298,7 +308,7 @@ void Agent::RecordTouchEvent() {
   last_touch_time_millis_ = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
-int32_t Agent::api_level_(0);
+int32_t Agent::feature_level_(0);
 string Agent::socket_name_("screen-sharing-agent");
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
 int32_t Agent::initial_video_orientation_(-1);

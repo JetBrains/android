@@ -30,7 +30,7 @@ ServiceManager::ServiceManager(Jni jni)
     : service_manager_class_() {
   service_manager_class_ = jni.GetClass("android/os/ServiceManager");
   // The waitForService method was introduced only in API 30. Fall back to getService on earlier versions.
-  const char* method_name = Agent::api_level() >= 30 ? "waitForService" : "getService";
+  const char* method_name = Agent::feature_level() >= 30 ? "waitForService" : "getService";
   wait_for_service_method_ = service_manager_class_.GetStaticMethod(method_name, "(Ljava/lang/String;)Landroid/os/IBinder;");
   service_manager_class_.MakeGlobal();
 }

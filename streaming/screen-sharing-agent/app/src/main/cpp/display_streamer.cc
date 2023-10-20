@@ -269,11 +269,11 @@ void DisplayStreamer::Run() {
     VirtualDisplay virtual_display;
     JObject display_token;
     string display_name = StringPrintf("studio.screen.sharing:%d", display_id_);
-    if (Agent::api_level() >= 34) {
+    if (Agent::feature_level() >= 34) {
       virtual_display = DisplayManager::CreateVirtualDisplay(
           jni, display_name.c_str(), display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
     } else {
-      bool secure = Agent::api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
+      bool secure = Agent::feature_level() < 31;  // Creation of secure displays is not allowed on API 31+.
       display_token = SurfaceControl::CreateDisplay(jni, display_name.c_str(), secure);
       if (display_token.IsNull()) {
         Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Display %d: unable to create a virtual display", display_id_);

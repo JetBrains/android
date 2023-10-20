@@ -62,7 +62,6 @@ private:
   static JClass window_manager_class_;
   static jmethodID freeze_display_rotation_method_;
   static jmethodID thaw_display_rotation_method_;
-  static bool caller_parameter_used_;  // freezeDisplayRotation and thawDisplayRotation have the "String caller" parameter.
   static jmethodID is_display_rotation_frozen_method_;
   static jmethodID watch_rotation_method_;
   // RotationWatcher class.

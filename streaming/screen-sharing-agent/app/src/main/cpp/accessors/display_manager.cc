@@ -53,11 +53,11 @@ void DisplayManager::InitializeStatics(Jni jni) {
     type_field_ = display_info_class.GetFieldId("type", "I");
     state_field_ = display_info_class.GetFieldId("state", "I");
 
-    if (Agent::api_level() >= 29) {
+    if (Agent::feature_level() >= 29) {
       display_listener_dispatcher_ = new DisplayListenerDispatcher();
     }
 
-    if (Agent::api_level() >= 34) {
+    if (Agent::feature_level() >= 34) {
       display_manager_class_ = jni.GetClass("android/hardware/display/DisplayManager");
       create_virtual_display_method_ = display_manager_class_.GetStaticMethod(
           "createVirtualDisplay", "(Ljava/lang/String;IIILandroid/view/Surface;)Landroid/hardware/display/VirtualDisplay;");

@@ -64,14 +64,14 @@ public:
 
   static int32_t flags() { return flags_; }
 
-  inline static int32_t api_level() { return api_level_; }
+  inline static int32_t feature_level() { return feature_level_; }
 
   static SessionEnvironment& session_environment() { return *session_environment_; }
 
 private:
   static void Initialize(const std::vector<std::string>& args);
 
-  static int32_t api_level_;
+  static int32_t feature_level_;
   static std::string socket_name_;
   static Size max_video_resolution_;
   static int32_t max_bit_rate_;  // Zero means no limit.

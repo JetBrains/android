@@ -526,7 +526,7 @@ void Controller::SendDeviceStateNotification() {
     notification.Serialize(output_stream_);
     output_stream_.Flush();
     previous_device_state_ = device_state;
-    if ((Agent::flags() & B_303684492_WORKAROUND) != 0 && Agent::api_level() >= 34) {
+    if ((Agent::flags() & B_303684492_WORKAROUND) != 0 && Agent::feature_level() >= 34) {
       StartDisplayPolling();  // Workaround for b/303684492.
     }
   }

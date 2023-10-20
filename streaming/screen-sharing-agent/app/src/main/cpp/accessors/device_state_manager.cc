@@ -32,7 +32,7 @@ namespace screensharing {
 using namespace std;
 
 bool DeviceStateManager::InitializeStatics(Jni jni) {
-  if (Agent::api_level() < 31) {
+  if (Agent::feature_level() < 31) {
     return false;  // Support for device states was introduced in API 31.
   }
 
@@ -46,7 +46,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
       jmethodID register_callback_method =
           device_state_manager_class.GetMethod("registerCallback", "(Landroid/hardware/devicestate/IDeviceStateManagerCallback;)V");
       request_state_method_ = device_state_manager_class.GetMethod("requestState", "(Landroid/os/IBinder;II)V");
-      if (Agent::api_level() >= 33) {
+      if (Agent::feature_level() >= 33) {
         cancel_state_request_method_ = device_state_manager_class.GetMethod("cancelStateRequest", "()V");
       }
       get_device_state_info_method_ =
@@ -84,7 +84,7 @@ bool DeviceStateManager::InitializeStatics(Jni jni) {
 }
 
 string DeviceStateManager::GetSupportedStates() {
-  if (Agent::api_level() < 31) {
+  if (Agent::feature_level() < 31) {
     return "";  // 'cmd device_state print-states' was introduced in API 31.
   }
   return ExecuteShellCommand("cmd device_state print-states");
