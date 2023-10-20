@@ -19,6 +19,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.project.Info;
@@ -27,7 +28,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.ModifiableFacetModel;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 
@@ -103,6 +107,32 @@ public class InfoTest extends PlatformTestCase {
     registerLastSyncTimestamp(-1L);
 
     assertFalse(myInfo.isBuildWithGradle());
+  }
+
+  public void testGetSelectedModules() {
+    createAndAddGradleFacet(myModule);
+
+    DataContext dataContext = mock(DataContext.class);
+    Module[] data = {myModule};
+    when(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).thenReturn(data);
+
+    Module[] selectedModules = myInfo.getModulesToBuildFromSelection(dataContext);
+    assertSame(data, selectedModules);
+
+    verify(dataContext).getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName());
+  }
+
+  public void testGetSelectedModulesWithModuleWithoutAndroidGradleFacet() {
+    DataContext dataContext = mock(DataContext.class);
+    Module[] data = {myModule};
+    when(dataContext.getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName())).thenReturn(data);
+
+    Module[] selectedModules = myInfo.getModulesToBuildFromSelection(dataContext);
+    assertNotSame(data, selectedModules);
+    assertEquals(1, selectedModules.length);
+    assertSame(myModule, selectedModules[0]);
+
+    verify(dataContext).getData(LangDataKeys.MODULE_CONTEXT_ARRAY.getName());
   }
 
   private void removeGradleFacetFromModule() {

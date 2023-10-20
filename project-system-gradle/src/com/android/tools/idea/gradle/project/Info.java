@@ -18,6 +18,9 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
+import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -25,10 +28,16 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.concurrency.ConcurrentCollectionFactory;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.ide.DataManager;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
@@ -37,7 +46,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Set;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class Info {
@@ -134,5 +145,53 @@ public class Info {
       return ((findGradleBuildFile(baseDir) != null) || (findGradleSettingsFile(baseDir) != null));
     }
     return false;
+  }
+
+  /**
+   * Returns the modules to build based on the current selection in the 'Project' tool window. If the module that corresponds to the project
+   * is selected, all the modules in such projects are returned. If there is no selection, an empty array is returned.
+   *
+   * @param dataContext knows the modules that are selected. If {@code null}, this method gets the {@code DataContext} from the 'Project'
+   *                    tool window directly.
+   * @return the modules to build based on the current selection in the 'Project' tool window.
+   */
+  @NotNull
+  public Module[] getModulesToBuildFromSelection(@Nullable DataContext dataContext) {
+    if (dataContext == null) {
+      ProjectView projectView = ProjectView.getInstance(myProject);
+      AbstractProjectViewPane pane = projectView.getCurrentProjectViewPane();
+
+      if (pane != null) {
+        JComponent treeComponent = pane.getComponentToFocus();
+        dataContext = DataManager.getInstance().getDataContext(treeComponent);
+      }
+      else {
+        return Module.EMPTY_ARRAY;
+      }
+    }
+    Module[] modules = MODULE_CONTEXT_ARRAY.getData(dataContext);
+    if (modules != null) {
+      if (modules.length == 1 && isProjectModule(modules[0])) {
+        return ModuleManager.getInstance(myProject).getModules();
+      }
+      return modules;
+    }
+    Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
+    if (module != null) {
+      return isProjectModule(module) ? ModuleManager.getInstance(myProject).getModules() : new Module[]{module};
+    }
+    return Module.EMPTY_ARRAY;
+  }
+
+  private static boolean isProjectModule(@NotNull Module module) {
+    // if we got here is because we are dealing with a Gradle project, but if there is only one module selected and this module is the
+    // module that corresponds to the project itself, it won't have an android-gradle facet. In this case we treat it as if we were going
+    // to build the whole project.
+    File moduleRootFolderPath = findModuleRootFolderPath(module);
+    if (moduleRootFolderPath == null) {
+      return false;
+    }
+    String basePath = module.getProject().getBasePath();
+    return basePath != null && filesEqual(moduleRootFolderPath, new File(basePath)) && !GradleFacet.isAppliedTo(module);
   }
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -29,7 +29,7 @@ class MakeTypeSelectionGroupAction : SplitButtonAction(AllMakeActionsGroup()) {
   override fun update(e: AnActionEvent) { // Extract the modules from this update action, as it always gets the right dataContext
     val project = e.project
     val modulesFromContext: List<String> = if (project == null) emptyList()
-    else GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
+    else Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
 
     (actionGroup as AllMakeActionsGroup).setModulesFromContext(modulesFromContext)
     super.update(e)

@@ -31,7 +31,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.flags.StudioFlags.INJECT_DEVICE_SERIAL_ENABLED
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
@@ -297,7 +297,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       is ModuleRunProfile -> configuration.modules
-      else -> GradleProjectInfo.getInstance(configuration.project).getModulesToBuildFromSelection(context)
+      else -> Info.getInstance(configuration.project).getModulesToBuildFromSelection(context)
     }
   }
 
