@@ -44,6 +44,7 @@ import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderService
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -288,8 +289,9 @@ class ParametrizedPreviewTest {
 
     assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
-    assertEquals(1, preview.availableGroupsFlow.value.size)
-    assertEquals("Screen sizes", preview.availableGroupsFlow.value.first().displayName)
+    assertThat(preview.availableGroupsFlow.value.map { it.displayName })
+      .containsExactly("Screen sizes", "Font scales", "Light/Dark")
+      .inOrder()
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed waiting to start UI check mode",
       5.seconds
@@ -304,6 +306,14 @@ class ParametrizedPreviewTest {
 
       stringValue ==
         """
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2

@@ -243,7 +243,7 @@ class ComposePreviewRepresentationTest {
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Screen sizes")
+        .containsExactly("Screen sizes", "Font scales", "Light/Dark")
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
@@ -273,11 +273,35 @@ class ComposePreviewRepresentationTest {
           spec:parent=_device_class_phone,orientation=landscape
           PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
         """
           .trimIndent(),
         preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
           val configurationDeviceSpecText =
-            "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotEmpty() } ?: ""
+            "${it.configuration.deviceSpec}\n".takeIf { str -> str.isNotBlank() } ?: ""
           "${it.methodFqn}\n$configurationDeviceSpecText${it.displaySettings}\n"
         }
       )
@@ -365,6 +389,30 @@ class ComposePreviewRepresentationTest {
           spec:parent=_device_class_phone,orientation=landscape
           PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
         """
           .trimIndent(),
         preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
@@ -451,7 +499,7 @@ class ComposePreviewRepresentationTest {
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Screen sizes", "Colorblind filters")
+        .containsExactly("Screen sizes", "Font scales", "Light/Dark", "Colorblind filters")
         .inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
@@ -480,6 +528,30 @@ class ComposePreviewRepresentationTest {
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
           PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
@@ -587,6 +659,30 @@ class ComposePreviewRepresentationTest {
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
           PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+
+          TestKt.Preview1
+          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)

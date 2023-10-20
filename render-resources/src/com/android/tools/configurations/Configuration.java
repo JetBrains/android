@@ -84,7 +84,7 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   public static final String CUSTOM_DEVICE_ID = "Custom";
 
   // Set of constants from {@link android.content.res.Configuration} to be used in setUiModeFlagValue.
-  private static final int UI_MODE_TYPE_MASK = 0x0000000f;
+  public static final int UI_MODE_TYPE_MASK = 0x0000000f;
   private static final int UI_MODE_TYPE_APPLIANCE = 0x00000005;
   private static final int UI_MODE_TYPE_CAR = 0x00000003;
   private static final int UI_MODE_TYPE_DESK = 0x00000002;
@@ -94,8 +94,8 @@ public class Configuration extends UserDataHolderBase implements Disposable, Mod
   private static final int UI_MODE_TYPE_WATCH = 0x00000006;
 
   private static final int UI_MODE_NIGHT_MASK = 0x00000030;
-  private static final int UI_MODE_NIGHT_YES = 0x00000020;
-  private static final int UI_MODE_NIGHT_NO = 0x00000010;
+  public static final int UI_MODE_NIGHT_YES = 0x00000020;
+  public static final int UI_MODE_NIGHT_NO = 0x00000010;
 
   private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
     ResourceNamespace.RES_AUTO, "postSplashScreenTheme"

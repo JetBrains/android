@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose
 
+import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
@@ -41,6 +42,17 @@ private val idToName =
     DEVICE_CLASS_DESKTOP_ID to "Desktop",
     DEVICE_CLASS_LANDSCAPE_PHONE_ID to "Medium Phone-Landscape"
   )
+private val fontScales =
+  mapOf(
+    0.85f to "85%",
+    1.0f to "100%",
+    1.15f to "115%",
+    1.3f to "130%",
+    1.8f to "180%",
+    2.0f to "200%",
+  )
+private val lightDarkModes =
+  mapOf(Configuration.UI_MODE_NIGHT_NO to "Light", Configuration.UI_MODE_NIGHT_YES to "Dark")
 
 /**
  * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance
@@ -90,76 +102,123 @@ sealed class UiCheckModeFilter {
       fun calculatePreviews(
         base: ComposePreviewElementInstance
       ): Collection<ComposePreviewElementInstance> {
-        val baseConfig = base.configuration
-        val baseDisplaySettings = base.displaySettings
-        val effectiveDeviceIds =
-          referenceDeviceIds +
-            mapOf(
-              "spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to
-                DEVICE_CLASS_LANDSCAPE_PHONE_ID,
-            )
 
         val composePreviewInstances = mutableListOf<ComposePreviewElementInstance>()
-        composePreviewInstances.addAll(
-          effectiveDeviceIds.keys.map { device ->
-            val config = baseConfig.copy(deviceSpec = device)
-            val displaySettings =
-              baseDisplaySettings.copy(
-                name = "${baseDisplaySettings.name} - ${idToName[effectiveDeviceIds[device]]}",
-                group = message("ui.check.mode.screen.size.group"),
-                showDecoration = true,
-              )
-            base.createDerivedInstance(displaySettings, config)
-          }
-        )
+        composePreviewInstances.addAll(deviceSizePreviews(base))
+        composePreviewInstances.addAll(fontSizePreviews(base))
+        composePreviewInstances.addAll(lightDarkPreviews(base))
 
         val isColorBlindModeUICheckEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
         if (isColorBlindModeUICheckEnabled) {
-          composePreviewInstances.addAll(
-            ColorBlindMode.values().map { colorBlindMode ->
-              val colorFilterBaseConfig =
-                baseConfig.copy(
-                  imageTransformation = { image ->
-                    ColorConverter(colorBlindMode).convert(image, image)
-                  },
-                )
-              val displaySettings =
-                baseDisplaySettings.copy(
-                  name = colorBlindMode.displayName,
-                  group = message("ui.check.mode.screen.accessibility.group"),
-                  showDecoration = false,
-                )
-              base.createDerivedInstance(displaySettings, colorFilterBaseConfig)
-            }
-          )
+          composePreviewInstances.addAll(colorBlindPreviews(base))
         }
         return composePreviewInstances
       }
-
-      private fun ComposePreviewElementInstance.createDerivedInstance(
-        displaySettings: PreviewDisplaySettings,
-        config: PreviewConfiguration
-      ): ComposePreviewElementInstance {
-        val singleInstance =
-          SingleComposePreviewElementInstance(
-            methodFqn,
-            displaySettings,
-            previewElementDefinitionPsi,
-            previewBodyPsi,
-            config,
-          )
-        return if (this is ParametrizedComposePreviewElementInstance) {
-          ParametrizedComposePreviewElementInstance(
-            singleInstance,
-            "",
-            providerClassFqn,
-            index,
-            maxIndex,
-          )
-        } else {
-          singleInstance
-        }
-      }
     }
+  }
+}
+
+private fun deviceSizePreviews(
+  baseInstance: ComposePreviewElementInstance
+): List<ComposePreviewElementInstance> {
+  val baseConfig = baseInstance.configuration
+  val baseDisplaySettings = baseInstance.displaySettings
+  val effectiveDeviceIds =
+    referenceDeviceIds +
+      mapOf(
+        "spec:parent=$DEVICE_CLASS_PHONE_ID,orientation=landscape" to
+          DEVICE_CLASS_LANDSCAPE_PHONE_ID,
+      )
+  return effectiveDeviceIds.keys.map { device ->
+    val config = baseConfig.copy(deviceSpec = device)
+    val displaySettings =
+      baseDisplaySettings.copy(
+        name = "${baseDisplaySettings.name} - ${idToName[effectiveDeviceIds[device]]}",
+        group = message("ui.check.mode.screen.size.group"),
+        showDecoration = true,
+      )
+    baseInstance.createDerivedInstance(displaySettings, config)
+  }
+}
+
+private fun fontSizePreviews(
+  baseInstance: ComposePreviewElementInstance
+): List<ComposePreviewElementInstance> {
+  val baseConfig = baseInstance.configuration
+  val baseDisplaySettings = baseInstance.displaySettings
+  return fontScales.map { (value, name) ->
+    val config = baseConfig.copy(fontScale = value)
+    val displaySettings =
+      baseDisplaySettings.copy(
+        name = "${baseDisplaySettings.name} - $name",
+        group = message("ui.check.mode.font.scale.group"),
+      )
+    baseInstance.createDerivedInstance(displaySettings, config)
+  }
+}
+
+private fun lightDarkPreviews(
+  baseInstance: ComposePreviewElementInstance
+): List<ComposePreviewElementInstance> {
+  val baseConfig = baseInstance.configuration
+  val baseDisplaySettings = baseInstance.displaySettings
+  return lightDarkModes.map { (value, name) ->
+    val config =
+      baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
+    val displaySettings =
+      baseDisplaySettings.copy(
+        name = "${baseDisplaySettings.name} - $name",
+        group = message("ui.check.mode.light.dark.group"),
+      )
+    baseInstance.createDerivedInstance(displaySettings, config)
+  }
+}
+
+private fun colorBlindPreviews(
+  baseInstance: ComposePreviewElementInstance
+): List<ComposePreviewElementInstance> {
+  val baseConfig = baseInstance.configuration
+  val baseDisplaySettings = baseInstance.displaySettings
+  return ColorBlindMode.values().map { colorBlindMode ->
+    val colorFilterBaseConfig =
+      baseConfig.copy(
+        imageTransformation = { image -> ColorConverter(colorBlindMode).convert(image, image) },
+      )
+    val displaySettings =
+      baseDisplaySettings.copy(
+        name = colorBlindMode.displayName,
+        group = message("ui.check.mode.screen.accessibility.group"),
+        showDecoration = false,
+      )
+    baseInstance.createDerivedInstance(displaySettings, colorFilterBaseConfig)
+  }
+}
+
+/**
+ * Derives a new [ComposePreviewElementInstance] from an existing one, replacing the
+ * [PreviewDisplaySettings] and the [PreviewConfiguration].
+ */
+private fun ComposePreviewElementInstance.createDerivedInstance(
+  displaySettings: PreviewDisplaySettings,
+  config: PreviewConfiguration
+): ComposePreviewElementInstance {
+  val singleInstance =
+    SingleComposePreviewElementInstance(
+      methodFqn,
+      displaySettings,
+      previewElementDefinitionPsi,
+      previewBodyPsi,
+      config,
+    )
+  return if (this is ParametrizedComposePreviewElementInstance) {
+    ParametrizedComposePreviewElementInstance(
+      singleInstance,
+      "",
+      providerClassFqn,
+      index,
+      maxIndex,
+    )
+  } else {
+    singleInstance
   }
 }
