@@ -60,18 +60,25 @@ class InspectorModel(
   val scheduler: ScheduledExecutorService? = null,
   processesModel: ProcessesModel? = null
 ) : ViewNodeAndResourceLookup {
+
+  fun interface SelectionListener {
+    fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin)
+  }
+
+  fun interface ConnectionListener {
+    fun onConnectionChanged(newClient: InspectorClient?)
+  }
+
   init {
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
 
-  override val resourceLookup = ResourceLookup(project)
-  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
-
+  val selectionListeners = mutableListOf<SelectionListener>()
   val modificationListeners =
     ListenerCollection.createWithDirectExecutor<InspectorModelModificationListener>()
+  val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
 
-  val connectionListeners =
-    ListenerCollection.createWithDirectExecutor<(InspectorClient?) -> Unit>()
+  override val resourceLookup = ResourceLookup(project)
   var lastGeneration = 0
   var updating = false
 
@@ -249,7 +256,7 @@ class InspectorModel(
   fun setSelection(new: ViewNode?, origin: SelectionOrigin) {
     val old = selection
     selection = new
-    selectionListeners.forEach { it(old, new, origin) }
+    selectionListeners.forEach { it.onSelection(old, new, origin) }
   }
 
   fun resetRecompositionCounts() {
@@ -268,7 +275,7 @@ class InspectorModel(
   }
 
   fun updateConnection(client: InspectorClient) {
-    connectionListeners.forEach { it(client) }
+    connectionListeners.forEach { it.onConnectionChanged(client) }
   }
 
   /**
