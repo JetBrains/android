@@ -31,7 +31,6 @@ COMMON_DATA = [
     "//tools/base/build-system:gradle-distrib",
     "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     "//tools/base/build-system/integration-test:kotlin_gradle_plugin_for_compose_prebuilts",
-    "//tools/base/third_party/kotlin:kotlin-m2repository",
     "//tools/data-binding:data_binding_runtime.zip",
     "//tools/vendor/google/testing/display:xvfb",
 ]
