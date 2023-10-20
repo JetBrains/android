@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
@@ -111,7 +110,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private var toolWindowCallback: ToolWindowCallback? = null
   private var filter = ""
   private val modelModifiedListener =
-    InspectorModelModificationListener { oldWindow, newWindow, isStructuralChange ->
+    InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
       modelModified(oldWindow, newWindow, isStructuralChange)
       componentTreePanel.repaint()
     }

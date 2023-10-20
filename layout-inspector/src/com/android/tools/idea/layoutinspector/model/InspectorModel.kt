@@ -47,14 +47,6 @@ enum class SelectionOrigin {
   COMPONENT_TREE
 }
 
-fun interface InspectorModelModificationListener {
-  fun onModification(
-    oldWindow: AndroidWindow?,
-    newWindow: AndroidWindow?,
-    isStructuralChange: Boolean
-  )
-}
-
 class InspectorModel(
   val project: Project,
   val scheduler: ScheduledExecutorService? = null,
@@ -69,13 +61,20 @@ class InspectorModel(
     fun onConnectionChanged(newClient: InspectorClient?)
   }
 
+  fun interface ModificationListener {
+    fun onModification(
+      oldWindow: AndroidWindow?,
+      newWindow: AndroidWindow?,
+      isStructuralChange: Boolean
+    )
+  }
+
   init {
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
 
   val selectionListeners = mutableListOf<SelectionListener>()
-  val modificationListeners =
-    ListenerCollection.createWithDirectExecutor<InspectorModelModificationListener>()
+  val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
   val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
 
   override val resourceLookup = ResourceLookup(project)

@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -48,7 +48,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
       handleNewSelection(oldView, newView, selectionOrigin)
     }
   private val modificationListener =
-    InspectorModelModificationListener { oldWindow, newWindow, isStructuralChange ->
+    InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
       handleModelChange(oldWindow, newWindow, isStructuralChange)
     }
   private val connectionListener: (InspectorClient?) -> Unit = { handleConnectionChange(it) }

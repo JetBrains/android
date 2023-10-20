@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executors
@@ -54,9 +54,8 @@ class LayoutInspectorLoadingObserver(
     }
   }
 
-  private val inspectorModelModificationListener = InspectorModelModificationListener { _, _, _ ->
-    setIsLoading(false)
-  }
+  private val inspectorModelModificationListener =
+    InspectorModel.ModificationListener { _, _, _ -> setIsLoading(false) }
 
   init {
     Disposer.register(parentDisposable, this)
