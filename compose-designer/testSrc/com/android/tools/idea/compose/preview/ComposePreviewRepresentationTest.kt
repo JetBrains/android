@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -222,9 +223,7 @@ class ComposePreviewRepresentationTest {
 
         delayWhileRefreshingOrDumb(preview)
       }
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
-        preview.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       val previewElements =
         mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
@@ -238,9 +237,7 @@ class ComposePreviewRepresentationTest {
       preview.setMode(PreviewMode.UiCheck(uiCheckElement))
       delayUntilCondition(250) { preview.isUiCheckPreview }
 
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
-        preview.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
@@ -297,9 +294,7 @@ class ComposePreviewRepresentationTest {
       // Stop UI Check mode
       preview.setMode(PreviewMode.Default)
       delayUntilCondition(250) { preview.isInNormalMode }
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
-        preview.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",
@@ -430,9 +425,7 @@ class ComposePreviewRepresentationTest {
 
         delayWhileRefreshingOrDumb(preview)
       }
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
-        preview.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       val previewElements =
         mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
@@ -446,9 +439,7 @@ class ComposePreviewRepresentationTest {
       preview.setMode(PreviewMode.UiCheck(uiCheckElement))
       delayUntilCondition(250) { preview.isUiCheckPreview }
 
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
-        preview.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
@@ -526,9 +517,7 @@ class ComposePreviewRepresentationTest {
       // Stop UI Check mode
       preview.setMode(PreviewMode.Default)
       delayUntilCondition(250) { preview.isInNormalMode }
-      assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
-        preview.uiCheckFilterFlow.value
-      )
+      assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
 
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed stop uiCheckMode",

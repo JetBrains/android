@@ -18,7 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
-import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
@@ -26,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.ComposePreviewElementsModel
+import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.buildlisteners.PreviewBuildListenersManager
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
@@ -54,7 +54,6 @@ import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
-import com.android.tools.idea.flags.StudioFlags.NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
@@ -83,16 +82,10 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.android.tools.preview.ParametrizedComposePreviewElementInstance
-import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
-import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.preview.config.referenceDeviceIds
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
 import com.intellij.ide.ActivityTracker
@@ -1570,129 +1563,6 @@ class ComposePreviewRepresentation(
   @TestOnly
   suspend fun waitForAnyPreviewToBeAvailable() {
     allPreviewElementsInFileFlow.filter { it.isNotEmpty() }.take(1).collect()
-  }
-
-  /**
-   * A filter that is applied in "UI Check Mode". When enabled, it will get the `selected` instance
-   * and generate multiple previews, one per reference device for the user to check.
-   */
-  sealed class UiCheckModeFilter {
-    var modelsWithErrors: Set<NlModel> = emptySet()
-    abstract val basePreviewInstance: ComposePreviewElementInstance?
-
-    abstract fun filterPreviewInstances(
-      previewInstances: Collection<ComposePreviewElementInstance>
-    ): Collection<ComposePreviewElementInstance>
-
-    abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
-
-    object Disabled : UiCheckModeFilter() {
-      override val basePreviewInstance = null
-
-      override fun filterPreviewInstances(
-        previewInstances: Collection<ComposePreviewElementInstance>
-      ): Collection<ComposePreviewElementInstance> = previewInstances
-
-      override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
-    }
-
-    class Enabled(selected: ComposePreviewElementInstance) : UiCheckModeFilter() {
-      override val basePreviewInstance = selected
-
-      private val uiCheckPreviews: Collection<ComposePreviewElementInstance> =
-        calculatePreviews(selected)
-
-      /**
-       * Calculate the groups. This will be all the groups available in [uiCheckPreviews] if any.
-       */
-      private val uiCheckPreviewGroups =
-        uiCheckPreviews
-          .mapNotNull { it.displaySettings.group?.let { group -> PreviewGroup.namedGroup(group) } }
-          .toSet()
-
-      override fun filterPreviewInstances(
-        previewInstances: Collection<ComposePreviewElementInstance>
-      ): Collection<ComposePreviewElementInstance> = uiCheckPreviews
-
-      override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
-        uiCheckPreviewGroups
-
-      private companion object {
-        fun calculatePreviews(
-          base: ComposePreviewElementInstance
-        ): Collection<ComposePreviewElementInstance> {
-          val baseConfig = base.configuration
-          val baseDisplaySettings = base.displaySettings
-          val effectiveDeviceIds =
-            referenceDeviceIds +
-              mapOf(
-                "spec:parent=${DEVICE_CLASS_PHONE_ID},orientation=landscape" to
-                  "${DEVICE_CLASS_PHONE_ID}-landscape",
-              )
-
-          val composePreviewInstances = mutableListOf<ComposePreviewElementInstance>()
-          composePreviewInstances.addAll(
-            effectiveDeviceIds.keys.map { device ->
-              val config = baseConfig.copy(deviceSpec = device)
-              val displaySettings =
-                baseDisplaySettings.copy(
-                  name = "${baseDisplaySettings.name} - ${effectiveDeviceIds[device]}",
-                  group = message("ui.check.mode.screen.size.group"),
-                  showDecoration = true,
-                )
-              base.createDerivedInstance(displaySettings, config)
-            }
-          )
-
-          val isColorBlindModeUICheckEnabled = NELE_COMPOSE_UI_CHECK_COLORBLIND_MODE.get()
-          if (isColorBlindModeUICheckEnabled) {
-            composePreviewInstances.addAll(
-              ColorBlindMode.values().map { colorBlindMode ->
-                val colorFilterBaseConfig =
-                  baseConfig.copy(
-                    imageTransformation = { image ->
-                      ColorConverter(colorBlindMode).convert(image, image)
-                    },
-                  )
-                val displaySettings =
-                  baseDisplaySettings.copy(
-                    name = colorBlindMode.displayName,
-                    group = message("ui.check.mode.screen.accessibility.group"),
-                    showDecoration = false,
-                  )
-                base.createDerivedInstance(displaySettings, colorFilterBaseConfig)
-              }
-            )
-          }
-          return composePreviewInstances
-        }
-
-        private fun ComposePreviewElementInstance.createDerivedInstance(
-          displaySettings: PreviewDisplaySettings,
-          config: PreviewConfiguration
-        ): ComposePreviewElementInstance {
-          val singleInstance =
-            SingleComposePreviewElementInstance(
-              methodFqn,
-              displaySettings,
-              previewElementDefinitionPsi,
-              previewBodyPsi,
-              config,
-            )
-          return if (this is ParametrizedComposePreviewElementInstance) {
-            ParametrizedComposePreviewElementInstance(
-              singleInstance,
-              "",
-              providerClassFqn,
-              index,
-              maxIndex,
-            )
-          } else {
-            singleInstance
-          }
-        }
-      }
-    }
   }
 
   override val mode

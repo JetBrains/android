@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.datasource
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
@@ -286,9 +287,7 @@ class ParametrizedPreviewTest {
     preview.setMode(PreviewMode.UiCheck(uiCheckElement))
     delayUntilCondition(250) { preview.isUiCheckPreview }
 
-    assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
-      preview.uiCheckFilterFlow.value
-    )
+    assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
     assertEquals(1, preview.availableGroupsFlow.value.size)
     assertEquals("Screen sizes", preview.availableGroupsFlow.value.first().displayName)
