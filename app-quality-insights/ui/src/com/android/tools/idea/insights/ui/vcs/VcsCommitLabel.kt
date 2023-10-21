@@ -56,7 +56,7 @@ class VcsCommitLabel : JPanel() {
 
         HelpTooltip().apply {
           setTitle("Version control information is missing")
-          setDescription("<html><div width=\"250\">${vcsInfo.message}</html>")
+          setDescription("<html><div width=\"250\">${vcsInfo.cause.message}</html>")
           installOn(infoIconForCommitLabel)
         }
         infoIconForCommitLabel.isVisible = true

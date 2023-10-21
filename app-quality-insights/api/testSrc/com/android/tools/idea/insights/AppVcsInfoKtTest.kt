@@ -37,7 +37,7 @@ class AppVcsInfoKtTest {
     val textProto = TextFormat.printer().printToString(original)
 
     assertThat(AppVcsInfo.fromProto(textProto))
-      .isEqualTo(AppVcsInfo.Error("No valid git project found."))
+      .isEqualTo(AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND))
   }
 
   @Test
@@ -71,4 +71,6 @@ private val SAMPLE_VALID_APP_VCS_INFO_BUILDER =
   BuildStamp.newBuilder().apply { addRepositories(SAMPLE_REPO_BUILDER.build()) }
 
 private val SAMPLE_ERROR_APP_VCS_INFO_BUILDER =
-  BuildStamp.newBuilder().apply { generateErrorReason = "No valid git project found." }
+  BuildStamp.newBuilder().apply {
+    generateErrorReason = BuildStamp.GenerateErrorReason.NO_VALID_GIT_FOUND
+  }

@@ -30,7 +30,7 @@ const val ABOVE_PROJECT_ROOT_PREFIX = "\$ABOVE_PROJECT_DIR"
 sealed class AppVcsInfo {
   data class ValidInfo(val repoInfo: List<RepoInfo>) : AppVcsInfo()
 
-  data class Error(val message: String) : AppVcsInfo()
+  data class Error(val cause: GenerateErrorReason) : AppVcsInfo()
 
   object NONE : AppVcsInfo()
 
@@ -41,8 +41,8 @@ sealed class AppVcsInfo {
     }
 
     private fun fromProto(proto: BuildStamp): AppVcsInfo {
-      return if (proto.generateErrorReason.isNotEmpty()) {
-        Error(proto.generateErrorReason)
+      return if (proto.hasGenerateErrorReason()) {
+        Error(GenerateErrorReason.fromProto(proto.generateErrorReason))
       } else if (proto.repositoriesList.isNotEmpty()) {
         ValidInfo(repoInfo = proto.repositoriesList.mapNotNull { RepoInfo.fromProto(it) })
       } else {
@@ -85,5 +85,25 @@ fun decode(textProto: String): BuildStamp {
   } catch (exception: Exception) {
     logger().warn("Error when decoding from text proto ($textProto): $exception")
     BuildStamp.getDefaultInstance()
+  }
+}
+
+enum class GenerateErrorReason(val message: String) {
+  NO_SUPPORTED_VCS_FOUND(
+    "At this time, we only support Git configuration at the root project level. Other Git configurations or version control systems are not currently supported."
+  ),
+  NO_VALID_GIT_FOUND(
+    "The Git repository does not appear to be initialized at the root project level. The expected files '.git/HEAD' or '.git/refs/heads/${'$'}{branch}' were not found."
+  ),
+  UNSPECIFIED("The cause of the issue is unknown.");
+
+  companion object {
+    fun fromProto(proto: BuildStamp.GenerateErrorReason): GenerateErrorReason {
+      return when (proto) {
+        BuildStamp.GenerateErrorReason.NO_SUPPORTED_VCS_FOUND -> NO_SUPPORTED_VCS_FOUND
+        BuildStamp.GenerateErrorReason.NO_VALID_GIT_FOUND -> NO_VALID_GIT_FOUND
+        else -> UNSPECIFIED
+      }
+    }
   }
 }

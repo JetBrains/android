@@ -20,6 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.GenerateErrorReason
 import com.android.tools.idea.insights.PROJECT_ROOT_PREFIX
 import com.android.tools.idea.insights.RepoInfo
 import com.android.tools.idea.insights.VCS_CATEGORY
@@ -53,7 +54,7 @@ class AppInsightsExternalAnnotatorOnChangeTest {
         )
       )
 
-    errorAppVcsInfo = AppVcsInfo.Error("Invalid")
+    errorAppVcsInfo = AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND)
   }
 
   private val document

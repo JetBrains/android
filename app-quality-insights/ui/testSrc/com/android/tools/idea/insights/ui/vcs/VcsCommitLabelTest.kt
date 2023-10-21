@@ -1,6 +1,7 @@
 package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.GenerateErrorReason
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.testing.ui.flatten
@@ -37,7 +38,7 @@ class VcsCommitLabelTest {
     assertThat(tooltip).isNull()
 
     // Check error/debug info case
-    label.updateOnIssueChange(AppVcsInfo.Error("Invalid"))
+    label.updateOnIssueChange(AppVcsInfo.Error(GenerateErrorReason.NO_VALID_GIT_FOUND))
     label.refreshUnderlyingLabels()
     assertThat(commitLabel.text).isEqualTo(NO_DATA)
     assertThat(infoIconForCommitLabel.isVisible).isTrue()
