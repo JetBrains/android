@@ -24,6 +24,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Supplier
@@ -43,10 +44,14 @@ interface IdeProfilerServices {
   /**
    * Compute expensive intermediate value on "pool", then resume it on "main"
    */
-  fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>) {
+  fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>, timeoutMs: Long) {
     CompletableFuture
-      .supplyAsync(supplier, poolExecutor)
+      .supplyAsync(supplier, poolExecutor).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
       .whenComplete { result: R , action -> mainExecutor.execute { consumer.accept(result) } }
+  }
+
+  fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>) {
+    runAsync(supplier, consumer, Long.MAX_VALUE)
   }
 
   /**

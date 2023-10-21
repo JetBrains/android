@@ -422,14 +422,27 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
   private void goToCaptureStage(long traceId) {
     // Trace ID handled by the Profiler
     if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
-      CpuCaptureStage stage = CpuCaptureStage.create(
-        getStudioProfilers(),
-        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration(), isTraceboxEnabled),
-        myEntryPoint, traceId);
-      if (stage != null) {
-        getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
-        return;
-      }
+      // The creation of the CpuCaptureStage has been offloaded to a separate thread and therefore computed asynchronously so that
+      // (1) it does not block the main thread with some of the downstream, potentially blocking grpc calls (e.g. call to getBytes()) and
+      // (2) it allows us to set a time limitation/timeout on the creation of the capture stage to prevent indefinite freezing in cases
+      // where creating the CpuCaptureStage failed.
+      getStudioProfilers().getIdeServices().runAsync(
+        () -> {
+          myRecordingOptionsModel.setLoading(true);
+          return CpuCaptureStage.create(getStudioProfilers(), ProfilingConfiguration.fromProto(
+            myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration(), isTraceboxEnabled), myEntryPoint, traceId);
+        },
+        stage -> {
+          myRecordingOptionsModel.setLoading(false);
+          if (stage != null) {
+            getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
+          }
+          else {
+            // Trace ID is not found or the capture stage cannot retrieve the trace.
+            setCaptureState(CaptureState.IDLE);
+            getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
+          }
+        }, 10000);
     }
 
     // Trace ID handled by the PerfettoTraceWebLoader
@@ -438,12 +451,7 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       getStudioProfilers().getIdeServices().getMainExecutor().execute(
         () -> getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
       );
-      return;
     }
-
-    // Trace ID is not found or the capture stage cannot retrieve the trace.
-    setCaptureState(CaptureState.IDLE);
-    getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
   }
 
   @NotNull
