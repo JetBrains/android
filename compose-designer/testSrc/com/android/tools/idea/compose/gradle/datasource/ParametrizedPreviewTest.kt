@@ -43,7 +43,6 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.preview.resolve
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel

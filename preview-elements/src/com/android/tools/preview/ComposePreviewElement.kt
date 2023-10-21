@@ -286,13 +286,12 @@ interface ComposePreviewElement : MethodPreviewElement {
 
   /** Preview element configuration that affects how LayoutLib resolves the resources */
   val configuration: PreviewConfiguration
-}
-/**
- * Definition of a preview element template. This element can dynamically spawn one or more
- * [ComposePreviewElementInstance]s.
- */
-interface ComposePreviewElementTemplate : ComposePreviewElement {
-  fun instances(renderContext: ModuleRenderContext? = null): Sequence<ComposePreviewElementInstance>
+
+  /**
+   * [ComposePreviewElementInstance]s that this [ComposePreviewElement] can be resolved into. A single [ComposePreviewElement] can produce
+   * multiple [ComposePreviewElementInstance]s for example if @Composable method has parameters.
+   */
+  fun resolve(): Sequence<ComposePreviewElementInstance>
 }
 
 /** Definition of a preview element */
@@ -305,6 +304,8 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
    * opening the animation inspector.
    */
   var hasAnimations = false
+
+  override fun resolve(): Sequence<ComposePreviewElementInstance> = sequenceOf(this)
 
   override fun toPreviewXml(): PreviewXmlBuilder {
     val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
@@ -390,7 +391,8 @@ class SingleComposePreviewElementInstance(
   }
 }
 
-class ParametrizedComposePreviewElementInstance(
+class
+ParametrizedComposePreviewElementInstance(
   private val basePreviewElement: ComposePreviewElement,
   parameterName: String,
   val providerClassFqn: String,
@@ -429,14 +431,12 @@ open class ParametrizedComposePreviewElementTemplate(
   private val basePreviewElement: ComposePreviewElement,
   val parameterProviders: Collection<PreviewParameter>,
   private val renderContextFactory: (PsiFile?) -> ModuleRenderContext?,
-) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
+) : ComposePreviewElement by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
    * will be populated with data from the parameter providers.
    */
-  override fun instances(
-    renderContext: ModuleRenderContext?,
-  ): Sequence<ComposePreviewElementInstance> {
+  override fun resolve(): Sequence<ComposePreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     if (parameterProviders.size > 1) {
@@ -444,7 +444,7 @@ open class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = renderContext ?: renderContextFactory(basePreviewElement.containingFile) ?: return sequenceOf()
+    val moduleRenderContext = renderContextFactory(basePreviewElement.containingFile) ?: return sequenceOf()
     ModuleClassLoaderManager.get()
       .getPrivate(
         ParametrizedComposePreviewElementTemplate::class.java.classLoader,
@@ -541,20 +541,3 @@ open class ParametrizedComposePreviewElementTemplate(
 
   override fun hashCode(): Int = Objects.hash(basePreviewElement, parameterProviders)
 }
-
-/**
- * Resolves an abstract [ComposePreviewElement] into a (possibly empty) sequence of
- * [ComposePreviewElementInstance].
- *
- * TODO: Consider making [resolve] a polymorphic method.
- */
-fun ComposePreviewElement.resolve(): Sequence<ComposePreviewElementInstance> =
-  when (this) {
-    is ComposePreviewElementTemplate -> this.instances()
-    is ComposePreviewElementInstance -> sequenceOf(this)
-    else -> {
-      Logger.getInstance(ComposePreviewElement::class.java)
-        .warn("Class was not instance or template ${this::class.qualifiedName}")
-      emptySequence()
-    }
-  }

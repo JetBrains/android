@@ -19,9 +19,7 @@ import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ComposePreviewElementInstance
-import com.android.tools.preview.ComposePreviewElementTemplate
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.rendering.ModuleRenderContext
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -36,7 +34,7 @@ class ComposePreviewElementsModelTest {
 
     // Fake PreviewElementTemplate that generates a couple of instances
     val template =
-      object : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
+      object : ComposePreviewElement by basePreviewElement {
         private val templateInstances =
           listOf(
             SingleComposePreviewElementInstance.forTesting(
@@ -46,9 +44,8 @@ class ComposePreviewElementsModelTest {
             SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup")
           )
 
-        override fun instances(
-          renderContext: ModuleRenderContext?
-        ): Sequence<ComposePreviewElementInstance> = templateInstances.asSequence()
+        override fun resolve(): Sequence<ComposePreviewElementInstance> =
+          templateInstances.asSequence()
       }
     val allPreviews =
       listOf(
