@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.streaming;
 
 import com.intellij.openapi.Disposable;
@@ -11,6 +11,7 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.RegisterToolWindowTask;
@@ -42,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -319,7 +321,16 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
+    public @NotNull Supplier<@NlsContexts.TabTitle String> getStripeTitleProvider() {
+      return () -> "";
+    }
+
+    @Override
     public void setStripeTitle(@NotNull String title) {
+    }
+
+    @Override
+    public void setStripeTitleProvider(@NotNull Supplier<@NlsContexts.TabTitle @NotNull String> title) {
     }
 
     @Override
