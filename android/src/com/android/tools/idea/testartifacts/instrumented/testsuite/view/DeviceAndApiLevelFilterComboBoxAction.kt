@@ -19,6 +19,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -45,6 +46,8 @@ class DeviceAndApiLevelFilterComboBoxAction : ComboBoxAction(), DumbAware {
   val filter: ((AndroidDevice) -> Boolean)
     get() = { myFilter(it) }
   var listener: DeviceAndApiLevelFilterComboBoxActionListener? = null
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)

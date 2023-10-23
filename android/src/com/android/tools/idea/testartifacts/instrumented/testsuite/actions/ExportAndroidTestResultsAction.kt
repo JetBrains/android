@@ -27,6 +27,7 @@ import com.intellij.execution.testframework.export.ExportTestResultsConfiguratio
 import com.intellij.execution.testframework.export.ExportTestResultsDialog
 import com.intellij.icons.AllIcons
 import com.intellij.idea.ActionsBundle
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -56,6 +57,8 @@ class ExportAndroidTestResultsAction :
   var toolWindowId: String? = null
 
   @UiThread
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = e.project != null &&
                                devices?.isEmpty() == false &&
