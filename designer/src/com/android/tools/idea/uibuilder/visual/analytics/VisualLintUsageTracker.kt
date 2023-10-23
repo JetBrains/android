@@ -59,25 +59,15 @@ interface VisualLintUsageTracker {
     track(VisualLintEvent.IssueEvent.CLICK_DOCUMENTATION_LINK, issueType, null)
   }
 
-  fun track(
-    issueEvent: VisualLintEvent.IssueEvent,
-    issueType: VisualLintErrorType?,
-    facet: AndroidFacet?
-  )
-
-  companion object {
-    fun getInstance(): VisualLintUsageTracker {
-      return if (AnalyticsSettings.optedIn) VisualLintUsageTrackerImpl
-      else VisualLintNoOpUsageTracker
-    }
+  fun trackFirstRunTime(timeMs: Long, facet: AndroidFacet?) {
+    logEvent(facet) { VisualLintEvent.newBuilder().setUiCheckStartTimeMs(timeMs).build() }
   }
-}
 
-private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
-  private val executorService =
-    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  fun trackVisiblePreviews(count: Int, facet: AndroidFacet?) {
+    logEvent(facet) { VisualLintEvent.newBuilder().setVisiblePreviewsNumber(count).build() }
+  }
 
-  override fun track(
+  fun track(
     issueEvent: VisualLintEvent.IssueEvent,
     issueType: VisualLintErrorType?,
     facet: AndroidFacet?
@@ -96,14 +86,32 @@ private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
         VisualLintErrorType.WEAR_MARGIN -> VisualLintEvent.IssueType.WEAR_MARGIN
         else -> VisualLintEvent.IssueType.UNKNOWN_TYPE
       }
+    logEvent(facet) {
+      VisualLintEvent.newBuilder().setIssueType(metricsIssueType).setIssueEvent(issueEvent).build()
+    }
+  }
+
+  fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent)
+
+  companion object {
+    fun getInstance(): VisualLintUsageTracker {
+      return if (AnalyticsSettings.optedIn) VisualLintUsageTrackerImpl
+      else VisualLintNoOpUsageTracker
+    }
+  }
+}
+
+private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
+  private val executorService =
+    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+
+  override fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent) {
     try {
       executorService.execute {
-        val visualLintEventBuilder =
-          VisualLintEvent.newBuilder().setIssueType(metricsIssueType).setIssueEvent(issueEvent)
         val layoutEditorEventBuilder =
           LayoutEditorEvent.newBuilder()
             .setType(LayoutEditorEvent.LayoutEditorEventType.VISUAL_LINT)
-            .setVisualLintEvent(visualLintEventBuilder.build())
+            .setVisualLintEvent(visualLintEventProvider())
         val studioEvent =
           AndroidStudioEvent.newBuilder()
             .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
@@ -118,9 +126,5 @@ private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
 }
 
 private object VisualLintNoOpUsageTracker : VisualLintUsageTracker {
-  override fun track(
-    issueEvent: VisualLintEvent.IssueEvent,
-    issueType: VisualLintErrorType?,
-    facet: AndroidFacet?
-  ) {}
+  override fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent) = Unit
 }

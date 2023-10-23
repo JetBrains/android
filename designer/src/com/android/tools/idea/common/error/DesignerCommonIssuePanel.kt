@@ -182,7 +182,7 @@ class DesignerCommonIssuePanel(
     tree.addTreeSelectionListener {
       val newSelection = it?.newLeadSelectionPath?.lastPathComponent
       val oldSelection = it?.oldLeadSelectionPath?.lastPathComponent
-      if (newSelection !is IssueNode && newSelection != oldSelection) {
+      if (newSelection is IssueNode && newSelection != oldSelection) {
         DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingIssue(project)
       }
     }

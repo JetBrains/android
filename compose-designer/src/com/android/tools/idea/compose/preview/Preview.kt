@@ -82,6 +82,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -542,6 +543,7 @@ class ComposePreviewRepresentation(
 
   private val postIssueUpdateListenerForUiCheck = {
     val models = mutableSetOf<NlModel>()
+    val facet = surface.models.firstOrNull()?.facet
     surface.visualLintIssueProvider
       .getUnsuppressedIssues()
       .map { it.source }
@@ -549,11 +551,16 @@ class ComposePreviewRepresentation(
     uiCheckFilterFlow.value.modelsWithErrors = models
     if (isUiCheckFilterEnabled) {
       ApplicationManager.getApplication().invokeLater {
-        surface.updateSceneViewVisibilities { it.sceneManager.model in models }
+        var count = 0
+        surface.updateSceneViewVisibilities {
+          (it.sceneManager.model in models).also { visible -> if (visible) count++ }
+        }
+        VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
         surface.zoomToFit()
         surface.repaint()
       }
     }
+    uiCheckFilterFlow.value.trackTimeOfFirstRun(System.currentTimeMillis(), facet)
   }
 
   private val previewElementModelAdapter =

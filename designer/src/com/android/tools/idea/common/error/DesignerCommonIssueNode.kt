@@ -452,7 +452,7 @@ class VisualLintIssueNode(
       (visualLintIssue.components.firstOrNull { it.tag == EmptyXmlTag.INSTANCE }?.navigatable
         as? OpenFileDescriptor)
     if (navigatable != null) {
-      return navigatable
+      return MyOpenFileDescriptor(navigatable)
     }
     val targetComponent = visualLintIssue.components.firstOrNull()
     val openLayoutValidationNavigatable =

@@ -311,9 +311,12 @@ class IssuePanelServiceTest {
     assertFalse(window.isVisible)
     assertEquals(additionalContent, window.contentManager.selectedContent)
 
-    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    service.setIssuePanelVisibility(true, IssuePanelService.TabCategory.CURRENT_FILE)
     assertTrue(window.isVisible)
-    assertTrue(contentManager.selectedContent?.isTab(IssuePanelService.Tab.CURRENT_FILE) ?: false)
+    assertTrue(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.CURRENT_FILE
+    )
   }
 
   @RunsInEdt
@@ -337,7 +340,7 @@ class IssuePanelServiceTest {
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     assertFalse(service.isIssuePanelVisible())
 
-    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    service.setIssuePanelVisibility(true, IssuePanelService.TabCategory.CURRENT_FILE)
     assertFalse(service.isIssuePanelVisible())
   }
 }

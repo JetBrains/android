@@ -155,6 +155,6 @@ class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     IssuePanelService.getInstance(project)
-      .setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
+      .setIssuePanelVisibility(true, IssuePanelService.TabCategory.DESIGN_TOOLS)
   }
 }

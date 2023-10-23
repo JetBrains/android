@@ -19,6 +19,7 @@ import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
@@ -81,6 +82,7 @@ class ComposeVisualLintSuppressTask(
 ) : Runnable {
 
   override fun run() {
+    VisualLintUsageTracker.getInstance().trackIssueIgnored(issueType, model.facet)
     WriteCommandAction.runWriteCommandAction(
       model.project,
       issueType.toSuppressActionDescription(),

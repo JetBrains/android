@@ -163,14 +163,12 @@ class IssuePanelService(private val project: Project) {
         override fun selectionChanged(event: ContentManagerEvent) {
           val content = event.content
           val selectedTab =
-            when {
-              content.isTab(Tab.CURRENT_FILE) ->
-                UniversalProblemsPanelEvent.ActivatedTab.CURRENT_FILE
-              content.isTab(Tab.PROJECT_ERRORS) ->
-                UniversalProblemsPanelEvent.ActivatedTab.PROJECT_ERRORS
-              content.isTab(Tab.DESIGN_TOOLS) ->
-                UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
-              else -> UniversalProblemsPanelEvent.ActivatedTab.UNKNOWN_TAB
+            when (getTabCategory(content)) {
+              TabCategory.CURRENT_FILE -> UniversalProblemsPanelEvent.ActivatedTab.CURRENT_FILE
+              TabCategory.PROJECT_ERRORS -> UniversalProblemsPanelEvent.ActivatedTab.PROJECT_ERRORS
+              TabCategory.DESIGN_TOOLS -> UniversalProblemsPanelEvent.ActivatedTab.DESIGN_TOOLS
+              TabCategory.UI_CHECK -> UniversalProblemsPanelEvent.ActivatedTab.UI_CHECK
+              TabCategory.UNKNOWN -> UniversalProblemsPanelEvent.ActivatedTab.UNKNOWN_TAB
             }
           DesignerCommonIssuePanelUsageTracker.getInstance().trackSelectingTab(selectedTab, project)
         }
@@ -296,20 +294,20 @@ class IssuePanelService(private val project: Project) {
   }
 
   /**
-   * Set the visibility of IJ's problems pane and change the selected tab to the [selectedTab]. If
-   * [selectedTab] is not given or not found, only the visibility of problems pane is changed.
+   * Set the visibility of IJ's problems pane and change the selected tab to the [category]. If
+   * [category] is not given or not found, only the visibility of problems pane is changed.
    *
    * @see setSharedIssuePanelVisibility
    */
-  fun setIssuePanelVisibility(visible: Boolean, selectedTab: Tab?) {
-    if (selectedTab == Tab.DESIGN_TOOLS) {
+  fun setIssuePanelVisibility(visible: Boolean, category: TabCategory?) {
+    if (category == TabCategory.DESIGN_TOOLS) {
       setSharedIssuePanelVisibility(visible)
       return
     }
     val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return
     val contentManager = problemsViewPanel.contentManager
     val contentOfTab: Content? =
-      if (selectedTab != null) contentManager.contents.firstOrNull { it.isTab(selectedTab) }
+      if (category != null) contentManager.contents.firstOrNull { getTabCategory(it) == category }
       else null
     val runnable: Runnable? =
       if (contentOfTab != null) Runnable { contentManager.setSelectedContent(contentOfTab) }
@@ -566,7 +564,6 @@ class IssuePanelService(private val project: Project) {
           }
 
       contentManager.addContent(tab)
-      contentManager.setSelectedContent(tab)
       contentManager.addContentManagerListener(
         object : ContentManagerListener {
           override fun selectionChanged(event: ContentManagerEvent) {
@@ -586,6 +583,7 @@ class IssuePanelService(private val project: Project) {
       Disposer.register(parentDisposable) { contentManager.removeContent(tab, true) }
       nameToTabMap[name] = WeakReference(tab)
       tabToPanelMap[tab] = WeakReference(uiCheckIssuePanel)
+      contentManager.setSelectedContent(tab)
       surface.isIssueTabSelected = true
     }
     uiCheckIssuePanel.issueProvider.registerUpdateListener(postIssueUpdateListener)
@@ -612,21 +610,28 @@ class IssuePanelService(private val project: Project) {
    * List of the possible tabs of Problems pane. This is used by [setIssuePanelVisibility] to assign
    * the selected tab after changing the visibility of problems pane.
    */
-  enum class Tab {
+  enum class TabCategory {
     CURRENT_FILE,
     PROJECT_ERRORS,
-    DESIGN_TOOLS
+    DESIGN_TOOLS,
+    UI_CHECK,
+    UNKNOWN,
   }
-}
 
-@VisibleForTesting
-fun Content.isTab(tab: IssuePanelService.Tab): Boolean {
-  return when (tab) {
-    IssuePanelService.Tab.DESIGN_TOOLS -> this.tabName == IssuePanelService.DESIGN_TOOL_TAB_NAME
-    IssuePanelService.Tab.CURRENT_FILE ->
-      (this.component as? ProblemsViewTab)?.getTabId() == HighlightingPanel.ID
-    IssuePanelService.Tab.PROJECT_ERRORS ->
-      (this.component as? ProblemsViewTab)?.getTabId() == ProblemsViewProjectErrorsPanelProvider.ID
+  fun getTabCategory(tab: Content): TabCategory {
+    return if (tab.tabName == DESIGN_TOOL_TAB_NAME) {
+      TabCategory.DESIGN_TOOLS
+    } else if (tabToPanelMap.containsKey(tab)) {
+      TabCategory.UI_CHECK
+    } else if ((tab.component as? ProblemsViewTab)?.getTabId() == HighlightingPanel.ID) {
+      TabCategory.CURRENT_FILE
+    } else if (
+      (tab.component as? ProblemsViewTab)?.getTabId() == ProblemsViewProjectErrorsPanelProvider.ID
+    ) {
+      TabCategory.PROJECT_ERRORS
+    } else {
+      TabCategory.UNKNOWN
+    }
   }
 }
 

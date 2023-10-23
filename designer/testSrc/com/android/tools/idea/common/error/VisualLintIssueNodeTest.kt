@@ -239,6 +239,6 @@ class VisualLintIssueNodeTest {
         .build()
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertEquals(0, node.getChildren().size)
-    assertEquals(navigatable, node.getNavigatable())
+    assertEquals(0, navigatable.compareTo(node.getNavigatable() as OpenFileDescriptor))
   }
 }

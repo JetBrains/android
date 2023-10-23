@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter
 import com.android.tools.preview.ComposePreviewElementInstance
@@ -32,6 +33,7 @@ import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.preview.config.referenceDeviceIds
+import org.jetbrains.android.facet.AndroidFacet
 
 private const val DEVICE_CLASS_LANDSCAPE_PHONE_ID = "$DEVICE_CLASS_PHONE_ID-landscape"
 private val idToName =
@@ -68,6 +70,8 @@ sealed class UiCheckModeFilter {
 
   abstract fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named>
 
+  abstract fun trackTimeOfFirstRun(endTime: Long, facet: AndroidFacet?)
+
   object Disabled : UiCheckModeFilter() {
     override val basePreviewInstance = null
 
@@ -76,10 +80,14 @@ sealed class UiCheckModeFilter {
     ): Collection<ComposePreviewElementInstance> = previewInstances
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> = groups
+
+    override fun trackTimeOfFirstRun(endTime: Long, facet: AndroidFacet?) = Unit
   }
 
   class Enabled(selected: ComposePreviewElementInstance, val surfaceScale: Double) :
     UiCheckModeFilter() {
+    private val startTime = System.currentTimeMillis()
+    private var hasDoneFirstRun = false
     override val basePreviewInstance = selected
 
     private val uiCheckPreviews: Collection<ComposePreviewElementInstance> =
@@ -97,6 +105,13 @@ sealed class UiCheckModeFilter {
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
       uiCheckPreviewGroups
+
+    override fun trackTimeOfFirstRun(endTime: Long, facet: AndroidFacet?) {
+      if (!hasDoneFirstRun) {
+        hasDoneFirstRun = true
+        VisualLintUsageTracker.getInstance().trackFirstRunTime(endTime - startTime, facet)
+      }
+    }
 
     private companion object {
       fun calculatePreviews(
