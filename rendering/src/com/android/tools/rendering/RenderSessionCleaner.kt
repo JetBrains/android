@@ -22,6 +22,7 @@ import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.rendering.classloading.ModuleClassLoader
+import com.android.tools.rendering.compose.RECOMPOSER_CLASS
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
@@ -244,6 +245,36 @@ fun clearGapWorkerCache(classLoader: ModuleClassLoader) {
       } catch (e: IllegalAccessException) {
         LOG.debug(e)
       }
+    }
+  } catch (t: Throwable) {
+    LOG.debug(t)
+  }
+}
+
+/** Clear any pending re-compositions */
+fun clearCompositions(classLoader: ModuleClassLoader) {
+  if (!classLoader.hasLoadedClass(RECOMPOSER_CLASS)) return
+
+  try {
+    val recomposerClass = classLoader.loadClass(RECOMPOSER_CLASS)
+    val runningRecomposers =
+      recomposerClass
+        .getDeclaredField("_runningRecomposers")
+        .apply { isAccessible = true }
+        .get(null)
+    val currentRunningSet =
+      runningRecomposers::class
+        .java
+        .getMethod("getValue")
+        .apply { isAccessible = true }
+        .invoke(runningRecomposers) as Set<*>
+    if (currentRunningSet.isNotEmpty()) {
+      val recomposerCompanion = recomposerClass.getField("Companion").get(null)
+      val recomposerCompanionClass =
+        classLoader.loadClass("androidx.compose.runtime.Recomposer\$Companion")
+      val removeRunning =
+        recomposerCompanionClass.methods.single { it.name.contains("removeRunning") }
+      currentRunningSet.forEach { removeRunning.invoke(null, recomposerCompanion, it) }
     }
   } catch (t: Throwable) {
     LOG.debug(t)

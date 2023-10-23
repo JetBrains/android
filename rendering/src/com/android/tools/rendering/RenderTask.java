@@ -58,6 +58,7 @@ import com.android.tools.rendering.classloading.ClassLoaderPreloaderKt;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
+import com.android.tools.rendering.compose.RenderTaskPatcher;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
@@ -99,6 +100,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
@@ -442,6 +444,12 @@ public class RenderTask {
     });
   }
 
+  @TestOnly
+  @Nullable
+  public ClassLoader getClassLoader() {
+    return myModuleClassLoaderReference.getClassLoader();
+  }
+
   /**
    * Overrides the width and height to be used during rendering (which might be adjusted if
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
@@ -751,6 +759,7 @@ public class RenderTask {
         RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
+        RenderTaskPatcher.enableComposeHotReloadMode(myModuleClassLoaderReference.getClassLoader());
         if (oldRenderSession != null) {
           disposeRenderSession(oldRenderSession);
         }
@@ -1089,6 +1098,7 @@ public class RenderTask {
           // After render clean-up. Dispose the GapWorker cache.
           RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
           RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
+          RenderSessionCleaner.clearCompositions(moduleClassLoader);
           return result.createWithStats(new RenderResultStats(
             inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
             System.currentTimeMillis() - startRenderTimeMs,

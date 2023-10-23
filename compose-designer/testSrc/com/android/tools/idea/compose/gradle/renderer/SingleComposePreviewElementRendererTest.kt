@@ -28,8 +28,10 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -315,5 +317,68 @@ class SingleComposePreviewElementRendererTest {
     } finally {
       renderTask.dispose().get(5, TimeUnit.SECONDS)
     }
+  }
+
+  /** Check that interrupting the recomposition does not leak. */
+  @Test
+  fun testRecomposeLeakCheck() {
+    var classLoader: ModuleClassLoader? = null
+    repeat(5) {
+      val renderTaskFuture =
+        createRenderTaskFuture(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.LeakCheckKt.WithException"
+          ),
+          false
+        )
+      val renderTask = renderTaskFuture.get()!!
+      val result = renderTask.render().get()
+      assertFalse("The render should have failed", result.renderResult.isSuccess)
+      classLoader = renderTask.classLoader as ModuleClassLoader
+      renderTaskFuture.get().dispose().get()
+    }
+
+    // Ensure that the classes we will check were loaded by the test first. If not, it could be the
+    // class has been renamed
+    // or the test is not triggering the leak again.
+    val leakCheckClasses =
+      listOf(
+        "androidx.compose.runtime.Recomposer",
+        "androidx.compose.runtime.Recomposer\$Companion",
+      )
+    leakCheckClasses.forEach {
+      assertTrue("Test did not load $it", classLoader!!.hasLoadedClass(it))
+    }
+
+    val recomposerClass = classLoader!!.loadClass("androidx.compose.runtime.Recomposer")
+    val recomposerCompanion = recomposerClass.getField("Companion").get(null)
+    val recomposerCompanionClass =
+      classLoader!!.loadClass("androidx.compose.runtime.Recomposer\$Companion")
+
+    // This relies on the internals of the Compose runtime. If the field is moved or renamed, this
+    // will fail. This check is not critical for the test, but it is useful to verify that
+    // the setHotReloadEnabled is invoked.
+    @Suppress("UNCHECKED_CAST")
+    val hotReloadEnabled =
+      recomposerClass
+        .getDeclaredField("_hotReloadEnabled")
+        .also { it.isAccessible = true }
+        .get(null) as AtomicReference<Boolean>
+    assertTrue(hotReloadEnabled.get())
+
+    val runningRecomposers =
+      recomposerClass
+        .getDeclaredField("_runningRecomposers")
+        .apply { isAccessible = true }
+        .get(null)
+    val currentRunningSet =
+      runningRecomposers::class
+        .java
+        .getMethod("getValue")
+        .apply { isAccessible = true }
+        .invoke(runningRecomposers) as Set<*>
+
+    assertTrue(currentRunningSet.isEmpty())
   }
 }
