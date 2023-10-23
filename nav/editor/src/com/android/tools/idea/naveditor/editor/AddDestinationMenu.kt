@@ -446,6 +446,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     show(button)
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
   }
