@@ -20,8 +20,8 @@ import com.android.tools.profilers.cpu.config.PerfettoConfiguration
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager
 
-class SystemTraceTaskHandler(sessionsManager: SessionsManager) : CpuTaskHandler(sessionsManager) {
-  override fun getCpuRecordingConfig() = PerfettoConfiguration(getTaskName(), false)
+class SystemTraceTaskHandler(sessionsManager: SessionsManager, private val isTraceboxEnabled: Boolean) : CpuTaskHandler(sessionsManager) {
+  override fun getCpuRecordingConfig() = PerfettoConfiguration(getTaskName(), isTraceboxEnabled)
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) =
     artifact is CpuCaptureSessionArtifact

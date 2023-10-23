@@ -96,6 +96,16 @@ abstract class ProfilerTaskHandler(private val sessionsManager: SessionsManager)
   abstract fun createArgs(sessionItems: Map<Long, SessionItem>, selectedSession: Common.Session): TaskArgs?
 
   /**
+   * Returns whether the task supports a given device and process. Some tasks only require checking the device, some only the process, and
+   * some require checking both.
+   */
+  fun supportsDeviceAndProcess(device: Common.Device, process: Common.Process) = device != Common.Device.getDefaultInstance() &&
+                                                                                          process != Common.Process.getDefaultInstance() &&
+                                                                                          checkDeviceAndProcess(device, process)
+
+  protected abstract fun checkDeviceAndProcess(device: Common.Device, process: Common.Process): Boolean
+
+  /**
    * Returns whether the task has transitioned from an ongoing to terminated state. This termination condition is arbitrary and thus left
    * to the task to implement/define. This method is repeatedly called on a timer to detect the aforementioned state transition. This state
    * transitions determines whether to end the task's corresponding session.

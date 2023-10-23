@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
@@ -61,6 +63,10 @@ class NativeAllocationsTaskHandler(sessionsManager: SessionsManager) : MemoryTas
       null
     }
   }
+
+  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
+    SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_NATIVE_RECORDING)
+    && device.featureLevel >= AndroidVersion.VersionCodes.Q
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) = artifact is HeapProfdSessionArtifact
 

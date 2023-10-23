@@ -19,7 +19,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.HeapDump
-import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
@@ -34,7 +33,6 @@ import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.memory.MemoryProfilerTestUtils
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.memory.HeapDumpTaskArgs
@@ -231,6 +229,18 @@ class HeapDumpTaskHandlerTest {
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(heapDumpTaskArgs).isNull()
+  }
+
+  @Test
+  fun testSupportsDeviceAndProcess() {
+    // Heap Dump task only checks the process support, so device used does not matter in call to supportsDeviceAndProcess.
+    val device = TaskHandlerTestUtils.createDevice(1)
+
+    val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
+    assertThat(myHeapDumpTaskHandler.supportsDeviceAndProcess(device, profileableProcess)).isFalse()
+
+    val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
+    assertThat(myHeapDumpTaskHandler.supportsDeviceAndProcess(device, debuggableProcess)).isTrue()
   }
 
   @Test

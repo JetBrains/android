@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact
 
+import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.InterimStage
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.android.tools.profilers.sessions.SessionsManager

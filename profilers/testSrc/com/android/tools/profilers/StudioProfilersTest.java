@@ -1621,7 +1621,8 @@ public final class StudioProfilersTest {
   @Test
   public void testSetProcessWithNoProcessChangeWithTaskBasedUxEnabled() {
     myIdeProfilerServices.enableTaskBasedUx(true);
-    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager()));
+    myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager(),
+                               myIdeProfilerServices.getFeatureConfig().isTraceboxEnabled()));
     assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
 
     // Adds a device without processes. Session should be null.

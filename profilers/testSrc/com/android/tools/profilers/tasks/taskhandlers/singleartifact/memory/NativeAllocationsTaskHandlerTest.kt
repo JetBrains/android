@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.StartTrace
-import com.android.tools.idea.transport.faketransport.commands.StopTrace
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Process.ExposureLevel
@@ -257,6 +257,20 @@ class NativeAllocationsTaskHandlerTest(private val myExposureLevel: ExposureLeve
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(heapProfdSessionArtifact).isNull()
+  }
+
+  @Test
+  fun testSupportsDeviceAndProcess() {
+    // Native Allocations can be done with profileable or debuggable process, as long as the device version is >= Q.
+    val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
+    val qDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.Q)
+    val pDevice = TaskHandlerTestUtils.createDevice(AndroidVersion.VersionCodes.P)
+    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(qDevice, debuggableProcess)).isTrue()
+    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(pDevice, debuggableProcess)).isFalse()
+
+    val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
+    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(qDevice, profileableProcess)).isTrue()
+    assertThat(myNativeAllocationsTaskHandler.supportsDeviceAndProcess(pDevice, profileableProcess)).isFalse()
   }
 
   @Test

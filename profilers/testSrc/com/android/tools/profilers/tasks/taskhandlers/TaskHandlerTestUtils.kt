@@ -73,4 +73,9 @@ object TaskHandlerTestUtils {
     stopSession(sessionsManager, timer)
     Truth.assertThat(!sessionsManager.isSessionAlive)
   }
+
+  fun createDevice(versionCode: Int): Common.Device = Common.Device.newBuilder().setFeatureLevel(versionCode).build()
+
+  fun createProcess(isProfileable: Boolean): Common.Process = Common.Process.newBuilder().setExposureLevel(
+    if (isProfileable) Common.Process.ExposureLevel.PROFILEABLE else Common.Process.ExposureLevel.DEBUGGABLE).build()
 }

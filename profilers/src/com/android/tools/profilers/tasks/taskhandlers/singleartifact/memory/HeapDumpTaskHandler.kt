@@ -16,6 +16,7 @@
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory
 
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.sessions.SessionArtifact
@@ -61,6 +62,9 @@ class HeapDumpTaskHandler(sessionsManager: SessionsManager) : MemoryTaskHandler(
       null
     }
   }
+
+  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
+    SupportLevel.of(process.exposureLevel).isFeatureSupported(SupportLevel.Feature.MEMORY_HEAP_DUMP)
 
   override fun supportsArtifact(artifact: SessionArtifact<*>?) = artifact is HprofSessionArtifact
 

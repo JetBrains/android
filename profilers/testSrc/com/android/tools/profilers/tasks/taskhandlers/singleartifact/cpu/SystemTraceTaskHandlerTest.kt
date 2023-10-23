@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -35,6 +36,8 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -67,7 +70,7 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
       myTimer
     )
     myManager = myProfilers.sessionsManager
-    mySystemTraceTaskHandler = SystemTraceTaskHandler(myManager)
+    mySystemTraceTaskHandler = SystemTraceTaskHandler(myManager, ideProfilerServices.featureConfig.isTraceboxEnabled)
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, mySystemTraceTaskHandler)
     assertThat(myManager.sessionArtifacts).isEmpty()
     assertThat(myManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -273,6 +276,36 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(cpuTaskArgs).isNull()
+  }
+
+  @Test
+  fun testSupportsDeviceAndProcessWithTraceboxDisabled() {
+    mySystemTraceTaskHandler = SystemTraceTaskHandler(myManager, false)
+    val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
+    // System Trace requires device with AndroidVersion P or above if tracebox is disabled.
+    val mDevice = createDevice(AndroidVersion.VersionCodes.M)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(mDevice, process)).isFalse()
+    val nDevice = createDevice(AndroidVersion.VersionCodes.N)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isFalse()
+    val oDevice = createDevice(AndroidVersion.VersionCodes.O)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(oDevice, process)).isFalse()
+    val pDevice = createDevice(AndroidVersion.VersionCodes.P)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(pDevice, process)).isTrue()
+    val qDevice = createDevice(AndroidVersion.VersionCodes.Q)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(qDevice, process)).isTrue()
+  }
+
+  @Test
+  fun testSupportsDeviceAndProcessWithTraceboxEnabled() {
+    mySystemTraceTaskHandler = SystemTraceTaskHandler(myManager, true)
+    val process = createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
+    // System Trace requires device with AndroidVersion P or above if tracebox is enabled.
+    val lDevice = createDevice(AndroidVersion.VersionCodes.LOLLIPOP)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(lDevice, process)).isFalse()
+    val mDevice = createDevice(AndroidVersion.VersionCodes.M)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(mDevice, process)).isTrue()
+    val nDevice = createDevice(AndroidVersion.VersionCodes.N)
+    assertThat(mySystemTraceTaskHandler.supportsDeviceAndProcess(nDevice, process)).isTrue()
   }
 
   @Test

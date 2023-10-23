@@ -68,5 +68,8 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
     }
   }
 
+  override fun checkDeviceAndProcess(device: Common.Device, process: Common.Process) =
+    device.featureLevel >= getCpuRecordingConfig().requiredDeviceLevel
+
   protected abstract fun getCpuRecordingConfig(): ProfilingConfiguration
 }

@@ -328,6 +328,18 @@ class JavaKotlinAllocationsTaskHandlerTest {
   }
 
   @Test
+  fun testSupportsDeviceAndProcess() {
+    // Java/Kotlin Allocations task only checks the process support, so device used does not matter in call to supportsDeviceAndProcess.
+    val device = TaskHandlerTestUtils.createDevice(1)
+
+    val profileableProcess = TaskHandlerTestUtils.createProcess(isProfileable = true)
+    assertThat(myJavaKotlinAllocationsTaskHandler.supportsDeviceAndProcess(device, profileableProcess)).isFalse()
+
+    val debuggableProcess = TaskHandlerTestUtils.createProcess(isProfileable = false)
+    assertThat(myJavaKotlinAllocationsTaskHandler.supportsDeviceAndProcess(device, debuggableProcess)).isTrue()
+  }
+
+  @Test
   fun testGetTaskName() {
     assertThat(myJavaKotlinAllocationsTaskHandler.getTaskName()).isEqualTo("Java/Kotlin Allocations")
   }

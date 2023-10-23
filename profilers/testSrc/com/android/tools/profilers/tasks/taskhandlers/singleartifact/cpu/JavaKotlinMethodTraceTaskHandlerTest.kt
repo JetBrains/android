@@ -285,6 +285,14 @@ class JavaKotlinMethodTraceTaskHandlerTest(private val myExposureLevel: Exposure
   }
 
   @Test
+  fun testSupportsDeviceAndProcess() {
+    // Java/Kotlin Method Sample requires device with AndroidVersion 0 or above (all devices).
+    val minVersionDevice = TaskHandlerTestUtils.createDevice(1)
+    val process = TaskHandlerTestUtils.createProcess(myExposureLevel == ExposureLevel.PROFILEABLE)
+    assertThat(myJavaKotlinMethodTraceTaskHandler.supportsDeviceAndProcess(minVersionDevice, process)).isTrue()
+  }
+
+  @Test
   fun testGetTaskName() {
     assertThat(myJavaKotlinMethodTraceTaskHandler.getTaskName()).isEqualTo("Java/Kotlin Method Trace")
   }

@@ -28,7 +28,8 @@ import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.Nati
 object ProfilerTaskHandlerFactory {
   fun createTaskHandlers(sessionsManager: SessionsManager): Map<ProfilerTaskType, ProfilerTaskHandler> {
     val taskHandlers: MutableMap<ProfilerTaskType, ProfilerTaskHandler> = mutableMapOf()
-    taskHandlers[ProfilerTaskType.SYSTEM_TRACE] = SystemTraceTaskHandler(sessionsManager)
+    val isTraceboxEnabled = sessionsManager.studioProfilers.ideServices.featureConfig.isTraceboxEnabled
+    taskHandlers[ProfilerTaskType.SYSTEM_TRACE] = SystemTraceTaskHandler(sessionsManager, isTraceboxEnabled)
     taskHandlers[ProfilerTaskType.CALLSTACK_SAMPLE] = CallstackSampleTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE] = JavaKotlinMethodTraceTaskHandler(sessionsManager)
     taskHandlers[ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE] = JavaKotlinMethodSampleTaskHandler(sessionsManager)

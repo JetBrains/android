@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -35,6 +36,8 @@ import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.args.singleartifact.cpu.CpuTaskArgs
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createDevice
+import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -276,6 +279,18 @@ class CallstackSampleTaskHandlerTest(private val myExposureLevel: ExposureLevel)
     // A return value of null indicates the task args were not constructed correctly (the underlying artifact was not found or supported by
     // the task).
     assertThat(cpuTaskArgs).isNull()
+  }
+
+  @Test
+  fun testSupportsDeviceAndProcess() {
+    // Callstack Sample requires device with AndroidVersion O (Oreo) or above.
+    val process = createProcess(true)
+    val nDevice = createDevice(AndroidVersion.VersionCodes.N)
+    assertThat(myCallstackSampleTaskHandler.supportsDeviceAndProcess(nDevice, process)).isFalse()
+    val oDevice = createDevice(AndroidVersion.VersionCodes.O)
+    assertThat(myCallstackSampleTaskHandler.supportsDeviceAndProcess(oDevice, process)).isTrue()
+    val pDevice = createDevice(AndroidVersion.VersionCodes.P)
+    assertThat(myCallstackSampleTaskHandler.supportsDeviceAndProcess(pDevice, process)).isTrue()
   }
 
   @Test
