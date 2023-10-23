@@ -33,6 +33,7 @@ import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.impl.InlayProvider
+import com.intellij.ide.HelpTooltip
 import com.intellij.ide.ui.AntialiasingType
 import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.editor.Editor
@@ -48,6 +49,7 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.font.FontRenderContext
 import java.awt.font.TextAttribute
+import java.net.URL
 import javax.swing.JComponent
 import kotlin.math.ceil
 
@@ -160,6 +162,13 @@ class InsightsAttachInlayDiffLinkFilter(
           )
           .withLineCentered(editor)
 
+      val showDiffTooltip =
+        HelpTooltip().apply {
+          setDescription(TOOLTIP_TEXT)
+          setLink("") {} // required due to bug in HelpTooltip
+          setBrowserLink("More info", URL(VCS_INTEGRATION_LEARN_MORE_URL))
+        }
+
       val showDiffInlay =
         InsightsTextInlayPresentation(
             text = INLAY_DIFF_LINK_DISPLAY_TEXT,
@@ -174,6 +183,7 @@ class InsightsAttachInlayDiffLinkFilter(
             logActivity()
           }
           .withHandCursor(editor)
+          .withTooltip(showDiffTooltip, factory = this)
 
       return seq(commaInlay, showDiffInlay)
     }
@@ -191,7 +201,14 @@ class InsightsAttachInlayDiffLinkFilter(
   }
 
   companion object {
-    internal const val INLAY_DIFF_LINK_DISPLAY_TEXT = "show diff"
+    private const val INLAY_DIFF_LINK_DISPLAY_TEXT = "show diff"
+    private const val VCS_INTEGRATION_LEARN_MORE_URL =
+      "https://d.android.com/studio/preview/features#aqi-vcs"
+
+    private const val TOOLTIP_TEXT =
+      "Show the difference between the historical<br/>" +
+        "source from the app version referenced in<br/>" +
+        "the issue and the current source.<br/><br/>"
   }
 }
 
