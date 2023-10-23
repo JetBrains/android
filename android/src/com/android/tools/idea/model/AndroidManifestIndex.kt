@@ -42,7 +42,6 @@ import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
 import com.android.SdkConstants.TAG_USES_SDK
 import com.android.tools.apk.analyzer.BinaryXmlParser
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
@@ -85,7 +84,6 @@ import org.xmlpull.v1.XmlPullParserException
 import java.io.ByteArrayInputStream
 import java.io.DataInput
 import java.io.DataOutput
-import java.io.InputStreamReader
 import java.io.Reader
 import java.util.Objects
 import java.util.stream.Stream
@@ -128,11 +126,11 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
       val facets = mutableSetOf<AndroidFacet>()
       val fileBasedIndex = FileBasedIndex.getInstance()
-      fileBasedIndex.processFilesContainingAllKeys(NAME, listOf(packageName), scope, null, { relevantFile ->
+      fileBasedIndex.processFilesContainingAllKeys(NAME, listOf(packageName), scope, null) { relevantFile ->
         val module = ProjectFileIndex.getInstance(project).getModuleForFile(relevantFile)
         module?.androidFacet?.let { facets.add(it) }
         true
-      })
+      }
 
       return facets.toList()
     }
@@ -141,7 +139,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
      * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
      * if the file isn't recognized by the index (e.g. because it's malformed).
      * NOTE: This function must be called from a smart read action.
-     * @see MergedManifestContributors
+     * @see com.android.tools.idea.projectsystem.MergedManifestContributors
      * @see DumbService.runReadActionInSmartMode
      */
     @JvmStatic
@@ -155,10 +153,9 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
     }
 
     /**
-     * Returns the [AndroidManifestRawText] for each of the given [facet]'s [MergedManifestContributors]
-     * recognized by the index.
+     * Returns the [AndroidManifestRawText] for each of the given [facet]'s `MergedManifestContributors` recognized by the index.
      * NOTE: This function must be called from a smart read action.
-     * @see MergedManifestContributors
+     * @see com.android.tools.idea.projectsystem.MergedManifestContributors
      * @see DumbService.runReadActionInSmartMode
      */
     @JvmStatic
@@ -270,7 +267,7 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
         // archives that don't change frequently.
         // TODO(b/143528395): Go back to using FileContentImpl#getContent once the upstream issue has been resolved.
         val decoded = BinaryXmlParser.decodeXml(file.contentsToByteArray())
-        InputStreamReader(ByteArrayInputStream(decoded))
+        ByteArrayInputStream(decoded).reader()
       }
       else {
         CharArrayUtil.readerFromCharSequence(contentAsText)
