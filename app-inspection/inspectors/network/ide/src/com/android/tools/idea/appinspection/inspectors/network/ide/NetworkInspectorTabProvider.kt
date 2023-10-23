@@ -72,7 +72,8 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     val componentsProvider = DefaultUiComponentsProvider(project, parentDisposable)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
     val scope = AndroidCoroutineScope(parentDisposable)
-    val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
+    val usageTracker = IdeNetworkInspectorTracker(project)
+    val dataSource = NetworkInspectorDataSourceImpl(messenger, scope, usageTracker)
 
     return object : SingleAppInspectorTab(messenger) {
       private val client = NetworkInspectorClientImpl(messenger)
@@ -83,7 +84,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           FpsTimer(UPDATES_PER_SECOND),
           AndroidDispatchers.workerThread,
           AndroidDispatchers.uiThread,
-          IdeNetworkInspectorTracker(project)
+          usageTracker
         )
       private val networkInspectorTab =
         NetworkInspectorTab(

@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetworkInspectorDataSource
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpClosed
 import com.android.tools.idea.appinspection.inspectors.network.model.httpThread
 import com.android.tools.idea.appinspection.inspectors.network.model.requestCompleted
@@ -28,10 +27,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.responsePay
 import com.android.tools.idea.appinspection.inspectors.network.model.responseStarted
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import java.util.concurrent.TimeUnit.SECONDS
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Test
 
 private const val CONNECTION_ID = 1L
@@ -67,8 +63,7 @@ class HttpDataModelTest {
   @Test
   fun eventsToHttpData() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA_WITH_THREAD)
-    val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    val model = HttpDataModelImpl(source, StubNetworkInspectorTracker(), scope)
+    val model = HttpDataModelImpl(source)
     val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).hasSize(1)
     val httpData = httpDataList[0]
@@ -89,8 +84,7 @@ class HttpDataModelTest {
   @Test
   fun eventsWithoutThreadDataIgnored() {
     val source = FakeNetworkInspectorDataSource(httpEventList = HTTP_DATA)
-    val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    val model = HttpDataModelImpl(source, StubNetworkInspectorTracker(), scope)
+    val model = HttpDataModelImpl(source)
     val httpDataList = model.getData(Range(0.0, SECONDS.toMicros(5).toDouble()))
     assertThat(httpDataList).isEmpty()
   }

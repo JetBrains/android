@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.Executors
@@ -42,7 +43,8 @@ class NetworkInspectorDataSourceTest {
     val httpEvent = requestStarted(id = 1, timestampNanos = 1002, url = "www.google.com")
     val testMessenger =
       TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     testMessenger.await()
 
     assertThat(dataSource.queryForSpeedData(Range(1.0, 2.0))).containsExactly(speedEvent)
@@ -83,7 +85,8 @@ class NetworkInspectorDataSourceTest {
           speedEvent8.toByteArray()
         )
       )
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     testMessenger.await()
 
     // basic inclusive search
@@ -166,7 +169,8 @@ class NetworkInspectorDataSourceTest {
           end4.toByteArray()
         )
       )
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     testMessenger.await()
 
     assertThat(dataSource.queryForHttpData(Range(1.0, 2.0)))
@@ -200,7 +204,8 @@ class NetworkInspectorDataSourceTest {
   fun cleanUpChannelOnDispose() = runBlocking {
     val testMessenger =
       TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
-    val dataSource = NetworkInspectorDataSourceImpl(testMessenger, scope)
+    val dataSource =
+      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
     testMessenger.await()
     try {
       dataSource.queryForSpeedData(Range(0.0, 5.0))

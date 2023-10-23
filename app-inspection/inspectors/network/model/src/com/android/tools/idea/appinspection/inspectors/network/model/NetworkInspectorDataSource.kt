@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.network.model.Intention.InsertData
 import com.android.tools.idea.appinspection.inspectors.network.model.Intention.QueryForHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.Intention.QueryForSpeedData
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.util.containers.ContainerUtil
@@ -28,16 +29,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import studio.network.inspection.NetworkInspectorProtocol.Event
-import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 
 /**
  * The data backend of network inspector.
@@ -46,8 +41,6 @@ import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
  * time ranges.
  */
 interface NetworkInspectorDataSource {
-  val connectionEventFlow: Flow<HttpConnectionEvent>
-
   suspend fun queryForHttpData(range: Range): List<HttpData>
 
   suspend fun queryForSpeedData(range: Range): List<Event>
@@ -58,20 +51,16 @@ interface NetworkInspectorDataSource {
 class NetworkInspectorDataSourceImpl(
   messenger: AppInspectorMessenger,
   parentScope: CoroutineScope,
-  replayCacheSize: Int = 1
+  private val usageTracker: NetworkInspectorTracker,
 ) : NetworkInspectorDataSource {
   val scope = parentScope.createChildScope()
   private val channel = Channel<Intention>()
   private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(Long) -> Unit>()
 
-  override val connectionEventFlow: Flow<HttpConnectionEvent> =
-    messenger.eventFlow
-      .map { data -> Event.parseFrom(data) }
-      .onEach { data -> channel.send(InsertData(data)) }
-      .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }
-      .shareIn(scope, SharingStarted.Eagerly, replayCacheSize)
-
   init {
+    scope.launch {
+      messenger.eventFlow.map { InsertData(Event.parseFrom(it)) }.collect { channel.send(it) }
+    }
     scope.launch { processEvents() }
   }
 
@@ -114,10 +103,25 @@ class NetworkInspectorDataSourceImpl(
           notifyTimelineExtended(event.timestamp)
           when {
             event.hasSpeedEvent() -> speedData.add(event)
-            event.hasHttpConnectionEvent() -> httpData.processEvent(event)
+            event.hasHttpConnectionEvent() -> handleHttpEvent(httpData, event)
           }
         }
       }
+    }
+  }
+
+  private fun handleHttpEvent(httpData: HttpDataCollector, event: Event) {
+    httpData.processEvent(event)
+    val httpConnectionEvent = event.httpConnectionEvent
+    if (httpConnectionEvent.hasHttpResponseIntercepted()) {
+      val interception = httpConnectionEvent.httpResponseIntercepted
+      usageTracker.trackResponseIntercepted(
+        statusCode = interception.statusCode,
+        headerAdded = interception.headerAdded,
+        headerReplaced = interception.headerReplaced,
+        bodyReplaced = interception.bodyReplaced,
+        bodyModified = interception.bodyModified
+      )
     }
   }
 

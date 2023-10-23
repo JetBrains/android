@@ -17,9 +17,6 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorDataSource
-import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /** A model that allows for the querying of [HttpData] based on time range. */
@@ -32,28 +29,7 @@ interface HttpDataModel {
   fun getData(timeCurrentRangeUs: Range): List<HttpData>
 }
 
-class HttpDataModelImpl(
-  private val dataSource: NetworkInspectorDataSource,
-  private val usageTracker: NetworkInspectorTracker,
-  scope: CoroutineScope,
-) : HttpDataModel {
-
-  init {
-    scope.launch {
-      dataSource.connectionEventFlow.collect { event ->
-        if (event.hasHttpResponseIntercepted()) {
-          val interception = event.httpResponseIntercepted
-          usageTracker.trackResponseIntercepted(
-            statusCode = interception.statusCode,
-            headerAdded = interception.headerAdded,
-            headerReplaced = interception.headerReplaced,
-            bodyReplaced = interception.bodyReplaced,
-            bodyModified = interception.bodyModified
-          )
-        }
-      }
-    }
-  }
+class HttpDataModelImpl(private val dataSource: NetworkInspectorDataSource) : HttpDataModel {
 
   override fun getData(timeCurrentRangeUs: Range) = runBlocking {
     dataSource.queryForHttpData(timeCurrentRangeUs).filter { events -> events.threads.isNotEmpty() }

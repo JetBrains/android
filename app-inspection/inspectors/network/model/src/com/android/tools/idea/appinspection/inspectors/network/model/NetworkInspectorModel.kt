@@ -47,7 +47,7 @@ class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
   scope: CoroutineScope,
-  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource, services.usageTracker, scope),
+  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource),
 ) : AspectModel<NetworkInspectorAspect>() {
 
   enum class DetailContent {
