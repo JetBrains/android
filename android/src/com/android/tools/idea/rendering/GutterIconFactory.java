@@ -28,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
@@ -136,9 +137,13 @@ class GutterIconFactory {
           //  On production, if the request times out, it will cause the icon on the gutter not to show which is an acceptable fallback
           //  until this is correctly fixed.
           //  250ms should be enough time for inflating and rendering and is used a upper boundary.
+          //
+          // When running in the background thread, we wait for the future to complete indefinitely. If this call happens within a
+          // non-blocking read action, awaitWithCheckCanceled will allow write actions to cancel the wait. This avoids this thread
+          // holding the lock and causing dead-locks.
           image = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode() ?
                   imageFuture.get(250, TimeUnit.MILLISECONDS) :
-                  imageFuture.get();
+                  ProgressIndicatorUtils.awaitWithCheckCanceled(imageFuture);
         } catch (Throwable e) {
           // If an invalid drawable is passed, renderDrawable might throw an exception. We can not fully control the input passed to this
           // rendering call since the user might be referencing an invalid drawable so we are just less verbose about it. The user will
