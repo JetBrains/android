@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -251,6 +252,8 @@ class PlaybackControls(
     init {
       enumValues<TimelineSpeed>().forEach { addAction(SpeedAction(it)) }
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
       e.presentation.text = clockControl.speed.displayText

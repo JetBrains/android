@@ -21,12 +21,15 @@ import com.android.tools.idea.preview.actions.disabledIf
 import com.android.tools.idea.preview.actions.hasSceneViewErrors
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 // TODO(b/292057010) Enable group filtering for Gallery mode.
 private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
 
@@ -37,6 +40,8 @@ private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultAct
 }
 
 private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
 
