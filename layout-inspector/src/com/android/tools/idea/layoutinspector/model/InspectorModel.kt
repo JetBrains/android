@@ -58,7 +58,7 @@ class InspectorModel(
   }
 
   fun interface ConnectionListener {
-    fun onConnectionChanged(newClient: InspectorClient?)
+    fun onConnectionChanged(newClient: InspectorClient)
   }
 
   fun interface ModificationListener {
