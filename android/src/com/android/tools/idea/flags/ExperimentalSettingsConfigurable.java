@@ -66,14 +66,18 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
 
+  private final boolean forAndroidStudio;
+
   @SuppressWarnings("unused") // called by IDE
-  public ExperimentalSettingsConfigurable(@NotNull Project project) {
-    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project));
+  public ExperimentalSettingsConfigurable(@NotNull Project project, boolean studio) {
+    this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project), studio);
   }
 
   @VisibleForTesting
   ExperimentalSettingsConfigurable(@NotNull GradleExperimentalSettings settings,
-                                   @NotNull RenderSettings renderSettings) {
+                                   @NotNull RenderSettings renderSettings,
+                                   boolean studio) {
+    forAndroidStudio = studio;
     mySettings = settings;
     myRenderSettings = renderSettings;
 
@@ -98,13 +102,23 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   @NotNull
   public String getId() {
-    return "experimental";
+    if (forAndroidStudio) {
+      return "experimental";
+    }
+    else {
+      return "experimentalPlugin";
+    }
   }
 
   @Override
   @Nls
   public String getDisplayName() {
-    return "Experimental";
+    if (forAndroidStudio) {
+      return "Experimental";
+    }
+    else {
+      return "Android (Experimental)";
+    }
   }
 
   @Override

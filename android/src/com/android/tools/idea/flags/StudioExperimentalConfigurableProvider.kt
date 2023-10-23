@@ -10,7 +10,7 @@ import com.intellij.openapi.project.Project
 class StudioExperimentalConfigurableProvider(private val myProject: Project) : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable? {
-    return ExperimentalSettingsConfigurable(myProject)
+    return ExperimentalSettingsConfigurable(myProject, true)
   }
 
   override fun canCreateConfigurable() = IdeInfo.getInstance().isAndroidStudio
@@ -20,7 +20,7 @@ class StudioExperimentalConfigurableProvider(private val myProject: Project) : C
 class PluginExperimentalConfigurableProvider(private val myProject: Project) : ConfigurableProvider() {
 
   override fun createConfigurable(): Configurable? {
-    return ExperimentalSettingsConfigurable(myProject)
+    return ExperimentalSettingsConfigurable(myProject, false)
   }
 
   override fun canCreateConfigurable() = !IdeInfo.getInstance().isAndroidStudio
