@@ -29,6 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
@@ -59,6 +60,7 @@ import java.util.Collections
 import java.util.concurrent.Callable
 import java.util.function.Consumer
 import javax.swing.event.ChangeListener
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -95,6 +97,9 @@ open class NlPropertiesModel(
   private val liveChangeListener: ChangeListener = ChangeListener {
     firePropertyValueChangeIfNeeded()
   }
+
+  /** [CoroutineScope] to be used by any operations constrained to the lifetime of the model. */
+  internal val supervisorScope: CoroutineScope = AndroidCoroutineScope(parentDisposable)
 
   constructor(
     parentDisposable: Disposable,

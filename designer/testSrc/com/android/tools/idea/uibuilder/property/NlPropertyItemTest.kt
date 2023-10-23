@@ -68,6 +68,8 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -77,13 +79,12 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.ColorsIcon
 import icons.StudioIcons
 import java.awt.Color
+import java.util.concurrent.CountDownLatch
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.ComponentStack
@@ -99,12 +100,10 @@ import org.mockito.Mockito.mock
 
 private const val HELLO_WORLD = "Hello World"
 
-@RunsInEdt
 class NlPropertyItemTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule))!!
 
   private var componentStack: ComponentStack? = null
 
@@ -122,7 +121,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testTextProperty() {
+  fun testTextProperty(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     property.model.showResolvedValues = false
@@ -142,7 +141,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testUnboundTextProperty() {
+  fun testUnboundTextProperty(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextViewWithHardcodedValue())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val message = "Hardcoded string \"Hardcoded string\", should use @string resource."
@@ -161,7 +160,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testTextDesignProperty() {
+  fun testTextDesignProperty(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val design = property.designProperty
@@ -184,7 +183,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorPropertyWithColorWithoutValue() {
+  fun testColorPropertyWithColorWithoutValue(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
     assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
@@ -199,7 +198,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorPropertyWithColorConstant() {
+  fun testColorPropertyWithColorConstant(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextViewWithTextColor("#FF990033"))
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
     assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
@@ -219,21 +218,38 @@ class NlPropertyItemTest {
     val util =
       SupportTestUtil(projectRule, createTextViewWithTextColor("@android:color/primary_text_dark"))
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
-    property.model.showResolvedValues = false
-    assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
-    assertThat(property.namespace).isEqualTo(ANDROID_URI)
-    assertThat(property.type).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
-    assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
-    assertThat(property.isReference).isTrue()
+    runInEdt {
+      property.model.showResolvedValues = false
+      assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
+      assertThat(property.namespace).isEqualTo(ANDROID_URI)
+      assertThat(property.type).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
+      assertThat(property.value).isEqualTo("@android:color/primary_text_dark")
+      assertThat(property.isReference).isTrue()
+    }
     val colorIcon = ColorsIcon(16, Color(0xFFFFFF), Color(0x000000))
     val colorButton = property.colorButton!!
-    assertThat(colorButton.actionIcon).isEqualTo(colorIcon)
+    val updatedPropertiesCountDownLatch = CountDownLatch(1)
+    property.model.addListener(
+      object : PropertiesModelListener<NlPropertyItem> {
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+          updatedPropertiesCountDownLatch.countDown()
+        }
+      }
+    )
+
+    // The first check will trigger the update of the cache and a property values changed
+    // trigger once the icon is available.
+    val actionIcon = runReadAction { colorButton.actionIcon }
+    updatedPropertiesCountDownLatch.await()
+    assertThat(runReadAction { colorButton.actionIcon }).isNotEqualTo(actionIcon)
+    assertThat(runReadAction { colorButton.actionIcon }).isEqualTo(colorIcon)
     val browseButton = property.browseButton!!
-    assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
+    assertThat(runReadAction { browseButton.actionIcon })
+      .isEqualTo(StudioIcons.Common.PROPERTY_BOUND)
   }
 
   @Test
-  fun testIsReference() {
+  fun testIsReference(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
 
@@ -248,7 +264,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testResolvedValues() {
+  fun testResolvedValues(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.addFileToProject("res/layout/my_layout.xml", "<LinearLayout/>")
     val util = SupportTestUtil(projectRule, createTextView())
@@ -279,7 +295,7 @@ class NlPropertyItemTest {
 
   /** Regression test for b/301922960. */
   @Test
-  fun testResolveOverlayValues() {
+  fun testResolveOverlayValues(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.addFileToProject("res/values/styles.xml", STYLES)
     val util =
@@ -295,7 +311,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testGetValueWhenDisplayingResolvedValues() {
+  fun testGetValueWhenDisplayingResolvedValues(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     property.model.showResolvedValues = true
@@ -305,7 +321,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testGetSameValueFromMultipleComponents() {
+  fun testGetSameValueFromMultipleComponents(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithSameTextValue())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     property.model.showResolvedValues = false
@@ -315,7 +331,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testGetDifferentValueFromMultipleComponents() {
+  fun testGetDifferentValueFromMultipleComponents(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithDifferentTextValue())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     assertThat(property.value).isNull()
@@ -324,7 +340,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetValueChangesSnapshotValueImmediately() {
+  fun testSetValueChangesSnapshotValueImmediately(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val component = property.components.single()
@@ -341,7 +357,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetValueOnMultipleComponents() {
+  fun testSetValueOnMultipleComponents(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextViewAndButtonWithDifferentTextValue())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val components = property.components
@@ -356,7 +372,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetNewToolsValue() {
+  fun testSetNewToolsValue(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val design = property.designProperty
@@ -370,7 +386,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetMarginLeftMinApi16() {
+  fun testSetMarginLeftMinApi16(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val textView = util.components.single()
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT, NlPropertyType.STRING)
@@ -382,7 +398,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetMarginRightMinApi16() {
+  fun testSetMarginRightMinApi16(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val textView = util.components.single()
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT, NlPropertyType.STRING)
@@ -394,7 +410,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testGetDefaultValue() {
+  fun testGetDefaultValue(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
     val components = property.components
@@ -412,7 +428,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetParentTagValue() {
+  fun testSetParentTagValue(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, VIEW_MERGE)
     val property = util.makeProperty(TOOLS_URI, ATTR_PARENT_TAG, NlPropertyType.STRING)
 
@@ -431,7 +447,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testToolTipForValue() {
+  fun testToolTipForValue(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val components = util.components
     val emptyProperty =
@@ -470,7 +486,7 @@ class NlPropertyItemTest {
 
   // Completions are not run on the EDT
   @Test
-  fun testCompletion() {
+  fun testCompletion(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val text = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val values = text.editingSupport.completion("")
@@ -484,7 +500,7 @@ class NlPropertyItemTest {
 
   // Completions are not run on the EDT
   @Test
-  fun testIdCompletion() {
+  fun testIdCompletion(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createMultipleComponents())
     util.components.retainAll(
       listOf(util.components.first())
@@ -496,7 +512,7 @@ class NlPropertyItemTest {
 
   // Completions are not run on the EDT
   @Test
-  fun testFontCompletion() {
+  fun testFontCompletion(): Unit = runInEdt {
     projectRule.fixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
     val util = SupportTestUtil(projectRule, createTextView())
     val font = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.FONT)
@@ -507,7 +523,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testbackgroundCompletion() {
+  fun testbackgroundCompletion(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     val util = SupportTestUtil(projectRule, createTextView())
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NlPropertyType.DRAWABLE)
@@ -526,7 +542,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testParentTagCompletion() {
+  fun testParentTagCompletion(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, VIEW_MERGE)
     val text = util.makeProperty(TOOLS_URI, ATTR_PARENT_TAG, NlPropertyType.STRING)
     val values = text.editingSupport.completion("")
@@ -534,7 +550,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorValidation() {
+  fun testColorValidation(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     val util = SupportTestUtil(projectRule, createTextView())
     val color = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
@@ -563,7 +579,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testDrawableValidation() {
+  fun testDrawableValidation(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     projectRule.fixture.copyFileToProject(
       "mipmap/mipmap-hdpi/ic_launcher.png",
@@ -613,7 +629,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testAnimatorValidation() {
+  fun testAnimatorValidation(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/animator/my_animator.xml", ANIMATOR_RESOURCE)
     val util = SupportTestUtil(projectRule, createButton())
     val animator = util.makeProperty(ANDROID_URI, ATTR_STATE_LIST_ANIMATOR, NlPropertyType.ANIMATOR)
@@ -634,7 +650,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testEnumValidation() {
+  fun testEnumValidation(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val visibility = util.makeProperty(ANDROID_URI, ATTR_VISIBILITY, NlPropertyType.ENUM)
     assertThat(visibility.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
@@ -646,14 +662,14 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSampleDataValidation() {
+  fun testSampleDataValidation(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val src = util.makeProperty(ANDROID_URI, ATTR_SRC, NlPropertyType.DRAWABLE)
     assertThat(src.editingSupport.validation("@tools:sample/avatars[1]")).isEqualTo(EDITOR_NO_ERROR)
   }
 
   @Test
-  fun testIdOrStringDataValidation() {
+  fun testIdOrStringDataValidation(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/layout/motion_layout.xml", MOTION_LAYOUT)
     projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     val util = SupportTestUtil(projectRule, "KeyTrigger", parentTag = "KeyFrameSet")
@@ -671,7 +687,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testXmlDataValidation() {
+  fun testXmlDataValidation(): Unit = runInEdt {
     projectRule.fixture.addFileToProject("res/xml/motion_scene.xml", MOTION_SCENE)
     projectRule.fixture.addFileToProject("res/xml/other_scene.xml", MOTION_SCENE)
     val util = SupportTestUtil(projectRule, CLASS_MOTION_LAYOUT.newName())
@@ -689,7 +705,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorIconOfBackgroundAttribute() {
+  fun testColorIconOfBackgroundAttribute(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createImageView())
     val background = util.makeProperty(ANDROID_URI, ATTR_BACKGROUND, NlPropertyType.DRAWABLE)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -711,7 +727,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testColorIconOfSrcAttribute() {
+  fun testColorIconOfSrcAttribute(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createImageView())
     val src = util.makeProperty(ANDROID_URI, ATTR_SRC, NlPropertyType.DRAWABLE)
     src.value = null
@@ -733,7 +749,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testBrowse() {
+  fun testBrowse(): Unit = runInEdt {
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
     property.value = "@android:style/TextAppearance.Material.Display2"
@@ -766,7 +782,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetValueIgnoredDuringUndo() {
+  fun testSetValueIgnoredDuringUndo(): Unit = runInEdt {
     val undoManager = mock(UndoManagerImpl::class.java)
     componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
     whenever(undoManager.isUndoInProgress).thenReturn(true)
@@ -778,7 +794,7 @@ class NlPropertyItemTest {
   }
 
   @Test
-  fun testSetValueIgnoredDuringRedo() {
+  fun testSetValueIgnoredDuringRedo(): Unit = runInEdt {
     val undoManager = mock(UndoManagerImpl::class.java)
     componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
     whenever(undoManager.isRedoInProgress).thenReturn(true)
