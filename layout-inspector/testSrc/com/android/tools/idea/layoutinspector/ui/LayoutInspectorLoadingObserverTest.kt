@@ -132,7 +132,7 @@ class LayoutInspectorLoadingObserverTest {
 
     assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(2)
 
-    assertThat(layoutInspectorLoadingObserver.listeners).isEmpty()
+    assertThat(layoutInspectorLoadingObserver.listeners.size()).isEqualTo(0)
     assertThat(inspectorRule.inspector.stopInspectorListeners).isEmpty()
   }
 }
