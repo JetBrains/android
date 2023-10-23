@@ -21,8 +21,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.S
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.google.common.truth.Truth.assertThat
 import java.util.concurrent.Executors
-import kotlin.test.fail
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -198,26 +196,6 @@ class NetworkInspectorDataSourceTest {
         ),
       )
       .inOrder()
-  }
-
-  @Test
-  fun cleanUpChannelOnDispose() = runBlocking {
-    val testMessenger =
-      TestMessenger(scope, flow { throw ArithmeticException("Something went wrong!") })
-    val dataSource =
-      NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
-    testMessenger.await()
-    try {
-      dataSource.queryForSpeedData(Range(0.0, 5.0))
-      fail()
-    } catch (e: Throwable) {
-      assertThat(e).isInstanceOf(CancellationException::class.java)
-      var cause: Throwable? = e.cause
-      while (cause != null && cause !is ArithmeticException) {
-        cause = cause.cause
-      }
-      assertThat(cause).isInstanceOf(ArithmeticException::class.java)
-    }
   }
 }
 

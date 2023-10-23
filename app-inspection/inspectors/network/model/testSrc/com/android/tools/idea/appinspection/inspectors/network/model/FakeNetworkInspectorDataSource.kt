@@ -30,10 +30,9 @@ class FakeNetworkInspectorDataSource(
     timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) &&
       timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
 
-  override suspend fun queryForHttpData(range: Range) = httpDataCollector.getDataForRange(range)
+  override fun queryForHttpData(range: Range) = httpDataCollector.getDataForRange(range)
 
-  override suspend fun queryForSpeedData(range: Range) =
-    speedEventList.filter { it.isInRange(range) }
+  override fun queryForSpeedData(range: Range) = speedEventList.filter { it.isInRange(range) }
 
   override fun addOnExtendTimelineListener(listener: (Long) -> Unit) {}
 }

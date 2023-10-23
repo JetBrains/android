@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
-import java.util.TreeMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap
 import java.util.concurrent.TimeUnit.NANOSECONDS
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_CLOSED
@@ -35,13 +36,14 @@ import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Un
 
 /** Creates and collects [HttpData] from incoming `HttpConnectionEvent`s */
 internal class HttpDataCollector {
-  private val httpDataMap = TreeMap<Long, HttpData>()
+  @GuardedBy("itself") private val httpDataMap = Long2ObjectLinkedOpenHashMap<HttpData>()
 
   fun processEvent(event: Event) {
     val httpConnectionEvent = event.httpConnectionEvent
     val id = httpConnectionEvent.connectionId
 
-    val data = httpDataMap.getOrPut(id) { HttpData.createHttpData(id) }
+    val data =
+      synchronized(httpDataMap) { httpDataMap.getOrPut(id) { HttpData.createHttpData(id) } }
 
     val newData =
       when (httpConnectionEvent.unionCase) {
@@ -59,14 +61,17 @@ internal class HttpDataCollector {
           return
         }
       }
-    httpDataMap[id] = newData
-    thisLogger().debug {
-      "Connection $id: ${httpConnectionEvent.unionCase}. total: ${httpDataMap.count()}"
+    synchronized(httpDataMap) {
+      httpDataMap[id] = newData
+      thisLogger().debug {
+        "Connection $id: ${httpConnectionEvent.unionCase}. total: ${httpDataMap.count()}"
+      }
     }
   }
 
   fun getDataForRange(range: Range) =
-    httpDataMap.values.filter { it.intersectsRange(range) }.sortedBy { it.requestStartTimeUs }
+    synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
+      .sortedBy { it.requestStartTimeUs }
 }
 
 private fun HttpData.withRequestStarted(event: Event): HttpData {

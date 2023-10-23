@@ -24,5 +24,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
     ],
 )

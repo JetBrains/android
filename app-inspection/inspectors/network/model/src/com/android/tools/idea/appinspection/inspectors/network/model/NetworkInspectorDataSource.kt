@@ -17,20 +17,14 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspectors.network.model.Intention.InsertData
-import com.android.tools.idea.appinspection.inspectors.network.model.Intention.QueryForHttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.Intention.QueryForSpeedData
 import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.util.containers.ContainerUtil
-import kotlinx.coroutines.CompletableDeferred
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import studio.network.inspection.NetworkInspectorProtocol.Event
 
 /**
@@ -40,74 +34,48 @@ import studio.network.inspection.NetworkInspectorProtocol.Event
  * time ranges.
  */
 interface NetworkInspectorDataSource {
-  suspend fun queryForHttpData(range: Range): List<HttpData>
+  fun queryForHttpData(range: Range): List<HttpData>
 
-  suspend fun queryForSpeedData(range: Range): List<Event>
+  fun queryForSpeedData(range: Range): List<Event>
 
   fun addOnExtendTimelineListener(listener: (Long) -> Unit)
 }
 
 class NetworkInspectorDataSourceImpl(
-  messenger: AppInspectorMessenger,
+  private val messenger: AppInspectorMessenger,
   parentScope: CoroutineScope,
   private val usageTracker: NetworkInspectorTracker,
 ) : NetworkInspectorDataSource {
   val scope = parentScope.createChildScope()
-  private val channel = Channel<Intention>()
   private val listeners = ContainerUtil.createLockFreeCopyOnWriteList<(Long) -> Unit>()
+  private val speedData = CopyOnWriteArrayList<Event>()
+  private val httpData = HttpDataCollector()
 
   init {
+    start()
+  }
+
+  fun start() {
     scope.launch {
-      messenger.eventFlow.map { InsertData(Event.parseFrom(it)) }.collect { channel.send(it) }
-    }
-    scope.launch { processEvents() }
-  }
-
-  override fun addOnExtendTimelineListener(listener: (Long) -> Unit) {
-    listeners.add(listener)
-  }
-
-  override suspend fun queryForHttpData(range: Range) =
-    withContext(scope.coroutineContext) {
-      val deferred = CompletableDeferred<List<HttpData>>()
-      channel.send(QueryForHttpData(range, deferred))
-      deferred.await()
-    }
-
-  override suspend fun queryForSpeedData(range: Range) =
-    withContext(scope.coroutineContext) {
-      val deferred = CompletableDeferred<List<Event>>()
-      channel.send(QueryForSpeedData(range, deferred))
-      deferred.await()
-    }
-
-  /**
-   * An actor that is used to maintain synchronization of the data collected from network inspector
-   * against the frequent updates and queried performed against it.
-   *
-   * It performs two types of work:
-   * 1. Collects events sent from the network inspector and accumulates them.
-   * 2. Performs queries from UI frontend on the collected data.
-   */
-  private suspend fun processEvents() {
-    val speedData = mutableListOf<Event>()
-    val httpData = HttpDataCollector()
-
-    channel.consumeEach { command ->
-      when (command) {
-        is QueryForSpeedData -> command.deferred.complete(speedData.searchRange(command.range))
-        is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
-        is InsertData -> {
-          val event = command.event
+      messenger.eventFlow
+        .map { Event.parseFrom(it) }
+        .collect { event ->
           notifyTimelineExtended(event.timestamp)
           when {
             event.hasSpeedEvent() -> speedData.add(event)
             event.hasHttpConnectionEvent() -> handleHttpEvent(httpData, event)
           }
         }
-      }
     }
   }
+
+  override fun addOnExtendTimelineListener(listener: (Long) -> Unit) {
+    listeners.add(listener)
+  }
+
+  override fun queryForHttpData(range: Range): List<HttpData> = httpData.getDataForRange(range)
+
+  override fun queryForSpeedData(range: Range): List<Event> = speedData.searchRange(range)
 
   private fun handleHttpEvent(httpData: HttpDataCollector, event: Event) {
     httpData.processEvent(event)
@@ -127,18 +95,4 @@ class NetworkInspectorDataSourceImpl(
   private fun notifyTimelineExtended(timestampNs: Long) {
     listeners.forEach { listener -> listener(timestampNs) }
   }
-}
-
-/**
- * These objects are used to communicate with the actor. They specify the work the actor needs to
- * perform.
- */
-private sealed class Intention {
-  class QueryForSpeedData(val range: Range, val deferred: CompletableDeferred<List<Event>>) :
-    Intention()
-
-  class QueryForHttpData(val range: Range, val deferred: CompletableDeferred<List<HttpData>>) :
-    Intention()
-
-  class InsertData(val event: Event) : Intention()
 }
