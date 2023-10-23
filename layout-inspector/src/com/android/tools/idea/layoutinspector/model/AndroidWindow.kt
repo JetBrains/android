@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import java.awt.Shape
+import javax.annotation.OverridingMethodsMustInvokeSuper
 
 /**
  * Container for window-level information in the layout inspector. [refreshImages] should be called
