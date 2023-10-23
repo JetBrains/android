@@ -100,7 +100,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   @NotNull
   public String getId() {
-    return "gradle.experimental";
+    return "experimental";
   }
 
   @Override
