@@ -62,7 +62,7 @@ class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderMode
     return panel
   }
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     val isRotated = renderModelProvider().isRotated

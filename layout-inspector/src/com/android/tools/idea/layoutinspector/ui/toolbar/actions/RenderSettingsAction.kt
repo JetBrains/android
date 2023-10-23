@@ -80,6 +80,8 @@ class RenderSettingsAction(
     add(HighlightColorAction(renderSettingsProvider))
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun update(e: AnActionEvent) {
     val enabled = renderModelProvider().isActive
     e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY)?.isEnabled = enabled
