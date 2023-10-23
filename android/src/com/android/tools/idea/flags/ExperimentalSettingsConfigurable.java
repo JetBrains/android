@@ -66,8 +66,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myEnableDeviceApiOptimization;
   private JCheckBox myDeriveRuntimeClasspathsForLibraries;
 
-  private Runnable myRestartCallback;
-
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
     this(GradleExperimentalSettings.getInstance(), RenderSettings.getProjectSettings(project));
@@ -152,14 +150,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
-  }
-
-  @Override
-  public void disposeUIResources() {
-    if (myRestartCallback != null) {
-      myRestartCallback.run();
-      myRestartCallback = null;
-    }
   }
 
   @VisibleForTesting
