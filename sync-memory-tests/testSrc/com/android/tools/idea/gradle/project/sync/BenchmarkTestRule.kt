@@ -44,8 +44,6 @@ fun createBenchmarkTestRule(projectName: String, project: BenchmarkProject): Ben
     .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB).also {
       projectSetupRule.addListener(it.listener)
     })
-    // This is a workaround for Kotlin 1.9.20-Beta issue. We should revert this change once we upgrade to the next KGP
-    .around(DisableKgpAnalyticsRule())
     .around(CollectDaemonLogsRule())
   return object : BenchmarkTestRule,
                   ProjectSetupRule by projectSetupRule,
