@@ -46,7 +46,6 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigur
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
 
-
 class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
   companion object {
@@ -110,7 +109,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
           // Check that this property has a rule annotation applied.
           val isRule = prop
             .annotationEntries
-            .any { getQualifiedName(it) == FQ_NAME_ORG_JUNIT_RULE }
+            .any { it.getQualifiedName() == FQ_NAME_ORG_JUNIT_RULE }
 
           // TODO(b/303222395): Only using the receiver type here, but this won't work if the baseline profile rule
           // gets extended.

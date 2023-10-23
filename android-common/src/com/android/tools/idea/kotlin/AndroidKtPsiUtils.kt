@@ -32,9 +32,7 @@ import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
-import org.jetbrains.kotlin.analysis.api.calls.KtAnnotationCall
 import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
-import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
@@ -73,7 +71,6 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
 
-
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
 fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
 
@@ -110,21 +107,12 @@ fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Bool
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
   return if (isK2Plugin()) {
     analysisSession.applyOrAnalyze(this) {
-      typeReference?.getKtType()?.expandedClassSymbol?.classIdIfNonLocal?.asFqNameString()
+      resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
     }
   } else {
     analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
   }
 }
-
-/**
- * K2 version of [getQualifiedName]; computes the qualified name of
- * [ktAnnotationEntry].
- * Prefer to use the (K2 version of) [fqNameMatches], which checks the short
- * name first and thus has better performance.
- */
-fun KtAnalysisSession.getQualifiedName(ktAnnotationEntry: KtAnnotationEntry): String? =
-  (ktAnnotationEntry.resolveCall()?.singleFunctionCallOrNull() as? KtAnnotationCall)?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
 
 /**
  * Determines whether this [KtAnnotationEntry] has the specified qualified name.
@@ -140,16 +128,16 @@ fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KtAnalysisS
 /**
  * Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names.
  */
-fun KtAnnotationEntry.fqNameMatches(fqName: Set<String>, analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KtAnalysisSession? = null): Boolean {
   val shortName = shortName?.asString() ?: return false
-  val fqNameFiltered = fqName.filter { it.endsWith(shortName) }
-  if (fqNameFiltered.isEmpty()) return false
+  val fqNamesFiltered = fqNames.filter { it.endsWith(shortName) }
+  if (fqNamesFiltered.isEmpty()) return false
 
   // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
   // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
   // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
   val qualifiedName = getQualifiedName(analysisSession)
-  return fqNameFiltered.any { it == qualifiedName }
+  return fqNamesFiltered.any { it == qualifiedName }
 }
 
 /**
@@ -163,7 +151,7 @@ fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName
   // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
   // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
   // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
-  val qualifiedName = getQualifiedName(ktAnnotationEntry)
+  val qualifiedName = ktAnnotationEntry.getQualifiedName(this)
   return fqName == qualifiedName
 }
 
