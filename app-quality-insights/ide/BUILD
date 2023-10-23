@@ -27,6 +27,17 @@ iml_module(
 iml_module(
     name = "intellij.android.app-quality-insights.ide.tests",
     iml_files = ["intellij.android.app-quality-insights.ide.tests.iml"],
+    split_test_targets = {
+        "VcsIntegrationTest": {
+            "test_filter": "com.android.tools.idea.insights.vcs.VcsIntegrationTest",
+            "data": [
+                "//tools/base/build-system:android_gradle_plugin.zip",
+                "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+                "//tools/base/build-system:gradle-distrib",
+            ],
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.insights.InsightsIdeTestSuite",
     test_data = [
         ":testData",
@@ -54,6 +65,10 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui.tests[module, test]",
+        "//tools/vendor/google/git4insights[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git[test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
     ],
 )
 
