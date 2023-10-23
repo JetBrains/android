@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.LightCalloutPopup
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.psi.PsiFile
@@ -39,6 +40,8 @@ class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnA
     //        We may need to have a new icon or move it to common.
     templatePresentation.icon = StudioIcons.NavEditor.Toolbar.NESTED_GRAPH
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = true
@@ -71,6 +74,8 @@ class RemoveCustomConfigurationSetAction(
     templatePresentation.text = "Delete This Category"
     templatePresentation.description = "Delete the current custom custom category"
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = configurationSet is UserDefinedCustom
@@ -121,6 +126,8 @@ class AddCustomConfigurationAction(
 
     dialog.show(content, null, location)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.text = getDisplayText()
