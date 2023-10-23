@@ -42,7 +42,7 @@ fun VisualLintErrorPreview() {
     }
     Text(
       text =
-        "This is a very very very very very very very very very very very very very very very very very very very very very long text"
+        "This is a very very very very\n\nvery very very very very very very very very very very very very very very very very long text that has a line with more than 120 characters."
     )
   }
 }

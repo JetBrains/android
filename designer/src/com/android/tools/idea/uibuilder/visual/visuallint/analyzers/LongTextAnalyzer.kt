@@ -72,7 +72,12 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
       var charCount = 1
       var index = 1
       while (index < data.size) {
-        val currentBottom = data[index]?.bottom ?: break
+        val currentCharPosition = data[index]
+        index++
+        if (currentCharPosition == null) {
+          continue
+        }
+        val currentBottom = currentCharPosition.bottom
         if (currentBottom == lineBottom) {
           charCount++
           if (charCount > MAX_LENGTH) {
@@ -82,7 +87,6 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
           lineBottom = currentBottom
           charCount = 1
         }
-        index++
       }
     }
     return false
