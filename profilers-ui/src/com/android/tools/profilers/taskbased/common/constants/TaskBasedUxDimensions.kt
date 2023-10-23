@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tasks
+package com.android.tools.profilers.taskbased.common.constants
 
-import com.android.tools.profilers.tasks.ProfilerTaskType
-import javax.swing.Icon
+import androidx.compose.ui.unit.dp
 
-/**
- * Module for individual task grid item UI.
- * Used to represent each item in the Task-Based UX home tab's grid of tasks.
- */
-data class TaskGridItem(
-  val type: ProfilerTaskType,
-  val icon: Icon,
-)
+object TaskBasedUxDimensions {
+  // Size of each Task grid item in the Task selection grid. This incldues both the task icon and title.
+  val TASK_WIDTH_DP = 150.dp
+  // Size of the task grid item icon.
+  const val ICON_SIZE_PX = 75
+}

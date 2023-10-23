@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * which shows the name and icon of the respective task.
  */
 class TaskGridModel {
-  val tasks: List<TaskGridItem>
+  val tasks: List<TaskGridItemModel>
   private val _selectedTaskType = MutableStateFlow(ProfilerTaskType.UNSPECIFIED)
   val selectedTaskType = _selectedTaskType.asStateFlow()
 
@@ -37,42 +37,42 @@ class TaskGridModel {
     onTaskSelection(ProfilerTaskType.UNSPECIFIED)
   }
 
-  fun getTaskGridItem(taskType: ProfilerTaskType): TaskGridItem? = tasks.firstOrNull { it.type == taskType }
+  fun getTaskGridItem(taskType: ProfilerTaskType): TaskGridItemModel? = tasks.firstOrNull { it.type == taskType }
 
   init {
     tasks = listOf(
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.CALLSTACK_SAMPLE,
-        icon = StudioIcons.Profiler.Sessions.CPU,
+        iconPath = "studio/icons/profiler/sessions/cpu.svg",
       ),
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.SYSTEM_TRACE,
-        icon = StudioIcons.Profiler.Sessions.CPU,
+        iconPath = "studio/icons/profiler/sessions/cpu.svg",
       ),
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.JAVA_KOTLIN_METHOD_TRACE,
-        icon = StudioIcons.Profiler.Sessions.CPU,
+        iconPath = "studio/icons/profiler/sessions/cpu.svg",
       ),
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.JAVA_KOTLIN_METHOD_SAMPLE,
-        icon = StudioIcons.Profiler.Sessions.CPU,
+        iconPath = "studio/icons/profiler/sessions/cpu.svg",
       ),
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.HEAP_DUMP,
-        icon = StudioIcons.Profiler.Sessions.HEAP,
+        iconPath = "studio/icons/profiler/sessions/heap.svg",
       ),
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.NATIVE_ALLOCATIONS,
-        icon = StudioIcons.Profiler.Sessions.ALLOCATIONS,
+        iconPath = "studio/icons/profiler/sessions/allocations.svg",
       ),
-      TaskGridItem(
+      TaskGridItemModel(
         type = ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
-        icon = StudioIcons.Profiler.Sessions.ALLOCATIONS,
+        iconPath = "studio/icons/profiler/sessions/allocations.svg",
       ),
     )
   }
 
   companion object {
-    val DISABLED_TASK_ICON = StudioIcons.Profiler.Sidebar.ISSUE
+    const val DISABLED_TASK_ICON = "studio/icons/profiler/sidebar/issue.svg"
   }
 }
