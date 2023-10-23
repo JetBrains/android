@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.N
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.util.containers.ContainerUtil
-import java.util.concurrent.TimeUnit.MICROSECONDS
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
@@ -96,7 +95,7 @@ class NetworkInspectorDataSourceImpl(
 
     channel.consumeEach { command ->
       when (command) {
-        is QueryForSpeedData -> command.deferred.complete(searchRange(speedData, command.range))
+        is QueryForSpeedData -> command.deferred.complete(speedData.searchRange(command.range))
         is QueryForHttpData -> command.deferred.complete(httpData.getDataForRange(command.range))
         is InsertData -> {
           val event = command.event
@@ -128,72 +127,6 @@ class NetworkInspectorDataSourceImpl(
   private fun notifyTimelineExtended(timestampNs: Long) {
     listeners.forEach { listener -> listener(timestampNs) }
   }
-}
-
-/**
- * Performs a binary search on the data using timestamp and returns the index at which a
- * hypothetical event with [timestamp] should be inserted. Or return the index of the event that
- * matches [timestamp].
- */
-private fun List<Event>.binarySearch(timestamp: Long): Int {
-  return binarySearch(
-    Event.newBuilder().setTimestamp(timestamp).build(),
-    compareBy { it.timestamp }
-  )
-}
-
-/**
- * The two functions below are only required when binary search finds an element matching either the
- * start or the end of the range. Binary search has the caveat that if the search target has
- * multiple entries - in our case multiple events with the same timestamp - it doesn't guarantee
- * which entry it will return. To amend that, we manually search to the left or right of the index
- * to see if we truly have the start or end index.
- */
-private fun List<Event>.findEndIndex(startIndex: Int): Int {
-  for (i in startIndex + 1 until size) {
-    if (get(i).timestamp != get(startIndex).timestamp) {
-      return i - 1
-    }
-  }
-  return size - 1
-}
-
-private fun List<Event>.findStartIndex(startIndex: Int): Int {
-  for (i in startIndex - 1 downTo 0) {
-    if (get(i).timestamp != get(startIndex).timestamp) {
-      return i + 1
-    }
-  }
-  return 0
-}
-
-/**
- * Return all events that fall within [range] inclusive.
- *
- * This function is designed to be fast (logN) because it gets called frequently by the frontend.
- */
-private fun searchRange(data: List<Event>, range: Range): List<Event> {
-  val min = MICROSECONDS.toNanos(range.min.toLong())
-  val max = MICROSECONDS.toNanos(range.max.toLong())
-
-  // If the result of binary search is less than 0, the index of the start or end element is gotten
-  // by:
-  // 1) solving for x in the formula (result = -x - 1)
-  // 2) startIndex = x, endIndex = x - 1
-  val startIndex =
-    data.binarySearch(min).let { pos ->
-      if (pos < 0) {
-        -pos - 1
-      } else data.findStartIndex(pos)
-    }
-  val endIndex =
-    data.binarySearch(max).let { pos ->
-      if (pos < 0) {
-        -pos - 2
-      } else data.findEndIndex(pos)
-    }
-
-  return data.slice(startIndex..endIndex)
 }
 
 /**
