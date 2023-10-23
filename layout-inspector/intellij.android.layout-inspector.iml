@@ -44,7 +44,6 @@
     <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.analytics" />
-    <orderEntry type="library" name="android.tools.build.apkzlib" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
@@ -96,5 +95,6 @@
     <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="library" name="jsr305" level="project" />
   </component>
 </module>
