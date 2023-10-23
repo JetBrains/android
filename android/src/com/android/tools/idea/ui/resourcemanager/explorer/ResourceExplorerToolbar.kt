@@ -24,6 +24,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -188,6 +189,8 @@ private class RefreshAction internal constructor(val viewModel: ResourceExplorer
     viewModel.refreshResourcesPreviewsCallback()
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
     if (viewModel.resourceType.isSlowResource()) {
@@ -292,6 +295,8 @@ private class ResetTypeFiltersAction internal constructor(val viewModel: Resourc
   override fun actionPerformed(e: AnActionEvent) {
     viewModel.typeFiltersModel.clearAll(viewModel.resourceType)
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = viewModel.typeFiltersModel.getActiveFilters(viewModel.resourceType).isNotEmpty()
