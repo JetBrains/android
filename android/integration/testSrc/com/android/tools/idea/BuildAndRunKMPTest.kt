@@ -40,17 +40,17 @@ class BuildAndRunKMPTest {
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/buildkmpproject_deps.manifest"))
 
     system.runAdb { adb ->
-      system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
-        println("Waiting for boot")
-        emulator.waitForBoot()
-
-        println("Waiting for device")
-        adb.waitForDevice(emulator)
-
-        system.runStudio(project, watcher.dashboardName)  { studio ->
+      system.runStudio(project, watcher.dashboardName)  { studio ->
+        system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
           studio.waitForSync()
           studio.waitForIndex()
           println("Finished waiting for index")
+
+          println("Waiting for boot")
+          emulator.waitForBoot()
+
+          println("Waiting for device")
+          adb.waitForDevice(emulator)
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
@@ -61,9 +61,7 @@ class BuildAndRunKMPTest {
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.google\\.samples\\.apps\\.kmp",
             60, TimeUnit.SECONDS)
-          adb.runCommand("logcat") {
-            waitForLog(".*Hello World!.*", 30.seconds);
-          }
+          emulator.logCat.waitForMatchingLine(".*Hello World!.*", 30, TimeUnit.SECONDS)
         }
       }
     }

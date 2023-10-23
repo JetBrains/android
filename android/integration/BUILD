@@ -476,7 +476,6 @@ iml_studio_test(
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # b/297405728
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [
