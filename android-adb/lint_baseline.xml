@@ -1,108 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="AdbDeviceServicesCommand"
-        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead">
+        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead"
+        errorLine1="        device.session.deviceServices.shell(device.selector, command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/adb/AdbShellCommandsUtil.kt"
-            line="107"/>
+            line="107"
+            column="9"/>
     </issue>
 
     <issue
         id="AdbDeviceServicesCommand"
-        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead">
+        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead"
+        errorLine1="        device.session.deviceServices.shell(device.selector, command, receiver, commandTimeout = Duration.ofMillis(defaultDdmTimeoutMillis))"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/adb/AdbShellCommandsUtil.kt"
-            line="107"/>
+            line="107"
+            column="9"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val timeProvider: TimeoutRemainder.SystemNanoTimeProvider by lazy { TimeoutRemainder.DefaultSystemNanoTime() }"
+        errorLine2="                                                                       ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
-            line="34"/>
+            line="34"
+            column="72"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val randomProvider by lazy { RandomProvider() }"
+        errorLine2="                                ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
-            line="36"/>
+            line="36"
+            column="33"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val devicePairingService : WiFiPairingService by lazy {"
+        errorLine2="                                                           ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
-            line="46"/>
+            line="46"
+            column="60"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val notificationService: WiFiPairingNotificationService by lazy {"
+        errorLine2="                                                                     ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/PairDevicesUsingWiFiService.kt"
-            line="50"/>
+            line="50"
+            column="70"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val pairingPanel by lazy { PairingCodeInputPanel(disposable) }"
+        errorLine2="                              ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/PairingCodePairingDialog.kt"
-            line="33"/>
+            line="33"
+            column="31"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val random by lazy {"
+        errorLine2="                        ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/RandomProvider.kt"
-            line="24"/>
+            line="24"
+            column="25"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val innerDialogWrapper: DialogWrapperInner by lazy {"
+        errorLine2="                                                        ~~~~">
         <location
             file="src/com/android/tools/idea/ui/SimpleDialog.kt"
-            line="40"/>
+            line="40"
+            column="57"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val notificationGroup by lazy {"
+        errorLine2="                                   ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/WiFiPairingNotificationServiceImpl.kt"
-            line="27"/>
+            line="27"
+            column="36"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val centerPanel by lazy { WiFiPairingCenterPanel(hyperlinkListener) }"
+        errorLine2="                             ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/WiFiPairingPanel.kt"
-            line="33"/>
+            line="33"
+            column="30"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  val qrCodePanel by lazy {"
+        errorLine2="                     ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/WiFiPairingPanel.kt"
-            line="51"/>
+            line="51"
+            column="22"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  val pairingCodePanel by lazy {"
+        errorLine2="                          ~~~~">
         <location
             file="src/com/android/tools/idea/adb/wireless/WiFiPairingPanel.kt"
-            line="57"/>
+            line="57"
+            column="27"/>
     </issue>
 
 </issues>

@@ -1,36 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val modelWizardDialog: ModelWizardDialog by lazy {"
+        errorLine2="                                                      ~~~~">
         <location
             file="src/com/android/tools/idea/npw/module/ChooseModuleTypeWizard.kt"
-            line="79"/>
+            line="79"
+            column="55"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  protected val rootPanel: JScrollPane by lazy {"
+        errorLine2="                                          ~~~~">
         <location
             file="src/com/android/tools/idea/npw/module/ConfigureModuleStep.kt"
-            line="130"/>
+            line="143"
+            column="43"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);"
+        errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/npw/assetstudio/ui/IconPickerDialog.java"
-            line="73"/>
+            line="73"
+            column="51"/>
     </issue>
 
     <issue
         id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`."
+        errorLine1="          while (f != null &amp;&amp; !Objects.equals(f, root)) {"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/npw/assetstudio/wizard/ConfirmGenerateImagesStep.java"
-            line="418"/>
+            line="418"
+            column="32"/>
     </issue>
 
 </issues>

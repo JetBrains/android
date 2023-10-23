@@ -1,116 +1,158 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release">
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="            TODO(&quot;Renaming dimensions&quot;)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/ui/buildvariants/productflavors/ProductFlavorsPanel.kt"
-            line="170"/>
+            line="179"
+            column="13"/>
     </issue>
 
     <issue
         id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release">
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="            if (alsoRenameReferences) TODO(&quot;Renaming references&quot;)"
+        errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/ui/buildvariants/productflavors/ProductFlavorsPanel.kt"
-            line="181"/>
+            line="190"
+            column="39"/>
     </issue>
 
     <issue
         id="StopShip"
-        message="`TODO` call found; points to code which must be fixed prior to release">
+        message="`TODO` call found; points to code which must be fixed prior to release"
+        errorLine1="      TODO(&quot;NOTE: There is no need to re-index the declared dependency collection. Version is not a part of the key.&quot;)"
+        errorLine2="      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/android/PsJarAndroidDependency.kt"
-            line="70"/>
+            line="70"
+            column="7"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="      model.parent.fireDependencyModifiedEvent(lazy {"
+        errorLine2="                                               ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/android/PsJarAndroidDependency.kt"
-            line="74"/>
+            line="74"
+            column="48"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="      model.parent.fireDependencyModifiedEvent(lazy {"
+        errorLine2="                                               ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/java/PsJarJavaDependency.kt"
-            line="75"/>
+            line="75"
+            column="48"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="      model.parent.fireDependencyModifiedEvent(lazy {"
+        errorLine2="                                               ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/android/PsLibraryAndroidDependency.kt"
-            line="92"/>
+            line="92"
+            column="48"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="      model.parent.fireDependencyModifiedEvent(lazy {"
+        errorLine2="                                               ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/java/PsLibraryJavaDependency.kt"
-            line="95"/>
+            line="95"
+            column="48"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == configurationName } })"
+        errorLine2="      ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
-            line="112"/>
+            line="112"
+            column="7"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(filePath).firstOrNull { it.configurationName == configurationName } })"
+        errorLine2="                             ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
-            line="122"/>
+            line="122"
+            column="30"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(dirPath).firstOrNull { it.configurationName == configurationName } })"
+        errorLine2="                             ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
-            line="137"/>
+            line="137"
+            column="30"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="      lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == configurationName } })"
+        errorLine2="      ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
-            line="149"/>
+            line="149"
+            column="7"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="        fireDependencyModifiedEvent(lazy {"
+        errorLine2="                                    ~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/PsModule.kt"
-            line="202"/>
+            line="202"
+            column="37"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val iconGap = JBUI.scale(2)"
+        errorLine2="                             ~~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/configurables/variables/VariablesTable.kt"
-            line="121"/>
+            line="123"
+            column="30"/>
     </issue>
 
     <issue
         id="FileComparisons"
-        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`.">
+        message="Do not compare java.io.File with `equals` or `==`: will not work correctly on case insensitive file systems! See `go/files-howto`."
+        errorLine1="  parsed?.let { rootDir?.resolve(parsed) } == resolved"
+        errorLine2="  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/gradle/structure/model/helpers/InputParsers.kt"
-            line="141"/>
+            line="141"
+            column="3"/>
     </issue>
 
 </issues>

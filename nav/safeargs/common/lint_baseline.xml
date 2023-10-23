@@ -1,148 +1,202 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _constructors by lazy { computeConstructors() }"
+        errorLine2="                               ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
-            line="53"/>
+            line="55"
+            column="32"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _methods by lazy { computeMethods() }"
+        errorLine2="                          ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
-            line="54"/>
+            line="56"
+            column="27"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _fields by lazy { computeFields() }"
+        errorLine2="                         ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
-            line="55"/>
+            line="57"
+            column="26"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val navDirectionsType by lazy {"
+        errorLine2="                                   ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
-            line="56"/>
+            line="58"
+            column="36"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val navDirectionsClass by lazy {"
+        errorLine2="                                    ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
-            line="57"/>
+            line="61"
+            column="37"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _navigationElement by lazy {"
+        errorLine2="                                    ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightActionBuilderClass.kt"
-            line="58"/>
+            line="64"
+            column="37"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _constructors by lazy { computeConstructors() }"
+        errorLine2="                               ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsBuilderClass.kt"
-            line="67"/>
+            line="68"
+            column="32"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _methods by lazy { computeMethods() }"
+        errorLine2="                          ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsBuilderClass.kt"
-            line="68"/>
+            line="69"
+            column="27"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _fields by lazy { computeFields() }"
+        errorLine2="                         ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsClass.kt"
-            line="66"/>
+            line="64"
+            column="26"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _methods by lazy { computeMethods() }"
+        errorLine2="                          ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsClass.kt"
-            line="67"/>
+            line="65"
+            column="27"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val backingXmlTag by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }"
+        errorLine2="                               ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsClass.kt"
-            line="68"/>
+            line="66"
+            column="32"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val navArgsType by lazy {"
+        errorLine2="                             ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsClass.kt"
-            line="69"/>
+            line="67"
+            column="30"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val navArgsClass by lazy {"
+        errorLine2="                              ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightArgsClass.kt"
-            line="70"/>
+            line="70"
+            column="31"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val actionClasses by lazy { computeInnerClasses() }"
+        errorLine2="                               ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightDirectionsClass.kt"
-            line="80"/>
+            line="77"
+            column="32"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _methods by lazy { computeMethods() }"
+        errorLine2="                          ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightDirectionsClass.kt"
-            line="81"/>
+            line="78"
+            column="27"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _navigationElement by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }"
+        errorLine2="                                    ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightDirectionsClass.kt"
-            line="82"/>
+            line="79"
+            column="37"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  private val _actions by lazy {"
+        errorLine2="                          ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/psi/java/LightDirectionsClass.kt"
-            line="83"/>
+            line="80"
+            column="27"/>
     </issue>
 
     <issue
         id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
+        message="Avoid `by lazy` for simple lazy initialization"
+        errorLine1="  val resolvedDestinations: List&lt;NavDestinationData> by lazy {"
+        errorLine2="                                                        ~~~~">
         <location
             file="src/com/android/tools/idea/nav/safeargs/index/NavData.kt"
-            line="119"/>
+            line="119"
+            column="57"/>
     </issue>
 
 </issues>
