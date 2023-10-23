@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -25,9 +26,9 @@ import icons.StudioIcons
 
 /** Action used to toggle Deep Inspect on and off. */
 class ToggleDeepInspectAction(
-  private val isSelected: () -> Boolean,
-  private val setSelected: (Boolean) -> Unit,
-  private val connectedClientProvider: () -> InspectorClient
+  @UiThread private val isSelected: () -> Boolean,
+  @UiThread private val setSelected: (Boolean) -> Unit,
+  @UiThread private val connectedClientProvider: () -> InspectorClient
 ) :
   ToggleAction(
     { LayoutInspectorBundle.message("toggle.deep.inspect") },
@@ -38,7 +39,7 @@ class ToggleDeepInspectAction(
 
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
