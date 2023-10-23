@@ -4,17 +4,25 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:proto.bzl", "INTELLIJ_PLATFORM_PROTO_VERSION", "java_proto_library")
 
 java_proto_library(
     name = "android-core-proto",
     srcs = glob(["src/com/android/tools/idea/proto/*.proto"]),
+    proto_java_runtime_library = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+    ],
+    protoc_version = INTELLIJ_PLATFORM_PROTO_VERSION,
     visibility = ["//visibility:public"],
 )
 
 java_proto_library(
     name = "android-core-proto-test",
     srcs = glob(["testSrc/com/android/tools/idea/proto/*.proto"]),
+    proto_java_runtime_library = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+    ],
+    protoc_version = INTELLIJ_PLATFORM_PROTO_VERSION,
     visibility = ["//visibility:public"],
 )
 

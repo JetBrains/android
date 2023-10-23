@@ -260,6 +260,7 @@ maven_repository(
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-bom_3.19.3",
+        "@maven//:com.google.protobuf.protobuf-bom_3.21.8",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java-util_3.19.3",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
