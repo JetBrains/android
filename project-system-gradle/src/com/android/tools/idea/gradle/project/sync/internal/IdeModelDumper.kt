@@ -209,8 +209,17 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = KotlinTaskProperties::pluginVersion) { _, _ ->
     // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
     prop(propertyName, "<CUT>")
-  }
+  },
+  SpecializedDumper(property = KotlinMPPGradleModel::kotlinGradlePluginVersion) { _, kgpVersion ->
+    head(propertyName)
+    nest {
+      prop("versionString", kgpVersion.versionString.replaceKgpForTestVersion())
+    }
+  },
 )
+
+const val KOTLIN_VERSION_FOR_TESTS = "1.9.20-RC"
+fun String.replaceKgpForTestVersion(): String = replace(KOTLIN_VERSION_FOR_TESTS, "<KGP_VERSION>")
 
 private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
   val modelDumper = ModelDumper(jbModelDumpers)

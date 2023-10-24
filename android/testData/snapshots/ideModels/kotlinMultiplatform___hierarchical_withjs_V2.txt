@@ -2325,11 +2325,8 @@ Required by:
     project :jsModule
             extraFeatures                 : ExtraFeaturesImpl
                 isHMPPEnabled                 : true
-            kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-                major                         : 1
-                minor                         : 9
-                patch                         : 20
-                versionString                 : 1.9.20-RC
+            kotlinGradlePluginVersion
+                versionString                 : <KGP_VERSION>
             - targets                     : js (KotlinTargetImpl)
                 - compilations                : main (KotlinCompilationImpl)
                     - allSourceSets               : main (KotlinSourceSetImpl)
@@ -2896,11 +2893,8 @@ Required by:
                     - dependency                  : :module2/commonTest
             extraFeatures                 : ExtraFeaturesImpl
                 isHMPPEnabled                 : true
-            kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-                major                         : 1
-                minor                         : 9
-                patch                         : 20
-                versionString                 : 1.9.20-RC
+            kotlinGradlePluginVersion
+                versionString                 : <KGP_VERSION>
             - targets                     : android (KotlinTargetImpl)
                 - compilations                : debug (KotlinCompilationImpl)
                     - allSourceSets               : androidMain (KotlinSourceSetImpl)

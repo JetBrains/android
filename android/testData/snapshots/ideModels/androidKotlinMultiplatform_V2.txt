@@ -2475,11 +2475,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : instrumentedTest (KotlinCompilationImpl)
                 - allSourceSets               : androidInstrumentedTest (KotlinSourceSetImpl)
@@ -2735,11 +2732,8 @@ MODULE                        : Kotlin_Multiplatform.kmpJvmOnly
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3042,11 +3036,8 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)

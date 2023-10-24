@@ -2263,11 +2263,8 @@ MODULE                        : kotlinMultiPlatform.app
                 - dependency                  : :app/androidMain
                 - dependency                  : :app/commonMain
         extraFeatures                 : ExtraFeaturesImpl
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTest (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
@@ -2989,11 +2986,8 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : :module2/androidMain
                 - dependency                  : :module2/commonMain
         extraFeatures                 : ExtraFeaturesImpl
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)

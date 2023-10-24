@@ -3239,11 +3239,8 @@ MODULE                        : NonStandardSourceSetDependencies.common
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -4967,11 +4964,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 - dependency                  : :feature-b/commonTest
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : androidMain (KotlinSourceSetImpl)
@@ -5357,11 +5351,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
-        kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
-            major                         : 1
-            minor                         : 9
-            patch                         : 20
-            versionString                 : 1.9.20-RC
+        kotlinGradlePluginVersion
+            versionString                 : <KGP_VERSION>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
