@@ -157,6 +157,17 @@
 
     <issue
         id="VisibleForTests"
+        message="This declaration implicitly references AddActionDialogUI, which should only be accessed from tests or within private scope"
+        errorLine1="  @VisibleForTesting"
+        errorLine2="  ^">
+        <location
+            file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
+            line="111"
+            column="3"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
         errorLine1="    get() = dialog.myIdTextField.text"
         errorLine2="                   ~~~~~~~~~~~~~">
@@ -1279,6 +1290,17 @@
 
     <issue
         id="VisibleForTests"
+        message="This declaration implicitly references AddArgumentDialogUI, which should only be accessed from tests or within private scope"
+        errorLine1="  @VisibleForTesting"
+        errorLine2="  ^">
+        <location
+            file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
+            line="72"
+            column="3"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope"
         errorLine1="      dialogUI.myDefaultValueComboBox.selectedItem as String?"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~">
@@ -1825,6 +1847,17 @@
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
             line="83"
             column="41"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This declaration implicitly references NavNopTracker, which should only be accessed from tests or within private scope"
+        errorLine1="    private val NOP_TRACKER = NavNopTracker()"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/naveditor/analytics/NavUsageTracker.kt"
+            line="36"
+            column="5"/>
     </issue>
 
     <issue

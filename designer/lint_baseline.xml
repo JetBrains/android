@@ -140,7 +140,7 @@
         errorLine2="                                                    ~~~~">
         <location
             file="src/com/android/tools/idea/common/editor/SplitEditor.kt"
-            line="96"
+            line="98"
             column="53"/>
     </issue>
 
@@ -571,6 +571,17 @@
             file="src/com/android/tools/idea/uibuilder/handlers/constraint/WidgetConstraintPanel.java"
             line="284"
             column="44"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This declaration implicitly references CommonNopTracker, which should only be accessed from tests or within private scope"
+        errorLine1="    val NOP_TRACKER = CommonNopTracker()"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/common/analytics/CommonUsageTracker.kt"
+            line="84"
+            column="5"/>
     </issue>
 
     <issue
