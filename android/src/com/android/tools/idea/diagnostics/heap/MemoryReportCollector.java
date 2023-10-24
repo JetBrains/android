@@ -280,6 +280,7 @@ public final class MemoryReportCollector implements Disposable {
     HeapTraverseNode.clearObjectIdToTraverseNodeMap();
     if (statistics.getExtendedReportStatistics() != null) {
       statistics.getExtendedReportStatistics().objectIdToMinDepth.clear();
+      statistics.getExtendedReportStatistics().objectIdToMinDepthKind.clear();
     }
   }
 
@@ -287,6 +288,7 @@ public final class MemoryReportCollector implements Disposable {
     HeapTraverseNode.removeElementFromObjectIdToTraverseNodeMap(objectId);
     if (statistics.getExtendedReportStatistics() != null) {
       statistics.getExtendedReportStatistics().objectIdToMinDepth.remove(objectId);
+      statistics.getExtendedReportStatistics().objectIdToMinDepthKind.remove(objectId);
     }
   }
 
@@ -354,6 +356,9 @@ public final class MemoryReportCollector implements Disposable {
                                                           node.isRetainedByPlatform);
     if (statistics.getExtendedReportStatistics() != null && node.minDepth != null) {
       statistics.getExtendedReportStatistics().objectIdToMinDepth.put(id, node.minDepth.intValue());
+      if (node.minDepthKind != null) {
+        statistics.getExtendedReportStatistics().objectIdToMinDepthKind.put(id, node.minDepthKind.getValue());
+      }
     }
   }
 

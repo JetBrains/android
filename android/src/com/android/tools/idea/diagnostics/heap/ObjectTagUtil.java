@@ -137,6 +137,6 @@ public class ObjectTagUtil {
   }
 
   public static byte getOwningExceededClusterIndex(long tag) {
-    return(byte)(tag >>> OBJECT_OWNING_EXCEEDED_COMPONENT_OFFSET);
+    return(byte)((tag & OBJECT_OWNING_EXCEEDED_COMPONENT_MASK) >>> OBJECT_OWNING_EXCEEDED_COMPONENT_OFFSET);
   }
 }

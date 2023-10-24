@@ -818,11 +818,14 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     B b = new B();
     D d1 = new D(b);
     D d2 = new D(b);
+    D d3 = new D(new B());
 
     roots.add(d1);
     roots.add(List.of(d2));
+    roots.add(d3);
 
     Disposer.register(d1, b);
+    Disposer.register(d1, d3);
     Disposer.dispose(d1);
 
     MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots);
@@ -833,53 +836,60 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
 
     assertRequestContainsField(serializedExtendedReport, "Component D", """
-      Owned: 96B/5 objects
+      Owned: 152B/8 objects
             Histogram:
-              48B/2 objects: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+              72B/3 objects: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+              48B/3 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
             Studio objects histogram:
-              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+              48B/3 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
             Component roots histogram:
-              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+              48B/3 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
             Disposed but strong referenced objects:
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
               16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-              16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
       Number of instances of tracked classes:
-            com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D:2
+            com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D:3
       Platform object: 0B/0 objects[0B/0 objects]
       ================= DISPOSED OBJECTS ================
       Root 1:
-      [    1/ 50%/   16B]       16B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
+      [    2/ 66%/   32B]       96B/2 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
+      Root 2:
+      [    1/ 33%/   16B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
+      [    1/ 33%/   16B]       56B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      [    1/ 33%/   16B]       40B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      [    1/ 33%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+      ======== INSTANCES OF EACH NOMINATED CLASS ========
+      Nominated classes:
+       --> [72B/3 objects] [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+       --> [48B/3 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+       --> [32B/2 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+
+      CLASS: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; (3 objects)
+      Root 1:
+      [    2/ 66%/   48B]       96B/2 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
+      [    2/ 66%/   48B]       64B/2 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      Root 2:
+      [    1/ 33%/   24B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
+      [    1/ 33%/   24B]       56B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      [    1/ 33%/   24B]       40B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D (3 objects)
+      Root 1:
+      [    2/ 66%/   32B]       96B/2 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
+      Root 2:
+      [    1/ 33%/   16B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
+      [    1/ 33%/   16B]       56B/1 objects *        e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (2 objects)
+      Root 1:
+      [    1/ 50%/   16B]       56B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
+      [    1/ 50%/   16B]       40B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
       Root 2:
       [    1/ 50%/   16B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
       [    1/ 50%/   16B]       56B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
       [    1/ 50%/   16B]       40B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
-      ======== INSTANCES OF EACH NOMINATED CLASS ========
-      Nominated classes:
-       --> [48B/2 objects] [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-       --> [32B/2 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-       --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
-
-      CLASS: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B; (2 objects)
-      Root 1:
-      [    1/ 50%/   24B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
-      [    1/ 50%/   24B]       56B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/ 50%/   24B]       40B/1 objects *        myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D (2 objects)
-      Root 1:
-      [    1/ 50%/   16B]       16B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D(disposed)
-      Root 2:
-      [    1/ 50%/   16B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
-      [    1/ 50%/   16B]       56B/1 objects *        e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (1 objects)
-      Root 1:
-      [    1/100%/   16B]       96B/1 objects          (root): java.util.ImmutableCollections$List12
-      [    1/100%/   16B]       56B/1 objects          e0: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
-      [    1/100%/   16B]       40B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
-      [    1/100%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)""");
+      [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)""");
   }
 
   @Test

@@ -200,6 +200,8 @@ public class RootPathTree {
                                                        int nominatedNodeTypeId) {
     return (100 * rootSubtreeStatistics.getTotalSizeInBytes() <
             totalNominatedTypeStatistics.getTotalSizeInBytes() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
+           (100 * rootSubtreeStatistics.getObjectsCount() <
+            totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
            (rootSubtreeStatistics.getTotalSizeInBytes() < NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES) &&
            !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId);
   }
