@@ -165,7 +165,7 @@ class ComposePreviewFakeUiGradleRule(
    * running.
    */
   suspend fun waitForAnyRefreshToStart(
-    timeout: Duration = DEFAULT_REFRESH_TIMEOUT,
+    timeout: Duration,
     expectedRefreshType: ComposePreviewRefreshType,
     runnable: suspend () -> Unit
   ) = coroutineScope {
@@ -186,7 +186,7 @@ class ComposePreviewFakeUiGradleRule(
   }
 
   /** Wait for all running refreshes to complete. */
-  suspend fun waitForAllRefreshesToFinish(timeout: Duration = DEFAULT_REFRESH_TIMEOUT) {
+  suspend fun waitForAllRefreshesToFinish(timeout: Duration) {
     refreshManager.refreshingTypeFlow.awaitStatus(
       "Timeout waiting for refresh to finish",
       timeout
@@ -201,18 +201,19 @@ class ComposePreviewFakeUiGradleRule(
    * waiting.
    */
   suspend fun runAndWaitForRefresh(
-    timeout: Duration = DEFAULT_REFRESH_TIMEOUT,
+    anyRefreshStartTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
+    allRefreshesFinishTimeout: Duration = DEFAULT_REFRESH_TIMEOUT,
     expectedRefreshType: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
     aRefreshMustStart: Boolean = true,
     runnable: suspend () -> Unit
   ) {
     waitForAllRefreshesToFinish(timeout = 5.seconds)
     try {
-      waitForAnyRefreshToStart(expectedRefreshType = expectedRefreshType, runnable = runnable)
+      waitForAnyRefreshToStart(anyRefreshStartTimeout, expectedRefreshType, runnable)
     } catch (t: Throwable) {
       if (aRefreshMustStart) throw t
     }
-    waitForAllRefreshesToFinish(timeout)
+    waitForAllRefreshesToFinish(allRefreshesFinishTimeout)
   }
 
   /** Builds the project and waits for the preview panel to refresh. It also does zoom to fit. */

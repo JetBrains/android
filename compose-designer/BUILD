@@ -68,6 +68,7 @@ iml_module(
         },
         # Source of many flakes. Splitting it into an individual target for better investigation.
         "ComposePreviewRepresentationGradleTest": {
+            "shard_count": 3,
             "test_filter": "com.android.tools.idea.compose.gradle.preview.ComposePreviewRepresentationGradleTest",
         },
         # Can probably be grouped into gradle-other once flakiness is fixed: b/261126651, b/272048512
