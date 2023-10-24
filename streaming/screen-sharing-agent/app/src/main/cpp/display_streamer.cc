@@ -246,15 +246,14 @@ void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
 
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
-
-  AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
-
   WindowManager::WatchRotation(jni, display_id_, &display_rotation_watcher_);
   DisplayManager::AddDisplayListener(jni, this);
-  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
 
+  AMediaFormat* media_format = CreateMediaFormat(codec_info_->mime_type);
+  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 0};
   bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
+
   while (continue_streaming && !streamer_stopped_ && !Agent::IsShuttingDown()) {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     if (!display_info.IsValid()) {
