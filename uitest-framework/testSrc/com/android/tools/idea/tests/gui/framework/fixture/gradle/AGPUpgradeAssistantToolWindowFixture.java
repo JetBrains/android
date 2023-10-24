@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
-import javax.swing.JPanel;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -111,9 +110,17 @@ public class AGPUpgradeAssistantToolWindowFixture extends ToolWindowFixture {
     String text = panelInfo2.getText();
     if (text.contains("Sync succeeded")) {
       return true;
-    } else {
+    }
+    else {
       return false;
     }
+  }
+
+  public boolean isActiveAndOpen() {
+    if (isActive() && isVisible()) {
+      return true;
+    }
+    return false;
   }
 
   @NotNull
