@@ -58,7 +58,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PasswordPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -95,6 +94,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -270,10 +270,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       ExternalSystemModulePropertyManager
         .getInstance(myModule)
         .setExternalOptions(
-          GradleUtil.GRADLE_SYSTEM_ID,
-          new ModuleData(":", GradleUtil.GRADLE_SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectBasePath.getName(),
+          GradleConstants.SYSTEM_ID,
+          new ModuleData(":", GradleConstants.SYSTEM_ID, StdModuleTypes.JAVA.getId(), myProjectBasePath.getName(),
                          myProjectBasePath.getPath(), myProjectBasePath.getPath()),
-          new ProjectData(GradleUtil.GRADLE_SYSTEM_ID, myProject.getName(), myProject.getBasePath(), myProject.getBasePath()));
+          new ProjectData(GradleConstants.SYSTEM_ID, myProject.getName(), myProject.getBasePath(), myProject.getBasePath()));
 
       return null;
     });
