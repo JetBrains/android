@@ -25,13 +25,13 @@ import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
+import com.android.tools.idea.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
-import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
@@ -131,7 +131,7 @@ private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(n
  * [DelegatingClassLoader.Loader] providing the implementation to load classes from a project. This loader can load user defined classes
  * from the given [Module] and classes from the libraries that the [Module] depends on.
  *
- * The [projectSystemLoader] provides a [DelegatingClassLoader.Loader] responsible to load classes from the user defined classes.
+ * The [projectSystemLoader] provides a [CachingClassLoaderLoader] responsible to load classes from the user defined classes.
  *
  * The transformation for the user defined classes are given in [projectTransforms] while the ones to apply to the classes coming from
  * libraries are given in [nonProjectTransforms].
@@ -142,7 +142,7 @@ private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(n
  * The passed [ModuleClassLoaderDiagnosticsWrite] will be used to report class rewrites.
  */
 internal class ModuleClassLoaderImpl(module: Module,
-                                     private val projectSystemLoader: ProjectSystemClassLoader,
+                                     private val projectSystemLoader: CachingClassLoaderLoader,
                                      private val parentClassLoader: ClassLoader?,
                                      val projectTransforms: ClassTransform,
                                      val nonProjectTransforms: ClassTransform,

@@ -16,7 +16,6 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.projectsystem.ClassContent
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
@@ -29,12 +28,12 @@ private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
                                                startsWith("sun.")
 
 /**
- * A [DelegatingClassLoader.Loader] that loads the classes from a given IntelliJ [Module].
+ * A [CachingClassLoaderLoader] that loads the classes from a given IntelliJ [Module].
  * It relies on the given [findClassContent] to find the [ClassContent] mapping to a given FQCN.
  */
 class ProjectSystemClassLoader @JvmOverloads constructor(
   private val findClassContent: (String) -> ClassContent?
-) : DelegatingClassLoader.Loader {
+) : CachingClassLoaderLoader {
   /**
    * Map that contains the mapping from the class FQCN to the [ClassContent] that contains the `.class` contents and metadata for the file
    * where the class was loaded from.
@@ -44,7 +43,7 @@ class ProjectSystemClassLoader @JvmOverloads constructor(
   @TestOnly
   fun getClassCache() = classCache.toMap()
 
-  fun isUpToDate(): Boolean = classCache.values.all { it.isUpToDate() }
+  override fun isUpToDate(): Boolean = classCache.values.all { it.isUpToDate() }
 
   /**
    * Finds the [ClassContent] for the `.class` associated to the given [fqcn].
@@ -67,7 +66,7 @@ class ProjectSystemClassLoader @JvmOverloads constructor(
   /**
    * Clears all the internal caches. Next `find` call will reload the information directly from the VFS.
    */
-  fun invalidateCaches() {
+  override fun invalidateCaches() {
     classCache.clear()
   }
 
@@ -82,7 +81,7 @@ class ProjectSystemClassLoader @JvmOverloads constructor(
    * Injects the given [classContent] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
    */
   @TestOnly
-  fun injectClassFile(fqcn: String, classContent: ClassContent) {
+  override fun injectClassFile(fqcn: String, classContent: ClassContent) {
     classCache[fqcn] = classContent
   }
 }
