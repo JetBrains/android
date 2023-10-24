@@ -41,7 +41,7 @@ import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCache
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
-import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService

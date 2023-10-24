@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.issues
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.collect.ImmutableList

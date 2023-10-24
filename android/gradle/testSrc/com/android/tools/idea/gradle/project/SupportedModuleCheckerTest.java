@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.notification.NotificationType.ERROR;
 import static org.mockito.ArgumentMatchers.any;

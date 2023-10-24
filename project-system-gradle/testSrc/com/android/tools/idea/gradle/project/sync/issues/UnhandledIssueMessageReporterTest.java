@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.builder.model.SyncIssue;

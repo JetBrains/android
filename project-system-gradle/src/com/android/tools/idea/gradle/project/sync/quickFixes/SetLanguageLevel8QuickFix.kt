@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.google.common.annotations.VisibleForTesting
@@ -80,7 +80,7 @@ class SetLanguageLevel8AllQuickFix(setJvmTarget: Boolean) : AbstractSetLanguageL
 
   override fun buildFilesToApply(project: Project) = ProjectFacetManager.getInstance(project)
     .getModulesWithFacet(AndroidFacet.ID)
-    .mapNotNull { GradleUtil.getGradleModuleModel(it) }
+    .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
     .mapNotNull { it.buildFile }
     .distinct()
     .toList()
@@ -98,7 +98,7 @@ class SetLanguageLevel8ModuleQuickFix(val modulePath: String, setJvmTarget: Bool
       ).resolveIn(project)
     )
       .filter { AndroidFacet.getInstance(it) != null }
-      .mapNotNull { GradleUtil.getGradleModuleModel(it) }
+      .mapNotNull { GradleProjectSystemUtil.getGradleModuleModel(it) }
       .mapNotNull { it.buildFile }
   }
 }

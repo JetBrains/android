@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.scopes;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SYNC_MULTIPROJECT;

@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeMultiVariantData;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
@@ -393,7 +393,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   @Nullable
   public static File getLintProjectDirectory(@NonNull Module module, @Nullable AndroidFacet facet) {
 
-    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleUtil.GRADLE_SYSTEM_ID, module)) {
+    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, module)) {
       String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
       if (!Strings.isNullOrEmpty(externalProjectPath)) {
         return new File(externalProjectPath);

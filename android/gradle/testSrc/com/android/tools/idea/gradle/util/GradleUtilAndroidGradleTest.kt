@@ -117,7 +117,7 @@ class GradleUtilAndroidGradleTest {
     val basePath = project.basePath
     assertThat(basePath).isNotNull()
     val fullPath = Paths.get(basePath, *expectedPath)
-    val moduleBuildFile = GradleUtil.getGradleBuildFile(module)
+    val moduleBuildFile = GradleProjectSystemUtil.getGradleBuildFile(module)
     Truth.assertThat(moduleBuildFile).isNotNull()
     val modulePath = moduleBuildFile!!.path
     Truth.assertThat(modulePath).isNotNull()

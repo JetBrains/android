@@ -107,26 +107,19 @@ import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntrie
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
-import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
 import com.android.tools.idea.io.FilePaths
-import com.android.tools.idea.model.ClassJarProvider
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
-import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
-import com.android.tools.idea.projectsystem.LightResourceClassService
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.TestProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
-import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
@@ -134,11 +127,6 @@ import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
-import com.android.tools.idea.res.ProjectLightResourceClassService
-import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.GradleApplicationIdProvider
-import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.ProjectSizeUsageTrackerListener
 import com.android.tools.idea.util.runWhenSmartAndSynced
@@ -154,7 +142,6 @@ import com.intellij.build.SyncViewManager
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.internal.DummySyncViewManager
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
@@ -197,7 +184,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.pom.java.LanguageLevel
-import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.testFramework.ExtensionTestUtil
@@ -234,11 +220,9 @@ import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,

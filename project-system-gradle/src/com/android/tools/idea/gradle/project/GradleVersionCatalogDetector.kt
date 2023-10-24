@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.Detect
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_ENABLED
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.NOT_USED
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.OLD_GRADLE
-import com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.findGradleSettingsFile
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM

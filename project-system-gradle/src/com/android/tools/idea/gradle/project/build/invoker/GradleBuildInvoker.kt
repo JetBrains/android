@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
@@ -154,7 +154,7 @@ interface GradleBuildInvoker {
 
       @JvmStatic
       fun copyRequest(request: Request): Request =
-        request.copy(taskId = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, request.project))
+        request.copy(taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, request.project))
     }
 
     data class RequestData(
@@ -193,7 +193,7 @@ interface GradleBuildInvoker {
       private var request: Request = Request(
         project = project,
         data = requestData,
-        taskId = ExternalSystemTaskId.create(GradleUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
+        taskId = ExternalSystemTaskId.create(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
       )
 
       constructor(

@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.gradleModule
@@ -73,7 +73,7 @@ class FixNdkVersionProcessorTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.HELLO_JNI, ndkVersion = SdkConstants.NDK_DEFAULT_VERSION)
     preparedProject.open { project ->
       val module = project.gradleModule(":app")!!
-      val file = GradleUtil.getGradleBuildFile(module)!!
+      val file = GradleProjectSystemUtil.getGradleBuildFile(module)!!
 
       val processor = FixNdkVersionProcessor(project, ImmutableList.of(file), "77.7.7")
       val usages = processor.findUsages()
@@ -87,7 +87,7 @@ class FixNdkVersionProcessorTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.HELLO_JNI, ndkVersion = SdkConstants.NDK_DEFAULT_VERSION)
     preparedProject.open { project ->
       val module = project.gradleModule(":app")!!
-      val file = GradleUtil.getGradleBuildFile(module)!!
+      val file = GradleProjectSystemUtil.getGradleBuildFile(module)!!
 
       val processor = FixNdkVersionProcessor(project, ImmutableList.of(file), "77.7.7")
       val usages = processor.findUsages()

@@ -32,7 +32,7 @@ import org.junit.After;
 import org.junit.Test;
 
 /**
- * Tests for {@link GradleUtil}.
+ * Tests for {@link GradleProjectSystemUtil}.
  */
 public class GradleUtilTest {
   private File myTempDir;

@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.util.toIoFile
@@ -33,7 +33,7 @@ class ExportProjectZipExcludesGradleContributor : ExportProjectZipExcludesContri
     // TODO(b/306156888): handle linked Gradle builds properly.
     val basePath = FileUtil.toSystemDependentName(project.basePath!!)
     result.add(File(basePath, SdkConstants.DOT_GRADLE))
-    result.add(File(basePath, GradleUtil.BUILD_DIR_DEFAULT_NAME))
+    result.add(File(basePath, GradleProjectSystemUtil.BUILD_DIR_DEFAULT_NAME))
     result.add(File(basePath, Project.DIRECTORY_STORE_FOLDER))
     ModuleManager.getInstance(project).modules.forEach { module ->
       module.moduleFile?.let { result.add(it.toIoFile())}

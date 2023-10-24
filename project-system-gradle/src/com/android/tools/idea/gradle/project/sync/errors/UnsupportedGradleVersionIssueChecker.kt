@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapper
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -34,7 +34,6 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -148,7 +147,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
     override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
       val future = CompletableFuture<Any>()
       invokeLater {
-        val manager = ExternalSystemApiUtil.getManager(GradleUtil.GRADLE_SYSTEM_ID)
+        val manager = ExternalSystemApiUtil.getManager(GradleProjectSystemUtil.GRADLE_SYSTEM_ID)
         assert(manager is GradleManager)
         val configurable = (manager as GradleManager).getConfigurable(project)
         ShowSettingsUtil.getInstance().editConfigurable(project, configurable)

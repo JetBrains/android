@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static java.util.regex.Pattern.DOTALL;
 import static org.junit.Assert.assertTrue;

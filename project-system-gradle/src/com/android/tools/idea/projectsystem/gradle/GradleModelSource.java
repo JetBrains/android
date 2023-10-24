@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.dsl.model.GradleVersionCatalogViewImpl;
 import com.android.tools.idea.gradle.dsl.model.ProjectBuildModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -145,7 +145,7 @@ public final class GradleModelSource extends GradleModelProvider {
     @Nullable
     @Override
     public VirtualFile getGradleBuildFile(@NotNull Module module) {
-      GradleModuleModel moduleModel = GradleUtil.getGradleModuleModel(module);
+      GradleModuleModel moduleModel = GradleProjectSystemUtil.getGradleModuleModel(module);
       if (moduleModel != null) {
         return moduleModel.getBuildFile();
       }

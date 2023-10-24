@@ -35,7 +35,7 @@ import com.android.tools.idea.gradle.util.BuildMode.COMPILE_JAVA
 import com.android.tools.idea.gradle.util.BuildMode.REBUILD
 import com.android.tools.idea.gradle.util.BuildMode.SOURCE_GEN
 import com.android.tools.idea.gradle.util.GradleBuilds.CLEAN_TASK_NAME
-import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.gradle.buildRootDir
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -579,7 +579,8 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         val title = "$executionName failed"
         val dataContext: DataContext = BuildConsoleUtils.getDataContext(id, buildViewManager)
         val failureResult: FailureResult = ExternalSystemUtil.createFailureResult(
-          title, e, GRADLE_SYSTEM_ID, project, request.rootProjectPath.absolutePath, dataContext
+          title, e,
+          GRADLE_SYSTEM_ID, project, request.rootProjectPath.absolutePath, dataContext
         )
         buildEventDispatcher.onEvent(id, FinishBuildEventImpl(id, null, System.currentTimeMillis(), "failed", failureResult))
       }

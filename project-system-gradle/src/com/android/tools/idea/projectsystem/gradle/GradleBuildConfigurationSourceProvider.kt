@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileType
@@ -104,7 +103,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   private fun findConfigurationFiles() = sequence {
     holderModules.forEachIndexed { index, module ->
       yieldIfNotNull(
-        GradleUtil.getGradleModuleModel(module.module)
+        GradleProjectSystemUtil.getGradleModuleModel(module.module)
           ?.buildFilePath
           ?.let { VfsUtil.findFileByIoFile(it, false) }
           ?.describe(module.projectDisplayName, module.orderBase + index)
@@ -135,7 +134,8 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
 
       yieldIfNotNull(
-        projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(GradleUtil.GRADLEW_PROPERTIES_PATH))
+        projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(
+          GradleProjectSystemUtil.GRADLEW_PROPERTIES_PATH))
           ?.describe("Gradle Version", BUILD_WIDE_ORDER_BASE)
       )
 

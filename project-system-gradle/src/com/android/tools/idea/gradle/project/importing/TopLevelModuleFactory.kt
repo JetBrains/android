@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.gradle.project.importing
 
-import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -104,16 +103,16 @@ class TopLevelModuleFactory() {
     val projectRootDirPath = PathUtil.toSystemIndependentName(gradleRoot.path)
     ExternalSystemModulePropertyManager.getInstance(module)
       .setExternalOptions(
-        GradleUtil.GRADLE_SYSTEM_ID,
+        GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
         ModuleData(
           ":",
-          GradleUtil.GRADLE_SYSTEM_ID,
+          GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
           StdModuleTypes.JAVA.id, gradleRoot.name,
           projectRootDirPath!!,
           projectRootDirPath
         ),
         ProjectData(
-          /* owner = */ GradleUtil.GRADLE_SYSTEM_ID,
+          /* owner = */ GradleProjectSystemUtil.GRADLE_SYSTEM_ID,
           /* externalName = */ project.name,
           /* ideProjectFileDirectoryPath = */ gradleRootPath,
           /* linkedExternalProjectPath = */ ExternalSystemApiUtil.toCanonicalPath(gradleRoot.canonicalPath)

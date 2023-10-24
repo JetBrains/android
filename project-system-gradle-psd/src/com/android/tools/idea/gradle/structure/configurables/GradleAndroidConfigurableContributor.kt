@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.variables.VariablesConfigurable
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.structure.dialog.AndroidConfigurableContributor
 import com.android.tools.idea.structure.dialog.ProjectStructureItemGroup
 import com.intellij.openapi.Disposable
@@ -32,7 +32,8 @@ class GradleAndroidConfigurableContributor : AndroidConfigurableContributor() {
 
   override fun getConfigurables(project: Project, parentDisposable: Disposable): List<ProjectStructureItemGroup> {
     if (project.isDefault) {
-      (ExternalSystemApiUtil.getManager(GradleUtil.GRADLE_SYSTEM_ID) as? GradleManager)?.let { gradleManager ->
+      (ExternalSystemApiUtil.getManager(
+        GradleProjectSystemUtil.GRADLE_SYSTEM_ID) as? GradleManager)?.let { gradleManager ->
         val gradleConfigurable = gradleManager.getConfigurable(project)
         return listOf(ProjectStructureItemGroup("main", IdeSdksConfigurable(project), gradleConfigurable))
       }

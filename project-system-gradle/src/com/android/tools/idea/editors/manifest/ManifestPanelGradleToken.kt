@@ -21,7 +21,7 @@ import com.android.ide.common.blame.SourcePosition
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.Actions
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.GradleToken
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.module.Module
@@ -107,7 +107,7 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
   override fun createMetadataForFile(file: File?, module: Module): ManifestFileWithMetadata? {
     if (file == null) return null
     if (file.absolutePath == GRADLE_MODEL_MARKER_FILE.absolutePath) {
-      val gradleBuildFile = GradleUtil.getGradleBuildFile(module)
+      val gradleBuildFile = GradleProjectSystemUtil.getGradleBuildFile(module)
       return if (gradleBuildFile != null) {
         val ioFile = VfsUtilCore.virtualToIoFile(gradleBuildFile)
         InjectedBuildDotGradleFile(ioFile)

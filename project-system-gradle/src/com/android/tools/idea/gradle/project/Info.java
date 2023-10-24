@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.findGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.findGradleSettingsFile;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;

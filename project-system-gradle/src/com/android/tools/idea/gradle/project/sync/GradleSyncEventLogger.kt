@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -161,7 +160,8 @@ private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project:
     false -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_SEQUENTIAL
   }
 
-  val projectData = ExternalSystemApiUtil.findProjectNode(project, GradleUtil.GRADLE_SYSTEM_ID, rootProjectPath)
+  val projectData = ExternalSystemApiUtil.findProjectNode(project,
+                                                          GradleProjectSystemUtil.GRADLE_SYSTEM_ID, rootProjectPath)
   val executionReport = projectData?.let { ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.SYNC_EXECUTION_REPORT) }?.data
   if (executionReport != null) {
     studioRequestedSyncType = when (executionReport.parallelFetchForV2ModelsEnabled) {

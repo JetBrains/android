@@ -19,7 +19,6 @@ import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static java.util.Collections.emptyList;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -32,7 +31,7 @@ import java.io.File;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Tests for {@link GradleUtil}.
+ * Tests for {@link GradleProjectSystemUtil}.
  */
 public class GradleUtilIdeaTest extends PlatformTestCase {
   private File myModuleRootDir;
@@ -50,12 +49,12 @@ public class GradleUtilIdeaTest extends PlatformTestCase {
   }
 
   public void testGetGradleBuildFileFromRootDir() {
-    VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModuleRootDir);
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModuleRootDir);
     assertIsGradleBuildFile(buildFile);
   }
 
   public void testGetGradleBuildFileFromModuleWithoutGradleFacet() {
-    VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
   }
 
@@ -69,7 +68,7 @@ public class GradleUtilIdeaTest extends PlatformTestCase {
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);
 
-    VirtualFile buildFile = GradleUtil.getGradleBuildFile(myModule);
+    VirtualFile buildFile = GradleProjectSystemUtil.getGradleBuildFile(myModule);
     assertIsGradleBuildFile(buildFile);
   }
 

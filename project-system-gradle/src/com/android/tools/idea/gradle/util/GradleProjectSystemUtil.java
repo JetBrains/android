@@ -17,9 +17,15 @@ package com.android.tools.idea.gradle.util;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.SdkConstants.DOT_KTS;
+import static com.android.SdkConstants.FD_GRADLE_WRAPPER;
 import static com.android.SdkConstants.FD_RES_CLASS;
 import static com.android.SdkConstants.FD_SOURCE_GEN;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
@@ -29,6 +35,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExecutionSettings;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
@@ -63,6 +70,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
+import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
@@ -83,14 +91,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinGradleSourceSetData;
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
+import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 public class GradleProjectSystemUtil {
 
+  public static final ProjectSystemId GRADLE_SYSTEM_ID = GradleConstants.SYSTEM_ID;
+  @NonNls public static final String BUILD_DIR_DEFAULT_NAME = "build";
+  @NonNls public static final String GRADLEW_PROPERTIES_PATH = join(FD_GRADLE_WRAPPER, FN_GRADLE_WRAPPER_PROPERTIES);
   private static final Logger LOG = Logger.getInstance(GradleProjectSystemUtil.class);
   /**
    * Finds characters that shouldn't be used in the Gradle path.
@@ -199,7 +212,7 @@ public class GradleProjectSystemUtil {
    * Kotlin compiler; or if sync has never succeeded in this session.
    */
   public static @Nullable String getKotlinVersionInUse(@NotNull Project project, @NotNull String gradleProjectPath) {
-    DataNode<ProjectData> projectData = ExternalSystemApiUtil.findProjectNode(project, GradleUtil.GRADLE_SYSTEM_ID, gradleProjectPath);
+    DataNode<ProjectData> projectData = ExternalSystemApiUtil.findProjectNode(project, GRADLE_SYSTEM_ID, gradleProjectPath);
     if (projectData == null) return null;
     final String[] kotlinVersion = {null};
     final boolean[] foundVersion = {false};
@@ -412,7 +425,7 @@ public class GradleProjectSystemUtil {
    */
   @Nullable
   public static File getGradleBuildFilePath(@NotNull Module module) {
-    GradleModuleModel moduleModel = GradleUtil.getGradleModuleModel(module);
+    GradleModuleModel moduleModel = getGradleModuleModel(module);
     if (moduleModel != null) {
       return moduleModel.getBuildFilePath();
     }
@@ -642,7 +655,7 @@ public class GradleProjectSystemUtil {
    * This method calculates the path for user gradle.properties file based on gradle user home folder
    * defined in execution settings for this project.
    * <p>
-   * In case this is not possible use default location as described in {@link  GradleUtil#getUserGradlePropertiesFile()}.
+   * In case this is not possible use default location as described in {@link #getUserGradlePropertiesFile()}.
    */
   @NotNull
   public static File getUserGradlePropertiesFile(@NotNull Project project) {
@@ -702,7 +715,7 @@ public class GradleProjectSystemUtil {
     }
 
     try {
-      return getExecutionSettings(project, projectSettings.getExternalProjectPath(), GradleUtil.GRADLE_SYSTEM_ID);
+      return getExecutionSettings(project, projectSettings.getExternalProjectPath(), GRADLE_SYSTEM_ID);
     }
     catch (IllegalArgumentException e) {
       LOG.info("Failed to obtain Gradle execution settings", e);
@@ -753,5 +766,96 @@ public class GradleProjectSystemUtil {
       }
     }
     return null;
+  }
+
+  /**
+   * Returns the build.gradle file in the given module. This method first checks if the Gradle model has the path of the build.gradle
+   * file for the given module. If it doesn't find it, it tries to find a build.gradle inside the module's root directory (folder with .iml
+   * file). If it is a root module without sources, it looks inside project's base path before looking in the module's root directory.
+   *
+   * @param module the given module.
+   * @return the build.gradle file in the given module, or {@code null} if it cannot be found.
+   */
+  @Nullable
+  public static VirtualFile getGradleBuildFile(@NotNull Module module) {
+    GradleModuleModel moduleModel = getGradleModuleModel(module);
+    if (moduleModel != null) {
+      return moduleModel.getBuildFile();
+    }
+
+    File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+    return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
+  }
+
+  /**
+   * Returns the virtual file representing a build.gradle or build.gradle.kts file in the directory at the given
+   * parentDir. build.gradle.kts is only returned when build.gradle doesn't exist and build.gradle.kts exists.
+   *
+   * __Note__: Do __not__ use this method unless you have to, use {@link #getGradleBuildFile(Module)} instead.
+   * This will return the actual build script that is used by Gradle rather than just guessing its location.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleBuildFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   *
+   */
+  @Nullable
+  public static VirtualFile findGradleBuildFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS);
+  }
+
+  /**
+   * Returns the virtual file representing a settings.gradle or settings.gradle.kts file in the directory at the given
+   * parentDir. settings.gradle.kts is only returned when settings.gradle doesn't exist and settings.gradle.kts exists.
+   *
+   * __Note__: There is a {@link File} implementation of this method {@link BuildScriptUtil#findGradleSettingsFile(File)}.
+   * Prefer working with {@link VirtualFile}s if possible as these are more compatible with IDEAs testing infrastructure.
+   */
+  @Nullable
+  public static VirtualFile findGradleSettingsFile(@NotNull VirtualFile parentDir) {
+    return findFileWithNames(parentDir, FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS);
+  }
+
+  /**
+   * Finds and returns a file that exists as a child of the parentDir with one of the given names. This method will search for the
+   * names in order and will return as soon as one is found.
+   */
+  @Nullable
+  private static VirtualFile findFileWithNames(@NotNull VirtualFile parentDir, @NotNull String...names) {
+    for (String name : names) {
+      VirtualFile file = parentDir.findChild(name);
+      if (file != null && !file.isDirectory()) {
+        return file;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static GradleModuleModel getGradleModuleModel(Module module) {
+    GradleFacet gradleFacet = GradleFacet.getInstance(module);
+    if (gradleFacet == null) {
+      return null;
+    }
+    return gradleFacet.getGradleModuleModel();
+  }
+
+  /**
+   * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'. This method does not cause a VFS
+   * refresh of the file, this should be done by the caller if it is likely that the file has just been created on disk.
+   * <p>
+   * <b>Note:</b> Only use this method if you do <b>not</b> have a reference to a {@link Module}. Otherwise use
+   * {@link #getGradleBuildFile(Module)}.
+   * </p>
+   *
+   * @param dirPath the given directory path.
+   * @return the build.gradle file in the directory at the given path, or {@code null} if there is no build.gradle file in the given
+   * directory path.
+   */
+  @Nullable
+  public static VirtualFile getGradleBuildFile(@NotNull File dirPath) {
+    File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
+    VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
+    return (result != null && result.isValid()) ? result : null;
   }
 }

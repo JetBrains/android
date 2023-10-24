@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.findGradleBuildFile;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
