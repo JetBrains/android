@@ -48,7 +48,7 @@ class AppInsightsContentPanel(
     mainContentPanel.add(createCenterPanel(issuesTableView::setHeaderHeight))
 
     val splitter =
-      ThreeComponentsSplitter(false, true, this).apply {
+      ThreeComponentsSplitter(false, true).apply {
         setHonorComponentsMinimumSize(true)
         firstComponent = issuesTableView.component
         innerComponent = mainContentPanel
