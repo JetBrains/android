@@ -16,6 +16,7 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.components.PersistentStateComponent
@@ -46,7 +47,7 @@ private fun buildClassLoaderForOverlayPath(overlays: List<Path>) = UrlClassLoade
   storages = [(Storage(StoragePathMacros.MODULE_FILE))],
 )
 class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: Int = 10) :
-  PersistentStateComponent<ModuleClassLoaderOverlays.State>, ModificationTracker {
+  PersistentStateComponent<ModuleClassLoaderOverlays.State>, ModificationTracker, ClassLoaderOverlays {
 
   @Tag("module-class-overlay-paths")
   class State(@XCollection(propertyElementName = "paths", style = XCollection.Style.v2) val paths: List<String> = listOf())
@@ -57,7 +58,7 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
   /**
    * A [DelegatingClassLoader.Loader] that finds classes in the current overlay.
    */
-  val classLoaderLoader: DelegatingClassLoader.Loader = object : DelegatingClassLoader.Loader {
+  override val classLoaderLoader: DelegatingClassLoader.Loader = object : DelegatingClassLoader.Loader {
     override fun loadClass(fqcn: String): ByteArray? {
       val loader = synchronized(this@ModuleClassLoaderOverlays) {
         overlayClassLoader
@@ -103,6 +104,9 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
   }
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount
+
+  override val modificationStamp: Long
+    get() = modificationCount
 
   override fun getState(): State = State(paths = synchronized(this) { overlayPaths.map { it.toString() } })
 

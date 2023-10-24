@@ -33,6 +33,7 @@ import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffi
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
+import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.intellij.openapi.Disposable
@@ -44,7 +45,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
@@ -186,14 +186,14 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * [ModificationTracker] that changes every time the classes overlay has changed.
    */
-  private val overlayManager: ModuleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
+  private val overlayManager: ClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
 
   /**
    * Modification count for the overlay when the first overlay class was loaded. Used to detect if this [ModuleClassLoaderImpl] is up to
    * date or if the overlay has changed.
    */
   @GuardedBy("overlayManager")
-  private var overlayFirstLoadModificationCount = -1L
+  private var overlayModificationStamp = -1L
 
   private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
                                   dependenciesLoader: DelegatingClassLoader.Loader?,
@@ -213,7 +213,7 @@ internal class ModuleClassLoaderImpl(module: Module,
     if (!hasLoadedAnyUserCode) {
       // First class being added, record the current overlay status
       synchronized(overlayManager) {
-        overlayFirstLoadModificationCount = overlayManager.modificationCount
+        overlayModificationStamp = overlayManager.modificationStamp
       }
     }
   }
@@ -340,8 +340,8 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Returns if the overlay is up-to-date.
    */
-  internal fun isOverlayUpToDate() = synchronized(overlayManager) {
-    overlayManager.modificationCount == overlayFirstLoadModificationCount
+  private fun isOverlayUpToDate() = synchronized(overlayManager) {
+    overlayManager.modificationStamp == overlayModificationStamp
   }
 
   /**
