@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -31,24 +28,11 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.PositionTracker
 import java.awt.Point
-import java.awt.event.ContainerEvent
-import java.awt.event.ContainerListener
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.event.HyperlinkEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
 private const val DISMISS_OFFLINE_NOTIFICATION_KEY = "noshow"
 
-class ActionToolbarListenerForOfflineBalloon(
-  name: String,
-  private val project: Project,
-  private val offlineAction: AnAction,
-  private val scope: CoroutineScope,
-  private val offlineStateFlow: Flow<ConnectionMode>
-) : ContainerListener {
-  private val initialized = AtomicBoolean(false)
+class OfflineBalloonMaker(name: String, private val project: Project) {
   private val offlineErrorContent =
     "<b>Offline</b><br/>" +
       "<br/>You are currently in offline mode because<br/>" +
@@ -60,7 +44,7 @@ class ActionToolbarListenerForOfflineBalloon(
       "new content and send your changes.<br/><br/>" +
       "<a href='dismiss'>Dismiss</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href='${DISMISS_OFFLINE_NOTIFICATION_KEY}'>Don't show again</a>"
 
-  private fun showOfflineNotificationBalloon(button: ActionButton) {
+  fun showOfflineNotificationBalloon(button: ActionButton) {
     val background = MessageType.ERROR.popupBackground
     lateinit var balloon: Balloon
     balloon =
@@ -84,32 +68,9 @@ class ActionToolbarListenerForOfflineBalloon(
     balloon.show(
       object : PositionTracker<Balloon>(button) {
         override fun recalculateLocation(balloon: Balloon) =
-          RelativePoint(component, Point(component.preferredSize.width / 2, 0))
+          RelativePoint(component, Point(component.preferredSize.width / 4, 0))
       },
       Balloon.Position.above
     )
   }
-
-  override fun componentAdded(e: ContainerEvent) {
-    val actionButton = e.child as? ActionButton ?: return
-    // Because we don't directly create or manage the buttons on the toolbar,
-    // we need to wait for it to be created by the framework first before
-    // we can act on it, such as hiding it from view.
-    if (actionButton.action == offlineAction && initialized.compareAndSet(false, true)) {
-      actionButton.isVisible = false
-      scope.launch(AndroidDispatchers.uiThread) {
-        offlineStateFlow.collect { mode ->
-          actionButton.isVisible = mode == ConnectionMode.OFFLINE
-          if (
-            mode == ConnectionMode.OFFLINE &&
-              !project.service<AppInsightsSettings>().isOfflineNotificationDismissed
-          ) {
-            showOfflineNotificationBalloon(actionButton)
-          }
-        }
-      }
-    }
-  }
-
-  override fun componentRemoved(e: ContainerEvent?) = Unit
 }
