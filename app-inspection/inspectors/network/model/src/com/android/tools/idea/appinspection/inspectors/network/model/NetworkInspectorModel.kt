@@ -120,6 +120,7 @@ class NetworkInspectorModel(
         }
       }
     }
+    dataSource.start()
   }
 
   /**

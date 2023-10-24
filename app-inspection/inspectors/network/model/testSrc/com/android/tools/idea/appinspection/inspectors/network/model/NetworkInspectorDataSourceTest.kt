@@ -43,6 +43,7 @@ class NetworkInspectorDataSourceTest {
       TestMessenger(scope, flowOf(speedEvent.toByteArray(), httpEvent.toByteArray()))
     val dataSource =
       NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    dataSource.start()
     testMessenger.await()
 
     assertThat(dataSource.queryForSpeedData(Range(1.0, 2.0))).containsExactly(speedEvent)
@@ -85,6 +86,7 @@ class NetworkInspectorDataSourceTest {
       )
     val dataSource =
       NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    dataSource.start()
     testMessenger.await()
 
     // basic inclusive search
@@ -169,6 +171,7 @@ class NetworkInspectorDataSourceTest {
       )
     val dataSource =
       NetworkInspectorDataSourceImpl(testMessenger, scope, StubNetworkInspectorTracker())
+    dataSource.start()
     testMessenger.await()
 
     assertThat(dataSource.queryForHttpData(Range(1.0, 2.0)))

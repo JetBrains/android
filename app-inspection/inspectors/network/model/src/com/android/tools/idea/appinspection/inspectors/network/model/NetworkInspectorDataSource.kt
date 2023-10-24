@@ -39,6 +39,8 @@ interface NetworkInspectorDataSource {
   fun queryForSpeedData(range: Range): List<Event>
 
   fun addOnExtendTimelineListener(listener: (Long) -> Unit)
+
+  fun start()
 }
 
 class NetworkInspectorDataSourceImpl(
@@ -51,11 +53,18 @@ class NetworkInspectorDataSourceImpl(
   private val speedData = CopyOnWriteArrayList<Event>()
   private val httpData = HttpDataCollector()
 
-  init {
-    start()
-  }
+  @Volatile private var isStarted = false
 
-  fun start() {
+  override fun start() {
+    if (isStarted) {
+      return
+    }
+    synchronized(this) {
+      if (isStarted) {
+        return
+      }
+      isStarted = true
+    }
     scope.launch {
       messenger.eventFlow
         .map { Event.parseFrom(it) }
