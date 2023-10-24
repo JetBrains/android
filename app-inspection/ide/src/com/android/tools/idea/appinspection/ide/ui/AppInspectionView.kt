@@ -199,7 +199,7 @@ constructor(
     ) {
       AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
       if (currentProcess == process) {
-        tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, false) }
+        tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
       }
     }
   }
@@ -289,10 +289,9 @@ constructor(
   private fun hyperlinkClicked(
     process: ProcessDescriptor,
     tabShell: AppInspectorTabShell,
-    force: Boolean
   ): () -> Unit = {
     AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-    tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, force) }
+    tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
   }
 
   private fun CoroutineScope.launchInspectorForTab(
@@ -382,7 +381,7 @@ constructor(
         ideServices.showNotification(
           AppInspectionBundle.message("notification.failed.launch", e.message!!),
           severity = AppInspectionIdeServices.Severity.ERROR,
-          hyperlinkClicked = hyperlinkClicked(process, tabShell, force)
+          hyperlinkClicked = hyperlinkClicked(process, tabShell)
         )
       }
     } catch (e: AppInspectionAppProguardedException) {

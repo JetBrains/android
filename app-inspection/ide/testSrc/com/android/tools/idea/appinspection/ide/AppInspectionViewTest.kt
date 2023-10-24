@@ -532,6 +532,7 @@ class AppInspectionViewTest {
           assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
           assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
 
+          setUpRelaunchingCommandHandler()
           launch(uiDispatcher) {
             // Make sure clicking the notification causes a new tab to get created
             notificationData.hyperlinkClicked()
@@ -619,12 +620,7 @@ class AppInspectionViewTest {
       assertThat(notificationData.content).startsWith("Could not launch inspector")
       assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
 
-      // Restore the working command handler, which emulates relaunching with force == true
-      transportService.setCommandHandler(
-        Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(timer)
-      )
-
+      setUpRelaunchingCommandHandler()
       launch(uiDispatcher) { notificationData.hyperlinkClicked() }
       tabsAdded.join()
     }
@@ -1420,5 +1416,28 @@ class AppInspectionViewTest {
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     timer.currentTimeNs += 1
+  }
+
+  /** Sets up a command handle to emulate relaunching successfully with force == true. */
+  private fun setUpRelaunchingCommandHandler() {
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      TestAppInspectorCommandHandler(
+        timer,
+        createInspectorResponse = {
+          if (it.launchMetadata.force)
+            createCreateInspectorResponse(
+              AppInspection.AppInspectionResponse.Status.SUCCESS,
+              AppInspection.CreateInspectorResponse.Status.SUCCESS
+            )(it)
+          else
+            createCreateInspectorResponse(
+              AppInspection.AppInspectionResponse.Status.ERROR,
+              AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
+              "error"
+            )(it)
+        }
+      )
+    )
   }
 }
