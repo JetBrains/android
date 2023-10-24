@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.startup
 
+import com.intellij.ide.util.TipAndTrickBean
 import com.intellij.ide.util.TipAndTrickManager
-import com.intellij.ide.util.TipAndTrickManagerImpl
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 
 /** Suppresses tip-of-the-day, which does not work correctly in Android Studio (b/302571384). */
@@ -35,8 +36,12 @@ class SuppressTipOfTheDay {
 
   /** Suppresses the automatic tip-of-the-day popup. */
   @Suppress("UnstableApiUsage")
-  class OverridingTipAndTrickManager : TipAndTrickManager by TipAndTrickManagerImpl() {
+  class OverridingTipAndTrickManager : TipAndTrickManager {
     override fun canShowDialogAutomaticallyNow(project: Project): Boolean = false
+    override suspend fun showTipDialog(project: Project?) { warnSuppressed() }
+    override suspend fun showTipDialog(project: Project, tip: TipAndTrickBean) { warnSuppressed() }
+    override fun closeTipDialog() { warnSuppressed() }
+    private fun warnSuppressed() { thisLogger().warn("TipAndTrickManager is suppressed in Android Studio") }
   }
 
   companion object {
