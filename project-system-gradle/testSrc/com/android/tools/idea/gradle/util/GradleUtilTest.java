@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplayName;
 import static com.google.common.io.Files.createTempDir;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.delete;
@@ -222,13 +221,5 @@ public class GradleUtilTest {
   @Test
   public void testCreateFullTaskWithTopLevelModule() {
     assertEquals(":assemble", GradleProjectSystemUtil.createFullTaskName(":", "assemble"));
-  }
-
-  @Test
-  public void testGetDependencyDisplayName() {
-    assertThat(getDependencyDisplayName("com.google.guava:guava:11.0.2")).isEqualTo("guava:11.0.2");
-    assertThat(getDependencyDisplayName("android.arch.lifecycle:extensions:1.0.0-beta1@aar")).isEqualTo("lifecycle:extensions:1.0.0-beta1");
-    assertThat(getDependencyDisplayName("com.android.support.test.espresso:espresso-core:3.0.1@aar")).isEqualTo("espresso-core:3.0.1");
-    assertThat(getDependencyDisplayName("foo:bar:1.0")).isEqualTo("foo:bar:1.0");
   }
 }

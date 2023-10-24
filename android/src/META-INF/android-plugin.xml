@@ -727,6 +727,9 @@
                     interface="com.android.tools.idea.layoutlib.LayoutLibraryLoader$LayoutLibraryProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.diagnostics.report.logsProvider"
                     interface="com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.editors.manifest.manifestPanelToken"
+                    interface="com.android.tools.idea.editors.manifest.ManifestPanelToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.project">

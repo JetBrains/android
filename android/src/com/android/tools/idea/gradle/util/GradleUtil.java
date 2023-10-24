@@ -143,40 +143,4 @@ public final class GradleUtil {
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
   }
-
-  /**
-   * Computes a library name intended for display purposes; names may not be unique
-   * (and separator is always ":"). It will only show the artifact id, if that id contains slashes, otherwise
-   * it will include the last component of the group id (unless identical to the artifact id).
-   * <p>
-   * E.g.
-   * com.android.support.test.espresso:espresso-core:3.0.1@aar -> espresso-core:3.0.1
-   * android.arch.lifecycle:extensions:1.0.0-beta1@aar -> lifecycle:extensions:1.0.0-beta1
-   * com.google.guava:guava:11.0.2@jar -> guava:11.0.2
-   */
-  @NotNull
-  public static String getDependencyDisplayName(@NotNull String artifactAddress) {
-    GradleCoordinate coordinates = GradleCoordinate.parseCoordinateString(artifactAddress);
-    if (coordinates != null) {
-      String name = coordinates.getArtifactId();
-
-      // For something like android.arch.lifecycle:runtime, instead of just showing "runtime",
-      // we show "lifecycle:runtime"
-      if (!name.contains("-")) {
-        String groupId = coordinates.getGroupId();
-        int index = groupId.lastIndexOf('.'); // okay if it doesn't exist
-        String groupSuffix = groupId.substring(index + 1);
-        if (!groupSuffix.equals(name)) { // e.g. for com.google.guava:guava we'd end up with "guava:guava"
-          name = groupSuffix + ":" + name;
-        }
-      }
-
-      Version version = coordinates.getLowerBoundVersion();
-      if (version != null && !"unspecified".equals(version.toString())) {
-        name += ":" + version;
-      }
-      return name;
-    }
-    return trimLeading(artifactAddress, ':');
-  }
 }

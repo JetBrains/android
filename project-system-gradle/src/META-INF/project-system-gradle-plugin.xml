@@ -173,6 +173,9 @@
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
     <mppProjectResolve implementation="org.jetbrains.kotlin.android.extensions.KotlinMppAndroidProjectResolverExtension"/>
   </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.editors.manifest">
+    <manifestPanelToken implementation="com.android.tools.idea.editors.manifest.ManifestPanelGradleToken"/>
+  </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder$DataImportListener"
               topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
