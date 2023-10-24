@@ -20,14 +20,10 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.android.tools.res.ids.ResourceIdManagerModelModule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.extensions.ExtensionPoint
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Assert
@@ -59,9 +55,6 @@ class ResourceClassRegistryTest {
 
   @Before
   fun setUp() {
-    MockApplication(disposable)
-    Extensions.getRootArea().registerExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.name, LayoutLibraryLoader.LayoutLibraryProvider::class.java.name, ExtensionPoint.Kind.INTERFACE)
-
     Disposer.register(disposable, disposableRepository as Disposable)
     whenever(manager.getAppResourcesForNamespace(eq(PKG_1.namespace))).thenReturn(listOf(repository, disposableRepository))
     whenever(manager.getAppResourcesForNamespace(eq(PKG_2.namespace))).thenReturn(listOf(repository, disposableRepository))

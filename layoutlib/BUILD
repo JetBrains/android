@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.layoutlib",
     srcs = ["src"],
     iml_files = ["intellij.android.layoutlib.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/.idea/libraries:asm-tools"],
     # do not sort: must match IML order
@@ -42,6 +43,8 @@ kotlin_library(
             "src/**/*.kt",
         ],
     ),
+    resource_strip_prefix = "tools/adt/idea/layoutlib/resources",
+    resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/studio/layoutlib/data:layoutlib",

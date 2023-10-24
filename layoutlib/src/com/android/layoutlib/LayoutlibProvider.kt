@@ -19,7 +19,7 @@ import com.android.layoutlib.bridge.Bridge
 import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 
-class LayoutlibProvider : LayoutLibraryLoader.LayoutLibraryProvider() {
+class LayoutlibProvider : LayoutLibraryLoader.LayoutLibraryProvider {
   override fun getLibrary(): LayoutLibrary {
     return LayoutLibrary.load(Bridge(), LayoutlibClassLoader(LayoutlibProvider::class.java.classLoader))
   }

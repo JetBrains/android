@@ -190,7 +190,7 @@ open class ResourceIdManagerBase(
       toIdMap[ResourceType.STYLE] = TObjectIntHashMap(794)
     }
 
-    val rClass = LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.computeSafeIfAny { provider -> provider.frameworkRClass }
+    val rClass = LayoutLibraryLoader.getLayoutLibraryProvider().map { provider -> provider.frameworkRClass }.orElse(null)
     if (rClass != null) {
       loadIdsFromResourceClass(rClass, into = frameworkIds, lookForAttrsInStyleables = true)
     }

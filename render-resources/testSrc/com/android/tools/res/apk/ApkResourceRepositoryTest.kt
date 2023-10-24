@@ -19,38 +19,14 @@ import com.android.ide.common.rendering.api.AttrResourceValue
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
-import com.android.layoutlib.LayoutlibProvider
 import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.res.ids.apk.ApkResourceIdManager
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.extensions.ExtensionPoint
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.openapi.util.Disposer
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 
 class ApkResourceRepositoryTest {
-  private val disposable = Disposer.newDisposable()
-
-  @Before
-  fun setUp() {
-    MockApplication(disposable)
-    Extensions.getRootArea().registerExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.name, LayoutLibraryLoader.LayoutLibraryProvider::class.java.name, ExtensionPoint.Kind.INTERFACE)
-    val ep = Extensions.getRootArea().getExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME)
-
-    val layoutlibProvider = LayoutlibProvider()
-    ep.registerExtension(layoutlibProvider, disposable)
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(disposable)
-  }
 
   @Test
   fun testResourceValues() {

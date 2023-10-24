@@ -23,7 +23,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.environment.Logger;
 import com.android.utils.ILogger;
-import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.system.CpuArch;
@@ -31,10 +30,13 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ServiceLoader;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a {@link LayoutLibrary}
@@ -77,7 +79,7 @@ public class LayoutLibraryLoader {
     String dataPath = target.getPath(IAndroidTarget.DATA).toString().replace('\\', '/');
     String[] keyboardPaths = new String[] { dataPath + "/keyboards/Generic.kcm" };
 
-    LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
+    LayoutLibrary library = LayoutLibraryLoader.getLayoutLibraryProvider().map(LayoutLibraryProvider::getLibrary).orElse(null);
     if (library == null ||
         !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), fontFolderPath.toFile(),
                       getNativeLibraryPath(dataPath), dataPath + "/icu/icudt72l.dat", keyboardPaths, enumMap, layoutLog)) {
@@ -124,17 +126,20 @@ public class LayoutLibraryLoader {
     return library;
   }
 
+  @NotNull
+  public static Optional<LayoutLibraryProvider> getLayoutLibraryProvider() {
+    return ServiceLoader.load(LayoutLibraryProvider.class, LayoutLibraryProvider.class.getClassLoader()).findFirst();
+  }
+
   /**
    * Extension point for the Android plugin to have access to layoutlib in a separate plugin.
    */
-  public static abstract class LayoutLibraryProvider {
-    public static final ExtensionPointName<LayoutLibraryProvider> EP_NAME =
-      new ExtensionPointName<>("com.android.tools.idea.layoutlib.layoutLibraryProvider");
+  public interface LayoutLibraryProvider {
 
-    @NotNull
-    public abstract LayoutLibrary getLibrary();
+    @Nullable
+    LayoutLibrary getLibrary();
 
-    @NotNull
-    public abstract Class<?> getFrameworkRClass();
+    @Nullable
+    Class<?> getFrameworkRClass();
   }
 }
