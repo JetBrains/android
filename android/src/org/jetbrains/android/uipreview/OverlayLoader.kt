@@ -16,12 +16,6 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import com.intellij.util.lang.UrlClassLoader
-import java.nio.file.Path
-
-private fun buildClassLoaderForOverlayPath(overlay: Path) = UrlClassLoader.build()
-  .files(listOf(overlay))
-  .get()
 
 /**
  * A [DelegatingClassLoader.Loader] that loads classes from a different path.
