@@ -2,6 +2,7 @@
 <project version="4">
   <component name="JavaProjectCodeInsightSettings">
     <excluded-names>
+      <name>com.intellij.psi.impl.source.tree.injected.changesHandler.range</name>
       <name>nl.jqno.equalsverifier.internal</name>
       <name>org.gradle.internal.impldep</name>
       <name>org.jetbrains.kotlin.utils.addToStdlib</name>

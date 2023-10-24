@@ -22,7 +22,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
@@ -232,7 +231,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreview"))
           assertThat(it.previewElementDefinitionPsi?.element?.text).isEqualTo("@TilePreview")
         }
@@ -249,7 +248,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("largeRoundTilePreview"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
@@ -274,7 +273,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("namedTilePreview"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
@@ -299,7 +298,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreviewWithGroup"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
@@ -324,7 +323,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreviewWithLocale"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
@@ -348,7 +347,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1.2f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreviewWithFontScale"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo(
@@ -372,7 +371,7 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
-          assertThat(it.previewBodyPsi?.psiRange?.range)
+          assertThat(TextRange.create(it.previewBodyPsi!!.psiRange!!))
             .isEqualTo(previewsTest.textRange("tilePreviewWithContextParameter"))
           assertThat(it.previewElementDefinitionPsi?.element?.text)
             .isEqualTo("@TilePreview")

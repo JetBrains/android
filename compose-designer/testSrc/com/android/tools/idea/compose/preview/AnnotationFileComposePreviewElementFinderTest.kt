@@ -29,7 +29,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -195,7 +194,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -214,7 +213,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(0, it.configuration.uiMode)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview2", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview2", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals(
           "@Preview(name = \"preview2\", apiLevel = 12, group = \"groupA\", showBackground = true, locale = \"en-rUS\")",
           it.previewElementDefinitionPsi?.element?.text
@@ -235,7 +234,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("id:Nexus 7", it.configuration.deviceSpec)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview3", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview3", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals(
           "@Preview(name = \"preview3\", widthDp = 1, heightDp = 2, fontScale = 0.2f, showDecoration = true, device = Devices.NEXUS_7)",
           it.previewElementDefinitionPsi?.element?.text
@@ -249,7 +248,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("#baaaba", it.displaySettings.backgroundColor)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview4", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview4", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals(
           "@Preview(name = \"preview4\", uiMode = 3, backgroundColor = 0xBAAABA)",
           it.previewElementDefinitionPsi?.element?.text
@@ -263,7 +262,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals("#ffbaaaba", it.displaySettings.backgroundColor)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview5", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview5", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals(
           "@Preview(name = \"preview5\", uiMode = 3, backgroundColor = 0xFFBAAABA)",
           it.previewElementDefinitionPsi?.element?.text
@@ -280,7 +279,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview6", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview6", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("Preview", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -294,7 +293,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview7", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@MyAnnotation", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -308,7 +307,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview7", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@MyAnnotation", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -322,7 +321,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview7", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview7", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@Preview(name = \"preview7\")", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -479,7 +478,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@Preview", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -493,7 +492,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@MyValidAnnotation1", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -507,7 +506,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@MyValidAnnotation2", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -521,7 +520,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertFalse(it.displaySettings.showDecoration)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals("@MyValidAnnotation3", it.previewElementDefinitionPsi?.element?.text)
       }
     }
@@ -994,7 +993,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals(
           "@Preview(name = \"preview1\", widthDp = 2)",
           it.previewElementDefinitionPsi?.element?.text
@@ -1009,7 +1008,7 @@ class AnnotationFileComposePreviewElementFinderTest {
       assertEquals(UNDEFINED_DIMENSION, it.configuration.height)
 
       ReadAction.run<Throwable> {
-        assertMethodTextRange(composeTest, "Preview1", it.previewBodyPsi?.psiRange?.range!!)
+        assertMethodTextRange(composeTest, "Preview1", TextRange.create(it.previewBodyPsi!!.psiRange!!))
         assertEquals(
           "@Preview(name = \"preview2\", group = \"groupA\")",
           it.previewElementDefinitionPsi?.element?.text
