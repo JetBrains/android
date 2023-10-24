@@ -22,7 +22,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ProjectRule;
-import com.intellij.ui.ExperimentalUI;
+import com.intellij.ui.NewUI;
 import java.awt.Component;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public class WorkBenchManagerTest {
 
   @Before
   public void before() {
-    initialUI = ExperimentalUI.isNewUI();
+    initialUI = NewUI.isEnabled();
     Registry.get("ide.experimental.ui").setValue(true);
     myFocusManager = new FakeKeyboardFocusManager(disposableRule.getDisposable());
     myManager = new WorkBenchManager();

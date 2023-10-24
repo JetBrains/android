@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.NewUI
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
@@ -185,7 +185,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
       icon =
         treeIcon?.let {
-          if (focusedValue && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it
+          if (focusedValue && !NewUI.isEnabled()) ColoredIconGenerator.generateWhiteIcon(it) else it
         }
       if (!selectedValue && (deEmphasized || !enabledValue)) {
         foreground = foreground.deEmphasize()

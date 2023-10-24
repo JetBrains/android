@@ -21,9 +21,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import com.intellij.ui.NewUI
 import com.intellij.util.ui.ImageUtil
 import java.awt.BorderLayout
 import java.awt.Component
@@ -53,7 +53,7 @@ class IconTableComponentTest {
 
     label.updateTablePresentation(presentationManager, selected)
     assertThat(label.background).isEqualTo(JBColor.RED)
-    if (ExperimentalUI.isNewUI()) {
+    if (NewUI.isEnabled()) {
       // We don't change the icon colors in the new UI
       assertThat(label.icon).isEqualTo(icon)
     } else {

@@ -32,7 +32,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.Key;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.ui.ExperimentalUI;
+import com.intellij.ui.NewUI;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.UIUtil.FontSize;
@@ -304,7 +304,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     @Override
     public Font getFont() {
       // noinspection UnstableApiUsage
-      return ExperimentalUI.isNewUI() ? UIUtil.getLabelFont(FontSize.NORMAL) : super.getFont();
+      return NewUI.isEnabled() ? UIUtil.getLabelFont(FontSize.NORMAL) : super.getFont();
     }
   }
 

@@ -24,8 +24,8 @@ import com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY
 import com.intellij.icons.AllIcons.Debugger.*
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.ColoredTreeCellRenderer
-import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.IconManager
+import com.intellij.ui.NewUI
 import com.intellij.ui.PlatformIcons
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.PlatformIcons.*
@@ -70,7 +70,7 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
   }
 
   private fun setIconColorized(icon: Icon) =
-    setIcon(if (mySelected && isFocused && !isNewUI()) generateWhiteIcon(icon) else icon)
+    setIcon(if (mySelected && isFocused && !NewUI.isEnabled()) generateWhiteIcon(icon) else icon)
 
   companion object {
     val STRING_ATTRIBUTES = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))

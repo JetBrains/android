@@ -24,7 +24,7 @@ import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.api.TableSupport
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.NewUI
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -88,7 +88,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) :
     Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   fun displayedIcon(icon: Icon?): Icon? =
-    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !isNewUI())
+    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !NewUI.isEnabled())
       ColoredIconGenerator.generateWhiteIcon(icon)
     else icon
 

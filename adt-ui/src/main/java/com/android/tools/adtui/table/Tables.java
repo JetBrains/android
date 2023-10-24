@@ -15,10 +15,10 @@
  */
 package com.android.tools.adtui.table;
 
-import static com.intellij.ui.ExperimentalUI.isNewUI;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ui.NewUI;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Component;
@@ -73,7 +73,7 @@ public final class Tables {
 
   @NotNull
   public static Icon getIcon(@NotNull JTable table, boolean selected, @NotNull Icon icon) {
-    if (selected && !isNewUI()) {
+    if (selected && !NewUI.isEnabled()) {
       return ColoredIconGenerator.INSTANCE.generateColoredIcon(icon, table.getSelectionForeground());
     }
 

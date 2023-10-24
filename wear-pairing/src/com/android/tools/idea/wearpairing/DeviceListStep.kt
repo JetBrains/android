@@ -32,8 +32,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
-import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.NewUI
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLabel
@@ -322,7 +322,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
   // Cache generated white icons, so we don't keep creating new ones
   private val whiteIconsCache = hashMapOf<Icon, Icon>()
   private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
-    isSelected && !isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+    isSelected && !NewUI.isEnabled() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
     else -> icon
   }
 

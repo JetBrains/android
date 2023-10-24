@@ -22,8 +22,8 @@ import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.JBColor
+import com.intellij.ui.NewUI
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -113,7 +113,7 @@ class BasePropertyEditorModelTest {
 
     model.isUsedInRendererWithSelection = true
     assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!))
-      .isEqualTo(!isNewUI())
+      .isEqualTo(!NewUI.isEnabled())
   }
 
   @Test
