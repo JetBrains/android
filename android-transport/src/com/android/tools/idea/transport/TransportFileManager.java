@@ -213,6 +213,7 @@ public final class TransportFileManager implements TransportFileCopier {
     configBuilder.build().writeTo(oStream);
     myDevice.executeShellCommand("rm -f " + DEVICE_DIR + DAEMON_CONFIG_FILE, new NullOutputReceiver());
     myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + DAEMON_CONFIG_FILE);
+    myDevice.executeShellCommand("chown shell:shell " + DEVICE_DIR + DAEMON_CONFIG_FILE, new NullOutputReceiver());
   }
 
   /**
@@ -228,6 +229,7 @@ public final class TransportFileManager implements TransportFileCopier {
     agentConfigBuilder.build().writeTo(oStream);
     myDevice.executeShellCommand("rm -f " + DEVICE_DIR + configName, new NullOutputReceiver());
     myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + configName);
+    myDevice.executeShellCommand("chown shell:shell " + DEVICE_DIR + configName, new NullOutputReceiver());
   }
 
   @NotNull
@@ -296,9 +298,11 @@ public final class TransportFileManager implements TransportFileCopier {
       // Make the directory not writable for the group or the world. Otherwise, any unprivileged app running on device can replace the
       // content of file in this directory and archive escalation of privileges when Android Studio will decide to launch the
       // corresponding functionality.
-      myDevice.executeShellCommand("mkdir -p -m 755 " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')),
-                                   new NullOutputReceiver());
+      // "chown shell:shell" ensures proper ownership of DEVICE_DIR if adb is rooted.
+      String folder = deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/'));
+      myDevice.executeShellCommand("mkdir -p -m 755 " + folder + "; chown shell:shell " + folder, new NullOutputReceiver());
       myDevice.pushFile(localPath.toString(), deviceFilePath);
+      myDevice.executeShellCommand("chown shell:shell " + deviceFilePath, new NullOutputReceiver());
 
       if (executable) {
         /*

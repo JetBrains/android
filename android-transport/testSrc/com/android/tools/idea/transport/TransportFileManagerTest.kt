@@ -77,6 +77,7 @@ class TransportFileManagerTest {
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
     verify(mockDevice, times(1)).executeShellCommand(eq("chmod 444 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chown shell:shell ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
 
     val expectedPaths = listOf(
       Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
@@ -136,6 +137,7 @@ class TransportFileManagerTest {
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.second })
     verify(mockDevice, times(1)).executeShellCommand(eq("chmod 755 ${TransportFileManager.DEVICE_DIR}transport"), any())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chown shell:shell ${TransportFileManager.DEVICE_DIR}transport"), any())
   }
 
   @Test
@@ -244,7 +246,8 @@ class TransportFileManagerTest {
     val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
     expectedAbis.map {
-      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
+      val filePath = "${TransportFileManager.DEVICE_DIR}${it.cpuArch}"
+      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 $filePath; chown shell:shell $filePath"), any())
     }
   }
 
