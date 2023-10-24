@@ -1541,7 +1541,7 @@ public final class StudioFlags {
       "crashlytics.variants",
       "Crashlytics Variants Support",
       "Enabled Variant Selection in AQI Crashlytics",
-      false
+      true
     );
 
   public static final Flag<Boolean> CRASHLYTICS_J_UI =
