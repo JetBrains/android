@@ -80,6 +80,7 @@ public class StartUpTest {
         "Firebase Services",
         "Firebase Testing",
         "Git for App Insights",
+        "RML DFA Debug Toolwindow",
         "Git",
         "GitHub",
         "GitLab",

@@ -1071,6 +1071,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-repository-search",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-rml-dfa-ide",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-sh",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-tasks",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-terminal",

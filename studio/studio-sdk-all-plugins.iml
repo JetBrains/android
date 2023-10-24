@@ -40,6 +40,7 @@
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-platform-langInjection" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-properties" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-repository-search" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="studio-plugin-rml-dfa-ide" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-sh" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-tasks" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="studio-plugin-terminal" level="project" />
