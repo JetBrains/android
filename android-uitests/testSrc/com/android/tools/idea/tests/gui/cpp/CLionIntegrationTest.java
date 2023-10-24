@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.cpp;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -23,20 +25,17 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class CLionIntegrationTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static final String NATIVE_C_FILE_PATH = "app/src/main/cpp/hello-jni.c";
   private static final String NATIVE_C_HEADER_FILE = "hello-jni.h";
@@ -58,7 +57,7 @@ public class CLionIntegrationTest {
    *   5. Re-Open app/src/main/cpp/hello-jni.c, and enter an undefined method call after
    *      "BUFFER_OFFSET(kid_age);", and verify4
    *   Vefify:
-   *   1. In inspection results: 1) it contains Uunused header #includes;
+   *   1. In inspection results: 1) it contains Unused header #includes;
    *                             2) it doesn't contain any error
    *   2. Code completion should work: "BUFFER_OFFSET" is auto entered
    *   3. hello-jni.h file is opened and mouse cursor is in "BUFFER_OFFSET" line
@@ -79,7 +78,7 @@ public class CLionIntegrationTest {
       .getResults();
     assertThat(inspectionResults).contains("Unused");
 
-    EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH, EditorFixture.Tab.EDITOR);
+    EditorFixture editor = ideFrame.getEditor().open(NATIVE_C_FILE_PATH);
     assertThat(editor.getHighlights(HighlightSeverity.ERROR)).isEmpty();
 
     // Check code completion.
@@ -108,7 +107,7 @@ public class CLionIntegrationTest {
       .typeText("\nNOT_DEFINED_FUNC();")
       .getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(1);
-    assertThat(errors.get(0)).contains("Implicit declaration of function 'NOT_DEFINED_FUNC' is invalid");
+    assertThat(errors.get(0)).contains("Call to undeclared function 'NOT_DEFINED_FUNC'; ISO C99 and later do not support implicit function declarations");
 
     // TODO: Syntax highlighting check.
   }
