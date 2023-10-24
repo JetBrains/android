@@ -493,7 +493,8 @@ DisplayStreamer::DisplayRotationWatcher::DisplayRotationWatcher(DisplayStreamer*
 
 void DisplayStreamer::DisplayRotationWatcher::OnRotationChanged(int32_t new_rotation) {
   auto old_rotation = display_rotation.exchange(new_rotation);
-  Log::D("DisplayRotationWatcher::OnRotationChanged: new_rotation=%d old_rotation=%d", new_rotation, old_rotation);
+  Log::D("Display %d: DisplayRotationWatcher::OnRotationChanged: new_rotation=%d old_rotation=%d",
+         display_streamer->display_id_, new_rotation, old_rotation);
   if (new_rotation != old_rotation) {
     display_streamer->StopCodec();
   }
