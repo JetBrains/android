@@ -1098,6 +1098,93 @@ class ForegroundProcessDetectionTest {
     assertThat(foregroundProcessDetection.transportListenerJob?.isCancelled)
   }
 
+  @Test
+  fun testListenerIsCalledWithPreviousState(): Unit = runBlocking {
+    val onDeviceDisconnectedSyncChannel = Channel<DeviceDescriptor>()
+    val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {
+      coroutineScope.launch { onDeviceDisconnectedSyncChannel.send(it) }
+    }
+
+    val (deviceModel, processModel) = createDeviceModel(device1)
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.disposable,
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        streamManagerRule.streamManager,
+        workDispatcher,
+        onDeviceDisconnected = onDeviceDisconnected,
+        pollingIntervalMs = 500L
+      )
+    foregroundProcessDetection.start()
+
+    val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
+
+    connectDevice(device1)
+    val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
+    val startTrackingDevice = startTrackingSyncChannel.receive()
+
+    assertThat(handshakeDevice).isEqualTo(device1)
+    assertThat(supportType).isEqualTo(SupportType.SUPPORTED)
+
+    assertThat(startTrackingDevice).isEqualTo(device1)
+
+    val foregroundProcess1 = ForegroundProcess(1, "process1")
+    sendForegroundProcessEvent(device1, foregroundProcess1)
+    foregroundProcessSyncChannel.receive()
+
+    val previousState = mutableListOf<ForegroundProcess>()
+    val listener = ForegroundProcessListener { _, fp, _ -> previousState.add(fp) }
+
+    // Verify that the listener is notified of the last seen foreground process
+    foregroundProcessDetection.addForegroundProcessListener(listener)
+    assertThat(previousState).containsExactly(foregroundProcess1)
+    previousState.clear()
+    foregroundProcessDetection.removeForegroundProcessListener(listener)
+
+    foregroundProcessDetection.stopPollingSelectedDevice()
+    stopTrackingSyncChannel.receive()
+
+    // Stop polling should have cleared the last seen process.
+    // When the listener is added we don't want to know the last process of that device, if we
+    // stopped polling.
+    foregroundProcessDetection.addForegroundProcessListener(listener)
+    assertThat(previousState).isEmpty()
+    previousState.clear()
+    foregroundProcessDetection.removeForegroundProcessListener(listener)
+
+    foregroundProcessDetection.startPollingDevice(device1.toDeviceDescriptor())
+
+    sendForegroundProcessEvent(device1, foregroundProcess1)
+    foregroundProcessSyncChannel.receive()
+
+    foregroundProcessDetection.addForegroundProcessListener(listener)
+    assertThat(previousState).containsExactly(foregroundProcess1)
+    previousState.clear()
+    foregroundProcessDetection.removeForegroundProcessListener(listener)
+
+    disconnectDevice(device1)
+    onDeviceDisconnectedSyncChannel.receive()
+
+    // Disconnecting should have cleared the last seen process.
+    // When the listener is added we don't want to know the last process of that device, if the
+    // device was disconnected.
+    foregroundProcessDetection.addForegroundProcessListener(listener)
+    assertThat(previousState).isEmpty()
+    previousState.clear()
+    foregroundProcessDetection.removeForegroundProcessListener(listener)
+  }
+
   /** Assert that [newForegroundProcess] contains the expected [device] and [foregroundProcess]. */
   private fun assertEqual(
     newForegroundProcess: NewForegroundProcess,

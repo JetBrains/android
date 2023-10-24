@@ -237,11 +237,33 @@ class ForegroundProcessDetectionImpl(
     }
   }
 
+  private data class ForegroundProcessData(
+    val device: DeviceDescriptor,
+    val process: ForegroundProcess,
+    val isDebuggable: Boolean
+  )
+
+  /**
+   * Keeps track of the last seen foreground process, it is used to notify new listeners about the
+   * current state
+   */
+  private var lastForegroundProcess: ForegroundProcessData? = null
+
   @VisibleForTesting var transportListenerJob: Job? = null
 
   init {
     Disposer.register(parentDisposable, this)
     processModel.addSelectedProcessListeners(selectedProcessListener)
+  }
+
+  /** This is the preferred way to call the listeners, as it keeps track of the latest state */
+  private fun invokeListeners(
+    device: DeviceDescriptor,
+    process: ForegroundProcess,
+    isDebuggable: Boolean
+  ) {
+    lastForegroundProcess = ForegroundProcessData(device, process, isDebuggable)
+    foregroundProcessListeners.forEach { it.onNewProcess(device, process, isDebuggable) }
   }
 
   override fun start() {
@@ -277,9 +299,7 @@ class ForegroundProcessDetectionImpl(
                     // The ProcessesModel only contains debuggable processes.
                     val isDebuggable =
                       foregroundProcess.matchToProcessDescriptor(processModel) != null
-                    foregroundProcessListeners.forEach {
-                      it.onNewProcess(streamDevice, foregroundProcess, isDebuggable)
-                    }
+                    invokeListeners(streamDevice, foregroundProcess, isDebuggable)
                   }
                 }
             }
@@ -376,6 +396,12 @@ class ForegroundProcessDetectionImpl(
             connectedStreams.remove(stream.streamId)
             deviceModel.foregroundProcessDetectionDevicesSupport.remove(streamDevice)
 
+            if (lastForegroundProcess?.device == streamDevice) {
+              // If the last foreground process is from this device, clear it. We don't want to
+              // notify new listeners about this process.
+              lastForegroundProcess = null
+            }
+
             val handler = handshakeExecutors.remove(streamDevice)
             handler?.post(HandshakeState.Disconnected)
 
@@ -408,6 +434,9 @@ class ForegroundProcessDetectionImpl(
   }
 
   override fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
+    lastForegroundProcess?.let {
+      foregroundProcessListener.onNewProcess(it.device, it.process, it.isDebuggable)
+    }
     foregroundProcessListeners.add(foregroundProcessListener)
   }
 
@@ -449,6 +478,11 @@ class ForegroundProcessDetectionImpl(
     if (transportStreamChannel != null) {
       sendStopOnDevicePollingCommand(transportStreamChannel.stream, selectedDevice)
     }
+
+    if (lastForegroundProcess?.device == selectedDevice) {
+      lastForegroundProcess = null
+    }
+
     deviceModel.selectedDevice = null
   }
 
