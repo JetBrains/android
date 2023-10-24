@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
+
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -24,10 +26,14 @@ import com.sun.jna.platform.win32.ShellAPI;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
 import com.sun.jna.platform.win32.WinUser;
 import com.sun.jna.ptr.IntByReference;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Special version of {@link GeneralCommandLine} that will execute the command with
@@ -121,7 +127,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
 
     @Override
     public OutputStream getOutputStream() {
-      throw new RuntimeException("Unexpected behaviour");
+      return NULL_OUTPUT_STREAM;
     }
 
     @Override
