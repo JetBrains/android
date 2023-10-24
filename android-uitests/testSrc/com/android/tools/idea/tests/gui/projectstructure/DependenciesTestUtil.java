@@ -122,7 +122,8 @@ public class DependenciesTestUtil {
     dialogFixture.clickOk();
   }
 
-  public static void addLibraryDependency(@NotNull IdeFrameFixture ideFrame,
+  public static void addLibraryDependency(@NotNull GuiTestRule guiTest,
+                                          @NotNull IdeFrameFixture ideFrame,
                                              @NotNull String library,
                                              @NotNull String anotherModule,
                                              @NotNull String scope) {
@@ -134,12 +135,14 @@ public class DependenciesTestUtil {
     dependenciesFixture.findModuleSelector().selectModule(anotherModule);
 
     AddLibraryDependencyDialogFixture addLibraryDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddLibraryDependency();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     addLibraryDependencyFixture.findSearchQueryTextBox().enterText(library);
     addLibraryDependencyFixture.findSearchButton().click();
     addLibraryDependencyFixture.findVersionsView(true); // Wait for search to complete.
     addLibraryDependencyFixture.findConfigurationCombo().selectItem(scope);
     addLibraryDependencyFixture.clickOk();
     dialogFixture.clickOk();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   protected static void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,

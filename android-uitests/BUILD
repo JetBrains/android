@@ -3537,6 +3537,7 @@ java_test(
 # fat test
 java_test(
     name = "AddAppCompatLibTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/NoAppCompatLibApp/**",
     ]),
