@@ -2,6 +2,7 @@ load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GR
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/build-system/integration-test:common-dependencies.bzl", "KGP_LATEST")
 
 # managed by go/iml_to_build
 iml_module(
@@ -257,15 +258,17 @@ iml_studio_test(
     test_class = "com.android.tools.idea.BuildAndRunTest",
 )
 
+create_project_test_data = [
+    ":createproject_deps",
+    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:platforms/latest",
+    "//tools/base/build-system:gradle-distrib-7.5",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
+]
+
 iml_studio_test(
     name = "CreateProjectTest",
     timeout = "long",
-    data = [
-        ":createproject_deps",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/base/build-system:gradle-distrib-7.5",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
-    ],
+    data = create_project_test_data,
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
@@ -310,20 +313,16 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.9.0",
-        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.9.20-RC",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-RC",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",  # This dependency does not seem important but without it the test keeps timing out
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-RC",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-RC",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.6.4",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KGP_LATEST,
 )
 
 maven_repository(
@@ -331,13 +330,9 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-RC",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KGP_LATEST,
 )
 
 iml_studio_test(
@@ -491,13 +486,9 @@ maven_repository(
     artifacts = [
         "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-RC",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KGP_LATEST,
     visibility = ["//visibility:public"],
 )
 
@@ -585,13 +576,9 @@ maven_repository(
     artifacts = [
         "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-RC",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KGP_LATEST,
     visibility = ["//visibility:public"],
 )
 
@@ -601,13 +588,9 @@ maven_repository(
     artifacts = [
         "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.1.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.20-RC",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.20-RC",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
-    ],
+    ] + KGP_LATEST,
     visibility = ["//visibility:public"],
 )
 
