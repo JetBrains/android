@@ -1284,6 +1284,22 @@ class ComposePreviewRepresentation(
       completableDeferred?.completeExceptionally(IllegalStateException("Already disposed"))
       return
     }
+    // Make sure not to allow quality change refreshes when the flag is disabled
+    if (
+      type == ComposePreviewRefreshType.QUALITY && !StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get()
+    ) {
+      completableDeferred?.completeExceptionally(IllegalStateException("Not enabled"))
+      return
+    }
+    // Make sure not to request refreshes when deactivated, unless it is an allowed quality refresh,
+    // which is expected to happen to decrease the quality of the previews when deactivating.
+    if (
+      !lifecycleManager.isActive() &&
+        !(type == ComposePreviewRefreshType.QUALITY && allowQualityChangeIfInactive.get())
+    ) {
+      completableDeferred?.completeExceptionally(IllegalStateException("Not active"))
+      return
+    }
 
     refreshManager.requestRefresh(
       ComposePreviewRefreshRequest(this.hashCode().toString(), ::refresh, completableDeferred, type)
