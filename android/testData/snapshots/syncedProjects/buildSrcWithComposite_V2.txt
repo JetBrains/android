@@ -1178,7 +1178,7 @@ PROJECT                       : BuildSrcWithComposite
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-8.4.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
         LIBRARY
             LibraryLevel                  : module
             IsModuleLevel                 : true
@@ -1319,7 +1319,7 @@ PROJECT                       : BuildSrcWithComposite
             LibraryLevel                  : module
             IsModuleLevel                 : true
             LIBRARY
-                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-8.4.jar!/
+                *CLASSES                      : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-<GRADLE_VERSION>.jar!/
         LIBRARY
             LibraryLevel                  : module
             IsModuleLevel                 : true
