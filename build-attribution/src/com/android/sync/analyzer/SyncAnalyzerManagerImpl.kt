@@ -36,6 +36,7 @@ import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.model.build.BuildEnvironment
 import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtension
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
@@ -109,7 +110,8 @@ class SyncAnalyzerOperationHelperExtension : GradleOperationHelperExtension {
 
   override fun prepareForExecution(id: ExternalSystemTaskId,
                                    operation: LongRunningOperation,
-                                   gradleExecutionSettings: GradleExecutionSettings) {
+                                   gradleExecutionSettings: GradleExecutionSettings,
+                                   buildEnvironment: BuildEnvironment?) {
     // Note: this method is called separately for buildSrc and project itself with the same `id` but with different operations.
     // This means we need to set up listener multiple times but with the same data accumulators.
     if (id.projectSystemId != GradleProjectSystemUtil.GRADLE_SYSTEM_ID) return

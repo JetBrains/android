@@ -45,6 +45,7 @@ public class HeapTraverseChildProcessor {
   private final HeapSnapshotStatistics myStatistics;
 
   public HeapTraverseChildProcessor(@NotNull final HeapSnapshotStatistics statistics) {
+    //noinspection UnstableApiUsage, VisibleForTests
     myDisposerTree = Disposer.getTree();
     myShouldUseDisposerTreeReferences = StudioFlags.USE_DISPOSER_TREE_REFERENCES.get();
     myStatistics = statistics;

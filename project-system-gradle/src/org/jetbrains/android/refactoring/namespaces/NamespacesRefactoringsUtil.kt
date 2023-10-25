@@ -51,7 +51,7 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.findOrCreateClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
+import org.jetbrains.kotlin.idea.refactoring.helper.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode.NO_SHORTENING
 import org.jetbrains.kotlin.psi.KtExpression

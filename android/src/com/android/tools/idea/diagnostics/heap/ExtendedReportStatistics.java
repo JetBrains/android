@@ -174,7 +174,7 @@ public class ExtendedReportStatistics {
                                           @NotNull final Map<String, ExtendedReportStatistics.ClassObjectsStatistics> nameToClassObjectsStatistics)
     throws HeapSnapshotTraverseException {
     if (config.collectDisposerTreeInfo) {
-      //noinspection UnstableApiUsage
+      //noinspection UnstableApiUsage, VisibleForTests
       Object objToNodeMap = getFieldValue(Disposer.getTree(), "myObject2ParentNode");
       if (objToNodeMap instanceof Map) {
         setDisposerTreeSize(((Map<?, ?>)objToNodeMap).size());

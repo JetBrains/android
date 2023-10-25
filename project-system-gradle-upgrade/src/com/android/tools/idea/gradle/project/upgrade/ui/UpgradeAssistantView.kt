@@ -527,7 +527,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
       border = JBUI.Borders.empty(20, 0, 0, 0)
       add(JBLabel("You can review the applied changes in the "))
       ActionLink("'Local History' dialog") {
-        val ideaGateway = LocalHistoryImpl.getInstanceImpl().getGateway()
+        val ideaGateway = LocalHistoryImpl.getInstanceImpl().gateway
         // TODO (mlazeba/xof): baseDir is deprecated, how can we avoid it here? might be better to show RecentChangeDialog instead
         val dialog = DirectoryHistoryDialog(this@UpgradeAssistantView.model.project, ideaGateway, this@UpgradeAssistantView.model.project.baseDir)
         dialog.show()

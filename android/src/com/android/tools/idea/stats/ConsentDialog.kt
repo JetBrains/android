@@ -21,7 +21,7 @@ import com.android.tools.idea.ui.GuiTestingService
 import com.google.common.base.Predicates
 import com.intellij.ide.gdpr.Consent
 import com.intellij.ide.gdpr.ConsentOptions
-import com.intellij.idea.hideSplashBeforeShow
+import com.intellij.platform.ide.bootstrap.hideSplashBeforeShow
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ShowSettingsUtil
