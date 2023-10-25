@@ -312,6 +312,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     if (action == AMOTION_EVENT_ACTION_UP) {
       motion_event_start_time_ = 0;
     }
+    Agent::RecordTouchEvent();
   }
   if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
     // AINPUT_SOURCE_MOUSE
@@ -379,7 +380,6 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       event.action = AMOTION_EVENT_ACTION_UP;
     }
   }
-  Agent::RecordTouchEvent();
   InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
 
   if (event.action == AMOTION_EVENT_ACTION_UP) {
