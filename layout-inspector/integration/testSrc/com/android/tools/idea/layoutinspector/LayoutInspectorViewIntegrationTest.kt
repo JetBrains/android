@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.utils.join
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,7 +27,6 @@ class LayoutInspectorViewIntegrationTest {
 
   @get:Rule val system = AndroidSystem.standard()
 
-  @Ignore("b/297407259")
   @Test
   fun testEmptyApplication() {
     val project =
@@ -58,6 +56,11 @@ class LayoutInspectorViewIntegrationTest {
           studio.waitForIndex()
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
+
+          // Workaround for b/297408712: Could not find apks for this package:
+          // com.example.emptyapplication:
+          Thread.sleep(TimeUnit.SECONDS.toMillis(40))
+
           studio.executeAction("Run")
           val ideaLog = system.installation.ideaLog
           ideaLog.waitForMatchingLine(
