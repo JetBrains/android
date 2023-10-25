@@ -35,8 +35,8 @@ private const val TOTAL_FRAMES = 20
 private const val BORDER_WIDTH_MAX = 10
 private const val BORDER_WIDTH_MIN = 1
 
-private val borderColor = JBColor.ORANGE
-private val transparentBorderColor = ColorUtil.withAlpha(JBColor.ORANGE, 0.0)
+private val borderColor = JBColor(0xffaf0f, 0xf2c55c)
+private val transparentBorderColor = ColorUtil.withAlpha(borderColor, 0.0)
 
 class UiCheckWarningLayer(screenView: ScreenView, shouldDisplay: () -> Boolean) :
   WarningLayer(screenView, shouldDisplay) {
