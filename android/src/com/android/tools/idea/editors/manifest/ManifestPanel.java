@@ -157,6 +157,9 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/res/.*navigation(-[^/]*)?/[^/]*$");
 
   private final AndroidFacet myFacet;
+  private final @NotNull Project myProject;
+  private final @NotNull AndroidProjectSystem myProjectSystem;
+  private final @Nullable ManifestPanelToken<AndroidProjectSystem> myToken;
   private final Font myDefaultFont;
   private final Tree myTree;
   private final JEditorPane myDetails;
@@ -176,6 +179,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   public ManifestPanel(final @NotNull AndroidFacet facet, final @NotNull Disposable parent) {
     myFacet = facet;
+    myProject = myFacet.getModule().getProject();
+    myProjectSystem = ProjectSystemUtil.getProjectSystem(myProject);
+    myToken = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(myProject))
+        .filter(it -> it.isApplicable(myProjectSystem))
+          .findFirst().orElse(null);
     setLayout(new BorderLayout());
 
     EditorColorsManager colorsManager = EditorColorsManager.getInstance();
@@ -343,9 +351,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private void setManifestSnapshot(@NotNull MergedManifestSnapshot manifest, @NotNull VirtualFile selectedManifest) {
     myFile = selectedManifest;
     myManifest = manifest;
-    Project project = manifest.getModule().getProject();
     myLibrariesByManifestDir =
-      Arrays.stream(ModuleManager.getInstance(project).getModules())
+      Arrays.stream(ModuleManager.getInstance(myProject).getModules())
         .flatMap(module -> getModuleSystem(module)
           .getAndroidLibraryDependencies(DependencyScopeType.MAIN)
           .stream()
@@ -369,7 +376,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     sortedFiles.add(createMetadataForFile(myFacet, new SourceFilePosition(VfsUtilCore.virtualToIoFile(selectedManifest), SourcePosition.UNKNOWN)));
     Set<File> referenced = Sets.newHashSet();
     if (root != null) {
-      recordLocationReferences(project, root, referenced);
+      recordLocationReferences(root, referenced);
     }
 
     for (VirtualFile f : manifestFiles) {
@@ -383,13 +390,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       }
     }
 
-    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-    ManifestPanelToken<AndroidProjectSystem> token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
-      .filter(it -> it.isApplicable(projectSystem))
-      .findFirst()
-      .orElse(null);
-    if (token != null) {
-      token.handleReferencedFiles(referenced, sortedFiles, sortedOtherFiles, p -> this.createMetadataForFile(myFacet, p));
+    if (myToken != null) {
+      myToken.handleReferencedFiles(referenced, sortedFiles, sortedOtherFiles, p -> this.createMetadataForFile(myFacet, p));
     }
 
     Collections.sort(sortedFiles);
@@ -409,7 +411,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     updateDetails(null);
   }
 
-  private void recordLocationReferences(@NotNull Project project, @NotNull Node node, @NotNull Set<File> files) {
+  private void recordLocationReferences(@NotNull Node node, @NotNull Set<File> files) {
     short type = node.getNodeType();
     if (type == Node.ATTRIBUTE_NODE) {
       List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
@@ -419,12 +421,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
         // Ignore keys specified on the parent element; those are misleading
         XmlNode.NodeKey targetId = record.getTargetId();
         if (targetId.toString().contains("@")) {
-          // TODO(xof): rewrite this to pass the token so we're not retrieving it on every element.
-          AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-          ManifestPanelToken<AndroidProjectSystem> token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
-            .filter(it -> it.isApplicable(projectSystem))
-            .findFirst().orElse(null);
-          if (token == null || !token.recordLocationReference(record, files)) {
+          if (myToken == null || !myToken.recordLocationReference(record, files)) {
             File location = record.getActionLocation().getFile().getSourceFile();
             if (location != null) {
               files.add(location);
@@ -436,14 +433,14 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       Node child = node.getFirstChild();
       while (child != null) {
         if (child.getNodeType() == Node.ELEMENT_NODE) {
-          recordLocationReferences(project, child, files);
+          recordLocationReferences(child, files);
         }
         child = child.getNextSibling();
       }
 
       NamedNodeMap attributes = node.getAttributes();
       for (int i = 0, n = attributes.getLength(); i < n; i++) {
-        recordLocationReferences(project, attributes.item(i), files);
+        recordLocationReferences(attributes.item(i), files);
       }
     }
   }
@@ -635,16 +632,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   @NotNull
   private Color getNodeColor(@NotNull Node node) {
     List<? extends Actions.Record> records = ManifestUtils.getRecords(myManifest, node);
-    Project project = myFacet.getModule().getProject();
-    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
     if (!records.isEmpty()) {
       Actions.Record record = records.get(0);
       File file = null;
-      ManifestPanelToken<AndroidProjectSystem> token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
-        .filter(it -> it.isApplicable(projectSystem))
-        .findFirst().orElse(null);
-      if (token != null) {
-        ManifestFileWithMetadata metadata = token.getMetadataForRecord(record, p -> this.createMetadataForFile(myFacet, p));
+      if (myToken != null) {
+        ManifestFileWithMetadata metadata = myToken.getMetadataForRecord(record, p -> this.createMetadataForFile(myFacet, p));
         if (metadata != null) {
           file = metadata.getFile();
         }
@@ -748,9 +740,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
             line = sourcePosition.getStartLine();
             column = sourcePosition.getStartColumn();
           }
-          Project project = myFacet.getModule().getProject();
-          OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, line, column);
-          FileEditorManager.getInstance(project).openEditor(descriptor, true);
+          OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, file, line, column);
+          FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
           break;
         }
       }
@@ -978,14 +969,10 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     SourceFile sourceFile = sourceFilePosition.getFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
     File file = sourceFile.getSourceFile();
-    Project project = facet.getModule().getProject();
-    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-    ManifestPanelToken token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
-      .filter(it -> it.isApplicable(projectSystem))
-      .findFirst().orElse(null);
-    if (token != null) {
+
+    if (myToken != null) {
       Module module = facet.getModule();
-      ManifestFileWithMetadata metadata = token.createMetadataForFile(file, module);
+      ManifestFileWithMetadata metadata = myToken.createMetadataForFile(file, module);
       if (metadata != null) return metadata;
     }
 
@@ -997,7 +984,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
-        Module module = ModuleUtilCore.findModuleForFile(vResDir, project);
+        Module module = ModuleUtilCore.findModuleForFile(vResDir, myProject);
         if (module != null) {
           isProjectFile = true;
         }
@@ -1017,11 +1004,11 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       String source = null;
       boolean isProjectFile = false;
 
-      Module[] modules = ModuleManager.getInstance(project).getModules();
+      Module[] modules = ModuleManager.getInstance(myProject).getModules();
       VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
       if (vFile != null) {
         String path = file.getPath();
-        Module module = ModuleUtilCore.findModuleForFile(vFile, project);
+        Module module = ModuleUtilCore.findModuleForFile(vFile, myProject);
         if (module != null) {
           isProjectFile = true;
           if (modules.length >= 2) {
@@ -1030,18 +1017,18 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
           // AAR library in the project build directory?
           if (path.contains(SdkConstants.EXPLODED_AAR)) {
-            source = findSourceForFileInExplodedAar(project, file);
+            source = findSourceForFileInExplodedAar(myProject, file);
           }
         }
         // AAR library in the build cache?
         // (e.g., ".android/build-cache/0d86e51789317f7eb0747ecb9da6162c7082982e/output/AndroidManifest.xml")
         // Since the user can change the location or name of the build cache directory, we need to detect it using the following pattern.
         else if (path.contains("output") && path.matches(".*\\w{40}[\\\\/]output.*")) {
-          source = findSourceForFileInExplodedAar(project, file);
+          source = findSourceForFileInExplodedAar(myProject, file);
         }
         else if (path.contains("caches")) {
           // Look for the Gradle cache, where AAR libraries can appear when distributed via the google() Maven repository
-          source = findSourceForFileInExplodedAar(project, file);
+          source = findSourceForFileInExplodedAar(myProject, file);
         }
 
         NamedIdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
@@ -1109,13 +1096,8 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     PathString parentFilePath = new PathString(parentFile);
     ExternalAndroidLibrary androidLibrary = myLibrariesByManifestDir.get(parentFilePath);
     if (androidLibrary == null) return null;
-    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
-    ManifestPanelToken<AndroidProjectSystem> token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
-      .filter(it -> it.isApplicable(projectSystem))
-      .findFirst()
-      .orElse(null);
-    if (token == null) return null;
-    return token.getExternalAndroidLibraryDisplayName(androidLibrary);
+    if (myToken == null) return null;
+    return myToken.getExternalAndroidLibraryDisplayName(androidLibrary);
   }
 
   static class ManifestTreeNode extends DefaultMutableTreeNode {
