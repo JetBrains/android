@@ -43,6 +43,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
+import com.intellij.ui.layout.CCFlags.push
 import com.intellij.ui.layout.panel
 import com.intellij.ui.table.JBTable
 import com.intellij.uiDesigner.core.GridConstraints
