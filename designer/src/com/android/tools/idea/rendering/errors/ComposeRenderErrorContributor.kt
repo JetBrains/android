@@ -128,9 +128,8 @@ object ComposeRenderErrorContributor {
                     "You can ",
                     "read more",
                     " about preview limitations in our external documentation.",
-                    // TODO(b/199834697): add correct header once the ViewModel documentation is
-                    // published on DAC
-                    "https://developer.android.com/jetpack/compose/tooling"
+                    "https://developer.android.com/jetpack/compose/tooling/" +
+                      "previews#preview-viewmodel"
                   )
                   .newlineIfNecessary()
                   .addExceptionMessage(linkManager, project, it.throwable)

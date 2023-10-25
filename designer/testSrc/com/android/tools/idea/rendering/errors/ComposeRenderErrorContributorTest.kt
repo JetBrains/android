@@ -200,9 +200,9 @@ class ComposeRenderErrorContributorTest {
     assertEquals(
       "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
         "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
+        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
         " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
-      issues[0].htmlContent
+      issues[0].htmlContent,
     )
   }
 
@@ -261,7 +261,7 @@ class ComposeRenderErrorContributorTest {
     assertEquals(
       "This preview uses a <A HREF=\"https://developer.android.com/topic/libraries/architecture/viewmodel\">ViewModel</A>. " +
         "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
-        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
+        "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling/previews#preview-viewmodel\">read more</A> about preview" +
         " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
       issues[0].htmlContent
     )
