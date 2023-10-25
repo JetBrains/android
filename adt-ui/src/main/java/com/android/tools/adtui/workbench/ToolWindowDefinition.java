@@ -51,6 +51,8 @@ public class ToolWindowDefinition<T> {
   private final Function<Disposable, ToolContent<T>> myFactory;
   private final boolean myShowGearAction;
   private final boolean myShowHideAction;
+  private final boolean myOverrideSide;
+  private final boolean myOverrideSplit;
 
   public ToolWindowDefinition(@NotNull String title,
                               @NotNull Icon icon,
@@ -59,7 +61,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull Split split,
                               @NotNull AutoHide autoHide,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
-    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE, true, true, factory);
+    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE, true, true, false, false, factory);
   }
 
   public ToolWindowDefinition(@NotNull String title,
@@ -72,7 +74,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull Dimension buttonSize,
                               int features,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
-    this(title, icon, name, side, split, autoHide, minimumSize, buttonSize, features, true, true, factory);
+    this(title, icon, name, side, split, autoHide, minimumSize, buttonSize, features, true, true, false, false, factory);
   }
 
   public ToolWindowDefinition(@NotNull String title,
@@ -86,6 +88,8 @@ public class ToolWindowDefinition<T> {
                               int features,
                               boolean showGearAction,
                               boolean showHideAction,
+                              boolean overrideSide,
+                              boolean overrideSplit,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
     myTitle = title;
     myIcon = icon;
@@ -99,6 +103,8 @@ public class ToolWindowDefinition<T> {
     myFactory = factory;
     myShowGearAction = showGearAction;
     myShowHideAction = showHideAction;
+    myOverrideSide = overrideSide;
+    myOverrideSplit = overrideSplit;
   }
 
   /**
@@ -221,5 +227,21 @@ public class ToolWindowDefinition<T> {
    */
   boolean showHideAction() {
     return myShowHideAction;
+  }
+
+  /**
+   * When true, the {@link Side} recorded by the system from the previous interaction with the Tool Window
+   * will be overridden with the one defined in this {@link ToolWindowDefinition}.
+   */
+  boolean overrideSide() {
+    return myOverrideSide;
+  }
+
+  /**
+   * When true, the {@link Split} recorded by the system from the previous interaction with the Tool Window
+   * will be overridden with the one defined in this {@link ToolWindowDefinition}.
+   */
+  boolean overrideSplit() {
+    return myOverrideSplit;
   }
 }

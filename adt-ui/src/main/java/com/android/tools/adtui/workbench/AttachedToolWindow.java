@@ -121,6 +121,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     setDefaultProperty(PropertyType.MINIMIZED, minimizedByDefault);
     updateContent();
+    if (myDefinition.overrideSide()) {
+      setProperty(PropertyType.LEFT, definition.getSide().isLeft());
+    }
+    if (myDefinition.overrideSplit()) {
+      setProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
+    }
     AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);
     if (globalFindAction != null) {
       new FindAction().registerCustomShortcutSet(globalFindAction.getShortcutSet(), myPanel, this);
