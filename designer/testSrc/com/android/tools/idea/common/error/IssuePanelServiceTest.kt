@@ -18,13 +18,14 @@ package com.android.tools.idea.common.error
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.TestToolWindow
+import com.android.tools.idea.util.TestToolWindowManager
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
@@ -32,7 +33,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
@@ -342,79 +342,6 @@ class IssuePanelServiceTest {
 
     service.setIssuePanelVisibility(true, IssuePanelService.TabCategory.CURRENT_FILE)
     assertFalse(service.isIssuePanelVisible())
-  }
-}
-
-class TestToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
-  private val idToToolWindow = mutableMapOf<String, ToolWindow>()
-
-  override fun doRegisterToolWindow(id: String): ToolWindow {
-    val window = TestToolWindow(project)
-    idToToolWindow[id] = window
-    return window
-  }
-
-  override fun getToolWindow(id: String?): ToolWindow? {
-    return idToToolWindow[id]
-  }
-}
-
-/** This window is used to test the change of availability. */
-class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-  private var _isAvailable = false
-  private var _isVisible = false
-  private var _isFocused = false
-  private var _isActivated = false
-
-  override fun setAvailable(available: Boolean, runnable: Runnable?) {
-    _isAvailable = available
-  }
-
-  override fun setAvailable(value: Boolean) {
-    setAvailable(value, null)
-  }
-
-  override fun isAvailable() = _isAvailable
-
-  override fun isVisible() = _isVisible
-
-  override fun isActive(): Boolean {
-    return _isActivated
-  }
-
-  override fun show() {
-    show(null)
-  }
-
-  override fun activate(runnable: Runnable?, autoFocusContents: Boolean) {
-    _isActivated = true
-    runnable?.run()
-    _isFocused = autoFocusContents
-  }
-
-  override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) =
-    activate(runnable, autoFocusContents)
-
-  override fun show(runnable: Runnable?) {
-    _isVisible = true
-    runnable?.run()
-  }
-
-  override fun hide() {
-    hide(null)
-  }
-
-  override fun hide(runnable: Runnable?) {
-    _isVisible = false
-    runnable?.run()
-  }
-
-  fun isFocused(): Boolean {
-    return isVisible && _isFocused
-  }
-
-  override fun isDisposed(): Boolean {
-    return contentManager.isDisposed
   }
 }
 

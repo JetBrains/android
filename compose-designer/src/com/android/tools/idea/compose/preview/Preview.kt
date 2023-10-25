@@ -619,23 +619,27 @@ class ComposePreviewRepresentation(
           DEFAULT_PREVIEW_LAYOUT_MANAGER
         )
       }
-      IssuePanelService.getInstance(project).startUiCheck(
-        this@ComposePreviewRepresentation,
-        instance.instanceId,
-        instance.displaySettings.name,
-        surface,
-        postIssueUpdateListenerForUiCheck
-      ) {
-        // Pass preview manager and instance to the tab created for this UI Check preview.
-        // This enables restarting the UI Check mode from an action inside the tab.
-        when (it) {
-          COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
-          COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> instance
-          else -> null
-        }
-      }
+      createUiCheckTab(instance)
     }
     forceRefresh().join()
+  }
+
+  fun createUiCheckTab(instance: ComposePreviewElementInstance) {
+    IssuePanelService.getInstance(project).startUiCheck(
+      this,
+      instance.instanceId,
+      instance.displaySettings.name,
+      surface,
+      postIssueUpdateListenerForUiCheck
+    ) {
+      // Pass preview manager and instance to the tab created for this UI Check preview.
+      // This enables restarting the UI Check mode from an action inside the tab.
+      when (it) {
+        COMPOSE_PREVIEW_MANAGER.name -> this
+        COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> instance
+        else -> null
+      }
+    }
   }
 
   private suspend fun onUiCheckPreviewStop() {

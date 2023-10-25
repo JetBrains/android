@@ -17,6 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.TestToolWindowManager
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.invokeAndWaitIfNeeded

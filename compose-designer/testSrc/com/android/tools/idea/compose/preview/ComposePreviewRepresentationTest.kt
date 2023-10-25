@@ -22,6 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.actions.ReRunUiCheckModeAction
+import com.android.tools.idea.compose.preview.actions.UiCheckReopenTabAction
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -38,6 +39,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.android.tools.idea.util.TestToolWindowManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.DataProvider
@@ -51,6 +53,7 @@ import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.assertInstanceOf
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import java.nio.file.Path
 import java.util.UUID
@@ -68,6 +71,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -121,6 +125,11 @@ class ComposePreviewRepresentationTest {
     val testProjectSystem = TestProjectSystem(project).apply { usesCompose = true }
     runInEdtAndWait { testProjectSystem.useInTests() }
     logger.info("setup complete")
+    project.replaceService(
+      ToolWindowManager::class.java,
+      TestToolWindowManager(project),
+      fixture.testRootDisposable
+    )
     ToolWindowManager.getInstance(project)
       .registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
 
@@ -455,6 +464,51 @@ class ComposePreviewRepresentationTest {
       assertEquals(2, contentManager.contents.size)
       val tab = contentManager.findContent(uiCheckElement.displaySettings.name)
       assertNotNull(tab)
+      assertTrue(contentManager.selectedContent == tab)
+
+      ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)?.show()
+      val reopenTabAction = UiCheckReopenTabAction(preview)
+      // Check that UiCheckReopenTabAction is disabled when the UI Check tab is visible and selected
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        reopenTabAction.update(actionEvent)
+        assertFalse(actionEvent.presentation.isEnabled)
+      }
+
+      // Check that UiCheckReopenTabAction is enabled when the UI Check tab is not selected
+      contentManager.setSelectedContent(contentManager.getContent(0)!!)
+      assertFalse(contentManager.selectedContent == tab)
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        reopenTabAction.update(actionEvent)
+        assertTrue(actionEvent.presentation.isEnabled)
+      }
+
+      // Check that performing UiCheckReopenTabAction selects the UI Check tab
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        reopenTabAction.actionPerformed(actionEvent)
+        assertTrue(contentManager.selectedContent == tab)
+      }
+
+      // Check that UiCheckReopenTabAction is enabled when the UI Check tab has been closed
+      contentManager.removeContent(tab, true)
+      assertNull(contentManager.findContent(uiCheckElement.displaySettings.name))
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        reopenTabAction.update(actionEvent)
+        assertTrue(actionEvent.presentation.isEnabled)
+      }
+
+      // Check that performing UiCheckReopenTabAction recreates the UI Check tab
+      run {
+        val actionEvent = TestActionEvent.createTestEvent()
+        reopenTabAction.actionPerformed(actionEvent)
+        assertEquals(2, contentManager.contents.size)
+        val newTab = contentManager.findContent(uiCheckElement.displaySettings.name)
+        assertNotNull(newTab)
+        assertTrue(contentManager.selectedContent == newTab)
+      }
 
       run {
         var refresh = false
