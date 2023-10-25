@@ -17,9 +17,9 @@ package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.ui.awt.ComposePanel
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import org.jetbrains.jewel.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import javax.swing.JComponent
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
 internal class ConfigureDeviceStep internal constructor(model: AddDeviceWizardModel) :
   ModelWizardStep<AddDeviceWizardModel>(model, "") {

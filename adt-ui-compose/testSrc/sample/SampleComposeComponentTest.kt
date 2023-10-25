@@ -20,26 +20,28 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.android.testutils.ignore.IgnoreTestRule
-import org.junit.Ignore
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
 import org.junit.Rule
 import org.junit.Test
-import sample.components.SampleComposeComponent
 
 /**
  * The following test class and test serve as an example of how we can test the content and behavior of Compose Desktop UI.
+ *
+ * This sample test utilizes the Jewel standalone theme which is for scoped for testing only.
+ * NOTE: The Jewel standalone theme should only ever be used for testing and never used in production code.
  */
 class SampleComposeComponentTest {
-  @get:Rule
-  val ignoreTestRule = IgnoreTestRule()
-
   @get:Rule
   val composeTestRule = createComposeRule()
 
   @Test
   fun sampleComposeComponentTest() {
     composeTestRule.setContent {
-      SampleComposeComponent()
+      IntUiTheme(JewelTheme.lightThemeDefinition(), { arrayOf() }, true) {
+        SampleComposeComponent()
+      }
     }
 
     // Make sure that the "Displayed Text" text is not in the component tree yet.

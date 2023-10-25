@@ -16,8 +16,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="compose-desktop" level="project" />
-    <orderEntry type="library" name="jewel" level="project" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="intellij.android.common" />

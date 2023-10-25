@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,37 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample
+package sample.samplecomposewindow
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.singleWindowApplication
-import org.jetbrains.jewel.CheckboxRow
-import org.jetbrains.jewel.Divider
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
-import sample.components.Buttons
-import sample.components.Checkboxes
-import sample.components.Dropdowns
+import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
+import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
+import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
+import org.jetbrains.jewel.ui.component.CheckboxRow
+import org.jetbrains.jewel.ui.theme.colorPalette
+import sample.samplecomposewindow.ComponentShowcase
 
 /**
  * This sample demonstrates this module's ability to support Jewel + Compose Desktop development.
@@ -66,24 +59,29 @@ import sample.components.Dropdowns
 /**
  * Entry point to run the sample. Defines the window of the sample, the top-level theming resources, and a
  * component unifying all sample components into one "Component Showcase".
+ *
+ * This sample application utilizes the Jewel standalone theme which is for scoped for testing only.
+ * NOTE: The Jewel standalone theme should only ever be used for testing and never used in production code.
  */
-@OptIn(ExperimentalComposeUiApi::class)
 fun main() {
   singleWindowApplication(
     title = "Jewel component catalog",
   ) {
-    var isDark by remember { mutableStateOf(false) }
     var swingCompat by remember { mutableStateOf(false) }
-    val theme = if (isDark) IntUiTheme.darkThemeDefinition() else IntUiTheme.lightThemeDefinition()
+    var isDark by remember { mutableStateOf(false) }
 
-    IntUiTheme(theme, swingCompat) {
-      val resourceLoader = LocalResourceLoader.current
-
-      val windowBackground = if (isDark) {
-        IntUiTheme.colorPalette.grey(1)
+    val themeDefinition =
+      if (isDark) {
+        JewelTheme.darkThemeDefinition()
+      } else {
+        JewelTheme.lightThemeDefinition()
       }
-      else {
-        IntUiTheme.colorPalette.grey(14)
+
+    IntUiTheme(themeDefinition, { arrayOf() }, swingCompat) {
+      val windowBackground = if (isDark) {
+        JewelTheme.colorPalette.grey(1)
+      } else {
+        JewelTheme.colorPalette.grey(14)
       }
 
       Column(Modifier.fillMaxSize().background(windowBackground)) {
@@ -92,31 +90,11 @@ fun main() {
           horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
           verticalAlignment = Alignment.CenterVertically,
         ) {
-          CheckboxRow("Dark", isDark, resourceLoader, { isDark = it })
-          CheckboxRow("Swing compat", swingCompat, resourceLoader, { swingCompat = it })
+          CheckboxRow("Dark", isDark, { isDark = !isDark })
+          CheckboxRow("Swing compat", swingCompat, { swingCompat = it })
         }
-        Divider(Modifier.fillMaxWidth())
         ComponentShowcase()
       }
-    }
-  }
-}
-
-@Composable
-private fun ComponentShowcase() {
-  val verticalScrollState = rememberScrollState()
-
-  Box(Modifier.fillMaxSize()) {
-    Column(
-      Modifier.width(IntrinsicSize.Max)
-        .verticalScroll(verticalScrollState)
-        .padding(24.dp),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
-      horizontalAlignment = Alignment.Start,
-    ) {
-      Buttons()
-      Dropdowns()
-      Checkboxes()
     }
   }
 }

@@ -10,8 +10,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
-        "//tools/adt/idea/.idea/libraries:compose-desktop",
-        "//tools/adt/idea/.idea/libraries:jewel",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

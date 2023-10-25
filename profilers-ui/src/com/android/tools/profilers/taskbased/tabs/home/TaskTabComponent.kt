@@ -15,21 +15,11 @@
  */
 package com.android.tools.profilers.taskbased.tabs.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
-import com.intellij.ui.JBColor
-import org.jetbrains.jewel.ExperimentalJewelApi
-import org.jetbrains.jewel.bridge.SwingBridgeTheme
-import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
@@ -40,12 +30,7 @@ abstract class TaskTabComponent(tabContent: @Composable () -> Unit): JPanel(Bord
     val composePanel = ComposePanel()
     composePanel.setContent {
       SwingBridgeTheme {
-        val bgColor by remember(IntUiTheme.isDark) { mutableStateOf(JBColor.PanelBackground.toComposeColor()) }
-        Row(
-          modifier = Modifier.fillMaxSize().background(bgColor),
-        ) {
-          tabContent()
-        }
+        tabContent()
       }
     }
     add(composePanel, BorderLayout.CENTER)

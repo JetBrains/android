@@ -16,8 +16,8 @@
 package com.android.tools.idea.adddevicedialog
 
 import androidx.compose.runtime.Composable
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.TextField
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun DeviceAndApiPanel(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {

@@ -21,11 +21,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import org.jetbrains.jewel.ExperimentalJewelApi
-import org.jetbrains.jewel.TabData
-import org.jetbrains.jewel.TabStrip
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.bridge.SwingBridgeTheme
+import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.ui.component.TabData
+import org.jetbrains.jewel.ui.component.TabStrip
+import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 internal fun ConfigureDevicePanel(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {

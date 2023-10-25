@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.components
+package sample
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
@@ -22,10 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.window.singleWindowApplication
-import org.jetbrains.jewel.DefaultButton
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.intui.standalone.IntUiTheme
+import org.jetbrains.jewel.ui.component.DefaultButton
+import org.jetbrains.jewel.ui.component.Text
 
 /**
  * This composable is used by the SampleComposeComponentTest to show how we can test the content and behavior of compose components.
@@ -34,20 +32,12 @@ import org.jetbrains.jewel.intui.standalone.IntUiTheme
 @Composable
 fun SampleComposeComponent() {
   var displayText by remember { mutableStateOf(false) }
-  IntUiTheme(IntUiTheme.darkThemeDefinition(), true) {
-    Column {
-      DefaultButton(onClick = { displayText = !displayText }) {
-        Text("Hello Compose")
-      }
-      if (displayText) {
-        Text("Displayed Text", color = Color.Red)
-      }
+  Column {
+    DefaultButton(onClick = { displayText = !displayText }) {
+      Text("Hello Compose")
     }
-  }
-}
-
-fun main() {
-  singleWindowApplication {
-    SampleComposeComponent()
+    if (displayText) {
+      Text("Displayed Text", color = Color.Red)
+    }
   }
 }

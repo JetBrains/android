@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.components
+package sample.samplecomposewindow.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -23,19 +23,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
-import org.jetbrains.jewel.GroupHeader
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Outline
-import org.jetbrains.jewel.TriStateCheckboxRow
+import org.jetbrains.jewel.ui.Outline
+import org.jetbrains.jewel.ui.component.GroupHeader
+import org.jetbrains.jewel.ui.component.TriStateCheckboxRow
 
 /**
  * This sample composable showcasing the different checkbox components was adapted from the public Jewel repository standalone sample.
  * See: https://github.com/JetBrains/jewel
  */
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Checkboxes() {
   GroupHeader("Checkboxes")
@@ -43,29 +40,28 @@ fun Checkboxes() {
     horizontalArrangement = Arrangement.spacedBy(10.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    val resourceLoader = LocalResourceLoader.current
     var checked by remember { mutableStateOf(ToggleableState.On) }
-    TriStateCheckboxRow("Checkbox", checked, resourceLoader, {
+    TriStateCheckboxRow("Checkbox", checked, {
       checked = when (checked) {
         ToggleableState.On -> ToggleableState.Off
         ToggleableState.Off -> ToggleableState.Indeterminate
         ToggleableState.Indeterminate -> ToggleableState.On
       }
     })
-    TriStateCheckboxRow("Error", checked, resourceLoader, {
+    TriStateCheckboxRow("Error", checked, {
       checked = when (checked) {
         ToggleableState.On -> ToggleableState.Off
         ToggleableState.Off -> ToggleableState.Indeterminate
         ToggleableState.Indeterminate -> ToggleableState.On
       }
     }, outline = Outline.Error)
-    TriStateCheckboxRow("Warning", checked, resourceLoader, {
+    TriStateCheckboxRow("Warning", checked, {
       checked = when (checked) {
         ToggleableState.On -> ToggleableState.Off
         ToggleableState.Off -> ToggleableState.Indeterminate
         ToggleableState.Indeterminate -> ToggleableState.On
       }
     }, outline = Outline.Warning)
-    TriStateCheckboxRow("Disabled", checked, resourceLoader, {}, enabled = false)
+    TriStateCheckboxRow("Disabled", checked, {}, enabled = false)
   }
 }

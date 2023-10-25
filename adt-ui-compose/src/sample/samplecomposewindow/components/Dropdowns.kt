@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.components
+package sample.samplecomposewindow.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -23,20 +23,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.unit.dp
-import org.jetbrains.jewel.Dropdown
-import org.jetbrains.jewel.GroupHeader
-import org.jetbrains.jewel.LocalResourceLoader
-import org.jetbrains.jewel.Outline
-import org.jetbrains.jewel.Text
-import org.jetbrains.jewel.separator
+import org.jetbrains.jewel.ui.Outline
+import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.GroupHeader
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.separator
 
 /**
  * This sample composable showcasing the different dropdown components was adapted from the public Jewel repository standalone sample.
  * See: https://github.com/JetBrains/jewel
  */
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Dropdowns() {
   GroupHeader("Dropdowns")
@@ -55,24 +52,20 @@ fun Dropdowns() {
       )
     }
     var selected by remember { mutableStateOf(items.first()) }
-    val resourceLoader = LocalResourceLoader.current
 
     Dropdown(
       enabled = false,
-      resourceLoader = resourceLoader,
       menuContent = {
       },
     ) {
-      Text(selected)
+      Text("Disabled")
     }
     Dropdown(
-      resourceLoader = resourceLoader,
       menuContent = {
         items.forEach {
           if (it == "---") {
             separator()
-          }
-          else {
+          } else {
             selectableItem(selected == it, {
               selected = it
             }) {
@@ -85,8 +78,7 @@ fun Dropdowns() {
           items.forEach {
             if (it == "---") {
               separator()
-            }
-            else {
+            } else {
               selectableItem(selected == it, {
                 selected = it
               }) {
@@ -99,8 +91,7 @@ fun Dropdowns() {
             items.forEach {
               if (it == "---") {
                 separator()
-              }
-              else {
+              } else {
                 selectableItem(selected == it, {
                   selected = it
                 }) {
@@ -119,14 +110,12 @@ fun Dropdowns() {
       Text(selected)
     }
     Dropdown(
-      resourceLoader = resourceLoader,
       outline = Outline.Error,
       menuContent = {
         items.forEach {
           if (it == "---") {
             separator()
-          }
-          else {
+          } else {
             selectableItem(selected == it, {
               selected = it
             }) {
