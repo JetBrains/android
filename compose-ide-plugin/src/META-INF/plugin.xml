@@ -75,7 +75,7 @@
     <completion.contributor language="kotlin"
                             id="ComposeCompletionContributor"
                             implementationClass="com.android.tools.compose.code.completion.ComposeCompletionContributor"
-                            order="first, before KotlinCompletionContributor"/>
+                            order="first, before KotlinCompletionContributor, before kind_executor"/>
 
     <completion.contributor language="kotlin"
                             id="ComposeAlignmentCompletionContributor"
