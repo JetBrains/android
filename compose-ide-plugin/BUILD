@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -30,7 +31,6 @@ iml_module(
 iml_module(
     name = "intellij.android.compose-ide-plugin.tests",
     iml_files = ["intellij.android.compose-ide-plugin.tests.iml"],
-    project = "unb",
     tags = ["no_test_windows"],  # b/208245297
     test_class = "com.android.tools.tests.ComposeTestSuite",
     test_data = [
@@ -73,8 +73,6 @@ iml_module(
         "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
