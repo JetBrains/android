@@ -100,7 +100,7 @@ iml_studio_test(
     timeout = "long",
     data = [
         ":buildproject_deps",
-        ":minapp",
+        ":mindebugapp",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
@@ -108,7 +108,6 @@ iml_studio_test(
         INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # Disabled due to b/287677785
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
@@ -687,6 +686,12 @@ maven_repository(
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "mindebugapp",
+    srcs = glob(["testData/mindebugapp/**"]),
     visibility = ["//visibility:public"],
 )
 

@@ -36,7 +36,7 @@ public class DebuggerTest {
 
   @Test
   public void runDebuggerTest() throws Exception {
-    AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
+    AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/mindebugapp");
 
     // Create a maven repo and set it up in the installation and environment
     system.installRepo(new MavenRepo("tools/adt/idea/android/integration/buildproject_deps.manifest"));
@@ -52,9 +52,9 @@ public class DebuggerTest {
       adb.waitForDevice(emulator);
       adb.runCommand("logcat");
       System.out.println("Opening a file");
-      Path path = project.getTargetProject().resolve("src/main/java/com/example/minapp/MainActivity.kt");
+      Path path = project.getTargetProject().resolve("src/main/java/com/example/mindebugapp/MainActivity.kt");
       String projectName = project.getTargetProject().getFileName().toString();
-      studio.openFile(projectName, path.toString(), 9, 0);
+      studio.openFile(projectName, path.toString(), 17, 0);
 
       System.out.println("Setting a breakpoint");
       studio.executeAction("ToggleLineBreakpoint");
