@@ -119,11 +119,16 @@ import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
 import java.io.File
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JLayeredPane
+import javax.swing.JPanel
+import javax.swing.SwingConstants
 import kotlin.properties.Delegates
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -527,17 +532,35 @@ class ComposePreviewRepresentation(
       Disposer.register(this@ComposePreviewRepresentation, this)
     }
 
+  private val emptyUiCheckPanel =
+    object : JPanel() {
+      init {
+        layout = BorderLayout()
+        isOpaque = false
+        isVisible = false
+        add(
+          JLabel(message("ui.check.mode.empty.message"), SwingConstants.CENTER),
+          BorderLayout.CENTER
+        )
+      }
+    }
+
   override var isUiCheckFilterEnabled: Boolean by
     Delegates.observable(true) { _, oldValue, newValue ->
       if (oldValue == newValue) return@observable
       launch(uiThread) {
+        var hasVisiblePreviews = false
         if (newValue) {
           surface.updateSceneViewVisibilities {
-            it.sceneManager.model in uiCheckFilterFlow.value.modelsWithErrors
+            (it.sceneManager.model in uiCheckFilterFlow.value.modelsWithErrors).also { visible ->
+              hasVisiblePreviews = hasVisiblePreviews || visible
+            }
           }
         } else {
+          hasVisiblePreviews = true
           surface.updateSceneViewVisibilities { true }
         }
+        emptyUiCheckPanel.isVisible = !hasVisiblePreviews
       }
     }
 
@@ -555,6 +578,7 @@ class ComposePreviewRepresentation(
         surface.updateSceneViewVisibilities {
           (it.sceneManager.model in models).also { visible -> if (visible) count++ }
         }
+        emptyUiCheckPanel.isVisible = count == 0
         VisualLintUsageTracker.getInstance().trackVisiblePreviews(count, facet)
         surface.zoomToFit()
         surface.repaint()
@@ -608,6 +632,10 @@ class ComposePreviewRepresentation(
     qualityManager.pause()
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance, surface.scale)
     withContext(uiThread) {
+      emptyUiCheckPanel.apply {
+        isVisible = false
+        surface.layeredPane.add(this, JLayeredPane.POPUP_LAYER, 0)
+      }
       if (
         (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
           PREVIEW_LAYOUT_GALLERY_OPTION.layoutManager
@@ -649,6 +677,7 @@ class ComposePreviewRepresentation(
         .stopUiCheck(it.instanceId, surface, postIssueUpdateListenerForUiCheck)
     }
     withContext(uiThread) {
+      surface.layeredPane.remove(emptyUiCheckPanel)
       surface.updateSceneViewVisibilities { true }
       (uiCheckFilterFlow.value as? UiCheckModeFilter.Enabled)?.let {
         surface.setScale(it.surfaceScale)
