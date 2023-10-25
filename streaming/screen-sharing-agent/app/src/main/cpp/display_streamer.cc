@@ -151,8 +151,17 @@ int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
 }
 
 Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Size max_video_resolution) {
-  int32_t max_width = min(max(max_video_resolution.width, rotated_display_size.width / 2), codec_info.max_resolution.width);
-  int32_t max_height = min(max(max_video_resolution.height, rotated_display_size.height / 2), codec_info.max_resolution.height);
+  int32_t max_width = max_video_resolution.width;
+  int32_t max_height = max_video_resolution.height;
+  if (max_width < min(rotated_display_size.width, codec_info.max_resolution.width) / 2 ||
+      max_height < min(rotated_display_size.height, codec_info.max_resolution.height) / 2) {
+    // The size of the host display image is less than half of the display size.
+    // Produce video in double resolution to have better quality after scaling down.
+    max_width *= 2;
+    max_height *= 2;
+  }
+  max_width = min(max_width, codec_info.max_resolution.width);
+  max_height = min(max_height, codec_info.max_resolution.height);
   double display_width = rotated_display_size.width;
   double display_height = rotated_display_size.height;
   double scale = max(min(1.0, min(max_width / display_width, max_height / display_height)),
