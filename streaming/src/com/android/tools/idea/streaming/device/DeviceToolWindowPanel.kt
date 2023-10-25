@@ -62,7 +62,8 @@ internal class DeviceToolWindowPanel(
   disposableParent: Disposable,
   private val project: Project,
   val deviceClient: DeviceClient,
-) : StreamingDevicePanel(DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
+) : StreamingDevicePanel(
+    DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber), DEVICE_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID) {
 
   val deviceSerialNumber: String
     get() = deviceClient.deviceSerialNumber
