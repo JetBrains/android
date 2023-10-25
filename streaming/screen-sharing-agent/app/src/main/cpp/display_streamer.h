@@ -117,6 +117,7 @@ private:
   Size max_video_resolution_;  // GUARDED_BY(mutex_)
   int32_t video_orientation_;  // GUARDED_BY(mutex_)
   AMediaCodec* running_codec_ = nullptr;  // GUARDED_BY(mutex_)
+  bool codec_stop_pending_ = false;  // GUARDED_BY(mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(DisplayStreamer);
 };

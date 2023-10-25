@@ -290,6 +290,10 @@ void DisplayStreamer::Run() {
     ANativeWindow* surface = nullptr;
     {
       unique_lock lock(mutex_);
+      if (codec_stop_pending_) {
+        codec_stop_pending_ = false;
+        continue;  // Start another loop to refresh display information.
+      }
       display_info_ = display_info;
       int32_t rotation_correction = video_orientation_ >= 0 ? NormalizeRotation(video_orientation_ - display_info.rotation) : 0;
       if (display_info.rotation == 2 && rotation_correction == 0) {
@@ -470,7 +474,9 @@ void DisplayStreamer::StopCodec() {
 }
 
 void DisplayStreamer::StopCodecUnlocked() {
-  if (running_codec_ != nullptr) {
+  if (running_codec_ == nullptr) {
+    codec_stop_pending_ = true;
+  } else {
     Log::D("Display %d: stopping codec", display_id_);
     AMediaCodec_stop(running_codec_);
     running_codec_ = nullptr;
