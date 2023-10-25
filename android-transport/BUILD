@@ -6,16 +6,6 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.transport.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    split_test_targets = {
-        "TransportServiceProxyTest": {
-            "tags": [
-                "very_flaky",  # b/126763044
-            ],
-            "test_filter": "com.android.tools.idea.transport.TransportServiceProxyTest",
-        },
-        "other": {
-        },
-    },
     test_class = "com.android.tools.idea.transport.AndroidTransportTestSuite",
     test_srcs = ["testSrc"],
     test_tags = [],
