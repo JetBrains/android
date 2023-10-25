@@ -969,7 +969,6 @@ java_test(
     size = "large",
     data = COMMON_DATA + [
         "//prebuilts/android-emulator:emulator",
-        "@system_image_latest_default_x86_64//:images",
     ] + glob(["testData/TextInput/**"]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.emulator.end2end.EmbeddedEmulatorTest"],
     tags = COMMON_TAGS + ["manual"],  # b/154963251
