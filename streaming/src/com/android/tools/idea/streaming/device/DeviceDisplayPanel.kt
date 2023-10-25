@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.openapi.Disposable
@@ -43,7 +44,10 @@ internal class DeviceDisplayPanel(
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
+      DEVICE_CLIENT_KEY.name -> displayView.deviceClient
+      DEVICE_CONTROLLER_KEY.name -> displayView.deviceController
       DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> displayView
+      SERIAL_NUMBER_KEY.name -> displayView.deviceClient.deviceSerialNumber
       else -> null
     }
   }
