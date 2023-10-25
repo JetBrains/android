@@ -16,30 +16,64 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.sdklib.deviceprovisioner.DeviceId
-import com.intellij.openapi.project.Project
+import com.android.sdklib.deviceprovisioner.Snapshot
+import com.android.tools.idea.run.DeviceHandleAndroidDevice
+import java.util.Objects
 
 /**
- * A deployment target for an app. A user actually selects these (and not devices) with the drop
- * down or Select Multiple Devices dialog. The subclasses for virtual devices boot them differently.
+ * A deployment target for an app, binding a Device with a BootOption. A user actually selects these
+ * (and not devices) with the combobox or the Select Multiple Devices dialog.
  */
-internal abstract class Target(val deviceKey: DeviceId, val templateKey: DeviceId?) {
-  fun matches(device: Device): Boolean {
-    return device.key == deviceKey
-  }
+internal class Target(val device: Device, val bootOption: BootOption) {
 
-  /**
-   * @return the text for this target. It's used for the items in a virtual device's submenu and in
-   *   the drop down button when a user selects a target.
-   */
-  abstract fun getText(device: Device): String
+  val deviceId: DeviceId
+    get() = device.id
 
-  abstract fun boot(device: Device, project: Project)
+  val templateId: DeviceId?
+    get() = device.templateId
 
-  companion object {
-    @JvmStatic
-    fun filterDevices(targets: Collection<Target>, devices: List<Device>): List<Device> {
-      val keys = targets.map { it.deviceKey }.toSet()
-      return devices.filter { it.key in keys }
+  fun boot() {
+    when (bootOption) {
+      is BootSnapshot ->
+        (device.androidDevice as DeviceHandleAndroidDevice).bootFromSnapshot(bootOption.snapshot)
+      ColdBoot -> (device.androidDevice as DeviceHandleAndroidDevice).coldBoot()
+      DefaultBoot -> device.androidDevice.bootDefault()
     }
   }
+
+  val id: TargetId
+    get() = TargetId(deviceId, templateId, bootOption)
+
+  override fun equals(other: Any?) =
+    other is Target && id == other.id && bootOption == other.bootOption
+
+  override fun hashCode(): Int {
+    return Objects.hash(id, bootOption)
+  }
+
+  override fun toString() = "Target($bootOption, $id)"
+}
+
+data class TargetId(val deviceId: DeviceId, val templateId: DeviceId?, val bootOption: BootOption)
+
+sealed class BootOption {
+  /** A user-visible text representation of this boot option. */
+  abstract val text: String
+}
+
+// TODO: make this a data object when Kotlin 1.9 is available
+object DefaultBoot : BootOption() {
+  override val text = "Quick Boot"
+
+  override fun toString() = this::class.simpleName!!
+}
+
+object ColdBoot : BootOption() {
+  override val text = "Cold Boot"
+
+  override fun toString() = this::class.simpleName!!
+}
+
+data class BootSnapshot(val snapshot: Snapshot) : BootOption() {
+  override val text = snapshot.name
 }

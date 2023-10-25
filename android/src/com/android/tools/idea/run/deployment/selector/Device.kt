@@ -16,38 +16,139 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.Snapshot
-import com.android.tools.idea.run.AndroidDevice
+import com.android.tools.idea.run.DeviceHandleAndroidDevice
+import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
+import com.android.tools.idea.run.DeviceTemplateAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
+import com.android.tools.idea.run.LaunchCompatibilityChecker
+import com.google.common.util.concurrent.Futures.immediateFailedFuture
 import com.google.common.util.concurrent.ListenableFuture
-import java.time.Instant
+import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.icons.AllIcons
+import com.intellij.ui.LayeredIcon
+import icons.StudioIcons
+import java.text.Collator
 import javax.swing.Icon
+import kotlinx.datetime.Instant
 
-internal interface Device {
+/**
+ * An abstraction of a device (or device template) used by the deployment target selector.
+ *
+ * It is itself immutable, although it holds a DeviceProvisionerAndroidDevice which can change
+ * state. It is mostly a wrapper of that handle, however, it adds the connection time and launch
+ * compatibility (relative to the current run configuration). It is ephemeral; it will be recreated
+ * whenever any of its inputs changes (e.g. changing the run configuration from a Wear app to a
+ * mobile app affects the launch compatibility).
+ */
+internal class Device(
+  val androidDevice: DeviceProvisionerAndroidDevice,
+  val connectionTime: Instant?,
+  val snapshots: List<Snapshot>,
+  val launchCompatibility: LaunchCompatibility,
+) {
+  companion object {
+    suspend fun create(
+      androidDevice: DeviceProvisionerAndroidDevice,
+      connectionTime: Instant?,
+      launchCompatibilityChecker: LaunchCompatibilityChecker,
+    ): Device {
+      val snapshots =
+        (androidDevice as? DeviceHandleAndroidDevice)?.deviceHandle?.bootSnapshotAction?.snapshots()
+          ?: emptyList()
+
+      return Device(
+        androidDevice,
+        connectionTime,
+        snapshots,
+        launchCompatibilityChecker.validate(androidDevice)
+      )
+    }
+  }
+
+  /** The [DeviceId] of the [DeviceHandle] or [DeviceTemplate] wrapped by this object. */
+  val id: DeviceId
+    get() = androidDevice.id
+
   /**
-   * A physical device will always return a serial number. A virtual device will usually return a
-   * virtual device path. But if Studio doesn't know about the virtual device (it's outside the
-   * scope of the AVD Manager because it uses a locally built system image, for example) it can
-   * return a virtual device path (probably not but I'm not going to assume), virtual device name,
-   * or serial number depending on what the IDevice returned.
+   * The [DeviceId] of the template that this device was created from. This is null if the device
+   * was not created from a template. If the device *is* a template, [templateId] is the same as
+   * [id].
    */
-  val key: DeviceId
+  val templateId: DeviceId?
+    get() =
+      when (androidDevice) {
+        is DeviceTemplateAndroidDevice -> id
+        is DeviceHandleAndroidDevice -> androidDevice.deviceHandle.sourceTemplate?.id
+      }
+
   val icon: Icon
-  val launchCompatibility: LaunchCompatibility
+    get() {
+      var baseIcon = androidDevice.properties.icon
+      if (isConnected) {
+        baseIcon = ExecutionUtil.getLiveIndicator(baseIcon)
+      }
+      return when (launchCompatibility.state) {
+        LaunchCompatibility.State.OK -> baseIcon
+        LaunchCompatibility.State.WARNING ->
+          LayeredIcon(baseIcon, AllIcons.General.WarningDecorator)
+        LaunchCompatibility.State.ERROR -> LayeredIcon(baseIcon, StudioIcons.Common.ERROR_DECORATOR)
+      }
+    }
+
   val isConnected: Boolean
-  val connectionTime: Instant?
+    get() = androidDevice.isRunning
+
   val name: String
-  val snapshots: Collection<Snapshot>
+    get() = androidDevice.name
+
+  val disambiguator: String?
+    get() = androidDevice.properties.disambiguator
+
   val defaultTarget: Target
-  val targets: Collection<Target>
-  val androidDevice: AndroidDevice
+    get() = Target(this, DefaultBoot)
+
+  val targets: List<Target>
+    get() = buildList {
+      // All devices have a DefaultTarget, even those that can't be booted; boot is a no-op then.
+      add(Target(this@Device, DefaultBoot))
+      // If there are no snapshots, omit cold boot for simplicity
+      if (snapshots.isNotEmpty()) {
+        if ((androidDevice as? DeviceHandleAndroidDevice)?.deviceHandle?.coldBootAction != null) {
+          add(Target(this@Device, ColdBoot))
+        }
+        addAll(snapshots.map { Target(this@Device, BootSnapshot(it)) })
+      }
+    }
+
+  // TODO: refactor this API; it's only used synchronously
   val ddmlibDeviceAsync: ListenableFuture<IDevice>
     get() {
       val device = androidDevice
       if (!device.isRunning()) {
-        throw RuntimeException("$device is not running")
+        return immediateFailedFuture(IllegalStateException("$device is not running"))
       }
       return device.getLaunchedDevice()
     }
+
+  override fun toString() = "Device($name)"
 }
+
+/**
+ * Given the full set of devices that are present, returns a unique name for this device by adding
+ * its disambiguator if there is a different device with the same name.
+ */
+internal fun Device.disambiguatedName(
+  otherDevices: List<Device> = emptyList(),
+): String =
+  if (disambiguator != null && otherDevices.any { it.id != id && it.name == name }) {
+    "$name [$disambiguator]"
+  } else name
+
+internal object DeviceComparator :
+  Comparator<Device> by (compareBy<Device> { it.launchCompatibility.state }
+    .thenByDescending(nullsFirst()) { it.connectionTime }
+    .thenBy(Collator.getInstance()) { it.name })
