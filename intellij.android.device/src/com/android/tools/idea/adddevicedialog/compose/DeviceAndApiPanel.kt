@@ -16,9 +16,17 @@
 package com.android.tools.idea.adddevicedialog.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import org.jetbrains.jewel.Text
+import org.jetbrains.jewel.TextField
 
 @Composable
 internal fun DeviceAndApiPanel() {
-  Text("DeviceAndApiPanel")
+  Text("Name")
+
+  var name by remember { mutableStateOf("") }
+  TextField(name, { name = it })
 }
