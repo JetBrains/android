@@ -294,7 +294,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeviceFutures deviceFutures = deployTarget.getDevices(getProject());
 
     // Record stat if we launched a device.
-    stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> device instanceof LaunchableAndroidDevice));
+    stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> !device.isRunning()));
 
     if (deviceFutures.get().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
