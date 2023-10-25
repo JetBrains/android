@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -375,7 +376,11 @@ constructor(
         tabShell.setComponent(
           EmptyStatePanel(
             AppInspectionBundle.message("inspector.launch.error", provider.displayName),
-            provider.learnMoreUrl
+            null,
+            ActionData(
+              AppInspectionBundle.message("inspector.launch.restart"),
+              hyperlinkClicked(process, tabShell)
+            )
           )
         )
         ideServices.showNotification(

@@ -626,6 +626,76 @@ class AppInspectionViewTest {
     }
 
   @Test
+  fun inspectorRestartEmptyPanelShownOnLaunchError() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val fakeDevice =
+      FakeTransportService.FAKE_DEVICE.toBuilder()
+        .setDeviceId(1)
+        .setModel("fakeModel")
+        .setManufacturer("fakeMan")
+        .setSerial("1")
+        .build()
+
+    val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
+
+    transportService.addDevice(fakeDevice)
+    transportService.addProcess(fakeDevice, fakeProcess)
+
+    // Overwrite the handler to simulate a launch error, e.g. an inspector was left over from a
+    // previous crash
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      TestAppInspectorCommandHandler(
+        timer,
+        createInspectorResponse =
+          createCreateInspectorResponse(
+            AppInspection.AppInspectionResponse.Status.ERROR,
+            AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
+            "error"
+          )
+      )
+    )
+    lateinit var inspectionView: AppInspectionView
+    val tabsAdded = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      inspectionView =
+        AppInspectionView(
+          projectRule.project,
+          appInspectionServiceRule.apiServices,
+          ideServices,
+          { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
+          appInspectionServiceRule.scope,
+          uiDispatcher,
+          TestInspectorArtifactService()
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+      inspectionView.tabsChangedFlow.first {
+        assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
+        val tab = inspectionView.inspectorTabs[0]
+        val initialComponent = tab.waitForContent() as EmptyStatePanel
+        assertThat(initialComponent.reasonText)
+          .isEqualTo(
+            AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)
+          )
+        assertThat(initialComponent.actionData!!.text)
+          .isEqualTo(AppInspectionBundle.message("inspector.launch.restart"))
+
+        setUpRelaunchingCommandHandler()
+        launch(uiDispatcher) { initialComponent.actionData!!.callback() }
+        val restartedComponent = tab.componentUpdates.first()
+        assertThat(restartedComponent).isNotSameAs(initialComponent)
+        assertThat(restartedComponent).isInstanceOf(TestAppInspectorTabComponent::class.java)
+        tabsAdded.complete(Unit)
+      }
+    }
+    tabsAdded.join()
+  }
+
+  @Test
   fun ifTabSupportsOfflineModeTabStaysOpenAfterProcessIsTerminated() = runBlocking {
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 

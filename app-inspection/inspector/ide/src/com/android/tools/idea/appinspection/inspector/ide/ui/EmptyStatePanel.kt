@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide.ui
 
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.inspector.ide.bundle.AppInspectorBundle
 
 /** Convenience constructor that sets up an empty message with a learn more URL (if present). */
-fun EmptyStatePanel(reason: String, learnMoreUrl: String?) =
+fun EmptyStatePanel(reason: String, learnMoreUrl: String?, actionData: ActionData? = null) =
   EmptyStatePanel(
     reason,
-    learnMoreUrl?.let { url -> UrlData(AppInspectorBundle.message("learn.more"), url) }
+    learnMoreUrl?.let { url -> UrlData(AppInspectorBundle.message("learn.more"), url) },
+    actionData
   )

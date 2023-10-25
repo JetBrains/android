@@ -57,7 +57,7 @@ object NewLineChunk : Chunk()
 class EmptyStatePanel @JvmOverloads constructor(
   private val reason: LabelData,
   helpUrlData: UrlData? = null,
-  actionData: ActionData? = null,
+  @TestOnly val actionData: ActionData? = null,
   textColor: Color = NamedColorUtil.getInactiveTextColor()
 ): JPanel(BorderLayout()) {
   init {
