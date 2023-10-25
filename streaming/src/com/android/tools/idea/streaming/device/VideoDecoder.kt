@@ -53,6 +53,7 @@ import org.bytedeco.ffmpeg.global.avcodec.avcodec_free_context
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_open2
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_receive_frame
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_send_packet
+import org.bytedeco.ffmpeg.global.avutil.AV_LOG_QUIET
 import org.bytedeco.ffmpeg.global.avutil.AV_NOPTS_VALUE
 import org.bytedeco.ffmpeg.global.avutil.AV_PIX_FMT_BGRA
 import org.bytedeco.ffmpeg.global.avutil.av_frame_alloc
@@ -60,6 +61,7 @@ import org.bytedeco.ffmpeg.global.avutil.av_frame_free
 import org.bytedeco.ffmpeg.global.avutil.av_frame_get_buffer
 import org.bytedeco.ffmpeg.global.avutil.av_frame_make_writable
 import org.bytedeco.ffmpeg.global.avutil.av_image_get_buffer_size
+import org.bytedeco.ffmpeg.global.avutil.av_log_set_level
 import org.bytedeco.ffmpeg.global.swscale.SWS_BILINEAR
 import org.bytedeco.ffmpeg.global.swscale.sws_freeContext
 import org.bytedeco.ffmpeg.global.swscale.sws_getCachedContext
@@ -261,6 +263,9 @@ internal class VideoDecoder(
     private var initialized: Boolean? = false // Set to null by the close method.
 
     init {
+      // Prevent avcodec_send_packet from returning -1094995529.
+      av_log_set_level(AV_LOG_QUIET) // Suggested in https://github.com/mpromonet/webrtc-streamer/issues/89.
+
       decoderScope.launch {
         ensureInitialized(codec.await())
       }
@@ -402,7 +407,8 @@ internal class VideoDecoder(
     private fun processFrame(packet: AVPacket, header: PacketHeader) {
       val ret = avcodec_send_packet(codecContext, packet)
       if (ret < 0) {
-        throw VideoDecoderException("Display $displayId: video packet was rejected by the decoder: $ret")
+        throw VideoDecoderException(
+            "Display $displayId: video packet was rejected by the decoder: $ret ${packet.toDebugString()} header: $header")
       }
 
       if (avcodec_receive_frame(codecContext, decodingFrame) != 0) {
@@ -561,6 +567,17 @@ internal class VideoDecoder(
 
       fun createBuffer(): ByteBuffer =
           ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
+    }
+
+    override fun toString(): String {
+      return "PacketHeader(" +
+             "displayId=$displayId, " +
+             "displaySize=$displaySize, " +
+             "displayOrientation=$displayOrientation, " +
+             "displayOrientationCorrection=$displayOrientationCorrection, " +
+             "flags=$flags, " +
+             "frameNumber=$frameNumber, " +
+             "packetSize=$packetSize)"
     }
   }
 }
