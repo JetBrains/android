@@ -86,10 +86,12 @@ public class StudioInteractionService {
   public void findAndInvokeComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
     log("Attempting to find and invoke a component with matchers: " + matchers);
     // TODO(b/234067246): consider this timeout when addressing b/234067246. At 10000 or less, this fails occasionally on Windows.
-    long timeoutMillis = 60000;
+    long timeoutMillis = 180000;
     Function<Component, Boolean> filter = this::isComponentInvokable;
     Consumer<Component> invoke = this::invokeComponent;
+    long startTime = System.currentTimeMillis();
     filterAndExecuteComponent(matchers, timeoutMillis, filter, invoke);
+    log(String.format("Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
   }
 
   public void waitForComponent(List<ASDriver.ComponentMatcher> matchers, boolean waitForEnabled)
