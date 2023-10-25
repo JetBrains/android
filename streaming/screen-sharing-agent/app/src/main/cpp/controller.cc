@@ -434,7 +434,7 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
     Log::E("An attempt to set an invalid device orientation: %d", orientation);
     return;
   }
-  Agent::SetVideoOrientationOfInternalDisplays(orientation);
+  Agent::SetVideoOrientation(PRIMARY_DISPLAY_ID, orientation);
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
