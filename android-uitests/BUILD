@@ -2482,7 +2482,6 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwAndroidTVTemplatesTest"],
     tags = COMMON_TAGS + [
-        "manual",
         "no_windows",
         "qa_fast",
     ],
