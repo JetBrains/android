@@ -272,47 +272,47 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Unfolded Foldable - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Tablet - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Desktop - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone-Landscape - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=85% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=100% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=115% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=130% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=180% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=200% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Light - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Dark - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
@@ -393,47 +393,47 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Unfolded Foldable - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Tablet - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Desktop - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone-Landscape - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=85% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=100% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=115% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=130% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=180% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=200% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Light - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Dark - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
         """
           .trimIndent(),
@@ -595,47 +595,47 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Unfolded Foldable - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Tablet - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Desktop - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone-Landscape - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=85% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=100% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=115% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=130% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=180% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=200% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Light - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Dark - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
@@ -730,47 +730,47 @@ class ComposePreviewRepresentationTest {
         """
           TestKt.Preview1
           spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Medium Phone, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420
-          PreviewDisplaySettings(name=Preview1 - Unfolded Foldable, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Unfolded Foldable - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240
-          PreviewDisplaySettings(name=Preview1 - Medium Tablet, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Tablet - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160
-          PreviewDisplaySettings(name=Preview1 - Desktop, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Desktop - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           spec:parent=_device_class_phone,orientation=landscape
-          PreviewDisplaySettings(name=Preview1 - Medium Phone-Landscape, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Medium Phone-Landscape - Preview1, group=Screen sizes, showDecoration=true, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 85%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=85% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 100%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=100% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 115%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=115% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 130%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=130% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 180%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=180% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - 200%, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=200% - Preview1, group=Font scales, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Light, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Light - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
-          PreviewDisplaySettings(name=Preview1 - Dark, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
+          PreviewDisplaySettings(name=Dark - Preview1, group=Light/Dark, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)
 
           TestKt.Preview1
           PreviewDisplaySettings(name=Original, group=Colorblind filters, showDecoration=false, showBackground=false, backgroundColor=null, displayPositioning=NORMAL)

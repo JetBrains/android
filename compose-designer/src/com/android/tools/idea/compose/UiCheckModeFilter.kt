@@ -148,7 +148,7 @@ private fun deviceSizePreviews(
     val config = baseConfig.copy(deviceSpec = device)
     val displaySettings =
       baseDisplaySettings.copy(
-        name = "${baseDisplaySettings.name} - ${idToName[effectiveDeviceIds[device]]}",
+        name = "${idToName[effectiveDeviceIds[device]]} - ${baseDisplaySettings.name}",
         group = message("ui.check.mode.screen.size.group"),
         showDecoration = true,
       )
@@ -165,7 +165,7 @@ private fun fontSizePreviews(
     val config = baseConfig.copy(fontScale = value)
     val displaySettings =
       baseDisplaySettings.copy(
-        name = "${baseDisplaySettings.name} - $name",
+        name = "$name - ${baseDisplaySettings.name}",
         group = message("ui.check.mode.font.scale.group"),
       )
     baseInstance.createDerivedInstance(displaySettings, config)
@@ -182,7 +182,7 @@ private fun lightDarkPreviews(
       baseConfig.copy(uiMode = (baseConfig.uiMode and Configuration.UI_MODE_TYPE_MASK) or value)
     val displaySettings =
       baseDisplaySettings.copy(
-        name = "${baseDisplaySettings.name} - $name",
+        name = "$name - ${baseDisplaySettings.name}",
         group = message("ui.check.mode.light.dark.group"),
       )
     baseInstance.createDerivedInstance(displaySettings, config)

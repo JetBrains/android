@@ -122,7 +122,7 @@ class AccessibilityModelUpdaterTest {
     runBlocking { onRefreshCompletable.join() }
     val twoElementsPreviewRoot =
       previewView.mainSurface.models
-        .first { it.modelDisplayName == "TwoElementsPreview - Medium Phone" }
+        .first { it.modelDisplayName == "Medium Phone - TwoElementsPreview" }
         .components[0]
 
     assertNotEquals(-1, twoElementsPreviewRoot.accessibilityId)

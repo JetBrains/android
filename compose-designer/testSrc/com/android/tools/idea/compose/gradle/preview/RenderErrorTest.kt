@@ -149,7 +149,7 @@ class RenderErrorTest {
     runBlocking {
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
         panels
-          .singleOrNull { it.displayName == "PreviewWithRenderErrors - Medium Phone" }
+          .singleOrNull { it.displayName == "Medium Phone - PreviewWithRenderErrors" }
           ?.takeIf { it.sceneView.hasRenderErrors() }
           ?.also { sceneViewPanelWithErrors = it } != null
       }
@@ -180,7 +180,7 @@ class RenderErrorTest {
     runBlocking {
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
         panels
-          .singleOrNull { it.displayName == "PreviewWithoutRenderErrors - Medium Phone" }
+          .singleOrNull { it.displayName == "Medium Phone - PreviewWithoutRenderErrors" }
           ?.also { sceneViewPanelWithoutErrors = it } != null
       }
     }
