@@ -584,7 +584,6 @@ class ComposePreviewRepresentation(
     }
 
   private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
-    if (mode is PreviewMode.Interactive) return
     log.debug("New single preview element focus: $instance")
     requestVisibilityAndNotificationsUpdate()
     // We should call this before assigning the instance to singlePreviewElementInstance
