@@ -38,6 +38,10 @@ enum class RefreshResult {
   FAILED
 }
 
+interface RefreshType {
+  val priority: Int
+}
+
 /**
  * Base interface needed for using a [PreviewRefreshManager].
  *
@@ -60,10 +64,10 @@ interface PreviewRefreshRequest : Comparable<PreviewRefreshRequest> {
    * - Sort the pending requests
    * - Cancel or skip requests (see [doRefresh] and [onSkip])
    */
-  val priority: Int
+  val refreshType: RefreshType
 
   override fun compareTo(other: PreviewRefreshRequest): Int {
-    return priority.compareTo(other.priority)
+    return refreshType.priority.compareTo(other.refreshType.priority)
   }
 
   /**
@@ -123,13 +127,13 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
   @GuardedBy("requestsLock") private var runningRequest: PreviewRefreshRequest? = null
   @GuardedBy("requestsLock") private var runningJob: Job? = null
 
-  private val _isRefreshingFlow = MutableStateFlow(false)
+  private val _refreshingTypeFlow = MutableStateFlow<RefreshType?>(null)
 
   /**
    * Flow that indicates if there are any requests being processed. This flow will become true if
    * any requests are being processed for the project.
    */
-  val isRefreshingFlow: StateFlow<Boolean> = _isRefreshingFlow
+  val refreshingTypeFlow: StateFlow<RefreshType?> = _refreshingTypeFlow
 
   init {
     scope.launch(AndroidDispatchers.workerThread) {
@@ -139,7 +143,7 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
         val currentRequest: PreviewRefreshRequest
         requestsLock.withLock {
           if (allPendingRequests.isEmpty()) {
-            _isRefreshingFlow.value = false
+            _refreshingTypeFlow.value = null
             return@collect
           }
           currentRequest = allPendingRequests.remove()
@@ -156,7 +160,7 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
         }
 
         try {
-          _isRefreshingFlow.value = true
+          _refreshingTypeFlow.value = currentRequest.refreshType
           lazyWrapperJob.invokeOnCompletion {
             if (it != null) {
               currentRefreshJob?.cancel(if (it is CancellationException) it else null)

@@ -20,9 +20,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposePreviewFakeUiGradleRule
 import com.android.tools.idea.compose.gradle.getPsiFile
+import com.android.tools.idea.compose.preview.ComposePreviewRefreshType
 import com.android.tools.idea.compose.preview.ComposePreviewRenderQualityPolicy
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
-import com.android.tools.idea.compose.preview.RefreshType
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.waitForSmartMode
@@ -382,7 +382,7 @@ class ComposePreviewRepresentationGradleTest {
     var refreshDeferred = runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
-        RefreshType.QUICK,
+        ComposePreviewRefreshType.QUICK,
         completableDeferred = completableDeferred
       )
       completableDeferred
@@ -393,7 +393,7 @@ class ComposePreviewRepresentationGradleTest {
     refreshDeferred = runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
       composePreviewRepresentation.requestRefreshForTest(
-        RefreshType.QUICK,
+        ComposePreviewRefreshType.QUICK,
         completableDeferred = completableDeferred
       )
       completableDeferred

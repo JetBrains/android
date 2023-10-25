@@ -81,7 +81,7 @@ class ComposePreviewRefreshManagerTest {
         "test_id",
         ::testRefresh,
         completable1,
-        RefreshType.NORMAL,
+        ComposePreviewRefreshType.NORMAL,
         requestId = "req1"
       )
     )
@@ -91,7 +91,7 @@ class ComposePreviewRefreshManagerTest {
         "test_id",
         ::testRefresh,
         completable2,
-        RefreshType.NORMAL,
+        ComposePreviewRefreshType.NORMAL,
         requestId = "req2"
       )
     )
@@ -122,7 +122,7 @@ class ComposePreviewRefreshManagerTest {
         "test_id",
         ::testRefresh,
         completable1,
-        RefreshType.NORMAL,
+        ComposePreviewRefreshType.NORMAL,
         requestId = "req1"
       )
     )
@@ -133,7 +133,7 @@ class ComposePreviewRefreshManagerTest {
         "test_id",
         ::testRefresh,
         completable2,
-        RefreshType.QUICK,
+        ComposePreviewRefreshType.QUICK,
         requestId = "req2"
       )
     )
@@ -142,7 +142,7 @@ class ComposePreviewRefreshManagerTest {
         "test_id",
         ::testRefresh,
         completable3,
-        RefreshType.QUICK,
+        ComposePreviewRefreshType.QUICK,
         requestId = "req3"
       )
     )

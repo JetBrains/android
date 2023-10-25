@@ -45,7 +45,7 @@ import org.junit.Test
 private class TestPreviewRefreshRequest(
   private val scope: CoroutineScope,
   override val clientId: String,
-  override val priority: Int,
+  val priority: Int,
   val name: String,
   val doBeforeLaunchingRefresh: () -> Unit = {},
   val doInsideRefreshJob: suspend () -> Unit = {}
@@ -56,6 +56,13 @@ private class TestPreviewRefreshRequest(
     @GuardedBy("testLock") lateinit var log: StringBuilder
     @GuardedBy("testLock") lateinit var expectedLogPrintCount: CountDownLatch
   }
+
+  override val refreshType: RefreshType
+    get() =
+      object : RefreshType {
+        override val priority: Int
+          get() = this@TestPreviewRefreshRequest.priority
+      }
 
   var runningRefreshJob: Job? = null
 
@@ -247,11 +254,11 @@ class PreviewRefreshManagerTest {
   }
 
   @Test
-  fun testIsRefreshingFlow_isCorrect(): Unit = runBlocking {
+  fun testRefreshingTypeFlow_isCorrect(): Unit = runBlocking {
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(1)
     val refreshWaitJob = launch {
-      refreshManager.isRefreshingFlow
-        // Wait for the flow to go to true and back to false
+      refreshManager.refreshingTypeFlow
+        // Wait for the flow to go to not-null and back to null
         .take(2)
         .collect {}
     }
@@ -261,28 +268,28 @@ class PreviewRefreshManagerTest {
   }
 
   @Test
-  fun testIsRefreshingFlow_eventuallyMovesToFalse(): Unit = runBlocking {
+  fun testRefreshingTypeFlow_eventuallyMovesToNull(): Unit = runBlocking {
     TestPreviewRefreshRequest.expectedLogPrintCount = CountDownLatch(150)
     val waitForARefreshJob = launch {
-      refreshManager.isRefreshingFlow.awaitStatus(
+      refreshManager.refreshingTypeFlow.awaitStatus(
         "Failed waiting for the first refresh",
         1.seconds
       ) {
-        it
+        it != null
       }
     }
     repeat(150) {
       refreshManager.requestRefreshSync(TestPreviewRefreshRequest(myScope, "client1", 0, "req$it"))
     }
 
-    // Wait for isRefreshing to flip to true (this means we have seen refresh requests going through
+    // Wait for refreshingType to change to not-null
     waitForARefreshJob.join()
     TestPreviewRefreshRequest.expectedLogPrintCount.await()
-    refreshManager.isRefreshingFlow.awaitStatus(
-      "Failed waiting for isRefreshingFlow to become false",
+    refreshManager.refreshingTypeFlow.awaitStatus(
+      "Failed waiting for refreshingTypeFlow to become null",
       5.seconds
     ) {
-      !it
+      it == null
     }
   }
 

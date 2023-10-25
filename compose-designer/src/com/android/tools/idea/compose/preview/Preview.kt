@@ -311,7 +311,7 @@ class ComposePreviewRepresentation(
       onDeactivate = {
         qualityPolicy.deactivate()
         allowQualityChangeIfInactive.set(true)
-        requestRefresh(type = RefreshType.QUALITY)
+        requestRefresh(type = ComposePreviewRefreshType.QUALITY)
         log.debug("onDeactivate")
         if (isInteractiveMode) {
           interactiveManager.pause()
@@ -616,7 +616,10 @@ class ComposePreviewRepresentation(
     setSingleFilterFlowValue(instance)
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
-    forceRefresh(if (quickRefresh) RefreshType.QUICK else RefreshType.NORMAL).join()
+    forceRefresh(
+        if (quickRefresh) ComposePreviewRefreshType.QUICK else ComposePreviewRefreshType.NORMAL
+      )
+      .join()
     // Currently it will re-create classloader and will be slower than switch from static
     InteractivePreviewUsageTracker.getInstance(surface)
       .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
@@ -794,7 +797,7 @@ class ComposePreviewRepresentation(
   private val qualityManager: RenderQualityManager =
     if (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY.get())
       DefaultRenderQualityManager(surface, qualityPolicy) {
-        requestRefresh(type = RefreshType.QUALITY)
+        requestRefresh(type = ComposePreviewRefreshType.QUALITY)
       }
     else SimpleRenderQualityManager { getDefaultPreviewQuality() }
 
@@ -1124,7 +1127,7 @@ class ComposePreviewRepresentation(
   override fun status(): ComposePreviewManager.Status {
     val projectBuildStatus = projectBuildStatusManager.status
     val isRefreshing =
-      (refreshManager.isRefreshingFlow.value ||
+      (refreshManager.refreshingTypeFlow.value != null ||
         DumbService.isDumb(project) ||
         projectBuildStatus == ProjectStatus.Building)
 
@@ -1274,7 +1277,7 @@ class ComposePreviewRepresentation(
   }
 
   private fun requestRefresh(
-    type: RefreshType = RefreshType.NORMAL,
+    type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
     completableDeferred: CompletableDeferred<Unit>? = null
   ) {
     if (isDisposed.get()) {
@@ -1289,7 +1292,7 @@ class ComposePreviewRepresentation(
 
   @TestOnly
   fun requestRefreshForTest(
-    type: RefreshType = RefreshType.NORMAL,
+    type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL,
     completableDeferred: CompletableDeferred<Unit>? = null
   ) = requestRefresh(type, completableDeferred)
 
@@ -1306,11 +1309,11 @@ class ComposePreviewRepresentation(
   private fun refresh(refreshRequest: ComposePreviewRefreshRequest): Job {
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug(
-      "Refresh triggered editor=${psiFilePointer.containingFile?.name}. Refresh type: ${refreshRequest.type}"
+      "Refresh triggered editor=${psiFilePointer.containingFile?.name}. Refresh type: ${refreshRequest.refreshType}"
     )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
 
-    if (refreshRequest.type == RefreshType.TRACE) {
+    if (refreshRequest.refreshType == ComposePreviewRefreshType.TRACE) {
       refreshTriggers.forEach { requestLogger.debug("Refresh trace, no work being done", it) }
       return CompletableDeferred(Unit)
     }
@@ -1342,7 +1345,7 @@ class ComposePreviewRepresentation(
     // cancelling the refresh mid-way when a simple tab change happens.
     if (
       !lifecycleManager.isActive() &&
-        !(refreshRequest.type == RefreshType.QUALITY &&
+        !(refreshRequest.refreshType == ComposePreviewRefreshType.QUALITY &&
           allowQualityChangeIfInactive.getAndSet(false))
     ) {
       refreshProgressIndicator.processFinish()
@@ -1382,7 +1385,8 @@ class ComposePreviewRepresentation(
           refreshProgressIndicator.text = message("refresh.progress.indicator.finding.previews")
 
           val needsFullRefresh =
-            refreshRequest.type != RefreshType.QUALITY && invalidated.getAndSet(false)
+            refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY &&
+              invalidated.getAndSet(false)
           invalidateIfCancelled = needsFullRefresh
 
           val previewsToRender =
@@ -1405,7 +1409,7 @@ class ComposePreviewRepresentation(
               previewElementModelAdapter::modelToElement,
               this@ComposePreviewRepresentation::configureLayoutlibSceneManagerForPreviewElement,
               refreshFilter = { sceneManager ->
-                refreshRequest.type != RefreshType.QUALITY ||
+                refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY ||
                   qualityManager.needsQualityChange(sceneManager)
               },
               refreshOrder = { sceneManager ->
@@ -1421,7 +1425,7 @@ class ComposePreviewRepresentation(
             composeWorkBench.updateProgress(message("panel.initializing"))
             doRefreshSync(
               previewsToRender,
-              refreshRequest.type == RefreshType.QUICK,
+              refreshRequest.refreshType == ComposePreviewRefreshType.QUICK,
               refreshProgressIndicator
             )
           }
@@ -1450,7 +1454,7 @@ class ComposePreviewRepresentation(
       launch(uiThread) {
         if (
           !composeWorkBench.isMessageBeingDisplayed &&
-            (refreshRequest.type != RefreshType.QUALITY ||
+            (refreshRequest.refreshType != ComposePreviewRefreshType.QUALITY ||
               COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME.get())
         ) {
           // Only notify the preview refresh time if there are previews to show.
@@ -1529,7 +1533,9 @@ class ComposePreviewRepresentation(
    *
    * The return [Deferred] will complete when the refresh finalizes.
    */
-  private fun forceRefresh(type: RefreshType = RefreshType.NORMAL): Deferred<Unit> {
+  private fun forceRefresh(
+    type: ComposePreviewRefreshType = ComposePreviewRefreshType.NORMAL
+  ): Deferred<Unit> {
     val completableDeferred = CompletableDeferred<Unit>()
     invalidate()
     requestRefresh(type, completableDeferred)
@@ -1558,7 +1564,7 @@ class ComposePreviewRepresentation(
 
     val completableDeferred = CompletableDeferred<Unit>()
     completableDeferred.invokeOnCompletion { if (it == null) runnable() }
-    requestRefresh(RefreshType.TRACE, completableDeferred)
+    requestRefresh(ComposePreviewRefreshType.TRACE, completableDeferred)
     completableDeferred.join()
   }
 

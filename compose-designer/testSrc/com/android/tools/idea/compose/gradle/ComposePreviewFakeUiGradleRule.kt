@@ -166,11 +166,11 @@ class ComposePreviewFakeUiGradleRule(
     val countDownLatch = CountDownLatch(1)
     // Make sure to start waiting for the change before triggering it
     val awaitingJob = launch {
-      refreshManager.isRefreshingFlow.awaitStatus(
+      refreshManager.refreshingTypeFlow.awaitStatus(
         "Timeout waiting for refresh to start",
         timeout
-      ) { isRefreshing ->
-        isRefreshing
+      ) {
+        it != null
       }
     }
     runnable()
@@ -182,9 +182,11 @@ class ComposePreviewFakeUiGradleRule(
 
   /** Wait for all running refreshes to complete. */
   suspend fun waitForAllRefreshesToFinish(timeout: Duration = DEFAULT_REFRESH_TIMEOUT) {
-    refreshManager.isRefreshingFlow.awaitStatus("Timeout waiting for refresh to finish", timeout) {
-      isRefreshing ->
-      !isRefreshing
+    refreshManager.refreshingTypeFlow.awaitStatus(
+      "Timeout waiting for refresh to finish",
+      timeout
+    ) {
+      it == null
     }
   }
 
