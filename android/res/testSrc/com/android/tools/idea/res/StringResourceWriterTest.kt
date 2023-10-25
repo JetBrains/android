@@ -31,7 +31,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
@@ -40,6 +39,7 @@ import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.TimeoutCancellationException
@@ -582,11 +582,12 @@ class StringResourceWriterTest {
   private fun dumbSafeDelete(item: ResourceItem) = dumbSafeDelete(listOf(item))
 
   private fun dumbSafeDelete(items: List<ResourceItem>) {
-    (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
-    runBlocking {
-      withTimeout(2.seconds) {
-        suspendCancellableCoroutine<Unit> { cont ->
-          stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      runBlocking {
+        withTimeout(2.seconds) {
+          suspendCancellableCoroutine<Unit> { cont ->
+            stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+          }
         }
       }
     }
@@ -601,7 +602,7 @@ class StringResourceWriterTest {
       items: List<ResourceItem>,
       dialogInteraction: (DialogWrapper) -> Unit
   ) {
-    (DumbService.getInstance(project) as DumbServiceImpl).isDumb = false
+    assertThat(DumbService.isDumb(project)).isFalse()
     runBlocking {
       withTimeout(20.seconds) {
         suspendCancellableCoroutine<Unit> { cont ->

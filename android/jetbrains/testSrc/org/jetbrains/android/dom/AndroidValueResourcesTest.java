@@ -44,7 +44,6 @@ import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -63,6 +62,7 @@ import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.quickfixes.RenameTo;
 import com.intellij.spellchecker.quickfixes.SaveTo;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
@@ -552,9 +552,9 @@ public class AndroidValueResourcesTest {
     myFixture.copyFileToProject(MY_TEST_FOLDER + "/boolResReference.xml", "app/res/layout/main.xml");
     myFixture.copyFileToProject(MY_TEST_FOLDER + "/intbool.xml", "app/res/values/values.xml");
     // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.
-    DumbServiceImpl.getInstance(myProject).setDumb(true);
-    myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference.xml");
-    DumbServiceImpl.getInstance(myProject).setDumb(false);
+    DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+      myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference.xml");
+    });
     myFixture.testCompletion("app/res/layout/main.xml", MY_TEST_FOLDER + "/boolResReference_after.xml");
   }
 
@@ -686,9 +686,9 @@ public class AndroidValueResourcesTest {
 
   @Test
   public void translatableAttributeCompletionDumbMode() {
-    DumbServiceImpl.getInstance(myProject).setDumb(true);
-    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
-    DumbServiceImpl.getInstance(myProject).setDumb(false);
+    DumbModeTestUtils.runInDumbModeSynchronously(myProject, () -> {
+      toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
+    });
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 

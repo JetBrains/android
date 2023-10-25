@@ -26,9 +26,10 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ThrowableRunnable
 import org.junit.Assert.assertFalse
@@ -103,18 +104,6 @@ class SyncUtilTest {
     Mockito.verifyNoMoreInteractions(listener)
   }
 
-  private fun startDumbMode() {
-    WriteAction.runAndWait(ThrowableRunnable<Exception> {
-      DumbServiceImpl.getInstance(project).isDumb = true
-    })
-  }
-
-  private fun stopDumbMode() {
-    WriteAction.runAndWait(ThrowableRunnable<Exception> {
-      DumbServiceImpl.getInstance(project).isDumb = false
-    })
-  }
-
   @Test
   fun waitForSmartAndSyncedWhenSmartAndSynced() {
     val callCount = AtomicInteger(0)
@@ -125,12 +114,12 @@ class SyncUtilTest {
   @Test
   fun waitForSmartAndSyncedWhenDumbAndSynced() {
     val latch = CountDownLatch(1)
-    startDumbMode()
-    project.runWhenSmartAndSynced(callback = { latch.countDown() })
-    assertThat(latch.count).isEqualTo(1)
-    emulateSync(SyncResult.SUCCESS)
-    assertThat(latch.count).isEqualTo(1)
-    stopDumbMode()
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      project.runWhenSmartAndSynced(callback = { latch.countDown() })
+      assertThat(latch.count).isEqualTo(1)
+      emulateSync(SyncResult.SUCCESS)
+      assertThat(latch.count).isEqualTo(1)
+    }
     assertThat(latch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
@@ -154,21 +143,21 @@ class SyncUtilTest {
     val syncManager = TestSyncManager(project)
     syncManager.testIsSyncInProgress = true
 
-    startDumbMode()
     val semaphore = Semaphore(0)
-    project.runWhenSmartAndSynced(
-      callback = {
-        callCount.incrementAndGet()
-        semaphore.release()
-      },
-      syncManager = syncManager)
-    assertThat(callCount.get()).isEqualTo(0)
-    syncManager.testIsSyncInProgress = false
-    emulateSync(SyncResult.SUCCESS)
-    // Now we are in dumb mode but synced
-    assertThat(callCount.get()).isEqualTo(0)
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      project.runWhenSmartAndSynced(
+        callback = {
+          callCount.incrementAndGet()
+          semaphore.release()
+        },
+        syncManager = syncManager)
+      assertThat(callCount.get()).isEqualTo(0)
+      syncManager.testIsSyncInProgress = false
+      emulateSync(SyncResult.SUCCESS)
+      // Now we are in dumb mode but synced
+      assertThat(callCount.get()).isEqualTo(0)
+    }
 
-    stopDumbMode()
     semaphore.acquire()
     assertThat(callCount.get()).isEqualTo(1)
 
@@ -226,7 +215,8 @@ class SyncUtilTest {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
 
-    stopDumbMode() // In Smart mode so callbacks should be immediately called.
+
+    assertThat(DumbService.isDumb(project)).isFalse() // In Smart mode so callbacks should be immediately called.
     project.runWhenSmartAndSynced(
       callback = {
         callCount.incrementAndGet()

@@ -27,11 +27,10 @@ import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
@@ -138,16 +137,15 @@ class ResourceExplorerToolWindowTest {
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
-    runInEdtAndWait {
-      (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+      assertThat(toolWindow.contentManager.contents).isNotEmpty()
+      val content = toolWindow.contentManager.contents[0].component
+      val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
+      assertNotNull(label)
+      assertNull(label.icon)
+      assertThat(label.text).isEqualTo("Loading...")
     }
-    resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
-    assertThat(toolWindow.contentManager.contents).isNotEmpty()
-    val content = toolWindow.contentManager.contents[0].component
-    val label = UIUtil.findComponentOfType<JLabel>(content, JLabel::class.java)
-    assertNotNull(label)
-    assertNull(label.icon)
-    assertThat(label.text).isEqualTo("Loading...")
   }
 
   @Test

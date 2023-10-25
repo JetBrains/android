@@ -29,9 +29,10 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.PlainTextFileType
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.JDOMUtil
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
@@ -187,13 +188,8 @@ class SourceCodeEditorProviderTest {
     assertThat(preview.representationNames).isEmpty()
 
     // Now trigger smart mode. Representations should update
-    val dumbService = DumbServiceImpl.getInstance(projectRule.project)
-    invokeAndWaitIfNeeded {
-      dumbService.isDumb = true
-      dumbService.isDumb = false
-    }
-
-    dumbService.waitForSmartMode()
+    DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {}
+    DumbService.getInstance(projectRule.project).waitForSmartMode()
 
     runBlocking {
       // The representations update can be scheduled at some point in the future after the smart

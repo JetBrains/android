@@ -36,9 +36,9 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.DumbModeTestUtils;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -142,21 +142,17 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
         logOperation.addErrors(logger, render);
       }
 
-      if (useDumbMode) {
-        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
-      }
-
-      try {
+      Runnable errorModelTask = () -> {
         // The error model must be created on a background thread.
         Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
           () -> RenderErrorModelFactory.createErrorModel(null, render));
 
         Futures.getUnchecked(errorModel).getIssues().stream().sorted().forEachOrdered(issues::add);
-      }
-      finally {
-        if (useDumbMode) {
-          DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
-        }
+      };
+      if (useDumbMode) {
+        DumbModeTestUtils.runInDumbModeSynchronously(myFixture.getProject(), errorModelTask::run);
+      } else {
+        errorModelTask.run();
       }
     });
     return issues;

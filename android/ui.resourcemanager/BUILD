@@ -46,5 +46,6 @@ iml_module(
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
         "//tools/adt/idea/.idea/libraries:guava-testlib[test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )

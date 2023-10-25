@@ -47,10 +47,9 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.ui.SearchTextField;
 import java.awt.Component;
 import java.awt.Container;
@@ -721,16 +720,11 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   }
 
   public void testActionsEnabledAtStartup() {
-    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
-    dumbService.setDumb(true);
-    try {
+    DumbModeTestUtils.runInDumbModeSynchronously(getProject(), () -> {
       ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
       myToolWindow.updateActions();
       assertThat(button.isEnabled()).isTrue();
-    }
-    finally {
-      dumbService.setDumb(false);
-    }
+    });
   }
 
   private static void fireFocusLost(@NotNull JComponent component) {

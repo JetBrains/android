@@ -17,7 +17,7 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.EnumSet
@@ -174,7 +174,7 @@ class NavInfoFetcherTest {
 
   @Test
   fun updatesOnDumbModeChange() = runBlocking {
-    DumbServiceImpl.getInstance(module.project).runInDumbMode {
+    DumbModeTestUtils.runInDumbModeSynchronously(module.project) {
       assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
       assertThat(fetcher.isEnabled).isTrue()
       assertThat(fetcher.getCurrentNavInfo()).isNull()

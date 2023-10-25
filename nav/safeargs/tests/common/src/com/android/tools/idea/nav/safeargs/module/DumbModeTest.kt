@@ -21,8 +21,9 @@ import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificati
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.DumbService
 import com.intellij.psi.search.PsiSearchScopeUtil
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
@@ -67,22 +68,22 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
 
     // enter dumb mode and update this newly added nav file by adding another argument
-    DumbServiceImpl.getInstance(project).isDumb = true
-    val replaceXmlContent =
-      """
-          <argument
-              android:name="arg2"
-              app:argType="integer" />
-        </fragment>
-      """
-        .trimIndent()
-    WriteCommandAction.runWriteCommandAction(project) {
-      navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      val replaceXmlContent =
+        """
+            <argument
+                android:name="arg2"
+                app:argType="integer" />
+          </fragment>
+        """
+          .trimIndent()
+      WriteCommandAction.runWriteCommandAction(project) {
+        navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
+      }
+      // still 1 NavArgumentData due to dumb mode --previously cached results are returned
+      assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
     }
-    // still 1 NavArgumentData due to dumb mode --previously cached results are returned
-    assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
 
-    DumbServiceImpl.getInstance(project).isDumb = false
     // fresh results are generated since smart mode
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
@@ -92,44 +93,42 @@ class DumbModeTest {
 
   @Test
   fun scopeDoesNotCacheStaleValuesInDumbMode() {
-    val dumbService = DumbServiceImpl.getInstance(safeArgsRule.project)
-    assertThat(dumbService.isDumb).isFalse()
+    assertThat(DumbService.isDumb(safeArgsRule.project)).isFalse()
 
     // In dumb mode, add a resource and then request the current scope. In the past, this would
     // cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    dumbService.isDumb = true
-    safeArgsRule.fixture.addFileToProject(
-      "res/navigation/nav_main.xml",
-      // language=XML
-      """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/main_fragment" >
-
-          <fragment
-              android:id="@+id/main_fragment"
-              android:name="test.safeargs.MainFragment"
-              android:label="MainFragment">
-              
-              <action
-                android:id="@+id/action_main_fragment_to_main"
-                app:destination="@id/main" />
-          </fragment>
-        </navigation>
-      """
-        .trimIndent()
-    )
-    safeArgsRule.waitForResourceRepositoryUpdates()
-    val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
-
-    val dumbScope = fragmentClass.resolveScope
-
+    val (fragmentClass, dumbScope) = DumbModeTestUtils.computeInDumbModeSynchronously(safeArgsRule.project) {
+      safeArgsRule.fixture.addFileToProject(
+        "res/navigation/nav_main.xml",
+        // language=XML
+        """
+          <?xml version="1.0" encoding="utf-8"?>
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+              app:startDestination="@id/main_fragment" >
+  
+            <fragment
+                android:id="@+id/main_fragment"
+                android:name="test.safeargs.MainFragment"
+                android:label="MainFragment">
+                
+                <action
+                  android:id="@+id/action_main_fragment_to_main"
+                  app:destination="@id/main" />
+            </fragment>
+          </navigation>
+        """
+          .trimIndent()
+      )
+      safeArgsRule.waitForResourceRepositoryUpdates()
+      val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
+      val dumbScope = fragmentClass.resolveScope
+      Pair(fragmentClass, dumbScope)
+    }
     // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
     // occurred while we were previously in dumb mode.
-    dumbService.isDumb = false
     val enlargedScope = fragmentClass.resolveScope
 
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)

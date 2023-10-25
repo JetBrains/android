@@ -29,7 +29,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -41,6 +40,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -109,17 +109,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDumbMode() throws Exception {
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    try {
+    CompletableFuture<NavigationSchema> future = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
       NavigationSchema schema = NavigationSchema.get(myModule);
-      CompletableFuture<NavigationSchema> future = schema.rebuildSchema();
-      DumbServiceImpl.getInstance(getProject()).setDumb(false);
-      schema = future.get();
-      assertNotNull(schema);
-    }
-    finally {
-      DumbServiceImpl.getInstance(getProject()).setDumb(false);
-    }
+      return schema.rebuildSchema();
+    });
+    NavigationSchema schema = future.get();
+    assertNotNull(schema);
   }
 
   public void testSubtags() {

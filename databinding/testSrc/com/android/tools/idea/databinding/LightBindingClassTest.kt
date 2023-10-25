@@ -31,8 +31,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.NullableNotNullManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiField
@@ -44,6 +42,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlTag
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -971,22 +970,19 @@ class LightBindingClassTest {
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")
 
-    val dumbService = DumbService.getInstance(project) as DumbServiceImpl
-    dumbService.isDumb = true
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      // First, verify that dumb mode doesn't prevent us from accessing the previous cache
+      assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+        .containsExactly("ActivityFirstBinding")
 
-    // First, verify that dumb mode doesn't prevent us from accessing the previous cache
-    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
-      .containsExactly("ActivityFirstBinding")
-
-    // XML updates are ignored in dumb mode
-    fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
-    projectRule.waitForResourceRepositoryUpdates()
-    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
-      .containsExactly("ActivityFirstBinding")
-
+      // XML updates are ignored in dumb mode
+      fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
+      projectRule.waitForResourceRepositoryUpdates()
+      assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+        .containsExactly("ActivityFirstBinding")
+    }
     // XML updates should catch up after dumb mode is exited (in other words, we didn't save a snapshot of the stale
     // cache from before)
-    dumbService.isDumb = false
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
   }

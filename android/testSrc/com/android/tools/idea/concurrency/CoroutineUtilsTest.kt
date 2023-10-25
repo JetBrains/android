@@ -28,7 +28,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
@@ -432,10 +432,13 @@ class CoroutineUtilsTest {
 
     runBlocking { connected.await() }
 
-    val isDumb = arrayOf(true, true, false, true, false, true)
-    val dumbService = DumbServiceImpl.getInstance(project)
-    isDumb.forEach {
-      runInEdtAndWait { dumbService.isDumb = it }
+    val publisher = project.messageBus.syncPublisher(DumbService.DUMB_MODE)
+    val dumbModeEvents = arrayOf(true, true, false, true, false, true)
+    for (isDumb in dumbModeEvents) {
+      runInEdtAndWait {
+        if (isDumb) publisher.enteredDumbMode()
+        else publisher.exitDumbMode()
+      }
     }
 
     // Wait for the changes to be processed.

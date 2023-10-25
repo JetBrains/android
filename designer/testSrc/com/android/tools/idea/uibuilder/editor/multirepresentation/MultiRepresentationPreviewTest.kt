@@ -25,10 +25,10 @@ import com.intellij.openapi.diagnostic.DefaultLogger
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
@@ -610,15 +610,15 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    invokeAndWaitIfNeeded { DumbServiceImpl.getInstance(project).isDumb = true }
-    val provider = TestPreviewRepresentationProvider("Accepting", false)
-    val futureMultiPreview = async {
-      createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider))
-    }
-
-    invokeAndWaitIfNeeded {
-      provider.isAccept = true
-      DumbServiceImpl.getInstance(project).isDumb = false
+    val futureMultiPreview = DumbModeTestUtils.computeInDumbModeSynchronously(project) {
+      val provider = TestPreviewRepresentationProvider("Accepting", false)
+      val futureMultiPreview = async {
+        createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider))
+      }
+      invokeAndWaitIfNeeded {
+        provider.isAccept = true
+      }
+      futureMultiPreview
     }
 
     multiPreview = futureMultiPreview.await()

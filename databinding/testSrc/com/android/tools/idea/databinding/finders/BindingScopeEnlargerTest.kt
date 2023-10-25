@@ -21,8 +21,9 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.DumbService
 import com.intellij.psi.search.PsiSearchScopeUtil
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -71,29 +72,27 @@ class BindingScopeEnlargerTest {
 
   @Test
   fun scopeDoesNotCacheStaleValuesInDumbMode() {
-    val dumbService = DumbServiceImpl.getInstance(project)
-    assertThat(dumbService.isDumb).isFalse()
+    assertThat(DumbService.isDumb(project)).isFalse()
 
     // In dumb mode, add a resource and then request the current scope. In the past, this would cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    dumbService.isDumb = true
-    fixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      //language=XML
-      """
-        <?xml version="1.0" encoding="utf-8"?>
-        <layout xmlns:android="http://schemas.android.com/apk/res/android">
-          <LinearLayout />
-        </layout>
-      """.trimIndent())
-    val activityClass = fixture.addClass("public class MainActivity {}")
-
-    val dumbScope = activityClass.resolveScope
-
+    val (activityClass, dumbScope) = DumbModeTestUtils.computeInDumbModeSynchronously(project) {
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        //language=XML
+        """
+          <?xml version="1.0" encoding="utf-8"?>
+          <layout xmlns:android="http://schemas.android.com/apk/res/android">
+            <LinearLayout />
+          </layout>
+        """.trimIndent())
+      val activityClass = fixture.addClass("public class MainActivity {}")
+      val dumbScope = activityClass.resolveScope
+      Pair(activityClass, dumbScope)
+    }
     // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
     // occurred while we were previously in dumb mode.
-    dumbService.isDumb = false
     val enlargedScope = activityClass.resolveScope
 
     val moduleCache = LayoutBindingModuleCache.getInstance(facet)

@@ -69,8 +69,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
@@ -87,6 +85,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
@@ -4196,31 +4195,31 @@ public class ResourceFolderRepositoryTest {
    */
   @Test
   public void fileInvalidationAfterDumbMode() throws Exception {
-    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(myProject);
-    dumbService.setDumb(true);
-    VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file1);
-    assertThat(psiFile).isNotNull();
-    ResourceFolderRepository repository = createRegisteredRepository();
-    assertThat(repository).isNotNull();
-    assertThat(repository.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme")).isTrue();
+    ResourceItem resourceItem = DumbModeTestUtils.computeInDumbModeSynchronously(myProject, () -> {
+      VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file1);
+      assertThat(psiFile).isNotNull();
+      ResourceFolderRepository repository = createRegisteredRepository();
+      assertThat(repository).isNotNull();
+      assertThat(repository.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme")).isTrue();
 
-    int rescans = repository.getFileRescans();
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(myProject);
-    Document document = documentManager.getDocument(psiFile);
-    assertThat(document).isNotNull();
+      int rescans = repository.getFileRescans();
+      PsiDocumentManager documentManager = PsiDocumentManager.getInstance(myProject);
+      Document document = documentManager.getDocument(psiFile);
+      assertThat(document).isNotNull();
 
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf("DarkTheme");
-      document.replaceString(offset, offset + 4, "Grey");
-      documentManager.commitDocument(document);
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        int offset = document.getText().indexOf("DarkTheme");
+        document.replaceString(offset, offset + 4, "Grey");
+        documentManager.commitDocument(document);
+      });
+      waitForUpdates(repository);
+      ResourceItem item = repository.getResources(RES_AUTO, ResourceType.STYLE, "GreyTheme").get(0);
+      assertThat(repository.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
+      return item;
     });
-    waitForUpdates(repository);
-    ResourceItem item = repository.getResources(RES_AUTO, ResourceType.STYLE, "GreyTheme").get(0);
-    assertThat(repository.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
-    dumbService.setDumb(false);
     // Before the fix, item.getResourceValue would return null since the file is not invalid after getting out of dumb mode.
-    assertThat(item.getResourceValue()).isNotNull();
+    assertThat(resourceItem.getResourceValue()).isNotNull();
   }
 
   @Test
@@ -4334,8 +4333,7 @@ public class ResourceFolderRepositoryTest {
     VirtualFile file = VfsUtil.findFileByIoFile(new File(myFixture.getTestDataPath(), DRAWABLE), true);
 
     // Trigger dumb mode to clear the PsiDirectory cache.
-    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).setDumb(true);
-    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).setDumb(false);
+    DumbModeTestUtils.runInDumbModeSynchronously(myModule.getProject(), () -> {});
     WriteCommandAction.runWriteCommandAction(
       myModule.getProject(), () -> {
         try {

@@ -22,8 +22,6 @@ import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.LanguageFormatting;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -31,6 +29,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.autodetect.FormatterBasedLineIndentInfoBuilder;
 import com.intellij.psi.codeStyle.autodetect.LineIndentInfo;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder;
 
@@ -65,9 +64,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         -1,
         -1, -1, -1, // bunch of tabbed elements
         0);
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    List<LineIndentInfo> indentInfosDumb = getIndentInfos(resFile1);
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(resFile1));
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }
@@ -83,9 +80,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2, -1, -1, // TextView
         2, -1, // TextView
         0);
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    List<LineIndentInfo> indentInfosDumb = getIndentInfos(resFile1);
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(resFile1));
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }
@@ -101,9 +96,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2,
         2, -1, -1, -1, 4, 6, 8, 8, 6, 4, 2,
         0);
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    List<LineIndentInfo> indentInfosDumb = getIndentInfos(manifestFile);
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(manifestFile));
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(manifestFile);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }

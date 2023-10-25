@@ -18,7 +18,7 @@ package com.android.tools.idea.naveditor.structure
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.testFramework.DumbModeTestUtils
 import javax.swing.DefaultListModel
 
 class HostPanelTest : NavTestCase() {
@@ -43,16 +43,11 @@ class HostPanelTest : NavTestCase() {
     waitFor("list was never populated") { !listModel.isEmpty }
     panel.list.model = listModel
 
-    DumbServiceImpl.getInstance(project).isDumb = true
-    try {
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
       model.activate(this)
       waitFor("list expected to be empty") { listModel.isEmpty }
-      DumbServiceImpl.getInstance(project).isDumb = false
-      waitFor("list was never populated") { !listModel.isEmpty }
     }
-    finally {
-      DumbServiceImpl.getInstance(project).isDumb = false
-    }
+    waitFor("list was never populated") { !listModel.isEmpty }
   }
 
   fun testFindReferences() {

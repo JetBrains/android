@@ -53,7 +53,6 @@ import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
@@ -61,6 +60,7 @@ import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.StatusBarEx
 import com.intellij.openapi.wm.ex.WindowManagerEx
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
@@ -300,16 +300,13 @@ public class MyWebView extends android.webkit.WebView {
     val list: JList<Palette.Item> = myPanel!!.itemList
     val handler = list.transferHandler
     val project = projectRule.project
-    try {
-      DumbServiceImpl.getInstance(project).isDumb = true
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
       assertFalse(imitateDragAndDrop(handler, list))
       verify(statusBar)
         .notifyProgressByBalloon(
           eq(MessageType.WARNING),
           eq("Dragging from the Palette is not available while indices are updating.")
         )
-    } finally {
-      DumbServiceImpl.getInstance(project).isDumb = false
     }
   }
 
