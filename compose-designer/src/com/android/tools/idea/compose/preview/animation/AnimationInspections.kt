@@ -201,7 +201,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
             }
           }
           holder.registerProblem(
-            expression,
+            expression.children.firstOrNull() ?: expression,
             message("inspection.animation.no.label.parameter.set.description", animationType),
             ProblemHighlightType.WEAK_WARNING,
             AddLabelFieldQuickFix(expression)
