@@ -417,8 +417,13 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       rightGroup.addAll(content.getAdditionalActions());
       rightGroup.add(Separator.getInstance());
     }
-    rightGroup.add(new GearAction());
-    rightGroup.add(new HideAction());
+    if (myDefinition.showGearAction()) {
+      rightGroup.add(new GearAction());
+    }
+    if (myDefinition.showHideAction()) {
+      rightGroup.add(new HideAction());
+    }
+
     ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("AttachedToolWindow", rightGroup, true);
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     actionToolbar.setMinimumButtonSize(myDefinition.getButtonSize());
