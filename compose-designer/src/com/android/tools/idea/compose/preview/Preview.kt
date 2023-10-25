@@ -292,7 +292,7 @@ class ComposePreviewRepresentation(
 
   private val previewBuildListenersManager: PreviewBuildListenersManager
 
-  private val isStartingOrInInteractiveMode: Boolean
+  private val isInteractiveMode: Boolean
     get() = mode is PreviewMode.Interactive
 
   private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
@@ -308,7 +308,7 @@ class ComposePreviewRepresentation(
         allowQualityChangeIfInactive.set(true)
         requestRefresh(type = RefreshType.QUALITY)
         log.debug("onDeactivate")
-        if (isStartingOrInInteractiveMode) {
+        if (isInteractiveMode) {
           interactiveManager.pause()
         }
         // The editor is scheduled to be deactivated, deactivate its issue model to avoid
@@ -1010,7 +1010,7 @@ class ComposePreviewRepresentation(
 
     surface.activate()
 
-    if (isStartingOrInInteractiveMode) {
+    if (isInteractiveMode) {
       interactiveManager.resume()
     }
 
@@ -1032,7 +1032,7 @@ class ComposePreviewRepresentation(
     if (EssentialsMode.isEnabled()) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (isStartingOrInInteractiveMode) return
+    if (isInteractiveMode) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
@@ -1134,7 +1134,7 @@ class ComposePreviewRepresentation(
     configureLayoutlibSceneManager(
       layoutlibSceneManager,
       showDecorations = displaySettings.showDecoration,
-      isInteractive = isStartingOrInInteractiveMode,
+      isInteractive = isInteractiveMode,
       requestPrivateClassLoader = usePrivateClassLoader(),
       runAtfChecks = atfChecksEnabled,
       runVisualLinting = visualLintingEnabled,
@@ -1476,7 +1476,7 @@ class ComposePreviewRepresentation(
    * includes the compose framework).
    */
   private fun usePrivateClassLoader() =
-    isStartingOrInInteractiveMode || isAnimationPreviewEnabled || shouldQuickRefresh()
+    isInteractiveMode || isAnimationPreviewEnabled || shouldQuickRefresh()
 
   override fun invalidate() {
     invalidated.set(true)
