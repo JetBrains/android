@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId
-import java.time.Clock
-import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
+internal sealed class LoadingState<out T> {
+  abstract val value: T?
 
-internal class KeyToConnectionTimeMap(private val clock: Clock = Clock.systemDefaultZone()) {
-  private val map = ConcurrentHashMap<DeviceId, Instant>()
-
-  operator fun get(key: DeviceId): Instant {
-    return map.computeIfAbsent(key) { clock.instant() }
+  object Loading : LoadingState<Nothing>() {
+    override val value: Nothing? = null
   }
 
-  fun retainAll(keys: Collection<DeviceId>) {
-    map.keys.retainAll(keys)
-  }
+  data class Ready<out T>(override val value: T) : LoadingState<T>()
 }

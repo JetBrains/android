@@ -13,50 +13,218 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
-import java.util.List;
-import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
+import com.android.ddmlib.AndroidDebugBridge
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.sdklib.deviceprovisioner.SetChange
+import com.android.sdklib.deviceprovisioner.trackSetChanges
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.run.DeviceHandleAndroidDevice
+import com.android.tools.idea.run.DeviceProvisionerAndroidDevice.DdmlibDeviceLookup
+import com.android.tools.idea.run.DeviceTemplateAndroidDevice
+import com.android.tools.idea.run.LaunchCompatibility
+import com.android.tools.idea.run.LaunchCompatibilityChecker
+import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl
+import com.android.tools.idea.run.asDdmlibDeviceLookup
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.configurations.ModuleBasedConfiguration
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
+import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import org.jetbrains.android.facet.AndroidFacet
 
-final class AsyncDevicesGetter implements Disposable {
-  @NotNull
-  private final Project project;
+/**
+ * A service that produces the [Device] objects used by the target selection dropdown, by joining
+ * the current set of devices and device templates from the [DeviceProvisioner] with their
+ * [LaunchCompatibility] state and connection time.
+ */
+internal class DevicesService
+@NonInjectable
+@VisibleForTesting
+constructor(
+  overrideCoroutineScope: CoroutineScope?,
+  private val devicesFlow: StateFlow<List<DeviceHandle>>,
+  private val templatesFlow: StateFlow<List<DeviceTemplate>>,
+  private val clock: Clock,
+  private val adbFlow: Flow<DdmlibDeviceLookup?>,
+  private val launchCompatibilityCheckerFlow: Flow<LaunchCompatibilityChecker>,
+) : Disposable {
+  constructor(
+    project: Project
+  ) : this(
+    null, // use default
+    project.service<DeviceProvisionerService>().deviceProvisioner.devices,
+    project.service<DeviceProvisionerService>().deviceProvisioner.templates,
+    Clock.System,
+    adbFlow(),
+    launchCompatibilityCheckerFlow(project)
+  )
 
-  @NotNull
-  private final KeyToConnectionTimeMap connectionTimes;
-
-  @SuppressWarnings("unused")
-  private AsyncDevicesGetter(@NotNull Project project) {
-    this(project, new KeyToConnectionTimeMap());
+  companion object {
+    @JvmStatic fun getInstance(project: Project): DevicesService = project.service<DevicesService>()
   }
 
-  @NonInjectable
-  @VisibleForTesting
-  AsyncDevicesGetter(@NotNull Project project, @NotNull KeyToConnectionTimeMap map) {
-    this.project = project;
-    connectionTimes = map;
+  val coroutineScope =
+    overrideCoroutineScope ?: AndroidCoroutineScope(this, CoroutineName("DevicesService"))
+
+  override fun dispose() {}
+
+  private val connectionTimes = ConcurrentHashMap<DeviceId, Instant>()
+
+  private fun deviceHandleFlow(
+    ddmlibDeviceLookup: DdmlibDeviceLookup,
+    launchCompatibilityChecker: LaunchCompatibilityChecker
+  ): Flow<List<Device>> = channelFlow {
+    val handles = ConcurrentHashMap<DeviceHandle, Device>()
+    // Immediately send empty list, since if the actual list is empty, there will be no Add,
+    // and we don't want to be stuck in the Loading state.
+    send(emptyList())
+    devicesFlow
+      .map { it.toSet() }
+      .trackSetChanges()
+      .collect {
+        when (it) {
+          is SetChange.Add -> {
+            val handle = it.value
+            handle.scope.launch {
+              handle.stateFlow.collect { state ->
+                val connectionTime =
+                  if (handle.state.isOnline()) {
+                    connectionTimes.computeIfAbsent(handle.id) { clock.now() }
+                  } else {
+                    connectionTimes.remove(handle.id)
+                    null
+                  }
+                handles[handle] =
+                  Device.create(
+                    DeviceHandleAndroidDevice(ddmlibDeviceLookup, handle, state),
+                    connectionTime,
+                    launchCompatibilityChecker
+                  )
+                send(handles.values.toList())
+              }
+            }
+          }
+          is SetChange.Remove -> {
+            handles.remove(it.value)
+            connectionTimes.remove(it.value.id)
+            send(handles.values.toList())
+          }
+        }
+      }
   }
 
-  @Override
-  public void dispose() {
+  private fun deviceTemplateFlow(
+    ddmlibDeviceLookup: DdmlibDeviceLookup,
+    launchCompatibilityChecker: LaunchCompatibilityChecker
+  ): Flow<List<Device>> = flow {
+    val templateDevices = mutableMapOf<DeviceTemplate, Device>()
+    templatesFlow.collect { templates ->
+      templateDevices.keys.retainAll(templates)
+      for (template in templates) {
+        if (!templateDevices.containsKey(template)) {
+          templateDevices[template] =
+            Device.create(
+              DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template),
+              null,
+              launchCompatibilityChecker
+            )
+        }
+      }
+      emit(templateDevices.values.toList())
+    }
   }
 
-  @NotNull
-  static AsyncDevicesGetter getInstance(@NotNull Project project) {
-    return project.getService(AsyncDevicesGetter.class);
-  }
+  val devices: StateFlow<LoadingState<List<Device>>> =
+    adbFlow
+      .flatMapLatest { ddmlibDeviceLookup ->
+        if (ddmlibDeviceLookup == null) {
+          flowOf(LoadingState.Loading)
+        } else {
+          launchCompatibilityCheckerFlow.flatMapLatest { launchCompatibilityChecker ->
+            deviceHandleFlow(ddmlibDeviceLookup, launchCompatibilityChecker).combine(
+              deviceTemplateFlow(ddmlibDeviceLookup, launchCompatibilityChecker)
+            ) { handles, templates ->
+              // Filter out the templates that are active
+              val activeTemplates = handles.mapNotNull { it.templateId }.toSet()
+              val devices = handles + templates.filterNot { it.id in activeTemplates }
+              LoadingState.Ready(devices.sortedWith(DeviceComparator))
+            }
+          }
+        }
+      }
+      .stateIn(coroutineScope, SharingStarted.Lazily, LoadingState.Loading)
 
-  /**
-   * @return an optional list of devices including the virtual devices ready to be launched, virtual devices that have been launched, and
-   * the connected physical devices
-   */
-  @NotNull
-  Optional<List<Device>> get() {
-    return Optional.empty();
+  /** A flow that only contains the list of devices when it is ready. */
+  val loadedDevices: Flow<List<Device>> = devices.mapNotNull { it.value }
+
+  fun devicesIfLoaded(): Optional<List<Device>> {
+    return Optional.ofNullable(devices.firstValue().value)
   }
 }
+
+/**
+ * Returns the current value of the StateFlow, like StateFlow.value, but if the flow is lazy, also
+ * starts collecting the flow.
+ */
+internal fun <T> StateFlow<T>.firstValue() = runBlocking { first() }
+
+private fun adbFlow(): Flow<DdmlibDeviceLookup?> = callbackFlow {
+  val listener =
+    AndroidDebugBridge.IDebugBridgeChangeListener { bridge ->
+      trySendBlocking(bridge?.asDdmlibDeviceLookup())
+    }
+  trySendBlocking(null)
+  AndroidDebugBridge.addDebugBridgeChangeListener(listener)
+  awaitClose { AndroidDebugBridge.removeDebugBridgeChangeListener(listener) }
+}
+
+/** Ignore the dumb mode switch unless it lasts for a little while. */
+private fun debouncedDumbModeFlow(project: Project): Flow<DumbModeStatus> =
+  dumbModeFlow(project).debounce {
+    when (it) {
+      DumbModeStatus.SMART_MODE -> 0.seconds
+      DumbModeStatus.DUMB_MODE -> 2.seconds
+    }
+  }
+
+internal fun launchCompatibilityCheckerFlow(project: Project): Flow<LaunchCompatibilityChecker> =
+  runConfigurationFlow(project).combine(debouncedDumbModeFlow(project)) { runSettings, dumbMode ->
+    (runSettings?.takeIf { dumbMode == DumbModeStatus.SMART_MODE }?.configuration
+        as? ModuleBasedConfiguration<*, *>)
+      ?.configurationModule
+      ?.module
+      ?.let { module -> AndroidFacet.getInstance(module) }
+      ?.let { facet -> LaunchCompatibilityCheckerImpl.create(facet, null, null) }
+      ?: LaunchCompatibilityChecker { LaunchCompatibility.YES }
+  }

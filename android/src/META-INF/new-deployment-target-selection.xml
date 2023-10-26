@@ -49,8 +49,7 @@
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.AsyncDevicesGetter"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.DevicesSelectedService"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.legacyselector.ExecutionTargetService"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.AsyncDevicesGetter"/>
-    <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.DevicesSelectedService"/>
+    <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.DevicesService"/>
     <projectService serviceImplementation="com.android.tools.idea.run.deployment.selector.ExecutionTargetService"/>
   </extensions>
 </idea-plugin>
