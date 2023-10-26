@@ -24,6 +24,7 @@ import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.getUInt
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.core.scaled
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.util.containers.ContainerUtil
@@ -125,7 +126,7 @@ internal class VideoDecoder(
    * Returns true if video decoding was disabled after being active.
    */
   fun disableDecodingForDisplay(displayId: Int): Boolean =
-      decodingContexts.remove(displayId)?.close() != null
+      decodingContexts.remove(displayId)?.closeAsynchronously() != null
 
   fun addFrameListener(displayId: Int, listener: FrameListener) {
     if (!endOfVideoStream) {
@@ -154,8 +155,8 @@ internal class VideoDecoder(
 
     decoderScope.launch {
       readChannelHeaderAndInitializeCodec()
+      val packetReader = PacketReader()
       try {
-        val packetReader = PacketReader()
         while (true) {
           packetReader.readAndProcessPacket()
         }
@@ -170,6 +171,7 @@ internal class VideoDecoder(
           decodingContext.close()
         }
         decodingContexts.clear()
+        packetReader.close()
       }
     }
   }
@@ -247,20 +249,19 @@ internal class VideoDecoder(
 
   private inner class DecodingContext(val displayId: Int) : AutoCloseable {
 
-    @GuardedBy("imageLock")
-    var displayFrame: VideoFrame? = null
+    @GuardedBy("imageLock") var displayFrame: VideoFrame? = null
       private set
     private val imageLock = Any()
-    private lateinit var codecContext: AVCodecContext
-    private lateinit var decodingFrame: AVFrame
-    private var renderingFrame: AVFrame? = null
-    private var swsContext: SwsContext? = null
-    private lateinit var parserContext: AVCodecParserContext
-    private val pendingPacket: AVPacket = av_packet_alloc()
-    private var hasPendingPacket = false
+    @GuardedBy("this") private lateinit var codecContext: AVCodecContext
+    @GuardedBy("this") private lateinit var decodingFrame: AVFrame
+    @GuardedBy("this") private var renderingFrame: AVFrame? = null
+    @GuardedBy("this") private var swsContext: SwsContext? = null
+    @GuardedBy("this") private lateinit var parserContext: AVCodecParserContext
+    @GuardedBy("this") private val pendingPacket: AVPacket = av_packet_alloc()
+    @GuardedBy("this") private var hasPendingPacket = false
+    @GuardedBy("this") private var framesAtBitRate: Int = 0 // Used for primary display only.
+    @GuardedBy("this") private var initialized: Boolean? = false // Set to null by the close method.
     private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
-    private var framesAtBitRate: Int = 0 // Used for primary display only.
-    private var initialized: Boolean? = false // Set to null by the close method.
 
     init {
       // Prevent avcodec_send_packet from returning -1094995529.
@@ -317,10 +318,16 @@ internal class VideoDecoder(
       }
     }
 
+    fun closeAsynchronously() {
+      ApplicationManager.getApplication().executeOnPooledThread {
+        close()
+      }
+    }
+
     @Synchronized
     override fun close() {
+      onEndOfVideoStream()
       if (initialized == true) {
-        onEndOfVideoStream()
         av_parser_close(parserContext)
         avcodec_close(codecContext)
         avcodec_free_context(codecContext)
@@ -332,6 +339,7 @@ internal class VideoDecoder(
       initialized = null
     }
 
+    @Synchronized
     fun processPacket(packet: AVPacket, header: PacketHeader) { // stream_push_packet
       @Suppress("OPT_IN_USAGE")
       if (!ensureInitialized(codec.getCompleted())) {
