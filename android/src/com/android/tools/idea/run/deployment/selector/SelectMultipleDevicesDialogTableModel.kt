@@ -21,13 +21,11 @@ import javax.swing.table.AbstractTableModel
 
 internal class SelectMultipleDevicesDialogTableModel(devices: List<Device>) : AbstractTableModel() {
   private val rows =
-    devices.flatMap { device ->
-      device.targets.map { target -> SelectMultipleDevicesDialogTableModelRow(device, target) }
-    }
+    devices.flatMap { device -> device.targets.map(::SelectMultipleDevicesDialogTableModelRow) }
   private val deviceNames = devices.mapTo(HashMultiset.create()) { it.name }
 
-  var selectedTargets: Set<Target>
-    get() = rows.filter { it.isSelected }.map { it.target }.toSet()
+  var selectedTargets: List<Target>
+    get() = rows.filter { it.isSelected }.map { it.target }
     set(selectedTargets) {
       for (rowIndex in 0 until rows.size) {
         setValueAt(
@@ -78,18 +76,17 @@ internal class SelectMultipleDevicesDialogTableModel(devices: List<Device>) : Ab
   override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int): Any {
     return when (modelColumnIndex) {
       SELECTED_MODEL_COLUMN_INDEX -> rows[modelRowIndex].isSelected
-      TYPE_MODEL_COLUMN_INDEX -> rows[modelRowIndex].device.icon
+      TYPE_MODEL_COLUMN_INDEX -> rows[modelRowIndex].target.device.icon
       DEVICE_MODEL_COLUMN_INDEX -> rows[modelRowIndex].deviceCellText
-      SERIAL_NUMBER_MODEL_COLUMN_INDEX -> getSerialNumber(rows[modelRowIndex].device)
+      SERIAL_NUMBER_MODEL_COLUMN_INDEX -> getSerialNumber(rows[modelRowIndex].target.device)
       BOOT_OPTION_MODEL_COLUMN_INDEX -> rows[modelRowIndex].bootOption
       else -> throw AssertionError(modelColumnIndex)
     }
   }
 
   private fun getSerialNumber(device: Device): Any {
-    // TODO: Use device disambiguator when we have devices with the same name
     return if (deviceNames.count(device.name) != 1) {
-      device.key.toString()
+      device.disambiguator ?: ""
     } else ""
   }
 

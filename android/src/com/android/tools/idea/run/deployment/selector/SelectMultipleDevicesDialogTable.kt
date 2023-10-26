@@ -31,7 +31,7 @@ internal class SelectMultipleDevicesDialogTable : JBTable() {
     setRowSelectionAllowed(false)
   }
 
-  var selectedTargets: Set<Target>
+  var selectedTargets: List<Target>
     get() = (dataModel as SelectMultipleDevicesDialogTableModel).selectedTargets
     set(selectedTargets) {
       (dataModel as SelectMultipleDevicesDialogTableModel).selectedTargets = selectedTargets

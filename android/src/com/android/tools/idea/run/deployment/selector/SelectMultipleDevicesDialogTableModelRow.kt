@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
-import com.android.tools.idea.run.deployment.selector.Devices.getBootOption
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.SimpleTextAttributes
 
-internal class SelectMultipleDevicesDialogTableModelRow(val device: Device, val target: Target) {
+internal class SelectMultipleDevicesDialogTableModelRow(val target: Target) {
   var isSelected = false
 
   val deviceCellText: String
     get() {
       val greyColor = ColorUtil.toHtmlColor(SimpleTextAttributes.GRAYED_ATTRIBUTES.fgColor)
-      return device.launchCompatibility.reason?.let { reason ->
-        "<html>$device<br><font size=-2 color=$greyColor>$reason</font></html>"
-      } ?: device.name
+      return target.device.launchCompatibility.reason?.let { reason ->
+        "<html>${target.device.name}<br><font size=-2 color=$greyColor>$reason</font></html>"
+      } ?: target.device.name
     }
 
   val bootOption: String
-    get() = getBootOption(device, target) ?: ""
+    get() =
+      // Only show the boot option on devices with snapshots
+      if (target.device.snapshots.isNotEmpty()) target.bootOption.text else ""
 }

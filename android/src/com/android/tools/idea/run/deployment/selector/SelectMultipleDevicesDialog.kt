@@ -29,19 +29,19 @@ import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.table.TableModel
 
 internal class SelectMultipleDevicesDialog(
-  private val project: Project,
-  private val devices: List<Device>,
-  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
+  project: Project,
+  devicesSelectedServiceSupplier: (Project) -> DevicesSelectedService = Project::service,
 ) : DialogWrapper(project) {
 
-  private val model: TableModel = SelectMultipleDevicesDialogTableModel(devices)
-  private var table: SelectMultipleDevicesDialogTable =
+  private val devicesSelectedService = devicesSelectedServiceSupplier(project)
+  private val model =
+    SelectMultipleDevicesDialogTableModel(devicesSelectedService.devicesAndTargets.allDevices)
+  internal val table =
     SelectMultipleDevicesDialogTable().apply {
       setModel(this@SelectMultipleDevicesDialog.model)
-      selectedTargets = devicesSelectedService(project).getTargetsSelectedWithDialog(devices)
+      selectedTargets = devicesSelectedService.getTargetsSelectedWithDialog()
     }
 
   init {
@@ -66,7 +66,7 @@ internal class SelectMultipleDevicesDialog(
 
   override fun doOKAction() {
     super.doOKAction()
-    devicesSelectedService(project).setTargetsSelectedWithDialog(table.selectedTargets)
+    devicesSelectedService.setTargetsSelectedWithDialog(table.selectedTargets)
   }
 
   @VisibleForTesting
@@ -81,11 +81,12 @@ internal class SelectMultipleDevicesDialog(
 
   override fun getPreferredFocusedComponent() = table
 
-  override fun doValidate(): ValidationInfo? {
+  @VisibleForTesting
+  public override fun doValidate(): ValidationInfo? {
     val targets = table.selectedTargets
-    val keys = Sets.newHashSetWithExpectedSize<DeviceId>(targets.size)
-    val duplicateKeys = targets.any { !keys.add(it.deviceKey) }
-    if (duplicateKeys) {
+    val ids = Sets.newHashSetWithExpectedSize<DeviceId>(targets.size)
+    val duplicateIds = targets.any { !ids.add(it.deviceId) }
+    if (duplicateIds) {
       val message =
         "Some of the selected targets are for the same device. Each target should be for a different device."
       return ValidationInfo(message, null)
