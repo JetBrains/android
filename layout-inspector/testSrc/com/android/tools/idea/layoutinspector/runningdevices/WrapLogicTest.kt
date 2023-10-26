@@ -16,11 +16,16 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import javax.swing.JPanel
 import kotlin.test.fail
+import org.junit.Rule
 import org.junit.Test
 
 class WrapLogicTest {
+
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testWrapUnwrap() {
@@ -30,9 +35,9 @@ class WrapLogicTest {
 
     originalContainer.add(component)
 
-    val wrapLogic = WrapLogic(component, originalContainer)
+    val wrapLogic = WrapLogic(disposableRule.disposable, component, originalContainer)
 
-    wrapLogic.wrapComponent { component ->
+    wrapLogic.wrapComponent { disposable, component ->
       newContainer.add(component)
       newContainer
     }
@@ -43,7 +48,7 @@ class WrapLogicTest {
     // original container contains new container
     assertThat(originalContainer.components.toList()).isEqualTo(listOf(newContainer))
 
-    wrapLogic.unwrapComponent()
+    Disposer.dispose(wrapLogic)
 
     assertThat(component.parent).isEqualTo(originalContainer)
     // new container contains component
@@ -60,9 +65,9 @@ class WrapLogicTest {
 
     originalContainer.add(component)
 
-    val wrapLogic = WrapLogic(component, originalContainer)
+    val wrapLogic = WrapLogic(disposableRule.disposable, component, originalContainer)
 
-    wrapLogic.wrapComponent { component ->
+    wrapLogic.wrapComponent { disposable, component ->
       newContainer.add(component)
       newContainer
     }
@@ -74,23 +79,20 @@ class WrapLogicTest {
     assertThat(originalContainer.components.toList()).isEqualTo(listOf(newContainer))
 
     try {
-      wrapLogic.wrapComponent { JPanel() }
+      wrapLogic.wrapComponent { _, _ -> JPanel() }
       fail("Expected exception not thrown")
     } catch (_: IllegalStateException) {}
   }
 
   @Test
-  fun testUnwrapThrows() {
+  fun testWrapLogicDisposedBeforeWrappingUi() {
     val component = JPanel()
     val originalContainer = JPanel()
 
     originalContainer.add(component)
 
-    val wrapLogic = WrapLogic(component, originalContainer)
-
-    try {
-      wrapLogic.unwrapComponent()
-      fail("Expected exception not thrown")
-    } catch (_: IllegalStateException) {}
+    val wrapLogic = WrapLogic(disposableRule.disposable, component, originalContainer)
+    // Should not throw
+    Disposer.dispose(wrapLogic)
   }
 }

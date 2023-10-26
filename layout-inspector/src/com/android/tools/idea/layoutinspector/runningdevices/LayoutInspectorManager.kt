@@ -332,8 +332,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     val deviceId: DeviceId,
     val tabComponents: TabComponents,
     val layoutInspector: LayoutInspector,
-    val wrapLogic: WrapLogic =
-      WrapLogic(tabComponents.tabContentPanel, tabComponents.tabContentPanelContainer),
     val layoutInspectorRenderer: LayoutInspectorRenderer =
       LayoutInspectorRenderer(
         tabComponents,
@@ -356,11 +354,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       )
   ) : Disposable {
 
-    /**
-     * Disposable created each time the UI is injected, and disposed each time the UI is removed.
-     * It's used to keep track of the lifecycle of the UI.
-     */
-    private var uiDisposable: Disposable? = null
+    var wrapLogic: WrapLogic? = null
 
     init {
       Disposer.register(tabComponents, this)
@@ -369,10 +363,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     fun enableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
-      val disposable = Disposer.newDisposable(tabComponents)
-      uiDisposable = disposable
+      wrapLogic =
+        WrapLogic(this, tabComponents.tabContentPanel, tabComponents.tabContentPanelContainer)
 
-      wrapLogic.wrapComponent { centerPanel ->
+      wrapLogic?.wrapComponent { disposable, centerPanel ->
         val inspectorPanel = BorderLayoutPanel()
         val toolsPanel = BorderLayoutPanel()
 
@@ -440,10 +434,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     private fun disableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
-      uiDisposable?.let { Disposer.dispose(it) }
-      uiDisposable = null
+      wrapLogic?.let { Disposer.dispose(it) }
+      wrapLogic = null
 
-      wrapLogic.unwrapComponent()
       tabComponents.displayView.remove(layoutInspectorRenderer)
       layoutInspector.inspectorModel.removeSelectionListener(selectionChangedListener)
       layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)

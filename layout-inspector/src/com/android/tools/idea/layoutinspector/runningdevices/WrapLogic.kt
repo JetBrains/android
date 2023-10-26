@@ -15,25 +15,38 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import java.awt.Container
 import javax.swing.JComponent
 
 /** Class used to wrap and unwrap [component] inside another view. */
 class WrapLogic(
+  parentDisposable: Disposable,
   private val component: JComponent,
   private val container: Container,
-) {
+) : Disposable {
   private var newContainer: JComponent? = null
 
-  fun wrapComponent(wrap: (JComponent) -> JComponent) {
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
+  fun wrapComponent(wrap: (Disposable, JComponent) -> JComponent) {
     check(newContainer == null) { "Can't wrap, component is already wrapped" }
 
     container.remove(component)
-    newContainer = wrap(component)
+    newContainer = wrap(this, component)
     container.add(newContainer)
   }
 
-  fun unwrapComponent() {
+  override fun dispose() {
+    try {
+      unwrapComponent()
+    } catch (_: IllegalStateException) {}
+  }
+
+  private fun unwrapComponent() {
     val newContainer = checkNotNull(newContainer) { "Can't unwrap, component is not wrapped" }
 
     newContainer.remove(component)
