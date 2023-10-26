@@ -58,7 +58,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     assertFalse(ref.get().isAndroidxLibrary());
 
     AgpVersion version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(getProject());
-    String configName = GradleProjectSystemUtil.mapConfigurationName("implementation", version, false);
+    String configName = "implementation";
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +

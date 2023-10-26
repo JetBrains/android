@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
-import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
@@ -292,11 +292,10 @@ public class GradleDependencyManager {
                                            @Nullable ConfigurationNameMapper nameMapper) {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (Pair<String, Dependency> namedDependency : namedDependencies) {
-        String name = COMPILE;
+        String name = IMPLEMENTATION;
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, namedDependency.getSecond());
         }
-        name = GradleProjectSystemUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         String alias = namedDependency.getFirst();
         ReferenceTo reference = new ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel);
         dependenciesModel.addArtifact(name, reference);
@@ -368,11 +367,10 @@ public class GradleDependencyManager {
     updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (Dependency dependency : dependencies) {
-        String name = COMPILE;
+        String name = IMPLEMENTATION;
         if (nameMapper != null) {
           name = nameMapper.mapName(module, name, dependency);
         }
-        name = GradleProjectSystemUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
         String identifier = dependency.toIdentifier();
         if (identifier != null) {
           dependenciesModel.addArtifact(name, identifier);

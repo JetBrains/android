@@ -206,7 +206,7 @@ public class CreateLibraryFromFilesAction extends AnAction {
         }
 
         Set<String> addedRoots = new HashSet<>();
-        String scope = GradleProjectSystemUtil.useCompatibilityConfigurationNames(myProject) ? "compile" : "implementation";
+        String scope = "implementation";
         for (OrderRoot root : myRoots) {
           VirtualFile local = JarFileSystem.getInstance().getVirtualFileForJar(root.getFile());
           if (local == null) {

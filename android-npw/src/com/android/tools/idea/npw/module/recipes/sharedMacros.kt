@@ -275,7 +275,7 @@ fun basicThemesXml(parent: String, themeName: String = "Theme.App") = """
 """
 
 fun RecipeExecutor.addTestDependencies() {
-  addDependency("junit:junit:4.+", "testCompile", minRev = "4.13.2")
-  addDependency("com.android.support.test:runner:+", "androidTestCompile")
-  addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
+  addDependency("junit:junit:4.+", "testImplementation", minRev = "4.13.2")
+  addDependency("com.android.support.test:runner:+", "androidTestImplementation")
+  addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestImplementation")
 }

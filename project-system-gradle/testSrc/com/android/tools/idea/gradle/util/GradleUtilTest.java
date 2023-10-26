@@ -114,27 +114,6 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void mapConfigurationName() {
-    assertEquals("compile", GradleProjectSystemUtil.mapConfigurationName("compile", "2.3.2", false));
-    assertEquals("testCompile", GradleProjectSystemUtil.mapConfigurationName("testCompile", "2.3.2", false));
-    assertEquals("androidTestCompile", GradleProjectSystemUtil.mapConfigurationName("androidTestCompile", "2.3.2", false));
-    assertEquals("provided", GradleProjectSystemUtil.mapConfigurationName("provided", "2.3.2", false));
-    assertEquals("testProvided", GradleProjectSystemUtil.mapConfigurationName("testProvided", "2.3.2", false));
-
-    assertEquals("implementation", GradleProjectSystemUtil.mapConfigurationName("compile", "3.0.0-alpha1", false));
-    assertEquals("testImplementation", GradleProjectSystemUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", false));
-    assertEquals("androidTestImplementation", GradleProjectSystemUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", false));
-    assertEquals("compileOnly", GradleProjectSystemUtil.mapConfigurationName("provided", "3.0.0-alpha1, false", false));
-    assertEquals("testCompileOnly", GradleProjectSystemUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", false));
-
-    assertEquals("api", GradleProjectSystemUtil.mapConfigurationName("compile", "3.0.0-alpha1", true));
-    assertEquals("testApi", GradleProjectSystemUtil.mapConfigurationName("testCompile", "3.0.0-alpha1", true));
-    assertEquals("androidTestApi", GradleProjectSystemUtil.mapConfigurationName("androidTestCompile", "3.0.0-alpha1", true));
-    assertEquals("compileOnly", GradleProjectSystemUtil.mapConfigurationName("provided", "3.0.0-alpha1", true));
-    assertEquals("testCompileOnly", GradleProjectSystemUtil.mapConfigurationName("testProvided", "3.0.0-alpha1", true));
-  }
-
-  @Test
   public void isAaptGeneratedSourceFolder() {
     myTempDir = createTempDir();
 

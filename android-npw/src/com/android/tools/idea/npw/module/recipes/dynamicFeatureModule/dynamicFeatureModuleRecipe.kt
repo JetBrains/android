@@ -84,7 +84,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   addLocalTests(packageName, localTestOut, language)
   addInstrumentedTests(packageName, useAndroidX, false, instrumentedTestOut, language)
   addTestDependencies()
-  addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestCompile")
+  addDependency("com.android.support:support-annotations:${appCompatVersion}.+", "androidTestImplementation")
 
   addDynamicFeature(moduleData.name, baseFeature.dir)
   if (isInstantModule) {

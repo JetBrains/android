@@ -291,13 +291,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * Add a library dependency into the project.
    */
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
-    // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = GradleProjectSystemUtil.mapConfigurationName(
-      configuration,
-      projectTemplateData.agpVersion,
-      false
-    )
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
+    referencesExecutor.addDependency(configuration, mavenCoordinate, minRev, moduleDir, toBase)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
 
@@ -313,12 +307,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
     } ?: return
 
-    var resolvedConfiguration = GradleProjectSystemUtil.mapConfigurationName(
-      configuration,
-      projectTemplateData.agpVersion,
-      false
-    )
-
     val resolvedMavenCoordinate =
       when {
         // For coordinates that don't specify a version, we expect that version to be supplied by a platform dependency (i.e. a BOM).
@@ -329,9 +317,9 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
-    if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
-        resolvedConfiguration = GRADLE_API_CONFIGURATION
-    }
+    val resolvedConfiguration = if (baseFeature != null && toBase && configuration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
+        GRADLE_API_CONFIGURATION
+    } else configuration
 
     projectBuildModel?.let {
       if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
@@ -345,14 +333,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
-    // TODO: Delete this once we no longer support ancient Gradle plugins
-    val newConfiguration = GradleProjectSystemUtil.mapConfigurationName(
-      configuration,
-      projectTemplateData.agpVersion,
-      false
-    )
-    require(configuration == newConfiguration) { "Platform dependencies are not supported in Gradle plugin < 3.0" }
-
     referencesExecutor.addPlatformDependency(configuration, mavenCoordinate, enforced)
 
     val buildModel = moduleGradleBuildModel ?: return
@@ -374,14 +354,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
-    val resolvedConfiguration = GradleProjectSystemUtil.mapConfigurationName(
-      configuration,
-      projectTemplateData.agpVersion,
-      false
-    )
-
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
-    buildModel.dependencies().addModule(resolvedConfiguration, ":$moduleName")
+    buildModel.dependencies().addModule(configuration, ":$moduleName")
   }
 
   /**

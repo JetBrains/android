@@ -185,28 +185,6 @@ public class GradleProjectSystemUtil {
   }
 
   /**
-   * Returns true if we should use compatibility configuration names (such as "compile") instead
-   * of the modern configuration names (such as "api" or "implementation") for the given project
-   *
-   * @param project the project to consult
-   * @return true if we should use compatibility configuration names
-   */
-  public static boolean useCompatibilityConfigurationNames(@NotNull Project project) {
-    return useCompatibilityConfigurationNames(getAndroidGradleModelVersionInUse(project));
-  }
-
-  /**
-   * Returns true if we should use compatibility configuration names (such as "compile") instead
-   * of the modern configuration names (such as "api" or "implementation") for the given Gradle version
-   *
-   * @param agpVersion the Gradle plugin version to check
-   * @return true if we should use compatibility configuration names
-   */
-  public static boolean useCompatibilityConfigurationNames(@Nullable AgpVersion agpVersion) {
-    return agpVersion != null && agpVersion.getMajor() < 3;
-  }
-
-  /**
    * Determines the version of the Kotlin plugin in use in the external (Gradle) project with root at projectPath.  The result can
    * be absent if: there are no Kotlin modules in the project; or there are multiple Kotlin modules using different versions of the
    * Kotlin compiler; or if sync has never succeeded in this session.
@@ -470,88 +448,6 @@ public class GradleProjectSystemUtil {
         result.add(DOT_KTS);
       }
     }
-  }
-
-  /**
-   * This method converts a configuration name from (for example) "compile" to "implementation" if the
-   * Gradle plugin version is 3.0 or higher.
-   *
-   * @param configuration The original configuration name, such as "androidTestCompile"
-   * @param pluginVersion The plugin version. If null, assumed to be current.
-   * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
-   * @return the right configuration name to use
-   */
-  @NotNull
-  public static String mapConfigurationName(@NotNull String configuration,
-                                            @Nullable AgpVersion pluginVersion,
-                                            boolean preferApi) {
-    return mapConfigurationName(configuration, pluginVersion != null && !pluginVersion.isAtLeastIncludingPreviews(3, 0, 0), preferApi);
-  }
-
-  /**
-   * This method converts a configuration name from (for example) "compile" to "implementation" if the
-   * Gradle plugin version is 3.0 or higher.
-   *
-   * @param configuration The original configuration name, such as "androidTestCompile"
-   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
-   * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
-   * @return the right configuration name to use
-   */
-  @NotNull
-  public static String mapConfigurationName(@NotNull String configuration,
-                                            @Nullable String pluginVersion,
-                                            boolean preferApi) {
-    AgpVersion agpVersion = pluginVersion != null ? AgpVersion.tryParse(pluginVersion) : AgpVersions.getLatestKnown();
-    return mapConfigurationName(configuration, agpVersion, preferApi);
-  }
-
-  /**
-   * This method converts a configuration name from (for example) "compile" to "implementation" if the
-   * Gradle plugin version is 3.0 or higher.
-   *
-   * @param configuration         The original configuration name, such as "androidTestCompile"
-   * @param useCompatibilityNames Whether we should use compatibility names
-   * @param preferApi             If true, will use "api" instead of "implementation" for new configurations
-   * @return the right configuration name to use
-   */
-  @NotNull
-  private static String mapConfigurationName(@NotNull String configuration,
-                                             boolean useCompatibilityNames,
-                                             boolean preferApi) {
-    if (useCompatibilityNames) {
-      return configuration;
-    }
-
-    configuration = replaceSuffixWithCase(configuration, "compile", preferApi ? "api" : "implementation");
-    configuration = replaceSuffixWithCase(configuration, "provided", "compileOnly");
-    configuration = replaceSuffixWithCase(configuration, "apk", "runtimeOnly");
-
-    return configuration;
-  }
-
-  /**
-   * Replaces the given suffix in the string, preserving the case in the string, e.g.
-   * replacing "foo" with "bar" will result in "bar", and replacing "myFoo" with "bar"
-   * will result in "myBar". (This is not a general purpose method; it assumes that
-   * the only non-lowercase letter is the first letter of the suffix.)
-   */
-  private static String replaceSuffixWithCase(String s, String suffix, String newSuffix) {
-    if (SdkUtils.endsWithIgnoreCase(s, suffix)) {
-      int suffixBegin = s.length() - suffix.length();
-      if (Character.isUpperCase(s.charAt(suffixBegin))) {
-        return s.substring(0, suffixBegin) + Character.toUpperCase(newSuffix.charAt(0)) + newSuffix.substring(1);
-      }
-      else {
-        if (suffixBegin == 0) {
-          return newSuffix;
-        }
-        else {
-          return s.substring(0, suffixBegin) + suffix;
-        }
-      }
-    }
-
-    return s;
   }
 
   /**
