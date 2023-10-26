@@ -13,412 +13,246 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import com.android.sdklib.deviceprovisioner.DeviceId;
-import com.android.tools.idea.execution.common.DeployableToDevice;
-import com.android.tools.idea.run.util.InstantConverter;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.configurations.RunConfiguration;
-import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.xmlb.Converter;
-import com.intellij.util.xmlb.annotations.OptionTag;
-import com.intellij.util.xmlb.annotations.Tag;
-import com.intellij.util.xmlb.annotations.XCollection;
-import com.intellij.util.xmlb.annotations.XCollection.Style;
-import com.intellij.util.xmlb.annotations.XMap;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.google.common.annotations.VisibleForTesting
+import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.serviceContainer.NonInjectable
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 /**
- * The interface between the deployment target drop down and ${PROJECT}/.idea/deploymentTargetDropDown.xml. deploymentTargetDropDown.xml has
- * two broad sets of fields:
+ * The central coordination point between the UI, the DevicesService, and the persistent state.
  *
- * <ol>
- * <li>A set for the single selection in the drop down: runningDeviceTargetSelectedWithDropDown, targetSelectedWithDropDown, and
- * timeTargetWasSelectedWithDropDown
- * <li>A set for the multiple selections in the Select Multiple Devices dialog: runningDeviceTargetsSelectedWithDialog and
- * targetsSelectedWithDialog
- * </ol>
+ * This class accepts updates to the selection based on user actions and persists them via
+ * SelectedTargetStateService.
  *
- * <p>The drop down and dialog selections are independent of each other. Pixel 4 API 30 can be selected in the drop down while Pixel 3 API
- * 30 is selected in the dialog. multipleDevicesSelectedInDropDown tracks the active selection. If it's true, the dialog selection is the
- * active one and the drop down button's text will render something like "Multiple Devices (2)". If it's false, the drop down selection is
- * the active one.
+ * It receives device list updates from the DevicesService, adjusts the selection based on it, and
+ * supplies a consistent view of the available and selected devices to other components in the
+ * DevicesAndTargets class. Note that we can only persist TargetIds; returning a Target based on a
+ * persisted TargetId requires resolving it to an available Device.
  *
- * <p>runningDeviceTargetSelectedWithDropDown and runningDeviceTargetsSelectedWithDialog will always refer to RunningDeviceTargets.
- * targetSelectedWithDropDown and targetsSelectedWithDialog will always refer to ColdBoot, QuickBoot, or BootWithSnapshotTargets and never
- * to RunningDeviceTargets.
- *
- * <p>Eventually we want running devices to tell Android Studio how they were booted. A user can select a BootWithSnapshotTarget with Studio
- * and then cold boot the device with the terminal. I assume that any running device was booted in an unknown way because of this.
- *
- * <p>When the drop down asks DevicesSelectedService for the current selections, TargetsForReadingSupplier takes the selections and the list
- * of devices and replaces ColdBoot, QuickBoot, and BootWithSnapshotTargets with RunningDeviceTargets if the devices are running. When the
- * drop down asks DevicesSelectedService to save new selections, TargetsForWritingSupplier takes the selections and splits out the
- * RunningDeviceTargets so they're saved separately. Keeping the RunningDeviceTarget selections separate means any ColdBoot, QuickBoot, and
- * BootWithSnapshotTarget selections are restored when the devices are stopped.
- *
- * <p>Targets saved in deploymentTargetDropDown.xml correspond to actual user selections with the drop down or dialog. Note that there is a
- * lot of default selection logic in getTargetSelectedWithComboBox. The result of that logic is <em>not</em> saved in
- * deploymentTargetDropDown.xml because those aren't user selections.
- *
- * <p>timeTargetWasSelectedWithDropDown is the timestamp of the user's last drop down selection. If it falls before the connection time of a
- * newly connected device, that newly connected device is returned by the default selection logic in getTargetSelectedWithComboBox.
- * Otherwise the user's selection takes precedence.
+ * The actual selected device(s) are computed based on the most recent user input and the current
+ * device state. Note that, perhaps surprisingly, a newly connected device takes precedence over any
+ * device that was previously explicitly selected prior to the connection time. However, these
+ * devices are *not* persisted in SelectedTargetStateService -- only user selections are stored.
  */
-final class DevicesSelectedService {
-  private final @NotNull PersistentStateComponent myPersistentStateComponent;
+@Service(Service.Level.PROJECT)
+internal class DevicesSelectedService
+@VisibleForTesting
+@NonInjectable
+constructor(
+  private val runConfigurationFlow: Flow<RunnerAndConfigurationSettings?>,
+  private val selectedTargetStateService: SelectedTargetStateService,
+  private val devicesFlow: Flow<List<Device>>,
+  private val clock: Clock,
+  coroutineContext: CoroutineContext = EmptyCoroutineContext,
+) : Disposable {
+  private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
-  @NotNull
-  private final RunManager myRunManager;
+  @Suppress("unused")
+  private constructor(
+    project: Project
+  ) : this(
+    runConfigurationFlow(project),
+    project.service<SelectedTargetStateService>(),
+    project.service<DevicesService>().loadedDevices,
+    Clock.System
+  )
 
-  @NotNull
-  private final Clock myClock;
-
-  @SuppressWarnings("unused")
-  private DevicesSelectedService(@NotNull Project project) {
-    this(project.getService(PersistentStateComponent.class), RunManager.getInstance(project), Clock.systemDefaultZone());
-  }
-
-  @VisibleForTesting
-  @NonInjectable
-  DevicesSelectedService(@NotNull PersistentStateComponent persistentStateComponent, @NotNull RunManager runManager, @NotNull Clock clock) {
-    myPersistentStateComponent = persistentStateComponent;
-    myRunManager = runManager;
-    myClock = clock;
-  }
-
-  @NotNull
-  static DevicesSelectedService getInstance(@NotNull Project project) {
-    return project.getService(DevicesSelectedService.class);
-  }
+  override fun dispose() {}
 
   /**
-   * Given the current set of devices, return the currently selected single target.
+   * Explicit updates to the selection by [setTargetSelectedWithComboBox] or
+   * [setTargetsSelectedWithDialog] are sent through this flow; the updates propagate through to the
+   * [devicesAndTargetsFlow].
    */
-  @NotNull Optional<Target> getTargetSelectedWithComboBox(@NotNull List<Device> devices) {
-    if (devices.isEmpty()) {
-      return Optional.empty();
-    }
-
-    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
-
-    Target target = state.getTargetSelectedWithDropDown();
-
-    if (target == null) {
-      return Optional.of(devices.get(0).getDefaultTarget());
-    }
-
-    Optional<Device> optionalSelectedDevice = devices.stream()
-      .filter(target::matches)
-      .findFirst();
-
-    if (!optionalSelectedDevice.isPresent()) {
-      return Optional.of(devices.get(0).getDefaultTarget());
-    }
-
-    Optional<Device> optionalConnectedDevice = devices.stream()
-      .filter(Device::isConnected)
-      .findFirst();
-
-    if (!optionalConnectedDevice.isPresent()) {
-      return Optional.of(target);
-    }
-
-    Device connectedDevice = optionalConnectedDevice.get();
-
-    assert state.timeTargetWasSelectedWithDropDown != null;
-
-    Instant connectionTime = connectedDevice.getConnectionTime();
-    assert connectionTime != null;
-
-    if (state.timeTargetWasSelectedWithDropDown.isBefore(connectionTime)) {
-      return Optional.of(connectedDevice.getDefaultTarget());
-    }
-
-    return Optional.of(target);
-  }
-
-  void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
-    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
-    state.multipleDevicesSelectedInDropDown = false;
-
-    state.setTargetSelectedWithDropDown(targetSelectedWithComboBox);
-
-    state.timeTargetWasSelectedWithDropDown = targetSelectedWithComboBox == null ? null : myClock.instant();
-  }
-
-  boolean isMultipleDevicesSelectedInComboBox() {
-    return myPersistentStateComponent.getState(getSelectedRunConfiguration()).multipleDevicesSelectedInDropDown;
-  }
-
-  void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
-    var configuration = getSelectedRunConfiguration();
-    myPersistentStateComponent.getState(configuration).multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
-  }
-
-  @NotNull Set<Target> getTargetsSelectedWithDialog(@NotNull List<Device> devices) {
-    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
-
-    // TODO: Remove any non-bootable targets that are not running now?
-    
-    return new HashSet<>(state.getTargetsSelectedWithDialog());
-  }
+  private val selectionStateUpdateFlow =
+    MutableSharedFlow<SelectionState>(
+      extraBufferCapacity = 1,
+      onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
   /**
-   * Updates the currently-persisted selected device state with the new set of selected targets.
+   * The current selection state can change either because the run configuration has changed, or
+   * because the user updated the selection.
    */
-  void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
-    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
-    state.setTargetsSelectedWithDialog(targetsSelectedWithDialog);
+  private val selectionStateFlow =
+    merge(
+        runConfigurationFlow.map { selectedTargetStateService.getState(it?.configuration) },
+        selectionStateUpdateFlow
+      )
+      .stateIn(coroutineScope, SharingStarted.Lazily, SelectionState())
+
+  /**
+   * The primary output of this class, which is the result of combining the current set of devices
+   * and the persisted selection to determine a set of selected targets.
+   */
+  val devicesAndTargetsFlow =
+    devicesFlow
+      .combine(selectionStateFlow, ::updateState)
+      .stateIn(
+        coroutineScope,
+        SharingStarted.Lazily,
+        DevicesAndTargets(emptyList(), false, emptyList())
+      )
+
+  val devicesAndTargets: DevicesAndTargets
+    get() = devicesAndTargetsFlow.firstValue()
+
+  private fun updateSelectionState(selectionState: SelectionState) {
+    selectedTargetStateService.updateState(selectionState)
+    selectionStateUpdateFlow.tryEmit(selectionState)
   }
 
-  @Nullable
-  private RunConfiguration getSelectedRunConfiguration() {
-    var configurationAndSettings = myRunManager.getSelectedConfiguration();
-    if (configurationAndSettings == null) {
-      return null;
-    }
-    return configurationAndSettings.getConfiguration();
-  }
-
-  @com.intellij.openapi.components.State(name = "deploymentTargetSelector", storages = @Storage("deploymentTargetSelector.xml"))
-  @Service(Service.Level.PROJECT)
-  @VisibleForTesting
-  static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<MapState> {
-    @NotNull
-    private MapState myMapState = new MapState();
-
-    @NotNull
-    private final RunManager myRunManager;
-
-    PersistentStateComponent(@NotNull Project project) {
-      myRunManager = RunManager.getInstance(project);
-    }
-
-    @NotNull
-    State getState(@Nullable RunConfiguration runConfiguration) {
-      if (runConfiguration == null || Strings.isNullOrEmpty(runConfiguration.getName())) {
-        return new State();
+  private fun updateState(
+    presentDevices: List<Device>,
+    selectionState: SelectionState
+  ): DevicesAndTargets {
+    val presentDevices = presentDevices.sortedWith(DeviceComparator)
+    val selectedTargets: List<Target>
+    when (selectionState.selectionMode) {
+      SelectionMode.DROPDOWN -> {
+        selectedTargets =
+          listOfNotNull(
+            updateSingleSelection(
+              presentDevices,
+              selectionState.dropdownSelection?.target,
+              selectionState.dropdownSelection?.timestamp
+            )
+          )
       }
-
-      if (!DeployableToDevice.deploysToLocalDevice(runConfiguration)) {
-        // We do not want to keep track of states for configurations that don't deploy to local devices
-        return new State();
-      }
-
-      return myMapState.value.computeIfAbsent(runConfiguration.getName(), configuration -> new State());
-    }
-
-    @NotNull
-    @Override
-    public MapState getState() {
-      removeStatesForNonValidRunConfigurations();
-      return myMapState;
-    }
-
-    @Override
-    public void loadState(@NotNull MapState mapState) {
-      myMapState = mapState;
-      removeStatesForNonValidRunConfigurations();
-    }
-
-    private void removeStatesForNonValidRunConfigurations() {
-      myMapState.value.entrySet().removeIf(entry -> !validRunConfigurationExists(entry.getKey()));
-    }
-
-    private boolean validRunConfigurationExists(String runConfigurationName) {
-      return myRunManager.getAllConfigurationsList().stream()
-        .filter(DeployableToDevice::deploysToLocalDevice)
-        .anyMatch(runConfiguration -> runConfiguration.getName().equals(runConfigurationName));
-    }
-  }
-
-  static final class MapState {
-    @NotNull
-    @XMap
-    public Map<String, State> value = new HashMap<>();
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object object) {
-      return object instanceof MapState state && value.equals(state.value);
-    }
-  }
-
-  @VisibleForTesting
-  static final class State {
-    @OptionTag(tag = "targetSelectedWithDropDown", nameAttribute = "")
-    public @Nullable TargetState targetSelectedWithDropDown;
-
-    @OptionTag(tag = "timeTargetWasSelectedWithDropDown", nameAttribute = "", converter = InstantConverter.class)
-    public @Nullable Instant timeTargetWasSelectedWithDropDown;
-
-    @OptionTag(tag = "multipleDevicesSelectedInDropDown", nameAttribute = "")
-    public boolean multipleDevicesSelectedInDropDown;
-
-    @XCollection(style = Style.v2)
-    public @NotNull Collection<TargetState> targetsSelectedWithDialog = Collections.emptyList();
-
-    private @Nullable Target getTargetSelectedWithDropDown() {
-      return getTargetSelectedWithDropDown(targetSelectedWithDropDown);
-    }
-
-    private void setTargetSelectedWithDropDown(@Nullable Target targetSelectedWithDropDown) {
-      if (targetSelectedWithDropDown == null) {
-        this.targetSelectedWithDropDown = null;
-        return;
-      }
-
-      this.targetSelectedWithDropDown = new TargetState(targetSelectedWithDropDown);
-    }
-
-    private static @Nullable Target getTargetSelectedWithDropDown(@Nullable TargetState targetState) {
-      if (targetState == null) {
-        return null;
-      }
-
-      try {
-        return targetState.asTarget();
-      }
-      catch (DevicesSelectedServiceException exception) {
-        Logger.getInstance(DevicesSelectedService.class).warn(exception);
-        return null;
-      }
-    }
-
-    private @NotNull Collection<Target> getTargetsSelectedWithDialog() {
-      return getTargetsSelectedWithDialog(targetsSelectedWithDialog, Target.class);
-    }
-
-    private void setTargetsSelectedWithDialog(@NotNull Collection<Target> targetsSelectedWithDialog) {
-      this.targetsSelectedWithDialog = asTargetStates(targetsSelectedWithDialog);
-    }
-
-    private static <T> @NotNull Collection<T> getTargetsSelectedWithDialog(@NotNull Collection<TargetState> targetStates,
-                                                                                    @NotNull Class<T> c) {
-      try {
-        Collection<T> targets = new ArrayList<>(targetStates.size());
-
-        for (TargetState targetState : targetStates) {
-          targets.add(c.cast(targetState.asTarget()));
+      SelectionMode.DIALOG -> {
+        selectedTargets =
+          selectionState.dialogSelection.targets.mapNotNull { it.resolve(presentDevices) }
+        if (selectedTargets.isEmpty()) {
+          // TODO: Here, without explicit user action, we switch the mode from multiple to single
+          // selection. Is this really what we want?
+          val dropdownState = selectionState.copy(selectionMode = SelectionMode.DROPDOWN)
+          // This doesn't take immediate effect, it has to come back around via the flows
+          updateSelectionState(dropdownState)
         }
-
-        return targets;
-      }
-      catch (DevicesSelectedServiceException exception) {
-        Logger.getInstance(DevicesSelectedService.class).warn(exception);
-        return Collections.emptyList();
       }
     }
+    return DevicesAndTargets(
+      presentDevices.sortedWith(DeviceComparator),
+      selectionState.selectionMode == SelectionMode.DIALOG,
+      selectedTargets
+    )
+  }
 
-    private static <T extends Target> @NotNull Collection<TargetState> asTargetStates(@NotNull Collection<T> targets) {
-      return targets.stream()
-        .map(TargetState::new)
-        .collect(Collectors.toList());
+  /**
+   * Given that we are in single-device mode, with the given devices present, determine the device
+   * to select.
+   */
+  private fun updateSingleSelection(
+    presentDevices: List<Device>,
+    lastSelectedTargetId: TargetId?,
+    selectionTime: Instant?
+  ): Target? {
+    val lastSelectedTarget = lastSelectedTargetId?.resolve(presentDevices)
+    // This relies on presentDevices being sorted by connection time (see DeviceComparator)
+    val latestConnectedDevice = presentDevices.firstOrNull()?.takeIf { it.connectionTime != null }
+
+    return if (latestConnectedDevice != null && lastSelectedTarget != null) {
+      val connectionTime = latestConnectedDevice.connectionTime!!
+      when {
+        lastSelectedTarget.device == latestConnectedDevice -> lastSelectedTarget
+        selectionTime == null -> latestConnectedDevice.defaultTarget
+        selectionTime > connectionTime -> lastSelectedTarget
+        else -> latestConnectedDevice.defaultTarget
+      }
+    } else
+      lastSelectedTarget
+        ?: latestConnectedDevice?.defaultTarget
+        ?: presentDevices.firstOrNull()?.defaultTarget
+  }
+
+  fun getSelectedTargets(): List<Target> = devicesAndTargets.selectedTargets
+
+  fun setTargetSelectedWithComboBox(targetSelectedWithComboBox: Target?) {
+    updateSelectionState(
+      selectionStateFlow.value.copy(
+        selectionMode = SelectionMode.DROPDOWN,
+        dropdownSelection =
+          targetSelectedWithComboBox?.let {
+            DropdownSelection(target = it.id, timestamp = clock.now())
+          },
+      )
+    )
+  }
+
+  fun getTargetsSelectedWithDialog(): List<Target> {
+    return selectionStateFlow.value.dialogSelection.targets.mapNotNull {
+      it.resolve(devicesAndTargets.allDevices)
     }
   }
 
-  @Tag("Target")
-  private static final class TargetState {
-    @OptionTag(tag = "type", nameAttribute = "")
-    public @Nullable TargetType type;
-
-    @OptionTag(tag = "deviceKey", nameAttribute = "")
-    public @Nullable KeyState deviceKey;
-
-    @OptionTag(tag = "snapshotKey", nameAttribute = "", converter = PathConverter.class)
-    public @Nullable Path snapshotKey;
-
-    @SuppressWarnings("unused")
-    private TargetState() {
-    }
-
-    private TargetState(@NotNull Target target) {
-      // TODO: Add target serialization
-      assert false : target;
-
-      deviceKey = new KeyState(target.getDeviceKey());
-    }
-
-    private @NotNull Target asTarget() throws DevicesSelectedServiceException {
-      if (type == null) {
-        throw new DevicesSelectedServiceException();
-      }
-
-      if (deviceKey == null) {
-        throw new DevicesSelectedServiceException();
-      }
-
-      switch (type) {
-        // TODO: Add target deserialization
-        default:
-          throw new DevicesSelectedServiceException(type.toString());
-      }
-    }
+  /** Updates the currently-persisted selected device state with the new set of selected targets. */
+  fun setTargetsSelectedWithDialog(targetsSelectedWithDialog: List<Target>) {
+    updateSelectionState(
+      selectionStateFlow.value.copy(
+        // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
+        // dropdown.
+        dialogSelection = DialogSelection(targets = targetsSelectedWithDialog.map { it.id }),
+        selectionMode =
+          if (targetsSelectedWithDialog.isEmpty()) SelectionMode.DROPDOWN else SelectionMode.DIALOG
+      )
+    )
   }
 
-  private enum TargetType {RUNNING_DEVICE_TARGET, COLD_BOOT_TARGET, QUICK_BOOT_TARGET, BOOT_WITH_SNAPSHOT_TARGET}
-
-  @Tag("Key")
-  private static final class KeyState {
-    @OptionTag(tag = "value", nameAttribute = "")
-    public @Nullable String value;
-
-    @SuppressWarnings("unused")
-    private KeyState() {
-    }
-
-    private KeyState(@NotNull DeviceId key) {
-      // TODO: Add Key serialization
-      assert false : key;
-
-      value = key.toString();
-    }
-
-    private @NotNull DeviceId asKey() throws DevicesSelectedServiceException {
-      // TODO: Add Key deserialization
-      throw new DevicesSelectedServiceException();
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project): DevicesSelectedService {
+      return project.service<DevicesSelectedService>()
     }
   }
+}
 
-  private static final class PathConverter extends Converter<Path> {
-    private final @NotNull FileSystem myFileSystem = FileSystems.getDefault();
+internal data class DevicesAndTargets(
+  val allDevices: List<Device>,
+  val isMultipleSelectionMode: Boolean,
+  val selectedTargets: List<Target>
+)
 
-    @Override
-    public @NotNull Path fromString(@NotNull String string) {
-      return myFileSystem.getPath(string);
-    }
-
-    @Override
-    public @NotNull String toString(@NotNull Path path) {
-      return path.toString();
-    }
-  }
+/**
+ * Given a serialized target ID and a list of present devices, we want to find the best acceptable
+ * match. Note that the ID and the devices may both either be templates or handles.
+ *
+ * If the serialized ID is a template, our order of preference is:
+ * 1. An active device based on the template
+ * 2. The template itself
+ *
+ * If the serialized ID is a device, our order of preference is:
+ * 1. The device with that ID
+ * 2. Another active device that came from the same template
+ * 3. The template that it came from
+ */
+internal fun TargetId.resolve(devices: List<Device>): Target? {
+  val device =
+    if (deviceId.isTemplate)
+      devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId }
+        ?: devices.firstOrNull { it.id == deviceId }
+    else
+      devices.firstOrNull { it.id == deviceId }
+        ?: templateId?.let {
+          devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId }
+            ?: devices.firstOrNull { it.templateId == templateId }
+        }
+  return device?.let { Target(it, bootOption) }
 }

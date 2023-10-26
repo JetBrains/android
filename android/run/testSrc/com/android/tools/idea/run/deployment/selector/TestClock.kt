@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.selector;
+package com.android.tools.idea.run.deployment.selector
 
-import org.jetbrains.annotations.NotNull;
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
-final class DevicesSelectedServiceException extends Exception {
-  DevicesSelectedServiceException() {
-  }
+class TestClock : Clock {
+  var time = DEFAULT_TIME
 
-  DevicesSelectedServiceException(@NotNull String message) {
-    super(message);
+  override fun now() = time
+
+  companion object {
+    val DEFAULT_TIME = Instant.parse("2020-01-01T12:00:00Z")
   }
 }
