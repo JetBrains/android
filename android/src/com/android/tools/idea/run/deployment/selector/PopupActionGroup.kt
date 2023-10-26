@@ -20,60 +20,53 @@ import com.android.tools.idea.run.deployment.Heading
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Separator
 
-internal class PopupActionGroup(
-  private val devices: Collection<Device>,
-  private val comboBoxAction: DeviceAndSnapshotComboBoxAction,
-  private val actionManager: ActionManager = ActionManager.getInstance()
-) : DefaultActionGroup() {
-  init {
-    val deviceActions = newSelectDeviceActionsOrSnapshotActionGroups()
-    addAll(deviceActions)
-    if (!deviceActions.isEmpty()) {
+internal class ActionGroupSection(val headingActionId: String?, val actions: List<AnAction>)
+
+internal fun DefaultActionGroup.addSection(section: ActionGroupSection) {
+  section.headingActionId?.let { ActionManager.getInstance().getAction(it) }?.let { add(it) }
+  addAll(section.actions)
+}
+
+internal fun createActionGroup(vararg sections: ActionGroupSection): DefaultActionGroup =
+  DefaultActionGroup().apply {
+    val presentSections = sections.filter { it.actions.isNotEmpty() }
+    presentSections.firstOrNull()?.let { addSection(it) }
+    for (section in presentSections.drop(1)) {
       addSeparator()
-    }
-    add(actionManager.getAction(SelectMultipleDevicesAction.ID))
-    add(actionManager.getAction(PairDevicesUsingWiFiAction.ID))
-    add(actionManager.getAction("Android.DeviceManager"))
-    actionManager.getAction("DeveloperServices.ConnectionAssistant")?.let {
-      addSeparator()
-      add(it)
+      addSection(section)
     }
   }
 
-  private fun newSelectDeviceActionsOrSnapshotActionGroups(): Collection<AnAction> {
-    val size = devices.size
-    val runningDevices = ArrayList<Device>(size)
-    val availableDevices = ArrayList<Device>(size)
-    for (device in devices) {
-      when {
-        device.isConnected -> runningDevices.add(device)
-        else -> availableDevices.add(device)
-      }
-    }
-    val actions = ArrayList<AnAction>(3 + size)
-    if (runningDevices.isNotEmpty()) {
-      actions.add(actionManager.getAction(Heading.RUNNING_DEVICES_ID))
-    }
-    for (runningDevice in runningDevices) {
-      actions.add(SelectDeviceAction(runningDevice, comboBoxAction))
-    }
-    if (runningDevices.isNotEmpty() && availableDevices.isNotEmpty()) {
-      actions.add(Separator.create())
-    }
-    if (availableDevices.isNotEmpty()) {
-      actions.add(actionManager.getAction(Heading.AVAILABLE_DEVICES_ID))
-    }
-    for (availableDevice in availableDevices) {
-      actions.add(
-        when {
-          availableDevice.snapshots.isNotEmpty() ->
-            SnapshotActionGroup(availableDevice, comboBoxAction)
-          else -> SelectDeviceAction(availableDevice, comboBoxAction)
+internal fun createDeviceSelectorActionGroup(devices: List<Device>): DefaultActionGroup {
+  val actionManager = ActionManager.getInstance()
+  return createActionGroup(
+    ActionGroupSection(
+      Heading.RUNNING_DEVICES_ID,
+      devices.filter { it.isConnected }.map { SelectDeviceAction(it) }
+    ),
+    ActionGroupSection(
+      Heading.AVAILABLE_DEVICES_ID,
+      devices
+        .filterNot { it.isConnected }
+        .map {
+          when {
+            it.snapshots.isNotEmpty() -> SnapshotActionGroup(it)
+            else -> SelectDeviceAction(it)
+          }
         }
+    ),
+    ActionGroupSection(
+      null,
+      listOfNotNull(
+        actionManager.getAction(SelectMultipleDevicesAction.ID),
+        actionManager.getAction(PairDevicesUsingWiFiAction.ID),
+        actionManager.getAction("Android.DeviceManager")
       )
-    }
-    return actions
-  }
+    ),
+    ActionGroupSection(
+      null,
+      listOfNotNull(actionManager.getAction("DeveloperServices.ConnectionAssistant"))
+    ),
+  )
 }

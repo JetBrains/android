@@ -56,7 +56,7 @@ internal class Popup(group: ActionGroup, context: DataContext, runnable: Runnabl
     }
   }
 
-  override fun disposeAllParents(event: InputEvent) {
+  override fun disposeAllParents(event: InputEvent?) {
     // There is case when a tooltip is scheduled to show, but the popup is already closed
     // (disposeAllParents is called).
     HelpTooltip.dispose(list)

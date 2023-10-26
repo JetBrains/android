@@ -18,28 +18,26 @@ package com.android.tools.idea.run.deployment.selector
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import java.util.Objects
 
+/**
+ * When a device has multiple targets (currently only the case for devices with snapshots), it is
+ * represented by this ActionGroup in the device selector, which expands to show the various target
+ * options.
+ */
 internal class SnapshotActionGroup(
   val device: Device,
-  val comboBoxAction: DeviceAndSnapshotComboBoxAction
 ) : ActionGroup() {
   init {
     isPopup = true
   }
 
   override fun getChildren(event: AnActionEvent?): Array<AnAction> {
-    return device.targets.map { SelectTargetAction(it, device, comboBoxAction) }.toTypedArray()
+    return device.targets.map { SelectTargetAction(it) }.toTypedArray()
   }
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     presentation.setIcon(device.icon)
-    presentation.setText(Devices.getText(device), false)
+    presentation.setText(device.name, false)
   }
-
-  override fun hashCode(): Int = Objects.hash(device, comboBoxAction)
-
-  override fun equals(other: Any?): Boolean =
-    other is SnapshotActionGroup && device == other.device && comboBoxAction == other.comboBoxAction
 }
