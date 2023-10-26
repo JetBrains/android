@@ -62,6 +62,12 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
           } else {
             LoadingState.Ready(null)
           },
+        currentEvents =
+          if (issue != null && state.issues is LoadingState.Ready) {
+            LoadingState.Loading
+          } else {
+            LoadingState.Ready(null)
+          },
         currentNotes =
           if (issue != null && state.issues is LoadingState.Ready) {
             LoadingState.Loading
@@ -73,7 +79,8 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
         if (issue != null && state.issues is LoadingState.Ready)
           Action.FetchIssueVariants(issue.id) and
             Action.FetchDetails(issue.id) and
-            Action.FetchNotes(issue.id)
+            Action.FetchNotes(issue.id) and
+            Action.ListEvents(issue.id, null, null)
         else Action.NONE
     )
   }

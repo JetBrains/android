@@ -19,6 +19,8 @@ import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.EventPage
+import com.android.tools.idea.insights.EventsChanged
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
@@ -126,6 +128,7 @@ class ActionDispatcher(
       is Action.AddNote -> addNote(connection, action)
       is Action.DeleteNote -> deleteNote(connection, action)
       is Action.FetchIssueVariants -> fetchIssueVariants(currentState, action)
+      is Action.ListEvents -> listEvents(currentState, action)
     }
   }
 
@@ -309,6 +312,27 @@ class ActionDispatcher(
               appInsightsClient.getIssueVariants(issueRequest, action.id)
             }
           )
+        )
+      }
+      .toToken(action)
+  }
+
+  private fun listEvents(state: AppInsightsState, action: Action.ListEvents): CancellationToken {
+    val issueRequest = state.toIssueRequest(clock) ?: return CancellationToken.noop(Action.NONE)
+    if (state.selectedIssue?.id != action.id || state.selectedVariant?.id != action.variantId)
+      return CancellationToken.noop(Action.NONE)
+    return scope
+      .launch {
+        eventEmitter(
+          if (state.mode == ConnectionMode.OFFLINE) {
+            EventsChanged(
+              LoadingState.Ready(EventPage(listOf(state.selectedIssue!!.sampleEvent), ""))
+            )
+          } else {
+            EventsChanged(
+              appInsightsClient.listEvents(action.id, action.variantId, issueRequest, action.token)
+            )
+          }
         )
       }
       .toToken(action)

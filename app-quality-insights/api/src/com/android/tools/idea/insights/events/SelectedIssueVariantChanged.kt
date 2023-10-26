@@ -36,9 +36,13 @@ data class SelectedIssueVariantChanged(private val variant: IssueVariant?) : Cha
       state.copy(
         currentIssueVariants = state.currentIssueVariants.map { it?.select(variant) },
         currentIssueDetails =
-          if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null)
+          if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null),
+        currentEvents = if (shouldFetchDetails) LoadingState.Loading else LoadingState.Ready(null)
       ),
-      if (shouldFetchDetails) Action.FetchDetails(selectedIssueId!!, variant?.id) else Action.NONE
+      if (shouldFetchDetails)
+        (Action.FetchDetails(selectedIssueId!!, variant?.id) and
+          Action.ListEvents(selectedIssueId, variant?.id, null))
+      else Action.NONE
     )
   }
 }

@@ -71,6 +71,9 @@ data class AppInsightsState(
    */
   val currentIssueDetails: LoadingState<DetailedIssueStats?> = LoadingState.Ready(null),
 
+  /** List of events associated with the current issue. */
+  val currentEvents: LoadingState<DynamicEventGallery?> = LoadingState.Ready(null),
+
   /**
    * Notes whose state depends on the issue selection and is loaded asynchronously over the network.
    */
@@ -88,7 +91,7 @@ data class AppInsightsState(
       if (currentIssueVariants is LoadingState.Ready) currentIssueVariants.value?.selected else null
 
   val selectedEvent: Event?
-    get() = selectedVariant?.event ?: selectedIssue?.sampleEvent
+    get() = (currentEvents as? LoadingState.Ready)?.value?.selected
 
   /** Returns a new state with a new [TimeIntervalFilter] selected. */
   fun selectTimeInterval(value: TimeIntervalFilter?): AppInsightsState =

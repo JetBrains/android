@@ -81,6 +81,13 @@ sealed class Action {
       cancelIf(reasons) { it is FetchIssueVariants || shouldCancelFetch(it) }
   }
 
+  /** Fetch the sample events of an issue. */
+  data class ListEvents(override val id: IssueId, val variantId: String?, val token: String?) :
+    IssueAction() {
+    override fun maybeDoCancel(reasons: List<Single>) =
+      cancelIf(reasons) { it is ListEvents || it is FetchIssueVariants || shouldCancelFetch(it) }
+  }
+
   /** Open an issue. */
   data class OpenIssue(override val id: IssueId) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =

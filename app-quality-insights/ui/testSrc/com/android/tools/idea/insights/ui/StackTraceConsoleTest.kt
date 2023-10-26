@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerRule
+import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE2
 import com.android.tools.idea.insights.LoadingState
@@ -74,7 +75,10 @@ class StackTraceConsoleTest {
   fun `stack trace is printed when issue selection is updated`() {
     executeWithErrorProcessor {
       runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-        controllerRule.consumeInitialState(fetchState)
+        controllerRule.consumeInitialState(
+          fetchState,
+          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), ""))
+        )
         WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
         stackTraceConsole.consoleView.waitAllRequests()
 
@@ -110,7 +114,10 @@ class StackTraceConsoleTest {
 
     executeWithErrorProcessor {
       runBlocking(controllerRule.controller.coroutineScope.coroutineContext) {
-        controllerRule.consumeInitialState(fetchState)
+        controllerRule.consumeInitialState(
+          fetchState,
+          eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), ""))
+        )
 
         WriteAction.run<RuntimeException>(stackTraceConsole.consoleView::flushDeferredText)
         stackTraceConsole.consoleView.waitAllRequests()

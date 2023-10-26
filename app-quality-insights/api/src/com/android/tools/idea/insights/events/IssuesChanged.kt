@@ -48,7 +48,8 @@ data class IssuesChanged(
           issues = issues,
           currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
-          currentNotes = LoadingState.Ready(null)
+          currentNotes = LoadingState.Ready(null),
+          currentEvents = LoadingState.Ready(null)
         ),
         Action.NONE
       )
@@ -126,6 +127,9 @@ data class IssuesChanged(
         currentIssueDetails =
           if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
           else LoadingState.Ready(null),
+        currentEvents =
+          if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
+          else LoadingState.Ready(null),
         currentNotes =
           if (issues is LoadingState.Ready && newSelectedIssue != null) LoadingState.Loading
           else LoadingState.Ready(null),
@@ -134,7 +138,10 @@ data class IssuesChanged(
       action =
         if (issues is LoadingState.Ready && newSelectedIssue != null)
           newSelectedIssue.id.let {
-            Action.FetchIssueVariants(it) and Action.FetchDetails(it) and Action.FetchNotes(it)
+            Action.FetchIssueVariants(it) and
+              Action.FetchDetails(it) and
+              Action.FetchNotes(it) and
+              Action.ListEvents(it, null, null)
           }
         else Action.NONE
     )

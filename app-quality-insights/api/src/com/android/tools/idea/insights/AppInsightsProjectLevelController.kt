@@ -79,6 +79,10 @@ interface AppInsightsProjectLevelController {
 
   fun selectConnection(value: Connection)
 
+  fun nextEvent()
+
+  fun previousEvent()
+
   fun openIssue(issue: AppInsightsIssue)
 
   fun closeIssue(issue: AppInsightsIssue)

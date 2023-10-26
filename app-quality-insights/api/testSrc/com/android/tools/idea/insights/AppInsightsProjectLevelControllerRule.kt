@@ -135,6 +135,7 @@ class AppInsightsProjectLevelControllerRule(
         )
       ),
     issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
+    eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     isTransitionToOnlineMode: Boolean = false
@@ -148,7 +149,9 @@ class AppInsightsProjectLevelControllerRule(
       if (resultState.mode == ConnectionMode.ONLINE) {
         client.completeIssueVariantsCallWith(issueVariantsState)
         client.completeDetailsCallWith(detailsState)
+        client.completeListEvents(eventsState)
       }
+      consumeNext()
       consumeNext()
       consumeNext()
       client.completeListNotesCallWith(notesState)
@@ -169,6 +172,7 @@ class AppInsightsProjectLevelControllerRule(
         )
       ),
     issueVariantsState: LoadingState.Done<List<IssueVariant>> = LoadingState.Ready(emptyList()),
+    eventsState: LoadingState.Done<EventPage> = LoadingState.Ready(EventPage.EMPTY),
     detailsState: LoadingState.Done<DetailedIssueStats?> = LoadingState.Ready(null),
     notesState: LoadingState.Done<List<Note>> = LoadingState.Ready(emptyList()),
     connectionsState: List<Connection> = listOf(CONNECTION1, CONNECTION2, PLACEHOLDER_CONNECTION)
@@ -181,7 +185,7 @@ class AppInsightsProjectLevelControllerRule(
     assertThat(loadingState.currentIssueVariants).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(loadingState.currentNotes).isEqualTo(LoadingState.Ready(null))
-    return consumeFetchState(state, issueVariantsState, detailsState, notesState)
+    return consumeFetchState(state, issueVariantsState, eventsState, detailsState, notesState)
   }
 
   suspend fun consumeNext() = internalState.receiveWithTimeout()
@@ -253,6 +257,7 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
   private val listNotesCall = CallInProgress<LoadingState.Done<List<Note>>>()
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
+  private val listEventsCall = CallInProgress<LoadingState.Done<EventPage>>()
 
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> =
     listConnections.initiateCall()
@@ -288,6 +293,16 @@ class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsCl
     request: IssueRequest,
     variantId: String?
   ): LoadingState.Done<DetailedIssueStats?> = detailsCall.initiateCall()
+
+  override suspend fun listEvents(
+    issueId: IssueId,
+    variantId: String?,
+    request: IssueRequest,
+    token: String?
+  ): LoadingState.Done<EventPage> = listEventsCall.initiateCall()
+
+  suspend fun completeListEvents(value: LoadingState.Done<EventPage>) =
+    listEventsCall.completeWith(value)
 
   suspend fun completeDetailsCallWith(value: LoadingState.Done<DetailedIssueStats?>) {
     detailsCall.completeWith(value)

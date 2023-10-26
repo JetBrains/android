@@ -38,6 +38,7 @@ fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: 
       LoadingState.Ready(null),
       LoadingState.Ready(null),
       LoadingState.Ready(null),
+      LoadingState.Ready(null),
       Permission.NONE,
       ConnectionMode.ONLINE
     )

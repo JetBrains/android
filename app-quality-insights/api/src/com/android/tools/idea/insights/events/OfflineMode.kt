@@ -38,6 +38,7 @@ object EnterOfflineMode : ChangeEvent {
       state.copy(
         issues = LoadingState.Loading,
         currentIssueVariants = LoadingState.Ready(null),
+        currentEvents = LoadingState.Ready(null),
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
         mode = ConnectionMode.OFFLINE

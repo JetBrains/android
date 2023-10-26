@@ -649,6 +649,9 @@ class AppInsightsProjectLevelControllerTest {
     client.completeIssueVariantsCallWith(LoadingState.Ready(emptyList()))
     controllerRule.consumeNext()
 
+    client.completeListEvents(LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")))
+    controllerRule.consumeNext()
+
     client.completeDetailsCallWith(LoadingState.Ready(null))
     controllerRule.consumeNext()
 
@@ -781,6 +784,7 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)))
     assertThat(model.currentIssueVariants)
       .isEqualTo(LoadingState.Ready(Selection(null, emptyList())))
+    assertThat(model.currentEvents).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentNotes).isEqualTo(LoadingState.Ready(emptyList<Note>()))
 
@@ -791,12 +795,16 @@ class AppInsightsProjectLevelControllerTest {
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
           currentIssueVariants = LoadingState.Loading,
+          currentEvents = LoadingState.Loading,
           currentIssueDetails = LoadingState.Loading,
           currentNotes = LoadingState.Loading
         )
       )
 
     client.completeIssueVariantsCallWith(LoadingState.Ready(listOf(ISSUE_VARIANT)))
+    controllerRule.consumeNext()
+
+    client.completeListEvents(LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), "")))
     controllerRule.consumeNext()
 
     client.completeDetailsCallWith(LoadingState.Ready(ISSUE1_DETAILS))
@@ -808,6 +816,8 @@ class AppInsightsProjectLevelControllerTest {
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
           currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT))),
+          currentEvents =
+            LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList())
         )
@@ -940,6 +950,7 @@ class AppInsightsProjectLevelControllerTest {
           newModel.copy(
             issues = LoadingState.UnknownFailure(null),
             currentIssueVariants = LoadingState.Ready(null),
+            currentEvents = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           )
@@ -1090,6 +1101,7 @@ class AppInsightsProjectLevelControllerTest {
                 Timed(Selection(selected = ISSUE1, listOf(ISSUE1)), clock.instant())
               ),
             currentIssueVariants = LoadingState.Loading,
+            currentEvents = LoadingState.Loading,
             currentIssueDetails = LoadingState.Loading,
             currentNotes = LoadingState.Loading
           )
@@ -1430,6 +1442,72 @@ class AppInsightsProjectLevelControllerTest {
         any()
       )
     return@runBlocking
+  }
+
+  @Test
+  fun `next and previous events propagates state changes to model`() = runBlocking {
+    controllerRule.consumeInitialState(
+      LoadingState.Ready(
+        IssueResponse(
+          listOf(ISSUE1, ISSUE2),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          Permission.READ_ONLY
+        )
+      ),
+      eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), ""))
+    )
+
+    controllerRule.controller.nextEvent()
+    var state = controllerRule.consumeNext()
+    assertThat(state.selectedEvent).isEqualTo(Event("2"))
+
+    controllerRule.controller.previousEvent()
+    state = controllerRule.consumeNext()
+    assertThat(state.selectedEvent).isEqualTo(Event("1"))
+  }
+
+  @Test
+  fun `next event triggers querying of next page of events when token is available`() =
+    runBlocking {
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1, ISSUE2),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            Permission.READ_ONLY
+          )
+        ),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "abc"))
+      )
+
+      controllerRule.controller.nextEvent()
+      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("2")), "")))
+      val state = controllerRule.consumeNext()
+
+      assertThat(state.selectedEvent).isEqualTo(Event("2"))
+    }
+
+  @Test
+  fun `default to using issue sample event when in offline mode`() = runBlocking {
+    controllerRule.consumeInitialState()
+
+    controllerRule.enterOfflineMode()
+    controllerRule.consumeNext()
+
+    val state =
+      controllerRule.consumeFetchState(
+        LoadingState.Ready(
+          IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
+        )
+      )
+
+    assertThat(state.currentEvents)
+      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
+    assertThat(state.selectedEvent).isEqualTo(ISSUE1.sampleEvent)
   }
 }
 

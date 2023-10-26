@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.IssueVariant
@@ -62,6 +63,13 @@ interface AppInsightsClient {
     request: IssueRequest,
     variantId: String? = null
   ): LoadingState.Done<DetailedIssueStats?>
+
+  suspend fun listEvents(
+    issueId: IssueId,
+    variantId: String?,
+    request: IssueRequest,
+    token: String?
+  ): LoadingState.Done<EventPage>
 
   suspend fun updateIssueState(
     connection: Connection,

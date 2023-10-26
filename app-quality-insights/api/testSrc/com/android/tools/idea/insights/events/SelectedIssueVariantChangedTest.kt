@@ -54,7 +54,11 @@ class SelectedIssueVariantChangedTest {
       assertThat(transition.newState.currentIssueDetails)
         .isInstanceOf(LoadingState.Loading::class.java)
 
-      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE1.id, ISSUE_VARIANT2.id))
+      assertThat(action)
+        .isEqualTo(
+          Action.FetchDetails(ISSUE1.id, ISSUE_VARIANT2.id) and
+            Action.ListEvents(ISSUE1.id, ISSUE_VARIANT2.id, null)
+        )
     }
   }
 
@@ -77,7 +81,10 @@ class SelectedIssueVariantChangedTest {
       assertThat(transition.newState.currentIssueDetails)
         .isInstanceOf(LoadingState.Loading::class.java)
 
-      assertThat(action).isEqualTo(Action.FetchDetails(ISSUE1.id, null))
+      assertThat(action)
+        .isEqualTo(
+          Action.FetchDetails(ISSUE1.id, null) and Action.ListEvents(ISSUE1.id, null, null)
+        )
     }
   }
 

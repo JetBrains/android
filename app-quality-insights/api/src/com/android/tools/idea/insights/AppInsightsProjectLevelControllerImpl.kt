@@ -39,6 +39,7 @@ import com.android.tools.idea.insights.events.PersistSettingsAdapter
 import com.android.tools.idea.insights.events.ResetSnapshot
 import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
+import com.android.tools.idea.insights.events.SelectedEventChanged
 import com.android.tools.idea.insights.events.SelectedIssueChanged
 import com.android.tools.idea.insights.events.SelectedIssueVariantChanged
 import com.android.tools.idea.insights.events.SignalChanged
@@ -159,6 +160,7 @@ class AppInsightsProjectLevelControllerImpl(
           LoadingState.Ready(null),
           LoadingState.Ready(null),
           LoadingState.Ready(null),
+          LoadingState.Ready(null),
           Permission.NONE,
           ConnectionMode.ONLINE
         ),
@@ -224,6 +226,14 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun selectConnection(value: Connection) {
     emit(ActiveConnectionChanged(value))
+  }
+
+  override fun nextEvent() {
+    emit(SelectedEventChanged(EventMovement.NEXT))
+  }
+
+  override fun previousEvent() {
+    emit(SelectedEventChanged(EventMovement.PREVIOUS))
   }
 
   override fun toggleFailureType(value: FailureType) {

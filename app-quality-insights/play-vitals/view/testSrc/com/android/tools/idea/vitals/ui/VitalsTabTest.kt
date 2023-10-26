@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DetailedIssueStats
+import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE1_DETAILS
 import com.android.tools.idea.insights.IssueStats
@@ -116,6 +117,7 @@ class VitalsTabTest {
           )
         ),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
         connectionsState = listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)
       )
 
