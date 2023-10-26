@@ -22,15 +22,14 @@ import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetConfigurable
 import com.android.tools.idea.run.editor.DeployTargetConfigurableContext
 import com.android.tools.idea.run.editor.DeployTargetState
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 
 class DeviceAndSnapshotComboBoxTargetProvider
 internal constructor(
-  private val deviceAndSnapshotComboBoxAction: () -> DeviceAndSnapshotComboBoxAction =
-    DeviceAndSnapshotComboBoxAction.Companion::instance,
+  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
   private val newSelectedDevicesErrorDialog: (Project, Iterable<Device>) -> DialogWrapper =
     ::SelectedDevicesErrorDialog,
   private val newDeviceAndSnapshotComboBoxTarget: () -> DeployTarget = {
@@ -77,8 +76,8 @@ internal constructor(
   }
 
   private fun selectedDevicesWithError(project: Project): List<Device> {
-    return deviceAndSnapshotComboBoxAction().getSelectedDevices(project).filter {
-      it.launchCompatibility.state != LaunchCompatibility.State.OK
+    return devicesSelectedService(project).getSelectedTargets().mapNotNull {
+      it.device.takeIf { it.launchCompatibility.state != LaunchCompatibility.State.OK }
     }
   }
 
@@ -97,13 +96,12 @@ internal constructor(
   }
 
   override fun getNumberOfSelectedDevices(project: Project): Int {
-    return deviceAndSnapshotComboBoxAction().getSelectedDevices(project).size
+    return devicesSelectedService(project).getSelectedTargets().size
   }
 
   override fun canDeployToLocalDevice() = true
 
   companion object {
-    @JvmStatic
-    fun getInstance() = DeviceAndSnapshotComboBoxTargetProvider()
+    @JvmStatic fun getInstance() = DeviceAndSnapshotComboBoxTargetProvider()
   }
 }

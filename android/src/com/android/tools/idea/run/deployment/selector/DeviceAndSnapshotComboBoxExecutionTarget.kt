@@ -33,11 +33,11 @@ import javax.swing.Icon
  */
 internal class DeviceAndSnapshotComboBoxExecutionTarget(
   targets: Collection<Target>,
-  private val devicesGetter: AsyncDevicesGetter,
+  private val devicesService: DevicesService,
   private val deploymentApplicationService: () -> DeploymentApplicationService =
     DeploymentApplicationService.Companion::instance
 ) : AndroidExecutionTarget() {
-  private val keys = targets.map(Target::deviceKey).toSet()
+  private val ids = targets.map(Target::deviceId).toSet()
 
   override fun isApplicationRunningAsync(appPackage: String): ListenableFuture<Boolean> {
     return Futures.submit<Boolean>(
@@ -60,11 +60,11 @@ internal class DeviceAndSnapshotComboBoxExecutionTarget(
   }
 
   private fun devices(): List<Device> {
-    return devicesGetter.get().orElse(emptyList()).filter { it.key in keys }
+    return devicesService.devicesIfLoaded().orElse(emptyList()).filter { it.id in ids }
   }
 
   override fun getId(): String {
-    return keys
+    return ids
       .map { it.toString() }
       .sorted()
       .joinToString(
@@ -96,11 +96,11 @@ internal class DeviceAndSnapshotComboBoxExecutionTarget(
 
   override fun equals(other: Any?): Boolean =
     other is DeviceAndSnapshotComboBoxExecutionTarget &&
-      keys == other.keys &&
-      devicesGetter == other.devicesGetter &&
+      ids == other.ids &&
+      devicesService == other.devicesService &&
       deploymentApplicationService == other.deploymentApplicationService
 
   override fun hashCode(): Int {
-    return Objects.hash(keys, devicesGetter, deploymentApplicationService)
+    return Objects.hash(ids, devicesService, deploymentApplicationService)
   }
 }

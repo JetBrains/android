@@ -23,15 +23,21 @@ import com.intellij.openapi.project.Project
 
 class DeviceAndSnapshotExecutionTargetProvider
 internal constructor(
-  private val deviceAndSnapshotComboBox: () -> DeviceAndSnapshotComboBoxAction =
-    DeviceAndSnapshotComboBoxAction.Companion::instance,
-  private val asyncDevicesGetter: (Project) -> AsyncDevicesGetter = Project::service,
+  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
+  private val devicesService: (Project) -> DevicesService = Project::service,
 ) : ExecutionTargetProvider() {
   override fun getTargets(
     project: Project,
     configuration: RunConfiguration
   ): List<ExecutionTarget> {
-    val targets = deviceAndSnapshotComboBox().getSelectedTargets(project).orElse(emptySet())
-    return listOf(DeviceAndSnapshotComboBoxExecutionTarget(targets, asyncDevicesGetter(project)))
+    // TODO: Should we be using the configuration parameter here? The original code didn't; the
+    // DevicesSelectedService implicitly uses the currently selected run configuration, which is
+    // presumably the same.
+    return listOf(
+      DeviceAndSnapshotComboBoxExecutionTarget(
+        devicesSelectedService(project).getSelectedTargets(),
+        devicesService(project)
+      )
+    )
   }
 }

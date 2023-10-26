@@ -16,20 +16,16 @@
 package com.android.tools.idea.run.deployment.selector
 
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.deployment.selector.Target.Companion.filterDevices
 import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.editor.DeployTargetState
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 internal class DeviceAndSnapshotComboBoxTarget(
-  private val deviceAndSnapshotComboBoxAction: () -> DeviceAndSnapshotComboBoxAction =
-    DeviceAndSnapshotComboBoxAction.Companion::instance,
-  private val getSelectedTargets: (Project, List<Device>) -> Set<Target> = { project, devices ->
-    deviceAndSnapshotComboBoxAction().getSelectedTargets(project, devices)
-  },
+  private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
 ) : DeployTarget {
   override fun hasCustomRunProfileState(executor: Executor) = false
 
@@ -42,15 +38,12 @@ internal class DeviceAndSnapshotComboBoxTarget(
   }
 
   override fun getDevices(project: Project): DeviceFutures {
-    val devices = deviceAndSnapshotComboBoxAction().getDevices(project).orElse(emptyList())
-    val selectedTargets = getSelectedTargets(project, devices)
-    val selectedDevices = filterDevices(selectedTargets, devices)
-    val deviceKeyToTarget = selectedTargets.associateBy { it.deviceKey }
-    for (device in selectedDevices) {
-      if (!device.isConnected) {
-        deviceKeyToTarget[device.key]!!.boot(device, project)
+    val devicesAndTargets = devicesSelectedService(project).devicesAndTargets
+    for (target in devicesAndTargets.selectedTargets) {
+      if (!target.device.isConnected) {
+        target.boot()
       }
     }
-    return DeviceFutures(selectedDevices.map { it.androidDevice })
+    return DeviceFutures(devicesAndTargets.selectedTargets.map { it.device.androidDevice })
   }
 }
