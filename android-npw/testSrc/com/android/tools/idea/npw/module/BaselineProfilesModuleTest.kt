@@ -115,52 +115,18 @@ class BaselineProfilesModuleTest {
   }
 
   @Test
-  fun setupRunConfigurations_emptyVariants() {
+  fun setupRunConfigurations() {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
     val appModule = projectRule.project.findAppModule()
     val runManager = RunManager.getInstance(appModule.project)
 
-    setupRunConfigurations(emptyList(), appModule, runManager)
+    setupRunConfigurations(appModule, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, 1)
 
     val generateRunConfiguration = runManager.allConfigurationsList.find { it.name == RUN_CONFIGURATION_NAME }
     assertThat(generateRunConfiguration).isNotNull()
     assertThat(runManager.selectedConfiguration?.name).isEqualTo(generateRunConfiguration?.name)
-  }
-
-  @Test
-  fun setupRunConfigurations_oneVariant() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
-    val appModule = projectRule.project.findAppModule()
-
-    val runManager = RunManager.getInstance(appModule.project)
-    val variants = listOf("release")
-
-    setupRunConfigurations(variants, appModule, runManager)
-
-    assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
-
-    val generateRunConfiguration = runManager.allConfigurationsList.find { it.name == RUN_CONFIGURATION_NAME }
-    assertThat(generateRunConfiguration).isNotNull()
-    assertThat(runManager.selectedConfiguration?.name).isEqualTo(generateRunConfiguration?.name)
-  }
-
-  @Test
-  fun setupRunConfigurations_moreVariants() {
-    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
-    val appModule = projectRule.project.findAppModule()
-    val runManager = RunManager.getInstance(appModule.project)
-    val variants = listOf("demoFree", "demoPaid", "prodFree", "prodPaid")
-
-    setupRunConfigurations(variants, appModule, runManager)
-
-    assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
-
-    val configNames = runManager.allConfigurationsList.map { it.name }
-    variants.map { "$RUN_CONFIGURATION_NAME [$it]" }.forEach {
-      assertThat(configNames).contains(it)
-    }
   }
 
   @Test

@@ -16,14 +16,11 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.ScopeType
-import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.application.options.ModulesComboBox
 import com.intellij.execution.ui.ConfigurationModuleSelector
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.progress.ProgressIndicator
@@ -31,19 +28,19 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.RowLayout
+import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import java.awt.BorderLayout
 import java.awt.Dimension
-import javax.swing.DefaultComboBoxModel
-import javax.swing.JComponent
+import kotlin.reflect.KMutableProperty0
 
 class AndroidBaselineProfileRunConfigurationEditor(private val project: Project, private val configuration: AndroidBaselineProfileRunConfiguration) : SettingsEditor<AndroidBaselineProfileRunConfiguration>() {
   private val modulesComboBox = ModulesComboBox()
@@ -68,6 +65,8 @@ class AndroidBaselineProfileRunConfigurationEditor(private val project: Project,
       }
     }
   }
+
+  private val generateForAllVariantsCheckbox = JBCheckBox("Generate baseline profile for all variants")
 
   init {
     Disposer.register(project, this)
@@ -95,15 +94,19 @@ class AndroidBaselineProfileRunConfigurationEditor(private val project: Project,
   }
   override fun resetEditorFrom(runConfiguration: AndroidBaselineProfileRunConfiguration) {
     moduleSelector.reset(runConfiguration)
+    generateForAllVariantsCheckbox.isSelected = runConfiguration.generateAllVariants
+    (component as DialogPanel).reset()
   }
 
   override fun applyEditorTo(runConfiguration: AndroidBaselineProfileRunConfiguration) {
     (component as DialogPanel).apply()
     moduleSelector.applyTo(runConfiguration)
+    runConfiguration.generateAllVariants = generateForAllVariantsCheckbox.isSelected
   }
 
   override fun createEditor() = panel {
     getModuleChooser()
+    getCheckbox(configuration::generateAllVariants)
   }
 
   fun Panel.getModuleChooser() {
@@ -115,5 +118,13 @@ class AndroidBaselineProfileRunConfigurationEditor(private val project: Project,
           maximumSize = Dimension(400, maximumSize.height)
         }
     }.layout(RowLayout.LABEL_ALIGNED)
+  }
+
+  fun Panel.getCheckbox(property: KMutableProperty0<Boolean>) {
+    group("Generation Options", indent = true) {
+      row {
+        cell(generateForAllVariantsCheckbox).bindSelected(property).align(AlignX.FILL)
+      }.layout(RowLayout.LABEL_ALIGNED)
+    }
   }
 }
