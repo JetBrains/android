@@ -434,6 +434,14 @@ public final class StudioFlags {
     "Note: Changing the value of this flag requires restarting Android Studio.",
     false);
 
+  public static final Flag<Boolean> ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER = Flag.create(
+    RUNDEBUG,
+    "adblib.migration.ddmlib.ideviceusage.tracker",
+    "Enable Android Studio usage stats for IDevice methods",
+    "Track IDevice method calls and success rates. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    false);
+
   public static final Flag<Boolean> ADBLIB_ONE_SESSION_PER_PROJECT = Flag.create(
     RUNDEBUG,
     "adblib.one.session.per.project",

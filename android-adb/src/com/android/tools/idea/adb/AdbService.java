@@ -16,11 +16,13 @@
 package com.android.tools.idea.adb;
 
 import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.android.tools.idea.flags.StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER;
 import static com.android.tools.idea.flags.StudioFlags.JDWP_SCACHE;
 import static com.google.common.util.concurrent.Futures.immediateFuture;
 
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
+import com.android.adblib.ddmlibcompatibility.IDeviceUsageTrackerImpl;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.adblib.ddmlibcompatibility.AdbLibIDeviceManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
@@ -28,6 +30,7 @@ import com.android.ddmlib.AdbInitOptions;
 import com.android.ddmlib.AdbVersion;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.IDeviceUsageTracker;
 import com.android.ddmlib.Log;
 import com.android.ddmlib.TimeoutRemainder;
 import com.android.ddmlib.clientmanager.ClientManager;
@@ -412,6 +415,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     options.setIDeviceManagerFactory(StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get() ?
                                      getIDeviceManagerFactory() :
                                      null);
+    options.setIDeviceUsageTracker(ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER.get() ?
+                                   getIDeviceUsageTracker() :
+                                   null);
     return options.build();
   }
 
@@ -433,6 +439,16 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   private static IDeviceManagerFactory getIDeviceManagerFactory() {
     AdbSession session = AdbLibApplicationService.getInstance().getSession();
     return session.getCache().getOrPut(IDEVICE_MANAGER_FACTORY_KEY, () -> new AdbLibIDeviceManagerFactory(session));
+  }
+
+  @NotNull
+  private static final CoroutineScopeCache.Key<IDeviceUsageTracker> IDEVICE_TRACKER_USAGE_KEY =
+    new CoroutineScopeCache.Key<>("IDevice usage tracker for ddmlib compatibility");
+
+  @NotNull
+  private static IDeviceUsageTracker getIDeviceUsageTracker() {
+    AdbSession session = AdbLibApplicationService.getInstance().getSession();
+    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> new IDeviceUsageTrackerImpl(session));
   }
 
   /**
