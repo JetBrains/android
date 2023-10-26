@@ -368,6 +368,9 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val desugarLibraryConfigFiles: List<Path> get() = listOf()
 
   val moduleDependencies: ModuleDependencies get() = error("Not implemented")
+
+  /** Return a string suitable for presenting to the user to identify this Module System's module. */
+  fun getDisplayNameForModule(): String = module.name
 }
 
 /**
