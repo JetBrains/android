@@ -176,7 +176,7 @@ public class SessionProfilersView implements StudioProfilersView {
               myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
             }
           }
-        }, mySplitter);
+        }, SessionProfilersView.this);
       }
     });
   }
