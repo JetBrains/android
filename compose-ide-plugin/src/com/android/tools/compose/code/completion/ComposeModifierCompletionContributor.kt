@@ -50,8 +50,8 @@ import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.KtSymbolFromIndexProvider
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferencesInRange
-import org.jetbrains.kotlin.idea.base.fir.codeInsight.HLIndexHelper
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -389,16 +389,6 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       .lastChild as KtSimpleNameExpression
   }
 
-  private fun KtAnalysisSession.findReceiverSymbol(element: KtElement): KtClassOrObjectSymbol? {
-    val namedReferenceExpression =
-      when (element) {
-        is KtNameReferenceExpression -> element
-        else -> element.childrenOfType<KtNameReferenceExpression>().singleOrNull()
-      } ?: return null
-    val reference = namedReferenceExpression.mainReference as? KtSimpleNameReference ?: return null
-    return reference.resolveToSymbol() as? KtClassOrObjectSymbol
-  }
-
   private fun KtAnalysisSession.getExtensionFunctionsForModifier(
     nameExpression: KtSimpleNameExpression,
     originalPosition: PsiElement,
@@ -406,15 +396,16 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   ): Collection<KtCallableSymbol> {
     val file = nameExpression.containingFile as KtFile
     val fileSymbol = file.getFileSymbol()
-    val searchScope = getResolveScope(file)
+
     val callTypeAndReceiver = CallTypeAndReceiver.detect(nameExpression)
-    val receiverSymbol = callTypeAndReceiver.receiver?.let { findReceiverSymbol(it) }
-    return HLIndexHelper(nameExpression.project, searchScope)
-      .getTopLevelExtensions(
+    val receiverExpression = callTypeAndReceiver.receiver as? KtExpression ?: return emptyList()
+    val receiverType = receiverExpression.getKtType() ?: return emptyList()
+
+    return KtSymbolFromIndexProvider.createForElement(nameExpression)
+      .getTopLevelExtensionCallableSymbolsByNameFilter(
         { name -> prefixMatcher.prefixMatches(name.asString()) },
-        setOfNotNull(receiverSymbol?.classIdIfNonLocal?.shortClassName?.identifier)
+        listOf(receiverType)
       )
-      .mapNotNull { it.getSymbol() as? KtCallableSymbol }
       .filter {
         isVisible(
           it as KtSymbolWithVisibility,
@@ -423,6 +414,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
           originalPosition
         )
       }
+      .toList()
   }
 
   private fun getExtensionFunctionsForModifier(
