@@ -61,7 +61,7 @@ class SwitchSurfaceLayoutManagerAction(
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) :
     ToggleAction(option.displayName) {
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
@@ -89,7 +89,7 @@ class SwitchSurfaceLayoutManagerAction(
     }
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(this, presentation, place).apply {
