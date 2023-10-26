@@ -76,6 +76,7 @@ open class FakeJBPopup<T>(
 
   private var minSize: Dimension? = null
   private val registeredListeners = mutableListOf<JBPopupListener>()
+  private var isVisible = false
 
   fun selectItem(item: T) {
     if (!items.contains(item)) {
@@ -90,46 +91,55 @@ open class FakeJBPopup<T>(
   override fun showUnderneathOf(componentUnder: Component) {
     showStyle = ShowStyle.SHOW_UNDERNEATH_OF
     showArgs = listOf(componentUnder)
+    isVisible = true
   }
 
   override fun show(point: RelativePoint) {
     showStyle = ShowStyle.SHOW
     showArgs = listOf(point)
+    isVisible = true
   }
 
   override fun show(owner: Component) {
     showStyle = ShowStyle.SHOW
     showArgs = listOf(owner)
+    isVisible = true
   }
 
   override fun showInScreenCoordinates(owner: Component, point: Point) {
     showStyle = ShowStyle.SHOW_IN_SCREEN_COORDINATES
     showArgs = listOf(owner, point)
+    isVisible = true
   }
 
   override fun showInBestPositionFor(dataContext: DataContext) {
     showStyle = ShowStyle.SHOW_IN_BEST_POSITION_FOR
     showArgs = listOf(dataContext)
+    isVisible = true
   }
 
   override fun showInBestPositionFor(editor: Editor) {
     showStyle = ShowStyle.SHOW_IN_BEST_POSITION_FOR
     showArgs = listOf(editor)
+    isVisible = true
   }
 
   override fun showInCenterOf(component: Component) {
     showStyle = ShowStyle.SHOW_IN_CENTER_OF
     showArgs = listOf(component)
+    isVisible = true
   }
 
   override fun showInFocusCenter() {
     showStyle = ShowStyle.SHOW_IN_FOCUS_CENTER
     showArgs = listOf()
+    isVisible = true
   }
 
   override fun showCenteredInCurrentWindow(project: Project) {
     showStyle = ShowStyle.SHOW_CENTERED_IN_CURRENT_WINDOW
     showArgs = listOf(project)
+    isVisible = true
   }
 
   override fun setMinimumSize(size: Dimension?) {
@@ -151,6 +161,7 @@ open class FakeJBPopup<T>(
 
   override fun cancel(e: InputEvent?) {
     registeredListeners.forEach{ it.onClosed(LightweightWindowEvent(this))}
+    isVisible = false
   }
 
   override fun getComponent(): JComponent? {
@@ -175,7 +186,7 @@ open class FakeJBPopup<T>(
   }
 
   override fun isVisible(): Boolean {
-    TODO("Not yet implemented")
+    return isVisible
   }
 
   override fun getContent(): JComponent {

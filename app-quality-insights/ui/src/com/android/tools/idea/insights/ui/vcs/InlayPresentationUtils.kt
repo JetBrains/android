@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.hints.InlayPresentationFactory
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.LineCenteredInset
@@ -49,7 +50,8 @@ internal fun InlayPresentation.withHandCursor(editor: Editor): InlayPresentation
 }
 
 /** Inspired by [PresentationFactory.withTooltip]. */
-internal fun InlayPresentation.withTooltip(
+@VisibleForTesting
+fun InlayPresentation.withTooltip(
   tooltipText: HelpTooltip,
   factory: PresentationFactory
 ): InlayPresentation {
