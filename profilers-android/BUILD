@@ -8,19 +8,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.profilersAndroid.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
-    split_test_targets = {
-        "CaptureDetailsTest": {
-            "tags": [
-                "no_test_windows",
-                "very_flaky",  # b/255883540
-            ],
-            "test_filter": "com.android.tools.idea.profilers.performance.CaptureDetailsTest",
-        },
-        "other": {
-            "tags": ["no_test_windows"],
-        },
-    },
-    tags = [],
+    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
         "//prebuilts/tools/common/trace-processor-daemon",
