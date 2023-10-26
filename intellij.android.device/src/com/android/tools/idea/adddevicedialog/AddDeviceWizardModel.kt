@@ -19,6 +19,6 @@ import com.android.tools.idea.wizard.model.WizardModel
 
 internal class AddDeviceWizardModel internal constructor() : WizardModel() {
   override fun handleFinished() {
-    // TODO
+    VirtualDevices.add()
   }
 }
