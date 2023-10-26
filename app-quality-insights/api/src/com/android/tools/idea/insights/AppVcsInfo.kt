@@ -90,12 +90,14 @@ fun decode(textProto: String): BuildStamp {
 
 enum class GenerateErrorReason(val message: String) {
   NO_SUPPORTED_VCS_FOUND(
-    "At this time, we only support Git configuration at the root project level. Other Git configurations or version control systems are not currently supported."
+    "The Android Gradle Plugin was unable to find a Git repository rooted in your app's project root when this version of your app was built."
   ),
   NO_VALID_GIT_FOUND(
-    "The Git repository does not appear to be initialized at the root project level. The expected files '.git/HEAD' or '.git/refs/heads/${'$'}{branch}' were not found."
+    "The Android Gradle Plugin was unable to read the Git repository at the root project level. '.git/HEAD' or '.git/refs/heads/${'$'}{branch}' were not found or unreadable."
   ),
-  UNSPECIFIED("The cause of the issue is unknown.");
+  UNSPECIFIED(
+    "The Android Gradle Plugin was unable to save version control information for an unknown reason."
+  );
 
   companion object {
     fun fromProto(proto: BuildStamp.GenerateErrorReason): GenerateErrorReason {
