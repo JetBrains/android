@@ -35,6 +35,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
@@ -45,6 +46,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.ui.Splitter
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -55,6 +57,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import java.awt.Component
 import java.awt.Container
+import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.After
 import org.junit.Before
@@ -236,10 +239,10 @@ class LayoutInspectorManagerTest {
 
     // Verify toolbar has access to data provider
     val toolbar =
-      tab1.container.allChildren().filterIsInstance<ActionToolbar>().first {
-        it.component.name == "LayoutInspector.MainToolbar"
+      tab1.container.allChildren().filterIsInstance<JComponent>().first {
+        it.name == "EmbeddedLayoutInspector.Toolbar"
       }
-    val dataProvider2 = DataManager.getDataProvider(toolbar.component)
+    val dataProvider2 = DataManager.getDataProvider(toolbar)
     val layoutInspector2 = dataProvider2!!.getData(LAYOUT_INSPECTOR_DATA_KEY.name)
     assertThat(layoutInspector2).isEqualTo(layoutInspector)
 
@@ -248,7 +251,7 @@ class LayoutInspectorManagerTest {
     val dataContext3 = DataManager.getDataProvider(workbench)
     assertThat(dataContext3).isNull()
 
-    val dataContext4 = DataManager.getDataProvider(toolbar.component)
+    val dataContext4 = DataManager.getDataProvider(toolbar)
     assertThat(dataContext4).isNull()
   }
 
@@ -585,6 +588,38 @@ class LayoutInspectorManagerTest {
     assertThat(toolbars.first().actions.filterIsInstance<SingleDeviceSelectProcessAction>())
       .hasSize(1)
     assertThat(toolbars.first().actions.filterIsInstance<ToggleDeepInspectAction>()).hasSize(1)
+    assertThat(toolbars.first().actions.filterIsInstance<GearAction>()).hasSize(1)
+
+    assertThat(
+        tabInfo.container.allChildren().filter { it.name == "LayoutInspectorToolbarTitleLabel" }
+      )
+      .hasSize(1)
+
+    // Assert the other gear actions from the side panels are not visible
+    assertThat(
+        workbench
+          .allChildren()
+          .filterIsInstance<JPanel>()
+          .flatMap { it.allChildren() }
+          .filterIsInstance<ActionToolbar>()
+          .flatMap { it.component.allChildren() }
+          .filterIsInstance<ActionButton>()
+          .filter { it.presentation.text.contains("More Options") }
+      )
+      .isEmpty()
+
+    // Assert the hide actions from the side panels are not visible
+    assertThat(
+        workbench
+          .allChildren()
+          .filterIsInstance<JPanel>()
+          .flatMap { it.allChildren() }
+          .filterIsInstance<ActionToolbar>()
+          .flatMap { it.component.allChildren() }
+          .filterIsInstance<ActionButton>()
+          .filter { it.presentation.text.contains("Hide") }
+      )
+      .isEmpty()
 
     val inspectorBanner = tabInfo.container.allChildren().filterIsInstance<InspectorBanner>()
 

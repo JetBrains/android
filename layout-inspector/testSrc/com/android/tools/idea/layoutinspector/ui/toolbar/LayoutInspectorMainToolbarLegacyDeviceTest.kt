@@ -99,7 +99,11 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
 
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
-    return createLayoutInspectorMainToolbar(JPanel(), layoutInspectorRule.inspector, fakeAction)
+    return createStandaloneLayoutInspectorToolbar(
+      JPanel(),
+      layoutInspectorRule.inspector,
+      fakeAction
+    )
   }
 
   private fun getPresentation(button: ActionButton): Presentation {

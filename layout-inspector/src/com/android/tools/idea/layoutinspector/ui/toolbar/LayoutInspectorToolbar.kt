@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
@@ -31,12 +32,48 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.wm.impl.content.BaseLabel
+import com.intellij.util.ui.components.BorderLayoutPanel
+import javax.swing.BorderFactory
 import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
+const val EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR = "EmbeddedLayoutInspector.Toolbar"
 
-/** Creates the main toolbar used by Layout Inspector. */
-fun createLayoutInspectorMainToolbar(
+/**
+ * Creates the toolbar used by Embedded Layout Inspector. This toolbar is the same as the one used
+ * by the Standalone Layout Inspector, but the toolbar also contains a label with the name of the
+ * tool.
+ */
+fun createEmbeddedLayoutInspectorToolbar(
+  targetComponent: JComponent,
+  layoutInspector: LayoutInspector,
+  selectProcessAction: AnAction?,
+  extraActions: List<AnAction> = emptyList()
+): JPanel {
+  val panel = BorderLayoutPanel()
+  val toolbarActions =
+    createStandaloneLayoutInspectorToolbar(
+      targetComponent,
+      layoutInspector,
+      selectProcessAction,
+      extraActions
+    )
+
+  val toolTitleLabel = JLabel(LayoutInspectorBundle.message("layout.inspector"))
+  toolTitleLabel.name = "LayoutInspectorToolbarTitleLabel"
+  toolTitleLabel.border = BorderFactory.createEmptyBorder(0, 12, 0, 0)
+  toolTitleLabel.font = BaseLabel.getLabelFont().deriveFont(java.awt.Font.BOLD)
+  panel.addToLeft(toolTitleLabel)
+  panel.addToRight(toolbarActions.component)
+  panel.name = EMBEDDED_LAYOUT_INSPECTOR_TOOLBAR
+  return panel
+}
+
+/** * Creates the toolbar used by Stadalone Layout Inspector. */
+fun createStandaloneLayoutInspectorToolbar(
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
   selectProcessAction: AnAction?,
@@ -51,6 +88,8 @@ fun createLayoutInspectorMainToolbar(
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
   actionToolbar.targetComponent = targetComponent
   actionToolbar.updateActionsImmediately()
+  // Removes empty space on the right side of the toolbar.
+  actionToolbar.setReservePlaceAutoPopupIcon(false)
   return actionToolbar
 }
 

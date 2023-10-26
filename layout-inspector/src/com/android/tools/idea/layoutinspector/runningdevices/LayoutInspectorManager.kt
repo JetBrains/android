@@ -26,13 +26,14 @@ import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
-import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
+import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutInspectorToolbar
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -383,27 +384,31 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
             deviceId.serialNumber
           )
         val toolbar =
-          createLayoutInspectorMainToolbar(
+          createEmbeddedLayoutInspectorToolbar(
             toolsPanel,
             layoutInspector,
             processPicker,
-            listOf(toggleDeepInspectAction)
+            listOf(
+              toggleDeepInspectAction,
+              // TODO(next CL) add actions
+              GearAction()
+            )
           )
 
         val workBench = createLayoutInspectorWorkbench(project, disposable, layoutInspector)
         workBench.isFocusCycleRoot = false
 
-        toolsPanel.add(toolbar.component, BorderLayout.NORTH)
+        toolsPanel.add(toolbar, BorderLayout.NORTH)
         toolsPanel.add(workBench, BorderLayout.CENTER)
         workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
 
         val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
         DataManager.registerDataProvider(workBench, layoutInspectorProvider)
-        DataManager.registerDataProvider(toolbar.component, layoutInspectorProvider)
+        DataManager.registerDataProvider(toolbar, layoutInspectorProvider)
 
         Disposer.register(disposable) {
           DataManager.removeDataProvider(workBench)
-          DataManager.removeDataProvider(toolbar.component)
+          DataManager.removeDataProvider(toolbar)
         }
 
         val splitPanel =
@@ -504,7 +509,10 @@ private fun createLayoutInspectorWorkbench(
   ApplicationManager.getApplication().assertIsDispatchThread()
   val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
   val toolsDefinition =
-    listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
+    listOf(
+      LayoutInspectorTreePanelDefinition(showGearAction = false, showHideAction = false),
+      LayoutInspectorPropertiesPanelDefinition(showGearAction = false, showHideAction = false)
+    )
   workbench.init(layoutInspector, toolsDefinition, false)
 
   return workbench

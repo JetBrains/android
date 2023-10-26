@@ -31,7 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
-import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
+import com.android.tools.idea.layoutinspector.ui.toolbar.createStandaloneLayoutInspectorToolbar
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
@@ -198,7 +198,11 @@ class DeviceViewPanel(
     )
 
   private val actionToolbar =
-    createLayoutInspectorMainToolbar(this, layoutInspector, targetSelectedAction?.dropDownAction)
+    createStandaloneLayoutInspectorToolbar(
+      this,
+      layoutInspector,
+      targetSelectedAction?.dropDownAction
+    )
 
   private var isCurrentForegroundProcessDebuggable = false
   private var hasForegroundProcess = false
