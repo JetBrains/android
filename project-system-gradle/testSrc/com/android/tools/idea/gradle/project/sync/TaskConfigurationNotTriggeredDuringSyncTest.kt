@@ -43,16 +43,22 @@ class TaskConfigurationNotTriggeredDuringSyncTest {
     val prepared = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
 
     val failureMessage = "task should not be configured"
+    val taskRegistrationFailure = "lint task should not be registered"
     val buildFile = prepared.root.resolve("app").resolve("build.gradle")
-    buildFile.writeText(
-      buildFile.readText() + """
-          tasks.register("shouldNotBeConfigured", Test.class).configure {
-              println($failureMessage)
+    buildFile.appendText("""
+          tasks.register("shouldNotBeConfigured", Test.class)
+
+          project.gradle.projectsEvaluated {
+              if (tasks.names.contains("lintDebug")) println($taskRegistrationFailure)
+
+              tasks.named("shouldNotBeConfigured").configure {
+                  println($failureMessage)
+              }
           }
-        """.trimIndent()
-    )
+        """.trimIndent())
     val outputLog = StringBuilder()
     prepared.open(updateOptions = { preparedProjectOptions -> preparedProjectOptions.copy(outputHandler = { outputLog.append(it) }) }) {}
     assertThat(outputLog.toString()).doesNotContain(failureMessage)
+    assertThat(outputLog.toString()).doesNotContain(taskRegistrationFailure)
   }
 }
