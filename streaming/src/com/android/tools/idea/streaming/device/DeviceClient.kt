@@ -266,8 +266,8 @@ internal class DeviceClient(
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel): Channels {
     return withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
-      var videoChannel: SuspendingSocketChannel? = null
-      var controlChannel: SuspendingSocketChannel? = null
+      val videoChannel: SuspendingSocketChannel
+      val controlChannel: SuspendingSocketChannel
       val channel1 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
       val channel2 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
       // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
