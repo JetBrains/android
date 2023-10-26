@@ -28,6 +28,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState.ColumnInfo
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
@@ -55,9 +56,12 @@ import javax.swing.event.TableColumnModelListener
 import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.table.AbstractTableModel
+import javax.swing.table.TableCellRenderer
+import javax.swing.table.TableColumn
+import kotlin.math.round
 
 /**
- * This class responsible for displaying table of connections information (e.g url, duration,
+ * This class responsible for displaying table of connections information (e.g. url, duration,
  * timeline) for network inspector. Each row in the table represents a single connection.
  */
 class ConnectionsView(
@@ -66,7 +70,7 @@ class ConnectionsView(
 ) : AspectObserver() {
   /** Columns for each connection information */
   @VisibleForTesting
-  enum class Column(var widthPercentage: Double, val type: Class<*>) {
+  enum class Column(var widthRatio: Double, val type: Class<*>) {
     NAME(0.25, String::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return getUrlName(data.url)
@@ -101,7 +105,7 @@ class ConnectionsView(
     };
 
     fun toDisplayString(): String {
-      return name.lowercase(Locale.getDefault()).capitalize()
+      return StringUtil.capitalize(name.lowercase(Locale.getDefault()))
     }
 
     abstract fun getValueFrom(data: HttpData): Any
@@ -110,12 +114,21 @@ class ConnectionsView(
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable: JTable
   private var columnWidthsInitialized = false
+  private val allColumns: Map<Column, TableColumn>
+
   val component: JComponent
     get() = connectionsTable
 
   init {
     connectionsTable =
       TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.toDisplayString(), true)
+    allColumns = buildMap {
+      connectionsTable.columnModel.columns.asSequence().forEach {
+        val column = Column.values()[it.modelIndex]
+        it.identifier = column
+        put(column, it)
+      }
+    }
     customizeConnectionsTable()
     createTooltip()
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
@@ -125,15 +138,14 @@ class ConnectionsView(
 
   private fun customizeConnectionsTable() {
     connectionsTable.autoCreateRowSorter = true
-    connectionsTable.columnModel.getColumn(Column.NAME.ordinal).cellRenderer =
-      BorderlessTableCellRenderer()
-    connectionsTable.columnModel.getColumn(Column.SIZE.ordinal).cellRenderer = SizeRenderer()
-    connectionsTable.columnModel.getColumn(Column.TYPE.ordinal).cellRenderer =
-      BorderlessTableCellRenderer()
-    connectionsTable.columnModel.getColumn(Column.STATUS.ordinal).cellRenderer = StatusRenderer()
-    connectionsTable.columnModel.getColumn(Column.TIME.ordinal).cellRenderer = TimeRenderer()
-    connectionsTable.columnModel.getColumn(Column.TIMELINE.ordinal).cellRenderer =
-      TimelineRenderer(connectionsTable, model.timeline)
+
+    setRenderer(Column.NAME, BorderlessTableCellRenderer())
+    setRenderer(Column.SIZE, SizeRenderer())
+    setRenderer(Column.TYPE, BorderlessTableCellRenderer())
+    setRenderer(Column.STATUS, StatusRenderer())
+    setRenderer(Column.TIME, TimeRenderer())
+    setRenderer(Column.TIMELINE, TimelineRenderer(connectionsTable, model.timeline))
+
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     connectionsTable.addMouseListener(
       object : MouseAdapter() {
@@ -174,7 +186,7 @@ class ConnectionsView(
         override fun componentResized(e: ComponentEvent) {
           Column.values().forEachIndexed { i, column ->
             getColumnForIndex(i).preferredWidth =
-              (connectionsTable.width * column.widthPercentage).toInt()
+              (connectionsTable.width * column.widthRatio).toInt()
           }
           // Mark the column widths as initialized once we set their widths here
           columnWidthsInitialized = true
@@ -186,15 +198,20 @@ class ConnectionsView(
       // flickering that otherwise occurs in our table.
       updateTableSelection()
     }
-    // Fix column positions in the header
-    connectionsTable.tableHeader.reorderingAllowed = false
+
+    loadColumnLayout()
+
     connectionsTable.columnModel.addColumnModelListener(
       object : TableColumnModelListener {
-        override fun columnAdded(e: TableColumnModelEvent) = Unit
+        override fun columnAdded(e: TableColumnModelEvent) = saveColumnLayout()
 
-        override fun columnRemoved(e: TableColumnModelEvent) = Unit
+        override fun columnRemoved(e: TableColumnModelEvent) = saveColumnLayout()
 
-        override fun columnMoved(e: TableColumnModelEvent) = Unit
+        override fun columnMoved(e: TableColumnModelEvent) {
+          if (e.fromIndex != e.toIndex) {
+            saveColumnLayout()
+          }
+        }
 
         override fun columnSelectionChanged(e: ListSelectionEvent?) = Unit
 
@@ -204,12 +221,40 @@ class ConnectionsView(
           // Not doing so leads to each column having equal widths.
           if (!columnWidthsInitialized) return
           Column.values().forEachIndexed { index, column ->
-            column.widthPercentage =
-              getColumnForIndex(index).width.toDouble() / connectionsTable.width
+            column.widthRatio = getColumnForIndex(index).width.toDouble() / connectionsTable.width
           }
+          saveColumnLayout()
         }
       }
     )
+  }
+
+  private fun saveColumnLayout() {
+    val state = NetworkInspectorViewState.getInstance()
+    state.columns =
+      connectionsTable.columnModel.columns
+        .toList()
+        .map {
+          ColumnInfo(
+            it.getColumn().name,
+            round(it.width.toDouble() / connectionsTable.width * 100) / 100
+          )
+        }
+        .toMutableList()
+  }
+
+  private fun loadColumnLayout() {
+    connectionsTable.columnModel.columns.toList().forEach { connectionsTable.removeColumn(it) }
+    NetworkInspectorViewState.getInstance().columns.forEach {
+      val column = Column.valueOf(it.name)
+      column.widthRatio = it.widthRatio
+      val tableColumn = allColumns.getValue(column)
+      connectionsTable.addColumn(tableColumn)
+    }
+  }
+
+  private fun setRenderer(column: Column, renderer: TableCellRenderer) {
+    connectionsTable.columnModel.getColumn(column.ordinal).cellRenderer = renderer
   }
 
   private fun getColumnForIndex(index: Int) =
@@ -358,3 +403,5 @@ class ConnectionsView(
     }
   }
 }
+
+private fun TableColumn.getColumn() = identifier as ConnectionsView.Column
