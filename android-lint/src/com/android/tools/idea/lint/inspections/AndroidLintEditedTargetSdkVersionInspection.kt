@@ -26,6 +26,6 @@ class AndroidLintEditedTargetSdkVersionInspection :
     GradleDetector.EDITED_TARGET_SDK_VERSION
   ) {
   override fun getQuickFixes(message: String): Array<LintIdeQuickFix> {
-    return arrayOf(LaunchTargetSdkVersionAssistantFix())
+    return arrayOf(LaunchTargetSdkVersionAssistantFix(), IgnoreTargetSdkEditFix())
   }
 }

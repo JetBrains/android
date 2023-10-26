@@ -16,17 +16,20 @@
 package com.android.tools.idea.lint.inspections
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
+import com.android.tools.lint.checks.GradleDetector
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
-class LaunchTargetSdkVersionAssistantFix :
-  DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
+class IgnoreTargetSdkEditFix :
+  // Error message chosen to be alphabetically later than "Launch SDK Upgrade Assistant"
+  // such that it doesn't show up first
+  DefaultLintQuickFix("Override warning; I know what I'm doing") {
 
   override fun isApplicable(
     startElement: PsiElement,
@@ -40,8 +43,6 @@ class LaunchTargetSdkVersionAssistantFix :
     context: AndroidQuickfixContexts.Context
   ) {
     stopFlaggingTargetSdkEditsForSession(startElement.project)
-    OpenAssistSidePanelAction()
-      .openWindow("DeveloperServices.TargetSDKVersionUpgradeAssistant", startElement.project)
   }
 
   override fun generatePreview(
@@ -49,4 +50,9 @@ class LaunchTargetSdkVersionAssistantFix :
     editor: Editor,
     file: PsiFile
   ): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
+}
+
+fun stopFlaggingTargetSdkEditsForSession(project: Project) {
+  GradleDetector.Companion.stopFlaggingTargetSdkEdits()
+  DaemonCodeAnalyzer.getInstance(project).restart()
 }
