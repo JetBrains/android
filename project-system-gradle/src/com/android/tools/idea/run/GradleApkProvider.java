@@ -173,11 +173,13 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   private static boolean supportsPrivacySandbox(@NotNull IDevice device) {
-    return device.getVersion().isGreaterOrEqualThan(34);
+    // Standalone SDK apks need to be installed to API 33 devices, despite no release versions shipping with SDK runtime due to the need to
+    // build a single base apk with the '<uses-sdk-library>' manifest tag enforcing SDK installations on 33.
+    return device.getVersion().isGreaterOrEqualThan(33);
   }
 
   private static boolean supportsSdkRuntime(@NotNull IDevice device, @NotNull boolean supportsPrivacySandbox) {
-    return supportsPrivacySandbox && device.services().containsKey("sdk_sandbox");
+    return device.getVersion().isGreaterOrEqualThan(34) && device.services().containsKey("sdk_sandbox");
   }
 
   @NotNull
@@ -260,7 +262,7 @@ public final class GradleApkProvider implements ApkProvider {
             else {
               // Privacy sandbox SDKs should be installed before the app itself.
               IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
-              if (deviceSupportsPrivacySandbox
+              if (deviceSupportsPrivacySandbox && deviceSupportsSdkRuntime
                   && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo()
                      != null) {
                 apkList.addAll(

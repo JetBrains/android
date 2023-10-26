@@ -690,6 +690,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/buildPrivacySandboxSdkApksForDebug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
@@ -743,6 +748,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/buildPrivacySandboxSdkApksForDebug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
@@ -775,6 +785,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { TODO("b/304516211") },
       expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/buildPrivacySandboxSdkApksForDebug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
@@ -791,7 +806,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         viaBundle = true,
         device = AndroidVersion(33),
       ),
-      // [DELETE_BEFORE_MERGING] Once bundletool 1.15.5 is checked in this test will pass.
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.example.rubidumconsumer
@@ -811,6 +825,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       ),
       IGNORE = { TODO("b/304516211") },
       expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/buildPrivacySandboxSdkApksForDebug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
+         
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
