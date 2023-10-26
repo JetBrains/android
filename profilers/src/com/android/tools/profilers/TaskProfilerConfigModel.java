@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.cpu.config;
+package com.android.tools.profilers;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectObserver;
@@ -21,6 +21,9 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -29,10 +32,10 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * This class is responsible for managing the profiling configuration for the CPU profiler. It is shared between
- * {@link CpuProfilerStage} and CpuProfilingConfigurationsDialog.
+ * This class is responsible for managing the profiling configuration. It is shared between
+ * {@link CpuProfilerStage} and TaskProfilingConfigurationsDialog.
  */
-public class CpuProfilerConfigModel {
+public class TaskProfilerConfigModel {
   private static final String LAST_SELECTED_CONFIGURATION_NAME = "last.selected.configuration.name";
 
   /**
@@ -78,7 +81,7 @@ public class CpuProfilerConfigModel {
 
   private AspectObserver myAspectObserver;
 
-  public CpuProfilerConfigModel(@NotNull StudioProfilers profilers, @NotNull CpuProfilerStage profilerStage) {
+  public TaskProfilerConfigModel(@NotNull StudioProfilers profilers, @NotNull CpuProfilerStage profilerStage) {
     myProfilers = profilers;
     myProfilerStage = profilerStage;
     myCustomProfilingConfigurations = new ArrayList<>();

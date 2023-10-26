@@ -21,13 +21,13 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.perfetto.traceprocessor.TraceProcessorServiceImpl;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
+import com.android.tools.idea.profilers.profilingconfig.TaskProfilerConfigConverter;
 import com.android.tools.idea.profilers.stacktrace.IntelliJNativeFrameSymbolizer;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.idea.run.profiler.TaskSettingConfigsState;
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.NativeSymbolizerKt;
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator;
@@ -290,19 +290,19 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
 
   @Override
   public List<ProfilingConfiguration> getUserCpuProfilerConfigs(int apiLevel) {
-    CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getUserConfigs(), apiLevel);
+    TaskSettingConfigsState configsState = TaskSettingConfigsState.getInstance(myProject);
+    return TaskProfilerConfigConverter.toProfilingConfiguration(configsState.getUserConfigs(), apiLevel);
   }
 
   @Override
   public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
-    CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
-    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getTaskConfigs(), apiLevel);
+    TaskSettingConfigsState configsState = TaskSettingConfigsState.getInstance(myProject);
+    return TaskProfilerConfigConverter.toProfilingConfiguration(configsState.getTaskConfigs(), apiLevel);
   }
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
-    return CpuProfilerConfigConverter.toProfilingConfiguration(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel);
+    return TaskProfilerConfigConverter.toProfilingConfiguration(TaskSettingConfigsState.getDefaultConfigs(), apiLevel);
   }
 
   @Override

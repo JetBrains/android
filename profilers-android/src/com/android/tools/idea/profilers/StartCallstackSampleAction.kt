@@ -18,7 +18,7 @@ package com.android.tools.idea.profilers
 
 import android.annotation.SuppressLint
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.profiler.CpuProfilerConfig
+import com.android.tools.idea.run.profiler.TaskSettingConfig
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -45,7 +45,7 @@ class StartCallstackSampleAction : DumbAwareAction(
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
     val stage = CpuProfilerStage(profilers)
-    stage.profilerConfigModel.profilingConfiguration = SimpleperfConfiguration(CpuProfilerConfig.Technology.SAMPLED_NATIVE.name)
+    stage.profilerConfigModel.profilingConfiguration = SimpleperfConfiguration(TaskSettingConfig.Technology.SAMPLED_NATIVE.name)
     profilers.stage = stage
     stage.recordingModel.start()
   }

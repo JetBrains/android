@@ -29,50 +29,50 @@ import java.util.List;
 
 
 /**
- * A Service that manages and persists states of {@link CpuProfilerConfig}.
+ * A Service that manages and persists states of {@link TaskSettingConfig}.
  */
-@State(name = "CpuProfilerConfigsState", storages = @Storage("cpuProfilingConfigs.xml"))
-public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProfilerConfigsState> {
+@State(name = "TaskSettingConfigsState", storages = @Storage("cpuProfilingConfigs.xml"))
+public class TaskSettingConfigsState implements PersistentStateComponent<TaskSettingConfigsState> {
   @NotNull
-  private List<CpuProfilerConfig> myUserConfigs;
+  private List<TaskSettingConfig> myUserConfigs;
 
   // Default/updated configs for Task-based UX
   @NotNull
-  private List<CpuProfilerConfig> myTaskConfigs;
+  private List<TaskSettingConfig> myTaskConfigs;
 
   /**
    * Default constructor is required and used by {@link PersistentStateComponent}.
    *
    * @see <a href="http://www.jetbrains.org/intellij/sdk/docs/basics/persisting_state_of_components.html">IntelliJ Platform SDK DevGuide</a>
    */
-  public CpuProfilerConfigsState() {
+  public TaskSettingConfigsState() {
     myUserConfigs = new ArrayList<>();
     myTaskConfigs = new ArrayList<>();
   }
 
   @NotNull
-  public static CpuProfilerConfigsState getInstance(Project project) {
-    return project.getService(CpuProfilerConfigsState.class);
+  public static TaskSettingConfigsState getInstance(Project project) {
+    return project.getService(TaskSettingConfigsState.class);
   }
 
   @NotNull
-  public List<CpuProfilerConfig> getUserConfigs() {
+  public List<TaskSettingConfig> getUserConfigs() {
     return myUserConfigs;
   }
 
-  public void setUserConfigs(@NotNull List<CpuProfilerConfig> configs) {
+  public void setUserConfigs(@NotNull List<TaskSettingConfig> configs) {
     myUserConfigs = configs;
   }
 
   @NotNull
-  public List<CpuProfilerConfig> getTaskConfigs() {
+  public List<TaskSettingConfig> getTaskConfigs() {
     if (myTaskConfigs.isEmpty()) {
       return getTaskDefaultConfigs();
     }
     return myTaskConfigs;
   }
 
-  public void setTaskConfigs(@NotNull List<CpuProfilerConfig> configs) {
+  public void setTaskConfigs(@NotNull List<TaskSettingConfig> configs) {
     myTaskConfigs = configs;
   }
 
@@ -81,7 +81,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
    *                (including default configurations), otherwise ignores.
    * @return true if the config was added.
    */
-  public boolean addUserConfig(@NotNull CpuProfilerConfig config) {
+  public boolean addUserConfig(@NotNull TaskSettingConfig config) {
     if (getConfigByName(config.getName()) == null) {
       myUserConfigs.add(config);
       return true;
@@ -90,32 +90,32 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   }
 
   @NotNull
-  public static List<CpuProfilerConfig> getDefaultConfigs() {
-    ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
+  public static List<TaskSettingConfig> getDefaultConfigs() {
+    ImmutableList.Builder<TaskSettingConfig> configs = new ImmutableList.Builder<TaskSettingConfig>()
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.SAMPLED_NATIVE))
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.SYSTEM_TRACE))
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.INSTRUMENTED_JAVA))
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.SAMPLED_JAVA));
     return configs.build();
   }
 
   @NotNull
-  public static List<CpuProfilerConfig> getTaskDefaultConfigs() {
+  public static List<TaskSettingConfig> getTaskDefaultConfigs() {
     //Exclude System Trace config since it doesn't have any updatable attribute
-    ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
-      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
+    ImmutableList.Builder<TaskSettingConfig> configs = new ImmutableList.Builder<TaskSettingConfig>()
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.SAMPLED_NATIVE))
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.INSTRUMENTED_JAVA))
+      .add(new TaskSettingConfig(TaskSettingConfig.Technology.SAMPLED_JAVA));
     return configs.build();
   }
 
   @NotNull
-  public List<CpuProfilerConfig> getConfigs() {
-    return ImmutableList.<CpuProfilerConfig>builder().addAll(getDefaultConfigs()).addAll(getUserConfigs()).build();
+  public List<TaskSettingConfig> getConfigs() {
+    return ImmutableList.<TaskSettingConfig>builder().addAll(getDefaultConfigs()).addAll(getUserConfigs()).build();
   }
 
   @Nullable
-  public CpuProfilerConfig getConfigByName(@NotNull String name) {
+  public TaskSettingConfig getConfigByName(@NotNull String name) {
     return getConfigs().stream()
       .filter(c -> name.equals(c.getName()))
       .findFirst()
@@ -124,12 +124,12 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
 
   @Nullable
   @Override
-  public CpuProfilerConfigsState getState() {
+  public TaskSettingConfigsState getState() {
     return this;
   }
 
   @Override
-  public void loadState(CpuProfilerConfigsState state) {
+  public void loadState(TaskSettingConfigsState state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

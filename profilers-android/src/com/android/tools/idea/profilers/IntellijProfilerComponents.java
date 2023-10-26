@@ -16,7 +16,7 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.adtui.stdui.ResizableImage;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilingConfigurationsDialog;
+import com.android.tools.idea.profilers.profilingconfig.TaskProfilingConfigurationsDialog;
 import com.android.tools.inspectors.common.api.ide.IntellijContextMenuInstaller;
 import com.android.tools.inspectors.common.api.ide.stacktrace.IntelliJStackTraceGroup;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
@@ -27,7 +27,7 @@ import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ImportDialog;
 import com.android.tools.profilers.UiMessageHandler;
 import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
+import com.android.tools.profilers.TaskProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.openapi.project.Project;
@@ -125,14 +125,14 @@ public class IntellijProfilerComponents implements IdeProfilerComponents {
   }
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
+  public void openCpuProfilingConfigurationsDialog(@NotNull TaskProfilerConfigModel model, int deviceLevel,
                                                    @NotNull Consumer<ProfilingConfiguration> dialogCallback,
                                                    @NotNull IdeProfilerServices ideProfilerServices) {
-    CpuProfilingConfigurationsDialog dialog = new CpuProfilingConfigurationsDialog(myProject,
-                                                                                   deviceLevel,
-                                                                                   model,
-                                                                                   dialogCallback,
-                                                                                   myFeatureTracker, ideProfilerServices);
+    TaskProfilingConfigurationsDialog dialog = new TaskProfilingConfigurationsDialog(myProject,
+                                                                                     deviceLevel,
+                                                                                     model,
+                                                                                     dialogCallback,
+                                                                                     myFeatureTracker, ideProfilerServices);
     dialog.show();
   }
 }

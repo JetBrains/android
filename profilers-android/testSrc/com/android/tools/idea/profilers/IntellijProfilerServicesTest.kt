@@ -16,8 +16,8 @@
 package com.android.tools.idea.profilers
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.profiler.CpuProfilerConfig
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState
+import com.android.tools.idea.run.profiler.TaskSettingConfig
+import com.android.tools.idea.run.profiler.TaskSettingConfigsState
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockProjectEx
@@ -99,11 +99,11 @@ class IntellijProfilerServicesTest {
     assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
     assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
 
-    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
-    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
-    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    val configsToSave: ArrayList<TaskSettingConfig> = ArrayList()
+    configsToSave.add(TaskSettingConfig("HelloTest1", TaskSettingConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(TaskSettingConfig("HelloTest2", TaskSettingConfig.Technology.SAMPLED_NATIVE))
     // Update configs
-    CpuProfilerConfigsState.getInstance(project).taskConfigs = configsToSave
+    TaskSettingConfigsState.getInstance(project).taskConfigs = configsToSave
 
     // Updated config should be reflected
     val resultNew = intellijProfilerServices.getTaskCpuProfilerConfigs(9);
@@ -115,8 +115,8 @@ class IntellijProfilerServicesTest {
   private fun mockProjectAttributes(project: Project) {
     val moduleManager = EmptyModuleManager(project)
     val psiManger = MockPsiManager(project)
-    val cpuProfilerStateSpy = Mockito.spy(CpuProfilerConfigsState())
-    MockitoKt.whenever(project.getService(CpuProfilerConfigsState::class.java)).thenReturn(cpuProfilerStateSpy)
+    val configsState = Mockito.spy(TaskSettingConfigsState())
+    MockitoKt.whenever(project.getService(TaskSettingConfigsState::class.java)).thenReturn(configsState)
     MockitoKt.whenever(project.getService(ModuleManager::class.java)).thenReturn(moduleManager)
     MockitoKt.whenever(project.getService(PsiManager::class.java)).thenReturn(psiManger)
   }

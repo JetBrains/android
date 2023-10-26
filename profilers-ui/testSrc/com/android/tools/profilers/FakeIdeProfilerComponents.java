@@ -25,7 +25,6 @@ import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
-import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -182,14 +181,14 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
     };
   }
 
-  private CpuProfilerConfigModel myCpuConfigModel = null;
+  private TaskProfilerConfigModel myConfigModel = null;
   private Consumer<ProfilingConfiguration> myDialogCloseCallback = null;
 
   @Override
-  public void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel model, int deviceLevel,
+  public void openCpuProfilingConfigurationsDialog(@NotNull TaskProfilerConfigModel model, int deviceLevel,
                                                    @NotNull Consumer<ProfilingConfiguration> callbackDialog,
                                                    @NotNull IdeProfilerServices ideProfilerServices) {
-    myCpuConfigModel = model;
+    myConfigModel = model;
     myDialogCloseCallback = callbackDialog;
   }
 
@@ -197,8 +196,8 @@ public final class FakeIdeProfilerComponents implements IdeProfilerComponents {
    * Emulate the action of closing the CPU config dialog.
    */
   public void closeCpuProfilingConfigurationsDialog() {
-    if (myCpuConfigModel != null && myDialogCloseCallback != null) {
-      myDialogCloseCallback.accept(myCpuConfigModel.getProfilingConfiguration());
+    if (myConfigModel != null && myDialogCloseCallback != null) {
+      myDialogCloseCallback.accept(myConfigModel.getProfilingConfiguration());
     }
   }
 

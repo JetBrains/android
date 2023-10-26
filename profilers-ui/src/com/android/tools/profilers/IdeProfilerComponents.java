@@ -19,7 +19,6 @@ import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
-import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import java.awt.image.BufferedImage;
@@ -70,13 +69,13 @@ public interface IdeProfilerComponents {
   /**
    * Open the dialog for managing the CPU profiling configurations.
    *
-   * @param profilerModel  {@link CpuProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening
+   * @param profilerModel  {@link TaskProfilerConfigModel} corresponding to the {@link ProfilingConfiguration} to be selected when opening
    *                       the dialog.
    * @param deviceLevel    API level of the device.
    * @param dialogCallback Callback to be called once the dialog is closed. Takes a {@link ProfilingConfiguration}
    *                       that was selected on the configurations list when the dialog was closed.
    */
-  void openCpuProfilingConfigurationsDialog(@NotNull CpuProfilerConfigModel profilerModel, int deviceLevel,
+  void openCpuProfilingConfigurationsDialog(@NotNull TaskProfilerConfigModel profilerModel, int deviceLevel,
                                             @NotNull Consumer<ProfilingConfiguration> dialogCallback,
                                             @NotNull IdeProfilerServices ideProfilerServices);
 }

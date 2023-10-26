@@ -27,14 +27,14 @@ import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
-import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
+import com.android.tools.idea.profilers.profilingconfig.TaskProfilerConfigConverter;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
-import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
+import com.android.tools.idea.run.profiler.TaskSettingConfig;
+import com.android.tools.idea.run.profiler.TaskSettingConfigsState;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.util.StudioPathManager;
@@ -220,7 +220,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(project).getConfigByName(configName);
+    TaskSettingConfig startupConfig = TaskSettingConfigsState.getInstance(project).getConfigByName(configName);
     if (startupConfig == null) {
       return "";
     }
@@ -247,7 +247,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
 
     ProfilingConfiguration profilingConfiguration =
-      CpuProfilerConfigConverter.toProfilingConfiguration(startupConfig, device.getVersion().getFeatureLevel());
+      TaskProfilerConfigConverter.toProfilingConfiguration(startupConfig, device.getVersion().getFeatureLevel());
 
     Trace.TraceConfiguration.Builder configurationBuilder = Trace.TraceConfiguration.newBuilder()
       .setAppName(appPackageName)
@@ -286,7 +286,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     StringBuilder argsBuilder = new StringBuilder("--start-profiler ").append(traceFilePath);
-    if (startupConfig.getTechnology() == CpuProfilerConfig.Technology.SAMPLED_JAVA) {
+    if (startupConfig.getTechnology() == TaskSettingConfig.Technology.SAMPLED_JAVA) {
       argsBuilder.append(" --sampling ").append(startupConfig.getSamplingIntervalUs());
     }
 
