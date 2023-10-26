@@ -17,32 +17,20 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import java.util.Objects
+import com.intellij.openapi.components.service
 
 /**
- * An item in the [submenu][SnapshotActionGroup] for a virtual device. The [target][Target]
- * determines if an available virtual device will be cold booted, quick booted, or booted with a
- * snapshot.
+ * An item in the [SnapshotActionGroup]. The [Target] determines if the device will be cold booted,
+ * quick booted, or booted with a snapshot.
  */
 internal class SelectTargetAction(
   private val target: Target,
-  private val device: Device,
-  private val comboBoxAction: DeviceAndSnapshotComboBoxAction
 ) : AnAction() {
   override fun update(event: AnActionEvent) {
-    event.presentation.setText(target.getText(device), false)
+    event.presentation.setText(target.bootOption.text, false)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
-    comboBoxAction.setTargetSelectedWithComboBox(requireNotNull(event.project), target)
-  }
-
-  override fun hashCode(): Int = Objects.hash(target, device, comboBoxAction)
-
-  override fun equals(other: Any?): Boolean {
-    return other is SelectTargetAction &&
-      target == other.target &&
-      device == other.device &&
-      comboBoxAction == other.comboBoxAction
+    event.project!!.service<DevicesSelectedService>().setTargetSelectedWithComboBox(target)
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.selector
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 
 /**
  * An action for each device in the drop down without a snapshot sublist. When a user selects a
@@ -24,31 +25,23 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  */
 class SelectDeviceAction
 internal constructor(
-  val device: Device,
-  private val myComboBoxAction: DeviceAndSnapshotComboBoxAction
+  internal val device: Device,
 ) : AnAction() {
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val project = requireNotNull(event.project)
     presentation.setIcon(device.icon)
-    val devices = myComboBoxAction.getDevices(project).orElseThrow { AssertionError() }
-    val key = if (Devices.containsAnotherDeviceWithSameName(devices, device)) device.key else null
-    presentation.setText(Devices.getText(device, key), false)
-  }
-
-  override fun actionPerformed(event: AnActionEvent) {
-    myComboBoxAction.setTargetSelectedWithComboBox(
-      requireNotNull(event.project),
-      device.defaultTarget
+    presentation.setText(
+      device.disambiguatedName(
+        project.service<DevicesSelectedService>().devicesAndTargets.allDevices
+      ),
+      false
     )
   }
 
-  override fun equals(other: Any?): Boolean =
-    other is SelectDeviceAction &&
-      device == other.device &&
-      myComboBoxAction == other.myComboBoxAction
-
-  override fun hashCode(): Int {
-    return 31 * device.hashCode() + myComboBoxAction.hashCode()
+  override fun actionPerformed(event: AnActionEvent) {
+    event.project!!
+      .service<DevicesSelectedService>()
+      .setTargetSelectedWithComboBox(device.defaultTarget)
   }
 }

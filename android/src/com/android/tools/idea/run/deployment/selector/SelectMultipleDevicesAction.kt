@@ -23,7 +23,7 @@ import com.intellij.openapi.project.Project
 
 class SelectMultipleDevicesAction
 internal constructor(
-  private val devicesGetter: (Project) -> AsyncDevicesGetter = Project::service,
+  private val devicesService: (Project) -> DevicesService = Project::service,
 ) : AnAction() {
   override fun update(event: AnActionEvent) {
     val project = event.project
@@ -32,14 +32,14 @@ internal constructor(
       presentation.setEnabledAndVisible(false)
       return
     }
-    val empty = devicesGetter(project).get().map { it.isEmpty() }.orElse(true)
+    val empty = devicesService(project).devicesIfLoaded().map { it.isEmpty() }.orElse(true)
     presentation.setEnabledAndVisible(!empty)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
-    DeviceAndSnapshotComboBoxAction.instance.selectMultipleDevices(requireNotNull(event.project))
+    SelectMultipleDevicesDialog(requireNotNull(event.project)).showAndGet()
   }
 
   companion object {

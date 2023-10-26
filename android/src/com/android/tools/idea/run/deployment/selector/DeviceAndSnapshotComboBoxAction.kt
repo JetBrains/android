@@ -15,12 +15,14 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.run.LaunchCompatibility
-import com.android.tools.idea.run.deployment.selector.Target.Companion.filterDevices
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunManager
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -30,7 +32,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.util.Key
 import com.intellij.ui.NewUI
@@ -43,55 +44,18 @@ import java.util.function.IntUnaryOperator
 import javax.swing.GroupLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.jetbrains.android.util.AndroidUtils
 
 class DeviceAndSnapshotComboBoxAction
 internal constructor(
-  private val getDevicesGetter: (Project) -> AsyncDevicesGetter = Project::service,
+  private val devicesService: (Project) -> DevicesService = Project::service,
   private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
   private val executionTargetService: (Project) -> ExecutionTargetService = Project::service,
-  private val newSelectMultipleDevicesDialog: (Project, List<Device>) -> DialogWrapper =
-    { project, devices ->
-      SelectMultipleDevicesDialog(project, devices)
-    },
   private val runManager: (Project) -> RunManager = RunManager.Companion::getInstance,
 ) : ComboBoxAction() {
 
   internal fun getDevices(project: Project): Optional<List<Device>> =
-    getDevicesGetter(project).get()
-
-  internal fun setTargetSelectedWithComboBox(project: Project, target: Target) {
-    devicesSelectedService(project).setTargetSelectedWithComboBox(target)
-    setActiveExecutionTarget(project, setOf(target))
-  }
-
-  internal fun getSelectedDevices(project: Project): List<Device> {
-    val devices = getDevices(project).orElse(emptyList())
-    return filterDevices(getSelectedTargets(project, devices), devices)
-  }
-
-  internal fun getSelectedTargets(project: Project): Optional<Set<Target>> {
-    return getDevices(project).map { devices -> getSelectedTargets(project, devices) }
-  }
-
-  internal fun getSelectedTargets(project: Project, devices: List<Device>): Set<Target> {
-    val service = devicesSelectedService(project)
-    return when {
-      service.isMultipleDevicesSelectedInComboBox -> service.getTargetsSelectedWithDialog(devices)
-      else ->
-        service.getTargetSelectedWithComboBox(devices).map { setOf(it) }.orElseGet { emptySet() }
-    }
-  }
-
-  fun selectMultipleDevices(project: Project) {
-    val devices: List<Device> = getDevicesGetter(project).get().orElseThrow { AssertionError() }
-    if (!newSelectMultipleDevicesDialog(project, devices).showAndGet()) {
-      return
-    }
-    val service = devicesSelectedService(project)
-    service.isMultipleDevicesSelectedInComboBox =
-      service.getTargetsSelectedWithDialog(devices).isNotEmpty()
-    setActiveExecutionTarget(project, getSelectedTargets(project, devices))
-  }
+    devicesService(project).devicesIfLoaded()
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return createCustomComponent(presentation) { JBUI.scale(it) }
@@ -165,7 +129,7 @@ internal constructor(
     context: DataContext
   ): DefaultActionGroup {
     val project = context.getData(CommonDataKeys.PROJECT)!!
-    return PopupActionGroup(getDevices(project).orElseThrow { AssertionError() }, this)
+    return createDeviceSelectorActionGroup(getDevices(project).orElseThrow { AssertionError() })
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -173,37 +137,64 @@ internal constructor(
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
     val project = event.project
-    if (project == null) {
+    if (project == null || !AndroidUtils.hasAndroidFacets(project)) {
       presentation.setVisible(false)
       return
     }
+    presentation.setVisible(true)
+    presentation.setDescription(null)
+
+    val configurationAndSettings = runManager(project).selectedConfiguration
+    if (configurationAndSettings == null) {
+      presentation.setEnabled(false)
+      presentation.setDescription("Add a run/debug configuration")
+      return
+    }
+
+    val configuration = configurationAndSettings.configuration
+    if (!DeployableToDevice.deploysToLocalDevice(configuration)) {
+      presentation.setEnabled(false)
+      if (IdeInfo.getInstance().isAndroidStudio) {
+        presentation.setDescription(
+          "Not applicable for the \"${configuration.name}\" configuration"
+        )
+      } else {
+        presentation.setVisible(false)
+      }
+      return
+    }
+
     val optionalDevices = getDevices(project)
     if (optionalDevices.isEmpty) {
       presentation.setEnabled(false)
       presentation.text = "Loading Devices..."
       return
     }
-    val devices = optionalDevices.get()
-    val updater =
-      Updater(
-        project = project,
-        presentation = presentation,
-        place = event.place,
-        devicesSelectedService = devicesSelectedService(project),
-        devices = devices,
-        configurationAndSettings = runManager(project).selectedConfiguration
-      )
-    updater.update()
+
+    presentation.setEnabled(true)
+
+    val devicesAndTargets = devicesSelectedService(project).devicesAndTargets
+    when (event.place) {
+      ActionPlaces.MAIN_TOOLBAR,
+      ActionPlaces.NAVIGATION_BAR_TOOLBAR -> {
+        Updater(presentation, devicesAndTargets).update()
+      }
+      else -> {
+        presentation.setIcon(null)
+        presentation.text = "Select Device..."
+      }
+    }
+
     event.updateSession.compute(this, "Set active device", ActionUpdateThread.EDT) {
       if (presentation.isVisible) {
-        setActiveExecutionTarget(project, getSelectedTargets(project, devices))
+        setActiveExecutionTarget(project, devicesAndTargets.selectedTargets)
       }
     }
   }
 
-  private fun setActiveExecutionTarget(project: Project, targets: Set<Target>) {
+  private fun setActiveExecutionTarget(project: Project, targets: List<Target>) {
     executionTargetService(project).activeTarget =
-      DeviceAndSnapshotComboBoxExecutionTarget(targets, getDevicesGetter(project))
+      DeviceAndSnapshotComboBoxExecutionTarget(targets, devicesService(project))
   }
 
   companion object {
