@@ -25,20 +25,25 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.wm.ToolWindowManager
-import icons.StudioIcons
 
 class UiCheckDropDownAction :
   DropDownAction(
     message("action.uicheck.toolbar.title"),
     message("action.uicheck.toolbar.description"),
-    StudioIcons.LayoutEditor.Properties.VISIBLE
+    AllIcons.General.ChevronDown
   ) {
+  init {
+    templatePresentation.putClientProperty(ActionButton.HIDE_DROPDOWN_ICON, java.lang.Boolean.TRUE)
+  }
+
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
     context.getData(COMPOSE_PREVIEW_MANAGER)?.let {

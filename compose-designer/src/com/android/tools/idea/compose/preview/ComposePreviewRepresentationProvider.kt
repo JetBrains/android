@@ -59,6 +59,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
@@ -121,6 +122,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
             },
           )
           .visibleOnlyInStaticPreview(),
+        Separator.getInstance().visibleOnlyInUiCheck(),
+        UiCheckDropDownAction().visibleOnlyInUiCheck(),
         ComposeViewControlAction(
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = BASE_LAYOUT_MANAGER_OPTIONS,
@@ -132,7 +135,6 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
             onSurfaceLayoutSelected = { _, _ -> },
           )
           .visibleOnlyInUiCheck(),
-        UiCheckDropDownAction().visibleOnlyInUiCheck(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       ),
     ) {
