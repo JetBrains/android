@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -26,10 +25,9 @@ import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.UNDEFINED_API_LEVEL
 import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.GlobalScope
@@ -643,44 +641,43 @@ class AnnotationFileComposePreviewElementFinderTest {
    */
   @Test
   fun testDumbMode() = runBlocking {
-    val dumbService = TestDumbService(project)
-    project.replaceService(DumbService::class.java, dumbService, project)
     val composeTest =
       fixture.addFileToProjectAndInvalidate(
         "src/Test.kt",
         // language=kotlin
         """
-        import $COMPOSABLE_ANNOTATION_FQN
-        import $PREVIEW_TOOLING_PACKAGE.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
-        @Composable
-        @Preview
-        fun Preview1() {
-        }
+      @Composable
+      @Preview
+      fun Preview1() {
+      }
 
-        @Composable
-        @Preview(name = "preview2", apiLevel = 12)
-        fun Preview1() {
-        }
-      """
+      @Composable
+      @Preview(name = "preview2", apiLevel = 12)
+      fun Preview1() {
+      }
+    """
           .trimIndent()
       )
-
-    runInEdtAndWait {
-      assertFalse(
-        AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
-      )
-    }
-    val result =
-      GlobalScope.async {
-        AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+    val result = DumbModeTestUtils.computeInDumbModeSynchronously(project) {
+      runInEdtAndWait {
+        assertFalse(
+          AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
+        )
       }
-    try {
-      withTimeout(2500) { result.await() }
-      fail("The result should not have been returned in non-smart mode")
-    } catch (_: TimeoutCancellationException) {}
+      val result =
+        GlobalScope.async {
+          AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
+        }
+      try {
+        runBlocking { withTimeout(2500) { result.await() } }
+        fail("The result should not have been returned in non-smart mode")
+      } catch (_: TimeoutCancellationException) {}
+      result
+    }
     runInEdtAndWait {
-      dumbService.dumbMode = false
       assertTrue(
         AnnotationFilePreviewElementFinder.hasPreviewMethods(project, composeTest.virtualFile)
       )
