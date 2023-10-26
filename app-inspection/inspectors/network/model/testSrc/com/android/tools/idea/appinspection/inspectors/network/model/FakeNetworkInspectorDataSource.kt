@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import java.util.concurrent.TimeUnit
 import studio.network.inspection.NetworkInspectorProtocol.Event
 
@@ -23,14 +24,16 @@ class FakeNetworkInspectorDataSource(
   httpEventList: List<Event> = emptyList(),
   private val speedEventList: List<Event> = emptyList()
 ) : NetworkInspectorDataSource {
-  private val httpDataCollector =
-    HttpDataCollector().apply { httpEventList.forEach { processEvent(it) } }
+  private val dataHandler =
+    DataHandler(StubNetworkInspectorTracker()).apply {
+      httpEventList.forEach { handleHttpConnectionEvent(it) }
+    }
 
   private fun Event.isInRange(range: Range) =
     timestamp >= TimeUnit.MICROSECONDS.toNanos(range.min.toLong()) &&
       timestamp <= TimeUnit.MICROSECONDS.toNanos(range.max.toLong())
 
-  override fun queryForHttpData(range: Range) = httpDataCollector.getDataForRange(range)
+  override fun queryForHttpData(range: Range) = dataHandler.getHttpDataForRange(range)
 
   override fun queryForSpeedData(range: Range) = speedEventList.filter { it.isInRange(range) }
 

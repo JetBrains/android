@@ -1,6 +1,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.StubNetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.createHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
 import com.android.tools.idea.protobuf.ByteString
@@ -10,16 +11,16 @@ import kotlin.time.DurationUnit
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 
-/** Tests for [HttpDataCollector] */
-class HttpDataCollectorTest {
+/** Tests for [DataHandler] */
+class DataHandlerTest {
 
   @Test
-  fun incrementalUpdates() {
-    val collector = HttpDataCollector()
+  fun handleHttpConnectionEvent_incrementalUpdates() {
+    val handler = DataHandler(StubNetworkInspectorTracker())
     val range = Range(9.secondsInMicros, 20.secondsInMicros)
     val id = 1L
 
-    collector.processEvent(
+    handler.handleHttpConnectionEvent(
       requestStarted(id, 10.secondsInNanos, "url", "method", "field=1", "trace")
     )
     var expected =
@@ -32,59 +33,61 @@ class HttpDataCollectorTest {
         requestFields = "field=1",
         trace = "trace",
       )
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(httpThread(id, 11.secondsInNanos, threadId = 1, threadName = "1"))
+    handler.handleHttpConnectionEvent(
+      httpThread(id, 11.secondsInNanos, threadId = 1, threadName = "1")
+    )
     expected = expected.copy(updateTimeUs = 11000000, threads = listOf(JavaThread(1, "1")))
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(requestPayload(id, 12.secondsInNanos, "request-payload"))
+    handler.handleHttpConnectionEvent(requestPayload(id, 12.secondsInNanos, "request-payload"))
     expected =
       expected.copy(updateTimeUs = 12000000, requestPayload = "request-payload".toByteString())
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(requestCompleted(id, 13.secondsInNanos))
+    handler.handleHttpConnectionEvent(requestCompleted(id, 13.secondsInNanos))
     expected = expected.copy(updateTimeUs = 13000000, requestCompleteTimeUs = 13000000)
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(responseStarted(id, 14.secondsInNanos, "null=HTTP/1.1 200"))
+    handler.handleHttpConnectionEvent(responseStarted(id, 14.secondsInNanos, "null=HTTP/1.1 200"))
     expected =
       expected.copy(
         updateTimeUs = 14000000,
         responseStartTimeUs = 14000000,
         responseFields = "null=HTTP/1.1 200"
       )
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(responsePayload(id, 15.secondsInNanos, "response-payload"))
+    handler.handleHttpConnectionEvent(responsePayload(id, 15.secondsInNanos, "response-payload"))
     expected =
       expected.copy(updateTimeUs = 15000000, rawResponsePayload = "response-payload".toByteString())
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(responseCompleted(id, 16.secondsInNanos))
+    handler.handleHttpConnectionEvent(responseCompleted(id, 16.secondsInNanos))
     expected = expected.copy(updateTimeUs = 16000000, responseCompleteTimeUs = 16000000)
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
 
-    collector.processEvent(httpClosed(id, 17.secondsInNanos, true))
+    handler.handleHttpConnectionEvent(httpClosed(id, 17.secondsInNanos, true))
     expected = expected.copy(updateTimeUs = 17000000, connectionEndTimeUs = 17000000)
-    assertThat(collector.getDataForRange(range)).containsExactly(expected)
+    assertThat(handler.getHttpDataForRange(range)).containsExactly(expected)
   }
 
   @Test
-  fun concurrentRequests() {
-    val collector = HttpDataCollector()
+  fun handleHttpConnectionEvent_concurrentRequests() {
+    val handler = DataHandler(StubNetworkInspectorTracker())
     val range = Range(9.secondsInMicros, 20.secondsInMicros)
     val id1 = 1L
     val id2 = 2L
 
-    collector.processEvents(
+    handler.handleHttpConnectionEvent(
       requestStarted(id1, 10.secondsInNanos),
       requestStarted(id2, 11.secondsInNanos),
       httpClosed(id1, 12.secondsInNanos, true),
       httpClosed(id2, 13.secondsInNanos, true),
     )
 
-    assertThat(collector.getDataForRange(range))
+    assertThat(handler.getHttpDataForRange(range))
       .containsExactly(
         createHttpData(
           id = 1,
@@ -104,11 +107,11 @@ class HttpDataCollectorTest {
 
   @Test
   fun getDataForRange() {
-    val collector = HttpDataCollector()
+    val handler = DataHandler(StubNetworkInspectorTracker())
     val id1 = 1L
     val id2 = 2L
 
-    collector.processEvents(
+    handler.handleHttpConnectionEvent(
       requestStarted(id1, 10.secondsInNanos),
       requestStarted(id2, 11.secondsInNanos),
       httpClosed(id1, 12.secondsInNanos, true),
@@ -129,16 +132,16 @@ class HttpDataCollectorTest {
         connectionEndTimeUs = 13000000,
       )
 
-    assertThat(collector.getDataForRange(Range(8.secondsInMicros, 9.secondsInMicros))).isEmpty()
-    assertThat(collector.getDataForRange(Range(8.secondsInMicros, 10.secondsInMicros)))
+    assertThat(handler.getHttpDataForRange(Range(8.secondsInMicros, 9.secondsInMicros))).isEmpty()
+    assertThat(handler.getHttpDataForRange(Range(8.secondsInMicros, 10.secondsInMicros)))
       .containsExactly(data1)
-    assertThat(collector.getDataForRange(Range(8.secondsInMicros, 11.secondsInMicros)))
+    assertThat(handler.getHttpDataForRange(Range(8.secondsInMicros, 11.secondsInMicros)))
       .containsExactly(data1, data2)
       .inOrder()
-    assertThat(collector.getDataForRange(Range(12.secondsInMicros, 12.secondsInMicros)))
+    assertThat(handler.getHttpDataForRange(Range(12.secondsInMicros, 12.secondsInMicros)))
       .containsExactly(data1, data2)
       .inOrder()
-    assertThat(collector.getDataForRange(Range(13.secondsInMicros, 14.secondsInMicros)))
+    assertThat(handler.getHttpDataForRange(Range(13.secondsInMicros, 14.secondsInMicros)))
       .containsExactly(data2)
   }
 }
@@ -151,5 +154,5 @@ private inline val Int.secondsInMicros
 
 private fun String.toByteString() = ByteString.copyFromUtf8(this)
 
-private fun HttpDataCollector.processEvents(vararg events: Event) =
-  events.forEach { processEvent(it) }
+private fun DataHandler.handleHttpConnectionEvent(vararg events: Event) =
+  events.forEach { handleHttpConnectionEvent(it) }

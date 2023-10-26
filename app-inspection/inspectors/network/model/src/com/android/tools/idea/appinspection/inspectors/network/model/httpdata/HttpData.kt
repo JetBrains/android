@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
+import com.android.tools.adtui.model.Range
 import com.android.tools.idea.protobuf.ByteString
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.util.io.URLUtil
@@ -23,7 +24,9 @@ import java.io.IOException
 import java.io.UnsupportedEncodingException
 import java.net.URI
 import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
+import studio.network.inspection.NetworkInspectorProtocol
 
 const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
 
@@ -82,6 +85,77 @@ data class HttpData(
         return unzippedResponsePayload
       }
     }
+
+  internal fun withRequestStarted(event: NetworkInspectorProtocol.Event): HttpData {
+    val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    return copy(
+      updateTimeUs = timestamp,
+      requestStartTimeUs = timestamp,
+      url = event.httpConnectionEvent.httpRequestStarted.url,
+      method = event.httpConnectionEvent.httpRequestStarted.method,
+      trace = event.httpConnectionEvent.httpRequestStarted.trace,
+      requestFields = event.httpConnectionEvent.httpRequestStarted.fields,
+    )
+  }
+
+  internal fun withHttpThread(event: NetworkInspectorProtocol.Event) =
+    copy(
+      updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
+      threads = threads + event.toJavaThread(),
+    )
+
+  internal fun withRequestPayload(event: NetworkInspectorProtocol.Event) =
+    copy(
+      updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
+      requestPayload = event.httpConnectionEvent.requestPayload.payload,
+    )
+
+  internal fun withRequestCompleted(event: NetworkInspectorProtocol.Event): HttpData {
+    val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    return copy(
+      updateTimeUs = timestamp,
+      requestCompleteTimeUs = timestamp,
+    )
+  }
+
+  internal fun withResponseStarted(event: NetworkInspectorProtocol.Event): HttpData {
+    val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    return copy(
+      updateTimeUs = timestamp,
+      responseStartTimeUs = timestamp,
+      responseFields = event.httpConnectionEvent.httpResponseStarted.fields,
+    )
+  }
+
+  internal fun withResponsePayload(event: NetworkInspectorProtocol.Event) =
+    copy(
+      updateTimeUs = TimeUnit.NANOSECONDS.toMicros(event.timestamp),
+      rawResponsePayload = event.httpConnectionEvent.responsePayload.payload,
+    )
+
+  internal fun withResponseCompleted(event: NetworkInspectorProtocol.Event): HttpData {
+    val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    return copy(
+      updateTimeUs = timestamp,
+      responseCompleteTimeUs = timestamp,
+    )
+  }
+
+  internal fun withHttpClosed(event: NetworkInspectorProtocol.Event): HttpData {
+    val timestamp = TimeUnit.NANOSECONDS.toMicros(event.timestamp)
+    return copy(
+      updateTimeUs = timestamp,
+      connectionEndTimeUs = timestamp,
+    )
+  }
+
+  internal fun intersectsRange(range: Range): Boolean {
+    val start = requestStartTimeUs
+    val end = updateTimeUs
+    val min = range.min.toLong()
+    val max = range.max.toLong()
+    return start <= max && end >= min
+  }
 
   class ContentType(private val contentType: String) {
     val isEmpty = contentType.isEmpty()
@@ -191,3 +265,6 @@ data class HttpData(
  * https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
  */
 data class JavaThread(val id: Long, val name: String)
+
+private fun NetworkInspectorProtocol.Event.toJavaThread() =
+  JavaThread(httpConnectionEvent.httpThread.threadId, httpConnectionEvent.httpThread.threadName)

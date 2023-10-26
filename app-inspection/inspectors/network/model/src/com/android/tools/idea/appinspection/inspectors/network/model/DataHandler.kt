@@ -17,13 +17,14 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.adtui.model.Range
+import com.android.tools.idea.appinspection.inspectors.network.model.analytics.NetworkInspectorTracker
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.JavaThread
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap
-import java.util.concurrent.TimeUnit.NANOSECONDS
+import java.util.concurrent.CopyOnWriteArrayList
 import studio.network.inspection.NetworkInspectorProtocol.Event
+import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_CLOSED
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_REQUEST_COMPLETED
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_REQUEST_STARTED
@@ -35,13 +36,19 @@ import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Un
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.RESPONSE_PAYLOAD
 
 /** Creates and collects [HttpData] from incoming `HttpConnectionEvent`s */
-internal class HttpDataCollector {
+internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
+  private val speedData = CopyOnWriteArrayList<Event>()
   @GuardedBy("itself") private val httpDataMap = Long2ObjectLinkedOpenHashMap<HttpData>()
 
-  fun processEvent(event: Event) {
-    val httpConnectionEvent = event.httpConnectionEvent
-    val id = httpConnectionEvent.connectionId
+  fun handleSpeedEvent(event: Event) {
+    speedData.add(event)
+  }
 
+  fun handleHttpConnectionEvent(event: Event) {
+    val httpConnectionEvent = event.httpConnectionEvent
+    trackUsage(httpConnectionEvent)
+
+    val id = httpConnectionEvent.connectionId
     val data =
       synchronized(httpDataMap) { httpDataMap.getOrPut(id) { HttpData.createHttpData(id) } }
 
@@ -69,81 +76,22 @@ internal class HttpDataCollector {
     }
   }
 
-  fun getDataForRange(range: Range) =
+  fun getSpeedForRange(range: Range) = speedData.searchRange(range)
+
+  fun getHttpDataForRange(range: Range) =
     synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
       .sortedBy { it.requestStartTimeUs }
+
+  private fun trackUsage(event: HttpConnectionEvent) {
+    if (event.hasHttpResponseIntercepted()) {
+      val interception = event.httpResponseIntercepted
+      usageTracker.trackResponseIntercepted(
+        statusCode = interception.statusCode,
+        headerAdded = interception.headerAdded,
+        headerReplaced = interception.headerReplaced,
+        bodyReplaced = interception.bodyReplaced,
+        bodyModified = interception.bodyModified
+      )
+    }
+  }
 }
-
-private fun HttpData.withRequestStarted(event: Event): HttpData {
-  val timestamp = NANOSECONDS.toMicros(event.timestamp)
-  return copy(
-    updateTimeUs = timestamp,
-    requestStartTimeUs = timestamp,
-    url = event.httpConnectionEvent.httpRequestStarted.url,
-    method = event.httpConnectionEvent.httpRequestStarted.method,
-    trace = event.httpConnectionEvent.httpRequestStarted.trace,
-    requestFields = event.httpConnectionEvent.httpRequestStarted.fields,
-  )
-}
-
-private fun HttpData.withHttpThread(event: Event) =
-  copy(
-    updateTimeUs = NANOSECONDS.toMicros(event.timestamp),
-    threads = threads + event.toJavaThread(),
-  )
-
-private fun HttpData.withRequestPayload(event: Event) =
-  copy(
-    updateTimeUs = NANOSECONDS.toMicros(event.timestamp),
-    requestPayload = event.httpConnectionEvent.requestPayload.payload,
-  )
-
-private fun HttpData.withRequestCompleted(event: Event): HttpData {
-  val timestamp = NANOSECONDS.toMicros(event.timestamp)
-  return copy(
-    updateTimeUs = timestamp,
-    requestCompleteTimeUs = timestamp,
-  )
-}
-
-private fun HttpData.withResponseStarted(event: Event): HttpData {
-  val timestamp = NANOSECONDS.toMicros(event.timestamp)
-  return copy(
-    updateTimeUs = timestamp,
-    responseStartTimeUs = timestamp,
-    responseFields = event.httpConnectionEvent.httpResponseStarted.fields,
-  )
-}
-
-private fun HttpData.withResponsePayload(event: Event) =
-  copy(
-    updateTimeUs = NANOSECONDS.toMicros(event.timestamp),
-    rawResponsePayload = event.httpConnectionEvent.responsePayload.payload,
-  )
-
-private fun HttpData.withResponseCompleted(event: Event): HttpData {
-  val timestamp = NANOSECONDS.toMicros(event.timestamp)
-  return copy(
-    updateTimeUs = timestamp,
-    responseCompleteTimeUs = timestamp,
-  )
-}
-
-private fun HttpData.withHttpClosed(event: Event): HttpData {
-  val timestamp = NANOSECONDS.toMicros(event.timestamp)
-  return copy(
-    updateTimeUs = timestamp,
-    connectionEndTimeUs = timestamp,
-  )
-}
-
-private fun HttpData.intersectsRange(range: Range): Boolean {
-  val start = requestStartTimeUs
-  val end = updateTimeUs
-  val min = range.min.toLong()
-  val max = range.max.toLong()
-  return start <= max && end >= min
-}
-
-private fun Event.toJavaThread() =
-  JavaThread(httpConnectionEvent.httpThread.threadId, httpConnectionEvent.httpThread.threadName)
