@@ -18,6 +18,7 @@ package com.android.tools.idea.templates
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.RichVersion
+import com.android.tools.idea.gradle.dsl.api.util.LanguageLevelUtil
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Charsets
@@ -27,6 +28,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.text.StringUtil
@@ -35,11 +37,15 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.pom.java.LanguageLevel
+import com.intellij.util.lang.JavaVersion
 import java.io.File
 import java.io.IOException
 import java.security.InvalidParameterException
 import org.jetbrains.android.uipreview.EditorUtil.openEditor
 import org.jetbrains.android.uipreview.EditorUtil.selectEditor
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 
 /** Utility methods pertaining to templates for projects, modules, and activities. */
 object TemplateUtils {
@@ -212,6 +218,38 @@ object TemplateUtils {
   @JvmStatic
   fun hasExtension(file: File, extension: String): Boolean =
     Files.getFileExtension(file.name).equals(extension.trimStart { it == '.' }, ignoreCase = true)
+
+  /**
+   * Gets the Java version used by the Gradle JVM as a String for build.gradle files, for example
+   * JavaVersion.VERSION_17
+   *
+   * @param project the project
+   * @param defaultVersion the default version to return if the JVM can't be found
+   * @return the Java version
+   */
+  @JvmStatic
+  fun getJavaVersion(project: Project, defaultVersion: String = "JavaVersion.VERSION_17"): String {
+    // The user can set Gradle JDK in Settings > Build, Execution, Deployment > Build Tools > Gradle
+    val jvmPath =
+      project.basePath?.let {
+        GradleInstallationManager.getInstance().getGradleJvmPath(project, it)
+      }
+    val javaVersion = jvmPath?.let { SdkVersionUtil.getJdkVersionInfo(it)?.version }
+
+    return javaVersion?.let { convertJavaVersionToGradleString(it) } ?: defaultVersion
+  }
+
+  @VisibleForTesting
+  @JvmStatic
+  fun convertJavaVersionToGradleString(javaVersion: JavaVersion): String? {
+    // The JavaVersion needs to be converted to a LanguageLevel...
+    val languageLevel = LanguageLevel.parse(javaVersion.toString())
+
+    // ... so that it can be converted to a Gradle string
+    return languageLevel?.let {
+      LanguageLevelUtil.convertToGradleString(it, "JavaVersion.VERSION_17").toString()
+    }
+  }
 }
 
 /**

@@ -53,7 +53,6 @@ import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
@@ -584,6 +583,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val gradleName = ':' + name.trimStart(':')
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
     buildModel.android().dynamicFeatures().addListValue()?.setValue(gradleName)
+  }
+
+  override fun getJavaVersion(defaultVersion: String): String {
+    return TemplateUtils.getJavaVersion(project, defaultVersion)
   }
 
   fun applyChanges() {

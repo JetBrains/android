@@ -17,7 +17,8 @@ package com.android.tools.idea.npw.module.recipes.pureLibrary
 
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 
-fun buildGradle(javaVersion: String = "JavaVersion.VERSION_1_7", isKts: Boolean, useVersionCatalog: Boolean): String = """
+fun buildGradle(javaVersion: String, isKts: Boolean, useVersionCatalog: Boolean): String =
+  """
 ${emptyPluginsBlock(isKts = isKts, useVersionCatalog = useVersionCatalog)}
 
 java {

@@ -16,10 +16,12 @@
 package com.android.tools.idea.templates.recipe
 
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
@@ -27,6 +29,8 @@ import java.io.File
  * [RecipeExecutor] that collects references as a result of executing instructions in a recipe.
  */
 class FindReferencesRecipeExecutor(private val context: RenderingContext) : RecipeExecutor {
+  private val project: Project = context.project
+
   override fun save(source: String, to: File) {
     addTargetFile(to)
   }
@@ -106,4 +110,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
 
   override fun requireJavaVersion(version: String, kotlinSupport: Boolean) {}
   override fun addDynamicFeature(name: String, toModule: File) {}
+
+  override fun getJavaVersion(defaultVersion: String): String {
+    return TemplateUtils.getJavaVersion(project, defaultVersion)
+  }
 }
