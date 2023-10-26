@@ -8,7 +8,7 @@
     <option name="languageVersion" value="1.6" />
   </component>
   <component name="KotlinCompilerSettings">
-    <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xsam-conversions=class -Xstrict-java-nullability-assertions" />
+    <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xsam-conversions=class" />
   </component>
   <component name="KotlinJpsPluginSettings">
     <option name="version" value="1.8.21" />
