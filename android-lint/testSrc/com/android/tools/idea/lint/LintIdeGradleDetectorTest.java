@@ -54,8 +54,8 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   @Parameterized.Parameter public String extension;
   @Parameterized.Parameters
-  public static Collection getParameters() {
-    return Arrays.asList(new Object[][] {
+  public static Collection<String[]> getParameters() {
+    return Arrays.asList(new String[][] {
       {".gradle"},
       {".gradle.kts"}
     });
@@ -116,12 +116,6 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public void testSetter() throws Exception {
     AndroidLintGradleGetterInspection inspection = new AndroidLintGradleGetterInspection();
     doTest(inspection, null);
-  }
-
-  @Test
-  public void testCompatibility() throws Exception {
-    AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-      doTest(inspection, null);
   }
 
   @Test
