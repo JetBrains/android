@@ -227,7 +227,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
         myDynamicGroup.copyFromGroup(selectionToolbar);
       }
       updateBottomActionBarBorder();
-      myCenterToolbar.clearPresentationCache();
+      myCenterToolbar.reset();
     }
 
     refreshToolbarState();
