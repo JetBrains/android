@@ -76,7 +76,7 @@ fun <T : Any> Project.dumpAndroidProjectView(
           getIcon(0)?.toText()
         }
         else {
-          "[${significantLayers.joinToString(separator = ", ") { it.toText().orEmpty() }}] / ${getToolTip(true)}"
+          "[${significantLayers.joinToString(separator = ", ") { it?.toText().orEmpty() }}] / ${getToolTip(true)}"
         }
       }
       else -> "$this (${javaClass.simpleName})"

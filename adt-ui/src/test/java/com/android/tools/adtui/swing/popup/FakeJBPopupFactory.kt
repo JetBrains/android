@@ -39,6 +39,7 @@ import com.intellij.openapi.ui.popup.TreePopupStep
 import com.intellij.openapi.util.Condition
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.popup.ActionPopupStep
+import com.intellij.util.ui.Html
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
@@ -292,6 +293,14 @@ class FakeJBPopupFactory : JBPopupFactory() {
   }
 
   override fun createHtmlTextBalloonBuilder(htmlContent: String,
+                                            icon: Icon?,
+                                            textColor: Color?,
+                                            fillColor: Color?,
+                                            listener: HyperlinkListener?): BalloonBuilder {
+    TODO("Not yet implemented")
+  }
+
+  override fun createHtmlTextBalloonBuilder(html: Html,
                                             icon: Icon?,
                                             textColor: Color?,
                                             fillColor: Color?,

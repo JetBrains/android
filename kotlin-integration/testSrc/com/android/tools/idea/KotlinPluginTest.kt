@@ -64,7 +64,7 @@ class KotlinPluginTest {
     assertThat(plugin).isNotNull()
     assertThat(plugin!!.untilBuild).endsWith(".*")
     // test build numbers such as AI-232.9559.62.2321.SNAPSHOT
-    val buildNumber = PluginManagerCore.getBuildNumber()
+    val buildNumber = PluginManagerCore.buildNumber
     assertThat(PluginManagerCore.checkBuildNumberCompatibility(plugin, buildNumber)).isNull()
     // test build numbers such as AI-232.9559.62
     val apiVersion = ApplicationInfoEx.getInstanceEx().apiVersionAsNumber

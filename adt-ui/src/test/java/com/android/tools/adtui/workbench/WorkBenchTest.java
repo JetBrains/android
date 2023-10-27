@@ -237,7 +237,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
   }
 
   private void fireComponentResize() throws Exception {
-    Field dispatcherField = mySplitter.getClass().getDeclaredField("myDividerDispatcher");
+    Field dispatcherField = mySplitter.getClass().getDeclaredField("dividerDispatcher");
     dispatcherField.setAccessible(true);
     @SuppressWarnings("unchecked")
     EventDispatcher<ComponentListener> dispatcher = (EventDispatcher<ComponentListener>)dispatcherField.get(mySplitter);

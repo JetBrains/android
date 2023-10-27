@@ -30,7 +30,7 @@ import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
-import org.apache.commons.lang.builder.EqualsBuilder
+import org.apache.commons.lang3.builder.EqualsBuilder
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4

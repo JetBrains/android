@@ -28,7 +28,7 @@ import com.intellij.execution.filters.OpenFileHyperlinkInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import org.apache.commons.lang.RandomStringUtils
+import org.apache.commons.lang3.RandomStringUtils
 import org.junit.Before
 import org.junit.Test
 import org.mockito.ArgumentMatchers

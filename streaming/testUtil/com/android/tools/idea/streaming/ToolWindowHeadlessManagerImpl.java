@@ -11,6 +11,7 @@ import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.RegisterToolWindowTask;
@@ -43,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -151,11 +153,6 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
 
   @Override
   public void setMaximized(@NotNull ToolWindow window, boolean maximized) {
-  }
-
-  @Override
-  public void initToolWindow(@NotNull ToolWindowEP bean) {
-    doRegisterToolWindow(bean.id);
   }
 
   @Override
@@ -325,7 +322,16 @@ public class ToolWindowHeadlessManagerImpl extends ToolWindowManagerEx {
     }
 
     @Override
+    public @NotNull Supplier<@NlsContexts.TabTitle String> getStripeTitleProvider() {
+      return () -> "";
+    }
+
+    @Override
     public void setStripeTitle(@NotNull String title) {
+    }
+
+    @Override
+    public void setStripeTitleProvider(@NotNull Supplier<@NlsContexts.TabTitle @NotNull String> title) {
     }
 
     @Override

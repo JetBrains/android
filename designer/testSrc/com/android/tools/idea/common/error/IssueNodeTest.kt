@@ -85,7 +85,7 @@ class IssueNodeTest {
     node.update()
 
     val expected = PresentationData()
-    expected.setIcon(HighlightDisplayLevel.find(HighlightSeverity.INFORMATION).icon)
+    expected.setIcon(HighlightDisplayLevel.find(HighlightSeverity.INFORMATION)!!.icon)
     expected.addText("Test summary", SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.tooltip = "Test summary"
 

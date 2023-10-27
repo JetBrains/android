@@ -44,7 +44,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.SpeedSearchBase
-import com.intellij.ui.ToolbarUtil
+import com.intellij.ui.ToolbarService
 import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.ExceptionUtil
 import com.intellij.util.ReflectionUtil
@@ -379,10 +379,10 @@ private class HeadlessDialogWrapperPeer(
     val result = CompletableFuture<Any?>()
     val anCancelAction = AnCancelAction()
     val rootPane = getRootPane()
-    UIUtil.decorateWindowHeader(rootPane)
+    ComponentUtil.decorateWindowHeader(rootPane)
     val window = window
     if (window is JDialog && !window.isUndecorated) {
-      ToolbarUtil.setTransparentTitleBar(window, rootPane) { runnable: Runnable ->
+      ToolbarService.getInstance().setTransparentTitleBar(window, rootPane) { runnable: Runnable ->
         Disposer.register(wrapper.disposable, runnable::run)
       }
     }
