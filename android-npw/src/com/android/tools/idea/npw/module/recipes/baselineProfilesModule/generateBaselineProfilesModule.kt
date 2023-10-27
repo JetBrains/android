@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
@@ -58,10 +57,8 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   useGmd: Boolean,
   useVersionCatalog: Boolean
 ) {
-  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
-  val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
-  val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
+  val targetApplicationId = targetModuleGradleModel.applicationId
 
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
