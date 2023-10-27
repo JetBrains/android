@@ -129,13 +129,13 @@ open class ContextualCallPathBrowser(
     kind: String,
     psiElement: PsiElement
   ): HierarchyTreeStructure {
-    val reverseEdges = kind == CallHierarchyBrowserBase.CALLER_TYPE
+    val reverseEdges = kind == getCallerType()
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
   }
 
   override fun createTrees(typeToTreeMap: MutableMap<in String, in JTree>) {
     val baseOnThisMethodAction = BaseOnThisMethodAction()
-    val kinds = arrayOf(CallHierarchyBrowserBase.CALLEE_TYPE, CallHierarchyBrowserBase.CALLER_TYPE)
+    val kinds = arrayOf(getCalleeType(), getCallerType())
     for (kind in kinds) {
       val tree = createTree(false)
       PopupHandler.installPopupMenu(
@@ -181,7 +181,7 @@ class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProv
     ContextualCallPathBrowser(target.project, graph, target)
 
   override fun browserActivated(hierarchyBrowser: HierarchyBrowser) {
-    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.CALLEE_TYPE)
+    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.getCalleeType())
   }
 }
 
