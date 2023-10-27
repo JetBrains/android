@@ -449,7 +449,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
   @NotNull
   private static IDeviceUsageTracker getIDeviceUsageTracker() {
     AdbSession session = AdbLibApplicationService.getInstance().getSession();
-    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> new IDeviceUsageTrackerImpl(session));
+    return session.getCache().getOrPut(IDEVICE_TRACKER_USAGE_KEY, () -> IDeviceUsageTrackerImpl.Companion.forDeviceImpl(session));
   }
 
   /**
