@@ -15,36 +15,19 @@
  */
 package com.android.tools.rendering
 
-import com.android.tools.rendering.api.IdeaModuleProvider
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
 import java.util.function.Supplier
-import org.jetbrains.annotations.TestOnly
 
 /**
  * Class providing the context for a ModuleClassLoader in which is being used. Gradle class
  * resolution depends only on [Module] but ASWB will also need the file to be able to correctly
  * resolve the classes.
- *
- * This should be a short living object since it retains a string reference to a [Module].
  */
-class ModuleRenderContext
-private constructor(
-  private val moduleProvider: IdeaModuleProvider,
+interface ModuleRenderContext {
   val fileProvider: Supplier<PsiFile?>
-) {
+
   val isDisposed: Boolean
-    get() = module.isDisposed
 
   val module: Module
-    get() = moduleProvider.getIdeaModule()
-
-  companion object {
-    @JvmStatic
-    fun forFile(module: IdeaModuleProvider, fileProvider: Supplier<PsiFile?>) =
-      ModuleRenderContext(module, fileProvider)
-
-    /** Always use one of the methods that can provide a file, only use this for testing. */
-    @TestOnly @JvmStatic fun forModule(module: Module) = ModuleRenderContext({ module }) { null }
-  }
 }

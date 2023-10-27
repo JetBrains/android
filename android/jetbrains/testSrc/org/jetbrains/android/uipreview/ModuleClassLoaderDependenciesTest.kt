@@ -18,7 +18,7 @@ package org.jetbrains.android.uipreview
 import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.util.toVirtualFile
-import com.android.tools.rendering.ModuleRenderContext.Companion.forModule
+import com.android.tools.idea.rendering.StudioModuleRenderContext.Companion.forModule
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module

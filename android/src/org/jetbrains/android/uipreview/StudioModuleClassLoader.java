@@ -6,6 +6,7 @@ import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PAC
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.projectsystem.ClassContent;
+import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.rendering.classloading.loaders.CachingClassLoaderLoader;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
@@ -365,7 +366,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @Nullable
   public ModuleRenderContext getModuleContext() {
     Module module = getModule();
-    return module == null ? null : ModuleRenderContext.forFile(() -> module, myPsiFileProvider);
+    return module == null ? null : StudioModuleRenderContext.forFile(() -> module, myPsiFileProvider);
   }
 
   /**

@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.toClassTransform
 import com.android.tools.rendering.classloading.useWithClassLoader
 import org.junit.Assert.assertFalse
@@ -37,7 +37,7 @@ class ModuleClassLoaderHatcheryTest {
     val hatchery = ModuleClassLoaderHatchery(1, 2, parentDisposable = project.testRootDisposable)
 
     StudioModuleClassLoaderManager.get().getPrivate(
-      null, ModuleRenderContext.forModule(project.module)).use { reference ->
+      null, StudioModuleRenderContext.forModule(project.module)).use { reference ->
       val donor = reference.classLoader
       val studioModuleClassLoaderCreationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
 
@@ -69,14 +69,14 @@ class ModuleClassLoaderHatcheryTest {
     val hatchery = ModuleClassLoaderHatchery(1, 2, parentDisposable = project.testRootDisposable)
 
     StudioModuleClassLoaderManager.get().getPrivate(
-      null, ModuleRenderContext.forModule(project.module)).useWithClassLoader { donor ->
+      null, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader { donor ->
       val studioModuleClassLoaderCreationContext = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor)
 
       val projectTransformations = toClassTransform(
         { TestClassVisitorWithId("project-id1") },
       )
       StudioModuleClassLoaderManager.get().getPrivate(
-        null, ModuleRenderContext.forModule(project.module), projectTransformations).useWithClassLoader { donor2 ->
+        null, StudioModuleRenderContext.forModule(project.module), projectTransformations).useWithClassLoader { donor2 ->
         val donor2Information = StudioModuleClassLoaderCreationContext.fromClassLoaderOrThrow(donor2)
 
         val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d ->
@@ -106,7 +106,7 @@ class ModuleClassLoaderHatcheryTest {
     val hatchery = ModuleClassLoaderHatchery(1, 2, parentDisposable = project.testRootDisposable)
     val parent1 = FirewalledResourcesClassLoader(null)
     StudioModuleClassLoaderManager.get().getPrivate(
-      parent1, ModuleRenderContext.forModule(project.module)).useWithClassLoader {  donor ->
+      parent1, StudioModuleRenderContext.forModule(project.module)).useWithClassLoader {  donor ->
       val cloner: (StudioModuleClassLoaderCreationContext) -> StudioModuleClassLoader? = { d ->
         d.createClassLoader()
       }

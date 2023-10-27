@@ -248,12 +248,7 @@ public class RenderTask {
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
-    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
-      RenderTask task = xmlFileProvider.get();
-      RenderXmlFile xmlFile = task != null ? task.getXmlFile() : null;
-      return xmlFile != null ? xmlFile.get() : null;
-    });
+    ModuleRenderContext moduleRenderContext = renderContext.getModule().createModuleRenderContext(new WeakReference<>(this));
     if (privateClassLoader) {
       myModuleClassLoaderReference = classLoaderManager.getPrivate(
         myLayoutLib.getClassLoader(),

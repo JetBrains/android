@@ -16,6 +16,7 @@
 @file:JvmName("ModuleRenderContexts")
 package org.jetbrains.android.uipreview
 
+import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.rendering.ModuleRenderContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiFile
@@ -26,5 +27,5 @@ import org.jetbrains.kotlin.idea.base.util.module
 fun forFile(file: PsiFile): ModuleRenderContext {
   val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
   val module = runReadAction { file.module!! }
-  return ModuleRenderContext.forFile({ module }) { runReadAction { filePointer.element } }
+  return StudioModuleRenderContext.forFile({ module }) { runReadAction { filePointer.element } }
 }
