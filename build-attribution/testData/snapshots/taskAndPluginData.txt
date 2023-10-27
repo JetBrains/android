@@ -62,8 +62,8 @@ Task                          : :app:generateDebugResValues
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResources
-    TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : UNCATEGORIZED
+    TaskType                      : com.android.build.gradle.internal.tasks.ValidateResourcesTask
+    PrimaryTaskCategory           : VERIFICATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:javaPreCompileDebug
     TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
@@ -257,8 +257,8 @@ Task                          : :lib:generateDebugResValues
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugResources
-    TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : UNCATEGORIZED
+    TaskType                      : com.android.build.gradle.internal.tasks.ValidateResourcesTask
+    PrimaryTaskCategory           : VERIFICATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:javaPreCompileDebug
     TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
