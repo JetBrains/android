@@ -412,9 +412,10 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     options.setClientManager(StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() ?
                              getClientManager() :
                              null);
-    options.setIDeviceManagerFactory(StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get() ?
-                                     getIDeviceManagerFactory() :
-                                     null);
+    if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_IDEVICE_MANAGER.get()) {
+      LOG.info("'adblib.migration.ddmlib.idevicemanager' flag is set to true");
+      options.setIDeviceManagerFactory(getIDeviceManagerFactory());
+    }
     options.setIDeviceUsageTracker(ADBLIB_MIGRATION_DDMLIB_IDEVICE_USAGE_TRACKER.get() ?
                                    getIDeviceUsageTracker() :
                                    null);
