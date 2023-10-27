@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.deviceprovisioner.runCatchingDeviceActionException
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION
 import icons.StudioIcons
@@ -47,23 +48,32 @@ internal class StartStopButton(
     val repairPresentation = repairDeviceAction?.presentation
 
     addActionListener {
+      val project = projectFromComponentContext(this@StartStopButton)
       when (baseIcon) {
         activationPresentation.value.icon ->
           handle.scope.launch {
             if (handle.state.properties.isVirtual == true) {
               DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_LAUNCH_ACTION)
             }
-            activationAction.activate()
+            runCatchingDeviceActionException(project, handle.state.properties.title) {
+              activationAction.activate()
+            }
           }
         deactivationPresentation.value.icon ->
           handle.scope.launch {
             if (handle.state.properties.isVirtual == true) {
               DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_STOP_ACTION)
             }
-            deactivationAction.deactivate()
+            runCatchingDeviceActionException(project, handle.state.properties.title) {
+              deactivationAction.deactivate()
+            }
           }
         repairPresentation?.value?.icon -> {
-          handle.scope.launch { repairDeviceAction?.repair() }
+          handle.scope.launch {
+            runCatchingDeviceActionException(project, handle.state.properties.title) {
+              repairDeviceAction?.repair()
+            }
+          }
         }
         else -> {}
       }

@@ -20,6 +20,8 @@ import com.android.adblib.DeviceInfo
 import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.ActivationAction
 import com.android.sdklib.deviceprovisioner.DeactivationAction
+import com.android.sdklib.deviceprovisioner.DeviceActionDisabledException
+import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
@@ -71,9 +73,13 @@ internal class FakeDeviceHandle(
 
   inner class FakeActivationAction : ActivationAction {
     var invoked = 0
+    var exception: DeviceActionException? = null
 
     override suspend fun activate() {
-      invoked++
+      if (presentation.value.enabled) {
+        exception?.let { throw it }
+        invoked++
+      } else throw DeviceActionDisabledException(this)
     }
 
     override val presentation =

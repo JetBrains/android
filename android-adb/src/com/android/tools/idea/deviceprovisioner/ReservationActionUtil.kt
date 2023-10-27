@@ -17,6 +17,4 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-internal fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
-
 internal fun AnActionEvent.reservationAction() = deviceHandle()?.reservationAction

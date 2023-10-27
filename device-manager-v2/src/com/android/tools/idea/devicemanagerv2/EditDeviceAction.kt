@@ -17,12 +17,12 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import kotlinx.coroutines.launch
 
 /** Invokes the DeviceHandle's edit action, if available. */
 class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
@@ -39,6 +39,6 @@ class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Ac
       DeviceManagerEvent.EventKind.VIRTUAL_EDIT_ACTION
     )
 
-    handle.scope.launch { handle.editAction?.edit() }
+    handle.launchCatchingDeviceActionException(project = e.project) { editAction?.edit() }
   }
 }

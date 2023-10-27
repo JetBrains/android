@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
+import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -40,7 +41,8 @@ internal class FakeDeviceTemplate(
 
   override val activationAction =
     object : TemplateActivationAction {
-      override suspend fun activate(duration: Duration?) = throw UnsupportedOperationException()
+      override suspend fun activate(duration: Duration?) =
+        throw DeviceActionException("Device is unavailable")
 
       override val durationUsed = false
       override val presentation =

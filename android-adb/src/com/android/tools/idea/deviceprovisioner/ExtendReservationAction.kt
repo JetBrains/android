@@ -21,7 +21,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Constraints
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.text.StringUtil
-import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -57,8 +56,7 @@ class ExtendReservationAction : DefaultActionGroup() {
           val timeAccuracy = TimeUnit.MINUTES.toMillis(1)
           val timeLeft = (endTime - Instant.now().toEpochMilli()) / timeAccuracy * timeAccuracy
           val timeLeftText =
-            if (timeLeft < 1) "less than 1 min"
-            else StringUtil.formatDuration(timeLeft)
+            if (timeLeft < 1) "less than 1 min" else StringUtil.formatDuration(timeLeft)
           presentation.text = "Reservation: $timeLeftText remaining"
         }
 
@@ -69,6 +67,7 @@ class ExtendReservationAction : DefaultActionGroup() {
   }
 
   class HalfHour : ExtendFixedDurationAction(Duration.ofMinutes(30))
+
   class OneHour : ExtendFixedDurationAction(Duration.ofHours(1))
 
   open class ExtendFixedDurationAction(private val duration: Duration) : AnAction() {
@@ -78,9 +77,11 @@ class ExtendReservationAction : DefaultActionGroup() {
       event.presentation.isEnabledAndVisible = event.reservationAction() != null
     }
 
-    override fun actionPerformed(e: AnActionEvent) {
-      val handle = e.deviceHandle() ?: return
-      handle.scope.launch { handle.reservationAction?.reserve(duration) }
+    override fun actionPerformed(event: AnActionEvent) {
+      val handle = event.deviceHandle() ?: return
+      handle.launchCatchingDeviceActionException(project = event.project) {
+        reservationAction?.reserve(duration)
+      }
     }
   }
 }

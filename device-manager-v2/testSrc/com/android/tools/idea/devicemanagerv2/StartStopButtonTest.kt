@@ -16,16 +16,20 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.adblib.utils.createChildScope
+import com.android.sdklib.deviceprovisioner.DeviceActionException
 import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.EmptyIcon
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.android.tools.idea.testing.TestMessagesDialog
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.TestDialogManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.RuleChain
 import icons.StudioIcons
@@ -108,6 +112,34 @@ class StartStopButtonTest {
       assertThat(usageTrackerRule.deviceManagerEventKinds())
         .containsExactly(VIRTUAL_LAUNCH_ACTION, VIRTUAL_STOP_ACTION)
 
+      handle.scope.cancel()
+    }
+
+  @Test
+  fun activationError(): Unit =
+    testScope.runTest {
+      val handle =
+        FakeDeviceHandle(
+          this.createChildScope(),
+          initialProperties =
+            DeviceProperties.buildForTest {
+              isVirtual = true
+              icon = EmptyIcon.DEFAULT
+            }
+        )
+      handle.activationAction.presentation.update { it.copy(enabled = true) }
+      handle.activationAction.exception = DeviceActionException("Activation error")
+      handle.deactivationAction.presentation.update { it.copy(enabled = false) }
+
+      val button = StartStopButton(handle, handle.activationAction, handle.deactivationAction, null)
+
+      val dialog = TestMessagesDialog(Messages.OK)
+      TestDialogManager.setTestDialog(dialog)
+
+      SwingUtilities.invokeAndWait { button.doClick() }
+      advanceUntilIdle()
+
+      assertThat(dialog.displayedMessage).isEqualTo("Activation error")
       handle.scope.cancel()
     }
 

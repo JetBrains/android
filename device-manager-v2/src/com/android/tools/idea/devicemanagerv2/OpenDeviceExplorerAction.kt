@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.tools.idea.device.explorer.DeviceExplorerService
+import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
