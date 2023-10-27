@@ -904,8 +904,14 @@ class ComposePreviewRepresentation(
       // Trigger refreshes on available previews changes
       launch(workerThread) {
         filteredPreviewElementsInstancesFlow.collectLatest {
-          invalidate()
-          requestRefresh()
+          if (it.isEmpty() && isUiCheckPreview) {
+            // If there are no previews for UI Check mode, then the original composable
+            // was renamed or removed. We should quit UI Check mode.
+            restorePrevious()
+          } else {
+            invalidate()
+            requestRefresh()
+          }
         }
       }
 

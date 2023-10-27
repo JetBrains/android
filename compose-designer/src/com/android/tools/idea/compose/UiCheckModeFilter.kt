@@ -101,7 +101,8 @@ sealed class UiCheckModeFilter {
 
     override fun filterPreviewInstances(
       previewInstances: Collection<ComposePreviewElementInstance>
-    ): Collection<ComposePreviewElementInstance> = uiCheckPreviews
+    ): Collection<ComposePreviewElementInstance> =
+      if (basePreviewInstance in previewInstances) uiCheckPreviews else emptyList()
 
     override fun filterGroups(groups: Set<PreviewGroup.Named>): Set<PreviewGroup.Named> =
       uiCheckPreviewGroups
