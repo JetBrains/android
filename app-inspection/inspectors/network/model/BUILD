@@ -25,5 +25,6 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
     ],
 )

@@ -67,10 +67,14 @@ class NetworkInspectorDataSourceImpl(
       messenger.eventFlow
         .map { Event.parseFrom(it) }
         .collect { event ->
-          notifyTimelineExtended(event.timestamp)
-          when {
-            event.hasSpeedEvent() -> dataHandler.handleSpeedEvent(event)
-            event.hasHttpConnectionEvent() -> dataHandler.handleHttpConnectionEvent(event)
+          val result =
+            when {
+              event.hasSpeedEvent() -> dataHandler.handleSpeedEvent(event)
+              event.hasHttpConnectionEvent() -> dataHandler.handleHttpConnectionEvent(event)
+              else -> null
+            }
+          if (result?.updateTimeline == true) {
+            notifyTimelineExtended(event.timestamp)
           }
         }
     }

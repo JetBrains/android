@@ -22,7 +22,9 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import it.unimi.dsi.fastutil.longs.Long2ObjectLinkedOpenHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.TimeUnit.NANOSECONDS
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_CLOSED
@@ -34,23 +36,58 @@ import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.Un
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.HTTP_THREAD
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.REQUEST_PAYLOAD
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent.UnionCase.RESPONSE_PAYLOAD
+import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 
-/** Creates and collects [HttpData] from incoming `HttpConnectionEvent`s */
+/**
+ * Handles [HttpConnectionEvent]s and [SpeedEvent]s
+ *
+ * 'HttpConnectionEvent's are assembled into [HttpData] objects and 'SpeedEvent's are collected to a
+ * list.
+ *
+ * The functions [handleSpeedEvent] and [handleHttpConnectionEvent] return a [Result] object
+ * containing hints to the caller.
+ */
 internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
+  private val logger = thisLogger()
+
   private val speedData = CopyOnWriteArrayList<Event>()
   @GuardedBy("itself") private val httpDataMap = Long2ObjectLinkedOpenHashMap<HttpData>()
 
-  fun handleSpeedEvent(event: Event) {
+  /**
+   * A collection of all the currently active connections. This is used to determine if a
+   * [SpeedEvent] should extend the timeline or not. The reason this is needed is that we often get
+   * out-of-band (OOB) speed events.
+   *
+   * An OOB speed event is a non-zero speed event that occurs outside a tracked connection. These
+   * can be caused non-HTTP network traffic or HTTP traffic from an unsupported transport layer.
+   * These events cause spikes in the timeline which do not have corresponding connection entries in
+   * the ConnectionView. We should still probably display these in the timeline, but we don't want
+   * to automatically extend the timeline when they arrive.
+   *
+   * The heuristics for updating the timeline due to a speed event is as follows: Once a connection
+   * is started, all speed events extend the timeline until the first zero-event with a timestamp
+   * later than (greater than) the connection end time.
+   */
+  private val activeConnections: MutableMap<Long, ActiveConnection> = Long2ObjectOpenHashMap()
+
+  fun handleSpeedEvent(event: Event): Result {
     speedData.add(event)
+    return Result(shouldUpdateTimeline(event))
   }
 
-  fun handleHttpConnectionEvent(event: Event) {
+  fun handleHttpConnectionEvent(event: Event): Result {
     val httpConnectionEvent = event.httpConnectionEvent
     trackUsage(httpConnectionEvent)
 
     val id = httpConnectionEvent.connectionId
     val data =
-      synchronized(httpDataMap) { httpDataMap.getOrPut(id) { HttpData.createHttpData(id) } }
+      synchronized(httpDataMap) {
+        httpDataMap.getOrPut(id) {
+          activeConnections[id] = ActiveConnection(event.timestamp)
+          logger.debug { "Connection added: id=$id time=${event.timestamp.nanosToSeconds()}" }
+          HttpData.createHttpData(id)
+        }
+      }
 
     val newData =
       when (httpConnectionEvent.unionCase) {
@@ -64,16 +101,16 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
         RESPONSE_PAYLOAD -> data.withResponsePayload(event)
         HTTP_THREAD -> data.withHttpThread(event)
         else -> {
-          thisLogger().warn("Unexpected event: ${httpConnectionEvent.unionCase}")
-          return
+          logger.warn("Unexpected event: ${httpConnectionEvent.unionCase}")
+          return Result(updateTimeline = false)
         }
       }
-    synchronized(httpDataMap) {
-      httpDataMap[id] = newData
-      thisLogger().debug {
-        "Connection $id: ${httpConnectionEvent.unionCase}. total: ${httpDataMap.count()}"
-      }
+    if (newData.connectionEndTimeUs > 0) {
+      activeConnections.getValue(id).endNs = event.timestamp
+      logger.debug { "Connection ended: id=$id time=${event.timestamp.nanosToSeconds()}" }
     }
+    synchronized(httpDataMap) { httpDataMap[id] = newData }
+    return Result(updateTimeline = true)
   }
 
   fun getSpeedForRange(range: Range) = speedData.searchRange(range)
@@ -81,6 +118,24 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
   fun getHttpDataForRange(range: Range) =
     synchronized(httpDataMap) { httpDataMap.values.filter { it.intersectsRange(range) } }
       .sortedBy { it.requestStartTimeUs }
+
+  private fun shouldUpdateTimeline(event: Event): Boolean {
+    val endedConnections = findEndedConnections(event)
+    val isActive = hasActiveConnection(event)
+    if (logger.isDebugEnabled) {
+      logger.debug("SpeedEvent: time=${event.timestamp.nanosToSeconds()} isZero=${event.isZero()}")
+      logger.debug("  Connections: $activeConnections")
+      logger.debug("  isActive=$isActive")
+      logger.debug("  Ended connections=$endedConnections")
+    }
+    val result = isActive || endedConnections.isNotEmpty()
+    if (event.isZero()) {
+      logger.debug { "  Removing connections: $endedConnections" }
+      endedConnections.forEach { activeConnections.remove(it) }
+    }
+    logger.debug { "  shouldUpdateTimeline: $result" }
+    return result
+  }
 
   private fun trackUsage(event: HttpConnectionEvent) {
     if (event.hasHttpResponseIntercepted()) {
@@ -94,4 +149,30 @@ internal class DataHandler(private val usageTracker: NetworkInspectorTracker) {
       )
     }
   }
+
+  private fun findEndedConnections(event: Event) =
+    activeConnections.filter { it.value.endsBefore(event.timestamp) }.keys
+
+  private fun hasActiveConnection(event: Event) =
+    activeConnections.values.find { it.contains(event.timestamp) } != null
+
+  /**
+   * Contains hints to the caller of [handleSpeedEvent] & [handleHttpConnectionEvent]
+   *
+   * @param updateTimeline true if the timeline should be updated after handling the event
+   */
+  class Result(val updateTimeline: Boolean)
+
+  private data class ActiveConnection(val startNs: Long, var endNs: Long = Long.MAX_VALUE) {
+    fun contains(timestampNs: Long) = timestampNs in startNs..endNs
+
+    fun endsBefore(timestampNs: Long) = endNs < timestampNs
+
+    override fun toString() =
+      "ActiveConnection: ${startNs.nanosToSeconds()}-${if (endNs < Long.MAX_VALUE) endNs.nanosToSeconds() else "..."}"
+  }
 }
+
+private fun Event.isZero() = speedEvent.rxSpeed == 0L && speedEvent.txSpeed == 0L
+
+private fun Long.nanosToSeconds() = "%.03f".format(NANOSECONDS.toMillis(this).toFloat() / 1000)
