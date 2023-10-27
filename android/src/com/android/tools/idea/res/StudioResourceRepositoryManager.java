@@ -445,6 +445,13 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     });
   }
 
+  @Nullable
+  private LocalResourceRepository getCachedTestAppResources() {
+    synchronized (TEST_RESOURCES_LOCK) {
+      return myTestAppResources;
+    }
+  }
+
   /**
    * Returns the resource repository with test resources defined in the given module.
    */
@@ -641,6 +648,10 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
       // away oldLibraryResourceMap.
       if (oldLibraryResourceMap != null && oldLibraryResourceMap.size() == Integer.MAX_VALUE) {
         throw new AssertionError();
+      }
+
+      if (getCachedTestAppResources() instanceof TestAppResourceRepository testAppResources) {
+        testAppResources.updateRoots(myFacet, getTestModuleResources());
       }
     }
     catch (IllegalStateException e) {

@@ -26,7 +26,8 @@ import com.android.tools.res.MultiResourceRepository
 import com.google.common.collect.ImmutableList
 import org.jetbrains.android.facet.AndroidFacet
 
-class TestAppResourceRepository private constructor(
+class TestAppResourceRepository
+private constructor(
   facet: AndroidFacet,
   localResources: List<LocalResourceRepository>,
   libraryResources: Collection<AarResourceRepository>
@@ -36,36 +37,57 @@ class TestAppResourceRepository private constructor(
     setChildren(localResources, libraryResources, ImmutableList.of())
   }
 
+  fun updateRoots(facet: AndroidFacet, moduleTestResources: LocalResourceRepository) {
+    invalidateResourceDirs()
+    setChildren(
+      computeLocalRepositories(facet, moduleTestResources),
+      computeLibraryRepositories(facet),
+      ImmutableList.of()
+    )
+  }
+
   companion object {
     @JvmStatic
     @Slow
-    fun create(
+    fun create(facet: AndroidFacet, moduleTestResources: LocalResourceRepository) =
+      TestAppResourceRepository(
+        facet,
+        computeLocalRepositories(facet, moduleTestResources),
+        computeLibraryRepositories(facet)
+      )
+
+    private fun computeLocalRepositories(
       facet: AndroidFacet,
       moduleTestResources: LocalResourceRepository
-    ): TestAppResourceRepository {
+    ): List<LocalResourceRepository> {
       val localRepositories = mutableListOf(moduleTestResources)
       val androidModuleSystem = facet.getModuleSystem()
       localRepositories.addAll(
         androidModuleSystem
           .getAndroidTestDirectResourceModuleDependencies()
-          //
           .filter { it.getHolderModule() != facet.holderModule }
           .mapNotNull { it.androidFacet }
           .map { StudioResourceRepositoryManager.getModuleResources(it) }
       )
 
-      val aarCache = AarResourceRepositoryCache.instance
-      val libraryRepositories: Collection<AarResourceRepository> = androidModuleSystem
-        .getAndroidLibraryDependencies(DependencyScopeType.ANDROID_TEST)
-        .map { aarCache.getSourceRepository(it) }
-        .toList()
-
       if (facet.configuration.isLibraryProject) {
-        // In library projects, there's only one APK when testing and the test R class contains all resources.
-        facet.mainModule.androidFacet?.let { localRepositories += StudioResourceRepositoryManager.getAppResources(it) }
+        // In library projects, there's only one APK when testing and the test R class contains all
+        // resources.
+        facet.mainModule.androidFacet?.let {
+          localRepositories += StudioResourceRepositoryManager.getAppResources(it)
+        }
       }
 
-      return TestAppResourceRepository(facet, localRepositories, libraryRepositories)
+      return localRepositories
+    }
+
+    private fun computeLibraryRepositories(facet: AndroidFacet): List<AarResourceRepository> {
+      val androidModuleSystem = facet.getModuleSystem()
+      val aarCache = AarResourceRepositoryCache.instance
+
+      return androidModuleSystem
+        .getAndroidLibraryDependencies(DependencyScopeType.ANDROID_TEST)
+        .map { aarCache.getSourceRepository(it) }
     }
   }
 }
