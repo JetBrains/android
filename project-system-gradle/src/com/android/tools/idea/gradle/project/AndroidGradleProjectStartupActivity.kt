@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project
 import com.android.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -30,7 +29,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.Companion.shouldDisableForceUpgrades
-import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.getIdeModuleSourceSet
 import com.android.tools.idea.gradle.project.sync.idea.ModuleUtil.linkAndroidModuleGroup
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL
@@ -73,6 +71,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.base.util.isAndroidModule
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -286,10 +285,9 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
             listOf(ModuleSetupData(module, node, modelFactory))
           } else {
             sourceSets
-              .filter { it.isAndroidSourceSet() }
-              .map {
-                val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
-                ModuleSetupData(moduleId, it, modelFactory)
+              .mapNotNull { sourceSet ->
+                val moduleId = modulesById[sourceSet.data.id] ?: run { requestSync("Module ${sourceSet.data.id} not found"); return }
+                if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, modelFactory) else null
               } + ModuleSetupData(module, node, modelFactory)
           }
         }
@@ -386,6 +384,3 @@ private fun Module.hasOnlyNativeRoots() =
     roots.sourceRoots.isNotEmpty() &&
     roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
   }
-
-private fun DataNode<GradleSourceSetData>.isAndroidSourceSet() =
-  data.getIdeModuleSourceSet() is IdeModuleWellKnownSourceSet
