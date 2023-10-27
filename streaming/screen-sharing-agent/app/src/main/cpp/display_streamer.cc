@@ -310,7 +310,7 @@ void DisplayStreamer::Run() {
       if (status != AMEDIA_OK) {
         Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "Display %d: AMediaCodec_createInputSurface returned %d", display_id_, status);
       }
-      if (virtual_display.HasDisplay()) {
+      if (Agent::feature_level() >= 34) {
         virtual_display.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
         virtual_display.SetSurface(surface);
       } else {
