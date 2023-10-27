@@ -25,7 +25,6 @@ import com.android.tools.environment.Logger;
 import com.android.utils.ILogger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.system.CpuArch;
 import java.io.File;
@@ -62,20 +61,20 @@ public class LayoutLibraryLoader {
     final File platformFolder = new File(platformFolderPath);
     if (!platformFolder.isDirectory()) {
       throw new RenderingException(
-        LayoutlibBundle.message("android.directory.cannot.be.found.error", FileUtil.toSystemDependentName(platformFolderPath)));
+        LayoutlibBundle.message("android.directory.cannot.be.found.error", platformFolderPath));
     }
 
     final File buildProp = new File(platformFolder, SdkConstants.FN_BUILD_PROP);
     if (!buildProp.isFile()) {
       throw new RenderingException(
-        LayoutlibBundle.message("android.file.not.exist.error", FileUtil.toSystemDependentName(buildProp.getPath())));
+        LayoutlibBundle.message("android.file.not.exist.error", buildProp.getPath()));
     }
 
     final ILogger logger = new LogWrapper(LOG);
     final Map<String, String> buildPropMap = ProjectProperties.parsePropertyFile(new BufferingFileWrapper(buildProp), logger);
     final ILayoutLog layoutLog = new LayoutLogWrapper(LOG);
 
-    String dataPath = FileUtil.toSystemIndependentName(target.getPath(IAndroidTarget.DATA).toString());
+    String dataPath = target.getPath(IAndroidTarget.DATA).toString().replace('\\', '/');
     String[] keyboardPaths = new String[] { dataPath + "/keyboards/Generic.kcm" };
 
     LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
