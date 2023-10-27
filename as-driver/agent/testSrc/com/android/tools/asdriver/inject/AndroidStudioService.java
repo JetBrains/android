@@ -23,6 +23,7 @@ import com.android.tools.idea.bleak.BleakResult;
 import com.android.tools.idea.bleak.StudioBleakOptions;
 import com.android.tools.idea.io.grpc.Server;
 import com.android.tools.idea.io.grpc.ServerBuilder;
+import com.android.tools.idea.io.grpc.netty.NettyServerBuilder;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.google.common.base.Objects;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
@@ -62,6 +63,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,7 +84,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   private static BleakOptions bleakOptions = StudioBleakOptions.getDefaults();
 
   static public void start() {
-    ServerBuilder<?> builder = ServerBuilder.forPort(0);
+    ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress("localhost", 0));
     builder.addService(new AndroidStudioService());
     Server server = builder.build();
 
