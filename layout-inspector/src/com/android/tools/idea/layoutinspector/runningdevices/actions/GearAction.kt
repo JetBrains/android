@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -46,4 +47,29 @@ private fun showGearPopup(component: Component, x: Int, y: Int, actions: List<An
   val popupMenu =
     ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group)
   popupMenu.component.show(component, x, y)
+}
+
+enum class UiConfig {
+  HORIZONTAL,
+  VERTICAL,
+}
+
+/** Split the UI vertically. */
+class VerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(LayoutInspectorBundle.message("split.vertical"), "", AllIcons.Actions.SplitVertically) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.VERTICAL)
+  }
+}
+
+/** Split the UI horizontally. */
+class HorizontalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(
+    LayoutInspectorBundle.message("split.horizontal"),
+    "",
+    AllIcons.Actions.SplitHorizontally
+  ) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.HORIZONTAL)
+  }
 }

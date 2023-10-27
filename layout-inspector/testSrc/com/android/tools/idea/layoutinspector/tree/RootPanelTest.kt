@@ -181,4 +181,30 @@ class RootPanelTest {
       .hasSize(0)
     assertThat(layoutInspectorRule.inspectorModel.connectionListeners.size()).isEqualTo(0)
   }
+
+  @Test
+  fun testForegroundProcessIsIgnoredIfCurrentClientIsConnected() = withEmbeddedLayoutInspector {
+    val fakeTreePanel = JPanel()
+    val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
+
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
+    rootPanel.layoutInspector = layoutInspectorRule.inspector
+
+    // Start connecting, loading should show
+    layoutInspectorRule.launchSynchronously = false
+    layoutInspectorRule.startLaunch(2)
+    layoutInspectorRule.processes.selectedProcess =
+      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    layoutInspectorRule.awaitLaunch()
+
+    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
+
+    layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
+      fakeDeviceDescriptor,
+      ForegroundProcess(0, "fakeprocess"),
+      false
+    )
+
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.SHOW_TREE)
+  }
 }

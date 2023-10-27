@@ -25,7 +25,10 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.HorizontalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
+import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
@@ -43,6 +46,9 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
+import javax.swing.JComponent
+import javax.swing.JPanel
+import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
 
@@ -51,7 +57,6 @@ private const val WORKBENCH_NAME = "Layout Inspector"
  *
  * @param deviceId The id of selected tab.
  * @param tabComponents The components of the selected tab.
- * @param wrapLogic The logic used to wrap the tab in a workbench.
  */
 @UiThread
 data class SelectedTabState(
@@ -81,74 +86,24 @@ data class SelectedTabState(
     )
 ) : Disposable {
 
-  var wrapLogic: WrapLogic? = null
+  // TODO(b/304590546): restore config from previos session
+  private var uiConfig = UiConfig.HORIZONTAL
+  private var wrapLogic: WrapLogic? = null
 
   init {
     Disposer.register(tabComponents, this)
   }
 
+  @TestOnly
+  fun enableLayoutInspector(uiConfig: UiConfig) {
+    this.uiConfig = uiConfig
+    enableLayoutInspector()
+  }
+
   fun enableLayoutInspector() {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    wrapLogic =
-      WrapLogic(this, tabComponents.tabContentPanel, tabComponents.tabContentPanelContainer)
-
-    wrapLogic?.wrapComponent { disposable, centerPanel ->
-      val inspectorPanel = BorderLayoutPanel()
-      val toolsPanel = BorderLayoutPanel()
-
-      val toggleDeepInspectAction =
-        ToggleDeepInspectAction(
-          { layoutInspectorRenderer.interceptClicks },
-          { layoutInspectorRenderer.interceptClicks = it },
-          { layoutInspector.currentClient }
-        )
-
-      val processPicker =
-        TargetSelectionActionFactory.getSingleDeviceProcessPicker(
-          layoutInspector,
-          deviceId.serialNumber
-        )
-      val toolbar =
-        createEmbeddedLayoutInspectorToolbar(
-          toolsPanel,
-          layoutInspector,
-          processPicker,
-          listOf(
-            toggleDeepInspectAction,
-            // TODO(next CL) add actions
-            GearAction()
-          )
-        )
-
-      val workBench = createLayoutInspectorWorkbench(project, disposable, layoutInspector)
-      workBench.isFocusCycleRoot = false
-
-      toolsPanel.add(toolbar, BorderLayout.NORTH)
-      toolsPanel.add(workBench, BorderLayout.CENTER)
-      workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
-
-      val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
-      DataManager.registerDataProvider(workBench, layoutInspectorProvider)
-      DataManager.registerDataProvider(toolbar, layoutInspectorProvider)
-
-      Disposer.register(disposable) {
-        DataManager.removeDataProvider(workBench)
-        DataManager.removeDataProvider(toolbar)
-      }
-
-      val splitPanel =
-        OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
-          firstComponent = centerPanel
-          secondComponent = toolsPanel
-          setBlindZone { JBUI.insets(0, 1) }
-        }
-
-      val inspectorBanner = InspectorBanner(disposable, layoutInspector.notificationModel)
-      inspectorPanel.add(inspectorBanner, BorderLayout.NORTH)
-      inspectorPanel.add(splitPanel, BorderLayout.CENTER)
-      inspectorPanel
-    }
+    wrapUi(uiConfig)
     tabComponents.displayView.add(layoutInspectorRenderer)
 
     layoutInspector.inspectorModel.addSelectionListener(selectionChangedListener)
@@ -158,6 +113,112 @@ data class SelectedTabState(
     )
   }
 
+  /** Wrap the RD tab by injecting Embedded Layout Inspector UI. */
+  private fun wrapUi(uiConfig: UiConfig) {
+    wrapLogic =
+      WrapLogic(this, tabComponents.tabContentPanel, tabComponents.tabContentPanelContainer)
+
+    wrapLogic?.wrapComponent { disposable, centerPanel ->
+      val inspectorPanel = BorderLayoutPanel()
+
+      val mainPanel =
+        when (uiConfig) {
+          UiConfig.HORIZONTAL -> {
+            // Create a vertical split panel containing the device view at the top and the tool
+            // windows at the bottom.
+            val toolsPanel = createToolsPanel(disposable)
+            val splitPanel =
+              OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
+                firstComponent = centerPanel
+                secondComponent = toolsPanel
+                setBlindZone { JBUI.insets(0, 1) }
+              }
+            splitPanel
+          }
+          UiConfig.VERTICAL -> {
+            // Create a workbench containing the panels on the side and the device view at the
+            // center.
+            createToolsPanel(disposable, centerPanel)
+          }
+        }
+
+      val inspectorBanner = InspectorBanner(disposable, layoutInspector.notificationModel)
+      inspectorPanel.add(inspectorBanner, BorderLayout.NORTH)
+      inspectorPanel.add(mainPanel, BorderLayout.CENTER)
+      inspectorPanel
+    }
+  }
+
+  /** Unwrap the RD tab by removing Embedded Layout Inspector UI. */
+  private fun unwrapUi() {
+    wrapLogic?.let { Disposer.dispose(it) }
+    wrapLogic = null
+  }
+
+  /**
+   * Create a panel containing a toolbar and the workbench with the side panels and optionally
+   * [centerPanel] as the center panel.
+   */
+  private fun createToolsPanel(disposable: Disposable, centerPanel: JComponent? = null): JPanel {
+    val toolsPanel = BorderLayoutPanel()
+
+    val toolbar = createToolbar(toolsPanel)
+
+    val workBench =
+      createLayoutInspectorWorkbench(project, disposable, layoutInspector, centerPanel)
+    workBench.isFocusCycleRoot = false
+
+    val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
+    DataManager.registerDataProvider(toolsPanel, layoutInspectorProvider)
+    DataManager.registerDataProvider(toolbar, layoutInspectorProvider)
+    DataManager.registerDataProvider(workBench, layoutInspectorProvider)
+
+    Disposer.register(disposable) {
+      DataManager.removeDataProvider(toolsPanel)
+      DataManager.removeDataProvider(toolbar)
+      DataManager.removeDataProvider(workBench)
+    }
+
+    toolsPanel.add(toolbar, BorderLayout.NORTH)
+    toolsPanel.add(workBench, BorderLayout.CENTER)
+    workBench.component.border = JBUI.Borders.customLineTop(JBColor.border())
+    return toolsPanel
+  }
+
+  private fun createToolbar(targetComponent: JComponent): JComponent {
+    val toggleDeepInspectAction =
+      ToggleDeepInspectAction(
+        { layoutInspectorRenderer.interceptClicks },
+        { layoutInspectorRenderer.interceptClicks = it },
+        { layoutInspector.currentClient }
+      )
+
+    val processPicker =
+      TargetSelectionActionFactory.getSingleDeviceProcessPicker(
+        layoutInspector,
+        deviceId.serialNumber
+      )
+    return createEmbeddedLayoutInspectorToolbar(
+      targetComponent,
+      layoutInspector,
+      processPicker,
+      listOf(
+        toggleDeepInspectAction,
+        GearAction(VerticalSplitAction(::updateUi), HorizontalSplitAction(::updateUi))
+      )
+    )
+  }
+
+  private fun updateUi(uiConfig: UiConfig) {
+    if (this.uiConfig == uiConfig) {
+      return
+    } else {
+      this.uiConfig = uiConfig
+      unwrapUi()
+      wrapUi(uiConfig)
+    }
+  }
+
   override fun dispose() {
     disableLayoutInspector()
   }
@@ -165,8 +226,7 @@ data class SelectedTabState(
   private fun disableLayoutInspector() {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
-    wrapLogic?.let { Disposer.dispose(it) }
-    wrapLogic = null
+    unwrapUi()
 
     tabComponents.displayView.remove(layoutInspectorRenderer)
     layoutInspector.inspectorModel.removeSelectionListener(selectionChangedListener)
@@ -195,6 +255,7 @@ data class SelectedTabState(
     project: Project,
     parentDisposable: Disposable,
     layoutInspector: LayoutInspector,
+    centerPanel: JComponent?
   ): WorkBench<LayoutInspector> {
     ApplicationManager.getApplication().assertIsDispatchThread()
     val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
@@ -203,7 +264,12 @@ data class SelectedTabState(
         LayoutInspectorTreePanelDefinition(showGearAction = false, showHideAction = false),
         LayoutInspectorPropertiesPanelDefinition(showGearAction = false, showHideAction = false)
       )
-    workbench.init(layoutInspector, toolsDefinition, false)
+    if (centerPanel != null) {
+      workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
+    } else {
+      // Use a workbench] that only contains the side panels.
+      workbench.init(layoutInspector, toolsDefinition, false)
+    }
 
     return workbench
   }

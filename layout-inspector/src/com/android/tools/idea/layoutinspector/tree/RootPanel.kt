@@ -86,6 +86,11 @@ class RootPanel(
     }
 
   private val foregroundProcessListener = ForegroundProcessListener { _, _, isDebuggable ->
+    if (layoutInspector?.currentClient?.isConnected == true) {
+      // We got a foreground process event, but the current client is connected
+      return@ForegroundProcessListener
+    }
+
     if (isDebuggable) {
       updateUiState(UiState.WAITING_TO_CONNECT)
     } else {
