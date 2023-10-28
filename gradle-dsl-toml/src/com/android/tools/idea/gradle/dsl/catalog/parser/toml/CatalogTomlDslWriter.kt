@@ -28,6 +28,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.findParentOfType
 import org.toml.lang.psi.TomlArray
+import org.toml.lang.psi.TomlElement
 import org.toml.lang.psi.TomlElementTypes
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
@@ -38,6 +39,7 @@ import org.toml.lang.psi.TomlTable
 
 class CatalogTomlDslWriter(context: BuildModelContext): TomlDslWriter(context), CatalogTomlDslNameConverter {
 
+  val tables = listOf("versions", "libraries", "plugins", "bundles")
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     element.psiElement?.let { return it }
     val parentPsiElement = ensureParentPsi(element) ?: return null
@@ -62,6 +64,10 @@ class CatalogTomlDslWriter(context: BuildModelContext): TomlDslWriter(context), 
         is GradleDslExpressionList -> factory.createKeyValue(name, "[]")
         else -> factory.createKeyValue(name, "\"placeholder\"")
       }
+    }
+
+    if (psi is TomlTable && name in tables) {
+      return insertTable(psi, parentPsiElement, element, factory)
     }
 
     val anchor = getAnchorPsi(parentPsiElement, element.anchor)
@@ -107,6 +113,31 @@ class CatalogTomlDslWriter(context: BuildModelContext): TomlDslWriter(context), 
       }
     }
   }
+
+  private fun insertTable(psiElement: TomlTable, file: PsiElement, element: GradleDslElement, factory: TomlPsiFactory): PsiElement? =
+    insertTable(psiElement, file, factory).also { element.psiElement = it }
+
+  private fun insertTable(psiElement: TomlTable, file: PsiElement, factory: TomlPsiFactory): PsiElement? {
+    val index = psiElement.orderIndex()
+    val existingTables = file.children.filterIsInstance<TomlTable>()
+    // first element is always 0
+    val constraints = existingTables.map { c -> c.orderIndex() }.runningFold(0, ::maxOf)
+    val position = constraints.withIndex().reversed().find { index >= it.value }
+    check(position != null)
+    return if (file.children.isEmpty() || position.index == 0) {
+      val addedElement = file.addAfter(psiElement, null)
+      if (existingTables.isNotEmpty()) file.addAfter(factory.createNewline(), addedElement)
+      addedElement
+    }
+    else {
+      val addedElement = file.addAfter(psiElement, existingTables[position.index-1])
+      file.addBefore(factory.createNewline(), addedElement)
+      addedElement
+    }
+  }
+
+
+  private fun TomlTable.orderIndex() = tables.indexOf(header.key?.text)
 
   private fun getAnchorPsi(parent: PsiElement, anchorDsl: GradleDslElement?): PsiElement? {
     var anchor = anchorDsl?.let{ findLastPsiElementIn(it) }
