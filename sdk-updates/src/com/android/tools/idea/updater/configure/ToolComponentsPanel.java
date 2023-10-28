@@ -23,7 +23,6 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.installer.MavenInstallListener;
 import com.android.sdklib.repository.meta.DetailsTypes;
-import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
 import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.google.common.annotations.VisibleForTesting;
@@ -204,11 +203,6 @@ public class ToolComponentsPanel {
   }
 
   private static boolean shouldAlwaysHide(@NotNull String path) {
-    String prefix = getRepoPackagePrefix(path);
-    if (prefix.equals(PatchInstallerUtil.PATCHER_PATH_PREFIX)) {
-      // We don't want to show the patcher in the UI
-      return true;
-    }
     if (isChromeOSAndIsNotHWAccelerated() && CHROME_OS_INCOMPATIBLE_PATHS.contains(path)) {
       return true;
     }

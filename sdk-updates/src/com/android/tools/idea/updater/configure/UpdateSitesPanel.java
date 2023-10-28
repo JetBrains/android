@@ -46,7 +46,6 @@ public class UpdateSitesPanel {
   private JPanel mySourcesLoadingPanel;
   @SuppressWarnings("unused") private AsyncProcessIcon mySourcesLoadingIcon;
   private JCheckBox myForceHttp;
-  private JCheckBox myDisableSdkPatches;
   private SourcesTableModel mySourcesTableModel;
   private static SettingsController ourSettingsController = StudioSettingsController.getInstance();
 
@@ -135,14 +134,12 @@ public class UpdateSitesPanel {
 
   public boolean isModified() {
     return mySourcesTableModel.isSourcesModified()
-           || ourSettingsController.getForceHttp() != myForceHttp.isSelected()
-           || ourSettingsController.getDisableSdkPatches() != myDisableSdkPatches.isSelected();
+           || ourSettingsController.getForceHttp() != myForceHttp.isSelected();
   }
 
   public void reset() {
     mySourcesTableModel.reset();
     myForceHttp.setSelected(ourSettingsController.getForceHttp());
-    myDisableSdkPatches.setSelected(ourSettingsController.getDisableSdkPatches());
   }
 
   public void setConfigurable(@NotNull SdkUpdaterConfigurable configurable) {
@@ -155,7 +152,6 @@ public class UpdateSitesPanel {
       public void run() {
         mySourcesTableModel.save(ProgressManager.getInstance().getProgressIndicator());
         ourSettingsController.setForceHttp(myForceHttp.isSelected());
-        ourSettingsController.setDisableSdkPatches(myDisableSdkPatches.isSelected());
       }
     }, "Saving Sources", false, null, myRootPanel);
   }

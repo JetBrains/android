@@ -22,7 +22,6 @@ import com.android.repository.api.SettingsController;
 import com.android.repository.impl.installer.BasicInstallerFactory;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.sdk.install.patch.PatchInstallerFactory;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,15 +42,7 @@ public final class StudioSdkInstallerUtil {
   @VisibleForTesting
   @NotNull
   InstallerFactory doCreateInstallerFactory(@NotNull AndroidSdkHandler sdkHandler) {
-    InstallerFactory factory;
-    InstallerFactory basicFactory = new BasicInstallerFactory();
-    if (mySettingsController.getDisableSdkPatches()) {
-      factory = basicFactory;
-    }
-    else {
-      factory = new PatchInstallerFactory();
-      factory.setFallbackFactory(basicFactory);
-    }
+    InstallerFactory factory = new BasicInstallerFactory();
     factory.setListenerFactory(new StudioSdkInstallListenerFactory(sdkHandler));
     return factory;
   }

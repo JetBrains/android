@@ -196,7 +196,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     }
     boolean found = false;
     long spaceToBeFreedUp = 0;
-    long patchesDownloadSize = 0, fullInstallationsDownloadSize = 0;
+    long fullInstallationsDownloadSize = 0;
     HtmlBuilder messageToDelete = new HtmlBuilder();
     if (!toDelete.isEmpty()) {
       found = true;
@@ -264,13 +264,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
 
         messageToInstall.listItem().add(getItemMessage(item));
 
-        Pair<Long, Boolean> itemDownloadSize = calculateDownloadSizeForPackage(item, packages);
-        if (itemDownloadSize.getSecond()) {
-          patchesDownloadSize += itemDownloadSize.getFirst();
-        }
-        else {
-          fullInstallationsDownloadSize += itemDownloadSize.getFirst();
-        }
+        long itemDownloadSize = calculateDownloadSizeForPackage(item);
+        fullInstallationsDownloadSize += itemDownloadSize;
       }
       for (RemotePackage dependency : dependencies.keySet()) {
         if (requestedPackages.containsKey(dependency)) {
@@ -287,13 +282,8 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
             messageToInstall.add(", ").add(requestIterator.next().getDisplayName());
           }
           messageToInstall.add(")");
-          Pair<Long, Boolean> itemDownloadSize = calculateDownloadSizeForPackage(dependency, packages);
-          if (itemDownloadSize.getSecond()) {
-            patchesDownloadSize += itemDownloadSize.getFirst();
-          }
-          else {
-            fullInstallationsDownloadSize += itemDownloadSize.getFirst();
-          }
+          long itemDownloadSize = calculateDownloadSizeForPackage(dependency);
+          fullInstallationsDownloadSize += itemDownloadSize;
         }
       }
       messageToInstall.endList();
@@ -303,7 +293,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
       Path location = getSdkHandler().getLocation();
       Pair<HtmlBuilder, HtmlBuilder> diskUsageMessages = getDiskUsageMessages(
         location,
-        fullInstallationsDownloadSize, patchesDownloadSize,
+        fullInstallationsDownloadSize,
         spaceToBeFreedUp);
       // Now form the summary message ordering the constituents properly.
       HtmlBuilder message = new HtmlBuilder();
@@ -368,30 +358,21 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
    * Attempts to calculate the download size based on package's archive metadata.
    *
    * @param remotePackage the package to calculate the download size for.
-   * @param packages      loaded repository packages obtained from the SDK handler.
    * @return A pair of long and boolean, where the first element denotes the calculated size,
    * and the second indicates whether it's a patch installation.
    */
-  private static Pair<Long, Boolean> calculateDownloadSizeForPackage(@NotNull RemotePackage remotePackage,
-                                                                     @NotNull RepositoryPackages packages) {
-    LocalPackage localPackage = packages.getLocalPackages().get(remotePackage.getPath());
+  private static long calculateDownloadSizeForPackage(@NotNull RemotePackage remotePackage) {
     Archive archive = remotePackage.getArchive();
     if (archive == null) {
       // There is not much we can do in this case, but it should "never be reached".
-      return Pair.of(0L, false);
+      return 0L;
     }
-    if (localPackage != null && !StudioSettingsController.getInstance().getDisableSdkPatches()) {
-      Archive.PatchType patch = archive.getPatch(localPackage.getVersion());
-      if (patch != null) {
-        return Pair.of(patch.getSize(), true);
-      }
-    }
-    return Pair.of(archive.getComplete().getSize(), false);
+    return archive.getComplete().getSize();
   }
 
   @VisibleForTesting
   static Pair<HtmlBuilder, HtmlBuilder> getDiskUsageMessages(@Nullable Path sdkRoot, long fullInstallationsDownloadSize,
-                                                             long patchesDownloadSize, long spaceToBeFreedUp) {
+                                                             long spaceToBeFreedUp) {
     HtmlBuilder message = new HtmlBuilder();
     message.add("Disk usage:\n");
     boolean issueDiskSpaceWarning = false;
@@ -399,10 +380,9 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
     if (spaceToBeFreedUp > 0) {
       message.listItem().add("Disk space that will be freed: " + new Storage(spaceToBeFreedUp).toUiString());
     }
-    long totalDownloadSize = patchesDownloadSize + fullInstallationsDownloadSize;
-    if (totalDownloadSize > 0) {
-      message.listItem().add("Estimated download size: " + new Storage(totalDownloadSize).toUiString());
-      long sdkRootUsageAfterInstallation = patchesDownloadSize + ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize
+    if (fullInstallationsDownloadSize > 0) {
+      message.listItem().add("Estimated download size: " + new Storage(fullInstallationsDownloadSize).toUiString());
+      long sdkRootUsageAfterInstallation = ESTIMATED_ZIP_DECOMPRESSION_RATE * fullInstallationsDownloadSize
                                            - spaceToBeFreedUp;
       message.listItem().add("Estimated disk space to be additionally occupied on SDK partition after installation: "
                              + new Storage(sdkRootUsageAfterInstallation).toUiString());

@@ -1217,10 +1217,6 @@
     <option name="android" hit="Android SDK Location:" />
     <option name="location" hit="Android SDK Location:" />
     <option name="sdk" hit="Android SDK Location:" />
-    <option name="diff" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="disable" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="patching" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="sdk" path="SDK Update Sites" hit="Disable SDK diff patching" />
     <option name="be" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
     <option name="fetched" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
     <option name="force" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />

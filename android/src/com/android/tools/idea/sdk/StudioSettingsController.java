@@ -60,16 +60,6 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
   }
 
   @Override
-  public boolean getDisableSdkPatches() {
-    return myState.myDisableSdkPatches;
-  }
-
-  @Override
-  public void setDisableSdkPatches(boolean disableSdkPatches) {
-    myState.myDisableSdkPatches = disableSdkPatches;
-  }
-
-  @Override
   @Nullable
   public Channel getChannel() {
     Channel res = null;
@@ -112,7 +102,6 @@ public class StudioSettingsController implements PersistentStateComponent<Studio
 
   public static class PersistentState {
     public boolean myForceHttp;
-    public boolean myDisableSdkPatches;
   }
 
   @NotNull
