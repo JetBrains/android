@@ -42,8 +42,6 @@ public:
 
   // Calls DisplayStreamer::SetVideoOrientation.
   static void SetVideoOrientation(int32_t display_id, int32_t orientation);
-  // Calls DisplayStreamer::SetVideoOrientation for all internal displays.
-  static void SetVideoOrientationOfInternalDisplays(int32_t orientation);
   // Calls DisplayStreamer::SetMaxVideoResolution.
   static void SetMaxVideoResolution(int32_t display_id, Size max_video_resolution);
   // Calls DisplayStreamer::GetDisplayInfo.
