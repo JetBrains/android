@@ -37,7 +37,10 @@
         "edit.svg": "studio/icons/avd/edit.svg",
         "pair-over-wifi.svg": "studio/icons/avd/pair-over-wifi.svg",
         "run.svg": "studio/icons/avd/run.svg",
-        "stop.svg": "studio/icons/avd/stop.svg"
+        "stop.svg": "studio/icons/avd/stop.svg",
+        "start-reservation.svg": "studio/icons/avd/start-reservation.svg",
+        "status-available-low.svg": "studio/icons/avd/status-available-low.svg",
+        "status-available-moderate.svg": "studio/icons/avd/status-available-moderate.svg"
       },
       "common": {
         "add.svg": "studio/icons/common/add.svg",

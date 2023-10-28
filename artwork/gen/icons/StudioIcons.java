@@ -72,6 +72,9 @@ public final class StudioIcons {
     /** 48x48 */ public static final @NotNull Icon PORTRAIT = load("studio/icons/avd/portrait.svg", 1098864076, 2);
     /** 16x16 */ public static final @NotNull Icon RUN = load("studio/icons/avd/run.svg", 1485052188, 2);
     /** 16x16 */ public static final @NotNull Icon START_MIRROR = load("studio/icons/avd/start-mirror.svg", 993440079, 2);
+    /** 16x16 */ public static final @NotNull Icon START_RESERVATION = load("studio/icons/avd/start-reservation.svg", 291438360, 2);
+    /** 16x16 */ public static final @NotNull Icon STATUS_AVAILABLE_LOW = load("studio/icons/avd/status-available-low.svg", 914181622, 2);
+    /** 16x16 */ public static final @NotNull Icon STATUS_AVAILABLE_MODERATE = load("studio/icons/avd/status-available-moderate.svg", 1363836083, 2);
     /** 16x16 */ public static final @NotNull Icon STATUS_DECORATOR_OFFLINE = load("studio/icons/avd/status-decorator-offline.svg", 530425490, 2);
     /** 16x16 */ public static final @NotNull Icon STATUS_DECORATOR_ONLINE = load("studio/icons/avd/status-decorator-online.svg", 1292709177, 2);
     /** 16x16 */ public static final @NotNull Icon STOP_MIRROR = load("studio/icons/avd/stop-mirror.svg", 591663081, 2);
