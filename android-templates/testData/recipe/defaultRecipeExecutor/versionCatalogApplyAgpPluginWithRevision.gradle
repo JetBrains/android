@@ -1,3 +1,3 @@
 plugins {
-  alias(libs.plugins.androidApplication800)
+  alias(libs.plugins.comAndroidApplication)
 }

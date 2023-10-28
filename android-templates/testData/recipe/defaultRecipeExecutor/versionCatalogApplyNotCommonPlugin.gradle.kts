@@ -1,3 +1,3 @@
 plugins {
-  alias(libs.plugins.not.common.plugin)
+  alias(libs.plugins.not)
 }

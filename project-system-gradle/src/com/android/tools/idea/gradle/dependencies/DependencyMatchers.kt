@@ -17,9 +17,14 @@ package com.android.tools.idea.gradle.dependencies
 
 import com.android.ide.common.gradle.Dependency
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.PluginDeclarationModel
 
 interface DependencyMatcher {
   fun match(model: LibraryDeclarationModel): Boolean
+}
+
+interface PluginMatcher {
+  fun match(model: PluginDeclarationModel): Boolean
 }
 
 class ExactDependencyMatcher(val compactNotation: String) : DependencyMatcher {
@@ -39,4 +44,13 @@ class GroupNameDependencyMatcher(val compactNotation: String) : DependencyMatche
 
   override fun match(model: LibraryDeclarationModel) =
     with(model) { group().toString() == group && name().toString() == name }
+}
+
+class ExactPluginMatcher(val compactNotation: String) : PluginMatcher {
+  override fun match(model: PluginDeclarationModel) =
+    model.compactNotation() == compactNotation
+}
+
+class IdPluginMatcher(val id: String) : PluginMatcher {
+  override fun match(model: PluginDeclarationModel) = model.id().toString() == id
 }

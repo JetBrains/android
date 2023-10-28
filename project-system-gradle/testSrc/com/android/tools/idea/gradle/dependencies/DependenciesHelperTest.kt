@@ -35,7 +35,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testSimpleAddWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
            },
            {
@@ -49,7 +49,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testAddToBuildscriptWithCatalog() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addClasspathDependency("com.example.libs:lib2:1.0")
            },
            {
@@ -63,7 +63,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testSimpleAddNoCatalog() {
     doTest(SIMPLE_APPLICATION,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addDependency("api", "com.example.libs:lib2:1.0", moduleModel)
            },
            {
@@ -75,7 +75,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testAddToClasspathNoCatalog() {
     doTest(SIMPLE_APPLICATION,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addClasspathDependency("com.example.libs:lib2:1.0")
            },
            {
@@ -87,7 +87,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testAddDependencyWithExceptions() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
@@ -106,7 +106,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testAddToBuildScriptWithExceptions() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addClasspathDependency("com.example.libs:lib2:1.0",
                                            listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
                                            ExactDependencyMatcher("com.example.libs:lib2:1.0"),
@@ -124,7 +124,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testAddToBuildScriptWithNoVersion() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addDependency("implementation", "com.example.libs:lib2", moduleModel)
            },
            {
@@ -143,7 +143,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testAddToBuildScriptWithExistingDependency() {
     doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addDependency("implementation",
                                   "junit:junit:999",
                                   listOf(),
@@ -161,7 +161,7 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   @Test
   fun testSimpleAddNoCatalogWithExceptions() {
     doTest(SIMPLE_APPLICATION,
-           { moduleModel, helper ->
+           { _, moduleModel, helper ->
              helper.addDependency("api",
                                   "com.example.libs:lib2:1.0",
                                   listOf(ArtifactDependencySpecImpl.create("com.example.libs:lib3")!!),
@@ -175,15 +175,53 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            })
   }
 
+  @Test
+  fun testSimpleAddPlugin() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("pluginId"), projectModel!!, moduleModel)
+           },
+           {
+             val catalogContent = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalogContent).contains("example-foo = \"10.0\"")
+             assertThat(catalogContent).contains("exampleFoo = { id = \"com.example.foo\", version.ref = \"example-foo\"")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.exampleFoo) apply false")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("alias(libs.plugins.exampleFoo)")
+           })
+  }
+
+  @Test
+  fun testSimpleAddPluginNoCatalog() {
+    doTest(SIMPLE_APPLICATION,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel
+             assertThat(projectModel).isNotNull()
+             helper.addPlugin("com.example.foo", "10.0", false, IdPluginMatcher("pluginId"), projectModel!!, moduleModel)
+           },
+           {
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("id 'com.example.foo' version '10.0' apply false")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("apply plugin: 'com.example.foo'")
+           })
+  }
+
   private fun doTest(projectPath: String,
-                     change: (model: GradleBuildModel, helper: DependenciesHelper) -> Unit,
+                     change: (projectBuildModel: ProjectBuildModel, model: GradleBuildModel, helper: DependenciesHelper) -> Unit,
                      assert: () -> Unit) {
     loadProject(projectPath)
     val projectBuildModel = ProjectBuildModel.get(project)
     val moduleModel: GradleBuildModel? = projectBuildModel.getModuleBuildModel(project.findModule("app"))
     assertThat(moduleModel).isNotNull()
     val helper = DependenciesHelper(projectBuildModel)
-    change.invoke(moduleModel!!, helper)
+    change.invoke(projectBuildModel, moduleModel!!, helper)
     WriteCommandAction.runWriteCommandAction(project) {
       projectBuildModel.applyChanges()
       moduleModel.applyChanges()

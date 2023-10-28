@@ -27,9 +27,9 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
+import com.android.tools.idea.gradle.dependencies.IdPluginMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
@@ -121,9 +121,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
       else -> null
     }
-  }
-  private val versionCatalogModel: GradleVersionCatalogModel? by lazy {
-    projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
   }
 
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
@@ -225,10 +222,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
+    val projectModel = projectBuildModel ?: return
+    val dependenciesHelper = DependenciesHelper(projectModel)
     if (revision == null) {
       // When the revision is null, just apply the plugin without a revision.
       // Version catalogs don't support the plugins without versions.
-      buildModel.applyPluginIfNone(plugin)
+      dependenciesHelper.addPlugin(plugin, buildModel)
       return
     }
 
@@ -242,27 +241,15 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (pluginsBlockToModify == null) {
       // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
       // just apply the plugin without a revision.
-      buildModel.applyPluginIfNone(plugin)
+      dependenciesHelper.addPlugin(plugin, buildModel)
       return
     }
 
     val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
     val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
-    val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
-    if (versionCatalogModel != null) {
-      val referenceToPlugin = getOrAddPluginToVersionCatalog(versionCatalogModel, plugin, resolvedVersion)
-      if (targetPluginModel == null && referenceToPlugin != null) {
-        pluginsBlockToModify.applyPlugin(referenceToPlugin, applyFlag)
-      }
-      buildModel.applyPluginIfNone(plugin, referenceToPlugin)
-    } else {
-      if (targetPluginModel == null) {
-        pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
-      }
-      buildModel.applyPluginIfNone(plugin)
-    }
+    dependenciesHelper.addPlugin(plugin, resolvedVersion, applyFlag, IdPluginMatcher(plugin), pluginsBlockToModify, buildModel)
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
@@ -654,28 +641,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (valueType == ValueType.NONE) {
       if (value.startsWith('$')) ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) }
       else setValue(value)
-    }
-  }
-
-  private fun GradleBuildModel.applyPluginIfNone(plugin: String, referenceTo: ReferenceTo? = null) {
-    // b/193012182 - Some plugins have different names but are identical and we don't want to apply them more than once
-    fun defaultPluginName(name: String) = when (name) {
-      "kotlin-android" -> "org.jetbrains.kotlin.android"
-      "kotlin" -> "org.jetbrains.kotlin.jvm"
-      else -> name
-    }
-
-    val defaultName = defaultPluginName(plugin)
-    if (plugins().none { defaultPluginName(it.name().forceString()) == defaultName }) {
-      if (versionCatalogModel != null && referenceTo != null) {
-        applyPlugin(referenceTo, null)
-      } else {
-        applyPlugin(plugin)
-      }
-
-      if (versionCatalogModel == null && referenceTo != null) {
-        LOG.error("No Version Catalog model found, but we're trying to add a reference to a plugin: $referenceTo")
-      }
     }
   }
 

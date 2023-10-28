@@ -368,9 +368,8 @@ pluginManagement {
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 kotlin = "1.7.20"
-[libraries]
 [plugins]
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
@@ -399,11 +398,11 @@ fakePlugin = { id = "fake.plugin", version.ref = "kotlin" }
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 kotlin = "100"
-kotlin1720 = "1.7.20"
+kotlinVersion = "1.7.20"
 [libraries]
 [plugins]
 fakePlugin = { id = "fake.plugin", version.ref = "kotlin" }
-kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin1720" }
+jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
@@ -424,10 +423,9 @@ pluginManagement {
 
     verifyFileContents(myVersionCatalogFile, """
 [versions]
-not-common-plugin = "1.0.2"
-[libraries]
+not = "1.0.2"
 [plugins]
-not-common-plugin = { id = "not.common.plugin", version.ref = "not-common-plugin" }
+not = { id = "not.common.plugin", version.ref = "not" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_NOT_COMMON_PLUGIN_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_NOT_COMMON_PLUGIN_BUILD_FILE)
@@ -491,7 +489,7 @@ agp = "8.0.0"
 [libraries]
 [plugins]
 androidApplication = { id = "fake.plugin", version.ref = "fake" }
-androidApplication800 = { id = "com.android.application", version.ref = "agp" }
+comAndroidApplication = { id = "com.android.application", version.ref = "agp" }
     """)
     verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_SETTING_FILE)
     verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_BUILD_FILE)
@@ -647,11 +645,11 @@ fake-plugin = { id = "fake.plugin", version.ref = "agp" }
     verifyFileContents(myVersionCatalogFile, """
 [versions]
 agp = "1.0.0"
-agp2 = "8.0.0"
+agpVersion = "8.0.0"
 [libraries]
 [plugins]
 fake-plugin = { id = "fake.plugin", version.ref = "agp" }
-androidLibrary = { id = "com.android.library", version.ref = "agp2" }
+androidLibrary = { id = "com.android.library", version.ref = "agpVersion" }
     """)
   }
 
