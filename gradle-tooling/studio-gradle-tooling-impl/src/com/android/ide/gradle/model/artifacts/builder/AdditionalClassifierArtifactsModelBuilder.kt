@@ -21,9 +21,9 @@ import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsImpl
 import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsModelImpl
+import com.android.ide.gradle.model.artifacts.impl.ModuleIdentifierImpl
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
@@ -123,12 +123,7 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
 
   private fun getComponentIds(parameter: AdditionalClassifierArtifactsModelParameter) =
     parameter.artifactIdentifiers.map {
-      DefaultModuleComponentIdentifier(
-        object : ModuleIdentifier {
-          override fun getGroup() = it.groupId
-          override fun getName() = it.artifactId
-        }, it.version
-      )
+      DefaultModuleComponentIdentifier(ModuleIdentifierImpl(it.groupId, it.artifactId), it.version)
     }
 
   private fun getArtifacts(project: Project,
