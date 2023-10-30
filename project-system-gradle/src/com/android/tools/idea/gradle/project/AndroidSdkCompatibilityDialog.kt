@@ -164,7 +164,7 @@ class AndroidSdkCompatibilityDialog(
   }
 
   companion object {
-    const val UPDATE_STUDIO_BUTTON_TEXT = "Upgrade Android Studio"
+    const val UPDATE_STUDIO_BUTTON_TEXT = "Check for Updates"
     const val DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT = "Don't ask for this project"
   }
 }

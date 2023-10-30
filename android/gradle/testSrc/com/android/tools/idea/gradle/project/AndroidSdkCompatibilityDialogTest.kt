@@ -77,9 +77,9 @@ class AndroidSdkCompatibilityDialogTest {
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(3)
       assertThat(buttons.map { btn -> btn.text }).containsAllOf(
-        "Close", "Upgrade Android Studio", "Don't ask for this project"
+        "Close", "Check for Updates", "Don't ask for this project"
       )
-      buttons.find { btn -> btn.text == "Upgrade Android Studio" }!!.doClick()
+      buttons.find { btn -> btn.text == "Check for Updates" }!!.doClick()
     }
     assertThat(dialog.exitCode).isEqualTo(DialogWrapper.OK_EXIT_CODE)
   }

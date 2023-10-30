@@ -23,7 +23,6 @@ import com.android.tools.idea.serverflags.protos.RecommendedVersions
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
