@@ -77,10 +77,10 @@ data class CustomConfigurationAttribute(
 )
 
 private object CustomModelDataContext : DataContext {
-  override fun getData(dataId: String): Any =
+  override fun getData(dataId: String): Any? =
     when (dataId) {
       IS_CUSTOM_MODEL.name -> true
-      else -> false
+      else -> null
     }
 }
 
