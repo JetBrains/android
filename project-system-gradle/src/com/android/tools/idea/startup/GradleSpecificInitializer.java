@@ -19,7 +19,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.checks.GradleDetector;
-import com.intellij.ide.ApplicationInitializedListener;
+import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
@@ -40,7 +40,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleOperationHelperExtensi
 /**
  * Performs Gradle-specific IDE initialization
  */
-public class GradleSpecificInitializer implements ApplicationInitializedListener {
+public class GradleSpecificInitializer extends ApplicationInitializedListenerJavaShim {
 
   // Note: this code runs quite early during Android Studio startup and directly affects app startup performance.
   // Any heavy work should be moved to a background thread and/or moved to a later phase.

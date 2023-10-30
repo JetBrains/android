@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.sun.tools.attach.VirtualMachine
+import kotlinx.coroutines.CoroutineScope
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -32,7 +33,7 @@ import java.nio.file.Paths
 class ThreadingChecker : ApplicationInitializedListener {
 
   /** Start receiving notifications from the threading agent. */
-  override fun componentsInitialized() {
+  override suspend fun execute(asyncScope: CoroutineScope) {
     val agentLoadedAtStartup = try {
       Class.forName("com.android.tools.instrumentation.threading.agent.Agent", false, null)
       true

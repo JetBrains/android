@@ -17,10 +17,11 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.projectImport.ProjectOpenProcessor
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor
 
 class DisableGradleProjectOpenProcessor : ApplicationInitializedListener {
-  override fun componentsInitialized() {
+  override suspend fun execute(asyncScope: CoroutineScope) {
     ProjectOpenProcessor.EXTENSION_POINT_NAME.point.unregisterExtension(GradleProjectOpenProcessor::class.java)
   }
 }

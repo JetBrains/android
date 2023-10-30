@@ -28,7 +28,7 @@ import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.ConsentDialog;
 import com.intellij.analytics.AndroidStudioAnalytics;
 import com.intellij.concurrency.JobScheduler;
-import com.intellij.ide.ApplicationInitializedListener;
+import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 
@@ -39,7 +39,7 @@ import com.intellij.openapi.application.ApplicationManager;
  * {@link GradleSpecificInitializer} instead.
  * </p>
  */
-public class AndroidStudioInitializer implements ApplicationInitializedListener {
+public class AndroidStudioInitializer extends ApplicationInitializedListenerJavaShim {
 
   @Override
   public void componentsInitialized() {

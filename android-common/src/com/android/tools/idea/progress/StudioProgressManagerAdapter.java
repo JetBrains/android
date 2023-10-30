@@ -17,7 +17,7 @@ package com.android.tools.idea.progress;
 
 import com.android.ProgressManagerAdapter;
 import com.android.annotations.NonNull;
-import com.intellij.ide.ApplicationInitializedListener;
+import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 
@@ -48,7 +48,7 @@ public final class StudioProgressManagerAdapter extends ProgressManagerAdapter {
 
   private StudioProgressManagerAdapter() {}
 
-  public static class Installer implements ApplicationInitializedListener {
+  public static class Installer extends ApplicationInitializedListenerJavaShim {
     @Override
     public void componentsInitialized() {
       ProgressManagerAdapter.setInstance(new StudioProgressManagerAdapter());

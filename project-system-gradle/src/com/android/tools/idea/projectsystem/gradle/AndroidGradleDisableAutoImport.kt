@@ -21,9 +21,10 @@ import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectAware
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectId
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.util.registry.Registry
+import kotlinx.coroutines.CoroutineScope
 
 class AndroidGradleDisableAutoImportInitializer : ApplicationInitializedListener {
-  override fun componentsInitialized() {
+  override suspend fun execute(asyncScope: CoroutineScope) {
     Registry.get("external.system.auto.import.disabled").setValue(true)
   }
 }
