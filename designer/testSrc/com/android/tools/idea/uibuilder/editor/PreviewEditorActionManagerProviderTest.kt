@@ -22,8 +22,7 @@ import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
-import kotlin.test.assertNotNull
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -46,13 +45,13 @@ class PreviewEditorActionManagerProviderTest {
     val sceneView = Mockito.mock(SceneView::class.java)
     for (type in ANIMATION_TYPES) {
       val actionProvider = PreviewEditorActionManagerProvider(surface, type)
-      assertNull(actionProvider.getSceneViewContextToolbar(sceneView))
+      assertTrue(actionProvider.getSceneViewContextToolbarActions(sceneView).isEmpty())
     }
 
     val nonAnimationTypes = DESIGNER_PREVIEW_FILE_TYPES - ANIMATION_TYPES
     for (type in nonAnimationTypes) {
       val actionProvider = PreviewEditorActionManagerProvider(surface, type)
-      assertNotNull(actionProvider.getSceneViewContextToolbar(sceneView))
+      assertTrue(actionProvider.getSceneViewContextToolbarActions(sceneView).isNotEmpty())
     }
   }
 }

@@ -36,17 +36,12 @@ import com.intellij.openapi.project.Project
 import icons.StudioIcons.Compose.Toolbar.RUN_ON_DEVICE
 import org.jetbrains.kotlin.idea.base.util.module
 
-/**
- * Action to run a Compose Preview on a device/emulator.
- *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- *   information.
- */
-internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) :
+/** Action to run a Compose Preview on a device/emulator. */
+internal class DeployToDeviceAction :
   AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {
 
   override fun actionPerformed(e: AnActionEvent) {
-    previewElement()?.let {
+    e.dataContext.previewElement()?.let {
       val psiElement = it.previewElementDefinitionPsi?.element
       val project = psiElement?.project ?: return@actionPerformed
       val module = psiElement.module ?: return@actionPerformed
@@ -58,7 +53,8 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
   override fun update(e: AnActionEvent) {
     super.update(e)
     val isTestFile =
-      previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
+      e.dataContext.previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) }
+        ?: false
     e.presentation.apply {
       val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isTestFile && !isEssentialsModeEnabled
@@ -108,7 +104,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     )
   }
 
-  private fun previewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+  private fun DataContext.previewElement() = getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 }
 
 /**

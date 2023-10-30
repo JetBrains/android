@@ -29,10 +29,9 @@ import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx
-import com.intellij.util.ui.JBUI
 import javax.swing.JComponent
 
 /** Wear tile specific [ActionManager] for the [DesignSurface]. */
@@ -48,33 +47,12 @@ internal class WearTilePreviewActionManager(
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
     createStatusIcon(PreviewStatusIcon(sceneView), surface)
 
-  override fun getSceneViewContextToolbar(sceneView: SceneView) =
-    ActionManagerEx.getInstanceEx()
-      .createActionToolbar(
-        "sceneView",
-        DefaultActionGroup(
-          listOf(Separator()) +
-            listOfNotNull(
-                EnableInteractiveAction(isEssentialsModeEnabled = EssentialsMode::isEnabled) {
-                  sceneView.scene.sceneManager.model.dataContext
-                },
-              )
-              .disabledIf { context -> isPreviewRefreshing(context) || sceneView.hasRenderErrors() }
-              .hideIfRenderErrors(sceneView)
-              .visibleOnlyInStaticPreview()
-        ),
-        horizontal = true,
-        decorateButtons = false
-      )
-      .apply {
-        // Do not allocate space for the "see more" chevron if not needed
-        setReservePlaceAutoPopupIcon(false)
-        setShowSeparatorTitles(true)
-        targetComponent = surface
-      }
-      .component
-      .apply {
-        isOpaque = false
-        border = JBUI.Borders.empty()
-      }
+  override fun getSceneViewContextToolbarActions(sceneView: SceneView): List<AnAction> =
+    listOf(Separator()) +
+      listOfNotNull(
+          EnableInteractiveAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
+        )
+        .disabledIf { context -> isPreviewRefreshing(context) || sceneView.hasRenderErrors() }
+        .hideIfRenderErrors(sceneView)
+        .visibleOnlyInStaticPreview()
 }

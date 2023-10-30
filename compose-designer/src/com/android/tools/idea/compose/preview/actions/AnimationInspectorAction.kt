@@ -22,18 +22,14 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
  * Action to open the Compose Animation Preview to analyze animations of a Compose Preview in
  * details.
- *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- *   information.
  */
-class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
+class AnimationInspectorAction :
   AnActionButton(
     message("action.animation.inspector.title"),
     message("action.animation.inspector.description"),
@@ -46,8 +42,7 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
       val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
-      isVisible =
-        dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
+      isVisible = e.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)?.hasAnimations == true
       text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
         if (isEssentialsModeEnabled)
@@ -57,8 +52,8 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val manager = dataContextProvider().getData(PreviewModeManager.KEY) ?: return
-    val previewElement = dataContextProvider().getData(PREVIEW_ELEMENT_INSTANCE) ?: return
+    val manager = e.dataContext.getData(PreviewModeManager.KEY) ?: return
+    val previewElement = e.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) ?: return
     manager.mode = PreviewMode.AnimationInspection(previewElement)
   }
 }

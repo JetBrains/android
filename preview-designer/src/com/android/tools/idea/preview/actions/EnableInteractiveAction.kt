@@ -20,7 +20,6 @@ import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 
@@ -31,14 +30,11 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
  *   when Essentials Mode is enabled.
  * @param essentialsModeDescription the description that will be used when the action is disabled
  *   due to Essentials Mode.
- * @param dataContextProvider returns the [DataContext] containing the Preview Mode manager
- *   associated information.
  */
 class EnableInteractiveAction(
   private val isEssentialsModeEnabled: () -> Boolean,
   private val essentialsModeDescription: String =
     message("action.interactive.essentials.mode.description.default"),
-  private val dataContextProvider: () -> DataContext,
 ) :
   AnActionButton(
     message("action.interactive.title"),
@@ -57,7 +53,7 @@ class EnableInteractiveAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val modelDataContext = dataContextProvider()
+    val modelDataContext = e.dataContext
     val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
     val previewElement = modelDataContext.getData(PREVIEW_ELEMENT_INSTANCE) ?: return
 

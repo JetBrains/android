@@ -25,6 +25,10 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -93,12 +97,12 @@ class SceneViewPeerPanel(
   val sceneView: SceneView,
   private val labelPanel: LabelPanel,
   private val sceneViewStatusIcon: JComponent?,
-  private val sceneViewToolbar: JComponent?,
+  private val sceneViewToolbarActions: List<AnAction>,
   private val sceneViewBottomBar: JComponent?,
   private val sceneViewLeftBar: JComponent?,
   private val sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
-) : JPanel(), PositionablePanel {
+) : JPanel(), PositionablePanel, DataProvider {
 
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -194,6 +198,25 @@ class SceneViewPeerPanel(
   fun PositionableContent.isEmptyContent() =
     scaledContentSize.let { it.height == 0 && it.width == 0 }
 
+  private fun createToolbar(actions: List<AnAction>): JComponent? {
+    if (actions.isEmpty()) {
+      return null
+    }
+    return ActionManager.getInstance()
+      .createActionToolbar("sceneView", DefaultActionGroup(actions), true)
+      .apply {
+        // Do not allocate space for the "see more" chevron if not needed
+        setReservePlaceAutoPopupIcon(false)
+        setShowSeparatorTitles(true)
+        targetComponent = this@SceneViewPeerPanel
+      }
+      .component
+      .apply {
+        isOpaque = false
+        border = JBUI.Borders.empty()
+      }
+  }
+
   /**
    * This panel wraps both the label and the toolbar and puts them left aligned (label) and right
    * aligned (the toolbar).
@@ -210,6 +233,7 @@ class SceneViewPeerPanel(
         sceneViewStatusIcon.isVisible = true
       }
       add(labelPanel, BorderLayout.CENTER)
+      val sceneViewToolbar = createToolbar(sceneViewToolbarActions)
       if (sceneViewToolbar != null) {
         add(sceneViewToolbar, BorderLayout.LINE_END)
         // Initialize the toolbar as invisible. Its visibility will be controlled by hovering the
@@ -238,14 +262,14 @@ class SceneViewPeerPanel(
       minimumSize = Dimension(minWidth, minHeight)
       preferredSize = sceneViewToolbar?.let { Dimension(minWidth, minHeight) }
 
-      setUpTopPanelMouseListeners()
+      setUpTopPanelMouseListeners(sceneViewToolbar)
     }
 
   /**
    * Creates and adds the [MouseAdapter]s required to show the [sceneViewToolbar] when the mouse is
    * hovering the [sceneViewTopPanel], and hide it otherwise.
    */
-  private fun JPanel.setUpTopPanelMouseListeners() {
+  private fun JPanel.setUpTopPanelMouseListeners(sceneViewToolbar: JComponent?) {
     // MouseListener to show the sceneViewToolbar when the mouse enters the target component, and to
     // hide it when the mouse exits the bounds
     // of sceneViewTopPanel.
@@ -447,5 +471,9 @@ class SceneViewPeerPanel(
 
   override fun isVisible(): Boolean {
     return sceneView.isVisible
+  }
+
+  override fun getData(dataId: String): Any? {
+    return sceneView.sceneManager.model.dataContext.getData(dataId)
   }
 }

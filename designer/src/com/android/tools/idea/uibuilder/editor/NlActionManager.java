@@ -336,19 +336,10 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     return group;
   }
 
-  @Nullable
+  @NotNull
   @Override
-  public JComponent getSceneViewContextToolbar(@NotNull SceneView sceneView) {
-    DefaultActionGroup group = new DefaultActionGroup();
-    group.add(DisableToolsVisibilityAndPositionInPreviewAction.INSTANCE);
-    ActionToolbar actionToolbar =
-      com.intellij.openapi.actionSystem.ActionManager.getInstance().createActionToolbar("SceneView", group, true);
-    actionToolbar.setTargetComponent(mySurface);
-    actionToolbar.setReservePlaceAutoPopupIcon(false);
-    JComponent toolbarComponent = actionToolbar.getComponent();
-    toolbarComponent.setOpaque(false);
-    toolbarComponent.setBorder(JBUI.Borders.empty());
-    return toolbarComponent;
+  public List<AnAction> getSceneViewContextToolbarActions(@NotNull SceneView sceneView) {
+    return List.of(DisableToolsVisibilityAndPositionInPreviewAction.INSTANCE);
   }
 
   @Nullable
