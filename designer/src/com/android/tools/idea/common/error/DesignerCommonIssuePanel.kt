@@ -17,12 +17,14 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintSettings
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
@@ -55,6 +57,9 @@ private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActio
 /** The id of pop action group which is shown when right-clicking a tree node. */
 private const val POPUP_HANDLER_ACTION_ID = "Android.Designer.IssuePanel.TreePopup"
 private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_detail_visibility"
+
+val DESIGNER_COMMON_ISSUE_PANEL =
+  DataKey.create<DesignerCommonIssuePanel>("DesignerCommonIssuePanel")
 
 /**
  * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
@@ -91,6 +96,9 @@ class DesignerCommonIssuePanel(
         }
 
       override fun getData(dataId: String): Any? {
+        if (DESIGNER_COMMON_ISSUE_PANEL.`is`(dataId)) {
+          return this@DesignerCommonIssuePanel
+        }
         val node = getSelectedNode() ?: return additionalDataProvider?.getData(dataId)
         if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
           return DataProvider { getDataInBackground(it, node) }
@@ -113,8 +121,7 @@ class DesignerCommonIssuePanel(
   init {
     Disposer.register(parentDisposable, this)
     treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
-    val problemsViewState = ProblemsViewState.getInstance(project)
-    setIssueNodeOrder(problemsViewState.sortBySeverity, problemsViewState.sortByName)
+    updateIssueOrder()
     issueProvider.registerUpdateListener {
       updateTree()
       updateEmptyMessageIfNeed()
@@ -214,11 +221,27 @@ class DesignerCommonIssuePanel(
     issueProvider.viewOptionFilter = filter
   }
 
-  fun setIssueNodeOrder(sortedBySeverity: Boolean, sortedByName: Boolean) {
+  fun updateIssueOrder() {
+    val state = ProblemsViewState.getInstance(project)
     (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(
-      DesignerCommonIssueNodeComparator(sortedBySeverity, sortedByName)
+      DesignerCommonIssueNodeComparator(state.sortBySeverity, state.sortByName)
     )
     treeModel.structureChanged(null)
+  }
+
+  fun updateIssueVisibility() {
+    val hiddenSeverities = ProblemsViewState.getInstance(project).hideBySeverity
+    val showVisualLint = VisualLintSettings.getInstance(project).isVisualLintFilterSelected
+
+    val filter =
+      DesignerCommonIssueProvider.Filter { issue ->
+        when {
+          issue is VisualLintRenderIssue -> showVisualLint
+          hiddenSeverities.contains(issue.severity.myVal) -> false
+          else -> true
+        }
+      }
+    setViewOptionFilter(filter)
   }
 
   private fun getSelectedNode(): DesignerCommonIssueNode? {

@@ -162,6 +162,11 @@ class IssuePanelService(private val project: Project) {
       object : ContentManagerListener {
         override fun selectionChanged(event: ContentManagerEvent) {
           val content = event.content
+          val panel = tabToPanelMap[content]
+          panel?.get()?.let {
+            it.updateIssueOrder()
+            it.updateIssueVisibility()
+          }
           val selectedTab =
             when (getTabCategory(content)) {
               TabCategory.CURRENT_FILE -> UniversalProblemsPanelEvent.ActivatedTab.CURRENT_FILE
@@ -478,12 +483,6 @@ class IssuePanelService(private val project: Project) {
 
   fun getSharedIssuePanel(): DesignerCommonIssuePanel? =
     nameToTabMap[SHARED_ISSUE_PANEL_TAB_NAME]?.get()?.let { tabToPanelMap[it]?.get() }
-
-  fun getSelectedIssuePanel(): DesignerCommonIssuePanel? {
-    return ProblemsView.getToolWindow(project)?.contentManager?.selectedContent?.let {
-      tabToPanelMap[it]?.get()
-    }
-  }
 
   /** Focus IJ's problems pane if Problems Panel is visible. Or do nothing otherwise. */
   fun focusIssuePanelIfVisible() {

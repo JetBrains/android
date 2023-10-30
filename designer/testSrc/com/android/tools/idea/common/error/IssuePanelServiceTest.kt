@@ -37,7 +37,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -116,15 +115,26 @@ class IssuePanelServiceTest {
   fun testOpeningFileDoesNotOpenSharedIssuePanel() {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+    val window = toolWindow as TestToolWindow
+    val contentManager = window.contentManager
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertNull(service.getSelectedIssuePanel())
+    assertFalse(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.DESIGN_TOOLS
+    )
 
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertNull(service.getSelectedIssuePanel())
+    assertFalse(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.DESIGN_TOOLS
+    )
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertNull(service.getSelectedIssuePanel())
+    assertFalse(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.DESIGN_TOOLS
+    )
   }
 
   @Test
@@ -140,8 +150,10 @@ class IssuePanelServiceTest {
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     toolWindow.contentManager.let {
       it.setSelectedContent(it.contents[0])
+      assertTrue(
+        service.getTabCategory(it.selectedContent!!) == IssuePanelService.TabCategory.CURRENT_FILE
+      )
     } // select current file tab.
-    assertNull(service.getSelectedIssuePanel())
 
     runInEdtAndWait { service.setSharedIssuePanelVisibility(true) }
     assertTrue(toolWindow.isVisible)

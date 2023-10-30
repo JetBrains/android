@@ -22,12 +22,10 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 
 class ToggleIssueDetailAction : ToggleAction() {
-  // This action uses ActionUpdateThread.EDT as it checks a panel visibility. The check needs to
-  // happen in EDT.
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private fun isEnabled(e: AnActionEvent): Boolean =
-    e.project?.let { IssuePanelService.getInstance(it).getSelectedIssuePanel() } != null &&
+    e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL) != null &&
       e.dataContext.getData(PlatformDataKeys.SELECTED_ITEM) as? IssueNode != null
 
   override fun update(e: AnActionEvent) {
@@ -44,13 +42,12 @@ class ToggleIssueDetailAction : ToggleAction() {
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!isEnabled(e)) return false
 
-    val issuePanel = e.project?.let { IssuePanelService.getInstance(it).getSelectedIssuePanel() }
+    val issuePanel = e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL)
     return issuePanel?.sidePanelVisible ?: false
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    val issuePanel =
-      e.project?.let { IssuePanelService.getInstance(it).getSelectedIssuePanel() } ?: return
+    val issuePanel = e.dataContext.getData(DESIGNER_COMMON_ISSUE_PANEL) ?: return
     issuePanel.sidePanelVisible = state
   }
 }
