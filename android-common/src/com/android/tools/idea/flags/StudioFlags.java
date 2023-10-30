@@ -1168,20 +1168,6 @@ public final class StudioFlags {
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
-    COMPOSE, "editor.render.sample",
-    "Render samples of compose elements inside documentation",
-    "If enabled, adds rendered image of sample for compose element if such exists",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW = Flag.create(
-    COMPOSE, "editor.render.sample.slow",
-    "Slow down rendering of samples of compose elements inside documentation",
-    "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
-    false
-  );
-
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.advanced.settings",
     "Enable live edit deploy settings menu",

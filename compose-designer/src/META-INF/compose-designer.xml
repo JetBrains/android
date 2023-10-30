@@ -26,8 +26,6 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <lang.documentationProvider language="kotlin" implementationClass="com.android.tools.idea.compose.documentation.ComposeDocumentationProvider" order="first"/>
-
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
                      enabledByDefault="true"
