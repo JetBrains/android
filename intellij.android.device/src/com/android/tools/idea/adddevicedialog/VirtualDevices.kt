@@ -24,10 +24,10 @@ import com.android.tools.idea.sdk.AndroidSdks
 import java.nio.file.Path
 
 internal object VirtualDevices {
-  internal fun add() {
+  internal fun add(device: VirtualDevice) {
     val handler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
-    val device =
+    val definition =
       DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.first {
         it.id == "pixel_7"
       }
@@ -43,7 +43,7 @@ internal object VirtualDevices {
     val properties =
       mapOf(
         "AvdId" to "Pixel_7_API_34",
-        "avd.ini.displayname" to "Pixel 7 API 34",
+        "avd.ini.displayname" to device.name,
         "disk.dataPartition.size" to "2G",
         "fastboot.chosenSnapshotFile" to "",
         "fastboot.forceChosenSnapshotBoot" to "no",
@@ -85,7 +85,7 @@ internal object VirtualDevices {
       .createOrUpdateAvd(
         /* currentInfo= */ null,
         /* avdName= */ "Pixel_7_API_34",
-        /* device= */ device,
+        /* device= */ definition,
         /* systemImageDescription= */ SystemImageDescription(image),
         /* orientation= */ ScreenOrientation.PORTRAIT,
         /* isCircular= */ false,

@@ -28,26 +28,34 @@ import org.jetbrains.jewel.Text
 import org.jetbrains.jewel.bridge.SwingBridgeTheme
 
 @Composable
-internal fun ConfigureDevicePanel() {
+internal fun ConfigureDevicePanel(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
   @OptIn(ExperimentalJewelApi::class)
   SwingBridgeTheme {
     Column {
       Text("Configure device")
       Text("Add a device to device manager")
-      Tabs()
+      Tabs(device, onDeviceChange)
     }
   }
 }
 
 @Composable
-private fun Tabs() {
+private fun Tabs(device: VirtualDevice, onDeviceChange: (VirtualDevice) -> Unit) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE_AND_API) }
-  TabStrip(Tab.values().map { tab -> TabData.Default(selectedTab == tab, tab.text, onClick = { selectedTab = tab }) })
+
+  TabStrip(
+    Tab.values().map { tab ->
+      TabData.Default(selectedTab == tab, tab.text, onClick = { selectedTab = tab })
+    }
+  )
 
   when (selectedTab) {
-    Tab.DEVICE_AND_API -> DeviceAndApiPanel()
+    Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, onDeviceChange)
     Tab.ADDITIONAL_SETTINGS -> AdditionalSettingsPanel()
   }
 }
 
-private enum class Tab(val text: String) { DEVICE_AND_API("Device and API"), ADDITIONAL_SETTINGS("Additional settings") }
+private enum class Tab(val text: String) {
+  DEVICE_AND_API("Device and API"),
+  ADDITIONAL_SETTINGS("Additional settings")
+}
