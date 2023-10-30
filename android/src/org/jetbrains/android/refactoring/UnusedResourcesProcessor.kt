@@ -30,7 +30,6 @@ import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
@@ -346,7 +345,7 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
       for (element in usages.mapNotNull(UsageInfo::getElement).filter { it.isValid }) {
         val buildModel = buildModelMap[element]
         if (buildModel?.isModified() == true) {
-          WriteCommandAction.runWriteCommandAction(myProject) { buildModel.applyChanges() }
+          buildModel.applyChanges()
         } else {
           element.delete()
         }
