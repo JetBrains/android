@@ -57,6 +57,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.modes.essentials.EssentialsMode;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
+import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.ShowFixFactory;
@@ -391,6 +392,11 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
   /** Counter for user events during the interactive session. */
   private AtomicInteger myInteractiveEventsCounter = new AtomicInteger(0);
+
+  /**
+   * If true, this {@link LayoutlibSceneManager} will retain the last successful image even if the new result is an error.
+   */
+  private boolean myCacheSuccessfulRenderImage = false;
 
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
@@ -1034,6 +1040,28 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myCustomContentHierarchyParser = parser;
   }
 
+  /**
+   * If {@code enabled}, the last successful image and root bounds are cached in the {@link RenderResult}.
+   * If a new render or inflate happens and it's not successful, the previous one, if any, will be cached.
+   * Setting this flag has no effect in metrics and the actual result will be reported.
+   */
+  public void setCacheSuccessfulRenderImage(boolean enabled) {
+    myCacheSuccessfulRenderImage = enabled;
+  }
+
+  public void invalidateCachedResponse() {
+    RenderResult toDispose = getRenderResult();
+    if (toDispose != null) {
+      toDispose.dispose();
+      myRenderResultLock.writeLock().lock();
+      try {
+        myRenderResult = null;
+      } finally {
+        myRenderResultLock.writeLock().unlock();
+      }
+    }
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayoutAsync(boolean animate) {
@@ -1268,7 +1296,21 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     myRenderResultLock.writeLock().lock();
     try {
       if (myRenderResult != null && myRenderResult != result) {
-        myRenderResult.dispose();
+        if (
+          myCacheSuccessfulRenderImage
+          // Do not cache in interactive mode. It does not help and would make unnecessary copies of the bitmap.
+          && !myIsInteractive
+          // The previous result was valid
+          && myRenderResult.getRenderedImage().getWidth() > 1 && myRenderResult.getRenderedImage().getHeight() > 1
+          // The new result is an error
+          && RenderResultUtilKt.isErrorResult(result)
+        ) {
+          result = result.copyWithNewImageAndRootViewDimensions(
+            StudioRenderService.getInstance(result.getProject()).getSharedImagePool()
+              .copyOf(myRenderResult.getRenderedImage().getCopy()),
+            myRenderResult.getRootViewDimensions());
+        }
+        invalidateCachedResponse();
       }
       myRenderResult = result;
       return result;

@@ -201,6 +201,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
       // is found. See matchElementsToModels for more details.
       previewElement to if (modelIndices[idx] == -1) null else existingModels[modelIndices[idx]]
     }
+
   existingModels.removeAll(elementsToReusableModels.mapNotNull { it.second })
   debugLogger?.log("Removing ${existingModels.size} model(s)")
   existingModels.forEach {
@@ -224,6 +225,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
       val newModel: NlModel
       var forceReinflate = true
+      var invalidatePreviousRender = false
       if (model != null) {
         debugLogger?.log("Re-using model ${model.virtualFile.name}")
         val affinity =
@@ -235,6 +237,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         // previous actions (reinflate=false) we can skip reinflate and therefore refresh much
         // quicker
         if (affinity == 0 && !reinflate) forceReinflate = false
+        // If the model is not the same element (affinity>0), ensure that we do not use the cached
+        // result from a previous render.
+        if (affinity > 0) invalidatePreviousRender = true
         model.updateFileContentBlocking(fileContents)
         newModel = model
       } else {
@@ -270,6 +275,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           .also {
             if (forceReinflate) {
               it.forceReinflate()
+            }
+            if (invalidatePreviousRender) {
+              it.invalidateCachedResponse()
             }
           }
 

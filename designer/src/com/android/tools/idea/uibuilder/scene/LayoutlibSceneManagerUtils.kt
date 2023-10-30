@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.rendering.ExecuteCallbacksResult
-import java.util.concurrent.CancellationException
 import kotlinx.coroutines.future.await
 
 /** Suspendable equivalent to [LayoutlibSceneManager.executeCallbacks]. */
@@ -32,7 +32,10 @@ suspend fun LayoutlibSceneManager.executeCallbacks(): ExecuteCallbacksResult =
 fun SceneView.hasRenderErrors(): Boolean =
   (sceneManager as? LayoutlibSceneManager).hasRenderErrors()
 
-fun LayoutlibSceneManager?.hasRenderErrors(): Boolean =
-  this?.renderResult?.let {
-    it.logger.hasErrors() && it.renderResult.exception !is CancellationException
-  } == true
+/** Returns whether the [SceneView] has a valid image. */
+fun SceneView.hasValidImage(): Boolean = (sceneManager as? LayoutlibSceneManager).hasValidImage()
+
+fun LayoutlibSceneManager?.hasValidImage(): Boolean =
+  this?.renderResult?.renderedImage?.isValid ?: false
+
+fun LayoutlibSceneManager?.hasRenderErrors(): Boolean = this?.renderResult.isErrorResult()

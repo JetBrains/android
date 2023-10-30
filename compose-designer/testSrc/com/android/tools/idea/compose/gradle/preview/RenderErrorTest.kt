@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.flags.junit.FlagRule
 import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
@@ -72,6 +73,7 @@ import org.junit.Test
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val flagRule = FlagRule(StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR)
 
   private val project: Project
     get() = projectRule.project
@@ -143,6 +145,38 @@ class RenderErrorTest {
   @Test
   fun testSceneViewWithRenderErrors() =
     runBlocking(workerThread) {
+      StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.override(true)
+      startUiCheckForModel("PreviewWithRenderErrors")
+
+      lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .singleOrNull { it.displayName == "Medium Phone - PreviewWithRenderErrors" }
+          ?.takeIf { it.sceneView.hasRenderErrors() }
+          ?.also { sceneViewPanelWithErrors = it } != null
+      }
+
+      val visibleErrorsPanel =
+        TreeWalker(sceneViewPanelWithErrors)
+          .descendants()
+          .filterIsInstance<SceneViewErrorsPanel>()
+          .single()
+      assertFalse(visibleErrorsPanel.isVisible)
+
+      val actions = sceneViewPanelWithErrors.getToolbarActions()
+      // 4 actions expected: ui check, animation, interactive and deploy to device
+      assertEquals(4, actions.size)
+      // The visible/invisible state before the update shouldn't affect the final result
+      for (visibleBefore in listOf(true, false)) {
+        // All actions should be invisible when there are render errors
+        assertEquals(0, countVisibleActions(actions, visibleBefore, sceneViewPanelWithErrors))
+      }
+    }
+
+  @Test
+  fun testSceneViewWithRenderErrorsWithNoKeepImageOnError() =
+    runBlocking(workerThread) {
+      StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.override(false)
       startUiCheckForModel("PreviewWithRenderErrors")
 
       lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel

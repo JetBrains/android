@@ -587,6 +587,20 @@ public class RenderTask {
   }
 
   /**
+   * Returns a valid pooled image or {@link ImagePool#NULL_POOLED_IMAGE} if the input if null or not valid.
+   */
+  @NotNull
+  private ImagePool.Image toPooledImage(@Nullable BufferedImage result) {
+    // Check if the image exists and it's a valid image. Layoutlib can sometimes return a 1x1 image when
+    // an error has happened. Even if the image is valid, a 1x1 image is not useful so we approximate it to
+    // the null image.
+    if (result != null && result.getWidth() > 1 && result.getHeight() > 1) {
+      return myImagePool.copyOf(result);
+    }
+    return ImagePool.NULL_POOLED_IMAGE;
+  }
+
+  /**
    * Renders the model and returns the result as a {@link RenderSession}.
    *
    * @param factory Factory for images which would be used to render layouts to.
@@ -753,7 +767,9 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        BufferedImage resultImage = session.getImage();
+
+        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, toPooledImage(resultImage), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         RenderTaskPatcher.enableComposeHotReloadMode(myModuleClassLoaderReference.getClassLoader());
@@ -1075,8 +1091,9 @@ public class RenderTask {
         long startRenderTimeMs = System.currentTimeMillis();
         return runAsyncRenderAction(() -> {
           myRenderSession.render(forceMeasure);
+          BufferedImage resultImage = myRenderSession.getImage();
           RenderResult result =
-            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
+            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, toPooledImage(resultImage), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());

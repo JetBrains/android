@@ -1342,6 +1342,11 @@ public final class StudioFlags {
     COMPOSE, "compose.preview.render.quality.notify.time", "Notify refresh time for render quality refreshes",
     "If enabled, the time taken in render quality refreshes will be notified each time",
     false);
+
+  public static final Flag<Boolean> COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR = Flag.create(
+    COMPOSE, "compose.preview.keep.image.on.error", "Keeps the last valid image after a render error",
+    "If enabled, when an error happens, the surface will keep the last valid image",
+    IdeChannel.getChannel().isLessStableThan(IdeChannel.Channel.BETA));
   //endregion
 
   // region Wear surfaces

@@ -85,6 +85,9 @@ class ComposePreviewStatusIconActionTest {
     Mockito.`when`(renderLoggerMock.hasErrors()).then {
       return@then renderError
     }
+    Mockito.`when`(resultMock.isSuccess).then {
+      return@then !renderError
+    }
     Mockito.`when`(renderResultMock.renderResult).then {
       return@then resultMock
     }
@@ -110,17 +113,34 @@ class ComposePreviewStatusIconActionTest {
               for (fastPreviewDisableReason in fastPreviewDisableReasons) {
                 updateFastPreviewStatus(fastPreviewDisableReason)
                 this.renderError = renderError
-                composePreviewManager.currentStatus =
+                val status =
                   originStatus.copy(
                     hasRuntimeErrors = runtimeError,
                     hasSyntaxErrors = syntaxError,
                     isOutOfDate = outOfDate,
                     isRefreshing = refreshing
                   )
+                composePreviewManager.currentStatus = status
                 action.update(event)
                 val expectedToShowIcon = renderError && !refreshing
-                assertEquals(expectedToShowIcon, event.presentation.isEnabled)
-                assertEquals(expectedToShowIcon, event.presentation.isVisible)
+                assertEquals(
+                  """
+                    isEnabled has the wrong state (expected=$expectedToShowIcon, was=${event.presentation.isEnabled})
+                    status=$status
+                  """
+                    .trimIndent(),
+                  expectedToShowIcon,
+                  event.presentation.isEnabled
+                )
+                assertEquals(
+                  """
+                    isVisible has the wrong state (expected=$expectedToShowIcon, was=${event.presentation.isEnabled})
+                    status=$status
+                  """
+                    .trimIndent(),
+                  expectedToShowIcon,
+                  event.presentation.isVisible
+                )
                 if (expectedToShowIcon) {
                   assertEquals(StudioIcons.Common.WARNING, event.presentation.icon)
                 }

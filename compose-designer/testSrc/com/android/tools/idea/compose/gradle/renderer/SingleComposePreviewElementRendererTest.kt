@@ -238,7 +238,7 @@ class SingleComposePreviewElementRendererTest {
   @Test
   fun testEmptyRender() {
     val defaultRender =
-      renderPreviewElement(
+      renderPreviewElementForResult(
           projectRule.androidFacet(":app"),
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.EmptyPreview"
@@ -246,7 +246,8 @@ class SingleComposePreviewElementRendererTest {
         )
         .get()!!
 
-    assertTrue(defaultRender.width > 0 && defaultRender.height > 0)
+    assertEquals(0, defaultRender.renderedImage.width)
+    assertEquals(0, defaultRender.renderedImage.height)
   }
 
   /** Checks that key events are correctly dispatched to Compose Preview. */

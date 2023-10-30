@@ -367,11 +367,12 @@ public class RenderTaskTest extends AndroidTestCase {
       assertEquals(expectedWidth / 2, result.getRenderedImage().getWidth());
 
       // Using 0% quality doesn't make much sense, but the image should
-      // be of size 1x1 in such unexpected cases
+      // be of size 0x0 in such unexpected cases
       task.setQuality(0f);
       result = checkSimpleLayoutResult(task.render());
-      assertEquals(1, result.getRenderedImage().getHeight());
-      assertEquals(1, result.getRenderedImage().getWidth());
+      assertFalse(result.getRenderedImage().isValid());
+      assertEquals(0, result.getRenderedImage().getHeight());
+      assertEquals(0, result.getRenderedImage().getWidth());
 
       // Setting the quality back to 100%
       task.setQuality(1f);

@@ -40,6 +40,7 @@ import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -110,11 +111,12 @@ public class ScreenView extends ScreenViewBase {
     @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getSceneManager().getRenderResult();
-      if (result != null && result.getSystemRootViews().size() == 1) {
-        ViewInfo viewInfo = result.getSystemRootViews().get(0);
+      Dimension contentSize = result != null ? result.getRootViewDimensions() : null;
 
+      if (contentSize != null) {
         try {
-          outDimension.setSize(Coordinates.pxToDp(screenView, viewInfo.getRight()), Coordinates.pxToDp(screenView, viewInfo.getBottom()));
+          outDimension.setSize(Coordinates.pxToDp(screenView, contentSize.width), Coordinates.pxToDp(screenView, contentSize.height));
+
           // Save in case a future render fails. This way we can keep a constant size for failed
           // renders.
           if (cachedDimension == null) {
@@ -124,7 +126,8 @@ public class ScreenView extends ScreenViewBase {
             cachedDimension.setSize(outDimension);
           }
           return;
-        } catch (AssertionError ignored) {
+        }
+        catch (AssertionError ignored) {
         }
       }
 

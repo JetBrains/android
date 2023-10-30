@@ -54,12 +54,12 @@ class SceneViewErrorsPanelTest {
 
   @Test
   fun testVisibilityIsControlledByConstructorParameter() {
-    var isPanelVisible = true
-    val sceneViewErrorsPanel = SceneViewErrorsPanel { isPanelVisible }
+    var panelStyle = SceneViewErrorsPanel.Style.SOLID
+    val sceneViewErrorsPanel = SceneViewErrorsPanel { panelStyle }
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
     assertTrue(sceneViewErrorsPanel.isVisible)
-    isPanelVisible = false
+    panelStyle = SceneViewErrorsPanel.Style.HIDDEN
     assertFalse(sceneViewErrorsPanel.isVisible)
   }
 

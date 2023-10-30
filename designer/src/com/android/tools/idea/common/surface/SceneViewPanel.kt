@@ -22,7 +22,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.layout.findAllScanlines
 import com.android.tools.idea.common.surface.layout.findLargerScanline
 import com.android.tools.idea.common.surface.layout.findSmallerScanline
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
@@ -105,7 +107,17 @@ internal class SceneViewPanel(
       val rightBar = actionManagerProvider().getSceneViewRightBar(sceneView)
 
       val errorsPanel =
-        if (shouldRenderErrorsPanel()) SceneViewErrorsPanel { sceneView.hasRenderErrors() }
+        if (shouldRenderErrorsPanel())
+          SceneViewErrorsPanel {
+            when {
+              // If the flag COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR is enabled and  there is a valid
+              // image, never display the error panel.
+              sceneView.hasValidImage() && StudioFlags.COMPOSE_PREVIEW_KEEP_IMAGE_ON_ERROR.get() ->
+                SceneViewErrorsPanel.Style.HIDDEN
+              sceneView.hasRenderErrors() -> SceneViewErrorsPanel.Style.SOLID
+              else -> SceneViewErrorsPanel.Style.HIDDEN
+            }
+          }
         else null
 
       val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
@@ -162,7 +174,9 @@ internal class SceneViewPanel(
         val positionable = sceneViewPeerPanel.positionableAdapter
         val size = positionable.getScaledContentSize(reusableDimension)
         val renderErrorPanel =
-          shouldRenderErrorsPanel() && sceneViewPeerPanel.sceneView.hasRenderErrors()
+          shouldRenderErrorsPanel() &&
+            sceneViewPeerPanel.sceneView.hasRenderErrors() &&
+            !sceneViewPeerPanel.sceneView.hasValidImage()
 
         @SwingCoordinate
         val right =
