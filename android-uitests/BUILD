@@ -1140,10 +1140,11 @@ java_test(
 java_test(
     name = "StudioDefaultJDKTest",
     size = "large",
-    data = COMMON_DATA,
+    data = COMMON_DATA + glob([
+        "testData/SimpleApplication/**",
+    ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.newpsd.StudioDefaultJDKTest"],
     tags = COMMON_TAGS + [
-        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
