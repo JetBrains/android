@@ -730,6 +730,9 @@
     <extensionPoint qualifiedName="com.android.tools.idea.editors.manifest.manifestPanelToken"
                     interface="com.android.tools.idea.editors.manifest.ManifestPanelToken"
                     area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="org.jetbrains.android.refactoring.unusedResourcesToken"
+                    interface="org.jetbrains.android.refactoring.UnusedResourcesToken"
+                    area="IDEA_PROJECT"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.project">

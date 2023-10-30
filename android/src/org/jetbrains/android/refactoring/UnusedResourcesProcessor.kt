@@ -17,12 +17,14 @@ package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
-import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.android.tools.idea.lint.common.LintBatchResult
 import com.android.tools.idea.lint.common.LintIdeRequest
 import com.android.tools.idea.lint.common.LintIdeSupport.Companion.get
 import com.android.tools.idea.lint.common.LintProblemData
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.Token
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.lint.checks.UnusedResourceDetector
 import com.android.tools.lint.detector.api.Issue
@@ -30,11 +32,11 @@ import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Scope
 import com.intellij.analysis.AnalysisScope
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
@@ -53,8 +55,6 @@ import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.ir.types.impl.IrErrorClassImpl.startOffset
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.plugins.groovy.lang.psi.GroovyFile
 import java.io.File
 
 class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
@@ -103,7 +103,7 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
   private var elements = PsiElement.EMPTY_ARRAY
   var includeIds = false
-  private val buildModelMap: MutableMap<PsiElement, GradleBuildModel> = mutableMapOf()
+  private val performerMap: MutableMap<PsiElement, UnusedResourcesPerformer> = mutableMapOf()
   private val filter = filter ?: AllFilter
 
   override fun createUsageViewDescriptor(usages: Array<UsageInfo>): UsageViewDescriptor =
@@ -165,6 +165,16 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
 
         val problems = fileListMap[file] ?: continue
 
+        val projectSystem = myProject.getProjectSystem()
+        val performer = projectSystem.getTokenOrNull(UnusedResourcesToken.EP_NAME)?.getPerformerFor(projectSystem, psiFile)
+        if (performer != null) {
+          val problemNames = problems.mapNotNull { getResource(it) }.toSet()
+          val elements = performer.computeUnusedElements(psiFile, problemNames)
+          unusedElements.addAll(elements)
+          elements.forEach { performerMap[it] = performer }
+          continue
+        }
+
         if (psiFile.fileType.isBinary) {
           // Delete the whole file
           if (problems.any { filter.shouldProcessResource(getResource(it)) }) {
@@ -172,46 +182,9 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
           }
         } else {
           when (getFolderType(psiFile)) {
-            null -> {
-              // Not found in a resource folder. This happens for example for
-              // matches in build.gradle.
-              //
-              // Attempt to find the resource in the build file. If we can't,
-              // we'll ignore this resource (it would be dangerous to just delete the
-              // file; see for example http://b.android.com/220069.)
-              if (
-                (psiFile is GroovyFile || psiFile is KtFile) &&
-                  (psiFile.name.endsWith(SdkConstants.EXT_GRADLE) ||
-                    psiFile.name.endsWith(SdkConstants.EXT_GRADLE_KTS))
-              ) {
-                val gradleBuildModel =
-                  GradleModelProvider.getInstance().parseBuildFile(psiFile.virtualFile, myProject)
-
-                // Get all the resValue declared within the android block.
-                val androidElement = gradleBuildModel.android()
-                val resValues = buildList {
-                  addAll(androidElement.defaultConfig().resValues())
-                  addAll(androidElement.productFlavors().flatMap { it.resValues() })
-                  addAll(androidElement.buildTypes().flatMap { it.resValues() })
-                }
-
-                for (resValue in resValues) {
-                  val psiElement = resValue.getModel().getPsiElement() ?: continue
-
-                  // See if this is one of the unused resources
-                  val expectedResourceName =
-                    "${SdkConstants.R_PREFIX}${resValue.type()}.${resValue.name()}"
-                  for (problem in problems) {
-                    if (getResource(problem) == expectedResourceName) {
-                      unusedElements.add(psiElement)
-                      // Keep track of the current buildModel to apply refactoring later on.
-                      buildModelMap[psiElement] = gradleBuildModel
-                      resValue.remove()
-                    }
-                  }
-                }
-              }
-            }
+            // Not found in a resource folder and not handled by the Project System; ignore this resource
+            // (it would be dangerous to just delete the file; see for example http://b.android.com/220069.)
+            null -> Unit
             ResourceFolderType.VALUES -> {
               unusedElements.addAll(getElementsInFile(psiFile, problems, excludedResources))
             }
@@ -341,11 +314,9 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
   override fun performRefactoring(usages: Array<UsageInfo>) {
     try {
       for (element in usages.mapNotNull(UsageInfo::getElement).filter { it.isValid }) {
-        val buildModel = buildModelMap[element]
-        if (buildModel?.isModified() == true) {
-          buildModel.applyChanges()
-        } else {
-          element.delete()
+        when (val performer = performerMap[element]) {
+          null -> element.delete()
+          else -> performer.perform(element)
         }
       }
     } catch (e: IncorrectOperationException) {
@@ -381,3 +352,18 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
       LintFix.getString(problem.quickfixData, UnusedResourceDetector.KEY_RESOURCE_FIELD, null)
   }
 }
+
+interface UnusedResourcesToken<P : AndroidProjectSystem> : Token {
+  companion object {
+    val EP_NAME = ExtensionPointName<UnusedResourcesToken<AndroidProjectSystem>>("org.jetbrains.android.refactoring.unusedResourcesToken")
+  }
+
+  fun getPerformerFor(projectSystem: P, psiFile: PsiFile): UnusedResourcesPerformer?
+}
+
+interface UnusedResourcesPerformer {
+  fun computeUnusedElements(psiFile: PsiFile, names: Set<String>): Collection<PsiElement>
+
+  fun perform(element: PsiElement)
+}
+
