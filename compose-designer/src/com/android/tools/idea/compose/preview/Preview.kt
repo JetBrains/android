@@ -810,6 +810,7 @@ class ComposePreviewRepresentation(
     log.debug("onActivate")
 
     qualityPolicy.activate()
+    requestRefresh(type = ComposePreviewRefreshType.QUALITY)
 
     composePreviewFlowManager.run {
       this@activate.initializeFlows(
@@ -836,6 +837,16 @@ class ComposePreviewRepresentation(
       interactiveManager.resume()
     }
 
+    // At this point everything have been initialized or re-activated. Now we need to check whether
+    // a full refresh is needed or could be avoided, and all considered scenarios are listed below:
+    // - First activation: initial state is invalidated=true, so a full refresh will happen
+    // - Re-activation and build or fast compile happened while deactivated: build listeners should
+    //   have invalidated this, and then a full refresh will happen
+    // - Re-activation and any kotlin file out of date: fast compile will happen if fast preview is
+    //   enabled, and then a full refresh will happen.
+    // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
+    //   a full refresh will happen
+    if (psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()) invalidate()
     val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
     if (isFastPreviewAvailable(project) && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to

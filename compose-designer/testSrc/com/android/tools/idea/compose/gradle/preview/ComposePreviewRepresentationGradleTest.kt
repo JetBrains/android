@@ -105,8 +105,8 @@ class ComposePreviewRepresentationGradleTest {
     get() = projectRule.fakeUi
 
   /** Runs the [runnable]. The [runnable] is expected to trigger a fast preview refresh */
-  private suspend fun runAndWaitForFastRefresh(runnable: () -> Unit) =
-    projectRule.runAndWaitForRefresh(anyRefreshStartTimeout = 30.seconds) {
+  private suspend fun runAndWaitForFastRefresh(runnable: () -> Unit) {
+    return projectRule.runAndWaitForRefresh(anyRefreshStartTimeout = 30.seconds) {
       logger.info("runAndWaitForFastRefresh")
       val fastPreviewManager = FastPreviewManager.getInstance(project)
 
@@ -140,6 +140,7 @@ class ComposePreviewRepresentationGradleTest {
       logger.info("runAndWaitForFastRefresh: Compilation finished $result")
       (result as? CompilationResult.WithThrowable)?.let { logger.error(it.e) }
     }
+  }
 
   @Test
   fun `panel renders correctly first time`() {
@@ -478,7 +479,7 @@ class ComposePreviewRepresentationGradleTest {
       // (nor in any inactive one).
       assertFalse(composePreviewRepresentation.isInvalid())
       assertFails {
-        runAndWaitForFastRefresh {
+        projectRule.runAndWaitForRefresh {
           runWriteActionAndWait {
             fixture.openFileInEditor(otherPreviewsFile.virtualFile)
             fixture.moveCaret("|@Preview")
@@ -496,9 +497,17 @@ class ComposePreviewRepresentationGradleTest {
 
       // When reactivating, a full refresh should happen due to the modification of
       // otherPreviewsFile during the inactive time of this representation.
-      projectRule.runAndWaitForRefresh { composePreviewRepresentation.onActivate() }
+      runAndWaitForFastRefresh { composePreviewRepresentation.onActivate() }
       assertFalse(composePreviewRepresentation.isInvalid())
     }
+
+  @Test
+  fun `reactivation don't trigger full refresh when nothing has changed`() = runBlocking {
+    composePreviewRepresentation.onDeactivate()
+    assertFalse(composePreviewRepresentation.isInvalid())
+    assertFails { projectRule.runAndWaitForRefresh { composePreviewRepresentation.onActivate() } }
+    assertFalse(composePreviewRepresentation.isInvalid())
+  }
 
   @Test
   fun testPreviewRenderQuality_zoom() = runWithRenderQualityEnabled {

@@ -38,6 +38,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -234,16 +235,25 @@ internal class ComposePreviewFlowManager {
 
       // Trigger refreshes on available previews changes
       launch(workerThread) {
-        filteredPreviewElementsInstancesFlow.collectLatest {
-          if (it.isEmpty() && modeFlow.value is PreviewMode.UiCheck) {
-            // If there are no previews for UI Check mode, then the original composable
-            // was renamed or removed. We should quit UI Check mode.
-            restorePreviousMode()
-          } else {
+        // When "subscribing" to the changes of a MutableStateFlow like this one, it will always
+        // immediately collect an initial value, but we want to ignore this first value in order
+        // to avoid invalidating files in every tab change.
+        val isInitialValue = AtomicBoolean(true)
+        filteredPreviewElementsInstancesFlow
+          .filter {
+            return@filter if (it.isEmpty() && modeFlow.value is PreviewMode.UiCheck) {
+              // If there are no previews for UI Check mode, then the original composable
+              // was renamed or removed. We should quit UI Check mode and filter out this
+              // value from the flow
+              restorePreviousMode()
+              isInitialValue.set(false)
+              false
+            } else !isInitialValue.getAndSet(false)
+          }
+          .collectLatest {
             invalidate()
             requestRefresh()
           }
-        }
       }
 
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
