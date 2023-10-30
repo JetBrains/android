@@ -75,7 +75,8 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
 
     try {
       val artifactsCollector = ArtifactsCollector()
-      getPomFiles(parameter, project) { id, file -> artifactsCollector.setPom(id, file) }
+      val componentsIds = getComponentIds(parameter)
+      getPomFiles(componentsIds, project) { id, file -> artifactsCollector.setPom(id, file) }
       if (useArtifactViews) {
         project.dependencies.attributesSchema.attribute(DocsType.DOCS_TYPE_ATTRIBUTE) {
           it.compatibilityRules.add(SourcesCompatibilityRule::class.java)
@@ -83,7 +84,7 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
         getArtifacts(project, DocsType.JAVADOC, parameter.artifactIdentifiers) { id, file -> artifactsCollector.setJavadoc(id, file) }
         getArtifacts(project, DocsType.SOURCES, parameter.artifactIdentifiers) { id, file -> artifactsCollector.addSources(id, file) }
       } else {
-        getJavadocAndSourcesWithArtifactResolutionQuery(parameter, project, artifactsCollector)
+        getJavadocAndSourcesWithArtifactResolutionQuery(componentsIds, project, artifactsCollector)
       }
 
       val artifacts = parameter.artifactIdentifiers.map {
@@ -106,21 +107,12 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
     }
   }
 
-  private fun getPomFiles(parameter: AdditionalClassifierArtifactsModelParameter,
+  private fun getPomFiles(componentsIds: List<DefaultModuleComponentIdentifier>,
                           project: Project,
                           collector: (ArtifactIdentifierImpl, File) -> Unit) {
-    // Create query for Maven Pom File.
-    val ids = getComponentIds(parameter)
-
     val pomQuery = project.dependencies.createArtifactResolutionQuery()
-      .forComponents(ids)
+      .forComponents(componentsIds)
       .withArtifacts(MavenModule::class.java, MavenPomArtifact::class.java)
-
-    fun getFile(result: ComponentArtifactsResult, clazz: Class<out Artifact>): File? {
-      return result.getArtifacts(clazz)
-        .filterIsInstance(ResolvedArtifactResult::class.java).firstOrNull()
-        ?.file
-    }
 
     pomQuery.execute().resolvedComponents.forEach {
       val id = it.id as ModuleComponentIdentifier
@@ -171,11 +163,11 @@ class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuild
   /**
    * Use this with older Gradle versions, when [useArtifactViews] is false.
    */
-  private fun getJavadocAndSourcesWithArtifactResolutionQuery(parameter: AdditionalClassifierArtifactsModelParameter,
+  private fun getJavadocAndSourcesWithArtifactResolutionQuery(componentsIds: List<DefaultModuleComponentIdentifier>,
                                                               project: Project,
                                                               collector: ArtifactsCollector) {
     val docQuery = project.dependencies.createArtifactResolutionQuery()
-      .forComponents(getComponentIds(parameter))
+      .forComponents(componentsIds)
       .withArtifacts(JvmLibrary::class.java, SourcesArtifact::class.java, JavadocArtifact::class.java)
 
     docQuery.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.forEach {
