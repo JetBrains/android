@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.rendering.StudioModuleRenderContext
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
 import com.android.tools.preview.PreviewParameter
-import org.jetbrains.android.uipreview.forFile
 
 /**
  * [ParametrizedComposePreviewElementTemplate] based on studio-specific [ModuleRenderContext] from
@@ -31,5 +31,5 @@ class StudioParametrizedComposePreviewElementTemplate(
   ParametrizedComposePreviewElementTemplate(
     basePreviewElement,
     parameterProviders,
-    { file -> file?.let { forFile(it) } },
+    { file -> file?.let { StudioModuleRenderContext.forFile(it) } },
   )

@@ -17,9 +17,12 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.api.IdeaModuleProvider
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.idea.base.util.module
 import java.util.function.Supplier
 
 /**
@@ -46,5 +49,12 @@ class StudioModuleRenderContext private constructor(
     @TestOnly
     @JvmStatic
     fun forModule(module: Module) = StudioModuleRenderContext({ module }) { null }
+
+    @JvmStatic
+    fun forFile(file: PsiFile): ModuleRenderContext {
+      val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
+      val module = runReadAction { file.module!! }
+      return forFile({ module }) { runReadAction { filePointer.element } }
+    }
   }
 }

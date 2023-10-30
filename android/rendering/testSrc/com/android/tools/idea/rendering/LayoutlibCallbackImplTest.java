@@ -68,7 +68,6 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
-import org.jetbrains.android.uipreview.ModuleRenderContexts;
 import org.mockito.ArgumentMatchers;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
@@ -139,7 +138,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
         LayoutlibCallbackImpl layoutlibCallback =
@@ -180,7 +179,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
         LayoutlibCallbackImpl layoutlibCallback =
@@ -209,7 +208,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
         LayoutlibCallbackImpl layoutlibCallback =
