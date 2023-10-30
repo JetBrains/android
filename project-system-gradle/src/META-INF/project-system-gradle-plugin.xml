@@ -306,10 +306,6 @@
             description="Migrates app to AppCompat">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Migrate to AndroidX..."
-            description="Migrates to AndroidX package names">
-      <add-to-group group-id="RefactoringMenu"/>
-    </action>
     <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.namespaces.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
             description="Migrates to resource namespaces">
       <add-to-group group-id="RefactoringMenu"/>

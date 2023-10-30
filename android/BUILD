@@ -583,10 +583,6 @@ iml_module(
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "org.jetbrains.android.refactoring.UnusedResourcesGradleTest",
         },
-        "MigrateToAndroidxGradleKtsTest": {
-            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
-            "test_filter": "org.jetbrains.android.refactoring.MigrateToAndroidxGradleKtsTest",
-        },
         "IllegalIdentifierInspectionTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.inspections.IllegalIdentifierInspectionTest",

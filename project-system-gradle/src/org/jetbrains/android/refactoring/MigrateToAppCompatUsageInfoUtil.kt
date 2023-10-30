@@ -20,7 +20,6 @@ import com.intellij.usageView.UsageInfo
 
 private const val METHOD_REPLACING_BASE_PRIORITY = 10_000_000
 private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
-private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
 private const val DEFAULT_MIGRATION_BASE_PRIORITY = 0
 
 private fun isImportElement(element: PsiElement?): Boolean =
@@ -42,7 +41,6 @@ internal fun List<MigrateToAppCompatUsageInfo>.sortToApply(): List<MigrateToAppC
       var value = when (it) {
         is MigrateToAppCompatUsageInfo.ReplaceMethodUsageInfo -> METHOD_REPLACING_BASE_PRIORITY
         is MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo -> CLASS_MIGRATION_BASE_PRIORITY
-        is MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo -> PACKAGE_MIGRATION_BASE_PRIORITY + it.mapEntry.myOldName.length
         else -> DEFAULT_MIGRATION_BASE_PRIORITY
       }
 

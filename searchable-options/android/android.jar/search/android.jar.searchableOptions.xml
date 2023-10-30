@@ -458,9 +458,6 @@
     <option name="gradle" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="migrate" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="to" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
-    <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
-    <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
-    <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="appcompat" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="to" path="ActionManager" hit="Migrate to AppCompat..." />
@@ -485,11 +482,6 @@
     <option name="the" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="to" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="use" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
-    <option name="androidx" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="migrates" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="names" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="package" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="to" path="ActionManager" hit="Migrates to AndroidX package names" />
     <option name="migrates" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="namespaces" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="resource" path="ActionManager" hit="Migrates to resource namespaces" />

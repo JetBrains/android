@@ -15,13 +15,8 @@
  */
 package org.jetbrains.android.refactoring;
 
-import static org.apache.commons.lang3.ObjectUtils.max;
-
 import com.android.annotations.NonNull;
-import com.android.ide.common.gradle.Component;
-import com.android.ide.common.gradle.Version;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
@@ -279,17 +274,6 @@ public class AppCompatMigrationEntry {
     }
   }
 
-  static class PackageMigrationEntry extends AppCompatMigrationEntry {
-    @NonNull final String myOldName;
-    @NonNull final String myNewName;
-
-    public PackageMigrationEntry(@NotNull String oldName, @NotNull String newName) {
-      super(CHANGE_PACKAGE);
-      myOldName = oldName;
-      myNewName = newName;
-    }
-  }
-
   static class MethodMigrationEntry extends AppCompatMigrationEntry {
 
     @NonNull final String myOldClassName;
@@ -330,94 +314,6 @@ public class AppCompatMigrationEntry {
                                     int qualifierParamIndex) {
       super(REPLACE_METHOD, oldClassName, oldMethodName, newClassName, newMethodName);
       myQualifierParamIndex = qualifierParamIndex;
-    }
-  }
-
-  static abstract class GradleMigrationEntry extends AppCompatMigrationEntry {
-    @NotNull private final String myNewGroupName;
-    @NotNull private final String myNewArtifactName;
-    @NotNull private final String myNewBaseVersion;
-
-    public GradleMigrationEntry(@MagicConstant(valuesFromClass = AppCompatMigrationEntry.class) int type,
-                                @NotNull String newGroupName,
-                                @NotNull String newArtifactName,
-                                @NotNull String newBaseVersion) {
-      super(type);
-
-      myNewGroupName = newGroupName;
-      myNewArtifactName = newArtifactName;
-      myNewBaseVersion = newBaseVersion;
-    }
-
-    @NotNull
-    public abstract Pair<String, String> compactKey();
-
-    /**
-     * Returns the gradle Component for this entry allowing the pre-defined version for this artifact to be replaced with a different one.
-     * The given withVersion will only be used if it's higher than this entry base version.
-     */
-    @NotNull
-    public Component toComponent(@NotNull String withVersion) {
-      String newVersionString = getNewBaseVersion();
-      Version newVersion = Version.Companion.parse(withVersion);
-      Version baseVersion = Version.Companion.parse(newVersionString);
-      return new Component(getNewGroupName(), getNewArtifactName(), max(newVersion, baseVersion));
-    }
-
-    @NotNull
-    public String getNewGroupName() {
-      return myNewGroupName;
-    }
-
-    @NotNull
-    public String getNewArtifactName() {
-      return myNewArtifactName;
-    }
-
-    @NotNull
-    public String getNewBaseVersion() {
-      return myNewBaseVersion;
-    }
-  }
-
-  static class GradleDependencyMigrationEntry extends GradleMigrationEntry {
-
-    @NotNull private final String myOldGroupName;
-    @NotNull private final String myOldArtifactName;
-
-    public GradleDependencyMigrationEntry(@NotNull String oldGroupName, @NotNull String oldArtifactName,
-                                          @NotNull String newGroupName, @NotNull String newArtifactName, @NotNull String newBaseVersion) {
-      super(CHANGE_GRADLE_DEPENDENCY, newGroupName, newArtifactName, newBaseVersion);
-      myOldGroupName = oldGroupName;
-      myOldArtifactName = oldArtifactName;
-    }
-
-    @Override
-    @NotNull
-    public Pair<String, String> compactKey() {
-      return Pair.create(myOldGroupName, myOldArtifactName);
-    }
-
-    @NotNull
-    public String getOldArtifactName() {
-      return myOldArtifactName;
-    }
-
-    @NotNull
-    public String getOldGroupName() {
-      return myOldGroupName;
-    }
-  }
-
-  static class UpdateGradleDependencyVersionMigrationEntry extends GradleMigrationEntry {
-    public UpdateGradleDependencyVersionMigrationEntry(@NotNull String groupName, @NotNull String artifactName, @NotNull String newBaseVersion) {
-      super(UPGRADE_GRADLE_DEPENDENCY_VERSION, groupName, artifactName, newBaseVersion);
-    }
-
-    @NotNull
-    @Override
-    public Pair<String, String> compactKey() {
-      return Pair.create(getNewGroupName(), getNewArtifactName());
     }
   }
 }

@@ -92,11 +92,6 @@ class MigrateToAppCompatUtil {
     return findRefs(project, aClass);
   }
 
-  public static List<UsageInfo> findPackageUsages(Project project, String qName) {
-    PsiPackage aPackage = JavaPsiFacade.getInstance(project).findPackage(qName);
-    return findRefs(project, aPackage);
-  }
-
   @NotNull
   private static List<UsageInfo> findRefs(@NonNull Project project, PsiElement element) {
     if (element == null) {
