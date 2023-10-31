@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.editor;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.actions.SetColorBlindModeAction;
+import com.android.tools.idea.actions.ColorBlindModeAction;
 import com.android.tools.idea.actions.SetScreenViewProviderAction;
 import com.android.tools.idea.common.actions.IssueNotificationAction;
 import com.android.tools.idea.common.actions.NextDeviceAction;
@@ -39,7 +39,6 @@ import com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -49,6 +48,7 @@ import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
+import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -143,12 +143,12 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.BLUEPRINT, nlDesignSurface));
     designSurfaceMenu.addAction(new SetScreenViewProviderAction(NlScreenViewProvider.RENDER_AND_BLUEPRINT, nlDesignSurface));
 
-    DefaultActionGroup colorBlindMode = DropDownAction.createSubMenuGroup(() -> "Color Blind Modes");
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOPES, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, nlDesignSurface));
-    colorBlindMode.addAction(new SetColorBlindModeAction(ColorBlindMode.TRITANOPES, nlDesignSurface));
+    DefaultActionGroup colorBlindMode = new ColorBlindModeAction(
+      nlDesignSurface.getScreenViewProvider(),
+      mode -> {
+        nlDesignSurface.setColorBlindMode(mode);
+        return Unit.INSTANCE;
+      });
     designSurfaceMenu.addAction(colorBlindMode);
 
     designSurfaceMenu.addSeparator();

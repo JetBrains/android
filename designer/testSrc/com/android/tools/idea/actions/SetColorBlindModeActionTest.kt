@@ -84,7 +84,8 @@ class SetColorBlindModeActionTest {
 
     surface.setScreenViewProvider(myScreenViewProvider, false)
 
-    val setColorBlindModeAction = SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface)
+    val setColorBlindModeAction =
+      SetColorBlindModeAction(ColorBlindMode.PROTANOPES) { surface.setColorBlindMode(it) }
     val event = TestActionEvent(setColorBlindModeAction)
 
     // Two things are tested here:

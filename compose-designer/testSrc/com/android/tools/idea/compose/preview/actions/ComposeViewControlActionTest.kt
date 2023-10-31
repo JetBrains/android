@@ -21,6 +21,7 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.prettyPrintActions
+import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
@@ -94,7 +95,12 @@ class ComposeViewControlActionTest {
         EmptyLayoutManagerSwitcher,
         options,
         onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider = { _ -> ComposeColorBlindAction(designSurfaceMock) }
+        additionalActionProvider = { _ ->
+          ColorBlindModeAction(
+            designSurfaceMock.screenViewProvider,
+            designSurfaceMock::setColorBlindMode
+          )
+        }
       )
     viewControlAction.updateActions(context)
 
@@ -148,7 +154,12 @@ class ComposeViewControlActionTest {
         EmptyLayoutManagerSwitcher,
         options,
         onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider = { _ -> ComposeColorBlindAction(designSurfaceMock) }
+        additionalActionProvider = { _ ->
+          ColorBlindModeAction(
+            designSurfaceMock.screenViewProvider,
+            designSurfaceMock::setColorBlindMode
+          )
+        }
       )
     viewControlAction.updateActions(context)
 
@@ -209,7 +220,12 @@ class ComposeViewControlActionTest {
         EmptyLayoutManagerSwitcher,
         options,
         onSurfaceLayoutSelected = { _, _ -> },
-        additionalActionProvider = { _ -> ComposeColorBlindAction(designSurfaceMock) }
+        additionalActionProvider = { _ ->
+          ColorBlindModeAction(
+            designSurfaceMock.screenViewProvider,
+            designSurfaceMock::setColorBlindMode
+          )
+        }
       )
     viewControlAction.updateActions(context)
 

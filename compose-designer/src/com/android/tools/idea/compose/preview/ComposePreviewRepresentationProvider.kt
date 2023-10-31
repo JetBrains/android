@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
+import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.compose.preview.actions.ComposeColorBlindAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterShowHistoryAction
 import com.android.tools.idea.compose.preview.actions.ComposeFilterTextAction
 import com.android.tools.idea.compose.preview.actions.ComposeNotificationGroup
@@ -117,7 +117,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
             },
             additionalActionProvider = {
               if (StudioFlags.COMPOSE_COLORBLIND_MODE.get() && surface is NlDesignSurface)
-                ComposeColorBlindAction(surface)
+                ColorBlindModeAction(surface.screenViewProvider) { surface.setColorBlindMode(it) }
               else null
             },
           )

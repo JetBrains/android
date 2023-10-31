@@ -26,7 +26,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 /** Action class to switch the [ScreenViewProvider.colorBlindFilter] in a [NlDesignSurface]. */
 class SetColorBlindModeAction(
   val colorBlindMode: ColorBlindMode,
-  private val designSurface: NlDesignSurface
+  val onColorBlindModeSelected: (ColorBlindMode) -> Unit,
 ) :
   ToggleAction(
     colorBlindMode.displayName,
@@ -40,7 +40,7 @@ class SetColorBlindModeAction(
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     isSelected = state
-    designSurface.setColorBlindMode(if (isSelected) colorBlindMode else ColorBlindMode.NONE)
+    onColorBlindModeSelected(if (isSelected) colorBlindMode else ColorBlindMode.NONE)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
