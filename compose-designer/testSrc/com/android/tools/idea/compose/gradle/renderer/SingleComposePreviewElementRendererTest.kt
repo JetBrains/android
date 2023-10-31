@@ -19,8 +19,6 @@ import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.classloading.ModuleClassLoader

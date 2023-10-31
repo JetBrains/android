@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.scene.getAccessibilityText
 import com.android.tools.preview.SingleComposePreviewElementInstance

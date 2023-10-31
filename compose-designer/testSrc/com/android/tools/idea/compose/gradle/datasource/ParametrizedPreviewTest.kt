@@ -19,12 +19,12 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
+import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TestComposePreviewView
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.preview.PreviewElementProvider

@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction

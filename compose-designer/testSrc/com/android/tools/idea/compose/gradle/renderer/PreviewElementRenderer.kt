@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.renderer
+package com.android.tools.idea.compose.gradle.renderer
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
@@ -22,7 +22,6 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.android.tools.preview.applyTo
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
@@ -34,7 +33,6 @@ import org.jetbrains.android.facet.AndroidFacet
  * [ComposePreviewElementInstance]. It is the responsibility of a client of this function to dispose
  * the resulting [RenderTask] when no loner needed.
  */
-@VisibleForTesting
 fun createRenderTaskFuture(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
@@ -61,7 +59,6 @@ fun createRenderTaskFuture(
  * or null if the preview could not be rendered. This method will render the element asynchronously
  * and will return immediately.
  */
-@VisibleForTesting
 fun renderPreviewElementForResult(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
