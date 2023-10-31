@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.ide.common.rendering.api.Result
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
@@ -47,6 +48,7 @@ class ComposePreviewStatusIconActionTest {
     MapDataContext().also {
       it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager)
       it.put(CommonDataKeys.PROJECT, projectRule.project)
+      it.put(SCENE_VIEW, sceneViewMock)
     }
   }
 
@@ -96,7 +98,7 @@ class ComposePreviewStatusIconActionTest {
 
   @Test
   fun testIconState() {
-    val action = ComposePreviewStatusIconAction(sceneViewMock)
+    val action = ComposePreviewStatusIconAction()
     val event = TestActionEvent.createTestEvent(context)
 
     // Syntax error has priority over the other properties

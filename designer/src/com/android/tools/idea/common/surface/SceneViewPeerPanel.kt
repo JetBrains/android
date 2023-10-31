@@ -27,9 +27,11 @@ import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -97,7 +99,7 @@ data class LayoutData(
 class SceneViewPeerPanel(
   val sceneView: SceneView,
   private val labelPanel: LabelPanel,
-  private val sceneViewStatusIcon: JComponent?,
+  private val sceneViewStatusIconAction: AnAction?,
   private val sceneViewToolbarActions: List<AnAction>,
   private val sceneViewBottomBar: JComponent?,
   private val sceneViewLeftBar: JComponent?,
@@ -199,16 +201,17 @@ class SceneViewPeerPanel(
   fun PositionableContent.isEmptyContent() =
     scaledContentSize.let { it.height == 0 && it.width == 0 }
 
-  private fun createToolbar(actions: List<AnAction>): JComponent? {
+  private fun createToolbar(
+    actions: List<AnAction>,
+    toolbarCustomization: (ActionToolbar) -> Unit
+  ): JComponent? {
     if (actions.isEmpty()) {
       return null
     }
     return ActionManager.getInstance()
       .createActionToolbar("sceneView", DefaultActionGroup(actions), true)
       .apply {
-        // Do not allocate space for the "see more" chevron if not needed
-        setReservePlaceAutoPopupIcon(false)
-        setShowSeparatorTitles(true)
+        toolbarCustomization(this)
         targetComponent = this@SceneViewPeerPanel
       }
       .component
@@ -228,13 +231,25 @@ class SceneViewPeerPanel(
       border = JBUI.Borders.emptyBottom(TOP_BAR_BOTTOM_MARGIN)
       isOpaque = false
       // Make the status icon be part of the top panel
+      val sceneViewStatusIcon =
+        sceneViewStatusIconAction?.let {
+          createToolbar(listOf(sceneViewStatusIconAction)) {
+            (it as? ActionToolbarImpl)?.setForceMinimumSize(true)
+            it.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+          }
+        }
       val sceneViewStatusIconSize = sceneViewStatusIcon?.minimumSize?.width ?: 0
       if (sceneViewStatusIcon != null && sceneViewStatusIconSize > 0) {
         add(sceneViewStatusIcon, BorderLayout.LINE_START)
         sceneViewStatusIcon.isVisible = true
       }
       add(labelPanel, BorderLayout.CENTER)
-      val sceneViewToolbar = createToolbar(sceneViewToolbarActions)
+      val sceneViewToolbar =
+        createToolbar(sceneViewToolbarActions) {
+          // Do not allocate space for the "see more" chevron if not needed
+          it.setReservePlaceAutoPopupIcon(false)
+          it.setShowSeparatorTitles(true)
+        }
       if (sceneViewToolbar != null) {
         add(sceneViewToolbar, BorderLayout.LINE_END)
         // Initialize the toolbar as invisible. Its visibility will be controlled by hovering the

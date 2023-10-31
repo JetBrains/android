@@ -39,6 +39,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnal
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.runReadAction
@@ -49,7 +50,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
@@ -168,7 +169,7 @@ class RenderErrorTest {
     // The visible/invisible state before the update shouldn't affect the final result
     for (visibleBefore in listOf(true, false)) {
       // All actions should be invisible when there are render errors
-      assertEquals(0, countVisibleActions(actions, visibleBefore))
+      assertEquals(0, countVisibleActions(actions, visibleBefore, sceneViewPanelWithErrors))
     }
   }
 
@@ -202,7 +203,10 @@ class RenderErrorTest {
       // contain animations, but the interactive, ui check and deploy to device actions should be
       // visible as there are no render errors.
       val visibleActionCount = if (StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()) 3 else 2
-      assertEquals(visibleActionCount, countVisibleActions(actions, visibleBefore))
+      assertEquals(
+        visibleActionCount,
+        countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors)
+      )
     }
   }
 
@@ -260,10 +264,15 @@ class RenderErrorTest {
     }
   }
 
-  private fun countVisibleActions(actions: List<AnAction>, visibleBefore: Boolean): Int {
+  private fun countVisibleActions(
+    actions: List<AnAction>,
+    visibleBefore: Boolean,
+    sceneViewPeerPanel: SceneViewPeerPanel
+  ): Int {
     var visibleAfterCount = 0
+    val dataContext = DataContext { sceneViewPeerPanel.getData(it) }
     for (action in actions) {
-      val event = TestActionEvent()
+      val event = createTestEvent(dataContext)
       event.presentation.isVisible = visibleBefore
       action.update(event)
       if (event.presentation.isVisible) visibleAfterCount++

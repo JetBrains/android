@@ -121,11 +121,11 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   }
 
   /**
-   * Returns a component with the status icon for a {@link SceneView}.
+   * Returns an action with the status icon for a {@link SceneView}.
    * The method returns null when the status icon is not needed.
    */
   @Nullable
-  public JComponent getSceneViewStatusIcon(@NotNull SceneView sceneView) {
+  public AnAction getSceneViewStatusIconAction() {
     return null;
   }
 
