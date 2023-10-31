@@ -17,6 +17,7 @@ package com.android.tools.idea.adddevicedialog
 
 import com.android.resources.ScreenOrientation
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
@@ -26,6 +27,9 @@ import java.nio.file.Path
 internal object VirtualDevices {
   internal fun add(device: VirtualDevice) {
     val handler = AndroidSdks.getInstance().tryToChooseSdkHandler()
+
+    val connection = AvdManagerConnection.getDefaultAvdManagerConnection()
+    val id = AvdWizardUtils.cleanAvdName(connection, device.name, /* uniquify= */ true)
 
     val definition =
       DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.first {
@@ -42,7 +46,7 @@ internal object VirtualDevices {
 
     val properties =
       mapOf(
-        "AvdId" to "Pixel_7_API_34",
+        "AvdId" to id,
         "avd.ini.displayname" to device.name,
         "disk.dataPartition.size" to "2G",
         "fastboot.chosenSnapshotFile" to "",
@@ -81,18 +85,17 @@ internal object VirtualDevices {
         "vm.heapSize" to "256"
       )
 
-    AvdManagerConnection.getDefaultAvdManagerConnection()
-      .createOrUpdateAvd(
-        /* currentInfo= */ null,
-        /* avdName= */ "Pixel_7_API_34",
-        /* device= */ definition,
-        /* systemImageDescription= */ SystemImageDescription(image),
-        /* orientation= */ ScreenOrientation.PORTRAIT,
-        /* isCircular= */ false,
-        /* sdCard= */ "512M",
-        /* skinFolder= */ skin,
-        /* hardwareProperties= */ properties,
-        /* removePrevious= */ true
-      )
+    connection.createOrUpdateAvd(
+      /* currentInfo= */ null,
+      /* avdName= */ id,
+      /* device= */ definition,
+      /* systemImageDescription= */ SystemImageDescription(image),
+      /* orientation= */ ScreenOrientation.PORTRAIT,
+      /* isCircular= */ false,
+      /* sdCard= */ "512M",
+      /* skinFolder= */ skin,
+      /* hardwareProperties= */ properties,
+      /* removePrevious= */ true
+    )
   }
 }
