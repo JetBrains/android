@@ -13,20 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.startup;
+package com.android.tools.idea.startup
 
-import com.intellij.ide.ApplicationLoadListener;
-import com.intellij.openapi.application.Application;
-import java.nio.file.Path;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.ide.ApplicationLoadListener
+import com.intellij.openapi.application.Application
+import java.nio.file.Path
 
 /**
  * Initialization code common between Android Studio and Android plugin in IntelliJ.
  */
-@SuppressWarnings("UnstableApiUsage")
-public class AndroidPluginInitializer implements ApplicationLoadListener {
-  @Override
-  public void beforeApplicationLoaded(@NotNull Application application, @NotNull Path configPath) {
+private class AndroidPluginInitializer : ApplicationLoadListener {
+  override suspend fun beforeApplicationLoaded(application: Application, configPath: Path) {
     //AndroidStudioAnalytics.initialize(new AndroidStudioAnalyticsImpl());
   }
 }
