@@ -24,11 +24,11 @@ import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.PreviewStatusIcon
 import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.preview.actions.disabledIf
+import com.android.tools.idea.preview.actions.hasSceneViewErrors
 import com.android.tools.idea.preview.actions.hideIfRenderErrors
 import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
@@ -47,12 +47,12 @@ internal class WearTilePreviewActionManager(
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
     createStatusIcon(PreviewStatusIcon(sceneView), surface)
 
-  override fun getSceneViewContextToolbarActions(sceneView: SceneView): List<AnAction> =
+  override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
           EnableInteractiveAction(isEssentialsModeEnabled = EssentialsMode::isEnabled),
         )
-        .disabledIf { context -> isPreviewRefreshing(context) || sceneView.hasRenderErrors() }
-        .hideIfRenderErrors(sceneView)
+        .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
+        .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
 }

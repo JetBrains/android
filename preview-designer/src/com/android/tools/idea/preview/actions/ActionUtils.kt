@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
@@ -106,18 +106,20 @@ fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
 fun AnAction.visibleOnlyInStaticPreview(): ActionGroup = listOf(this).visibleOnlyInStaticPreview()
 
 /** Hide the given actions if the [sceneView] contains render errors. */
-fun List<AnAction>.hideIfRenderErrors(sceneView: SceneView): List<AnAction> = map {
-  ShowUnderConditionWrapper(it) { !sceneView.hasRenderErrors() }
+fun List<AnAction>.hideIfRenderErrors(): List<AnAction> = map {
+  ShowUnderConditionWrapper(it) { context -> !hasSceneViewErrors(context) }
 }
 
 /** Wrapper that delegates whether the given action is visible or not to the passed condition. */
-private class ShowUnderConditionWrapper(delegate: AnAction, private val isVisible: () -> Boolean) :
-  AnActionWrapper(delegate), CustomComponentAction {
+private class ShowUnderConditionWrapper(
+  delegate: AnAction,
+  private val isVisible: (DataContext) -> Boolean
+) : AnActionWrapper(delegate), CustomComponentAction {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     val curVisibleStatus = e.presentation.isVisible
-    e.presentation.isVisible = curVisibleStatus && isVisible()
+    e.presentation.isVisible = curVisibleStatus && isVisible(e.dataContext)
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
@@ -142,6 +144,9 @@ fun List<AnAction>.disabledIf(predicate: (DataContext) -> Boolean): List<AnActio
  */
 fun isPreviewRefreshing(dataContext: DataContext) =
   dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.isRefreshing == true
+
+fun hasSceneViewErrors(dataContext: DataContext) =
+  dataContext.getData(SCENE_VIEW)?.hasRenderErrors() == true
 
 /**
  * Wrapper that delegates whether the given action is enabled or not to the passed condition. If

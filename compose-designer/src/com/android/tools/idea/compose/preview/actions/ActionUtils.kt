@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.disabledIf
+import com.android.tools.idea.preview.actions.hasSceneViewErrors
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -65,7 +64,6 @@ internal fun AnAction.visibleOnlyInUiCheck(): ActionGroup =
  * The given disables the actions if any surface is refreshing or if the [sceneView] contains
  * errors.
  */
-fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> =
-  disabledIf { context ->
-    isPreviewRefreshing(context) || sceneView.hasRenderErrors()
-  }
+fun List<AnAction>.disabledIfRefreshingOrRenderErrors(): List<AnAction> = disabledIf { context ->
+  isPreviewRefreshing(context) || hasSceneViewErrors(context)
+}

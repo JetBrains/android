@@ -87,7 +87,7 @@ internal class PreviewSurfaceActionManager(
   override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 
-  override fun getSceneViewContextToolbarActions(sceneView: SceneView): List<AnAction> =
+  override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(
           EnableUiCheckAction(),
@@ -100,8 +100,8 @@ internal class PreviewSurfaceActionManager(
           ),
           DeployToDeviceAction(),
         )
-        .disabledIfRefreshingOrRenderErrors(sceneView)
-        .hideIfRenderErrors(sceneView)
+        .disabledIfRefreshingOrRenderErrors()
+        .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
 
   override fun getSceneViewStatusIcon(sceneView: SceneView) =

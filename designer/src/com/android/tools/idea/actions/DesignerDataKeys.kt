@@ -18,6 +18,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.editor.AnimationToolbar
 import com.intellij.openapi.actionSystem.DataKey
 
@@ -33,3 +34,5 @@ val DESIGN_SURFACE: DataKey<DesignSurface<*>> = DataKey.create(DesignSurface::cl
 @JvmField
 val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> =
   DataKey.create(AnimationToolbar::class.qualifiedName!!)
+
+@JvmField val SCENE_VIEW: DataKey<SceneView> = DataKey.create(SceneView::class.qualifiedName!!)

@@ -61,7 +61,7 @@ class VisualizationActionManager(
 
   override fun getToolbarActions(newSelection: List<NlComponent>) = DefaultActionGroup()
 
-  override fun getSceneViewContextToolbarActions(sceneView: SceneView): List<AnAction> {
+  override fun getSceneViewContextToolbarActions(): List<AnAction> {
     return listOf(RemoveCustomAction(visualizationModelsProvider))
   }
 

@@ -27,7 +27,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -248,13 +247,13 @@ class PreviewEditorActionManagerProvider(
   surface: NlDesignSurface,
   private val fileType: DesignerEditorFileType?
 ) : NlActionManager(surface) {
-  override fun getSceneViewContextToolbarActions(sceneView: SceneView): List<AnAction> {
+  override fun getSceneViewContextToolbarActions(): List<AnAction> {
     return when (fileType) {
       is AnimatedStateListFileType,
       is AnimatedStateListTempFileType,
       is AnimatedVectorFileType,
       is AnimationListFileType -> emptyList()
-      else -> super.getSceneViewContextToolbarActions(sceneView)
+      else -> super.getSceneViewContextToolbarActions()
     }
   }
 }

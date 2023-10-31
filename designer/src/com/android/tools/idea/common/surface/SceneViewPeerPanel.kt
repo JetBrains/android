@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
@@ -474,6 +475,10 @@ class SceneViewPeerPanel(
   }
 
   override fun getData(dataId: String): Any? {
-    return sceneView.sceneManager.model.dataContext.getData(dataId)
+    return if (SCENE_VIEW.`is`(dataId)) {
+      sceneView
+    } else {
+      sceneView.sceneManager.model.dataContext.getData(dataId)
+    }
   }
 }

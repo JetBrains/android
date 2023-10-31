@@ -96,7 +96,7 @@ internal class SceneViewPanel(
     // Invalidate the current components
     removeAll()
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
-      val toolbarActions = actionManagerProvider().getSceneViewContextToolbarActions(sceneView)
+      val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
       val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
       val statusIcon = actionManagerProvider().getSceneViewStatusIcon(sceneView)
       statusIcon?.isVisible = false

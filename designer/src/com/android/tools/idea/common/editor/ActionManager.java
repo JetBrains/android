@@ -21,7 +21,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LabelPanel;
 import com.android.tools.idea.common.surface.LayoutData;
 import com.android.tools.idea.common.surface.SceneView;
-import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -114,10 +113,10 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
 
   /**
    * Returns the actions for the context toolbar of a {@link SceneView}. The actions should be
-   * specific to this {@link SceneView}. The method returns an empty list if no toolbar is needed.
+   * specific to a {@link SceneView}. The method returns an empty list if no toolbar is needed.
    */
   @NotNull
-  public List<AnAction> getSceneViewContextToolbarActions(@NotNull SceneView sceneView) {
+  public List<AnAction> getSceneViewContextToolbarActions() {
     return Collections.emptyList();
   }
 
