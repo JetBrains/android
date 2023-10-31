@@ -50,7 +50,6 @@ class ViewInfoParserTest {
   @Test
   fun testDefaultPreviewRendering() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.module
     val previewStartLine = runReadAction {
       val file =
         VfsUtil.findRelativeFile(
