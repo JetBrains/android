@@ -22,8 +22,8 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.legend.FixedLegend
 import com.android.tools.adtui.model.legend.LegendComponentModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.NO_STATUS_CODE
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsStateChart
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkState
 import com.android.tools.inspectors.common.ui.dataviewer.ImageDataViewer
@@ -211,7 +211,7 @@ class OverviewTabContent : TabContent() {
 
       var row = 0
       myFieldsPanel.add(NoWrapBoldLabel("Request"), TabularLayout.Constraint(row, 0))
-      myFieldsPanel.add(JLabel(getUrlName(httpData.url)), TabularLayout.Constraint(row, 2))
+      myFieldsPanel.add(JLabel(httpData.getUrlName()), TabularLayout.Constraint(row, 2))
       row++
       myFieldsPanel.add(NoWrapBoldLabel("Method"), TabularLayout.Constraint(row, 0))
       myFieldsPanel.add(JLabel(httpData.method), TabularLayout.Constraint(row, 2))

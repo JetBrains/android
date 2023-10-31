@@ -27,21 +27,24 @@ import com.android.tools.adtui.table.ConfigColumnTableAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.NAME
+import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.SIZE
+import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.STATUS
+import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TIME
+import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TIMELINE
+import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TYPE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BORDER
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_TEXT
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Component
 import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JTable
@@ -61,48 +64,6 @@ class ConnectionsView(
   private val model: NetworkInspectorModel,
   private val parentPane: TooltipLayeredPane
 ) : AspectObserver() {
-  /** Columns for each connection information */
-  @VisibleForTesting
-  enum class Column(val widthRatio: Double, val type: Class<*>) {
-    NAME(0.25, String::class.java) {
-      override fun getValueFrom(data: HttpData): Any {
-        return getUrlName(data.url)
-      }
-    },
-    SIZE(0.25 / 4, java.lang.Integer::class.java) {
-      override fun getValueFrom(data: HttpData): Any {
-        return data.responsePayload.size()
-      }
-    },
-    TYPE(0.25 / 4, String::class.java) {
-      override fun getValueFrom(data: HttpData): Any {
-        val type = data.responseHeader.contentType
-        val mimeTypeParts = type.mimeType.split("/")
-        return mimeTypeParts[mimeTypeParts.size - 1]
-      }
-    },
-    STATUS(0.25 / 4, java.lang.Integer::class.java) {
-      override fun getValueFrom(data: HttpData): Any {
-        return data.responseHeader.statusCode
-      }
-    },
-    TIME(0.25 / 4, java.lang.Long::class.java) {
-      override fun getValueFrom(data: HttpData): Any {
-        return data.connectionEndTimeUs - data.requestStartTimeUs
-      }
-    },
-    TIMELINE(0.5, java.lang.Long::class.java) {
-      override fun getValueFrom(data: HttpData): Any {
-        return data.requestStartTimeUs
-      }
-    };
-
-    fun toDisplayString(): String {
-      return StringUtil.capitalize(name.lowercase(Locale.getDefault()))
-    }
-
-    abstract fun getValueFrom(data: HttpData): Any
-  }
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable: JTable
@@ -112,7 +73,7 @@ class ConnectionsView(
 
   init {
     connectionsTable =
-      TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.toDisplayString(), true)
+      TimelineTable.create(tableModel, model.timeline, TIMELINE.toDisplayString(), true)
     customizeConnectionsTable()
     ConfigColumnTableAspect.apply(connectionsTable, NetworkInspectorViewState.getInstance().columns)
     createTooltip()
@@ -124,12 +85,12 @@ class ConnectionsView(
   private fun customizeConnectionsTable() {
     connectionsTable.autoCreateRowSorter = true
 
-    setRenderer(Column.NAME, BorderlessTableCellRenderer())
-    setRenderer(Column.SIZE, SizeRenderer())
-    setRenderer(Column.TYPE, BorderlessTableCellRenderer())
-    setRenderer(Column.STATUS, StatusRenderer())
-    setRenderer(Column.TIME, TimeRenderer())
-    setRenderer(Column.TIMELINE, TimelineRenderer(connectionsTable, model.timeline))
+    setRenderer(NAME, BorderlessTableCellRenderer())
+    setRenderer(SIZE, SizeRenderer())
+    setRenderer(TYPE, BorderlessTableCellRenderer())
+    setRenderer(STATUS, StatusRenderer())
+    setRenderer(TIME, TimeRenderer())
+    setRenderer(TIMELINE, TimelineRenderer(connectionsTable, model.timeline))
 
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     connectionsTable.addMouseListener(
@@ -173,7 +134,7 @@ class ConnectionsView(
     }
   }
 
-  private fun setRenderer(column: Column, renderer: TableCellRenderer) {
+  private fun setRenderer(column: ConnectionColumn, renderer: TableCellRenderer) {
     connectionsTable.columnModel.getColumn(column.ordinal).cellRenderer = renderer
   }
 
@@ -228,30 +189,18 @@ class ConnectionsView(
       }
     }
 
-    override fun getRowCount(): Int {
-      return dataList.size
-    }
+    override fun getRowCount() = dataList.size
 
-    override fun getColumnCount(): Int {
-      return Column.values().size
-    }
+    override fun getColumnCount() = ConnectionColumn.values().size
 
-    override fun getColumnName(column: Int): String {
-      return Column.values()[column].toDisplayString()
-    }
+    override fun getColumnName(column: Int) = ConnectionColumn.values()[column].toDisplayString()
 
-    override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-      val data = dataList[rowIndex]
-      return Column.values()[columnIndex].getValueFrom(data)
-    }
+    override fun getValueAt(rowIndex: Int, columnIndex: Int) =
+      ConnectionColumn.values()[columnIndex].getValueFrom(dataList[rowIndex])
 
-    override fun getColumnClass(columnIndex: Int): Class<*> {
-      return Column.values()[columnIndex].type
-    }
+    override fun getColumnClass(columnIndex: Int) = ConnectionColumn.values()[columnIndex].type
 
-    fun getHttpData(rowIndex: Int): HttpData {
-      return dataList[rowIndex]
-    }
+    fun getHttpData(rowIndex: Int) = dataList[rowIndex]
   }
 
   private class SizeRenderer : BorderlessTableCellRenderer() {

@@ -17,13 +17,10 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.protobuf.ByteString
-import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.util.io.URLUtil
 import java.io.ByteArrayInputStream
 import java.io.IOException
-import java.io.UnsupportedEncodingException
 import java.net.URI
-import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import studio.network.inspection.NetworkInspectorProtocol
@@ -209,55 +206,55 @@ data class HttpData(
         responsePayload
       )
     }
-
-    /**
-     * Return the name of the URL, which is the final complete word in the path portion of the URL.
-     * The query is included as it can be useful to disambiguate requests. Additionally, the
-     * returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
-     *
-     * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png"
-     * "www.example.com/test.png?res=2" -> "test.png?res=2" "www.example.com/" -> "www.example.com"
-     */
-    fun getUrlName(url: String): String {
-      return try {
-        // Run encode on the incoming url once, just in case, as this can prevent URI.create from
-        // throwing a syntax exception in some cases. This encode will be decoded, below.
-        val uri = URI.create(URLEncoder.encode(url, CharsetToolkit.UTF8))
-
-        if (uri.path != null) {
-          val lastComponent = lastComponent(uri.path)
-          val fullname = uri.query?.let { "$lastComponent?${uri.query}" } ?: lastComponent
-          decodeUrlName(fullname)
-        } else {
-          uri.host
-        }
-      } catch (ignored: UnsupportedEncodingException) {
-        // If here, it most likely means the url we are tracking is invalid in some way (formatting
-        // or encoding). We try to recover gracefully by employing a simpler, less sophisticated
-        // approach - return all text after the last slash. Keep in mind that this fallback
-        // case should rarely, if ever, be used in practice.
-        lastComponent(url)
-      } catch (ignored: IllegalArgumentException) {
-        lastComponent(url)
-      }
-    }
-
-    private fun lastComponent(url: String) = url.trimEnd('/').substringAfterLast('/')
-
-    private fun decodeUrlName(name: String): String {
-      // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away
-      // the final layer.
-      // Usually this is only expected to loop once or twice.
-      // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
-      var currentName = name
-      var lastName: String
-      do {
-        lastName = currentName
-        currentName = URLUtil.decode(currentName)
-      } while (currentName != lastName)
-      return currentName
-    }
   }
+}
+
+/**
+ * Return the name of the URL, which is the final complete word in the path portion of the URL. The
+ * query is included as it can be useful to disambiguate requests. Additionally, the returned value
+ * is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
+ *
+ * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png"
+ * "www.example.com/test.png?res=2" -> "test.png?res=2" "www.example.com/" -> "www.example.com"
+ */
+fun HttpData.getUrlName(): String {
+  val name =
+    try {
+      val uri = URI.create(url)
+      val path = uri.path?.lastComponent()
+      when {
+        path == null -> uri.host
+        uri.query != null -> "$path?${uri.query}"
+        path.isBlank() -> uri.host
+        else -> path
+      }
+    } catch (ignored: IllegalArgumentException) {
+      url.lastComponent()
+    }
+  return name.decodeUrl()
+}
+
+private fun String.lastComponent() = trimEnd('/').substringAfterLast('/')
+
+/**
+ * Decodes a URL Component
+ *
+ * A URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the
+ * final layer. Usually this is only expected to loop once or twice.
+ * [See more](http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520)
+ */
+private fun String.decodeUrl(): String {
+  var currentValue = this
+  var lastValue: String
+  do {
+    lastValue = currentValue
+    try {
+      currentValue = URLUtil.decode(currentValue)
+    } catch (e: Exception) {
+      return this
+    }
+  } while (currentValue != lastValue)
+  return currentValue
 }
 
 /**

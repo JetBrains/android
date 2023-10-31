@@ -28,8 +28,8 @@ import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_RECEIVING_COLOR
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NETWORK_SENDING_COLOR
@@ -278,7 +278,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
       val metrics = getFontMetrics(font)
       val text =
         AdtUiUtils.shrinkToFit(
-          getUrlName(data.url),
+          data.getUrlName(),
           metrics,
           (end - start - 2 * NAME_PADDING).toFloat()
         )
@@ -341,7 +341,7 @@ class ThreadsView(model: NetworkInspectorModel, parentPane: TooltipLayeredPane) 
 
     private fun showTooltip(data: HttpData) {
       tooltipComponent.isVisible = true
-      val urlName = getUrlName(data.url)
+      val urlName = data.getUrlName()
       val duration = data.connectionEndTimeUs - data.requestStartTimeUs
       content.removeAll()
       addToContent(newTooltipLabel(urlName))
