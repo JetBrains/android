@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
@@ -22,6 +23,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepI
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.ui.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.tree.RootPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.streaming.core.AbstractDisplayView
@@ -108,6 +110,12 @@ fun Container.allChildren(): List<Component> {
   return children
 }
 
+private fun WorkBench<LayoutInspector>.getTreePanel() =
+  allChildren().filterIsInstance<RootPanel>().first()
+
+private fun WorkBench<LayoutInspector>.getAttributesPanel() =
+  allChildren().first { it.name == "Properties Component" }
+
 fun verifyUiInjected(
   uiConfig: UiConfig,
   content: Component,
@@ -118,11 +126,101 @@ fun verifyUiInjected(
     when (uiConfig) {
       UiConfig.HORIZONTAL -> {
         val splitter = content.allParents().filterIsInstance<Splitter>().first()
-        splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
+        val workbench =
+          splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val left = workbench.getBottomComponents(Side.LEFT)?.first()!!
+        val right = workbench.getBottomComponents(Side.RIGHT)?.first()!!
+
+        assertThat(left.allChildren()).contains(workbench.getTreePanel())
+        assertThat(right.allChildren()).contains(workbench.getAttributesPanel())
+
+        workbench
+      }
+      UiConfig.HORIZONTAL_SWAP -> {
+        val splitter = content.allParents().filterIsInstance<Splitter>().first()
+        val workbench =
+          splitter.allChildren().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val left = workbench.getBottomComponents(Side.LEFT)?.first()!!
+        val right = workbench.getBottomComponents(Side.RIGHT)?.first()!!
+
+        assertThat(left.allChildren()).contains(workbench.getAttributesPanel())
+        assertThat(right.allChildren()).contains(workbench.getTreePanel())
+
+        workbench
       }
       UiConfig.VERTICAL -> {
         assertThat(content.allParents().filterIsInstance<Splitter>()).isEmpty()
-        content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+        val workbench = content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val left = workbench.getBottomComponents(Side.LEFT)?.first()!!
+        val right = workbench.getBottomComponents(Side.RIGHT)?.first()!!
+
+        assertThat(left.allChildren()).contains(workbench.getTreePanel())
+        assertThat(right.allChildren()).contains(workbench.getAttributesPanel())
+
+        workbench
+      }
+      UiConfig.VERTICAL_SWAP -> {
+        assertThat(content.allParents().filterIsInstance<Splitter>()).isEmpty()
+        val workbench = content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val left = workbench.getBottomComponents(Side.LEFT)?.first()!!
+        val right = workbench.getBottomComponents(Side.RIGHT)?.first()!!
+
+        assertThat(left.allChildren()).contains(workbench.getAttributesPanel())
+        assertThat(right.allChildren()).contains(workbench.getTreePanel())
+
+        workbench
+      }
+      UiConfig.LEFT_VERTICAL -> {
+        assertThat(content.allParents().filterIsInstance<Splitter>()).isEmpty()
+        val workbench = content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val topLeft = workbench.getTopComponents(Side.LEFT)?.first()!!
+        val bottomLeft = workbench.getBottomComponents(Side.LEFT)?.first()!!
+
+        assertThat(topLeft.allChildren()).contains(workbench.getTreePanel())
+        assertThat(bottomLeft.allChildren()).contains(workbench.getAttributesPanel())
+
+        workbench
+      }
+      UiConfig.LEFT_VERTICAL_SWAP -> {
+        assertThat(content.allParents().filterIsInstance<Splitter>()).isEmpty()
+        val workbench = content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val topLeft = workbench.getTopComponents(Side.LEFT)?.first()!!
+        val bottomLeft = workbench.getBottomComponents(Side.LEFT)?.first()!!
+
+        assertThat(topLeft.allChildren()).contains(workbench.getAttributesPanel())
+        assertThat(bottomLeft.allChildren()).contains(workbench.getTreePanel())
+
+        workbench
+      }
+      UiConfig.RIGHT_VERTICAL -> {
+        assertThat(content.allParents().filterIsInstance<Splitter>()).isEmpty()
+        val workbench = content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val topRight = workbench.getTopComponents(Side.RIGHT)?.first()!!
+        val bottomRight = workbench.getBottomComponents(Side.RIGHT)?.first()!!
+
+        assertThat(topRight.allChildren()).contains(workbench.getTreePanel())
+        assertThat(bottomRight.allChildren()).contains(workbench.getAttributesPanel())
+
+        workbench
+      }
+      UiConfig.RIGHT_VERTICAL_SWAP -> {
+        assertThat(content.allParents().filterIsInstance<Splitter>()).isEmpty()
+        val workbench = content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+
+        val topRight = workbench.getTopComponents(Side.RIGHT)?.first()!!
+        val bottomRight = workbench.getBottomComponents(Side.RIGHT)?.first()!!
+
+        assertThat(topRight.allChildren()).contains(workbench.getAttributesPanel())
+        assertThat(bottomRight.allChildren()).contains(workbench.getTreePanel())
+
+        workbench
       }
     }
 

@@ -42,7 +42,7 @@ class LayoutInspectorTreePanelDefinition(
     ALLOW_SPLIT_MODE,
     showGearAction,
     showHideAction,
-    overrideSplit,
     overrideSide,
+    overrideSplit,
     { LayoutInspectorTreePanel(it) }
   )

@@ -51,7 +51,13 @@ private fun showGearPopup(component: Component, x: Int, y: Int, actions: List<An
 
 enum class UiConfig {
   HORIZONTAL,
+  HORIZONTAL_SWAP,
   VERTICAL,
+  VERTICAL_SWAP,
+  LEFT_VERTICAL,
+  LEFT_VERTICAL_SWAP,
+  RIGHT_VERTICAL,
+  RIGHT_VERTICAL_SWAP
 }
 
 /** Split the UI vertically. */
@@ -59,6 +65,18 @@ class VerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   AnAction(LayoutInspectorBundle.message("split.vertical"), "", AllIcons.Actions.SplitVertically) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.VERTICAL)
+  }
+}
+
+/** Split the UI vertically and swap tree and attributes panel. */
+class SwapVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(
+    @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.vertical.swap"),
+    "",
+    AllIcons.Actions.SplitHorizontally
+  ) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.VERTICAL_SWAP)
   }
 }
 
@@ -71,5 +89,73 @@ class HorizontalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   ) {
   override fun actionPerformed(e: AnActionEvent) {
     updateUi(UiConfig.HORIZONTAL)
+  }
+}
+
+/** Split the UI horizontally and swap tree and attributes panel. */
+class SwapHorizontalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(
+    @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("split.horizontal.swap"),
+    "",
+    AllIcons.Actions.SplitHorizontally
+  ) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.HORIZONTAL_SWAP)
+  }
+}
+
+/**
+ * Split the UI to have both panels vertically stacked on the left of the device, tree panel at the
+ * top
+ */
+class LeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(LayoutInspectorBundle.message("left.vertical"), "", AllIcons.Actions.SplitHorizontally) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.LEFT_VERTICAL)
+  }
+}
+
+/**
+ * Split the UI to have both panels vertically stacked on the left of the device, tree panel at the
+ * bottom.
+ */
+class SwapLeftVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(
+    @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("left.vertical.swap"),
+    "",
+    AllIcons.Actions.SplitHorizontally
+  ) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.LEFT_VERTICAL_SWAP)
+  }
+}
+
+/**
+ * Split the UI to have both panels vertically stacked on the right of the device, tree panel at the
+ * top
+ */
+class RightVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(
+    LayoutInspectorBundle.message("right.vertical"),
+    "",
+    AllIcons.Actions.SplitHorizontally
+  ) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.RIGHT_VERTICAL)
+  }
+}
+
+/**
+ * Split the UI to have both panels vertically stacked on the right of the device, tree panel at the
+ * bottom.
+ */
+class SwapRightVerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
+  AnAction(
+    @Suppress("DialogTitleCapitalization") LayoutInspectorBundle.message("right.vertical.swap"),
+    "",
+    AllIcons.Actions.SplitHorizontally
+  ) {
+  override fun actionPerformed(e: AnActionEvent) {
+    updateUi(UiConfig.RIGHT_VERTICAL_SWAP)
   }
 }

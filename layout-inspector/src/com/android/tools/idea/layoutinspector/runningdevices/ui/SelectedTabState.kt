@@ -16,6 +16,9 @@
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.workbench.Side
+import com.android.tools.adtui.workbench.Split
+import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
@@ -26,6 +29,12 @@ import com.android.tools.idea.layoutinspector.properties.LayoutInspectorProperti
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.HorizontalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.LeftVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.RightVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapHorizontalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapLeftVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapRightVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
 import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
@@ -123,10 +132,11 @@ data class SelectedTabState(
 
       val mainPanel =
         when (uiConfig) {
-          UiConfig.HORIZONTAL -> {
+          UiConfig.HORIZONTAL,
+          UiConfig.HORIZONTAL_SWAP -> {
             // Create a vertical split panel containing the device view at the top and the tool
             // windows at the bottom.
-            val toolsPanel = createToolsPanel(disposable)
+            val toolsPanel = createToolsPanel(disposable, uiConfig)
             val splitPanel =
               OnePixelSplitter(true, SPLITTER_KEY, 0.65f).apply {
                 firstComponent = centerPanel
@@ -135,10 +145,15 @@ data class SelectedTabState(
               }
             splitPanel
           }
-          UiConfig.VERTICAL -> {
+          UiConfig.VERTICAL,
+          UiConfig.VERTICAL_SWAP,
+          UiConfig.LEFT_VERTICAL,
+          UiConfig.LEFT_VERTICAL_SWAP,
+          UiConfig.RIGHT_VERTICAL,
+          UiConfig.RIGHT_VERTICAL_SWAP -> {
             // Create a workbench containing the panels on the side and the device view at the
             // center.
-            createToolsPanel(disposable, centerPanel)
+            createToolsPanel(disposable, uiConfig, centerPanel)
           }
         }
 
@@ -159,13 +174,17 @@ data class SelectedTabState(
    * Create a panel containing a toolbar and the workbench with the side panels and optionally
    * [centerPanel] as the center panel.
    */
-  private fun createToolsPanel(disposable: Disposable, centerPanel: JComponent? = null): JPanel {
+  private fun createToolsPanel(
+    disposable: Disposable,
+    uiConfig: UiConfig,
+    centerPanel: JComponent? = null
+  ): JPanel {
     val toolsPanel = BorderLayoutPanel()
 
     val toolbar = createToolbar(toolsPanel)
 
     val workBench =
-      createLayoutInspectorWorkbench(project, disposable, layoutInspector, centerPanel)
+      createLayoutInspectorWorkbench(project, disposable, layoutInspector, uiConfig, centerPanel)
     workBench.isFocusCycleRoot = false
 
     val layoutInspectorProvider = dataProviderForLayoutInspector(layoutInspector)
@@ -204,7 +223,16 @@ data class SelectedTabState(
       processPicker,
       listOf(
         toggleDeepInspectAction,
-        GearAction(VerticalSplitAction(::updateUi), HorizontalSplitAction(::updateUi))
+        GearAction(
+          VerticalSplitAction(::updateUi),
+          SwapVerticalSplitAction(::updateUi),
+          HorizontalSplitAction(::updateUi),
+          SwapHorizontalSplitAction(::updateUi),
+          LeftVerticalSplitAction(::updateUi),
+          SwapLeftVerticalSplitAction(::updateUi),
+          RightVerticalSplitAction(::updateUi),
+          SwapRightVerticalSplitAction(::updateUi)
+        )
       )
     )
   }
@@ -255,15 +283,14 @@ data class SelectedTabState(
     project: Project,
     parentDisposable: Disposable,
     layoutInspector: LayoutInspector,
+    uiConfig: UiConfig,
     centerPanel: JComponent?
   ): WorkBench<LayoutInspector> {
     ApplicationManager.getApplication().assertIsDispatchThread()
     val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
-    val toolsDefinition =
-      listOf(
-        LayoutInspectorTreePanelDefinition(showGearAction = false, showHideAction = false),
-        LayoutInspectorPropertiesPanelDefinition(showGearAction = false, showHideAction = false)
-      )
+
+    val toolsDefinition = createToolsDefinitions(uiConfig)
+
     if (centerPanel != null) {
       workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
     } else {
@@ -272,6 +299,76 @@ data class SelectedTabState(
     }
 
     return workbench
+  }
+
+  private fun createToolsDefinitions(
+    uiConfig: UiConfig
+  ): List<ToolWindowDefinition<LayoutInspector>> {
+    return when (uiConfig) {
+      UiConfig.HORIZONTAL,
+      UiConfig.VERTICAL -> {
+        listOf(
+          createTreePanel(Side.LEFT, Split.BOTTOM),
+          createPropertiesPanel(Side.RIGHT, Split.BOTTOM)
+        )
+      }
+      UiConfig.VERTICAL_SWAP,
+      UiConfig.HORIZONTAL_SWAP -> {
+        listOf(
+          createTreePanel(Side.RIGHT, Split.BOTTOM),
+          createPropertiesPanel(Side.LEFT, Split.BOTTOM)
+        )
+      }
+      UiConfig.LEFT_VERTICAL -> {
+        listOf(
+          createTreePanel(Side.LEFT, Split.TOP),
+          createPropertiesPanel(Side.LEFT, Split.BOTTOM)
+        )
+      }
+      UiConfig.LEFT_VERTICAL_SWAP -> {
+        listOf(
+          createTreePanel(Side.LEFT, Split.BOTTOM),
+          createPropertiesPanel(Side.LEFT, Split.TOP)
+        )
+      }
+      UiConfig.RIGHT_VERTICAL -> {
+        listOf(
+          createTreePanel(Side.RIGHT, Split.TOP),
+          createPropertiesPanel(Side.RIGHT, Split.BOTTOM)
+        )
+      }
+      UiConfig.RIGHT_VERTICAL_SWAP -> {
+        listOf(
+          createTreePanel(Side.RIGHT, Split.BOTTOM),
+          createPropertiesPanel(Side.RIGHT, Split.TOP)
+        )
+      }
+    }
+  }
+
+  private fun createTreePanel(side: Side, split: Split): LayoutInspectorTreePanelDefinition {
+    return LayoutInspectorTreePanelDefinition(
+      showGearAction = false,
+      showHideAction = false,
+      side = side,
+      overrideSide = true,
+      split = split,
+      overrideSplit = true,
+    )
+  }
+
+  private fun createPropertiesPanel(
+    side: Side,
+    split: Split
+  ): LayoutInspectorPropertiesPanelDefinition {
+    return LayoutInspectorPropertiesPanelDefinition(
+      showGearAction = false,
+      showHideAction = false,
+      side = side,
+      overrideSide = true,
+      split = split,
+      overrideSplit = true,
+    )
   }
 }
 

@@ -701,6 +701,18 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     return myName;
   }
 
+  @TestOnly
+  @Nullable
+  public List<JComponent> getTopComponents(Side side) {
+    return myModel.getTopTools(side).stream().map(AttachedToolWindow::getComponent).toList();
+  }
+
+  @TestOnly
+  @Nullable
+  public List<JComponent> getBottomComponents(Side side) {
+    return myModel.getBottomTools(side).stream().map(AttachedToolWindow::getComponent).toList();
+  }
+
   private class MyButtonDragListener implements ButtonDragListener<T> {
     private final int BUTTON_PANEL_WIDTH = JBUI.scale(21);
 

@@ -83,41 +83,52 @@ class SelectedTabStateTest {
   @Test
   @RunsInEdt
   fun testHorizontalConfiguration() {
-    val container = JPanel()
-    val content = JPanel()
-    container.add(content)
-    val emulatorView = displayViewRule.newEmulatorView()
+    testConfiguration(UiConfig.HORIZONTAL)
+  }
 
-    val tabsComponents = TabComponents(displayViewRule.disposable, content, container, emulatorView)
-    val selectedTabState =
-      SelectedTabState(
-        displayViewRule.project,
-        DeviceId.ofPhysicalDevice("tab2"),
-        tabsComponents,
-        layoutInspector
-      )
-
-    selectedTabState.enableLayoutInspector(UiConfig.HORIZONTAL)
-
-    verifyUiInjected(
-      UiConfig.HORIZONTAL,
-      tabsComponents.tabContentPanel,
-      tabsComponents.tabContentPanelContainer,
-      emulatorView
-    )
-
-    Disposer.dispose(tabsComponents)
-
-    verifyUiRemoved(
-      tabsComponents.tabContentPanel,
-      tabsComponents.tabContentPanelContainer,
-      emulatorView
-    )
+  @Test
+  @RunsInEdt
+  fun testHorizontalSwapConfiguration() {
+    testConfiguration(UiConfig.HORIZONTAL_SWAP)
   }
 
   @Test
   @RunsInEdt
   fun testVerticalConfiguration() {
+    testConfiguration(UiConfig.VERTICAL)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testVerticalSwapConfiguration() {
+    testConfiguration(UiConfig.VERTICAL_SWAP)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testLeftVerticalConfiguration() {
+    testConfiguration(UiConfig.LEFT_VERTICAL)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testLeftVerticalSwapConfiguration() {
+    testConfiguration(UiConfig.LEFT_VERTICAL_SWAP)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testRightVerticalConfiguration() {
+    testConfiguration(UiConfig.RIGHT_VERTICAL)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testRightVerticalSwapConfiguration() {
+    testConfiguration(UiConfig.RIGHT_VERTICAL_SWAP)
+  }
+
+  private fun testConfiguration(uiConfig: UiConfig) {
     val container = JPanel()
     val content = JPanel()
     container.add(content)
@@ -127,15 +138,15 @@ class SelectedTabStateTest {
     val selectedTabState =
       SelectedTabState(
         displayViewRule.project,
-        DeviceId.ofPhysicalDevice("tab2"),
+        DeviceId.ofPhysicalDevice("tab"),
         tabsComponents,
         layoutInspector
       )
 
-    selectedTabState.enableLayoutInspector(UiConfig.VERTICAL)
+    selectedTabState.enableLayoutInspector(uiConfig)
 
     verifyUiInjected(
-      UiConfig.VERTICAL,
+      uiConfig,
       tabsComponents.tabContentPanel,
       tabsComponents.tabContentPanelContainer,
       emulatorView

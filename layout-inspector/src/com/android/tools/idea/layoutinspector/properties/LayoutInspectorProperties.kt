@@ -30,6 +30,8 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
   private val filterKeyListener = createFilterKeyListener()
 
   init {
+    // Used for tests
+    properties.component.name = "Properties Component"
     properties.addView(componentView)
     Disposer.register(parentDisposable, this)
   }
