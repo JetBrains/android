@@ -187,7 +187,7 @@ class IssuePanelService(private val project: Project) {
         object : FileEditorManagerListener {
           override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
             val editor = source.getSelectedEditor(file)
-            updateIssuePanelVisibility(file, editor, true)
+            updateIssuePanelVisibility(file, editor)
           }
 
           override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
@@ -198,18 +198,10 @@ class IssuePanelService(private val project: Project) {
           }
 
           override fun selectionChanged(event: FileEditorManagerEvent) {
-            updateIssuePanelVisibility(event.newFile, event.newEditor, false)
+            event.newFile?.let { updateIssuePanelVisibility(it, event.newEditor) }
           }
 
-          private fun updateIssuePanelVisibility(
-            newFile: VirtualFile?,
-            newEditor: FileEditor?,
-            selectIfVisible: Boolean
-          ) {
-            if (newFile == null) {
-              setSharedIssuePanelVisibility(false)
-              return
-            }
+          private fun updateIssuePanelVisibility(newFile: VirtualFile, newEditor: FileEditor?) {
             if (isSupportedDesignerFileType(newFile)) {
               addIssuePanel()
               return
