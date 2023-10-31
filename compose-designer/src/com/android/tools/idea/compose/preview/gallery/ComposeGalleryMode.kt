@@ -33,7 +33,7 @@ class ComposeGalleryMode(rootComponent: JComponent) {
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
     findComposePreviewManagerForContext(dataContext)?.let { previewManager ->
-      previewElement?.let { previewManager.mode = PreviewMode.Gallery(previewElement) }
+      previewElement?.let { previewManager.setMode(PreviewMode.Gallery(previewElement)) }
     }
   }
 

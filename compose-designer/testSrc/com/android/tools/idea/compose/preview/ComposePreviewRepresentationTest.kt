@@ -252,7 +252,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        preview.setMode(PreviewMode.UiCheck(uiCheckElement))
         delayUntilCondition(250) { refresh }
       }
 
@@ -341,7 +341,7 @@ class ComposePreviewRepresentationTest {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         // Stop UI Check mode
-        preview.mode = PreviewMode.Default
+        preview.setMode(PreviewMode.Default)
         delayUntilCondition(250) { refresh }
       }
 
@@ -448,7 +448,7 @@ class ComposePreviewRepresentationTest {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         // Stop UI Check mode
-        preview.mode = PreviewMode.Default
+        preview.setMode(PreviewMode.Default)
         delayUntilCondition(250) { refresh }
       }
 
@@ -456,7 +456,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        preview.setMode(PreviewMode.UiCheck(uiCheckElement))
         delayUntilCondition(250) { refresh }
       }
 
@@ -514,7 +514,7 @@ class ComposePreviewRepresentationTest {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
         // Stop UI Check mode
-        preview.mode = PreviewMode.Default
+        preview.setMode(PreviewMode.Default)
         delayUntilCondition(250) { refresh }
       }
 
@@ -574,7 +574,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        preview.setMode(PreviewMode.UiCheck(uiCheckElement))
         delayUntilCondition(250) { refresh }
       }
 
@@ -681,7 +681,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.Default
+        preview.setMode(PreviewMode.Default)
         delayUntilCondition(250) { refresh }
       }
       assertInstanceOf<UiCheckModeFilter.Disabled>(preview.uiCheckFilterFlow.value)
@@ -805,7 +805,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.Default
+        preview.setMode(PreviewMode.Default)
         delayUntilCondition(250) { refresh }
       }
 
@@ -813,7 +813,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.UiCheck(uiCheckElement)
+        preview.setMode(PreviewMode.UiCheck(uiCheckElement))
         delayUntilCondition(250) { refresh }
       }
 
@@ -825,7 +825,7 @@ class ComposePreviewRepresentationTest {
       run {
         var refresh = false
         composeView.refreshCompletedListeners.add { refresh = true }
-        preview.mode = PreviewMode.Default
+        preview.setMode(PreviewMode.Default)
         delayUntilCondition(250) { refresh }
       }
       preview.onDeactivate()

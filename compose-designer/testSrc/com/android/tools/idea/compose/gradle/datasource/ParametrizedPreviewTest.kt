@@ -287,7 +287,7 @@ class ParametrizedPreviewTest {
     run {
       var refreshCompleted = false
       composeView.refreshCompletedListeners.add { refreshCompleted = true }
-      preview.mode = PreviewMode.UiCheck(uiCheckElement)
+      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
       delayUntilCondition(250) { refreshCompleted }
     }
 

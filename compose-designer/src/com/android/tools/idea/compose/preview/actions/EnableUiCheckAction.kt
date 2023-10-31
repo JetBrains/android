@@ -51,7 +51,7 @@ class EnableUiCheckAction :
     val modelDataContext = e.dataContext
     val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
     val instanceId = modelDataContext.previewElement() ?: return
-    manager.mode = PreviewMode.UiCheck(selected = instanceId)
+    manager.setMode(PreviewMode.UiCheck(selected = instanceId))
 
     val problemsWindow =
       e.project?.let { ToolWindowManager.getInstance(it).getToolWindow(ProblemsView.ID) } ?: return

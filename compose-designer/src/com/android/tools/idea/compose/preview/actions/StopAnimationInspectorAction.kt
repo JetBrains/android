@@ -40,7 +40,8 @@ class StopAnimationInspectorAction :
   override fun updateButton(e: AnActionEvent) {
     val composePreviewManagers = findComposePreviewManagerForContext(e.dataContext)
     e.presentation.isEnabled = composePreviewManagers?.status()?.isRefreshing != true
-    e.presentation.isVisible = composePreviewManagers?.mode is PreviewMode.AnimationInspection
+    e.presentation.isVisible =
+      composePreviewManagers?.mode?.value is PreviewMode.AnimationInspection
   }
 
   override fun actionPerformed(e: AnActionEvent) {

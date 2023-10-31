@@ -125,20 +125,20 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       onInitActivate = {
         initializeFlows()
         onInit()
-        if (isStartingOrInInteractiveMode) {
+        if (mode.value is PreviewMode.Interactive) {
           interactiveManager.resume()
         }
       },
       onResumeActivate = {
         initializeFlows()
         surface.activate()
-        if (isStartingOrInInteractiveMode) {
+        if (mode.value is PreviewMode.Interactive) {
           interactiveManager.resume()
         }
       },
       onDeactivate = {
         LOG.debug("onDeactivate")
-        if (isStartingOrInInteractiveMode) {
+        if (mode.value is PreviewMode.Interactive) {
           interactiveManager.pause()
         }
         surface.deactivateIssueModel()
@@ -146,7 +146,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       onDelayedDeactivate = {
         LOG.debug("Delayed surface deactivation")
         surface.deactivate()
-      }
+      },
     )
 
   private val delegateInteractionHandler = DelegateInteractionHandler()
@@ -393,12 +393,12 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     layoutlibSceneManager: LayoutlibSceneManager,
   ) =
     layoutlibSceneManager.apply {
-      interactive = isStartingOrInInteractiveMode
-      isUsePrivateClassLoader = isStartingOrInInteractiveMode
+      interactive = mode.value is PreviewMode.Interactive
+      isUsePrivateClassLoader = mode.value is PreviewMode.Interactive
     }
 
   override fun dispose() {
-    if (mode is PreviewMode.Interactive) {
+    if (mode.value is PreviewMode.Interactive) {
       interactiveManager.stop()
     }
   }
@@ -421,6 +421,17 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
           onEnterSmartMode()
         }
       }
+
+      launch(workerThread) {
+        // Keep track of the last mode that was set to ensure it is correctly disposed
+        var lastMode: PreviewMode? = null
+
+        previewModeManager.mode.collect {
+          lastMode?.let { last -> onExit(last) }
+          onEnter(it)
+          lastMode = it
+        }
+      }
     }
   }
 
@@ -436,8 +447,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     }
   }
 
-  private val previewModeManager =
-    CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
+  private val previewModeManager = CommonPreviewModeManager()
 
   private val interactiveManager =
     InteractivePreviewManager(
@@ -449,12 +459,13 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       )
       .also { Disposer.register(this@CommonPreviewRepresentation, it) }
 
-  private val isStartingOrInInteractiveMode: Boolean
-    get() = mode is PreviewMode.Interactive
-
-  override var mode by previewModeManager::mode
+  override val mode = previewModeManager.mode
 
   override fun restorePrevious() = previewModeManager.restorePrevious()
+
+  override fun setMode(mode: PreviewMode) {
+    previewModeManager.restorePrevious()
+  }
 
   private suspend fun onExit(mode: PreviewMode) {
     when (mode) {
@@ -481,8 +492,6 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   }
 
   private suspend fun startInteractivePreview(element: PreviewElement) {
-    if (mode is PreviewMode.Interactive) return
-
     LOG.debug("Starting interactive preview mode on: $element")
     singleElementFlow.value = element as T
     createRefreshJob(invalidate = true)?.join()

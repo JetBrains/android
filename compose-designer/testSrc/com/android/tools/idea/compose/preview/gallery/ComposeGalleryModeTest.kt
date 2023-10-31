@@ -62,7 +62,7 @@ class ComposeGalleryModeTest {
     runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
 
     assertEquals(firstElement, gallery.selectedKey!!.element)
-    assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode)
-    assertEquals(firstElement, (composePreviewManager.mode as PreviewMode.Gallery).selected)
+    assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode.value)
+    assertEquals(firstElement, (composePreviewManager.mode.value as PreviewMode.Gallery).selected)
   }
 }

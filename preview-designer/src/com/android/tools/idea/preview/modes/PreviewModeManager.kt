@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.Colors
 import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataKey
 import java.awt.Color
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Interface used for Preview Representations that support [PreviewMode]s. Classes implementing this
@@ -29,10 +30,12 @@ import java.awt.Color
  */
 interface PreviewModeManager {
   /** The current [PreviewMode]. */
-  var mode: PreviewMode
+  val mode: StateFlow<PreviewMode>
 
   /** Sets the mode to the previous mode, if any. */
   fun restorePrevious()
+
+  fun setMode(mode: PreviewMode)
 
   companion object {
     val KEY = DataKey.create<PreviewModeManager>("PreviewModeManager")

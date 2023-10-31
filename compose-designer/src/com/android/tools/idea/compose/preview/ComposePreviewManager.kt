@@ -22,6 +22,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
@@ -83,14 +84,14 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
 
   /** Flag to indicate whether ATF checks should be run on the preview. */
   val atfChecksEnabled: Boolean
-    get() = (mode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
+    get() = (mode.value as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
 
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
   val visualLintingEnabled: Boolean
-    get() = (mode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
+    get() = (mode.value as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
   val isUiCheckPreview: Boolean
-    get() = mode is PreviewMode.UiCheck
+    get() = mode.value is PreviewMode.UiCheck
 
   /**
    * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
@@ -118,13 +119,18 @@ class NopComposePreviewManager : ComposePreviewManager {
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var isUiCheckFilterEnabled: Boolean = false
-  override var mode: PreviewMode = PreviewMode.Default
+  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default)
+  override val mode = _mode.asStateFlow()
 
   override fun invalidate() {}
 
   override fun restorePrevious() {}
 
   override fun dispose() {}
+
+  override fun setMode(mode: PreviewMode) {
+    _mode.value = mode
+  }
 }
 
 /**

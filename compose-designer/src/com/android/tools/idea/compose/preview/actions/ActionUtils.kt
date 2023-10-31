@@ -31,7 +31,7 @@ private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultAct
     super.update(e)
 
     e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      e.presentation.isVisible = it.mode is PreviewMode.Default
+      e.presentation.isVisible = it.mode.value is PreviewMode.Default
     }
   }
 }
@@ -41,7 +41,7 @@ private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultAct
     super.update(e)
 
     e.getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      e.presentation.isVisible = it.mode is PreviewMode.UiCheck
+      e.presentation.isVisible = it.mode.value is PreviewMode.UiCheck
     }
   }
 }

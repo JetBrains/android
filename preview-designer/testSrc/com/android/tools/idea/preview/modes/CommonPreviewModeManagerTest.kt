@@ -1,7 +1,6 @@
 package com.android.tools.idea.preview.modes
 
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.preview.PreviewElement
@@ -11,7 +10,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -30,36 +28,15 @@ class CommonPreviewModeManagerTest {
     scope.cancel()
   }
 
-  @Ignore("b/307382027")
   @Test
-  fun testOnExitAndOnEnterAreCalledWithOldAndNewModes(): Unit = runBlocking {
-    val modes =
-      listOf(
-        PreviewMode.Default, // default manager mode
-        PreviewMode.Interactive(mock<PreviewElement>()),
-        PreviewMode.Default,
-        PreviewMode.UiCheck(mock<PreviewElement>(), atfChecksEnabled = true),
-      )
+  fun testRestoreMode(): Unit = runBlocking {
+    val manager = CommonPreviewModeManager()
 
-    val newModes = modes.drop(1) // drop the first one as it's the default mode of the manager
-    val oldModes = modes.dropLast(1) // onExit should not be called on the newest mode
+    manager.setMode(PreviewMode.Interactive(mock<PreviewElement>()))
 
-    val onExitArguments = mutableListOf<PreviewMode>()
-    val onEnterArguments = mutableListOf<PreviewMode>()
+    assertThat(manager.mode.value).isInstanceOf(PreviewMode.Interactive::class.java)
 
-    val manager =
-      CommonPreviewModeManager(
-        scope = scope,
-        onEnter = { onEnterArguments += it },
-        onExit = { onExitArguments += it },
-      )
-
-    for (i in newModes.indices) {
-      manager.mode = newModes[i]
-      delayUntilCondition(200) { onExitArguments.size == i + 1 }
-    }
-
-    assertThat(onEnterArguments).isEqualTo(newModes)
-    assertThat(onExitArguments).isEqualTo(oldModes)
+    manager.restorePrevious()
+    assertThat(manager.mode.value).isEqualTo(PreviewMode.Default)
   }
 }

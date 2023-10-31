@@ -17,7 +17,6 @@ package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
-import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -37,10 +36,13 @@ class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) 
 
   override fun updateButton(e: AnActionEvent) {
     e.presentation.isEnabled =
-      findPreviewModeManagersForContext(e.dataContext).any { it.isInteractiveModeReady() } &&
-        !forceDisable(e)
+      findPreviewModeManagersForContext(e.dataContext).any {
+        it.mode.value is PreviewMode.Interactive
+      } && !forceDisable(e)
     e.presentation.isVisible =
-      findPreviewModeManagersForContext(e.dataContext).any { it.mode is PreviewMode.Interactive }
+      findPreviewModeManagersForContext(e.dataContext).any {
+        it.mode.value is PreviewMode.Interactive
+      }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -50,6 +52,4 @@ class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) 
   // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
   // VirtualFile
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-  private fun PreviewModeManager.isInteractiveModeReady() = mode is PreviewMode.Interactive
 }

@@ -179,7 +179,7 @@ internal class ComposePreviewFlowManager {
   @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
   fun CoroutineScope.initializeFlows(
     disposable: Disposable,
-    mode: PreviewMode,
+    modeFlow: StateFlow<PreviewMode>,
     psiCodeFileChangeDetectorService: PsiCodeFileChangeDetectorService,
     psiFilePointer: SmartPsiElementPointer<PsiFile>,
     invalidate: () -> Unit,
@@ -188,6 +188,8 @@ internal class ComposePreviewFlowManager {
     restorePreviousMode: () -> Unit,
     queryStatus: () -> ProjectStatus,
     updateVisibilityAndNotifications: () -> Unit,
+    onEnter: suspend (PreviewMode) -> Unit,
+    onExit: suspend (PreviewMode) -> Unit,
   ) {
     with(this@initializeFlows) {
       val project = psiFilePointer.project
@@ -235,7 +237,7 @@ internal class ComposePreviewFlowManager {
       // Trigger refreshes on available previews changes
       launch(workerThread) {
         filteredPreviewElementsInstancesFlow.collectLatest {
-          if (it.isEmpty() && mode is PreviewMode.UiCheck) {
+          if (it.isEmpty() && modeFlow.value is PreviewMode.UiCheck) {
             // If there are no previews for UI Check mode, then the original composable
             // was renamed or removed. We should quit UI Check mode.
             restorePreviousMode()
@@ -337,12 +339,23 @@ internal class ComposePreviewFlowManager {
 
             if (
               !EssentialsMode.isEnabled() &&
-                mode !is PreviewMode.Interactive &&
-                mode !is PreviewMode.AnimationInspection &&
+                modeFlow.value !is PreviewMode.Interactive &&
+                modeFlow.value !is PreviewMode.AnimationInspection &&
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             )
               requestRefresh()
           }
+      }
+    }
+
+    launch {
+      // Keep track of the last mode that was set to ensure it is correctly disposed
+      var lastMode: PreviewMode? = null
+
+      modeFlow.collect {
+        lastMode?.let { last -> onExit(last) }
+        onEnter(it)
+        lastMode = it
       }
     }
   }

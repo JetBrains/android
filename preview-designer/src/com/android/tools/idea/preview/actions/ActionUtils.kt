@@ -88,7 +88,7 @@ private class PreviewNonInteractiveActionWrapper(actions: List<AnAction>) :
   override fun update(e: AnActionEvent) {
     super.update(e)
 
-    e.getData(PreviewModeManager.KEY)?.let { e.presentation.isVisible = it.mode.isNormal }
+    e.getData(PreviewModeManager.KEY)?.let { e.presentation.isVisible = it.mode.value.isNormal }
   }
 }
 

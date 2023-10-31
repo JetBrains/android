@@ -20,6 +20,7 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 open class TestComposePreviewManager : ComposePreviewManager {
 
@@ -51,9 +52,14 @@ open class TestComposePreviewManager : ComposePreviewManager {
 
   override var atfChecksEnabled: Boolean = false
 
-  override var mode: PreviewMode = PreviewMode.Default
+  private val _mode: MutableStateFlow<PreviewMode> = MutableStateFlow(PreviewMode.Default)
+  override val mode = _mode.asStateFlow()
 
   override fun restorePrevious() {}
+
+  override fun setMode(mode: PreviewMode) {
+    _mode.value = mode
+  }
 
   override fun dispose() {}
 }

@@ -77,8 +77,8 @@ internal class UiCheckReopenTabAction(private val previewManager: ComposePreview
     val problemsWindow =
       ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID) ?: return
     val previewInstance =
-      (previewManager.mode as? PreviewMode.UiCheck)?.selected as? ComposePreviewElementInstance
-        ?: return
+      (previewManager.mode.value as? PreviewMode.UiCheck)?.selected
+        as? ComposePreviewElementInstance ?: return
     val tab =
       problemsWindow.contentManager.contents.firstOrNull {
         it.tabName == previewInstance.instanceId
@@ -99,8 +99,8 @@ internal class UiCheckReopenTabAction(private val previewManager: ComposePreview
     val problemsWindow =
       ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID) ?: return
     val previewInstance =
-      (previewManager.mode as? PreviewMode.UiCheck)?.selected as? ComposePreviewElementInstance
-        ?: return
+      (previewManager.mode.value as? PreviewMode.UiCheck)?.selected
+        as? ComposePreviewElementInstance ?: return
     e.presentation.isEnabled =
       !problemsWindow.isVisible ||
         problemsWindow.contentManager.selectedContent?.tabName != previewInstance.instanceId

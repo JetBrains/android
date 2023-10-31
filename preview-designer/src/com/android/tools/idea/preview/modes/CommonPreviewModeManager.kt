@@ -16,9 +16,8 @@
 package com.android.tools.idea.preview.modes
 
 import com.intellij.openapi.diagnostic.Logger
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
 
 private val log = Logger.getInstance(CommonPreviewModeManager::class.java)
 
@@ -28,13 +27,11 @@ private val log = Logger.getInstance(CommonPreviewModeManager::class.java)
  * @param onEnter a function that will be called with the new mode when switching to a new mode.
  * @param onExit a function that will be called with the current mode when switching to a new mode.
  */
-class CommonPreviewModeManager(
-  scope: CoroutineScope,
-  private val onEnter: suspend (PreviewMode) -> Unit,
-  private val onExit: suspend (PreviewMode) -> Unit,
-) : PreviewModeManager {
+class CommonPreviewModeManager : PreviewModeManager {
 
-  private val modeFlow = MutableStateFlow<PreviewMode>(PreviewMode.Default)
+  private val _mode = MutableStateFlow<PreviewMode>(PreviewMode.Default)
+  override val mode = _mode.asStateFlow()
+  private val lock = Any()
 
   /**
    * When entering one of the [PreviewMode.Focus] modes (interactive, animation, etc.), the previous
@@ -44,24 +41,14 @@ class CommonPreviewModeManager(
    */
   private var restoreMode: PreviewMode? = null
 
-  init {
-    // Keep track of the last mode that was set to ensure it is correctly disposed
-    var lastMode = modeFlow.value
-
-    // Launch handling of Preview modes
-    scope.launch {
-      modeFlow.collect {
-        onExit(lastMode)
-        restoreMode = lastMode
-        onEnter(it)
-        lastMode = it
-      }
-    }
+  override fun restorePrevious() {
+    restoreMode?.let { _mode.value = it }
   }
 
-  override var mode by modeFlow::value
-
-  override fun restorePrevious() {
-    restoreMode?.let { mode = it }
+  override fun setMode(mode: PreviewMode) {
+    synchronized(lock) {
+      restoreMode = this._mode.value
+      this._mode.value = mode
+    }
   }
 }

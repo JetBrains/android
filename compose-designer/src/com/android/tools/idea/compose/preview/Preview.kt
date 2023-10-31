@@ -132,6 +132,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
@@ -269,9 +270,6 @@ class ComposePreviewRepresentation(
 
   private val previewBuildListenersManager: PreviewBuildListenersManager
 
-  private val isInteractiveMode: Boolean
-    get() = mode is PreviewMode.Interactive
-
   private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
 
   private val lifecycleManager =
@@ -285,7 +283,7 @@ class ComposePreviewRepresentation(
         allowQualityChangeIfInactive.set(true)
         requestRefresh(type = ComposePreviewRefreshType.QUALITY)
         log.debug("onDeactivate")
-        if (isInteractiveMode) {
+        if (mode.value is PreviewMode.Interactive) {
           interactiveManager.pause()
         }
         // The editor is scheduled to be deactivated, deactivate its issue model to avoid
@@ -294,7 +292,7 @@ class ComposePreviewRepresentation(
       },
       onDelayedDeactivate = {
         // If currently selected mode is not Normal mode, switch for Default normal mode.
-        if (!mode.isNormal) mode = PreviewMode.Default
+        if (!mode.value.isNormal) previewModeManager.setMode(PreviewMode.Default)
         log.debug("Delayed surface deactivation")
         surface.deactivate()
       },
@@ -349,9 +347,6 @@ class ComposePreviewRepresentation(
    * the state of the preview.
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
-
-  private val isAnimationPreviewEnabled: Boolean
-    get() = mode is PreviewMode.AnimationInspection
 
   private val composePreviewFlowManager: ComposePreviewFlowManager
 
@@ -529,7 +524,7 @@ class ComposePreviewRepresentation(
           // Whether to paint the debug boundaries or not
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
           .apply {
-            if (isAnimationPreviewEnabled) {
+            if (mode.value is PreviewMode.AnimationInspection) {
               // If the animation inspection is active, start the PreviewAnimationClock with
               // the current epoch time.
               toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
@@ -632,7 +627,8 @@ class ComposePreviewRepresentation(
     composeWorkBench.bottomPanel =
       when {
         status().hasErrors || project.needsBuild -> null
-        isAnimationPreviewEnabled -> ComposePreviewAnimationManager.currentInspector?.component
+        mode.value is PreviewMode.AnimationInspection ->
+          ComposePreviewAnimationManager.currentInspector?.component
         else -> null
       }
   }
@@ -760,8 +756,7 @@ class ComposePreviewRepresentation(
       }
     }
 
-  private val previewModeManager: PreviewModeManager =
-    CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
+  private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
   init {
     updateGalleryMode()
@@ -784,7 +779,7 @@ class ComposePreviewRepresentation(
     // decide if refresh should be called when the build fails (by default, we don't refresh). We
     // want that to happen if the animation inspection was open at the beginning of the build. This
     // ensures the animations panel is showed again after the build completes
-    val shouldRefreshAfterBuildFailed = { isAnimationPreviewEnabled }
+    val shouldRefreshAfterBuildFailed = { mode.value is PreviewMode.AnimationInspection }
     previewBuildListenersManager.setupPreviewBuildListeners(this, shouldRefreshAfterBuildFailed) {
       composeWorkBench.updateProgress(message("panel.building"))
     }
@@ -809,7 +804,7 @@ class ComposePreviewRepresentation(
     composePreviewFlowManager.run {
       this@activate.initializeFlows(
         this@ComposePreviewRepresentation,
-        mode,
+        previewModeManager.mode,
         psiCodeFileChangeDetectorService,
         psiFilePointer,
         ::invalidate,
@@ -818,6 +813,8 @@ class ComposePreviewRepresentation(
         ::restorePrevious,
         { projectBuildStatusManager.status },
         { composeWorkBench.updateVisibilityAndNotifications() },
+        ::onEnter,
+        ::onExit
       )
     }
 
@@ -827,7 +824,7 @@ class ComposePreviewRepresentation(
 
     surface.activate()
 
-    if (isInteractiveMode) {
+    if (mode.value is PreviewMode.Interactive) {
       interactiveManager.resume()
     }
 
@@ -849,7 +846,7 @@ class ComposePreviewRepresentation(
     if (EssentialsMode.isEnabled()) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (isInteractiveMode) return
+    if (mode.value is PreviewMode.Interactive) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
@@ -880,10 +877,13 @@ class ComposePreviewRepresentation(
 
   override fun dispose() {
     isDisposed.set(true)
-    if (mode is PreviewMode.Interactive) {
+    if (mode.value is PreviewMode.Interactive) {
       interactiveManager.stop()
     }
   }
+
+  override val mode: StateFlow<PreviewMode>
+    get() = previewModeManager.mode
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
     composePreviewFlowManager.hasRenderedPreviewElements() &&
@@ -951,11 +951,11 @@ class ComposePreviewRepresentation(
     configureLayoutlibSceneManager(
       layoutlibSceneManager,
       showDecorations = displaySettings.showDecoration,
-      isInteractive = isInteractiveMode,
+      isInteractive = mode.value is PreviewMode.Interactive,
       requestPrivateClassLoader = usePrivateClassLoader(),
       runAtfChecks = atfChecksEnabled,
       runVisualLinting = visualLintingEnabled,
-      quality = qualityManager.getTargetQuality(layoutlibSceneManager)
+      quality = qualityManager.getTargetQuality(layoutlibSceneManager),
     )
 
   private fun onAfterRender() {
@@ -1301,7 +1301,7 @@ class ComposePreviewRepresentation(
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
             allPreviewElementsInFileFlow.value.firstOrNull()?.let { previewElement ->
-              mode = PreviewMode.Gallery(previewElement)
+              previewModeManager.setMode(PreviewMode.Gallery(previewElement))
             }
           }
         }
@@ -1314,7 +1314,9 @@ class ComposePreviewRepresentation(
    * includes the compose framework).
    */
   private fun usePrivateClassLoader() =
-    isInteractiveMode || isAnimationPreviewEnabled || composePreviewFlowManager.previewsCount() == 1
+    mode.value is PreviewMode.Interactive ||
+      mode.value is PreviewMode.AnimationInspection ||
+      composePreviewFlowManager.previewsCount() == 1
 
   override fun invalidate() {
     invalidated.set(true)
@@ -1412,9 +1414,11 @@ class ComposePreviewRepresentation(
     allPreviewElementsInFileFlow.filter { it.isNotEmpty() }.take(1).collect()
   }
 
-  override var mode by previewModeManager::mode
-
   override fun restorePrevious() = previewModeManager.restorePrevious()
+
+  override fun setMode(mode: PreviewMode) {
+    previewModeManager.setMode(mode)
+  }
 
   private suspend fun onEnter(mode: PreviewMode) {
     when (mode) {
