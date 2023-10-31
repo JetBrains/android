@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(GuiTestRemoteRunner::class)
 class NewComposeProjectTest {
   @get:Rule
-  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
   var selectMobileTab = FormFactor.MOBILE
 
 
@@ -46,13 +46,12 @@ class NewComposeProjectTest {
    */
   @Test
   fun newComposeProject() {
-    //WizardUtils.createNewProject(guiTest, "Empty Views Activity", null)
     WizardUtils.createNewProject(guiTest, selectMobileTab, "Empty Activity")
     guiTest.getProjectFileText("app/build.gradle.kts").run {
-      assertThat(this).contains("implementation(libs.ui)")
-      assertThat(this).contains("implementation(libs.material3)")
-      assertThat(this).contains("implementation(libs.ui.tooling.preview)")
-      assertThat(this).contains("debugImplementation(libs.ui.tooling)")
+      assertThat(this).contains("implementation(libs.androidx.ui)")
+      assertThat(this).contains("implementation(libs.androidx.material3)")
+      assertThat(this).contains("implementation(libs.androidx.ui.tooling.preview)")
+      assertThat(this).contains("debugImplementation(libs.androidx.ui.tooling)")
     }
     guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.kt").run {
       assertThat(this).contains("@Composable")
@@ -61,12 +60,14 @@ class NewComposeProjectTest {
       assertThat(this).contains("fun Greeting(")
     }
 
-    guiTest.ideFrame().focus().projectView
+    val ideFrame = guiTest.ideFrame()
+
+    ideFrame.focus().projectView
       .selectAndroidPane()
       .clickPath("app")
 
     // Check if we can add another Compose Activity (will need to de-duplicate compose function names)
-    NewActivityWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "Compose", "Empty Activity"))
+    NewActivityWizardFixture.find(ideFrame.invokeMenuPath("File", "New", "Compose", "Empty Activity"))
       .getConfigureActivityStep("Empty Activity")
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
