@@ -65,7 +65,9 @@ public class UnusedResourcesGradleTest {
         "    <string name=\"app_name\">Hello World</string>\n" +
         "</resources>\n");
 
-      assertThat(getTextForFile(project, "app/build.gradle")).doesNotContain("resValue");
+      String appBuildGradleText = getTextForFile(project, "app/build.gradle");
+      assertThat(appBuildGradleText).doesNotContain("resValue");
+      assertThat(appBuildGradleText).contains("android");
     });
   }
 
@@ -86,7 +88,9 @@ public class UnusedResourcesGradleTest {
         "    <string name=\"used_from_test\">Referenced from test</string>\n" +
         "</resources>\n");
 
-      assertThat(getTextForFile(project, "app/build.gradle")).doesNotContain("resValue");
+      String appBuildGradleText = getTextForFile(project, "app/build.gradle");
+      assertThat(appBuildGradleText).doesNotContain("resValue");
+      assertThat(appBuildGradleText).contains("android");
     });
   }
 
@@ -175,7 +179,9 @@ public class UnusedResourcesGradleTest {
         "    <string name=\"app_name\">Hello World</string>\n" +
         "</resources>\n");
 
-      assertThat(getTextForFile(project, "app/build.gradle.kts")).doesNotContain("resValue");
+      String appBuildGradleKtsText = getTextForFile(project, "app/build.gradle.kts");
+      assertThat(appBuildGradleKtsText).doesNotContain("resValue");
+      assertThat(appBuildGradleKtsText).contains("android");
     });
   }
 
