@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.WeakList;
-import java.util.Optional;
+import java.util.List;
 import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -200,6 +200,7 @@ abstract class DepthFirstSearchTraverse {
     private final Stack<ExtendedStackNode> extendedNodesStack = new Stack<>();
     @NotNull
     private final Stack<RootPathTree.RootPathElement> pathToRoot = new Stack<>();
+    private boolean trackNominatedClassLoaders = true;
 
     public ExtendedReportCollectionTraverse(@NotNull final FieldCache fieldCache,
                                             @NotNull final MemoryReportCollector collector,
@@ -242,6 +243,10 @@ abstract class DepthFirstSearchTraverse {
       extendedNodesStack.push(new ExtendedStackNode(getObjectClassNameLabel(obj), label, isDisposedButReferenced(obj)));
     }
 
+    public void disableClassLoaderTracking() {
+      trackNominatedClassLoaders = false;
+    }
+
     private static boolean isDisposedButReferenced(@NotNull Object obj) {
       //noinspection deprecation
       return obj instanceof Disposable && Disposer.isDisposed((Disposable)obj);
@@ -266,39 +271,27 @@ abstract class DepthFirstSearchTraverse {
                                                       extendedReportStatistics));
     }
 
-    private void checkReferenceIsHoldingClassLoader(@Nullable final Object parentObject,
-                                                    @NotNull final Object childObject,
-                                                    @NotNull final String label) {
-      if (parentObject == null) {
+    private void checkReferenceIsHoldingNominatedClassLoader(@NotNull final Object childObject,
+                                                             @NotNull final String label) {
+      if (childObject.getClass() == null || !trackNominatedClassLoaders) {
         return;
       }
-      if (parentObject.getClass() == null || childObject.getClass() == null) {
-        return;
-      }
-      ClassLoader parentObjectClassLoader = parentObject.getClass().getClassLoader();
       ClassLoader childObjectClassLoader = childObject.getClass().getClassLoader();
       if (childObjectClassLoader == null) {
         return;
       }
-      if (parentObjectClassLoader == childObjectClassLoader) {
+
+      List<ExceededClusterStatistics> statistics = extendedReportStatistics.componentToExceededClustersStatistics.values().stream().filter(
+        c -> c.isClassLoaderNominated(childObjectClassLoader) ||
+             extendedReportStatistics.globalNominatedClassLoaders.contains(childObjectClassLoader)).toList();
+      if (statistics.isEmpty()) {
         return;
       }
-      Optional<ComponentsSet.Component> component = extendedReportStatistics.componentToExceededClustersStatistics.keySet().stream()
-        .filter(c -> c.isClassLoaderOwned(childObjectClassLoader)).findAny();
-      if (component.isEmpty()) {
-        return;
-      }
-      if (parentObjectClassLoader != null &&
-          childObjectClassLoader.getClass().getName().equals(parentObjectClassLoader.getClass().getName())) {
-        return;
-      }
-      ExceededClusterStatistics exceededClusterStatistics =
-        extendedReportStatistics.componentToExceededClustersStatistics.get(component.get());
       pathToRoot.add(new RootPathTree.RootPathElement(
         new ExtendedStackNode(getObjectClassNameLabel(childObject), label, isDisposedButReferenced(childObject)),
         MemoryReportJniHelper.getObjectSize(childObject),
         extendedReportStatistics));
-      extendedReportStatistics.rootPathTree.addClassLoaderPath(pathToRoot, exceededClusterStatistics);
+      statistics.forEach(c -> extendedReportStatistics.rootPathTree.addClassLoaderPath(pathToRoot, c));
       pathToRoot.pop();
     }
 
@@ -307,7 +300,7 @@ abstract class DepthFirstSearchTraverse {
                                              long childTag,
                                              @NotNull final Object childObject,
                                              @NotNull final String label) {
-      checkReferenceIsHoldingClassLoader(stackNode.getObject(), childObject, label);
+      checkReferenceIsHoldingNominatedClassLoader(childObject, label);
 
       int childObjectDepth = ObjectTagUtil.getDepth(childTag, iterationId);
       HeapTraverseNode.MinDepthKind childMinDepthKind = ObjectTagUtil.getDepthKind(childTag, iterationId);

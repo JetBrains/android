@@ -16,9 +16,11 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import com.google.common.collect.Maps;
+import com.intellij.util.containers.ContainerUtil;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 public class ExceededClusterStatistics {
@@ -26,6 +28,8 @@ public class ExceededClusterStatistics {
   final Map<String, ObjectsStatistics> nominatedClassesTotalStatistics = Maps.newHashMap();
   @NotNull
   final Object2IntMap<String> nominatedClassesEnumeration = new Object2IntOpenHashMap<>();
+  @NotNull
+  private final Set<ClassLoader> nominatedClassLoaders = ContainerUtil.createWeakSet();
 
   final int exceededClusterIndex;
   public ExceededClusterStatistics(int exceededClusterIndex) {
@@ -35,6 +39,14 @@ public class ExceededClusterStatistics {
   public void addNominatedClass(@NotNull final String className, @NotNull final ObjectsStatistics objectsStatistics) {
     nominatedClassesEnumeration.putIfAbsent(className, nominatedClassesEnumeration.size());
     nominatedClassesTotalStatistics.putIfAbsent(className, objectsStatistics);
+  }
+
+  public void addNominatedClassLoader(@NotNull final ClassLoader classLoader) {
+    nominatedClassLoaders.add(classLoader);
+  }
+
+  public boolean isClassLoaderNominated(@NotNull final ClassLoader loader) {
+    return nominatedClassLoaders.contains(loader);
   }
 
   public boolean isClassNominated(@NotNull final String className) {

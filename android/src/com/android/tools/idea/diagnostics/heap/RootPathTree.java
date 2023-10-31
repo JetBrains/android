@@ -20,6 +20,7 @@ import static com.google.common.base.Strings.padStart;
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.Pair;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -162,13 +163,20 @@ public class RootPathTree {
   public void printPathTreeForComponentObjectsReferringNominatedLoaders(@NotNull final Consumer<String> writer,
                                                                         @NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                                                         @NotNull final ComponentsSet.Component component) {
-    if (component.customClassLoaders == null || totalNominatedLoadersReferringObjectsStatistics.getObjectsCount() == 0) {
+    if (totalNominatedLoadersReferringObjectsStatistics.getObjectsCount() == 0) {
       return;
     }
     writer.accept("================= OBJECTS RETAINING NOMINATED LOADERS ================");
     writer.accept("Nominated ClassLoaders:");
-    for (String loader : component.customClassLoaders) {
-      writer.accept(String.format(Locale.US, " --> %s", loader));
+    Map<String, Integer> classLoaderNameToCount = Maps.newHashMap();
+    extendedReportStatistics.globalNominatedClassLoaders.forEach(
+      cl -> classLoaderNameToCount.merge(cl.getClass().getName(), 1, (count, unused) -> count + 1));
+    for (String classLoaderName : classLoaderNameToCount.keySet()) {
+      writer.accept(" --> " + classLoaderName + ": " + classLoaderNameToCount.get(classLoaderName));
+    }
+    writer.accept("Duplicated classes:");
+    for (Pair<String, Integer> classNameAndNumberOfInstances : extendedReportStatistics.duplicatedClassNamesAndNumberOfInstances) {
+      writer.accept(" --> " + classNameAndNumberOfInstances.first + ": " + classNameAndNumberOfInstances.second);
     }
     printPathTreeForComponentAndNominatedType(writer, exceededClusterStatistics, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE,
                                               totalNominatedLoadersReferringObjectsStatistics);

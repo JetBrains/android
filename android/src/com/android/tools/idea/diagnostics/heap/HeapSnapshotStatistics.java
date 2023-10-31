@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -163,11 +164,13 @@ public final class HeapSnapshotStatistics {
 
   public void calculateExtendedReportDataIfNeeded(@NotNull final FieldCache fieldCache,
                                                   @NotNull final MemoryReportCollector collector,
-                                                  @NotNull final WeakList<Object> startRoots) throws HeapSnapshotTraverseException {
+                                                  @NotNull final WeakList<Object> startRoots,
+                                                  @NotNull final Map<String, ExtendedReportStatistics.ClassObjectsStatistics> nameToClassObjectsStatistics)
+    throws HeapSnapshotTraverseException {
     if (extendedReportStatistics == null || !config.collectObjectTreesData) {
       return;
     }
-    extendedReportStatistics.calculateExtendedReportData(config, fieldCache, collector, startRoots);
+    extendedReportStatistics.calculateExtendedReportData(config, fieldCache, collector, startRoots, nameToClassObjectsStatistics);
   }
 
   public void checkClassIsTrackedAndAdd(@NotNull final String className) {

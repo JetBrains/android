@@ -27,6 +27,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.openapi.Disposable;
@@ -39,6 +40,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -152,7 +154,9 @@ public final class MemoryReportCollector implements Disposable {
         statistics.setHeapObjectCount(traverse.getLastObjectId());
         statistics.setTraverseSessionId(iterationId);
 
-          // iterate over objects in preorder and update masks
+        Map<String, ExtendedReportStatistics.ClassObjectsStatistics> nameToClassObjectsStatistics = Maps.newHashMap();
+
+        // iterate over objects in preorder and update masks
         for (int currentObjectId = traverse.getLastObjectId(); currentObjectId > 0; currentObjectId--) {
           abortTraversalIfRequested();
           int mapSize = HeapTraverseNode.getObjectIdToTraverseNodeMapSize();
@@ -249,6 +253,7 @@ public final class MemoryReportCollector implements Disposable {
                                                       node.isRetainedByPlatform, isDisposedButReferenced);
           }
 
+          processObjectClassLoader(currentObject, currentObjectComponent, nameToClassObjectsStatistics);
           processObjectTagPreorderTraverse(currentObject, currentObjectId, node, currentObjectComponent);
 
           // propagate to referred objects
@@ -258,7 +263,7 @@ public final class MemoryReportCollector implements Disposable {
           propagateComponentMask(currentObject, node, currentObjectId, fieldCache);
         }
 
-        statistics.calculateExtendedReportDataIfNeeded(fieldCache, this, startRoots);
+        statistics.calculateExtendedReportDataIfNeeded(fieldCache, this, startRoots, nameToClassObjectsStatistics);
       }
       finally {
         // finalization operations that involved the native agent.
@@ -304,6 +309,29 @@ public final class MemoryReportCollector implements Disposable {
     }
 
     return node;
+  }
+
+  private void processObjectClassLoader(@NotNull final Object obj,
+                                        @Nullable final ComponentsSet.Component currentObjectComponent,
+                                        @NotNull final Map<String, ExtendedReportStatistics.ClassObjectsStatistics> nameToClassObjectsStatistics) {
+    if (statistics.getExtendedReportStatistics() == null || obj.getClass() == null || obj.getClass().getClassLoader() == null) {
+      return;
+    }
+    Class<?> objClass = obj.getClass();
+    ClassLoader loader = objClass.getClassLoader();
+    if (currentObjectComponent != null) {
+      String currentObjectClassLoader = loader.getClass().getName();
+
+      if (currentObjectComponent.customClassLoaders.contains(currentObjectClassLoader)) {
+        statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.get(currentObjectComponent)
+          .addNominatedClassLoader(loader);
+      }
+    }
+
+    nameToClassObjectsStatistics.putIfAbsent(objClass.getName(), new ExtendedReportStatistics.ClassObjectsStatistics());
+    ExtendedReportStatistics.ClassObjectsStatistics classObjectsStatistics = nameToClassObjectsStatistics.get(objClass.getName());
+    classObjectsStatistics.classLoaders.add(obj.getClass().getClassLoader());
+    classObjectsStatistics.classObjects.add(objClass);
   }
 
   private void processObjectTagPreorderTraverse(@NotNull final Object obj, int currentObjectId, @NotNull final HeapTraverseNode node,
@@ -463,7 +491,10 @@ public final class MemoryReportCollector implements Disposable {
       currentNode.retainedMask &= parentNode.retainedMask;
       currentNode.retainedMaskForCategories &= parentNode.retainedMaskForCategories;
       currentNode.isRetainedByPlatform &= parentNode.isRetainedByPlatform;
-      if (currentNode.minDepth != null && currentNode.minDepthKind != null && parentNode.minDepth != null && parentNode.minDepthKind != null) {
+      if (currentNode.minDepth != null &&
+          currentNode.minDepthKind != null &&
+          parentNode.minDepth != null &&
+          parentNode.minDepthKind != null) {
         if (parentNode.minDepthKind.getValue() == currentNode.minDepthKind.getValue()) {
           currentNode.minDepth = Math.min(currentNode.minDepth, parentNode.minDepth + 1);
         }

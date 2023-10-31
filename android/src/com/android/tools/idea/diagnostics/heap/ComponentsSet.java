@@ -322,6 +322,7 @@ public final class ComponentsSet {
     @NotNull
     private final ComponentCategory componentCategory;
 
+    @NotNull
     final Set<String> customClassLoaders;
 
     private Component(@NotNull final String componentLabel,
@@ -330,17 +331,13 @@ public final class ComponentsSet {
                       int id,
                       @NotNull final ComponentCategory category) {
       super(id, componentLabel, extendedReportCollectionThresholdBytes);
-      this.customClassLoaders = customClassLoaders.isEmpty() ? null : Sets.newHashSet(customClassLoaders);
+      this.customClassLoaders = Sets.newHashSet(customClassLoaders);
       componentCategory = category;
     }
 
     @NotNull
     public ComponentCategory getComponentCategory() {
       return componentCategory;
-    }
-
-    public boolean isClassLoaderOwned(@NotNull final ClassLoader loader) {
-      return customClassLoaders != null && customClassLoaders.contains(loader.getClass().getName());
     }
   }
 

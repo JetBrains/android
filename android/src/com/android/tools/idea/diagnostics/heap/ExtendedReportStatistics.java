@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.WeakList;
 import it.unimi.dsi.fastutil.ints.Int2ByteMap;
 import it.unimi.dsi.fastutil.ints.Int2ByteOpenHashMap;
@@ -35,6 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.ToLongFunction;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +44,7 @@ import org.jetbrains.annotations.NotNull;
 public class ExtendedReportStatistics {
 
   static final int NOMINATED_CLASSES_NUMBER_IN_SECTION = 3;
+  static final int NUMBER_OF_LOADERS_FOR_CLASS_NAME_THRESHOLD = 10;
   private static final String CLASS_FQN = "java.lang.Class";
 
   @NotNull final List<ClusterHistogram> componentHistograms;
@@ -54,6 +57,8 @@ public class ExtendedReportStatistics {
 
   @NotNull final Map<ComponentsSet.Component, ExceededClusterStatistics> componentToExceededClustersStatistics = Maps.newHashMap();
   @NotNull final Int2ObjectMap<ExceededClusterStatistics> exceededClustersEnumeration = new Int2ObjectOpenHashMap<>();
+  @NotNull final Set<ClassLoader> globalNominatedClassLoaders = ContainerUtil.createWeakSet();
+  @NotNull final List<Pair<String, Integer>> duplicatedClassNamesAndNumberOfInstances = Lists.newArrayList();
 
   private int totalNumberOfDisposedButReferencedObjects = 0;
   private int totalDisposerTreeSize = 0;
@@ -154,12 +159,21 @@ public class ExtendedReportStatistics {
   public void calculateExtendedReportData(@NotNull final HeapTraverseConfig config,
                                           @NotNull final FieldCache fieldCache,
                                           @NotNull final MemoryReportCollector collector,
-                                          @NotNull final WeakList<Object> startRoots) throws HeapSnapshotTraverseException {
+                                          @NotNull final WeakList<Object> startRoots,
+                                          @NotNull final Map<String, ExtendedReportStatistics.ClassObjectsStatistics> nameToClassObjectsStatistics)
+    throws HeapSnapshotTraverseException {
     if (config.collectDisposerTreeInfo) {
       //noinspection UnstableApiUsage
       Object objToNodeMap = getFieldValue(Disposer.getTree(), "myObject2ParentNode");
       if (objToNodeMap instanceof Map) {
         setDisposerTreeSize(((Map<?, ?>)objToNodeMap).size());
+      }
+    }
+
+    for (Map.Entry<String, ClassObjectsStatistics> entry : nameToClassObjectsStatistics.entrySet()) {
+      if (entry.getValue().classLoaders.size() > NUMBER_OF_LOADERS_FOR_CLASS_NAME_THRESHOLD) {
+        globalNominatedClassLoaders.addAll(entry.getValue().classLoaders);
+        duplicatedClassNamesAndNumberOfInstances.add(Pair.create(entry.getKey(), entry.getValue().classObjects.size()));
       }
     }
 
@@ -181,7 +195,31 @@ public class ExtendedReportStatistics {
 
     DepthFirstSearchTraverse.ExtendedReportCollectionTraverse traverse =
       new DepthFirstSearchTraverse.ExtendedReportCollectionTraverse(fieldCache, collector, this);
-    traverse.start(startRoots);
+    WeakList<Object> firstTraverseRoots = new WeakList<>();
+    WeakList<Object> nominatedLoadersRoots = new WeakList<>();
+
+    startRoots.forEach(o -> {
+      ClassLoader cl;
+      if(o instanceof Class) {
+        cl = ((Class<?>)o).getClassLoader();
+      } else if (o instanceof ClassLoader) {
+        cl = (ClassLoader)o;
+      }
+      else {
+        firstTraverseRoots.add(o);
+        return;
+      }
+      if (globalNominatedClassLoaders.contains(cl) ||
+          componentToExceededClustersStatistics.values().stream().anyMatch(a -> a.isClassLoaderNominated(cl))) {
+        nominatedLoadersRoots.add(o);
+      }
+      else {
+        firstTraverseRoots.add(o);
+      }
+    });
+    traverse.start(firstTraverseRoots);
+    traverse.disableClassLoaderTracking();
+    traverse.start(nominatedLoadersRoots);
   }
 
   /**
@@ -315,6 +353,16 @@ public class ExtendedReportStatistics {
                                                     HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                     e.getKey())));
       }
+    }
+  }
+
+  static class ClassObjectsStatistics {
+    Set<ClassLoader> classLoaders;
+    Set<Class<?>> classObjects;
+
+    ClassObjectsStatistics() {
+      classLoaders = ContainerUtil.createWeakSet();
+      classObjects = ContainerUtil.createWeakSet();
     }
   }
 }
