@@ -53,4 +53,9 @@ interface ManifestPanelToken<P: AndroidProjectSystem> : Token {
     file: File?,
     module: Module
   ): ManifestFileWithMetadata?
+
+  fun generateMinSdkSettingRunnable(
+    module: Module,
+    minSdk: Int
+  ): Runnable?
 }

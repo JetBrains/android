@@ -30,14 +30,11 @@ import com.android.manifmerger.MergingReport;
 import com.android.manifmerger.XmlNode;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.adtui.workbench.WorkBenchLoadingPanel;
-import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.utils.FileUtils;
@@ -55,7 +52,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.XmlHighlighterColors;
@@ -577,7 +573,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     try {
       File ioFile = myFiles.get(0).getFile();
       if (ioFile != null) {
-        sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager,
+        sb.addHtml(getErrorHtml(myFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, myToken,
                                 LocalFileSystem.getInstance().findFileByIoFile(ioFile), myManifestEditable));
       }
       else {
@@ -753,6 +749,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                              @NotNull String message,
                              @NotNull final SourceFilePosition position,
                              @NotNull HtmlLinkManager htmlLinkManager,
+                             @Nullable ManifestPanelToken<AndroidProjectSystem> token,
                              final @Nullable VirtualFile currentlyOpenFile,
                              final boolean manifestEditable) {
     HtmlBuilder sb = new HtmlBuilder();
@@ -764,7 +761,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       message = message.substring(index);
       switch (action) {
         case "add" -> sb.addHtml(getErrorAddHtml(facet, message, position, htmlLinkManager, currentlyOpenFile));
-        case "use" -> sb.addHtml(getErrorUseHtml(facet, message, position, htmlLinkManager, currentlyOpenFile));
+        case "use" -> sb.addHtml(getErrorUseHtml(facet, message, position, htmlLinkManager, token, currentlyOpenFile));
         case "remove" -> sb.add(message);
       }
     }
@@ -865,6 +862,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
                                         @NotNull String message,
                                         @NotNull final SourceFilePosition position,
                                         @NotNull HtmlLinkManager htmlLinkManager,
+                                        @Nullable ManifestPanelToken<AndroidProjectSystem> token,
                                         final @Nullable VirtualFile currentlyOpenFile) {
     /*
     Example Input:
@@ -897,46 +895,18 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
     final int finalMinSdk = minSdkVersion;
 
-    Runnable link =
-      () -> {
-        Runnable linkAction = () -> {
-          // We reparse the buildModel as it is possible that it has changed since this link was created.
-          ProjectBuildModel pbm = ProjectBuildModel.get(facet.getModule().getProject());
-          GradleBuildModel gbm = pbm.getModuleBuildModel(facet.getModule());
-
-          if (gbm == null) {
-            return;
-          }
-
-          gbm.android().defaultConfig().minSdkVersion().setValue(finalMinSdk);
-          ApplicationManager.getApplication().invokeAndWait(() -> WriteCommandAction
-            .runWriteCommandAction(facet.getModule().getProject(), "Update build file minSdkVersion", null, pbm::applyChanges,
-                                   gbm.getPsiFile()));
-          // We must make sure that the files have been updated before we sync, we block above but not here.
-          Runnable syncRunnable = () -> requestSync(facet.getModule().getProject());
-          if (ApplicationManager.getApplication().isUnitTestMode()) {
-            syncRunnable.run();
-          }
-          else {
-            ApplicationManager.getApplication().invokeLater(syncRunnable);
-          }
-        };
-
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-          linkAction.run();
-        }
-        else {
-          ApplicationManager.getApplication().executeOnPooledThread(linkAction);
-        }
-      };
-    sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
-    sb.add(message.substring(end));
+    Runnable link = null;
+    if (token != null) {
+      link = token.generateMinSdkSettingRunnable(facet.getModule(), finalMinSdk);
+    }
+    if (link == null) {
+      sb.add(message);
+    }
+    else {
+      sb.addLink(message.substring(0, end), htmlLinkManager.createRunnableLink(link));
+      sb.add(message.substring(end));
+    }
     return sb.getHtml();
-  }
-
-  private static void requestSync(Project project) {
-    assert ApplicationManager.getApplication().isDispatchThread();
-    ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
   }
 
   static void addToolsAttribute(final @NotNull XmlFile file,

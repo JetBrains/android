@@ -21,9 +21,15 @@ import com.android.ide.common.blame.SourcePosition
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.Actions
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.GradleToken
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.PROJECT_MODIFIED
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -118,6 +124,36 @@ class ManifestPanelGradleToken : ManifestPanelToken<GradleProjectSystem>, Gradle
     }
     return null
   }
+
+  override fun generateMinSdkSettingRunnable(module: Module, minSdk: Int): Runnable? =
+    Runnable {
+      val linkAction = Runnable linkAction@{
+        val project = module.project
+        val pbm = ProjectBuildModel.get(project)
+        val gbm: GradleBuildModel = pbm.getModuleBuildModel(module) ?: return@linkAction
+        gbm.android().defaultConfig().minSdkVersion().setValue(minSdk)
+        ApplicationManager.getApplication().invokeAndWait {
+          WriteCommandAction
+            .runWriteCommandAction(project, "Update build file minSdkVersion", null,
+                                   { pbm.applyChanges() },
+                                   gbm.psiFile)
+        }
+        // We must make sure that the files have been updated before we sync, we block above but not here.
+        val syncRunnable = Runnable { project.getSyncManager().syncProject(PROJECT_MODIFIED) }
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+          syncRunnable.run()
+        }
+        else {
+          ApplicationManager.getApplication().invokeLater(syncRunnable)
+        }
+      }
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        linkAction.run()
+      }
+      else {
+        ApplicationManager.getApplication().executeOnPooledThread(linkAction)
+      }
+    }
 }
 
 data class InjectedBuildDotGradleFile(override val file: File?) : InjectedFile() {
