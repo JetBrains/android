@@ -123,15 +123,9 @@ class DetailsPanelHeader(
     usersCountLabel.text = issueDetails.impactedDevicesCount.formatNumberToPrettyString()
     if (variantComboBox != null) {
       variantPanel.isVisible = true
-      titleLabel.putUserData(KEY, Pair(className, methodName))
-      titleLabel.text = generateTitleLabelText(className, methodName)
-    } else {
-      val methodString =
-        if (methodName.isNotEmpty()) {
-          ".<B>$methodName</B>"
-        } else ""
-      titleLabel.text = "<html>$className$methodString</html>"
     }
+    titleLabel.putUserData(KEY, Pair(className, methodName))
+    titleLabel.text = generateTitleLabelText(className, methodName)
   }
 
   private fun generateTitleLabelText(className: String, methodName: String): String {

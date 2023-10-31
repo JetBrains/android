@@ -52,6 +52,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
 import icons.StudioIcons
+import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JProgressBar
@@ -174,7 +175,9 @@ class VitalsTabTest {
       // Details Panel content
       // Header
       val detailsPanelHeader = fakeUi.findComponent<DetailsPanelHeader>()!!
-      assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
+      // Set header to a large size so the title label don't get truncated.
+      detailsPanelHeader.size = Dimension(500, 500)
+      waitForCondition { detailsPanelHeader.titleLabel.text == "<html>crash.<B>Crash</B></html>" }
       assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
       assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
 
