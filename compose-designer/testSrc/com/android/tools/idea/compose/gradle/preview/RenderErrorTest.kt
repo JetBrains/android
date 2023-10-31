@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -143,126 +144,129 @@ class RenderErrorTest {
   }
 
   @Test
-  fun testSceneViewWithRenderErrors() {
-    startUiCheckForModel("PreviewWithRenderErrors")
+  fun testSceneViewWithRenderErrors() =
+    runBlocking(workerThread) {
+      startUiCheckForModel("PreviewWithRenderErrors")
 
-    lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
-    runBlocking {
+      lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
         panels
           .singleOrNull { it.displayName == "Medium Phone - PreviewWithRenderErrors" }
           ?.takeIf { it.sceneView.hasRenderErrors() }
           ?.also { sceneViewPanelWithErrors = it } != null
       }
-    }
 
-    val visibleErrorsPanel =
-      TreeWalker(sceneViewPanelWithErrors)
-        .descendants()
-        .filterIsInstance<SceneViewErrorsPanel>()
-        .single()
-    assertTrue(visibleErrorsPanel.isVisible)
+      val visibleErrorsPanel =
+        TreeWalker(sceneViewPanelWithErrors)
+          .descendants()
+          .filterIsInstance<SceneViewErrorsPanel>()
+          .single()
+      assertTrue(visibleErrorsPanel.isVisible)
 
-    val actions = sceneViewPanelWithErrors.getToolbarActions()
-    // 4 actions expected: ui check, animation, interactive and deploy to device
-    assertEquals(4, actions.size)
-    // The visible/invisible state before the update shouldn't affect the final result
-    for (visibleBefore in listOf(true, false)) {
-      // All actions should be invisible when there are render errors
-      assertEquals(0, countVisibleActions(actions, visibleBefore, sceneViewPanelWithErrors))
+      val actions = sceneViewPanelWithErrors.getToolbarActions()
+      // 4 actions expected: ui check, animation, interactive and deploy to device
+      assertEquals(4, actions.size)
+      // The visible/invisible state before the update shouldn't affect the final result
+      for (visibleBefore in listOf(true, false)) {
+        // All actions should be invisible when there are render errors
+        assertEquals(0, countVisibleActions(actions, visibleBefore, sceneViewPanelWithErrors))
+      }
     }
-  }
 
   @Test
-  fun testSceneViewWithoutRenderErrors() {
-    startUiCheckForModel("PreviewWithoutRenderErrors")
+  fun testSceneViewWithoutRenderErrors() =
+    runBlocking(workerThread) {
+      startUiCheckForModel("PreviewWithoutRenderErrors")
 
-    lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
-    runBlocking {
+      lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
+
       delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
         panels
           .singleOrNull { it.displayName == "Medium Phone - PreviewWithoutRenderErrors" }
           ?.also { sceneViewPanelWithoutErrors = it } != null
       }
-    }
-    assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
 
-    val invisibleErrorsPanel =
-      TreeWalker(sceneViewPanelWithoutErrors)
-        .descendants()
-        .filterIsInstance<SceneViewErrorsPanel>()
-        .single()
-    assertFalse(invisibleErrorsPanel.isVisible)
+      assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
 
-    val actions = sceneViewPanelWithoutErrors.getToolbarActions()
-    // 4 actions expected: ui check mode, animation, interactive and deploy to device
-    assertEquals(4, actions.size)
-    // The visible/invisible state before the update shouldn't affect the final result
-    for (visibleBefore in listOf(true, false)) {
-      // The animation preview action shouldn't be visible because the preview being used doesn't
-      // contain animations, but the interactive, ui check and deploy to device actions should be
-      // visible as there are no render errors.
-      val visibleActionCount = if (StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()) 3 else 2
-      assertEquals(
-        visibleActionCount,
-        countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors)
-      )
+      val invisibleErrorsPanel =
+        TreeWalker(sceneViewPanelWithoutErrors)
+          .descendants()
+          .filterIsInstance<SceneViewErrorsPanel>()
+          .single()
+      assertFalse(invisibleErrorsPanel.isVisible)
+
+      val actions = sceneViewPanelWithoutErrors.getToolbarActions()
+      // 4 actions expected: ui check mode, animation, interactive and deploy to device
+      assertEquals(4, actions.size)
+      // The visible/invisible state before the update shouldn't affect the final result
+      for (visibleBefore in listOf(true, false)) {
+        // The animation preview action shouldn't be visible because the preview being used doesn't
+        // contain animations, but the interactive, ui check and deploy to device actions should be
+        // visible as there are no render errors.
+        val visibleActionCount = if (StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()) 3 else 2
+        assertEquals(
+          visibleActionCount,
+          countVisibleActions(actions, visibleBefore, sceneViewPanelWithoutErrors)
+        )
+      }
     }
-  }
 
   @Test
-  fun testAtfErrors() {
-    startUiCheckForModel("PreviewWithContrastError")
+  fun testAtfErrors() =
+    runBlocking(workerThread) {
+      startUiCheckForModel("PreviewWithContrastError")
 
-    val accessibilityIssue = accessibilityIssues().last()
-    assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
-    val navigatable = accessibilityIssue.components[0].navigatable
-    assertTrue(navigatable is OpenFileDescriptor)
-    assertEquals(1667, (navigatable as OpenFileDescriptor).offset)
-    assertEquals("RenderError.kt", navigatable.file.name)
-  }
+      val accessibilityIssue = accessibilityIssues().last()
+      assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
+      val navigatable = accessibilityIssue.components[0].navigatable
+      assertTrue(navigatable is OpenFileDescriptor)
+      assertEquals(1667, (navigatable as OpenFileDescriptor).offset)
+      assertEquals("RenderError.kt", navigatable.file.name)
+    }
 
   @Test
-  fun testAtfErrorsOnSecondModel() {
-    startUiCheckForModel("PreviewWithContrastErrorAgain")
+  fun testAtfErrorsOnSecondModel() =
+    runBlocking(workerThread) {
+      startUiCheckForModel("PreviewWithContrastErrorAgain")
 
-    val accessibilityIssue = accessibilityIssues().last()
-    assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
-    val navigatable = accessibilityIssue.components[0].navigatable
-    assertTrue(navigatable is OpenFileDescriptor)
-    assertEquals(1817, (navigatable as OpenFileDescriptor).offset)
-    assertEquals("RenderError.kt", navigatable.file.name)
-  }
+      val accessibilityIssue = accessibilityIssues().last()
+      assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
+      val navigatable = accessibilityIssue.components[0].navigatable
+      assertTrue(navigatable is OpenFileDescriptor)
+      assertEquals(1817, (navigatable as OpenFileDescriptor).offset)
+      assertEquals("RenderError.kt", navigatable.file.name)
+    }
 
   @Ignore("b/307260641")
   @Test
-  fun testVisualLintErrors() {
-    val modelsWithIssues =
-      listOf(
-        "PreviewWithContrastError",
-        "PreviewWithContrastErrorAgain",
-        "PreviewWithWideButton",
-        "PreviewWithLongText",
-      )
+  fun testVisualLintErrors() =
+    runBlocking(workerThread) {
+      val modelsWithIssues =
+        listOf(
+          "PreviewWithContrastError",
+          "PreviewWithContrastErrorAgain",
+          "PreviewWithWideButton",
+          "PreviewWithLongText",
+        )
 
-    modelsWithIssues.forEach { modelWithIssues ->
-      startUiCheckForModel(modelWithIssues)
+      modelsWithIssues.forEach { modelWithIssues ->
+        startUiCheckForModel(modelWithIssues)
 
-      val issues = visualLintRenderIssues()
-      // 1-2% of the time we get two issues instead of one. Only one of the issues has a component
-      // field that is populated. We attempt to retrieve it here.
-      val issue = runInEdtAndGet {
-        issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+        val issues = visualLintRenderIssues()
+        // 1-2% of the time we get two issues instead of one. Only one of the issues has a component
+        // field that is populated. We attempt to retrieve it here.
+        val issue = runInEdtAndGet {
+          issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
+        }
+
+        assertEquals("Visual Lint Issue", issue.category)
+        val navigatable = issue.components[0].navigatable
+        assertTrue(navigatable is OpenFileDescriptor)
+        assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
+
+        stopUiCheck()
       }
-
-      assertEquals("Visual Lint Issue", issue.category)
-      val navigatable = issue.components[0].navigatable
-      assertTrue(navigatable is OpenFileDescriptor)
-      assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
-
-      stopUiCheck()
     }
-  }
 
   private fun countVisibleActions(
     actions: List<AnAction>,
@@ -290,60 +294,51 @@ class RenderErrorTest {
       .childActionsOrStubs
       .toList()
 
-  private fun startUiCheckForModel(model: String) {
-    runBlocking {
-      lateinit var uiCheckElement: ComposePreviewElementInstance
-      delayUntilCondition(
-        250,
-        timeout = 1.minutes,
-      ) {
-        previewView.mainSurface.models
-          .firstOrNull { it.modelDisplayName == model }
-          ?.dataContext
-          ?.previewElement()
-          ?.also { uiCheckElement = it } != null
-      }
+  private suspend fun startUiCheckForModel(model: String) {
+    lateinit var uiCheckElement: ComposePreviewElementInstance
 
-      composePreviewRepresentation.setMode(
-        PreviewMode.UiCheck(
-          selected = uiCheckElement,
-          atfChecksEnabled = true,
-          visualLintingEnabled = true,
-        ),
-      )
-
-      delayUntilCondition(
-        250,
-        timeout = 2.minutes,
-      ) {
-        composePreviewRepresentation.isUiCheckPreview
-      }
+    delayUntilCondition(
+      250,
+      timeout = 1.minutes,
+    ) {
+      previewView.mainSurface.models
+        .firstOrNull { it.modelDisplayName == model }
+        ?.dataContext
+        ?.previewElement()
+        ?.also { uiCheckElement = it } != null
     }
+
+    val onRefreshCompletable = previewView.getOnRefreshCompletable()
+
+    composePreviewRepresentation.setMode(
+      PreviewMode.UiCheck(
+        selected = uiCheckElement,
+        atfChecksEnabled = true,
+        visualLintingEnabled = true,
+      ),
+    )
+    onRefreshCompletable.join()
   }
 
-  private fun stopUiCheck() {
-    runBlocking {
-      composePreviewRepresentation.setMode(PreviewMode.Default)
-
-      delayUntilCondition(
-        250,
-        timeout = 2.minutes,
-      ) {
-        composePreviewRepresentation.mode.value.isNormal
-      }
-    }
+  private suspend fun stopUiCheck() {
+    val onRefreshCompletable = previewView.getOnRefreshCompletable()
+    composePreviewRepresentation.setMode(PreviewMode.Default)
+    onRefreshCompletable.join()
   }
 
-  private fun visualLintRenderIssues(filter: (VisualLintRenderIssue) -> Boolean = alwaysTrue()) =
-    runBlocking {
-      val issueModel = VisualLintService.getInstance(project).issueModel
-      var issues = emptyList<VisualLintRenderIssue>()
-      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
-        issues = issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter(filter)
-        issues.isNotEmpty()
-      }
-      issues
+  private suspend fun visualLintRenderIssues(
+    filter: (VisualLintRenderIssue) -> Boolean = alwaysTrue()
+  ): List<VisualLintRenderIssue> {
+    val issueModel = VisualLintService.getInstance(project).issueModel
+    var issues = emptyList<VisualLintRenderIssue>()
+    delayUntilCondition(delayPerIterationMs = 300, timeout = 1.minutes) {
+      issues = issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter(filter)
+      issues.isNotEmpty()
     }
+    return issues
+  }
 
-  private fun accessibilityIssues() = visualLintRenderIssues { it.type == VisualLintErrorType.ATF }
+  private suspend fun accessibilityIssues() = visualLintRenderIssues {
+    it.type == VisualLintErrorType.ATF
+  }
 }
