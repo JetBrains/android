@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.runningdevices
+package com.android.tools.idea.layoutinspector.runningdevices.ui
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
@@ -279,9 +279,7 @@ class LayoutInspectorRendererTest {
     val layoutInspectorRenderer = createRenderer()
 
     renderModel.overlay =
-      ImageIO.read(
-        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
-      )
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -308,9 +306,7 @@ class LayoutInspectorRendererTest {
     assertThat(renderModel.model.hoveredNode).isNull()
 
     renderModel.overlay =
-      ImageIO.read(
-        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
-      )
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -337,9 +333,7 @@ class LayoutInspectorRendererTest {
     assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
 
     renderModel.overlay =
-      ImageIO.read(
-        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
-      )
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
@@ -370,9 +364,7 @@ class LayoutInspectorRendererTest {
     assertThat(renderModel.model.selection).isEqualTo(renderModel.model[VIEW1])
 
     renderModel.overlay =
-      ImageIO.read(
-        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
-      )
+      ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
 
     val renderImage = createRenderImage()
     paint(renderImage, layoutInspectorRenderer)
