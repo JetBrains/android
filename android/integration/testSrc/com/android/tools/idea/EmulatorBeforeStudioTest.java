@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Emulator;
 import java.util.concurrent.TimeUnit;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -28,6 +29,7 @@ public class EmulatorBeforeStudioTest {
   @Rule
   public AndroidSystem system = AndroidSystem.standard();
 
+  @Ignore("b/308634409")
   @Test
   public void recognizeEmulatorTest() throws Exception {
     AndroidProject project = new AndroidProject("tools/adt/idea/android/integration/testData/minapp");
