@@ -41,6 +41,7 @@ import java.awt.image.BufferedImage;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Responsible for painting a screen view
@@ -86,13 +87,10 @@ public class ScreenViewLayer extends Layer {
   /**
    * Create a new ScreenViewLayer for the given screenView.
    * @param screenView The screenView containing the model to render
+   * @param colorBlindFilter the image filter to apply when rendering
    * @param parentDisposable parent [Disposable] for this component
    * @param rotation extra rotation for this layer
    */
-  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
-    this(screenView, ColorBlindMode.NONE, parentDisposable, rotation);
-  }
-
   public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull ColorBlindMode colorBlindFilter, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
     this(screenView, colorBlindFilter == ColorBlindMode.NONE ? null : new ColorConverter(colorBlindFilter), parentDisposable, rotation);
   }
@@ -266,6 +264,11 @@ public class ScreenViewLayer extends Layer {
            renderResult.getRenderResult().isSuccess() &&
            renderResult.getRenderedImage().isValid() &&
            renderResult != myLastRenderResult;
+  }
+
+  @TestOnly
+  public ColorConverter getColorConverterForTest() {
+    return myImageFilter;
   }
 
   @Override

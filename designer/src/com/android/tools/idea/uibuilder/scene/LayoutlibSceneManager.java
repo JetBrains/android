@@ -76,6 +76,7 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode;
 import com.android.tools.idea.util.ListenerCollection;
 import com.android.tools.rendering.ExecuteCallbacksResult;
@@ -719,7 +720,13 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
     // TODO See if there's a better way to trigger the NavigationViewSceneView. Perhaps examine the view objects?
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), NavigationViewSceneView.SHOW_IN_ATTRIBUTE_VALUE)) {
       sceneView = ScreenView.newBuilder(getDesignSurface(), this)
-        .withLayersProvider((sv) -> ImmutableList.of(new ScreenViewLayer(sv,getDesignSurface(), getDesignSurface()::getRotateSurfaceDegree)))
+        .withLayersProvider((sv) -> {
+          ColorBlindMode colorBlindMode = ColorBlindMode.NONE;
+          if (getDesignSurface().getScreenViewProvider() != null) {
+            colorBlindMode = getDesignSurface().getScreenViewProvider().getColorBlindFilter();
+          }
+          return ImmutableList.of(new ScreenViewLayer(sv, colorBlindMode, getDesignSurface(), getDesignSurface()::getRotateSurfaceDegree));
+        })
         .withContentSizePolicy(NavigationViewSceneView.CONTENT_SIZE_POLICY)
         .withShapePolicy(SQUARE_SHAPE_POLICY)
         .build();

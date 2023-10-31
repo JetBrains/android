@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer;
 import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableList;
@@ -146,7 +147,11 @@ public class ScreenView extends ScreenViewBase {
       builder.add(new BorderLayer(screenView, () -> screenView.getSurface().isRotating()));
     }
     NlDesignSurface surface = screenView.getSurface();
-    builder.add(new ScreenViewLayer(screenView, surface, surface::getRotateSurfaceDegree));
+    ColorBlindMode colorBlindMode = ColorBlindMode.NONE;
+    if (surface.getScreenViewProvider() != null) {
+      colorBlindMode = surface.getScreenViewProvider().getColorBlindFilter();
+    }
+    builder.add(new ScreenViewLayer(screenView, colorBlindMode, surface, surface::getRotateSurfaceDegree));
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
