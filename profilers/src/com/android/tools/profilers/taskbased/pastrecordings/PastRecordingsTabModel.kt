@@ -19,6 +19,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.google.common.annotations.VisibleForTesting
 
 /**
  * The PastRecordingsTabModel serves as the data model for the past recordings tab. It owns the recording list model to manage the
@@ -26,9 +27,12 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
  * task button click, reading the recording and Profiler task selection and using such values to launch the Profiler task.
  */
 class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  private val recordingListModel = RecordingListModel(profilers, taskHandlers)
+  @VisibleForTesting
+  val recordingListModel = RecordingListModel(profilers, taskHandlers)
 
-  private val selectedRecording = recordingListModel.selectedRecording.value
+  @VisibleForTesting
+  val selectedRecording get() = recordingListModel.selectedRecording.value
+
   override val isEnterTaskButtonEnabled get() = selectedRecording != null && selectedTaskType != ProfilerTaskType.UNSPECIFIED
 
   override fun onEnterTaskButtonClick() {

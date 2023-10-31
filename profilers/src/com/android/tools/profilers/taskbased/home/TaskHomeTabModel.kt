@@ -21,6 +21,7 @@ import com.android.tools.profilers.taskbased.TaskEntranceTabModel
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.TaskTypeMappingUtils
+import com.google.common.annotations.VisibleForTesting
 
 /**
  * The TaskHomeTabModel serves as the data model for the task home tab. It owns the process list model to manage the available processes
@@ -28,10 +29,13 @@ import com.android.tools.profilers.tasks.TaskTypeMappingUtils
  * reading the process and Profiler task selection and using such values to launch the Profiler task.
  */
 class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profilers) {
-  private val processListModel = ProcessListModel(profilers)
+  @VisibleForTesting
+  val processListModel = ProcessListModel(profilers)
 
-  private val selectedDevice = processListModel.selectedDevice.value
-  private val selectedProcess = processListModel.selectedProcess.value
+  @VisibleForTesting
+  val selectedDevice: Common.Device get() = processListModel.selectedDevice.value
+  @VisibleForTesting
+  val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
 
   override val isEnterTaskButtonEnabled get() = selectedDevice != Common.Device.getDefaultInstance()
                                                 && selectedProcess != Common.Process.getDefaultInstance()

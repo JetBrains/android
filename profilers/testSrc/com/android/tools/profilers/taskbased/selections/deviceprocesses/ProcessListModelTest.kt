@@ -26,6 +26,9 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionsManager
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProcess
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -61,8 +64,10 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     processListModel.onDeviceSelection(device)
-    addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId))
+    addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
     assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(2)
   }
 
@@ -71,8 +76,10 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = createDevice("FakeDevice", Common.Device.State.OFFLINE)
     processListModel.onDeviceSelection(device)
-    addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId))
+    addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
     assertThat(processListModel.getSelectedDeviceProcesses()).isEmpty()
   }
 
@@ -81,8 +88,8 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     processListModel.onDeviceSelection(device)
-    addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.DEAD, device.deviceId))
-    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.DEAD, device.deviceId))
+    addDeviceWithProcess(device, createProcess(20, "FakeProcess1", Common.Process.State.DEAD, device.deviceId), myTransportService, myTimer)
+    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.DEAD, device.deviceId), myTransportService, myTimer)
     assertThat(processListModel.getSelectedDeviceProcesses()).isEmpty()
   }
 
@@ -91,8 +98,10 @@ class ProcessListModelTest {
     assertThat(processListModel.deviceToProcesses.value).isEmpty()
     val device1 = createDevice("FakeDevice1", Common.Device.State.ONLINE)
     val device2 = createDevice("FakeDevice2", Common.Device.State.ONLINE)
-    addDeviceWithProcess(device1, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device1.deviceId))
-    addDeviceWithProcess(device2, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device2.deviceId))
+    addDeviceWithProcess(device1, createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device1.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device2, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device2.deviceId), myTransportService,
+                         myTimer)
 
     // Make sure there are two entries in the device to process list mapping.
     assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(2)
@@ -116,7 +125,7 @@ class ProcessListModelTest {
     processListModel.onDeviceSelection(device)
 
     val process1 = createProcess(20, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId)
-    addDeviceWithProcess(device, process1)
+    addDeviceWithProcess(device, process1, myTransportService, myTimer)
     // PREFERRED_PROCESS aspect should be fired via the call to set the preferred process.
     myProfilers.setPreferredProcess("FakeDevice", "FakeProcess1", null)
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -124,7 +133,7 @@ class ProcessListModelTest {
     assertThat(processListModel.getPreferredProcessName()).isEqualTo("FakeProcess1")
 
     val process2 = createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId)
-    addDeviceWithProcess(device, process2)
+    addDeviceWithProcess(device, process2, myTransportService, myTimer)
 
     // PREFERRED_PROCESS aspect should be fired via the call to set the preferred process.
     myProfilers.setPreferredProcess("FakeDevice", "FakeProcess2", null)
@@ -148,12 +157,18 @@ class ProcessListModelTest {
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     processListModel.onDeviceSelection(device)
 
-    addDeviceWithProcess(device, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(20, "FakeProcess1:X", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(30, "FakeProcess1:Y", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(50, "FakeProcess2:X", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(60, "FakeProcess2:Y", Common.Process.State.ALIVE, device.deviceId))
+    addDeviceWithProcess(device, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(20, "FakeProcess1:X", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(30, "FakeProcess1:Y", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(50, "FakeProcess2:X", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(60, "FakeProcess2:Y", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
 
     // PREFERRED_PROCESS aspect should be fired via the call to set the preferred process.
     myProfilers.setPreferredProcess("FakeDevice", "FakeProcess2:X", null)
@@ -195,12 +210,18 @@ class ProcessListModelTest {
     val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
     processListModel.onDeviceSelection(device)
 
-    addDeviceWithProcess(device, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(20, "FakeProcess1:X", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(30, "FakeProcess1:Y", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(50, "FakeProcess2:X", Common.Process.State.ALIVE, device.deviceId))
-    addDeviceWithProcess(device, createProcess(60, "FakeProcess2:Y", Common.Process.State.ALIVE, device.deviceId))
+    addDeviceWithProcess(device, createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(20, "FakeProcess1:X", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(30, "FakeProcess1:Y", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(40, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(50, "FakeProcess2:X", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
+    addDeviceWithProcess(device, createProcess(60, "FakeProcess2:Y", Common.Process.State.ALIVE, device.deviceId), myTransportService,
+                         myTimer)
 
     // PREFERRED_PROCESS aspect should be fired via the call to set the preferred process.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -216,19 +237,4 @@ class ProcessListModelTest {
     assertThat(deviceProcessesSorted[4].name).isEqualTo("FakeProcess2:X")
     assertThat(deviceProcessesSorted[5].name).isEqualTo("FakeProcess2:Y")
   }
-
-  private fun addDeviceWithProcess(device: Common.Device, process: Common.Process) {
-    myTransportService.addDevice(device)
-    myTransportService.addProcess(device, process)
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
-  }
-
-  private fun createDevice(deviceName: String, deviceState: Common.Device.State) = Common.Device.newBuilder().setDeviceId(
-    deviceName.hashCode().toLong()).setSerial(deviceName).setState(deviceState).build()
-
-  private fun createProcess(pid: Int,
-                            processName: String,
-                            processState: Common.Process.State,
-                            deviceId: Long) = Common.Process.newBuilder().setDeviceId(deviceId).setPid(pid).setName(processName).setState(
-    processState).setExposureLevel(ExposureLevel.DEBUGGABLE).build()
 }

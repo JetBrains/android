@@ -29,8 +29,6 @@ class TaskGridModel {
   private val _selectedTaskType = MutableStateFlow(ProfilerTaskType.UNSPECIFIED)
   val selectedTaskType = _selectedTaskType.asStateFlow()
 
-  fun getSelectedTaskType() = selectedTaskType.value
-
   fun onTaskSelection(taskType: ProfilerTaskType) {
     _selectedTaskType.value = taskType
   }
