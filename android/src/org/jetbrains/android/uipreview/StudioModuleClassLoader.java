@@ -5,9 +5,7 @@ import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.fin
 import static org.jetbrains.android.uipreview.ModuleClassLoaderUtil.INTERNAL_PACKAGE;
 
 import com.android.layoutlib.reflection.TrackingThreadLocal;
-import com.android.tools.idea.projectsystem.ClassContent;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
-import com.android.tools.idea.rendering.classloading.loaders.CachingClassLoaderLoader;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.classloading.ClassBinaryCache;
 import com.android.tools.rendering.classloading.ClassBinaryCacheManager;
@@ -15,7 +13,6 @@ import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.CooperativeInterruptTransform;
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader;
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader;
@@ -30,7 +27,6 @@ import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransfor
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
 import com.android.tools.idea.rendering.classloading.ViewMethodWrapperTransform;
 import com.android.tools.idea.rendering.classloading.ViewTreeLifecycleTransform;
-import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader;
 import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.UtilKt;
@@ -39,7 +35,6 @@ import com.intellij.openapi.WeakReferenceDisposableWrapper;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -61,7 +56,6 @@ import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.annotations.VisibleForTesting;
 
 /**
@@ -223,24 +217,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     return getProjectLoadedClasses().contains(fqcn) || getNonProjectLoadedClasses().contains(fqcn);
   }
 
-  @NotNull
-  private static CachingClassLoaderLoader createDefaultProjectSystemClassLoader(
-    @NotNull Module theModule, @NotNull Supplier<PsiFile> psiFileProvider
-  ) {
-    WeakReference<Module> moduleRef = new WeakReference<>(theModule);
-    return new ProjectSystemClassLoader((fqcn) -> {
-      Module module = moduleRef.get();
-      if (module == null || module.isDisposed()) return null;
-
-      PsiFile psiFile = psiFileProvider.get();
-      VirtualFile virtualFile = psiFile != null ? psiFile.getVirtualFile() : null;
-
-      return ProjectSystemUtil.getModuleSystem(module)
-        .getClassFileFinderForSourceFile(virtualFile)
-        .findClassFile(fqcn);
-    });
-  }
-
   private StudioModuleClassLoader(@Nullable ClassLoader parent, @NotNull ModuleRenderContext renderContext,
                                   @NotNull ClassTransform projectTransformations,
                                   @NotNull ClassTransform nonProjectTransformations,
@@ -251,7 +227,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       renderContext,
       new ModuleClassLoaderImpl(
         renderContext.getModule(),
-        createDefaultProjectSystemClassLoader(renderContext.getModule(), renderContext.getFileProvider()),
+        renderContext.createClassLoaderLoader(),
         parent,
         projectTransformations,
         nonProjectTransformations,
@@ -369,14 +345,6 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   public ModuleRenderContext getModuleContext() {
     Module module = getModule();
     return module == null ? null : StudioModuleRenderContext.forFile(() -> module, myPsiFileProvider);
-  }
-
-  /**
-   * Injects the given file with the passed fqcn so it looks like loaded from the project. Only for testing.
-   */
-  @TestOnly
-  void injectProjectClassFile(@NotNull String fqcn, @NotNull ClassContent classContent) {
-    myImpl.injectProjectClassFile(fqcn, classContent);
   }
 
   /**

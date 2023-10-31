@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.classloading.loaders
 
 import com.android.tools.idea.projectsystem.ClassContent
+import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
@@ -81,7 +82,7 @@ class ProjectSystemClassLoader @JvmOverloads constructor(
    * Injects the given [classContent] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
    */
   @TestOnly
-  override fun injectClassFile(fqcn: String, classContent: ClassContent) {
+  fun injectClassFile(fqcn: String, classContent: ClassContent) {
     classCache[fqcn] = classContent
   }
 }

@@ -17,8 +17,9 @@ package org.jetbrains.android.uipreview
 
 import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.ClassContent
+import com.android.tools.idea.rendering.StudioModuleRenderContext
+import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.idea.util.toVirtualFile
-import com.android.tools.idea.rendering.StudioModuleRenderContext.Companion.forModule
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
@@ -84,8 +85,8 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
     val dClass = dSrc.getParent().toFile().resolve("D.class")
     assertTrue(dClass.exists())
 
-    val unused = get().getShared(null, forModule(myModule)).useWithClassLoader { loader ->
-      loader.injectProjectClassFile("com.foo.qwe.D", ClassContent.loadFromFile(dClass))
+    val context = InjectableContext(myModule, mapOf("com.foo.qwe.D" to ClassContent.loadFromFile(dClass)))
+    val unused = get().getShared(null, context).useWithClassLoader { loader ->
 
       val loadedDClass = loader.loadClass("com.foo.qwe.D")
       assertNotNull(loadedDClass.getConstructor())
@@ -128,4 +129,11 @@ class ModuleClassLoaderDependenciesTest : AndroidTestCase() {
       return classesJar
     }
   }
+}
+
+/** The classes from [toInject] are not shown as loaded in [ModuleClassLoader]. */
+private class InjectableContext(module: Module, private val toInject: Map<String, ClassContent>) :
+  StudioModuleRenderContext({ module }, { null }) {
+  override fun createClassLoaderLoader(): ProjectSystemClassLoader =
+    super.createClassLoaderLoader().also { cl -> toInject.forEach { cl.injectClassFile(it.key, it.value) } }
 }

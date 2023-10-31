@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.api.IdeaModuleProvider
 import com.intellij.openapi.application.runReadAction
@@ -23,6 +25,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.base.util.module
+import java.lang.ref.WeakReference
 import java.util.function.Supplier
 
 /**
@@ -30,7 +33,7 @@ import java.util.function.Supplier
  *
  * This should be a short living object since it retains a strong reference to a [Module].
  */
-class StudioModuleRenderContext private constructor(
+open class StudioModuleRenderContext protected constructor(
   private val moduleProvider: IdeaModuleProvider,
   override val fileProvider: Supplier<PsiFile?>
 ) : ModuleRenderContext {
@@ -39,6 +42,20 @@ class StudioModuleRenderContext private constructor(
 
   override val module: Module
     get() = moduleProvider.getIdeaModule()
+  override fun createClassLoaderLoader(): ProjectSystemClassLoader {
+    val moduleRef = WeakReference(module)
+    val psiFile = fileProvider.get()
+    return ProjectSystemClassLoader { fqcn ->
+      val module = moduleRef.get()
+      if (module == null || module.isDisposed) return@ProjectSystemClassLoader null
+
+      val virtualFile = psiFile?.virtualFile
+
+      return@ProjectSystemClassLoader module.getModuleSystem()
+        .getClassFileFinderForSourceFile(virtualFile)
+        .findClassFile(fqcn)
+    }
+  }
 
   companion object {
     @JvmStatic

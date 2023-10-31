@@ -15,6 +15,7 @@
  */
 package com.android.tools.rendering
 
+import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
 import java.util.function.Supplier
@@ -30,4 +31,7 @@ interface ModuleRenderContext {
   val isDisposed: Boolean
 
   val module: Module
+
+  /** Creates [CachingClassLoaderLoader] for the classes of this context. */
+  fun createClassLoaderLoader(): CachingClassLoaderLoader
 }

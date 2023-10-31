@@ -21,11 +21,9 @@ import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrit
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.ClassContent
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
-import com.android.tools.idea.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
@@ -36,6 +34,7 @@ import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapter
 import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -49,7 +48,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.objectweb.asm.ClassWriter
 import java.io.File
@@ -323,16 +321,6 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   fun getResources(name: String): Enumeration<URL> = externalLibrariesClassLoader.getResources(name)
   fun getResource(name: String): URL? = externalLibrariesClassLoader.getResource(name)
-
-  /**
-   * Injects the given [classContent] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
-   */
-  @TestOnly
-  fun injectProjectClassFile(fqcn: String, classContent: ClassContent) {
-    recordFirstLoadModificationCount()
-    _projectLoadedClassNames.add(fqcn)
-    projectSystemLoader.injectClassFile(fqcn, classContent)
-  }
 
   override fun dispose() {
     projectSystemLoader.invalidateCaches()
