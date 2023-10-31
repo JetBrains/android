@@ -20,6 +20,7 @@ import com.intellij.execution.configurations.ConfigurationType
 import com.intellij.execution.configurations.ConfigurationTypeUtil
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
+import com.intellij.execution.configurations.WithoutOwnBeforeRunSteps
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -87,7 +88,7 @@ class AndroidBaselineProfileRunConfigurationType : ConfigurationType {
 }
 
 class AndroidBaselineProfileRunConfiguration(project: Project, factory: ConfigurationFactory, name: String? = factory.name) :
-  AndroidRunConfigurationBase(project, factory, name, true), RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake {
+  AndroidRunConfigurationBase(project, factory, name, true), RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, WithoutOwnBeforeRunSteps {
 
   @JvmField
   var generateAllVariants: Boolean = false
