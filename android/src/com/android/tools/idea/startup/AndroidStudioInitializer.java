@@ -42,7 +42,6 @@ public class AndroidStudioInitializer extends ApplicationInitializedListenerJava
 
   @Override
   public void componentsInitialized() {
-    configureUpdateUrls();
     setupAnalytics();
 
     // Initialize System Health Monitor after Analytics.
@@ -81,20 +80,5 @@ public class AndroidStudioInitializer extends ApplicationInitializedListenerJava
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-  }
-
-  /** Configures update URLs based on environment variables. This makes it easier to do local testing. */
-  private static void configureUpdateUrls() {
-    // If defined, AS_UPDATE_URL should point to the *root* of the updates.xml file to use
-    // and patches are expected to be in the same folder.
-    String updateUrl = System.getenv("AS_UPDATE_URL");
-    if (updateUrl != null) {
-      if (!updateUrl.endsWith("/")) {
-        updateUrl += "/";
-      }
-      // Set the Java system properties expected by UpdateChecker.
-      System.setProperty("idea.updates.url", updateUrl + "updates.xml");
-      System.setProperty("idea.patches.url", updateUrl);
-    }
   }
 }

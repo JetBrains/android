@@ -21,6 +21,9 @@
     <actionConfigurationCustomizer id="Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.AndroidStudioActionCustomizer"/>
     <applicationInitializedListener implementation="com.android.tools.idea.startup.AndroidSdkInitializer" order="last"/>
     <applicationInitializedListener implementation="com.android.tools.idea.instrumentation.threading.ThreadingChecker" />
+    <applicationService serviceInterface="com.intellij.platform.ide.customization.ExternalProductResourceUrls"
+                        serviceImplementation="com.android.tools.idea.AndroidStudioResourceUrls"
+                        overrides="true"/>
 
     <applicationService serviceInterface="com.intellij.openapi.updateSettings.UpdateStrategyCustomization"
                         serviceImplementation="com.android.tools.idea.AndroidStudioUpdateStrategyCustomization"
