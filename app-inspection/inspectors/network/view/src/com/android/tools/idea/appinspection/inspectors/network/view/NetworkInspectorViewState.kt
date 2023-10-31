@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.view
 
+import com.android.tools.adtui.table.ConfigColumnTableAspect.ColumnInfo
 import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionsView.Column
-import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState.ColumnInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.xmlb.XmlSerializerUtil
-import com.intellij.util.xmlb.annotations.Attribute
-import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
 import com.intellij.util.xmlb.annotations.XCollection.Style.v2
 
@@ -32,7 +31,7 @@ import com.intellij.util.xmlb.annotations.XCollection.Style.v2
 internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspectorViewState> {
 
   @XCollection(style = v2)
-  var columns: List<ColumnInfo> =
+  var columns: MutableList<ColumnInfo> =
     mutableListOf(
       Column.NAME.toColumnInfo(),
       Column.SIZE.toColumnInfo(),
@@ -42,22 +41,25 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
       Column.TIMELINE.toColumnInfo(),
     )
 
-  @Tag("column-info")
-  data class ColumnInfo(
-    @Attribute("name") var name: String = "",
-    @Attribute("width-ratio") var widthRatio: Double = 0.0,
-  )
-
   companion object {
     fun getInstance(): NetworkInspectorViewState =
       ApplicationManager.getApplication().getService(NetworkInspectorViewState::class.java)
   }
 
-  override fun getState(): NetworkInspectorViewState = this
+  override fun getState(): NetworkInspectorViewState {
+    // Early version had the name as the `Column` enum name. New versions uses a common API that
+    // needs the display string.
+    if (columns.first().name.last().isUpperCase()) {
+      // One time conversion from enum `name` to `displayString`. This is possible because at the
+      // time this code is written, the enum values all have `displayString == capitalized name`
+      columns.forEach { it.name = StringUtil.capitalize(it.name.lowercase()) }
+    }
+    return this
+  }
 
   override fun loadState(state: NetworkInspectorViewState) {
     XmlSerializerUtil.copyBean(state, this)
   }
 }
 
-private fun Column.toColumnInfo() = ColumnInfo(name, widthRatio)
+private fun Column.toColumnInfo() = ColumnInfo(toDisplayString(), widthRatio, visible = true)

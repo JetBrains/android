@@ -23,12 +23,12 @@ import com.android.tools.adtui.model.formatter.NumberFormatter
 import com.android.tools.adtui.stdui.BorderlessTableCellRenderer
 import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
+import com.android.tools.adtui.table.ConfigColumnTableAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData.Companion.getUrlName
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
-import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState.ColumnInfo
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
@@ -39,8 +39,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.text.StringUtil
 import java.awt.Component
 import java.awt.KeyboardFocusManager
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.Locale
@@ -49,16 +47,11 @@ import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.JTextPane
 import javax.swing.ListSelectionModel
-import javax.swing.event.ChangeEvent
 import javax.swing.event.ListSelectionEvent
-import javax.swing.event.TableColumnModelEvent
-import javax.swing.event.TableColumnModelListener
 import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
-import javax.swing.table.TableColumn
-import kotlin.math.round
 
 /**
  * This class responsible for displaying table of connections information (e.g. url, duration,
@@ -70,7 +63,7 @@ class ConnectionsView(
 ) : AspectObserver() {
   /** Columns for each connection information */
   @VisibleForTesting
-  enum class Column(var widthRatio: Double, val type: Class<*>) {
+  enum class Column(val widthRatio: Double, val type: Class<*>) {
     NAME(0.25, String::class.java) {
       override fun getValueFrom(data: HttpData): Any {
         return getUrlName(data.url)
@@ -113,8 +106,6 @@ class ConnectionsView(
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
   private val connectionsTable: JTable
-  private var columnWidthsInitialized = false
-  private val allColumns: Map<Column, TableColumn>
 
   val component: JComponent
     get() = connectionsTable
@@ -122,14 +113,8 @@ class ConnectionsView(
   init {
     connectionsTable =
       TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.toDisplayString(), true)
-    allColumns = buildMap {
-      connectionsTable.columnModel.columns.asSequence().forEach {
-        val column = Column.values()[it.modelIndex]
-        it.identifier = column
-        put(column, it)
-      }
-    }
     customizeConnectionsTable()
+    ConfigColumnTableAspect.apply(connectionsTable, NetworkInspectorViewState.getInstance().columns)
     createTooltip()
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {
       updateTableSelection()
@@ -181,84 +166,16 @@ class ConnectionsView(
     connectionsTable.rowHeight = defaultFontHeight + ROW_HEIGHT_PADDING
     connectionsTable.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, null)
     connectionsTable.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, null)
-    connectionsTable.addComponentListener(
-      object : ComponentAdapter() {
-        override fun componentResized(e: ComponentEvent) {
-          Column.values().forEachIndexed { i, column ->
-            getColumnForIndex(i).preferredWidth =
-              (connectionsTable.width * column.widthRatio).toInt()
-          }
-          // Mark the column widths as initialized once we set their widths here
-          columnWidthsInitialized = true
-        }
-      }
-    )
     model.selectionRangeDataFetcher.addOnChangedListener {
       // Although the selected row doesn't change on range moved, we do this here to prevent
       // flickering that otherwise occurs in our table.
       updateTableSelection()
-    }
-
-    loadColumnLayout()
-
-    connectionsTable.columnModel.addColumnModelListener(
-      object : TableColumnModelListener {
-        override fun columnAdded(e: TableColumnModelEvent) = saveColumnLayout()
-
-        override fun columnRemoved(e: TableColumnModelEvent) = saveColumnLayout()
-
-        override fun columnMoved(e: TableColumnModelEvent) {
-          if (e.fromIndex != e.toIndex) {
-            saveColumnLayout()
-          }
-        }
-
-        override fun columnSelectionChanged(e: ListSelectionEvent?) = Unit
-
-        override fun columnMarginChanged(e: ChangeEvent) {
-          // Let the columns be set to their original widths during init process before retaining
-          // their widths.
-          // Not doing so leads to each column having equal widths.
-          if (!columnWidthsInitialized) return
-          Column.values().forEachIndexed { index, column ->
-            column.widthRatio = getColumnForIndex(index).width.toDouble() / connectionsTable.width
-          }
-          saveColumnLayout()
-        }
-      }
-    )
-  }
-
-  private fun saveColumnLayout() {
-    val state = NetworkInspectorViewState.getInstance()
-    state.columns =
-      connectionsTable.columnModel.columns
-        .toList()
-        .map {
-          ColumnInfo(
-            it.getColumn().name,
-            round(it.width.toDouble() / connectionsTable.width * 100) / 100
-          )
-        }
-        .toMutableList()
-  }
-
-  private fun loadColumnLayout() {
-    connectionsTable.columnModel.columns.toList().forEach { connectionsTable.removeColumn(it) }
-    NetworkInspectorViewState.getInstance().columns.forEach {
-      val column = Column.valueOf(it.name)
-      column.widthRatio = it.widthRatio
-      val tableColumn = allColumns.getValue(column)
-      connectionsTable.addColumn(tableColumn)
     }
   }
 
   private fun setRenderer(column: Column, renderer: TableCellRenderer) {
     connectionsTable.columnModel.getColumn(column.ordinal).cellRenderer = renderer
   }
-
-  private fun getColumnForIndex(index: Int) =
-    connectionsTable.columnModel.getColumn(connectionsTable.convertColumnIndexToView(index))
 
   private fun createTooltip() {
     val textPane = JTextPane()
@@ -403,5 +320,3 @@ class ConnectionsView(
     }
   }
 }
-
-private fun TableColumn.getColumn() = identifier as ConnectionsView.Column
