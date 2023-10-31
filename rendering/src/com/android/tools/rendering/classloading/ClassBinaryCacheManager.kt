@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering.classloading
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.google.common.base.Ticker
 import com.google.common.cache.CacheBuilder
-import com.intellij.openapi.module.Module
-import org.jetbrains.annotations.TestOnly
 import java.time.Duration
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import org.jetbrains.annotations.TestOnly
 
 private const val MAX_WEIGHT_BYTES =
   100_000_000L // We will store no more than 100Mb of cached classes
@@ -32,7 +31,7 @@ private const val EXPIRE_MINUTES = 30L // We will store cached classes for no lo
 /** A class binary representation cache. */
 class ClassBinaryCacheManager
 private constructor(ticker: Ticker, maxWeight: Long, expireMinutes: Long) {
-  @GuardedBy("this") private val moduleCaches = WeakHashMap<Module, ModuleClassCache>()
+  @GuardedBy("this") private val scopeCaches = WeakHashMap<Any, ModuleClassCache>()
   private var lock = ReentrantLock()
   /** A mapping from a library path to all the classes (fqcn) cached from this library. */
   @GuardedBy("lock") private val libraryPath2ClassFqns = mutableMapOf<String, MutableSet<String>>()
@@ -57,33 +56,34 @@ private constructor(ticker: Ticker, maxWeight: Long, expireMinutes: Long) {
       .build<String, ByteArray>()
 
   /**
-   * Returns a module specific cache that will only return classes if they belong to the module dependencies, the cache will also invalidate
-   * cache for dated dependencies.
+   * Returns a scope specific cache that will only return classes if they belong to the scope, the
+   * cache will also invalidate cache for dated classes.
    */
   @Synchronized
   @AnyThread
-  fun getCache(module: Module): ClassBinaryCache {
-    return moduleCaches.computeIfAbsent(module) { ModuleClassCache() }
+  fun getCache(scope: Any): ClassBinaryCache {
+    return scopeCaches.computeIfAbsent(scope) { ModuleClassCache() }
   }
 
   private inner class ModuleClassCache : ClassBinaryCache {
-    @GuardedBy("this")
-    private var libraryPaths = setOf<String>()
+    @GuardedBy("this") private var libraryPaths = setOf<String>()
 
     /**
      * Synchronously checks if there a library with [path] among the current module dependencies.
      */
-    @Synchronized
-    private fun notCurrentDependency(path: String?) = path !in libraryPaths
+    @Synchronized private fun notCurrentDependency(path: String?) = path !in libraryPaths
 
     // @LayoutlibRenderThread
     override fun get(fqcn: String, transformationId: String): ByteArray? {
       val key = getCachingKey(fqcn, transformationId)
-      // If the url for the class is not in this module dependencies we should invalidate the whole library (url) and make
+      // If the url for the class is not in this module dependencies we should invalidate the whole
+      // library (url) and make
       val libraryPath = lock.withLock { classFqn2LibraryPath[key] }
       if (notCurrentDependency(libraryPath)) {
         libraryPath?.let {
-          lock.withLock { libraryPath2ClassFqns.remove(libraryPath) }?.forEach { globalCache.invalidate(it) }
+          lock
+            .withLock { libraryPath2ClassFqns.remove(libraryPath) }
+            ?.forEach { globalCache.invalidate(it) }
         }
         return null
       }
@@ -114,8 +114,7 @@ private constructor(ticker: Ticker, maxWeight: Long, expireMinutes: Long) {
     private val globalManager =
       ClassBinaryCacheManager(Ticker.systemTicker(), MAX_WEIGHT_BYTES, EXPIRE_MINUTES)
 
-    @JvmStatic
-    fun getInstance() = globalManager
+    @JvmStatic fun getInstance() = globalManager
 
     @TestOnly
     fun getTestInstance(ticker: Ticker, maxWeight: Long, expireMinutes: Long) =

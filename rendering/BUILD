@@ -43,6 +43,7 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )
 

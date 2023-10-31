@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
-import org.jetbrains.android.uipreview.ClassBinaryCache
 
 /**
  * A [DelegatingClassLoader.Loader] that uses the given [binaryCache] to store the returned classes.

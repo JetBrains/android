@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering.classloading
 
-/**
- * Interface to record and retrieve class binary data.
- */
+/** Interface to record and retrieve class binary data. */
 interface ClassBinaryCache {
   /**
    * Return class binary data or null if unknown.
    *
    * @param fqcn FQCN for the class
-   * @param transformationId it represents the transformations applied to the class. The same FQCN can be stored more than once
-   *  with different transformations applied.
+   * @param transformationId it represents the transformations applied to the class. The same FQCN
+   *   can be stored more than once with different transformations applied.
    */
   fun get(fqcn: String, transformationId: String): ByteArray?
 
@@ -35,27 +33,29 @@ interface ClassBinaryCache {
    */
   fun get(fqcn: String): ByteArray? = get(fqcn, "")
 
-  /**
-   * Record class binary [data] with the associated [libraryPath].
-   */
+  /** Record class binary [data] with the associated [libraryPath]. */
   fun put(fqcn: String, transformationId: String, libraryPath: String, data: ByteArray)
 
-  /**
-   * Record class binary [data] with the associated [libraryPath].
-   */
+  /** Record class binary [data] with the associated [libraryPath]. */
   fun put(fqcn: String, libraryPath: String, data: ByteArray) = put(fqcn, "", libraryPath, data)
 
-  /**
-   * Sets [paths] of the dependencies from which classes are cached.
-   */
+  /** Sets [paths] of the dependencies from which classes are cached. */
   fun setDependencies(paths: Collection<String>)
 
   companion object {
     @JvmField
-    val NO_CACHE = object : ClassBinaryCache {
-      override fun get(fqcn: String, transformationId: String): ByteArray? = null
-      override fun put(fqcn: String, transformationId: String, libraryPath: String, data: ByteArray) { }
-      override fun setDependencies(paths: Collection<String>) { }
-    }
+    val NO_CACHE =
+      object : ClassBinaryCache {
+        override fun get(fqcn: String, transformationId: String): ByteArray? = null
+
+        override fun put(
+          fqcn: String,
+          transformationId: String,
+          libraryPath: String,
+          data: ByteArray
+        ) {}
+
+        override fun setDependencies(paths: Collection<String>) {}
+      }
   }
 }

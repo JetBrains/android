@@ -9,6 +9,8 @@ import com.android.tools.idea.projectsystem.ClassContent;
 import com.android.tools.idea.rendering.StudioModuleRenderContext;
 import com.android.tools.idea.rendering.classloading.loaders.CachingClassLoaderLoader;
 import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.classloading.ClassBinaryCache;
+import com.android.tools.rendering.classloading.ClassBinaryCacheManager;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead;
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite;

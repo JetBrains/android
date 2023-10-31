@@ -13,37 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.uipreview
+package com.android.tools.rendering.classloading
 
 import com.google.common.base.Ticker
-import com.intellij.openapi.module.Module
-import org.junit.Before
-import org.junit.Test
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.junit.Test
 
 class ClassBinaryCacheManagerTest {
   private class ManualTicker : Ticker() {
     var timeNanos = 0L
+
     override fun read(): Long = timeNanos
-  }
-
-  @Mock
-  private lateinit var module: Module
-
-  @Before
-  fun setUp() {
-    MockitoAnnotations.initMocks(this)
   }
 
   @Test
   fun testPutAndGet() {
+    val cacheKey = Any()
     val manager = ClassBinaryCacheManager.getTestInstance(ManualTicker(), 100, 1)
 
-    val moduleCache = manager.getCache(module)
+    val moduleCache = manager.getCache(cacheKey)
     moduleCache.setDependencies(listOf("A", "B"))
 
     moduleCache.put("a.b.c", "A", "hello".toByteArray())
@@ -52,7 +42,7 @@ class ClassBinaryCacheManagerTest {
     assertEquals("hello", moduleCache.get("a.b.c")?.toString(Charsets.UTF_8))
     assertEquals("bye", moduleCache.get("d.e.f")?.toString(Charsets.UTF_8))
 
-    val sameModuleCache = manager.getCache(module)
+    val sameModuleCache = manager.getCache(cacheKey)
 
     assertEquals("hello", sameModuleCache.get("a.b.c")?.toString(Charsets.UTF_8))
     assertEquals("bye", sameModuleCache.get("d.e.f")?.toString(Charsets.UTF_8))
@@ -60,14 +50,15 @@ class ClassBinaryCacheManagerTest {
 
   @Test
   fun testInvalidateWhenDependenciesChanged() {
+    val cacheKey = Any()
     val manager = ClassBinaryCacheManager.getTestInstance(ManualTicker(), 100, 1)
 
-    val moduleCache = manager.getCache(module)
+    val moduleCache = manager.getCache(cacheKey)
     moduleCache.setDependencies(listOf("A"))
 
     moduleCache.put("a.b.c", "A", "hello".toByteArray())
 
-    val sameModuleCache = manager.getCache(module)
+    val sameModuleCache = manager.getCache(cacheKey)
     sameModuleCache.setDependencies(listOf("B"))
 
     assertNull(sameModuleCache.get("a.b.c"))
@@ -75,9 +66,10 @@ class ClassBinaryCacheManagerTest {
 
   @Test
   fun testInvalidateWhenOverweight() {
+    val cacheKey = Any()
     val manager = ClassBinaryCacheManager.getTestInstance(ManualTicker(), 100, 1)
 
-    val moduleCache = manager.getCache(module)
+    val moduleCache = manager.getCache(cacheKey)
     moduleCache.setDependencies(listOf("A"))
 
     moduleCache.put("a.b.c", "A", ByteArray(80))
@@ -91,10 +83,11 @@ class ClassBinaryCacheManagerTest {
 
   @Test
   fun testInvalidateWhenTimeout() {
+    val cacheKey = Any()
     val manualTicker = ManualTicker()
     val manager = ClassBinaryCacheManager.getTestInstance(manualTicker, 100, 1)
 
-    val moduleCache = manager.getCache(module)
+    val moduleCache = manager.getCache(cacheKey)
     moduleCache.setDependencies(listOf("A"))
 
     moduleCache.put("a.b.c", "A", ByteArray(80))
