@@ -28,6 +28,7 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getApplicationIdAndDevices
 import com.android.tools.idea.run.configuration.execution.println
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -35,6 +36,12 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -59,11 +66,18 @@ class AndroidBaselineProfileConfigurationExecutor(
   override val configuration = env.runProfile as AndroidBaselineProfileRunConfiguration
 
   private val LOG = Logger.getInstance(this::class.java)
+  private val NOTIFICATION_GROUP_ID = "Baseline Profile"
+  private val notificationGroup = NotificationGroup.findRegisteredGroup(NOTIFICATION_GROUP_ID) ?: NotificationGroup(NOTIFICATION_GROUP_ID,
+                                                                                                                    NotificationDisplayType.BALLOON,
+                                                                                                                    true,
+                                                                                                                    "Baseline Profile",
+                                                                                                                    null)
   private val project = env.project
   private val stats = RunStats.from(env)
   private val applicationIdProvider = configuration.applicationIdProvider ?: throw RuntimeException(
     "Can't get ApplicationIdProvider for AndroidTestRunConfiguration"
   )
+
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Generate Baseline Profile(s)")
 
@@ -92,22 +106,6 @@ class AndroidBaselineProfileConfigurationExecutor(
 
     val externalTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project)
 
-    val listener = object: ExternalSystemTaskNotificationListenerAdapter() {
-      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
-        console.print(text, if (stdOut) ConsoleViewContentType.NORMAL_OUTPUT else ConsoleViewContentType.ERROR_OUTPUT)
-      }
-
-      override fun onEnd(id: ExternalSystemTaskId) {
-        if (id == externalTaskId) {
-          RunContentManager.getInstance(project).allDescriptors.find {
-            it.executionId == env.executionId
-          }?.let {
-            it.processHandler?.detachProcess()
-          }
-        }
-      }
-    }
-
     val handler = object : ProcessHandler() {
       override fun destroyProcessImpl() {
         notifyProcessTerminated(if (GradleBuildInvoker.getInstance(project).stopBuild(externalTaskId)) 0 else -1)
@@ -119,6 +117,44 @@ class AndroidBaselineProfileConfigurationExecutor(
 
       override fun detachIsDefault(): Boolean = false
       override fun getProcessInput(): OutputStream? = null
+    }
+
+    val listener = object: ExternalSystemTaskNotificationListenerAdapter() {
+      override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) {
+        console.print(text, if (stdOut) ConsoleViewContentType.NORMAL_OUTPUT else ConsoleViewContentType.ERROR_OUTPUT)
+      }
+
+      override fun onSuccess(id: ExternalSystemTaskId) {
+        val notification = notificationGroup
+          .createNotification("Baseline profile for the project \"${project.name}\" has been generated.", NotificationType.INFORMATION)
+          .setTitle("Baseline profile added")
+          .setImportant(true)
+        notification.addAction(object : AnAction("Open Run tool window") {
+          override fun actionPerformed(e: AnActionEvent) {
+            RunContentManager.getInstance(project).toFrontRunContent(DefaultRunExecutor.getRunExecutorInstance(), handler)
+            notification.expire()
+          }
+        })
+        Notifications.Bus.notify(notification, project)
+      }
+
+      override fun onFailure(id: ExternalSystemTaskId, e: Exception) {
+        val notification = notificationGroup
+          .createNotification("Baseline profile generation for the project \"${project.name}\" has failed.", NotificationType.ERROR)
+          .setTitle("Baseline profile error")
+          .setImportant(true)
+        Notifications.Bus.notify(notification, project)
+      }
+
+      override fun onEnd(id: ExternalSystemTaskId) {
+        if (id == externalTaskId) {
+          RunContentManager.getInstance(project).allDescriptors.find {
+            it.executionId == env.executionId
+          }?.let {
+            it.processHandler?.detachProcess()
+          }
+        }
+      }
     }
 
     GradleBuildInvoker.Request(
