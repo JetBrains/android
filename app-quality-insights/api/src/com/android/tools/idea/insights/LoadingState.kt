@@ -103,7 +103,7 @@ sealed class LoadingState<out T> {
 
     companion object {
       private fun GoogleJsonResponseException.getMessage() =
-        details["status"]?.let { status -> "$status: ${details.message}" } ?: details.message
+        details?.get("status")?.let { status -> "$status: ${details.message}" } ?: details?.message
     }
   }
 
