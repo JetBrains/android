@@ -246,6 +246,10 @@ categories {
   label: "kotlin"
 
   components: {
+    label: "kotlin_rest"
+    package_names: "org.jetbrains.kotlin"
+  }
+  components: {
     label: "kotlin_completion"
     package_names: "org.jetbrains.kotlin.idea.completion"
   }
