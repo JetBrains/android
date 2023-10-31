@@ -224,7 +224,7 @@ class SkinDefinitionTest {
     )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()
-    Files.list(dir).use { stream ->
+    Files.walk(dir, 2).use { stream ->
       stream.forEach { skinFolder ->
         if (Files.isDirectory(skinFolder) && !oldStyleSkins.contains(skinFolder.fileName.toString()) &&
             Files.exists(skinFolder.resolve("layout"))) {
