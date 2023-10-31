@@ -144,7 +144,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
    * Query coordinate a:b:456 will return null if version 123 is a resolved dependency but not version 456.
    * Use [AndroidModuleSystem.getRegisteredDependency] if you want the registered dependency.
    * <p>
-   * **Note**: This function will not acquire any locks during it's operation.
+   * **Note**: This function will not acquire any locks during its operation.
    */
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? = getResolvedDependency(coordinate, DependencyScopeType.MAIN)
@@ -365,6 +365,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
 
+  val enableVcsInfo: Boolean get() = false
+
   /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
   val desugarLibraryConfigFilesKnown: Boolean get() = false
 
@@ -372,16 +374,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
 
   val desugarLibraryConfigFiles: List<Path> get() = listOf()
-
-  /**
-   * Whether Gradle version catalogs are in use.
-   *
-   * This should ideally not be exposed to higher levels of the stack, but is necessary to disable certain actions that aren't yet
-   * supported with Version Catalogs.
-   *
-   * TODO(b/273530751): Remove this utility method once adding dependencies for catalogs is supported.
-   */
-  val usesVersionCatalogs: Boolean get() = false
 }
 
 /**

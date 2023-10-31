@@ -18,8 +18,14 @@
   <depends>org.intellij.intelliLang</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <projectService serviceImplementation="com.android.tools.idea.execution.common.stats.RunStatsService" />
+
     <notificationGroup id="Run Configuration"
                        displayType="BALLOON"/>
   </extensions>
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.execution.common.androidConfigurationExecutorProvider"
+                    interface="com.android.tools.idea.execution.common.AndroidConfigurationExecutor$Provider"/>
+  </extensionPoints>
 
 </idea-plugin>

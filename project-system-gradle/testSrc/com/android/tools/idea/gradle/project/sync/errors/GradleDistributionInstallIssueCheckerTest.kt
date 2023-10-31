@@ -29,21 +29,67 @@ import java.io.IOException
 class GradleDistributionInstallIssueCheckerTest : AndroidGradleTestCase() {
   private val gradleDistributionInstallIssueChecker = GradleDistributionInstallIssueChecker()
 
-  fun testCheckIssue() {
+  fun testCheckIssueWithOKFile() {
     // Load the project just so that we can retrieve the gradle wrapper successfully.
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val zipFile = getDistributionZipFile()!!
+    val okFile = File(zipFile.parentFile, "${zipFile.name}.ok")
+    assertThat(zipFile.exists()).isFalse()
+    assertThat(okFile.exists()).isTrue()
 
     val expectedError = "Could not install Gradle distribution from 'https://example.org/distribution.zip'."
     val issueData = GradleIssueData(projectFolderPath.path, Throwable(expectedError), null, null)
     val buildIssue = gradleDistributionInstallIssueChecker.check(issueData)
-    val zipFile = getDistributionZipFile()
 
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.description).contains(expectedError)
-    if (zipFile != null) assertThat(buildIssue.description).contains(zipFile.path)
+    assertThat(buildIssue.description).contains("${zipFile.path}.ok ")
     // Verify QuickFix.
     assertThat(buildIssue.quickFixes).hasSize(1)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(GradleDistributionInstallIssueChecker.DeleteFileAndSyncQuickFix::class.java)
+  }
+
+  fun testCheckIssueWithZipFile() {
+    // Load the project just so that we can retrieve the gradle wrapper successfully.
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val zipFile = getDistributionZipFile()!!
+    val okFile = File(zipFile.parentFile, "${zipFile.name}.ok")
+    assertThat(zipFile.exists()).isFalse()
+    assertThat(okFile.exists()).isTrue()
+    okFile.delete()
+    try {
+      zipFile.createNewFile()
+
+      val expectedError = "Could not install Gradle distribution from 'https://example.org/distribution.zip'."
+      val issueData = GradleIssueData(projectFolderPath.path, Throwable(expectedError), null, null)
+      val buildIssue = gradleDistributionInstallIssueChecker.check(issueData)
+
+      assertThat(buildIssue).isNotNull()
+      assertThat(buildIssue!!.description).contains(expectedError)
+      assertThat(buildIssue.description).contains("${zipFile.path} ")
+      // Verify QuickFix.
+      assertThat(buildIssue.quickFixes).hasSize(1)
+      assertThat(buildIssue.quickFixes[0]).isInstanceOf(GradleDistributionInstallIssueChecker.DeleteFileAndSyncQuickFix::class.java)
+    }
+    finally {
+      zipFile.delete()
+    }
+  }
+
+  fun testCheckIssueWithNeitherFile() {
+    // Load the project just so that we can retrieve the gradle wrapper successfully.
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION)
+    val zipFile = getDistributionZipFile()!!
+    val okFile = File(zipFile.parentFile, "${zipFile.name}.ok")
+    assertThat(zipFile.exists()).isFalse()
+    assertThat(okFile.exists()).isTrue()
+    okFile.delete()
+
+    val expectedError = "Could not install Gradle distribution from 'https://example.org/distribution.zip'."
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable(expectedError), null, null)
+    val buildIssue = gradleDistributionInstallIssueChecker.check(issueData)
+
+    assertThat(buildIssue).isNull()
   }
 
   private fun getDistributionZipFile(): File? {

@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import junit.framework.TestCase;
 
 public class TextDirectionTest extends TestCase {

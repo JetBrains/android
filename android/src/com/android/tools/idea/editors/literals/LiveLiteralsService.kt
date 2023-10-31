@@ -1,4 +1,4 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.editors.literals
 
 import com.android.annotations.concurrency.GuardedBy
@@ -9,9 +9,9 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager.isInPowerSaveMode
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
@@ -133,7 +133,7 @@ interface LiveLiteralsMonitorHandler {
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
                                               listenerExecutor: Executor,
-                                              private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
+                                              val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {
@@ -371,7 +371,7 @@ class LiveLiteralsService private constructor(private val project: Project,
       return
     }
 
-    if (isInPowerSaveMode) return
+    if (EssentialsMode.isEnabled()) return
 
     val updateList = ArrayList<LiteralReference>()
     document.flatMap {

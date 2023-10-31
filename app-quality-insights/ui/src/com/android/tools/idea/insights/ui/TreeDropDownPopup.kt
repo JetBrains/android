@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.WithCount
@@ -70,7 +69,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   @VisibleForTesting
   val helper = CheckboxTreeHelper(CheckboxTreeHelper.DEFAULT_POLICY, eventDispatcher)
 
-  @VisibleForTesting val root = CheckedTreeNode("All")
+  @VisibleForTesting val root = Node("All")
 
   @VisibleForTesting val searchTextField = SearchTextField(false)
   private val secondaryGrouping =
@@ -104,7 +103,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
               .asSequence()
               .flatMap { it.children().asSequence().plus(it) }
               .maxOfOrNull {
-                table.getFontMetrics(table.font).stringWidth(getNodeText(it as CheckedTreeNode)) +
+                table.getFontMetrics(table.font).stringWidth(getNodeText(it)) +
                   80 // for 2 levels of indent + checkbox
               }
               ?: 80
@@ -150,9 +149,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           val toExpand = mutableListOf<TreePath>()
           root.children().asSequence().forEach { child ->
             if (
-              child.children().asSequence().any {
-                getNodeText(it as CheckedTreeNode).lowercase().contains(searchText)
-              }
+              child.children().asSequence().any { getNodeText(it).lowercase().contains(searchText) }
             ) {
               toExpand.add(TreePath(arrayOf(root, child)))
             }
@@ -165,8 +162,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     )
 
     add(
-      if (secondaryToPrimaryGroups.isEmpty() || !StudioFlags.ADDITIONAL_FILTERS_ENABLED.get())
-        searchTextField
+      if (secondaryToPrimaryGroups.isEmpty()) searchTextField
       else
         JPanel().apply {
           layout = BoxLayout(this, BoxLayout.PAGE_AXIS)
@@ -189,7 +185,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     eventDispatcher.addListener(
       object : CheckboxTreeListener {
         override fun nodeStateChanged(node: CheckedTreeNode) {
-          val value = node.userObject as? WithCount<T> ?: return
+          val value = (node as? Leaf<T>)?.item ?: return
           selection = if (node.isChecked) selection.select(value) else selection.deselect(value)
 
           val selectedSecondaryToPrimary = selectedSecondaryToPrimary()
@@ -252,8 +248,8 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   }
 
   private fun getIssueCount(node: CheckedTreeNode): Long =
-    when (val value = node.userObject) {
-      is WithCount<*> -> value.count
+    when (node) {
+      is Leaf<*> -> node.item.count
       else ->
         node.children().asSequence().sumOf { child: TreeNode ->
           getIssueCount(child as CheckedTreeNode)
@@ -290,31 +286,48 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       }
     }
     treeTable.rowSelectionAllowed = false
-    TreeSpeedSearch(treeTable.tree, { getNodeText(it.lastPathComponent as CheckedTreeNode) }, true)
+    TreeSpeedSearch(treeTable.tree, true) { getNodeText(it.lastPathComponent as CheckedTreeNode) }
     return treeTable
   }
 
+  private fun filterGroupAndSortItems(
+    filter: (String) -> Boolean
+  ): List<FilteredGroup<WithCount<T>>> =
+    selection.items
+      .groupBy { groupNameSupplier(it.value) }
+      .mapNotNull { entry ->
+        val filteredValues =
+          if (filter(entry.key)) {
+            entry.value
+          } else {
+            entry.value.filter { filter(nameSupplier(it.value)) }
+          }
+        val sum = filteredValues.sumOf { it.count }
+        if (filteredValues.isEmpty()) {
+          null
+        } else {
+          sum to FilteredGroup(entry.key, filteredValues, entry.value.size > 1)
+        }
+      }
+      .sortedByDescending { it.first }
+      .map { it.second }
+
   private fun updateTreeNodes(filter: (String) -> Boolean): Set<T> {
     root.removeAllChildren()
-    val groupedValues = selection.items.groupBy { groupNameSupplier(it.value) }
-    groupedValues.forEach { (groupingKey, values) ->
+
+    val groupedValues = filterGroupAndSortItems(filter)
+    groupedValues.forEach { (groupingKey, values, wasMultiple) ->
       val node =
-        if (values.size == 1) {
+        if (!wasMultiple) {
           values.single().let { withCount ->
-            if (filter(nameSupplier(withCount.value))) {
-              CheckedTreeNode(withCount).apply { isChecked = withCount in selection.selected }
-            } else null
+            Leaf(withCount).apply { isChecked = withCount in selection.selected }
           }
         } else {
           val node =
-            CheckedTreeNode(groupingKey).apply {
-              values
-                .filter { withCount ->
-                  filter(groupingKey) || filter(nameSupplier(withCount.value))
-                }
-                .forEach { value ->
-                  add(CheckedTreeNode(value).apply { isChecked = value in selection.selected })
-                }
+            Node(groupingKey).apply {
+              values.forEach { value ->
+                add(Leaf(value).apply { isChecked = value in selection.selected })
+              }
             }
           if (node.childCount > 0) node else null
         }
@@ -325,15 +338,16 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     return selection.selected.asSequence().map { it.value }.toSet()
   }
 
-  private fun getNodeText(node: CheckedTreeNode) =
-    when (val o = node.userObject) {
-      is WithCount<*> ->
-        (o.value as T).let { value ->
+  private fun getNodeText(node: TreeNode) =
+    when (node) {
+      is Leaf<*> ->
+        (node.item.value as T).let { value ->
           val name = nameSupplier(value)
           val group = groupNameSupplier(value)
           if (node.parent?.parent != null) name else if (name == group) name else "$group ($name)"
         }
-      else -> o.toString()
+      is Node -> node.title
+      else -> node.toString()
     }
 
   fun asPopup(): JBPopup {
@@ -365,16 +379,33 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     return popup
   }
 
-  private fun <T> CheckedTreeNode.checkMatching(newState: Boolean, predicate: (T) -> Boolean) {
-    for (item in children()) {
-      val checkedItem = (item as? CheckedTreeNode) ?: continue
-      if (item.userObject is String) continue
-      if (predicate((item.userObject as WithCount<T>).value)) {
-        helper.setNodeState(treeTable.tree, item, newState)
+  private fun <T> Node.checkMatching(newState: Boolean, predicate: (T) -> Boolean) {
+    for (node in children()) {
+      when (node) {
+        is Leaf<*> -> {
+          if (predicate(node.item.value as T)) {
+            helper.setNodeState(treeTable.tree, node, newState)
+          }
+          continue
+        }
+        is Node -> node.checkMatching(newState, predicate)
+        else -> continue
       }
-      checkedItem.checkMatching(newState, predicate)
     }
   }
+
+  private data class FilteredGroup<T>(
+    val groupName: String,
+    val values: List<T>,
+    // Represents whether this filtered group originally had multiple items. This affects how the
+    // filtered value will be shown in the dropdown. If it belonged to a group with multiple items,
+    // then it will be shown as a collapsible node. Otherwise if it belonged to a group by itself,
+    // then it will be shown as a leaf node.
+    val wasMultiple: Boolean
+  )
+
+  data class Leaf<T>(val item: WithCount<T>) : CheckedTreeNode(item)
+  data class Node(val title: String) : CheckedTreeNode(title)
 }
 
 private inline fun <reified T> JPanel.children(): Sequence<T> = sequence {

@@ -15,18 +15,22 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
 interface AppInsightsTabProvider {
-  val tabDisplayName: String
-  val tabIcon: Icon
+  val displayName: String
+  val icon: Icon
 
   /** Populates the provided [tabPanel] with content. */
   fun populateTab(project: Project, tabPanel: AppInsightsTabPanel)
 
   fun isApplicable(): Boolean = true
+
+  /** Returns the active configuration manager for this insights tab for [project]. */
+  fun getConfigurationManager(project: Project): AppInsightsConfigurationManager
 
   companion object {
     @JvmField

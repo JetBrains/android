@@ -17,17 +17,21 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
-import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import org.intellij.lang.annotations.Language
-import org.jetbrains.android.AndroidTestCase
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.util.concurrent.Callable
 
 @Language("JAVA")
-private const val MAIN_ACTIVITY = """
+private const val MAIN_ACTIVITY =
+  """
   package p1.p2;
 
   import android.app.Activity;
@@ -51,7 +55,8 @@ private const val MAIN_ACTIVITY = """
 """
 
 @Language("JAVA")
-private const val OTHER_ACTIVITY = """
+private const val OTHER_ACTIVITY =
+  """
   package p1.p2;
 
   import android.app.Activity;
@@ -75,7 +80,8 @@ private const val OTHER_ACTIVITY = """
 """
 
 @Language("JAVA")
-private const val THIRD_ACTIVITY = """
+private const val THIRD_ACTIVITY =
+  """
   package p1.p2;
 
   import android.app.Activity;
@@ -92,16 +98,26 @@ private const val THIRD_ACTIVITY = """
   }
 """
 
-class OnClickEnumSupportTest: AndroidTestCase() {
+class OnClickEnumSupportTest {
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
+  @Before
+  fun before() {
+    val testProjectSystem = TestProjectSystem(projectRule.project)
+    testProjectSystem.useInTests()
+    testProjectSystem.namespace = "p1.p2"
+  }
+
+  @Test
   fun testWithNoActivities() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT)
     val support = OnClickEnumSupport(util.nlModel)
     val app = ApplicationManager.getApplication()
     val values = app.executeOnPooledThread(Callable { support.values }).get()
     assertThat(values).isEmpty()
   }
 
+  @Test
   fun testWithFullyQualifiedActivityName() {
     val support = findEnumSupportFor("p1.p2.MainActivity")
     val app = ApplicationManager.getApplication()
@@ -112,6 +128,7 @@ class OnClickEnumSupportTest: AndroidTestCase() {
     assertThat(values.map { it.value }).containsExactly("help", "onClick").inOrder()
   }
 
+  @Test
   fun testWithDotInActivityName() {
     val support = findEnumSupportFor(".MainActivity")
     val app = ApplicationManager.getApplication()
@@ -122,6 +139,7 @@ class OnClickEnumSupportTest: AndroidTestCase() {
     assertThat(values.map { it.value }).containsExactly("help", "onClick").inOrder()
   }
 
+  @Test
   fun testWithNoActivityName() {
     val support = findEnumSupportFor("")
     val app = ApplicationManager.getApplication()
@@ -132,16 +150,20 @@ class OnClickEnumSupportTest: AndroidTestCase() {
     val otherValues = allValues.subList(4, 6)
     assertThat(mainValues.map { it.display }).containsExactly("help", "onClick").inOrder()
     assertThat(mainValues.map { it.value }).containsExactly("help", "onClick").inOrder()
-    assertThat(otherValues.map { it.display }).containsExactly("onClick", "startProcessing").inOrder()
+    assertThat(otherValues.map { it.display })
+      .containsExactly("onClick", "startProcessing")
+      .inOrder()
     assertThat(otherValues.map { it.value }).containsExactly("onClick", "startProcessing").inOrder()
     assertThat(allValues.size).isEqualTo(6)
   }
 
   private fun findEnumSupportFor(activityName: String): OnClickEnumSupport {
-    myFixture.addClass(MAIN_ACTIVITY.trimIndent())
-    myFixture.addClass(OTHER_ACTIVITY.trimIndent())
-    myFixture.addClass(THIRD_ACTIVITY.trimIndent())
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT, activityName = activityName)
+    val fixture = projectRule.fixture
+    fixture.addClass(MAIN_ACTIVITY.trimIndent())
+    fixture.addClass(OTHER_ACTIVITY.trimIndent())
+    fixture.addClass(THIRD_ACTIVITY.trimIndent())
+    val util =
+      SupportTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT, activityName = activityName)
     return OnClickEnumSupport(util.nlModel)
   }
 }

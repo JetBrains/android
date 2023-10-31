@@ -17,15 +17,18 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.streaming.AbstractDisplayView
-import com.android.tools.idea.streaming.interpolate
-import com.android.tools.idea.streaming.location
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.interpolate
+import com.android.tools.idea.streaming.core.location
+import com.android.tools.idea.testing.disposable
 import com.android.utils.time.TestTimeSource
 import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
@@ -56,7 +59,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @RunWith(JUnit4::class)
 class DeviceAdapterTest {
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = ProjectRule()
 
   private val deviceDisplaySize = Dimension(WIDTH, HEIGHT)
   private val displayRectangle = Rectangle(deviceDisplaySize)
@@ -204,7 +207,7 @@ class DeviceAdapterTest {
   fun ready_keysConfigurationIntoApp() {
     FakeUi(view, createFakeWindow = true)
     view.isVisible = true
-    FakeKeyboardFocusManager(projectRule.testRootDisposable).focusOwner = view
+    FakeKeyboardFocusManager(projectRule.disposable).focusOwner = view
 
     adapter.ready()
     view.notifyFrame(INITIALIZED_FRAME)
@@ -377,20 +380,24 @@ class DeviceAdapterTest {
       }
       addMouseListener(mouseListener)
       val keyListener = object : KeyListener {
-        private var index = 0
         override fun keyTyped(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_TYPED to e.keyChar) }
         override fun keyPressed(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_PRESSED to e.keyCode) }
         override fun keyReleased(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_RELEASED to e.keyCode) }
       }
       addKeyListener(keyListener)
-      Disposer.register(projectRule.testRootDisposable, this)
+      Disposer.register(projectRule.disposable, this)
     }
 
-    override val deviceSerialNumber: String = "test"
+    override val deviceId: DeviceId = DeviceId.ofPhysicalDevice("test")
     override val displayOrientationQuadrants = 0
+    override val apiLevel: Int
+      get() = 0
+
+    override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
     override fun dispose() {}
+
     fun notifyFrame(frame: BufferedImage) {
       notifyFrameListeners(Rectangle(), frame)
     }

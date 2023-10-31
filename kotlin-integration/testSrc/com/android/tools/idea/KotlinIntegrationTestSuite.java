@@ -20,9 +20,6 @@ import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  com.android.tools.idea.KotlinIntegrationTestSuite.class
-})
 @SuppressWarnings("NewClassNamingConvention") // Not a test.
 public class KotlinIntegrationTestSuite extends IdeaTestSuiteBase {
 

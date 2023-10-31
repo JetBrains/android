@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.databinding.project
 
+import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
+import com.intellij.util.indexing.FileBasedIndex
 
 /**
  * Modification tracker which changes if any layout resource file across the whole project changes.
@@ -28,7 +29,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
  * `ResourceRepositoryManager.getModuleResources(facet).modificationCount` directly.
  */
 @Service
-class ProjectLayoutResourcesModificationTracker(project: Project): ModificationTracker {
+class ProjectLayoutResourcesModificationTracker(private val project: Project): ModificationTracker {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): ProjectLayoutResourcesModificationTracker =
@@ -38,7 +39,11 @@ class ProjectLayoutResourcesModificationTracker(project: Project): ModificationT
   private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
 
   override fun getModificationCount(): Long {
-    return enabledFacetsProvider.getAllBindingEnabledFacets()
-      .sumByLong { facet -> StudioResourceRepositoryManager.getModuleResources(facet).modificationCount }
+    // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
+    // so we must incorporate both into the modification count (see b/283753328).
+    val resourceModificationCount: Long = enabledFacetsProvider.getAllBindingEnabledFacets()
+      .sumOf { facet -> StudioResourceRepositoryManager.getModuleResources(facet).modificationCount }
+    val bindingIndexModificationCount = FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, project)
+    return resourceModificationCount + bindingIndexModificationCount
   }
 }

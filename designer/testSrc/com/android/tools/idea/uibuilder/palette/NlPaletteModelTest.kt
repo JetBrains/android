@@ -56,8 +56,7 @@ class NlPaletteModelTest {
   private var projectSystem: TestProjectSystem? = null
   private val projectRule = onDisk().initAndroid(true)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
   fun setUp() {
@@ -65,9 +64,7 @@ class NlPaletteModelTest {
     facet = AndroidFacet.getInstance(projectRule.module)
     model = NlPaletteModel.get(facet!!)
     projectSystem = TestProjectSystem(projectRule.project)
-    runInEdt {
-      projectSystem!!.useInTests()
-    }
+    runInEdt { projectSystem!!.useInTests() }
   }
 
   @After
@@ -81,13 +78,24 @@ class NlPaletteModelTest {
   fun addIllegalThirdPartyComponent() {
     val layoutFileType = LayoutFileType
     val palette = model!!.getPalette(layoutFileType)
-    val added = model!!.addAdditionalComponent(
-      layoutFileType, NlPaletteModel.PROJECT_GROUP, palette, null, SdkConstants.LINEAR_LAYOUT,
-      SdkConstants.LINEAR_LAYOUT, null, null, SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT, null, emptyList(), emptyList()
-    )
+    val added =
+      model!!.addAdditionalComponent(
+        layoutFileType,
+        NlPaletteModel.PROJECT_GROUP,
+        palette,
+        null,
+        SdkConstants.LINEAR_LAYOUT,
+        SdkConstants.LINEAR_LAYOUT,
+        null,
+        null,
+        SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
+        null,
+        emptyList(),
+        emptyList()
+      )
     assertThat(added).isFalse()
     assertThat(getProjectGroup(palette)).isNull()
-    val handler = ViewHandlerManager.get(facet!!).getHandler(SdkConstants.LINEAR_LAYOUT)
+    val handler = ViewHandlerManager.get(facet!!).getHandler(SdkConstants.LINEAR_LAYOUT) {}
     assertThat(handler).isInstanceOf(LinearLayoutHandler::class.java)
   }
 
@@ -98,25 +106,32 @@ class NlPaletteModelTest {
     val palette = getPaletteWhenAdditionalComponentsReady(model)
     val thirdParty = getProjectGroup(palette)
     assertThat(thirdParty).isNotNull()
-    val items = thirdParty!!.items.stream()
-      .map { item: BaseItem -> item as Palette.Item }
-      .sorted(Comparator.comparing { it.tagName })
-      .collect(Collectors.toList())
+    val items =
+      thirdParty!!
+        .items
+        .stream()
+        .map { item: BaseItem -> item as Palette.Item }
+        .sorted(Comparator.comparing { it.tagName })
+        .collect(Collectors.toList())
     assertThat(items.size).isEqualTo(2)
 
     @Language("XML")
-    val expectedViewXml = """
+    val expectedViewXml =
+      """
       <com.example.FakeCustomView
           android:layout_width="wrap_content"
           android:layout_height="wrap_content" />
-      """.trimIndent()
+      """
+        .trimIndent()
 
     @Language("XML")
-    val expectedViewGroupXml = """
+    val expectedViewGroupXml =
+      """
       <com.example.FakeCustomViewGroup
           android:layout_width="match_parent"
           android:layout_height="match_parent" />
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val item1 = items[0]
     assertThat(item1.tagName).isEqualTo(CUSTOM_VIEW_CLASS)
@@ -130,10 +145,11 @@ class NlPaletteModelTest {
     assertThat(item2.title).isEqualTo(CUSTOM_VIEW_GROUP)
     assertThat(item2.gradleCoordinateId).isEmpty()
     assertThat(item2.xml.trim()).isEqualTo(expectedViewGroupXml)
-    val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS)
+    val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(handler).isNotNull()
     assertThat(handler!!.getTitle(CUSTOM_VIEW_CLASS)).isEqualTo(CUSTOM_VIEW)
-    assertThat(handler.getIcon(CUSTOM_VIEW_CLASS)).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
+    assertThat(handler.getIcon(CUSTOM_VIEW_CLASS))
+      .isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isEmpty()
     assertThat(handler.getPreviewScale(CUSTOM_VIEW_CLASS)).isWithin(0.0).of(1.0)
     assertThat(handler.inspectorProperties).isEmpty()
@@ -146,18 +162,38 @@ class NlPaletteModelTest {
     registerJavaClasses()
     registerFakeBaseViewHandler()
     val palette = getPaletteWhenAdditionalComponentsReady(model)
-    val added1 = model!!.addAdditionalComponent(
-      LayoutFileType, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
-      CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
-      getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
-    )
-    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS)
-    val added2 = model!!.addAdditionalComponent(
-      LayoutFileType, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
-      CUSTOM_VIEW_CLASS, CUSTOM_VIEW_CLASS, getXml(CUSTOM_VIEW_CLASS),
-      getPreviewXml(CUSTOM_VIEW_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
-    )
-    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS)
+    val added1 =
+      model!!.addAdditionalComponent(
+        LayoutFileType,
+        NlPaletteModel.PROJECT_GROUP,
+        palette,
+        StudioIcons.Common.ANDROID_HEAD,
+        CUSTOM_VIEW_CLASS,
+        CUSTOM_VIEW_CLASS,
+        getXml(CUSTOM_VIEW_CLASS),
+        getPreviewXml(CUSTOM_VIEW_CLASS),
+        "",
+        "family",
+        ImmutableList.of("family", "size"),
+        emptyList()
+      )
+    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
+    val added2 =
+      model!!.addAdditionalComponent(
+        LayoutFileType,
+        NlPaletteModel.PROJECT_GROUP,
+        palette,
+        StudioIcons.Common.ANDROID_HEAD,
+        CUSTOM_VIEW_CLASS,
+        CUSTOM_VIEW_CLASS,
+        getXml(CUSTOM_VIEW_CLASS),
+        getPreviewXml(CUSTOM_VIEW_CLASS),
+        "",
+        "family",
+        ImmutableList.of("family", "size"),
+        emptyList()
+      )
+    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(added1).isTrue()
     assertThat(added2).isTrue()
     assertThat(handler1).isSameAs(handler2)
@@ -168,18 +204,38 @@ class NlPaletteModelTest {
     registerJavaClasses()
     registerFakeBaseViewHandler()
     val palette = getPaletteWhenAdditionalComponentsReady(model)
-    val added1 = model!!.addAdditionalComponent(
-      LayoutFileType, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
-      CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
-      getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
-    )
-    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS)
-    val added2 = model!!.addAdditionalComponent(
-      LayoutFileType, NlPaletteModel.PROJECT_GROUP, palette, StudioIcons.Common.ANDROID_HEAD,
-      CUSTOM_VIEW_GROUP_CLASS, CUSTOM_VIEW_GROUP_CLASS, getXml(CUSTOM_VIEW_GROUP_CLASS),
-      getPreviewXml(CUSTOM_VIEW_GROUP_CLASS), "", "family", ImmutableList.of("family", "size"), emptyList()
-    )
-    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS)
+    val added1 =
+      model!!.addAdditionalComponent(
+        LayoutFileType,
+        NlPaletteModel.PROJECT_GROUP,
+        palette,
+        StudioIcons.Common.ANDROID_HEAD,
+        CUSTOM_VIEW_GROUP_CLASS,
+        CUSTOM_VIEW_GROUP_CLASS,
+        getXml(CUSTOM_VIEW_GROUP_CLASS),
+        getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
+        "",
+        "family",
+        ImmutableList.of("family", "size"),
+        emptyList()
+      )
+    val handler1 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS) {}
+    val added2 =
+      model!!.addAdditionalComponent(
+        LayoutFileType,
+        NlPaletteModel.PROJECT_GROUP,
+        palette,
+        StudioIcons.Common.ANDROID_HEAD,
+        CUSTOM_VIEW_GROUP_CLASS,
+        CUSTOM_VIEW_GROUP_CLASS,
+        getXml(CUSTOM_VIEW_GROUP_CLASS),
+        getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
+        "",
+        "family",
+        ImmutableList.of("family", "size"),
+        emptyList()
+      )
+    val handler2 = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_GROUP_CLASS) {}
     assertThat(added1).isTrue()
     assertThat(added2).isTrue()
     assertThat(handler1).isSameAs(handler2)
@@ -187,7 +243,7 @@ class NlPaletteModelTest {
 
   @Test
   fun projectComponents() {
-    //registerJavaClasses();
+    // registerJavaClasses();
     var palette = getPaletteWhenAdditionalComponentsReady(model)
     var projectComponents = getProjectGroup(palette)
     assertThat(projectComponents).isNull()
@@ -208,12 +264,15 @@ class NlPaletteModelTest {
     assertThat(item.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item.title).isEqualTo(CUSTOM_VIEW)
     assertThat(item.gradleCoordinateId).isEmpty()
-    assertThat(item.xml.trim()).isEqualTo("""
+    assertThat(item.xml.trim())
+      .isEqualTo(
+        """
       <com.example.FakeCustomView
           android:layout_width="wrap_content"
           android:layout_height="wrap_content" />
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     assertThat(item.metaTags).isEmpty()
     assertThat(item.parent).isEqualTo(projectComponents)
   }
@@ -231,14 +290,18 @@ class NlPaletteModelTest {
     registerFakeBaseViewHandler()
     var palette = getPaletteWhenAdditionalComponentsReady(model)
     var thirdParty = getProjectGroup(palette)
-    assertThat(thirdParty!!.items.map { it.toString() }).containsExactly("FakeCustomView", "FakeCustomViewGroup")
+    assertThat(thirdParty!!.items.map { it.toString() })
+      .containsExactly("FakeCustomView", "FakeCustomViewGroup")
 
     // Simulate a build where a new custom component was added:
-    fixture!!.addClass("package com.example; public class AnotherFakeCustomView extends android.view.View {}")
+    fixture!!.addClass(
+      "package com.example; public class AnotherFakeCustomView extends android.view.View {}"
+    )
     projectSystem!!.getBuildManager().compileProject()
     palette = getPaletteWhenAdditionalComponentsReady(model)
     thirdParty = getProjectGroup(palette)
-    assertThat(thirdParty!!.items.map { it.toString() }).containsExactly("FakeCustomView", "FakeCustomViewGroup", "AnotherFakeCustomView")
+    assertThat(thirdParty!!.items.map { it.toString() })
+      .containsExactly("FakeCustomView", "FakeCustomViewGroup", "AnotherFakeCustomView")
   }
 
   private fun checkIdsAreUniqueInPalette(layoutType: LayoutEditorFileType) {
@@ -255,7 +318,7 @@ class NlPaletteModelTest {
 
   private fun registerFakeBaseViewHandler() {
     val manager = ViewHandlerManager.get(facet!!)
-    val handler = manager.getHandler(SdkConstants.VIEW)
+    val handler = manager.getHandler(SdkConstants.VIEW) {}
     assertThat(handler).isNotNull()
     manager.registerHandler("com.example.FakeView", handler!!)
   }
@@ -263,8 +326,12 @@ class NlPaletteModelTest {
   private fun registerJavaClasses() {
     fixture!!.addClass("package android.view; public class View {}")
     fixture!!.addClass("package android.view; public class ViewGroup extends View {}")
-    fixture!!.addClass("package com.example; public class FakeCustomView extends android.view.View {}")
-    fixture!!.addClass("package com.example; public class FakeCustomViewGroup extends android.view.ViewGroup {}")
+    fixture!!.addClass(
+      "package com.example; public class FakeCustomView extends android.view.View {}"
+    )
+    fixture!!.addClass(
+      "package com.example; public class FakeCustomViewGroup extends android.view.ViewGroup {}"
+    )
   }
 
   companion object {
@@ -274,7 +341,8 @@ class NlPaletteModelTest {
     private val CUSTOM_VIEW_GROUP = StringUtil.getShortName(CUSTOM_VIEW_GROUP_CLASS)
     private fun getProjectGroup(palette: Palette): Palette.Group? {
       val groups = palette.items
-      return groups.stream()
+      return groups
+        .stream()
         .filter { obj: BaseItem? -> Palette.Group::class.java.isInstance(obj) }
         .map { obj: BaseItem? -> Palette.Group::class.java.cast(obj) }
         .filter { g: Palette.Group? -> NlPaletteModel.PROJECT_GROUP == g!!.name }

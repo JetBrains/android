@@ -23,12 +23,12 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.util.io.ZipUtil
+import com.intellij.util.io.isDirectory
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.io.path.exists
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import kotlin.io.path.isDirectory
 
 /**
  * Unzips the library to a temporary scratch directory if it's a zip.

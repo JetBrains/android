@@ -21,8 +21,8 @@ import com.android.tools.adtui.ImageUtils.TRANSPARENCY_FILTER
 import com.android.tools.adtui.ImageUtils.getCropBounds
 import com.android.tools.adtui.ImageUtils.getCroppedImage
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
-import com.android.tools.idea.streaming.rotatedByQuadrants
-import com.android.tools.idea.streaming.scaled
+import com.android.tools.idea.streaming.core.rotatedByQuadrants
+import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.utils.ThreadSafe

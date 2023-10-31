@@ -22,18 +22,22 @@ import com.intellij.openapi.util.text.StringUtil
 
 class EditTextHandlerTest : LayoutTestCase() {
   fun testIncrementIdTextViewId() {
-    val model = model("linear.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .withBounds(0, 0, 1000, 1000)
-                        .id("@id/linear")
-                        .matchParentWidth()
-                        .matchParentHeight()
-                        .children(
-                          component(SdkConstants.EDIT_TEXT)
-                            .withBounds(0, 0, 200, 200)
-                            .wrapContentHeight()
-                            .wrapContentWidth()
-                        )).build()
+    val model =
+      model(
+          "linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .id("@id/linear")
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(
+              component(SdkConstants.EDIT_TEXT)
+                .withBounds(0, 0, 200, 200)
+                .wrapContentHeight()
+                .wrapContentWidth()
+            )
+        )
+        .build()
     val editText = model.components.get(0).getChild(0)!!
     val existIds = HashSet<String>()
 
@@ -57,11 +61,15 @@ class EditTextHandlerTest : LayoutTestCase() {
     assertTrue(existIds.contains(expected))
 
     // Test input type attribute cases.
-    NlWriteCommandActionUtil.run(editText, "") { editText.removeAndroidAttribute(SdkConstants.ATTR_ID) }
+    NlWriteCommandActionUtil.run(editText, "") {
+      editText.removeAndroidAttribute(SdkConstants.ATTR_ID)
+    }
 
     val inputTypeValue = "testInputType"
     expected = baseId + StringUtil.capitalize(inputTypeValue)
-    NlWriteCommandActionUtil.run(editText, "") { editText.setAndroidAttribute(SdkConstants.ATTR_INPUT_TYPE, inputTypeValue) }
+    NlWriteCommandActionUtil.run(editText, "") {
+      editText.setAndroidAttribute(SdkConstants.ATTR_INPUT_TYPE, inputTypeValue)
+    }
     NlWriteCommandActionUtil.run(editText, "") { editText.incrementId(existIds) }
     assertEquals(expected, editText.id)
     assertTrue(existIds.contains(baseId + StringUtil.capitalize(inputTypeValue)))

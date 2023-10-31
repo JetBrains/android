@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;

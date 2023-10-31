@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionException
@@ -41,28 +40,28 @@ interface DesignerCommonIssuePanelUsageTracker {
 
   companion object {
     fun getInstance(): DesignerCommonIssuePanelUsageTracker {
-      return if (AnalyticsSettings.optedIn)
-        DesignerCommonIssuePanelUsageTrackerImpl
-      else
-        DesignerCommonIssuePanelNoOpUsageTracker
+      return if (AnalyticsSettings.optedIn) DesignerCommonIssuePanelUsageTrackerImpl
+      else DesignerCommonIssuePanelNoOpUsageTracker
     }
   }
 }
 
 private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePanelUsageTracker {
-  private val executorService = ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
+  private val executorService =
+    ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
   override fun trackChangingCommonIssuePanelVisibility(visibility: Boolean, project: Project) {
     trackEvent(project) {
-      UniversalProblemsPanelEvent.newBuilder()
-        .setProblemsPanelVisibility(visibility).build()
+      UniversalProblemsPanelEvent.newBuilder().setProblemsPanelVisibility(visibility).build()
     }
   }
 
-  override fun trackNavigationFromIssue(target: UniversalProblemsPanelEvent.IssueNavigated, project: Project) {
+  override fun trackNavigationFromIssue(
+    target: UniversalProblemsPanelEvent.IssueNavigated,
+    project: Project
+  ) {
     trackEvent(project) {
-      UniversalProblemsPanelEvent.newBuilder()
-        .setIssueNavigated(target).build()
+      UniversalProblemsPanelEvent.newBuilder().setIssueNavigated(target).build()
     }
   }
 
@@ -70,14 +69,16 @@ private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePan
     trackEvent(project) {
       UniversalProblemsPanelEvent.newBuilder()
         .setInteractionEvent(UniversalProblemsPanelEvent.InteractionEvent.TAB_ACTIVATED)
-        .setActivatedTab(tab).build()
+        .setActivatedTab(tab)
+        .build()
     }
   }
 
   override fun trackSelectingIssue(project: Project) {
     trackEvent(project) {
       UniversalProblemsPanelEvent.newBuilder()
-        .setInteractionEvent(UniversalProblemsPanelEvent.InteractionEvent.ISSUE_SINGLE_CLICKED).build()
+        .setInteractionEvent(UniversalProblemsPanelEvent.InteractionEvent.ISSUE_SINGLE_CLICKED)
+        .build()
     }
   }
 
@@ -85,27 +86,32 @@ private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePan
     try {
       executorService.execute {
         val facet = project.getAndroidFacets().firstOrNull()
-        val layoutEditorEventBuilder = LayoutEditorEvent.newBuilder()
-          .setType(LayoutEditorEvent.LayoutEditorEventType.UNIVERSAL_PROBLEMS_PANEL)
-          .setUniversalProblemsPanelEvent(eventProvider())
-        val studioEvent = AndroidStudioEvent.newBuilder()
-          .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
-          .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
-          .setLayoutEditorEvent(layoutEditorEventBuilder.build())
+        val layoutEditorEventBuilder =
+          LayoutEditorEvent.newBuilder()
+            .setType(LayoutEditorEvent.LayoutEditorEventType.UNIVERSAL_PROBLEMS_PANEL)
+            .setUniversalProblemsPanelEvent(eventProvider())
+        val studioEvent =
+          AndroidStudioEvent.newBuilder()
+            .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+            .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+            .setLayoutEditorEvent(layoutEditorEventBuilder.build())
 
         facet?.let { studioEvent.setApplicationId(it) }
         UsageTracker.log(studioEvent)
       }
-    }
-    catch (ignore: RejectedExecutionException) { }
+    } catch (ignore: RejectedExecutionException) {}
   }
 }
 
 private object DesignerCommonIssuePanelNoOpUsageTracker : DesignerCommonIssuePanelUsageTracker {
   override fun trackChangingCommonIssuePanelVisibility(visibility: Boolean, project: Project) = Unit
-  override fun trackNavigationFromIssue(target: UniversalProblemsPanelEvent.IssueNavigated, project: Project) = Unit
+  override fun trackNavigationFromIssue(
+    target: UniversalProblemsPanelEvent.IssueNavigated,
+    project: Project
+  ) = Unit
 
-  override fun trackSelectingTab(tab: UniversalProblemsPanelEvent.ActivatedTab, project: Project) = Unit
+  override fun trackSelectingTab(tab: UniversalProblemsPanelEvent.ActivatedTab, project: Project) =
+    Unit
 
   override fun trackSelectingIssue(project: Project) = Unit
 }

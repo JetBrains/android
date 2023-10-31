@@ -16,38 +16,19 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectGradleSetting
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.GradleSettingsDialogFixture
 import com.android.tools.idea.tests.util.WizardUtils
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+import com.google.common.truth.Truth
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertContains
 
-/**
- * To verify that studio is taking bundled JDK instead of installed JDK by default
- * <p>
- * This is run to qualify releases. Please involve the test team in substantial changes.
- * <p>
- * TT ID: 21086b78-1c44-49b2-9571-998e282fd514
- * <p>
- *   <pre>
- *   Test Steps:
- *   1. Make a fresh installation of Android Studio.
- *   2. Create a project with all defaults.
- *   3. Go to File > Project Structure > SDK Location > JDK Location (Verify 1)
- *        Unable to verify default jdk,because Android Studio in UI test uses the pre-built jdk for intellij.
- *        Only verifying whether the Embedded JDK is available in JDK options.
- *
- *   Verify:
- *   1. JDK location should be the one bundled with Android Studio.
- *   </pre>
- * <p>
- */
 @RunWith(GuiTestRemoteRunner::class)
 class StudioDefaultJDKTest {
   @Rule
@@ -56,24 +37,71 @@ class StudioDefaultJDKTest {
 
   private val ACTIVITY_TEMPLATE: String = "Empty Views Activity"
 
+  /**
+   * To verify that studio is taking bundled JDK instead of installed JDK by default
+   * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: 21086b78-1c44-49b2-9571-998e282fd514
+   * <p>
+   *   <pre>
+   *   Test Steps:
+   *   1. Make a fresh installation of Android Studio.
+   *   2. Create a project with all defaults.
+   *   3. Go to Settings/Build, Execution, Deployment/Build Tools/Gradle (Verify 1,2)
+   *   4. Change the gradle JDK to any other JAVA path (verify 3)
+   *   5. Open gradle.xml (Verify 4)
+   *
+   *   Verify:
+   *   1. Verify if the gradle JDK top combo box is pointed to GRADLE_LOCAL_JAVA_HOME by default.
+   *   2. Verify if the gradle JDK bottom combo is assigned to a path and enabled.
+   *   3. Verify that the gradle JDK bottom combo box is disabled.
+   *   4. Verify that gradle.xml contains "<option name='gradleJvm"'
+   *   </pre>
+   * <p>
+   */
+
   @Test
-  fun verifyDefaultJDK(){
+  fun testDefaultJDK() {
     WizardUtils.createNewProject(guiTest, ACTIVITY_TEMPLATE)
-    guiTest.robot().waitForIdle()
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    val ide = guiTest.ideFrame()
+    val ide: IdeFrameFixture = guiTest.ideFrame()
+    ide.clearNotificationsPresentOnIdeFrame()
 
-    ide.openPsd().run{
-      selectIdeSdksLocationConfigurable().run{
-        selectGradleSetting(ide).run {
-          // As the Android Studio is using the default JDK from the intellij,
-          // unable to verify if the embedded JDK is used as the default JDK in studio.
-          // Instead, verifying only if the Embedded JDK option is available in studio.
-          assertContains(gradleJDKComboBox().contents(), ExternalSystemJdkUtil.JAVA_HOME)
-          clickCancel()
-        }
-      }
-      clickCancel()
+    if (SystemInfo.isMac) {
+      ide.robot().pressKey(KeyEvent.VK_META);
+      ide.robot().pressAndReleaseKey(KeyEvent.VK_COMMA)
+      ide.robot().releaseKey(KeyEvent.VK_META);
+    } else {
+      ide.invokeMenuPath("File", "Settings...")
     }
+    ide.takeScreenshot() // Remove the line once the test is stable.
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    val settings = IdeSettingsDialogFixture.find(ide.robot())
+    settings.selectGradlePage()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
+    val gradleSettings =  GradleSettingsDialogFixture(settings)
+    val gradleJDK = gradleSettings.gradleJDKComboBox()
+    val jdkPath = gradleSettings.gradleJDKPathComboBox()
+
+    Truth.assertThat(gradleJDK.selectedItem()).contains("GRADLE_LOCAL_JAVA_HOME")
+    Truth.assertThat(gradleJDK.isEnabled).isTrue()
+    Truth.assertThat(jdkPath.isEnabled).isTrue()
+
+    //Change the GRADLE_LOCAL_JAVA_HOME -> any other JDK
+    gradleJDK.selectItem("jbr-17")
+    Truth.assertThat(gradleJDK.isEnabled).isTrue()
+    Truth.assertThat(jdkPath.isEnabled).isFalse()
+
+    settings.clickButton("Cancel")
+
+    val editor = ide.editor
+    editor.open(".idea/gradle.xml")
+    val gradleFileContents = editor.currentFileContents
+
+    Truth.assertThat(gradleFileContents).contains("name=\"gradleJvm\" value=\"#GRADLE_LOCAL_JAVA_HOME\"")
   }
 }

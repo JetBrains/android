@@ -115,7 +115,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     return element.psiElement
   }
 
-  private fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
+  internal fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
@@ -678,7 +678,7 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     maybeUpdateName(expressionMap, this)
   }
 
-  private fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
+  fun createDslInfixExpression(expression: GradleDslInfixExpression): PsiElement? {
     expression.psiElement?.also { return it }
 
     val parentPsi = expression.parent?.create() ?: return null

@@ -17,24 +17,17 @@ package com.android.tools.idea.customview.preview
 
 interface CustomViewPreviewManager {
   /**
-   * A state exposed to the CustomViewPreviewManager clients to know what type of notifications to display.
+   * A state exposed to the CustomViewPreviewManager clients to know what type of notifications to
+   * display.
    */
   enum class NotificationsState {
-    /**
-     * Awaiting for build to finish.
-     */
+    /** Awaiting for build to finish. */
     BUILDING,
-    /**
-     * Related source code is modified, therefore preview might be not up to date.
-     */
+    /** Related source code is modified, therefore preview might be not up to date. */
     CODE_MODIFIED,
-    /**
-     * There are no notifications to show (all is fine).
-     */
+    /** There are no notifications to show (all is fine). */
     NO_NOTIFICATIONS,
-    /**
-     * The previous build failed, therefore preview might be incorrect.
-     */
+    /** The previous build failed, therefore preview might be incorrect. */
     BUILD_FAILED,
   }
 

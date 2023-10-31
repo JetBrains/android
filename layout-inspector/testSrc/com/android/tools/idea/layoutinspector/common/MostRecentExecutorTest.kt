@@ -22,7 +22,8 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class MostRecentExecutorTest {
-  private class TestRunnable(waitForProceed: Boolean = false, val fail: Boolean = false) : Runnable {
+  private class TestRunnable(waitForProceed: Boolean = false, val fail: Boolean = false) :
+    Runnable {
     var ran = false
       private set
     private val waitLatch = CountDownLatch(if (waitForProceed) 1 else 0)

@@ -15,32 +15,49 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
+import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
+
 import com.android.tools.idea.assistant.AssistantBundleCreator;
+import com.android.tools.idea.assistant.AssistantToolWindowService;
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.WhatsNewAction;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.util.messages.SimpleMessageBusConnection;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static com.android.tools.idea.assistant.AssistantToolWindowService.TOOL_WINDOW_TITLE;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
-  private static WhatsNewAction action = new WhatsNewAction();
+  private final AnAction myAction;
+
+  @NotNull
+  private final Runnable myBrowseToWhatsNewUrl;
+
+  @SuppressWarnings("unused")
+  private WhatsNewSidePanelAction() {
+    this(WhatsNewSidePanelAction::browseToWhatsNewUrl);
+  }
+
+  @VisibleForTesting
+  WhatsNewSidePanelAction(@NotNull Runnable browseToWhatsNewUrl) {
+    myAction = new WhatsNewAction();
+    myBrowseToWhatsNewUrl = browseToWhatsNewUrl;
+  }
 
   @Override
   public void update(@NotNull AnActionEvent e) {
@@ -53,25 +70,40 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
       presentation.setEnabled(true);
     }
 
-    action.update(e);
+    myAction.update(e);
     presentation.setDescription(AndroidBundle.message("whatsnew.action.custom.description",
                                                       ApplicationNamesInfo.getInstance().getFullProductName()));
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    openWhatsNewSidePanel(Objects.requireNonNull(event.getProject()), false);
+    openWhatsNewSidePanel(event.getProject(), false);
   }
 
-  public void openWhatsNewSidePanel(@NotNull Project project, boolean isAutoOpened) {
+  void openWhatsNewSidePanel(@Nullable Project project, boolean isAutoOpened) {
     WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME.findExtension(WhatsNewBundleCreator.class);
-    if (bundleCreator == null || !bundleCreator.shouldShowWhatsNew()) {
-      BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
+    if (project == null) {
+      Logger.getInstance(WhatsNewSidePanelAction.class).info("project is null, browsing to URL instead");
+      myBrowseToWhatsNewUrl.run();
+      return;
+    }
+    else if (bundleCreator == null) {
+      Logger.getInstance(WhatsNewSidePanelAction.class).info("bundleCreator is null, browsing to URL instead");
+      myBrowseToWhatsNewUrl.run();
+      return;
+    }
+    else if (bundleCreator.shouldNotShowWhatsNew()) {
+      Logger.getInstance(WhatsNewSidePanelAction.class).info("should not show panel, browsing to URL instead");
+      myBrowseToWhatsNewUrl.run();
       return;
     }
 
     WhatsNewToolWindowListener.fireOpenEvent(project, isAutoOpened);
     openWindow(WhatsNewBundleCreator.BUNDLE_ID, project);
+  }
+
+  private static void browseToWhatsNewUrl() {
+    BrowserUtil.browse(ApplicationInfoEx.getInstanceEx().getWhatsNewUrl());
   }
 
   public static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
@@ -80,7 +112,10 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
     public WhatsNewToolWindowListener(@NotNull Project project) {
       myProject = project;
-      isOpen = true; // Start off as opened so we don't fire an extra opened event
+      isOpen = true; // Start off as opened, so we don't fire an extra opened event
+
+      Disposable disposable = project.getService(AssistantToolWindowService.class);
+      SimpleMessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect(disposable);
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
       project.getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {

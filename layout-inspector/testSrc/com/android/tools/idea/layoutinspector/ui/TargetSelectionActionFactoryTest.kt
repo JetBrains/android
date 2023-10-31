@@ -16,19 +16,21 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
@@ -38,10 +40,8 @@ import org.junit.Test
 
 class TargetSelectionActionFactoryTest {
 
-  @get:Rule
-  val disposableRule = DisposableRule()
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var layoutInspector: LayoutInspector
 
@@ -53,33 +53,38 @@ class TargetSelectionActionFactoryTest {
     val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
     val inspectorModel = InspectorModel(projectRule.project)
     val mockTreeSettings = mock<TreeSettings>()
-    layoutInspector = LayoutInspector(
-      scope,
-      processModel,
-      deviceModel,
-      mockForegroundProcessDetection,
-      mockClientSettings,
-      mockLauncher,
-      inspectorModel,
-      mockTreeSettings
-    )
+    layoutInspector =
+      LayoutInspector(
+        scope,
+        processModel,
+        deviceModel,
+        mockForegroundProcessDetection,
+        mockClientSettings,
+        mockLauncher,
+        inspectorModel,
+        mock(),
+        mockTreeSettings
+      )
   }
 
   @Test
-  fun testDeviceSelectorIsCreated() = runWithFlagState(true) {
-    val action = TargetSelectionActionFactory.getAction(layoutInspector)
-    assertThat(action).isNotNull()
-    assertThat(action!!.dropDownAction).isInstanceOf(SelectDeviceAction::class.java)
-  }
+  fun testDeviceSelectorIsCreated() =
+    runWithFlagState(true) {
+      val action = TargetSelectionActionFactory.getAction(layoutInspector)
+      assertThat(action).isNotNull()
+      assertThat(action!!.dropDownAction).isInstanceOf(SelectDeviceAction::class.java)
+    }
 
   @Test
-  fun testProcessSelectorIsCreated() = runWithFlagState(false) {
-    val action = TargetSelectionActionFactory.getAction(layoutInspector)
-    assertThat(action).isNotNull()
-    assertThat(action!!.dropDownAction).isInstanceOf(SelectProcessAction::class.java)
-  }
+  fun testProcessSelectorIsCreated() =
+    runWithFlagState(false) {
+      val action = TargetSelectionActionFactory.getAction(layoutInspector)
+      assertThat(action).isNotNull()
+      assertThat(action!!.dropDownAction).isInstanceOf(SelectProcessAction::class.java)
+    }
 
   private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
     val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED

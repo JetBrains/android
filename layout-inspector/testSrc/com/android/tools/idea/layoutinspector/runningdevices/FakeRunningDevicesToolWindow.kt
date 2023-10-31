@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
-import com.android.tools.idea.streaming.AbstractDisplayView
-import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
+import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -55,9 +57,15 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-data class TabInfo(val tabId: TabId, val content: Component, val container: Container, val displayView: AbstractDisplayView)
+data class TabInfo(
+  val deviceId: DeviceId,
+  val content: Component,
+  val container: Container,
+  val displayView: AbstractDisplayView
+)
 
-class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) : ToolWindowHeadlessManagerImpl(project) {
+class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) :
+  ToolWindowHeadlessManagerImpl(project) {
   private var toolWindow = FakeToolWindow(project, tabs)
 
   override fun getToolWindow(id: String?): ToolWindow? {
@@ -77,16 +85,18 @@ class FakeToolWindowManager(project: Project, tabs: List<TabInfo>) : ToolWindowH
   }
 }
 
-private class FakeToolWindow(project: Project, tabs: List<TabInfo>) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+private class FakeToolWindow(project: Project, tabs: List<TabInfo>) :
+  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private val fakeContentManager = FakeContentManager()
 
   init {
     Disposer.register(disposable, fakeContentManager)
 
-    val contents = tabs.map {
-      val fakeComponent = FakeRunningDevicesComponent(it)
-      FakeContent(disposable, fakeContentManager, fakeComponent)
-    }
+    val contents =
+      tabs.map {
+        val fakeComponent = FakeRunningDevicesComponent(it)
+        FakeContent(disposable, fakeContentManager, fakeComponent)
+      }
 
     contents.forEach {
       fakeContentManager.addContent(it)
@@ -119,12 +129,15 @@ private class FakeToolWindow(project: Project, tabs: List<TabInfo>) : ToolWindow
 
   private fun findContent(tabInfo: TabInfo): Content? {
     return fakeContentManager.contents.find {
-      (it.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) == tabInfo.tabId.deviceSerialNumber
+      (it.component as DataProvider).getData(SERIAL_NUMBER_KEY.name) ==
+        tabInfo.deviceId.serialNumber
     }
   }
 }
 
-/** Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager */
+/**
+ * Fake implementation of ContentManager taken from ToolWindowHeadlessManagerImpl#MockContentManager
+ */
 private class FakeContentManager : ContentManager {
   private val myDispatcher = EventDispatcher.create(ContentManagerListener::class.java)
   private val myContents: MutableList<Content> = ArrayList()
@@ -143,7 +156,13 @@ private class FakeContentManager : ContentManager {
       content.manager = this
     }
     Disposer.register(this, content)
-    val e = ContentManagerEvent(this, content, myContents.indexOf(content), ContentManagerEvent.ContentOperation.add)
+    val e =
+      ContentManagerEvent(
+        this,
+        content,
+        myContents.indexOf(content),
+        ContentManagerEvent.ContentOperation.add
+      )
     myDispatcher.multicaster.contentAdded(e)
     if (mySelected == null) setSelectedContent(content)
   }
@@ -232,9 +251,7 @@ private class FakeContentManager : ContentManager {
   }
 
   override fun getSelectedContents(): Array<Content> {
-    return if (mySelected != null) arrayOf(
-      mySelected!!)
-    else arrayOf()
+    return if (mySelected != null) arrayOf(mySelected!!) else arrayOf()
   }
 
   override fun isSelected(content: Content): Boolean {
@@ -258,25 +275,31 @@ private class FakeContentManager : ContentManager {
     }
     val result = myContents.remove(content)
     if (dispose) Disposer.dispose(content)
-    val e = ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.remove)
+    val e =
+      ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.remove)
     myDispatcher.multicaster.contentRemoved(e)
     val item = ContainerUtil.getFirstItem(myContents)
     if (item != null) {
       setSelectedContent(item)
-    }
-    else {
+    } else {
       mySelected = null
     }
     return result
   }
 
-  override fun removeContent(content: Content, dispose: Boolean, requestFocus: Boolean, implicitFocus: Boolean): ActionCallback {
+  override fun removeContent(
+    content: Content,
+    dispose: Boolean,
+    requestFocus: Boolean,
+    implicitFocus: Boolean
+  ): ActionCallback {
     removeContent(content, dispose)
     return ActionCallback.DONE
   }
 
   private fun fireContentRemoveQuery(content: Content, oldIndex: Int): Boolean {
-    val event = ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.undefined)
+    val event =
+      ContentManagerEvent(this, content, oldIndex, ContentManagerEvent.ContentOperation.undefined)
     for (listener in myDispatcher.listeners) {
       listener.contentRemoveQuery(event)
       if (event.isConsumed) {
@@ -291,7 +314,13 @@ private class FakeContentManager : ContentManager {
   }
 
   override fun removeFromSelection(content: Content) {
-    val e = ContentManagerEvent(this, content, myContents.indexOf(mySelected), ContentManagerEvent.ContentOperation.remove)
+    val e =
+      ContentManagerEvent(
+        this,
+        content,
+        myContents.indexOf(mySelected),
+        ContentManagerEvent.ContentOperation.remove
+      )
     myDispatcher.multicaster.selectionChanged(e)
   }
 
@@ -308,7 +337,13 @@ private class FakeContentManager : ContentManager {
       removeFromSelection(mySelected!!)
     }
     mySelected = content
-    val e = ContentManagerEvent(this, content, myContents.indexOf(content), ContentManagerEvent.ContentOperation.add)
+    val e =
+      ContentManagerEvent(
+        this,
+        content,
+        myContents.indexOf(content),
+        ContentManagerEvent.ContentOperation.add
+      )
     myDispatcher.multicaster.selectionChanged(e)
   }
 
@@ -329,11 +364,20 @@ private class FakeContentManager : ContentManager {
     setSelectedContent(content)
   }
 
-  override fun setSelectedContentCB(content: Content, requestFocus: Boolean, forcedFocus: Boolean): ActionCallback {
+  override fun setSelectedContentCB(
+    content: Content,
+    requestFocus: Boolean,
+    forcedFocus: Boolean
+  ): ActionCallback {
     return setSelectedContentCB(content)
   }
 
-  override fun setSelectedContent(content: Content, requestFocus: Boolean, forcedFocus: Boolean, implicit: Boolean): ActionCallback {
+  override fun setSelectedContent(
+    content: Content,
+    requestFocus: Boolean,
+    forcedFocus: Boolean,
+    implicit: Boolean
+  ): ActionCallback {
     return setSelectedContentCB(content)
   }
 
@@ -370,54 +414,54 @@ private class FakeContent(
   }
 
   override fun <T : Any?> getUserData(key: Key<T>): T? = null
-  override fun <T : Any?> putUserData(key: Key<T>, value: T?) { }
-  override fun dispose() { }
+  override fun <T : Any?> putUserData(key: Key<T>, value: T?) {}
+  override fun dispose() {}
   override fun getComponent() = fakeComponent
   override fun getPreferredFocusableComponent() = fakeComponent
-  override fun setComponent(component: JComponent?) { }
-  override fun setPreferredFocusableComponent(component: JComponent?) { }
-  override fun setPreferredFocusedComponent(computable: Computable<out JComponent>?) { }
-  override fun setIcon(icon: Icon?) { }
+  override fun setComponent(component: JComponent?) {}
+  override fun setPreferredFocusableComponent(component: JComponent?) {}
+  override fun setPreferredFocusedComponent(computable: Computable<out JComponent>?) {}
+  override fun setIcon(icon: Icon?) {}
   override fun getIcon() = StudioIcons.LayoutInspector.SNAPSHOT
-  override fun setDisplayName(displayName: String?) { }
+  override fun setDisplayName(displayName: String?) {}
   override fun getDisplayName() = "Fake Content"
-  override fun setTabName(tabName: String?) { }
+  override fun setTabName(tabName: String?) {}
   override fun getTabName() = "Fake Tab"
   override fun getToolwindowTitle() = "Fake Tool Window"
-  override fun setToolwindowTitle(toolwindowTitle: String?) { }
+  override fun setToolwindowTitle(toolwindowTitle: String?) {}
   override fun getDisposer() = disposable
-  override fun setDisposer(disposer: Disposable) { }
-  override fun setShouldDisposeContent(value: Boolean) { }
+  override fun setDisposer(disposer: Disposable) {}
+  override fun setShouldDisposeContent(value: Boolean) {}
   override fun getDescription() = "Fake description"
-  override fun setDescription(description: String?) { }
-  override fun addPropertyChangeListener(l: PropertyChangeListener?) { }
-  override fun removePropertyChangeListener(l: PropertyChangeListener?) { }
+  override fun setDescription(description: String?) {}
+  override fun addPropertyChangeListener(l: PropertyChangeListener?) {}
+  override fun removePropertyChangeListener(l: PropertyChangeListener?) {}
   override fun getManager() = contentManager
   override fun isSelected() = true
-  override fun release() { }
+  override fun release() {}
   override fun isValid() = true
-  override fun setPinned(locked: Boolean) { }
+  override fun setPinned(locked: Boolean) {}
   override fun isPinned() = false
-  override fun setPinnable(pinnable: Boolean) { }
+  override fun setPinnable(pinnable: Boolean) {}
   override fun isPinnable() = true
   override fun isCloseable() = true
-  override fun setCloseable(closeable: Boolean) { }
-  override fun setActions(actions: ActionGroup?, place: String?, contextComponent: JComponent?) { }
+  override fun setCloseable(closeable: Boolean) {}
+  override fun setActions(actions: ActionGroup?, place: String?, contextComponent: JComponent?) {}
   override fun getActions() = EmptyActionGroup()
-  override fun setSearchComponent(comp: JComponent?) { }
+  override fun setSearchComponent(comp: JComponent?) {}
   override fun getSearchComponent() = null
   override fun getPlace() = "fake place"
   override fun getActionsContextComponent() = JPanel()
-  override fun setAlertIcon(icon: AlertIcon?) { }
+  override fun setAlertIcon(icon: AlertIcon?) {}
   override fun getAlertIcon() = null
-  override fun fireAlert() { }
+  override fun fireAlert() {}
   override fun getBusyObject() = null
-  override fun setBusyObject(`object`: BusyObject?) { }
+  override fun setBusyObject(`object`: BusyObject?) {}
   override fun getSeparator() = "fake separator"
-  override fun setSeparator(separator: String?) { }
-  override fun setPopupIcon(icon: Icon?) { }
+  override fun setSeparator(separator: String?) {}
+  override fun setPopupIcon(icon: Icon?) {}
   override fun getPopupIcon() = StudioIcons.LayoutInspector.CLEAR_OVERLAY
-  override fun setExecutionId(executionId: Long) { }
+  override fun setExecutionId(executionId: Long) {}
   override fun getExecutionId() = 1L
 }
 
@@ -428,9 +472,10 @@ private class FakeRunningDevicesComponent(private val tabInfo: TabInfo) : JPanel
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
-      SERIAL_NUMBER_KEY.name -> tabInfo.tabId.deviceSerialNumber
+      SERIAL_NUMBER_KEY.name -> tabInfo.deviceId.serialNumber
       STREAMING_CONTENT_PANEL_KEY.name -> tabInfo.content
       DISPLAY_VIEW_KEY.name -> tabInfo.displayView
+      DEVICE_ID_KEY.name -> tabInfo.deviceId
       else -> null
     }
   }

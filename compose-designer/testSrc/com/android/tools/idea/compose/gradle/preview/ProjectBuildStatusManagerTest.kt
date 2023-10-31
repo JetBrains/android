@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.editors.fast.DisableReason
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.intellij.openapi.application.WriteAction
@@ -33,12 +34,9 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.assertInstanceOf
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -46,11 +44,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
 
 class ProjectBuildStatusManagerTest {
   @get:Rule val edtRule = EdtRule()
-
-  @get:Rule val fastPreviewFlagRule = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
   val project: Project
@@ -60,11 +59,14 @@ class ProjectBuildStatusManagerTest {
   fun setup() {
     LiveEditApplicationConfiguration.getInstance().mode =
       LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
+    FastPreviewManager.getInstance(project)
+      .disable(DisableReason("Disabled for Live Literals testing"))
   }
 
   @After
   fun tearDown() {
     LiveEditApplicationConfiguration.getInstance().resetDefault()
+    FastPreviewConfiguration.getInstance().resetDefault()
   }
 
   @RunsInEdt
@@ -116,8 +118,8 @@ class ProjectBuildStatusManagerTest {
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
-    assertInstanceOf<ProjectStatus.OutOfDate>(statusManager.status)
-    assertInstanceOf<ProjectStatus.OutOfDate>(newStatusManager.status)
+    assertThat(statusManager.status).isInstanceOf(ProjectStatus.OutOfDate::class.java)
+    assertThat(newStatusManager.status).isInstanceOf(ProjectStatus.OutOfDate::class.java)
 
     // Status should change to NeedsBuild for all managers after a build clean
     projectRule.clean()

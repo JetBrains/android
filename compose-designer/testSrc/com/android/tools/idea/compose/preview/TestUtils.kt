@@ -15,26 +15,24 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.setupBuildListener
-import com.android.tools.idea.rendering.RenderLogger
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
+import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderResult
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
@@ -60,16 +58,8 @@ internal enum class SimpleComposeAppPaths(val path: String) {
   APP_BUILD_GRADLE("app/build.gradle")
 }
 
-/**
- * List of variations of namespaces to be tested by the Compose tests. This is done to support the
- * name migration. We test the old/new preview annotation names with the old/new composable
- * annotation names.
- */
-internal val namespaceVariations =
-  listOf(
-    arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose"),
-    arrayOf("androidx.compose.ui.tooling.preview", "androidx.compose.runtime")
-  )
+internal const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
+internal const val PREVIEW_TOOLING_PACKAGE = "androidx.compose.ui.tooling.preview"
 
 internal fun UFile.declaredMethods(): Sequence<UMethod> =
   classes.asSequence().flatMap { it.methods.asSequence() }
@@ -81,47 +71,6 @@ internal fun UFile.method(name: String): UMethod? =
 internal fun HighlightInfo.descriptionWithLineNumber() =
   ReadAction.compute<String, Throwable> {
     "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
-  }
-
-/**
- * Runs the [action] and waits for a build to happen. It returns the number of builds triggered by
- * [action].
- */
-internal fun runAndWaitForBuildToComplete(
-  projectRule: AndroidGradleProjectRule,
-  action: () -> Unit
-) =
-  runBlocking(AndroidDispatchers.workerThread) {
-    val buildComplete = CompletableDeferred<Unit>()
-    val disposable =
-      Disposer.newDisposable(projectRule.fixture.testRootDisposable, "Build Listener disposable")
-    var readyToListen = false
-    try {
-      setupBuildListener(
-        projectRule.project,
-        object : BuildListener {
-          override fun startedListening() {
-            readyToListen = true
-          }
-
-          override fun buildFailed() {
-            if (!readyToListen) return
-            buildComplete.complete(Unit)
-          }
-
-          override fun buildSucceeded() {
-            if (!readyToListen) return
-            buildComplete.complete(Unit)
-          }
-        },
-        disposable
-      )
-
-      action()
-      buildComplete.await()
-    } finally {
-      Disposer.dispose(disposable)
-    }
   }
 
 /**
@@ -150,6 +99,14 @@ internal fun getRepresentationForFile(
 
   runBlocking { multiRepresentationPreview.onInit() }
   return multiRepresentationPreview.currentRepresentation!!
+}
+
+/** Suspendable version of [DumbService.waitForSmartMode]. */
+suspend fun waitForSmartMode(project: Project, logger: Logger? = null) {
+  val dumbService = DumbService.getInstance(project)
+  logger?.let { if (dumbService.isDumb) it.info("waitForSmartMode: Waiting") }
+  delayUntilCondition(500) { !dumbService.isDumb }
+  logger?.info("waitForSmartMode: ${dumbService.isDumb}")
 }
 
 internal data class DebugStatus(

@@ -59,11 +59,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.awt.event.HierarchyEvent.SHOWING_CHANGED
-import javax.swing.JPanel
-import javax.swing.JSeparator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -74,6 +69,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.awt.event.HierarchyEvent.SHOWING_CHANGED
+import javax.swing.JPanel
+import javax.swing.JSeparator
 
 @VisibleForTesting val TAB_KEY = Key.create<AppInspectorTab>("app.inspector.shell.tab")
 

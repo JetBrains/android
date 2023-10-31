@@ -17,53 +17,23 @@ package com.android.tools.idea.insights
 
 import com.intellij.openapi.module.Module
 
-/** Variant-aware connection to an insights API. */
-data class VariantConnection(
-  val module: Module,
-  val variantName: String,
-  val connection: Connection?
-) {
-  val displayName = module.name.substringAfterLast(".")
+data class VariantData(val module: Module, val variantName: String)
 
-  override fun toString(): String {
-    return if (!isConfigured()) "$displayName › (no connection)"
-    else "$displayName › $variantName: $connection"
-  }
-
-  fun isConfigured(): Boolean {
-    return connection != null
-  }
-
-  companion object {
-    const val ALL_VARIANTS = "All"
-    fun createPlaceHolder(module: Module) = VariantConnection(module, ALL_VARIANTS, null)
-  }
-}
 /**
  * A single connection represented by credentials required to access resources for a given project.
  */
-data class Connection(
-  val appId: String,
-  val mobileSdkAppId: String,
-  val projectId: String,
-  val projectNumber: String
-) {
-  fun clientId(): String = "android:${appId}"
+interface Connection {
+  val mobileSdkAppId: String?
+  val projectId: String?
+  val projectNumber: String?
+  val appId: String
 
-  override fun toString(): String {
-    return "[${stripProjectName(projectId)}] $appId"
-  }
+  val clientId: String
+  val isConfigured: Boolean
 
-  private fun stripProjectName(projectName: String): String {
-    return projectName.substringBeforeLast('-')
-  }
+  fun isPreferredConnection(): Boolean
 }
 
-fun List<VariantConnection>.noneIsConfigured(): Boolean = none { it.isConfigured() }
+fun List<Connection>.noneIsConfigured(): Boolean = none { it.isConfigured }
 
-fun List<VariantConnection>.anyIsConfigured(): Boolean = any { it.isConfigured() }
-
-interface ActiveConnectionInferrer {
-  /** Determines whether the [variantConnection] can become the active connection. */
-  fun canBecomeActiveConnection(variantConnection: VariantConnection): Boolean
-}
+fun List<Connection>.anyIsConfigured(): Boolean = any { it.isConfigured }

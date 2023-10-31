@@ -30,6 +30,7 @@
     <orderEntry type="module" module-name="android.sdktools.lint-api" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.threading-agent-callback" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
@@ -42,14 +43,12 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.external-build-system" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
@@ -62,16 +61,17 @@
     <orderEntry type="module" module-name="intellij.java" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.execution" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testRunner" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.workspace.storage" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.projectModel.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" scope="TEST" />
@@ -83,14 +83,14 @@
     <orderEntry type="module" module-name="intellij.gradle.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.codeStyle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.execution" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.rt" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.externalSystem.impl" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.toolingExtension.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.external-build-system" />
   </component>
 </module>

@@ -512,7 +512,8 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('foreign_keys')
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
-            PsiElement(IDENTIFIER)('true')
+            AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
+              PsiElement(TRUE)('true')
       """.trimIndent(),
       toParseTreeText("PRAGMA foreign_keys=true")
     )
@@ -525,7 +526,8 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('foreign_keys')
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
-            PsiElement(IDENTIFIER)('TRUE')
+            AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
+              PsiElement(TRUE)('TRUE')
       """.trimIndent(),
       toParseTreeText("PRAGMA foreign_keys=TRUE")
     )
@@ -538,7 +540,8 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('foreign_keys')
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
-            PsiElement(IDENTIFIER)('false')
+            AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
+              PsiElement(FALSE)('false')
       """.trimIndent(),
       toParseTreeText("PRAGMA foreign_keys=false")
     )
@@ -551,7 +554,8 @@ class MiscParserTest : AndroidSqlParserTest() {
             PsiElement(IDENTIFIER)('foreign_keys')
           PsiElement(=)('=')
           AndroidSqlPragmaValueImpl(PRAGMA_VALUE)
-            PsiElement(IDENTIFIER)('FALSE')
+            AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
+              PsiElement(FALSE)('FALSE')
       """.trimIndent(),
       toParseTreeText("PRAGMA foreign_keys=FALSE")
     )
@@ -1029,6 +1033,73 @@ class MiscParserTest : AndroidSqlParserTest() {
           PsiElement(IDENTIFIER)('columnNameNew')
       """.trimIndent(),
       toParseTreeText("ALTER TABLE myTable RENAME columnNameOld TO columnNameNew")
+    )
+  }
+
+  // Regression test for b/243679694
+  fun testRowValue() {
+    check("SELECT abc, def FROM some_table WHERE (abc, def) NOT IN (SELECT abc, def FROM other_table)")
+  }
+
+  fun testBooleanLiterals() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+          AndroidSqlSelectCoreImpl(SELECT_CORE)
+            AndroidSqlSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
+                AndroidSqlResultColumnImpl(RESULT_COLUMN)
+                  PsiElement(*)('*')
+              AndroidSqlFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('FROM')
+                AndroidSqlTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  AndroidSqlFromTableImpl(FROM_TABLE)
+                    AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('foo')
+              AndroidSqlWhereClauseImpl(WHERE_CLAUSE)
+                PsiElement(WHERE)('WHERE')
+                AndroidSqlEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                  AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                    AndroidSqlColumnNameImpl(COLUMN_NAME)
+                      PsiElement(IDENTIFIER)('bar')
+                  PsiElement(=)('=')
+                  AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                    AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
+                      PsiElement(TRUE)('TRUE')
+      """.trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar = TRUE")
+    )
+
+    assertEquals(
+      """
+      FILE
+        AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+          AndroidSqlSelectCoreImpl(SELECT_CORE)
+            AndroidSqlSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
+                AndroidSqlResultColumnImpl(RESULT_COLUMN)
+                  PsiElement(*)('*')
+              AndroidSqlFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('FROM')
+                AndroidSqlTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  AndroidSqlFromTableImpl(FROM_TABLE)
+                    AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('foo')
+              AndroidSqlWhereClauseImpl(WHERE_CLAUSE)
+                PsiElement(WHERE)('WHERE')
+                AndroidSqlEquivalenceExpressionImpl(EQUIVALENCE_EXPRESSION)
+                  AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                    AndroidSqlColumnNameImpl(COLUMN_NAME)
+                      PsiElement(IDENTIFIER)('bar')
+                  PsiElement(=)('=')
+                  AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                    AndroidSqlBooleanLiteralImpl(BOOLEAN_LITERAL)
+                      PsiElement(FALSE)('FALSE')
+      """.trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar = FALSE")
     )
   }
 }

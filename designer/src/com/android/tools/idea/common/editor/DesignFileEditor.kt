@@ -24,12 +24,12 @@ import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-
 /**
- * A basic implementation of FileEditor interface for design editor. Useful in case most of the methods return obvious values or have no-op
- * implementations
+ * A basic implementation of FileEditor interface for design editor. Useful in case most of the
+ * methods return obvious values or have no-op implementations
  */
-open class DesignFileEditor(private val virtualFile: VirtualFile) : FileEditor, SplitEditorPreviewNotificationHandler, UserDataHolderBase() {
+open class DesignFileEditor(private val virtualFile: VirtualFile) :
+  FileEditor, SplitEditorPreviewNotificationHandler, UserDataHolderBase() {
   private val previewPanel = JPanel(BorderLayout())
 
   override fun getComponent(): JComponent = previewPanel

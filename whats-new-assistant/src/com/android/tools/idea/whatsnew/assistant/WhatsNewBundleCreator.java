@@ -49,7 +49,7 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
   private static AssistantBundleCreator ourTestCreator = null;
 
   @NotNull private WhatsNewURLProvider myURLProvider;
-  @NotNull private WhatsNewConnectionOpener myConnectionOpener;
+  @NotNull private final WhatsNewConnectionOpener myConnectionOpener;
   @NotNull private Revision myStudioRevision;
 
   @NotNull private Revision myLastSeenVersion;
@@ -114,7 +114,6 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
   /**
    * Get the bundle for WNA. Should not be called on UI thread.
    * @param project is not used
-   * @return
    */
   @Nullable
   @Override
@@ -242,9 +241,10 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
   /**
    * Download config xml from the web, using a temporary file and then moving it to the fixed location
    */
-  private boolean downloadConfig(@NotNull URL sourceUrl, @NotNull Path destinationFilePath) {
+  private void downloadConfig(@NotNull URL sourceUrl, @NotNull Path destinationFilePath) {
     ReadableByteChannel byteChannel;
     try {
+      getLog().info("Trying to download config XML from " + sourceUrl);
       // If timeout is not > 0, the default values are used: 60s read and 10s connect
       URLConnection connection = myConnectionOpener.openConnection(sourceUrl, -1);
       byteChannel = Channels.newChannel(connection.getInputStream());
@@ -253,11 +253,11 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
       // This occurs when the remote file can't be found, which as far as I know is only when no
       // web config has been provided yet, so INFO severity is fine to avoid spamming devs/users
       getLog().info("Remote WNA config file not found", e);
-      return false;
+      return;
     }
     catch (Exception e) {
       getLog().warn(e);
-      return false;
+      return;
     }
 
     if (byteChannel != null) {
@@ -271,7 +271,6 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
         ) {
           fileChannel.transferFrom(byteChannel, 0, Long.MAX_VALUE);
           FileUtil.copy(temporaryConfig, destinationFilePath.toFile());
-          return true;
         }
       }
       catch (Exception e) {
@@ -279,10 +278,10 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
       }
       finally {
         if (temporaryConfig != null)
+          //noinspection ResultOfMethodCallIgnored
           temporaryConfig.delete();
       }
     }
-    return false;
   }
 
   @NotNull
@@ -290,10 +289,12 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
     return myStudioRevision.getMajor() + "." + myStudioRevision.getMinor() + "." + myStudioRevision.getMicro();
   }
 
-  public boolean shouldShowWhatsNew() {
-    if (!shouldShowReleaseNotes())
-      return false;
-    return hasResourceConfig();
+  public boolean shouldNotShowWhatsNew() {
+    if (!shouldShowReleaseNotes()) {
+        getLog().info("Should not show what's new because IDE is not Android Studio, or can't get bundle creator");
+      return true;
+    }
+    return !hasResourceConfig();
   }
 
   @VisibleForTesting
@@ -313,11 +314,16 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
   boolean hasResourceConfig() {
     try (InputStream stream = myURLProvider.getResourceFileAsStream(this, getStudioRevision())) {
       if (stream == null) {
+        getLog().info("stream == null");
         return false;
       }
       WhatsNewBundle bundle = DefaultTutorialBundle.parse(stream, WhatsNewBundle.class, getBundleId());
-      // If Studio version is 0.0.0 (dev build) then return true, as an exception so we can show local file for editing
-      return myStudioRevision.equals(Revision.parseRevision("0.0.0rc0")) || isBundleRevisionSame(bundle.getVersion());
+      // If Studio version is 0.0.0 (dev build) then return true, as an exception, so we can show local file for editing
+      if (myStudioRevision.equals(Revision.parseRevision("0.0.0rc0"))) {
+        getLog().info("Will show resource config for local file since this is a dev build");
+        return true;
+      }
+      return isBundleRevisionSame(bundle.getVersion());
     }
     catch (Exception e) {
       getLog().warn(e);
@@ -329,6 +335,7 @@ public class WhatsNewBundleCreator implements AssistantBundleCreator {
    * Returns true if the specified revision is the same major.minor as Studio.
    */
   private boolean isBundleRevisionSame(@NotNull Revision revision) {
+    getLog().info("Checking bundle revision: " + revision + " vs Studio: " + myStudioRevision);
     return revision.getMajor() == myStudioRevision.getMajor() && revision.getMinor() == myStudioRevision.getMinor();
   }
 

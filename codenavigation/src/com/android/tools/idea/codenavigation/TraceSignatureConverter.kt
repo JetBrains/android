@@ -19,6 +19,7 @@ import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
+import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.TypeConversionUtil
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -28,15 +29,15 @@ object TraceSignatureConverter {
    * encoding: https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName()
    */
   private val primitiveTypes = mapOf(
-    PsiType.BYTE to "B",
-    PsiType.CHAR to "C",
-    PsiType.DOUBLE to "D",
-    PsiType.FLOAT to "F",
-    PsiType.INT to "I",
-    PsiType.LONG to "J",
-    PsiType.SHORT to "S",
-    PsiType.BOOLEAN to "Z",
-    PsiType.VOID to "V",
+    PsiTypes.byteType() to "B",
+    PsiTypes.charType() to "C",
+    PsiTypes.doubleType() to "D",
+    PsiTypes.floatType() to "F",
+    PsiTypes.intType() to "I",
+    PsiTypes.longType() to "J",
+    PsiTypes.shortType() to "S",
+    PsiTypes.booleanType() to "Z",
+    PsiTypes.voidType() to "V",
   )
 
   /**

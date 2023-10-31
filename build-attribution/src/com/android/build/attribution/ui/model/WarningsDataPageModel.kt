@@ -42,14 +42,13 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation
 import com.android.build.attribution.ui.view.BuildAnalyzerTreeNodePresentation.NodeIconState
 import com.android.build.attribution.ui.warningsCountString
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -152,12 +151,7 @@ class WarningsDataPageModelImpl(
     get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
-    get() = reportData.issues.sumOf { it.warningCount } +
-      reportData.annotationProcessors.issueCount +
-      reportData.confCachingData.warningsCount() +
-      (reportData.criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
-        category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
-      } == 0
+    get() = reportData.countTotalWarnings() == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
     selectedPageId = warningsTreeNode?.descriptor?.pageId ?: WarningsPageId.emptySelection
@@ -240,17 +234,17 @@ private class WarningsTreeStructure(
     }
 
     if (filter.showAnnotationProcessorWarnings) {
-      reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
+      val descriptors = reportData.annotationProcessors.nonIncrementalProcessors.asSequence()
         .map { AnnotationProcessorDetailsNodeDescriptor(it) }
         .toList()
-        .ifNotEmpty {
-          val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
-          warningsToAdd.add(annotationProcessorsRootNode)
-          forEach {
-            annotationProcessorsRootNode.add(treeNode(it))
-          }
-          treeStats.filteredWarningsCount += size
+      if (descriptors.isNotEmpty()) {
+        val annotationProcessorsRootNode = treeNode(AnnotationProcessorsRootNodeDescriptor(reportData.annotationProcessors))
+        warningsToAdd.add(annotationProcessorsRootNode)
+        descriptors.forEach {
+          annotationProcessorsRootNode.add(treeNode(it))
         }
+        treeStats.filteredWarningsCount += descriptors.size
+      }
     }
 
     // Add configuration caching issues
@@ -284,6 +278,11 @@ private class WarningsTreeStructure(
         warningsToAdd.add(treeNode(TaskCategoryWarningNodeDescriptor(criticalPathTaskCategoryData)))
         treeStats.filteredWarningsCount += warnings.size
       }
+    }
+
+    if (reportData.windowsDefenderWarningData.shouldShowWarning) {
+      warningsToAdd.add(treeNode(WindowsDefenderWarningNodeDescriptor(reportData.windowsDefenderWarningData)))
+      treeStats.filteredWarningsCount++
     }
 
     warningsToAdd.sortedBy {
@@ -320,7 +319,8 @@ enum class WarningsPageType {
   CONFIGURATION_CACHING_ROOT,
   CONFIGURATION_CACHING_WARNING,
   JETIFIER_USAGE_WARNING,
-  TASK_CATEGORY_WARNING
+  TASK_CATEGORY_WARNING,
+  WINDOWS_DEFENDER_WARNING
 }
 
 data class WarningsPageId(
@@ -347,6 +347,7 @@ data class WarningsPageId(
     val annotationProcessorRoot = WarningsPageId(WarningsPageType.ANNOTATION_PROCESSOR_GROUP, "ANNOTATION_PROCESSORS")
     val configurationCachingRoot = WarningsPageId(WarningsPageType.CONFIGURATION_CACHING_ROOT, "CONFIGURATION_CACHING")
     val jetifierUsageWarningRoot = WarningsPageId(WarningsPageType.JETIFIER_USAGE_WARNING, "JETIFIER_USAGE")
+    val windowsDefenderWarning = WarningsPageId(WarningsPageType.WINDOWS_DEFENDER_WARNING, "WINDOWS_DEFENDER_WARNING")
     val emptySelection = WarningsPageId(WarningsPageType.EMPTY_SELECTION, "EMPTY")
   }
 }
@@ -387,7 +388,7 @@ class TaskWarningTypeNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
 
-  override val executionTimeMs = presentedWarnings.sumByLong { it.task.executionTime.timeMs }
+  override val executionTimeMs = presentedWarnings.sumOf { it.task.executionTime.timeMs }
 }
 
 /** Descriptor for the task warning page node. */
@@ -428,7 +429,7 @@ class PluginGroupingWarningNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
     )
 
-  override val executionTimeMs = presentedTasksWithWarnings.keys.sumByLong { it.executionTime.timeMs }
+  override val executionTimeMs = presentedTasksWithWarnings.keys.sumOf { it.executionTime.timeMs }
 }
 
 class TaskCategoryWarningNodeDescriptor(
@@ -448,7 +449,7 @@ class TaskCategoryWarningNodeDescriptor(
 /** Descriptor for the task warning page node. */
 class TaskUnderPluginDetailsNodeDescriptor(
   val taskData: TaskUiData,
-  private val filteredWarnings: List<TaskIssueUiData>
+  val filteredWarnings: List<TaskIssueUiData>
 ) : WarningsTreePresentableNodeDescriptor() {
   override val pageId: WarningsPageId = WarningsPageId.task(taskData)
   override val analyticsPageType = PageType.PLUGIN_TASK_WARNINGS
@@ -475,7 +476,7 @@ class AnnotationProcessorsRootNodeDescriptor(
       rightAlignedSuffix = rightAlignedNodeDurationTextFromMs(executionTimeMs)
 
     )
-  override val executionTimeMs = annotationProcessorsReport.nonIncrementalProcessors.sumByLong { it.compilationTimeMs }
+  override val executionTimeMs = annotationProcessorsReport.nonIncrementalProcessors.sumOf { it.compilationTimeMs }
 }
 
 /** Descriptor for the non-incremental annotation processor page node. */
@@ -551,6 +552,18 @@ class JetifierUsageWarningRootNodeDescriptor(
   override val executionTimeMs = null
 }
 
+class WindowsDefenderWarningNodeDescriptor(
+  val data: WindowsDefenderCheckService.WindowsDefenderWarningData
+) : WarningsTreePresentableNodeDescriptor() {
+  override val pageId: WarningsPageId = WarningsPageId.windowsDefenderWarning
+  override val analyticsPageType = PageType.WINDOWS_DEFENDER_WARNING_PAGE
+  override val presentation: BuildAnalyzerTreeNodePresentation
+    get() = BuildAnalyzerTreeNodePresentation(
+      mainText = "Windows Defender Active Scanning",
+    )
+  override val executionTimeMs = null
+}
+
 private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = when (this) {
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
@@ -580,4 +593,5 @@ fun BuildAttributionReportUiData.countTotalWarnings(): Int =
   (criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
     category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
   } +
-  if (jetifierData.shouldShowWarning()) 1 else 0
+  (if (jetifierData.shouldShowWarning()) 1 else 0) +
+  (if (windowsDefenderWarningData.shouldShowWarning) 1 else 0)

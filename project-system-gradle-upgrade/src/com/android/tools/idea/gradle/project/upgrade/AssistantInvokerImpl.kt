@@ -16,11 +16,10 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.application.ModalityState
@@ -37,11 +36,11 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 class AssistantInvokerImpl : AssistantInvoker {
   @Slow
   override fun performDeprecatedConfigurationsUpgrade(project: Project, element: PsiElement) {
-    val recommended = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val recommended = AgpVersions.latestKnown
     val current = AndroidPluginInfo.find(project)?.pluginVersion ?: recommended
     val processor = AgpUpgradeRefactoringProcessor(project, current, recommended)
     val runProcessor = showAndGetDeprecatedConfigurationsUpgradeDialog(
-      processor, element, { p -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p) })
+      processor, element) { p -> AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog(p) }
     if (runProcessor) {
       DumbService.getInstance(project).smartInvokeLater { processor.run() }
     }
@@ -72,7 +71,7 @@ class AssistantInvokerImpl : AssistantInvoker {
 
   override fun maybeRecommendPluginUpgrade(project: Project, info: AndroidPluginInfo) {
     info.pluginVersion?.let { currentAgpVersion ->
-      val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      val latestKnown = AgpVersions.latestKnown
       executeOnPooledThread {
         val published = IdeGoogleMavenRepository.getAgpVersions()
         val recommendation = shouldRecommendPluginUpgrade(project, currentAgpVersion, latestKnown, published)
@@ -95,5 +94,16 @@ class AssistantInvokerImpl : AssistantInvoker {
               "'${StudioFlags.DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
     val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
     notification.notify(project)
+  }
+
+  override fun performRecommendedPluginUpgrade(project: Project) {
+    executeOnPooledThread {
+      com.android.tools.idea.gradle.project.upgrade.performRecommendedPluginUpgrade(project)
+    }
+  }
+
+  @Slow
+  override fun shouldRecommendPluginUpgradeToLatest(project: Project): Boolean {
+    return shouldRecommendPluginUpgrade(project).upgrade
   }
 }

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.resourceexplorer
 
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ui.ClickableLabel
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceValueDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ResourceExplorerFixture
@@ -42,7 +40,6 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -62,16 +59,6 @@ class ResourceExplorerTest {
   @Rule
   @JvmField
   val guiTest: GuiTestRule = GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-
-  @Before
-  fun setUp() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
-  }
 
   /**
    * This test covers several interactions with the IDE and the Resource Explorer:
@@ -181,7 +168,7 @@ class ResourceExplorerTest {
 private fun NlEditorFixture.findResourceExplorer(): ResourceExplorerFixture = ResourceExplorerFixture.find(robot())
 
 private fun SectionFixture.invokeButtonInAttribute(attributeName: String) {
-  val table = components.firstIsInstanceOrNull<PTableFixture>()!!
+  val table = components.first { it is PTableFixture } as PTableFixture
   val tableComp = table.target() as PTableImpl
   val row = table.findRowOf(attributeName)
   val item = table.item(row) as NlPropertyItem

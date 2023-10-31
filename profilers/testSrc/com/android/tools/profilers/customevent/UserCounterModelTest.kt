@@ -35,7 +35,7 @@ class UserCounterModelTest {
   val groupId1 = "group1".hashCode().toLong()
   val groupId2 = "group2".hashCode().toLong()
 
-  private val fakeData: ImmutableList<Common.Event> = ImmutableList.of(
+  private val fakeData = ImmutableList.of<Common.Event>(
     Common.Event.newBuilder()
       .setGroupId(groupId1)
       .setTimestamp(2000)

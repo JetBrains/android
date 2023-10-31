@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -52,53 +53,65 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.TreeModelEvent
+import javax.swing.event.TreeSelectionListener
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
-/**
- * The id of pop action group which is shown when right-clicking a tree node.
- */
+
+/** The id of pop action group which is shown when right-clicking a tree node. */
 private const val POPUP_HANDLER_ACTION_ID = "Android.Designer.IssuePanel.TreePopup"
 private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_detail_visibility"
 
-/**
- * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
- */
-class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project: Project, private val treeModel: DesignerCommonIssueModel,
-                               val issueProvider: DesignerCommonIssueProvider<Any>,
-                               private val emptyMessageProvider: () -> String) : Disposable {
+/** The issue panel to load the issues from Layout Editor and Layout Validation Tool. */
+class DesignerCommonIssuePanel(
+  parentDisposable: Disposable,
+  private val project: Project,
+  private val treeModel: DesignerCommonIssueModel,
+  nodeFactoryProvider: () -> NodeFactory,
+  val issueProvider: DesignerCommonIssueProvider<Any>,
+  private val emptyMessageProvider: () -> String
+) : Disposable {
 
-  var sidePanelVisible = PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
+  var sidePanelVisible =
+    PropertiesComponent.getInstance(project).getBoolean(KEY_DETAIL_VISIBLE, true)
     set(value) {
       field = value
       updateSidePanel(getSelectedNode(), value)
       PropertiesComponent.getInstance(project).setValue(KEY_DETAIL_VISIBLE, value)
     }
 
-  private val rootPanel = object : JPanel(BorderLayout()), DataProvider {
-    override fun getData(dataId: String): Any? {
-      val node = getSelectedNode() ?: return null
-      if (CommonDataKeys.NAVIGATABLE.`is`(dataId)) {
-        return node.getNavigatable()
-      }
-      if (PlatformDataKeys.SELECTED_ITEM.`is`(dataId)) {
-        return node
-      }
-      if (PlatformDataKeys.VIRTUAL_FILE.`is`(dataId)) {
-        return node.getVirtualFile()
-      }
-      if (SELECTED_ISSUES.`is`(dataId)) {
-        return when (node) {
-          is IssuedFileNode -> node.getChildren().map { it.issue }.toList()
-          is NoFileNode -> node.getChildren().map { it.issue }.toList()
-          is IssueNode -> listOf(node.issue)
-          else -> emptyList()
+  private val rootPanel =
+    object : JPanel(BorderLayout()), DataProvider {
+      private fun getDataInBackground(dataId: String, node: DesignerCommonIssueNode): Any? =
+        when (dataId) {
+          CommonDataKeys.NAVIGATABLE.name -> node.getNavigatable()
+          else -> null
         }
+
+      override fun getData(dataId: String): Any? {
+        val node = getSelectedNode() ?: return null
+        if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
+          return DataProvider { getDataInBackground(it, node) }
+        }
+        if (PlatformDataKeys.SELECTED_ITEM.`is`(dataId)) {
+          return node
+        }
+        if (PlatformDataKeys.VIRTUAL_FILE.`is`(dataId)) {
+          return node.getVirtualFile()
+        }
+        if (SELECTED_ISSUES.`is`(dataId)) {
+          return when (node) {
+            is IssuedFileNode -> node.getChildren().map { it.issue }.toList()
+            is NoFileNode -> node.getChildren().map { it.issue }.toList()
+            is IssueNode -> listOf(node.issue)
+            is NavigatableFileNode -> listOfNotNull((node.parentDescriptor as? IssueNode)?.issue)
+            else -> emptyList()
+          }
+        }
+        return null
       }
-      return null
     }
-  }
 
   private val tree: Tree
   private val splitter: OnePixelSplitter
@@ -107,7 +120,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
 
   init {
     Disposer.register(parentDisposable, this)
-    treeModel.root = DesignerCommonIssueRoot(project, issueProvider)
+    treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
     val problemsViewState = ProblemsViewState.getInstance(project)
     setIssueNodeOrder(problemsViewState.sortBySeverity, problemsViewState.sortByName)
     issueProvider.registerUpdateListener {
@@ -119,7 +132,11 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     tree = Tree(asyncModel)
     tree.emptyText.text = "Loading..."
     updateEmptyMessageIfNeed()
-    PopupHandler.installPopupMenu(tree, POPUP_HANDLER_ACTION_ID, "Android.Designer.IssuePanel.TreePopup")
+    PopupHandler.installPopupMenu(
+      tree,
+      POPUP_HANDLER_ACTION_ID,
+      "Android.Designer.IssuePanel.TreePopup"
+    )
 
     tree.isRootVisible = false
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
@@ -128,8 +145,10 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     EditSourceOnDoubleClickHandler.install(tree)
     EditSourceOnEnterKeyHandler.install(tree)
 
-    val toolbarActionGroup = ActionManager.getInstance().getAction(TOOLBAR_ACTIONS_ID) as ActionGroup
-    val toolbar = ActionManager.getInstance().createActionToolbar(javaClass.name, toolbarActionGroup, false)
+    val toolbarActionGroup =
+      ActionManager.getInstance().getAction(TOOLBAR_ACTIONS_ID) as ActionGroup
+    val toolbar =
+      ActionManager.getInstance().createActionToolbar(javaClass.name, toolbarActionGroup, false)
     toolbar.targetComponent = rootPanel
     UIUtil.addBorder(toolbar.component, CustomLineBorder(JBUI.insetsRight(1)))
     rootPanel.add(toolbar.component, BorderLayout.WEST)
@@ -143,12 +162,14 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     splitter.setResizeEnabled(true)
     rootPanel.add(splitter, BorderLayout.CENTER)
 
-    treeModel.addTreeModelListener(object : TreeModelAdapter() {
-      override fun treeNodesInserted(event: TreeModelEvent) {
-        // Make sure the new inserted node (e.g. Layout Validation node) is expanded.
-        TreeUtil.promiseExpand(tree, event.treePath)
+    treeModel.addTreeModelListener(
+      object : TreeModelAdapter() {
+        override fun treeNodesInserted(event: TreeModelEvent) {
+          // Make sure the new inserted node (e.g. Layout Validation node) is expanded.
+          TreeUtil.promiseExpand(tree, event.treePath)
+        }
       }
-    })
+    )
 
     tree.addTreeSelectionListener(RestoreSelectionListener())
     tree.addTreeSelectionListener {
@@ -159,11 +180,15 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
       }
       val selectedNode = newSelectedNode as DesignerCommonIssueNode
       updateSidePanel(selectedNode, sidePanelVisible)
-      // TODO(b/222110455): Can we have better way to trigger the refreshing of Layout Validation or other design tools?
+      // TODO(b/222110455): Can we have better way to trigger the refreshing of Layout Validation or
+      // other design tools?
       //                    Refactor to remove the dependency of VisualizationToolWindowFactory.
-      val window = ToolWindowManager.getInstance(project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+      val window =
+        ToolWindowManager.getInstance(project)
+          .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
       if (window != null) {
-        DataManager.getInstance().getDataContext(window.component).getData(DESIGN_SURFACE)?.let { surface ->
+        DataManager.getInstance().getDataContext(window.component).getData(DESIGN_SURFACE)?.let {
+          surface ->
           (selectedNode as? IssueNode)?.issue?.let { issue ->
             if (issue.source is VisualLintIssueProvider.VisualLintIssueSource) {
               surface.issueListener.onIssueSelected(issue)
@@ -204,7 +229,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
 
   private fun updateTree() {
     treeModel.structureChanged(null)
-    TreeUtil.promiseExpandAll(tree)
+    TreeUtil.promiseExpand(tree, 2)
   }
 
   fun setViewOptionFilter(filter: DesignerCommonIssueProvider.Filter) {
@@ -212,7 +237,9 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
   }
 
   fun setIssueNodeOrder(sortedBySeverity: Boolean, sortedByName: Boolean) {
-    (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity, sortedByName))
+    (treeModel.root as? DesignerCommonIssueRoot)?.setComparator(
+      DesignerCommonIssueNodeComparator(sortedBySeverity, sortedByName)
+    )
     treeModel.structureChanged(null)
   }
 
@@ -224,11 +251,18 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
     if (visible && sidePanel.loadIssueNode(node)) {
       splitter.secondComponent = sidePanel
       sidePanel.invalidate()
-    }
-    else {
+    } else {
       splitter.secondComponent = null
     }
     splitter.revalidate()
+  }
+
+  fun addIssueSelectionListener(listener: TreeSelectionListener) {
+    tree.addTreeSelectionListener(listener)
+  }
+
+  fun removeIssueSelectionListener(listener: TreeSelectionListener) {
+    tree.removeTreeSelectionListener(listener)
   }
 
   override fun dispose() = Unit
@@ -239,16 +273,20 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
  */
 class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : TreeVisitor {
 
-  override fun visit(path: TreePath) : TreeVisitor.Action {
+  override fun visit(path: TreePath): TreeVisitor.Action {
     return when (val visitedNode = path.lastPathComponent) {
       !is DesignerCommonIssueNode -> TreeVisitor.Action.CONTINUE
       else -> compareNode(visitedNode, node)
     }
   }
 
-  private fun compareNode(node1: DesignerCommonIssueNode?, node2: DesignerCommonIssueNode?) : TreeVisitor.Action {
+  private fun compareNode(
+    node1: DesignerCommonIssueNode?,
+    node2: DesignerCommonIssueNode?
+  ): TreeVisitor.Action {
     if (node1 == null || node2 == null) {
-      return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
+      return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT
+      else TreeVisitor.Action.CONTINUE
     }
     if (node1::class != node2::class) {
       return TreeVisitor.Action.CONTINUE
@@ -257,22 +295,32 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
       is IssuedFileNode -> visitIssuedFileNode(node1, node2 as IssuedFileNode)
       is NoFileNode -> visitNoFileNode(node1, node2 as NoFileNode)
       is IssueNode -> visitIssueNode(node1, node2 as IssueNode)
-      is DesignerCommonIssueRoot -> if (node1 === node2) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
+      is DesignerCommonIssueRoot ->
+        if (node1 === node2) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
       else -> TreeVisitor.Action.CONTINUE
     }
   }
 
-  private fun visitIssuedFileNode(node1: IssuedFileNode, node2: IssuedFileNode): TreeVisitor.Action {
-    return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE else {
-      compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-                  node2.parentDescriptor?.element as? DesignerCommonIssueNode)
+  private fun visitIssuedFileNode(
+    node1: IssuedFileNode,
+    node2: IssuedFileNode
+  ): TreeVisitor.Action {
+    return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE
+    else {
+      compareNode(
+        node1.parentDescriptor?.element as? DesignerCommonIssueNode,
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+      )
     }
   }
 
   private fun visitNoFileNode(node1: NoFileNode, node2: NoFileNode): TreeVisitor.Action {
-    return if (node1.name != node2.name) TreeVisitor.Action.CONTINUE else {
-      compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-                  node2.parentDescriptor?.element as? DesignerCommonIssueNode)
+    return if (node1.name != node2.name) TreeVisitor.Action.CONTINUE
+    else {
+      compareNode(
+        node1.parentDescriptor?.element as? DesignerCommonIssueNode,
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+      )
     }
   }
 
@@ -281,8 +329,11 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
     val issue2 = node2.issue
 
     // It would be complicated if the issues are VisualLintRenderIssue, compare the parents first.
-    val actionAfterComparingParents = compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode,
-                                                  node2.parentDescriptor?.element as? DesignerCommonIssueNode)
+    val actionAfterComparingParents =
+      compareNode(
+        node1.parentDescriptor?.element as? DesignerCommonIssueNode,
+        node2.parentDescriptor?.element as? DesignerCommonIssueNode
+      )
     if (actionAfterComparingParents == TreeVisitor.Action.CONTINUE) {
       return TreeVisitor.Action.CONTINUE
     }
@@ -309,15 +360,15 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
           return TreeVisitor.Action.CONTINUE
         }
       }
-      return if (visitedNodeIterator.hasNext() || nodeIterator.hasNext()) TreeVisitor.Action.CONTINUE else TreeVisitor.Action.INTERRUPT
+      return if (visitedNodeIterator.hasNext() || nodeIterator.hasNext())
+        TreeVisitor.Action.CONTINUE
+      else TreeVisitor.Action.INTERRUPT
     }
 
     return if (issue1 == issue2) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
   }
 
-  /**
-   * Sequence of index to serialize the relative position of a [NlComponent] in the XML file.
-   */
+  /** Sequence of index to serialize the relative position of a [NlComponent] in the XML file. */
   private fun createIndexString(component: NlComponent): String {
     val orders = mutableListOf<Int>()
     var current: NlComponent? = component

@@ -17,7 +17,5 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.tools.property.panel.api.EnumSupport
 
-/**
- * Indicates that this [EnumSupport] can be cached.
- */
+/** Indicates that this [EnumSupport] can be cached. */
 interface CachedEnumSupport : EnumSupport

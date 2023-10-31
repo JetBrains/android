@@ -26,6 +26,7 @@
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
 #include "common.h"
+#include "geom.h"
 
 namespace screensharing {
 
@@ -72,10 +73,12 @@ public:
 
   // Pointers are expected to be ordered according to their ids.
   // The action translates directly to android.view.MotionEvent.action.
-  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t display_id)
+  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t button_state, int32_t action_button, int32_t display_id)
       : ControlMessage(TYPE),
         pointers_(pointers),
         action_(action),
+        button_state_(button_state),
+        action_button_(action_button),
         display_id_(display_id) {
   }
   virtual ~MotionEventMessage() {};
@@ -85,6 +88,12 @@ public:
 
   // The action. See android.view.MotionEvent.action.
   int32_t action() const { return action_; }
+
+  // See android.view.MotionEvent.getButtonState().
+  int32_t button_state() const { return button_state_; }
+
+  // See android.view.MotionEvent.getActionButton().
+  int32_t action_button() const { return action_button_; }
 
   // The display device where the mouse event occurred. Zero indicates the main display.
   int32_t display_id() const { return display_id_; }
@@ -100,6 +109,8 @@ private:
 
   const std::vector<Pointer> pointers_;
   const int32_t action_;
+  const int32_t button_state_;
+  const int32_t action_button_;
   const int32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(MotionEventMessage);
@@ -189,15 +200,13 @@ private:
 // Sets maximum display streaming resolution.
 class SetMaxVideoResolutionMessage : ControlMessage {
 public:
-  SetMaxVideoResolutionMessage(int32_t width, int32_t height)
+  SetMaxVideoResolutionMessage(Size size)
       : ControlMessage(TYPE),
-        width_(width),
-        height_(height) {
+        size_(size) {
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
-  int32_t width() const { return width_; }
-  int32_t height() const { return height_; }
+  const Size& size() const { return size_; }
 
   static constexpr int TYPE = 5;
 
@@ -206,8 +215,7 @@ private:
 
   static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
-  int32_t width_;
-  int32_t height_;
+  Size size_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };
@@ -292,6 +300,33 @@ private:
   DISALLOW_COPY_AND_ASSIGN(StopClipboardSyncMessage);
 };
 
+// Requests a device state (folding pose) change. A DeviceStateNotification message will be sent
+// when and if the device state actually changes. If state is equal to PHYSICAL_STATE, the device
+// will return to its actual physical state.
+class RequestDeviceStateMessage : ControlMessage {
+public:
+  RequestDeviceStateMessage(int state)
+      : ControlMessage(TYPE),
+        state_(state) {
+  }
+  virtual ~RequestDeviceStateMessage() = default;
+
+  int state() const { return state_; }
+
+  static constexpr int PHYSICAL_STATE = -1;
+
+  static constexpr int TYPE = 10;
+
+private:
+  friend class ControlMessage;
+
+  static RequestDeviceStateMessage* Deserialize(Base128InputStream& stream);
+
+  int state_;
+
+  DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
+};
+
 // Notification of clipboard content change.
 class ClipboardChangedNotification : ControlMessage {
 public:
@@ -309,7 +344,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 10;
+  static constexpr int TYPE = 11;
 
 private:
   friend class ControlMessage;
@@ -317,6 +352,57 @@ private:
   std::string text_;
 
   DISALLOW_COPY_AND_ASSIGN(ClipboardChangedNotification);
+};
+
+// Notification of supported device states.
+class SupportedDeviceStatesNotification : ControlMessage {
+public:
+  SupportedDeviceStatesNotification(const std::string& text)
+      : ControlMessage(TYPE),
+        text_(text) {
+  }
+  SupportedDeviceStatesNotification(std::string&& text)
+      : ControlMessage(TYPE),
+        text_(text) {
+  }
+  virtual ~SupportedDeviceStatesNotification() = default;
+
+  const std::string& text() const { return text_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 12;
+
+private:
+  friend class ControlMessage;
+
+  std::string text_;
+
+  DISALLOW_COPY_AND_ASSIGN(SupportedDeviceStatesNotification);
+};
+
+// Notification of a device state change. One such notification is always sent when the screen
+// sharing agent starts on a foldable device,
+class DeviceStateNotification : ControlMessage {
+public:
+  DeviceStateNotification(int32_t device_state)
+      : ControlMessage(TYPE),
+        device_state_(device_state) {
+  }
+  virtual ~DeviceStateNotification() = default;
+
+  int32_t device_state() const { return device_state_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 13;
+
+private:
+  friend class ControlMessage;
+
+  int32_t device_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
 };
 
 }  // namespace screensharing

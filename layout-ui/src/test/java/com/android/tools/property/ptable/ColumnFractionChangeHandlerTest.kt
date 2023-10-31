@@ -41,14 +41,16 @@ class ColumnFractionChangeHandlerTest {
 
     var modeChanges = 0
     var lastMode = false
-    val handler = ColumnFractionChangeHandler(fraction, { panel3.x }, { panel1.width }) {
-      lastMode = it
-      modeChanges++
-    }
+    val handler =
+      ColumnFractionChangeHandler(fraction, { panel3.x }, { panel1.width }, { scale(10) }) {
+        lastMode = it
+        modeChanges++
+      }
     panel3.addMouseListener(handler)
     panel3.addMouseMotionListener(handler)
 
-    // With an offset of 10, expect the range to be from 0-40 with a resize range of 13..18 (which with the offset corresponds to 23..28).
+    // With an offset of 10, expect the range to be from 0-40 with a resize range of 13..18 (which
+    // with the offset corresponds to 23..28).
     val ui = FakeUi(panel3)
     ui.mouse.moveTo(0, 0)
     assertThat(lastMode).isFalse()
@@ -78,12 +80,32 @@ class ColumnFractionChangeHandlerTest {
     assertThat(lastMode).isTrue()
     assertThat(modeChanges).isEqualTo(3)
 
+    assertThat((fraction.value * panel1.width).toInt()).isEqualTo(scale(25))
     assertThat(fractionChanges).isEqualTo(0)
+
+    // Drag the divider to a new position
     ui.mouse.dragTo(scale(20), scale(5))
     assertThat(lastMode).isTrue()
     assertThat(modeChanges).isEqualTo(3)
     assertThat(fraction.value).isEqualTo(0.6f)
     assertThat(fractionChanges).isEqualTo(1)
+    assertThat((fraction.value * panel1.width).toInt()).isEqualTo(scale(30))
+
+    // Drag the divider as far as it can go to the left
+    ui.mouse.dragTo(scale(10), scale(5))
+    assertThat(lastMode).isTrue()
+    assertThat(modeChanges).isEqualTo(3)
+    assertThat(fraction.value).isEqualTo(0.4f)
+    assertThat(fractionChanges).isEqualTo(2)
+    assertThat((fraction.value * panel1.width).toInt()).isEqualTo(scale(20))
+
+    // Try to drag beyond the minimum size of the left column, verify that we did not move at all:
+    ui.mouse.dragTo(scale(5), scale(5))
+    assertThat(lastMode).isTrue()
+    assertThat(modeChanges).isEqualTo(3)
+    assertThat(fraction.value).isEqualTo(0.4f)
+    assertThat(fractionChanges).isEqualTo(2)
+    assertThat((fraction.value * panel1.width).toInt()).isEqualTo(scale(20))
 
     ui.mouse.release()
 
@@ -91,7 +113,7 @@ class ColumnFractionChangeHandlerTest {
     assertThat(lastMode).isFalse()
     assertThat(modeChanges).isEqualTo(4)
 
-    ui.mouse.moveTo(scale(21), scale(5))
+    ui.mouse.moveTo(scale(11), scale(5))
     assertThat(lastMode).isTrue()
     assertThat(modeChanges).isEqualTo(5)
 
@@ -100,7 +122,7 @@ class ColumnFractionChangeHandlerTest {
     assertThat(lastMode).isFalse()
     assertThat(modeChanges).isEqualTo(6)
 
-    assertThat(fraction.value).isEqualTo(0.6f)
-    assertThat(fractionChanges).isEqualTo(1)
+    assertThat(fraction.value).isEqualTo(0.4f)
+    assertThat(fractionChanges).isEqualTo(2)
   }
 }

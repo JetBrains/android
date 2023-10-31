@@ -19,6 +19,8 @@ import static org.jetbrains.android.util.AndroidUtils.SYSTEM_RESOURCE_PACKAGE;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.databinding.DataBindingAnnotationsService;
 import com.android.tools.idea.lang.databinding.DataBindingCompletionUtil;
 import com.intellij.codeInsight.completion.CompletionContributor;
@@ -64,8 +66,6 @@ import org.jetbrains.android.dom.AndroidResourceDomFileDescription;
 import org.jetbrains.android.dom.AttributeProcessingUtil;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
-import com.android.tools.dom.attrs.AttributeDefinition;
-import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.color.AndroidColorDomUtil;
 import org.jetbrains.android.dom.converters.FlagConverter;
 import org.jetbrains.android.dom.drawable.AndroidDrawableDomUtil;
@@ -362,7 +362,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       if (markDeprecated) {
         return result.withLookupElement(PrioritizedLookupElement.withPriority(new LookupElementDecorator<LookupElement>(lookupElement) {
           @Override
-          public void renderElement(@NotNull LookupElementPresentation presentation) {
+          public void renderElement(LookupElementPresentation presentation) {
             super.renderElement(presentation);
             presentation.setStrikeout(true);
           }
@@ -383,7 +383,7 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
         }
 
         @Override
-        public void renderElement(@NotNull LookupElementPresentation presentation) {
+        public void renderElement(LookupElementPresentation presentation) {
           super.renderElement(presentation);
           presentation.setStrikeout(markDeprecated);
         }

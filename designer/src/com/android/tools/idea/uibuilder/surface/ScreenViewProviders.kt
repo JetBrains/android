@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
@@ -33,13 +35,9 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Dimension
 
-/**
- * Interface to generate [ScreenView]s for the DesignSurface.
- */
+/** Interface to generate [ScreenView]s for the DesignSurface. */
 interface ScreenViewProvider {
-  /**
-   * User visible name when switching through different [ScreenViewProvider]s.
-   */
+  /** User visible name when switching through different [ScreenViewProvider]s. */
   val displayName: String
 
   /**
@@ -49,52 +47,75 @@ interface ScreenViewProvider {
   var colorBlindFilter: ColorBlindMode
 
   /**
-   * May return another [ScreenViewProvider]. Used to quickly toggle through different types of [ScreenViewProvider] in the DesignSurface.
+   * May return another [ScreenViewProvider]. Used to quickly toggle through different types of
+   * [ScreenViewProvider] in the DesignSurface.
    */
   operator fun next(): ScreenViewProvider? = null
 
-  /**
-   * The default [ScreenView] to show in the DesignSurface.
-   */
+  /** The default [ScreenView] to show in the DesignSurface. */
   fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView
 
   /**
-   * An optional [ScreenView] that may be displayed instead of the primary or side to side in the DesignSurface.
+   * An optional [ScreenView] that may be displayed instead of the primary or side to side in the
+   * DesignSurface.
    */
-  fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
+  fun createSecondarySceneView(
+    surface: NlDesignSurface,
+    manager: LayoutlibSceneManager
+  ): ScreenView? = null
 
   /** Called if the current provider was this, and is being replaced by another in DesignSurface. */
   fun onViewProviderReplaced() {}
 
-  /**
-   * The [LayoutEditorState.Surfaces] to be reported by this scene view for metrics purposes.
-   */
+  /** The [LayoutEditorState.Surfaces] to be reported by this scene view for metrics purposes. */
   val surfaceType: LayoutEditorState.Surfaces
 }
 
-/**
- * Common [ScreenViewProvider]s for the Layout Editor.
- */
-enum class NlScreenViewProvider(override val displayName: String,
-                                val primary: (NlDesignSurface, LayoutlibSceneManager, Boolean, ColorBlindMode) -> ScreenView,
-                                val secondary: ((NlDesignSurface, LayoutlibSceneManager, Boolean, ColorBlindMode) -> ScreenView)? = null,
-                                private val visibleToUser: Boolean = true,
-                                override val surfaceType: LayoutEditorState.Surfaces) : ScreenViewProvider {
-
+/** Common [ScreenViewProvider]s for the Layout Editor. */
+enum class NlScreenViewProvider(
+  override val displayName: String,
+  val primary: (NlDesignSurface, LayoutlibSceneManager, Boolean, ColorBlindMode) -> ScreenView,
+  val secondary:
+    ((NlDesignSurface, LayoutlibSceneManager, Boolean, ColorBlindMode) -> ScreenView)? =
+    null,
+  private val visibleToUser: Boolean = true,
+  override val surfaceType: LayoutEditorState.Surfaces
+) : ScreenViewProvider {
   RENDER("Design", ::defaultProvider, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
-  BLUEPRINT("Blueprint", ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE),
-  RENDER_AND_BLUEPRINT("Design and Blueprint", ::defaultProvider, ::blueprintProvider, surfaceType = LayoutEditorState.Surfaces.BOTH),
-  RESIZABLE_PREVIEW("Preview",
-                    { surface, manager, _, _ ->
-                      ScreenView.newBuilder(surface, manager)
-                        .resizeable()
-                        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
-                        .build()
-                    },
-                    visibleToUser = false,
-                    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
-  VISUALIZATION("Visualization", ::visualizationProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE),
-  COLOR_BLIND("Color Blind Mode", ::colorBlindProvider, visibleToUser = false, surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE);
+  BLUEPRINT(
+    "Blueprint",
+    ::blueprintProvider,
+    surfaceType = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
+  ),
+  RENDER_AND_BLUEPRINT(
+    "Design and Blueprint",
+    ::defaultProvider,
+    ::blueprintProvider,
+    surfaceType = LayoutEditorState.Surfaces.BOTH
+  ),
+  RESIZABLE_PREVIEW(
+    "Preview",
+    { surface, manager, _, _ ->
+      ScreenView.newBuilder(surface, manager)
+        .resizeable()
+        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+        .build()
+    },
+    visibleToUser = false,
+    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE
+  ),
+  VISUALIZATION(
+    "Visualization",
+    ::visualizationProvider,
+    visibleToUser = false,
+    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE
+  ),
+  COLOR_BLIND(
+    "Color Blind Mode",
+    ::colorBlindProvider,
+    visibleToUser = false,
+    surfaceType = LayoutEditorState.Surfaces.SCREEN_SURFACE
+  );
 
   override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
 
@@ -103,19 +124,22 @@ enum class NlScreenViewProvider(override val displayName: String,
     return values[(ordinal + 1) % values.size]
   }
 
-  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
-    primary(surface, manager, false, colorBlindFilter)
+  override fun createPrimarySceneView(
+    surface: NlDesignSurface,
+    manager: LayoutlibSceneManager
+  ): ScreenView = primary(surface, manager, false, colorBlindFilter)
 
-  override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? =
+  override fun createSecondarySceneView(
+    surface: NlDesignSurface,
+    manager: LayoutlibSceneManager
+  ): ScreenView? =
     secondary?.invoke(surface, manager, true, colorBlindFilter)?.apply { isSecondary = true }
 
   companion object {
 
-    @VisibleForTesting
-    val DEFAULT_SCREEN_MODE = RENDER_AND_BLUEPRINT
+    @VisibleForTesting val DEFAULT_SCREEN_MODE = RENDER_AND_BLUEPRINT
 
-    @VisibleForTesting
-    val SCREEN_MODE_PROPERTY = "NlScreenModeProvider"
+    @VisibleForTesting val SCREEN_MODE_PROPERTY = "NlScreenModeProvider"
 
     private var cachedScreenViewProvider: NlScreenViewProvider? = null
 
@@ -125,18 +149,22 @@ enum class NlScreenViewProvider(override val displayName: String,
         return cachedScreenViewProvider!!
       }
 
-      val modeName = PropertiesComponent.getInstance()?.getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name)
-                     ?: return DEFAULT_SCREEN_MODE // In unit testing we might not have the PropertiesComponent
-      cachedScreenViewProvider = try {
-        valueOf(modeName)
-      }
-      catch (e: IllegalArgumentException) {
-        // If the code reach here, that means some of unexpected SceneMode is saved as user's preference.
-        // In this case, return the default mode instead.
-        Logger.getInstance(NlDesignSurface::class.java)
-          .warn("The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead")
-        DEFAULT_SCREEN_MODE
-      }
+      val modeName =
+        PropertiesComponent.getInstance()?.getValue(SCREEN_MODE_PROPERTY, DEFAULT_SCREEN_MODE.name)
+          ?: return DEFAULT_SCREEN_MODE // In unit testing we might not have the PropertiesComponent
+      cachedScreenViewProvider =
+        try {
+          valueOf(modeName)
+        } catch (e: IllegalArgumentException) {
+          // If the code reach here, that means some of unexpected SceneMode is saved as user's
+          // preference.
+          // In this case, return the default mode instead.
+          Logger.getInstance(NlDesignSurface::class.java)
+            .warn(
+              "The mode $modeName is not recognized, use default mode $SCREEN_MODE_PROPERTY instead"
+            )
+          DEFAULT_SCREEN_MODE
+        }
 
       return cachedScreenViewProvider!!
     }
@@ -154,56 +182,68 @@ enum class NlScreenViewProvider(override val displayName: String,
   }
 }
 
-/**
- * Default provider that provider the [ScreenView] design surface only.
- */
-internal fun defaultProvider(surface: NlDesignSurface,
-                             manager: LayoutlibSceneManager,
-                             @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
-                             colorBlindMode: ColorBlindMode): ScreenView =
-  ScreenView.newBuilder(surface, manager).resizeable().build()
+/** Default provider that provider the [ScreenView] design surface only. */
+internal fun defaultProvider(
+  surface: NlDesignSurface,
+  manager: LayoutlibSceneManager,
+  @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
+  colorBlindMode: ColorBlindMode
+): ScreenView = ScreenView.newBuilder(surface, manager).resizeable().build()
 
-internal fun blueprintProvider(surface: NlDesignSurface,
-                               manager: LayoutlibSceneManager,
-                               isSecondary: Boolean,
-                               colorBlindMode: ColorBlindMode): ScreenView =
+internal fun blueprintProvider(
+  surface: NlDesignSurface,
+  manager: LayoutlibSceneManager,
+  isSecondary: Boolean,
+  colorBlindMode: ColorBlindMode
+): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .resizeable()
     .withColorSet(BlueprintColorSet())
     .withLayersProvider {
-      ImmutableList.builder<Layer>().apply {
-        if (it.hasBorderLayer()) {
-          add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
+      ImmutableList.builder<Layer>()
+        .apply {
+          if (it.hasBorderLayer()) {
+            add(BorderLayer(it, isRotating = { surface.isRotating }))
+          }
+          if (!isSecondary) {
+            add(CanvasResizeLayer(it) { surface.repaint() })
+          }
+          add(SceneLayer(surface, it, true))
         }
-        if (!isSecondary) {
-          add(CanvasResizeLayer(it) { surface.repaint() })
-        }
-        add(SceneLayer(it.surface, it, true))
-      }.build()
+        .build()
     }
     .build()
 
-/**
- * Returns a [ScreenView] for the multi-visualization.
- */
-internal fun visualizationProvider(surface: NlDesignSurface,
-                                   manager: LayoutlibSceneManager,
-                                   @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
-                                   colorBlindMode: ColorBlindMode): ScreenView =
+/** Returns a [ScreenView] for the multi-visualization. */
+internal fun visualizationProvider(
+  surface: NlDesignSurface,
+  manager: LayoutlibSceneManager,
+  @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
+  colorBlindMode: ColorBlindMode
+): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .withLayersProvider {
-      ImmutableList.builder<Layer>().apply {
-        // Always has border in visualization tool.
-        add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
-        add(ScreenViewLayer(it, colorBlindMode))
-        add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
-        add(WarningLayer(it))
-      }.build()
+      ImmutableList.builder<Layer>()
+        .apply {
+          // Always has border in visualization tool.
+          add(BorderLayer(it, isRotating = { surface.isRotating }))
+          add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
+          add(SceneLayer(surface, it, false).apply { isShowOnHover = true })
+          add(
+            WarningLayer(it) {
+              if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
+                IssuePanelService.getInstance(surface.project).getSelectedIssues()
+              else listOfNotNull(surface.issuePanel.selectedIssue)
+            }
+          )
+        }
+        .build()
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
     .decorateContentSizePolicy { wrappedPolicy ->
       object : ScreenView.ContentSizePolicy {
-        override fun measure(screenView: ScreenView, outDimension: Dimension) = wrappedPolicy.measure(screenView, outDimension)
+        override fun measure(screenView: ScreenView, outDimension: Dimension) =
+          wrappedPolicy.measure(screenView, outDimension)
 
         // In visualization view, we always use configuration to decide the size.
         override fun hasContentSize(screenView: ScreenView) = screenView.isVisible
@@ -212,9 +252,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
     .disableBorder()
     .build()
 
-/**
- * Returns the appropriate [ColorBlindMode] based on the model's display name.
- */
+/** Returns the appropriate [ColorBlindMode] based on the model's display name. */
 private fun findColorBlindMode(sceneManager: SceneManager): ColorBlindMode? {
   val model: NlModel = sceneManager.model
   for (mode in ColorBlindMode.values()) {
@@ -225,28 +263,31 @@ private fun findColorBlindMode(sceneManager: SceneManager): ColorBlindMode? {
   return null
 }
 
-/**
- * View for drawing color blind modes.
- */
-internal fun colorBlindProvider(surface: NlDesignSurface,
-                                manager: LayoutlibSceneManager,
-                                @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
-                                defaultColorBlindMode: ColorBlindMode): ScreenView =
+/** View for drawing color blind modes. */
+internal fun colorBlindProvider(
+  surface: NlDesignSurface,
+  manager: LayoutlibSceneManager,
+  @Suppress("UNUSED_PARAMETER") isSecondary: Boolean,
+  defaultColorBlindMode: ColorBlindMode
+): ScreenView =
   ScreenView.newBuilder(surface, manager)
     .withLayersProvider {
-      ImmutableList.builder<Layer>().apply {
-        // Always has border in visualization tool.
-        add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
-        // Try to get the specific blind mode for this manager/model
-        val colorBlindMode: ColorBlindMode? = findColorBlindMode(manager)
-        if (colorBlindMode != null) {
-          add(ScreenViewLayer(it, colorBlindMode))
+      ImmutableList.builder<Layer>()
+        .apply {
+          // Always has border in visualization tool.
+          add(BorderLayer(it, isRotating = { surface.isRotating }))
+          // Try to get the specific blind mode for this manager/model
+          val colorBlindMode: ColorBlindMode? = findColorBlindMode(manager)
+          if (colorBlindMode != null) {
+            add(ScreenViewLayer(it, colorBlindMode, surface, surface::getRotateSurfaceDegree))
+          } else {
+            // ERROR - at least show the original.
+            add(
+              ScreenViewLayer(it, defaultColorBlindMode, surface, surface::getRotateSurfaceDegree)
+            )
+          }
         }
-        else {
-          // ERROR - at least show the original.
-          add(ScreenViewLayer(it, defaultColorBlindMode))
-        }
-      }.build()
+        .build()
     }
     .disableBorder()
     .build()

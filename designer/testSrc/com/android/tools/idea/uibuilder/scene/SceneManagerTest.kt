@@ -46,10 +46,11 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.util.concurrent.CompletableFuture
 
-class TestSceneManager(model: NlModel,
-                       surface: DesignSurface<*>,
-                       sceneComponentProvider: SceneComponentHierarchyProvider? = null)
-  : SceneManager(model, surface, sceneComponentProvider, null) {
+class TestSceneManager(
+  model: NlModel,
+  surface: DesignSurface<*>,
+  sceneComponentProvider: SceneComponentHierarchyProvider? = null
+) : SceneManager(model, surface, sceneComponentProvider, null) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100)
 
   override fun getSceneScalingFactor(): Float = 1f
@@ -58,23 +59,25 @@ class TestSceneManager(model: NlModel,
     throw UnsupportedOperationException()
   }
 
-  override fun requestRenderAsync(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
-  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun requestRenderAsync(): CompletableFuture<Void> =
+    CompletableFuture.completedFuture(null)
+  override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
+    CompletableFuture.completedFuture(null)
   override fun layout(animate: Boolean) {}
-  override fun getSceneDecoratorFactory(): SceneDecoratorFactory = object : SceneDecoratorFactory() {
-    override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
-  }
+  override fun getSceneDecoratorFactory(): SceneDecoratorFactory =
+    object : SceneDecoratorFactory() {
+      override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
+    }
 
-  override fun getDefaultProperties(): MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> = mutableMapOf()
+  override fun getDefaultProperties():
+    MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> = mutableMapOf()
   override fun getDefaultStyles(): MutableMap<Any, ResourceReference> = mutableMapOf()
 }
 
 class SceneManagerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private fun SceneComponent.withBounds(x: Int, y: Int, width: Int, height: Int): SceneComponent {
     setPosition(x, y)
@@ -84,31 +87,44 @@ class SceneManagerTest {
   }
 
   /**
-   * Checks that when multiple top level components are provided, this is handled correctly by the SceneManager.
+   * Checks that when multiple top level components are provided, this is handled correctly by the
+   * SceneManager.
    */
   @RunsInEdt
   @Test
   fun testMultipleRootHierarchyProvider() {
     val model =
-      model(projectRule, "layout", "layout.xml",
-            ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter"))
+      model(
+          projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor("androidx.compose.ui.tooling.ComposeViewAdapter")
+        )
         .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelWithoutRender(model)
     val scene = surface.sceneManagers.first().scene
-    val rootNlComponent =  model.getRoot()
+    val rootNlComponent = model.getRoot()
     val hitProvider = DefaultHitProvider()
-    val sceneManager = TestSceneManager(model, surface, object: SceneManager.SceneComponentHierarchyProvider {
-      override fun createHierarchy(manager: SceneManager, component: NlComponent): MutableList<SceneComponent> =
-        mutableListOf(
-          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
-          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
-          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
-          SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 30, 60, 60)
-        )
+    val sceneManager =
+      TestSceneManager(
+        model,
+        surface,
+        object : SceneManager.SceneComponentHierarchyProvider {
+          override fun createHierarchy(
+            manager: SceneManager,
+            component: NlComponent
+          ): MutableList<SceneComponent> =
+            mutableListOf(
+              SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
+              SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
+              SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 20, 20, 20),
+              SceneComponent(scene, rootNlComponent, hitProvider).withBounds(20, 30, 60, 60)
+            )
 
-      override fun syncFromNlComponent(sceneComponent: SceneComponent) {}
-    })
+          override fun syncFromNlComponent(sceneComponent: SceneComponent) {}
+        }
+      )
 
     sceneManager.updateSceneView()
     sceneManager.update()
@@ -126,7 +142,9 @@ class SceneManagerTest {
   fun testDoNotRegisterDuplicatedListenerToResourceNotificationManager() {
     val mockedManager = projectRule.mockProjectService(ResourceNotificationManager::class.java)
 
-    val model = model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT)).build()
+    val model =
+      model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
+        .build()
     val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
     surface.addModelWithoutRender(model)
     val sceneManager = TestSceneManager(model, surface)

@@ -29,11 +29,12 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 import java.awt.Color
 import javax.swing.Icon
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 /**
  * A [PsiCallParameterPropertyItem] for Color parameters.
@@ -44,19 +45,21 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 internal class ColorPsiCallParameter(
   project: Project,
   model: PsiCallPropertiesModel,
-  resolvedCall: ResolvedCall<*>,
-  descriptor: ValueParameterDescriptor,
+  addNewArgumentToResolvedCall: (KtValueArgument, KtPsiFactory) -> KtValueArgument?,
+  parameterName: Name,
+  parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?
+  initialValue: String?,
 ) :
   PsiCallParameterPropertyItem(
     project,
     model,
-    resolvedCall,
-    descriptor,
+    addNewArgumentToResolvedCall,
+    parameterName,
+    parameterTypeNameIfStandard,
     argumentExpression,
     initialValue,
-    ColorValidation
+    ColorValidation,
   ) {
 
   override val colorButton =

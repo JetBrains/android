@@ -22,6 +22,9 @@ import static com.android.SdkConstants.ANDROID_VIEW_PKG;
 import static com.android.SdkConstants.ANDROID_WEBKIT_PKG;
 import static com.android.SdkConstants.ANDROID_WIDGET_PREFIX;
 import static com.android.SdkConstants.GOOGLE_SUPPORT_ARTIFACT_PREFIX;
+import static com.android.SdkConstants.TAG_GROUP;
+import static com.android.SdkConstants.TAG_ITEM;
+import static com.android.SdkConstants.TAG_MENU;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.actions.ExternalJavaDocAction;
@@ -40,9 +43,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ComponentHelpAction extends AnAction {
+  public static final String ANDROID_CAST_ITEM = "android.support.item";
+  public static final String ANDROIDX_CAST_ITEM = "androidx.item";
+
   private static final String ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/";
   private static final String GOOGLE_REFERENCE_PREFIX = "https://developers.google.com/android/reference/";
-
 
   private final Project myProject;
   private final Supplier<String> myTagNameSupplier;
@@ -79,6 +84,14 @@ public class ComponentHelpAction extends AnAction {
 
   @Nullable
   private String findClassName(@NotNull String tagName) {
+    switch (tagName) {
+      case TAG_ITEM, ANDROID_CAST_ITEM, ANDROIDX_CAST_ITEM -> {
+        return ANDROID_VIEW_PKG + "MenuItem";
+      }
+      case TAG_GROUP, TAG_MENU -> {
+        return ANDROID_VIEW_PKG + "Menu";
+      }
+    }
     if (tagName.indexOf('.') != -1) {
       return tagName;
     }

@@ -35,18 +35,17 @@ import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 
 /**
- * Panel that shows the view's visibility in the gutter next to the component tree.
- * Clicking each icon would show popup menu that allows users to choose visibility.
+ * Panel that shows the view's visibility in the gutter next to the component tree. Clicking each
+ * icon would show popup menu that allows users to choose visibility.
  */
-open class NlVisibilityGutterPanel: JPanel(), TreeExpansionListener, Disposable {
+open class NlVisibilityGutterPanel : JPanel(), TreeExpansionListener, Disposable {
 
   companion object {
     private const val PADDING_X = 10
     const val WIDTH = RESOURCE_ICON_SIZE + PADDING_X
   }
 
-  @VisibleForTesting
-  val list = NlVisibilityJBList()
+  @VisibleForTesting val list = NlVisibilityJBList()
 
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -70,13 +69,10 @@ open class NlVisibilityGutterPanel: JPanel(), TreeExpansionListener, Disposable 
 
   override fun updateUI() {
     super.updateUI()
-    border = BorderFactory.createMatteBorder(
-      0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
+    border = BorderFactory.createMatteBorder(0, 1, 0, 0, AdtUiUtils.DEFAULT_BORDER_COLOR)
   }
 
-  /**
-   * Update the gutter icons according to the tree paths.
-   */
+  /** Update the gutter icons according to the tree paths. */
   fun update(tree: JTree) {
     val application = ApplicationManager.getApplication()
     if (!application.isReadAccessAllowed) {
@@ -90,8 +86,7 @@ open class NlVisibilityGutterPanel: JPanel(), TreeExpansionListener, Disposable 
 
       if (last is NlComponent) {
         toReturn.add(createItem(last))
-      }
-      else {
+      } else {
         // Anything else (e.g. Referent id) we don't support visibility change.
         toReturn.add(createItem())
       }

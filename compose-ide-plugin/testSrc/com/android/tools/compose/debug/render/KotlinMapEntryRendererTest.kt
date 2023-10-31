@@ -22,16 +22,13 @@ import com.android.tools.compose.debug.utils.MockValueDescriptor
 import com.android.tools.compose.debug.utils.invokeOnDebuggerManagerThread
 import com.android.tools.compose.debug.utils.mockDebugProcess
 import com.android.tools.compose.debug.utils.mockEvaluationContext
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer
 import com.intellij.debugger.ui.tree.render.EnumerationChildrenRenderer
 import com.sun.jdi.ReferenceType
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -41,11 +38,6 @@ class KotlinMapEntryRendererTest {
 
   private val project
     get() = projectRule.project
-
-  @Before
-  fun setUp() {
-    StudioFlags.COMPOSE_STATE_OBJECT_CUSTOM_RENDERER.override(true, projectRule.fixture.testRootDisposable)
-  }
 
   @Test
   fun checkRenderer() {

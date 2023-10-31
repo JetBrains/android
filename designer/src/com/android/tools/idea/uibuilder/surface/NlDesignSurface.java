@@ -23,6 +23,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
+import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.error.IssueProvider;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -51,11 +52,12 @@ import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
+import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
 import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
-import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
@@ -66,15 +68,16 @@ import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
+import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
+import com.android.tools.rendering.RenderResult;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
@@ -91,7 +94,9 @@ import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,6 +104,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -108,7 +114,7 @@ import org.jetbrains.annotations.TestOnly;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
-  implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
+  implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler, NlDiagnosticKey {
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 
@@ -155,8 +161,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @Nullable private SelectionModel mySelectionModel = null;
     private ZoomControlsPolicy myZoomControlsPolicy = ZoomControlsPolicy.AUTO_HIDE;
     @NotNull private Set<NlSupportedActions> mySupportedActions = Collections.emptySet();
-
-    private boolean myShouldRunVisualLintService = false;
 
     private boolean myShouldRenderErrorsPanel = false;
 
@@ -307,16 +311,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
 
     /**
-     * The surface will run visual lint analysis on the background.
-     * Default value is false.
-     */
-    @NotNull
-    public Builder setRunVisualLintAnalysis(boolean value) {
-      myShouldRunVisualLintService = value;
-      return this;
-    }
-
-    /**
      * Set the supported {@link NlSupportedActions} for the built NlDesignSurface.
      * These actions are registered by xml and can be found globally, we need to assign if the built NlDesignSurface supports it or not.
      * By default, the builder assumes there is no supported {@link NlSupportedActions}.
@@ -370,7 +364,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         myDelegateDataProvider,
         mySelectionModel != null ? mySelectionModel : new DefaultSelectionModel(),
         myZoomControlsPolicy,
-        myShouldRunVisualLintService,
         mySupportedActions,
         myShouldRenderErrorsPanel,
         myMaxFitIntoZoomLevel);
@@ -413,8 +406,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @NotNull private final Set<NlSupportedActions> mySupportedActions;
 
-  private final boolean myShouldRunVisualLintService;
-
   private boolean myShouldRenderErrorsPanel;
 
   private final VisualLintIssueProvider myVisualLintIssueProvider;
@@ -433,7 +424,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @Nullable DataProvider delegateDataProvider,
                           @NotNull SelectionModel selectionModel,
                           ZoomControlsPolicy zoomControlsPolicy,
-                          boolean shouldRunVisualLintService,
                           @NotNull Set<NlSupportedActions> supportedActions,
                           boolean shouldRenderErrorsPanel,
                           double maxFitIntoZoomLevel) {
@@ -449,12 +439,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     mySceneManagerProvider = sceneManagerProvider;
     myNavigationHandler = navigationHandler;
     mySupportedActions = supportedActions;
-    myShouldRunVisualLintService = shouldRunVisualLintService;
     myShouldRenderErrorsPanel = shouldRenderErrorsPanel;
     myVisualLintIssueProvider = new VisualLintIssueProvider(this);
 
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
+      mySceneViewPanel.setOnLabelClicked(myNavigationHandler::handleNavigate);
     }
 
     myMinScale = minScale;
@@ -553,14 +543,18 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   }
 
   /**
+   * When true, the surface will autoscroll when the mouse gets near the edges. See {@link JScrollPane#setAutoscrolls(boolean)}
+   */
+  private void setSurfaceAutoscrolls(boolean enabled) {
+    if (myScrollPane != null) {
+      myScrollPane.setAutoscrolls(enabled);
+    }
+  }
+
+  /**
    * Returns whether this surface is currently in resize mode or not. See {@link #setResizeMode(boolean)}
    */
   public boolean isCanvasResizing() {
-    return myIsCanvasResizing;
-  }
-
-  @Override
-  public boolean isLayoutDisabled() {
     return myIsCanvasResizing;
   }
 
@@ -698,7 +692,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public void notifyComponentActivate(@NotNull NlComponent component, int x, int y) {
-    ViewHandler handler = NlComponentHelperKt.getViewHandler(component);
+    ViewHandler handler = NlComponentHelperKt.getViewHandler(component, () -> {});
 
     if (handler != null) {
       handler.onActivateInDesignSurface(component, x, y);
@@ -734,14 +728,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         if (results.isEmpty()) {
           return;
         }
-        if (myScannerControl != null) {
-          for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            LayoutlibSceneManager manager = entry.getKey();
-            if (manager.getLayoutScannerConfig().isIntegrateWithDefaultIssuePanel()) {
-              myScannerControl.validateAndUpdateLint(entry.getValue(), manager.getModel());
-            }
-          }
-        }
 
         Project project = getProject();
         if (project.isDisposed()) {
@@ -776,11 +762,33 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           renderIssueProviders.forEach(renderIssueProvider -> getIssueModel().addIssueProvider(renderIssueProvider));
         });
 
-        if (myShouldRunVisualLintService && !VisualizationToolWindowFactory.hasVisibleValidationWindow(project)) {
+        boolean hasLayoutValidationOpen = VisualizationToolWindowFactory.hasVisibleValidationWindow(project);
+        boolean hasRunAtfOnMainPreview = hasLayoutValidationOpen && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get();
+        if (!hasLayoutValidationOpen) {
+          List<NlModel> modelsForBackgroundRun = new ArrayList<>();
+          Map<RenderResult, NlModel> renderResultsForAnalysis = new HashMap<>();
+          results.forEach((manager, result) -> {
+            switch (manager.getVisualLintMode()) {
+              case RUN_IN_BACKGROUND:
+                modelsForBackgroundRun.add(manager.getModel());
+                break;
+              case RUN_ON_PREVIEW_ONLY:
+                renderResultsForAnalysis.put(result, manager.getModel());
+                break;
+              case DISABLED:
+                break;
+            }
+          });
+          hasRunAtfOnMainPreview = !renderResultsForAnalysis.isEmpty() && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get();
           VisualLintService.getInstance(project).runVisualLintAnalysis(
             NlDesignSurface.this,
             myVisualLintIssueProvider,
-            getModels());
+            modelsForBackgroundRun,
+            renderResultsForAnalysis);
+        }
+
+        if (myScannerControl != null && !hasRunAtfOnMainPreview) {
+          myScannerControl.validateAndUpdateLint(results);
         }
       }
 
@@ -888,13 +896,25 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public boolean setScale(double scale, int x, int y) {
+    double previousScale = getScale();
     boolean changed = super.setScale(scale, x, y);
     if (changed) {
       DesignSurfaceViewport port = getViewport();
 
       if (myLayoutManager instanceof GroupedListSurfaceLayoutManager) {
         Point scrollPosition = getScrollPosition();
-        myViewportScroller = new TopBoundCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition));
+        if(x < 0 || y < 0) {
+          myViewportScroller = new TopBoundCenterScroller(
+            new Dimension(port.getViewSize()), new Point(scrollPosition));
+        }
+        else {
+          myViewportScroller = new ReferencePointScroller(
+            new Dimension(port.getViewSize()), new Point(scrollPosition),
+            new Point(x, y), getScale()/previousScale, findSceneViewRectangles(),
+            (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
+                                                                                     getPositionableContent(),
+                                                                                     getExtentSize()));
+        }
       }
       else if (!(myLayoutManager instanceof GridSurfaceLayoutManager)) {
         Point zoomCenterInView;
@@ -1065,6 +1085,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   public float getRotateSurfaceDegree() {
     return myRotateSurfaceDegree;
   }
+
+  /**
+   * Return whenever surface is rotating.
+   */
+  public boolean isRotating() {
+    return !Float.isNaN(myRotateSurfaceDegree);
+  }
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
 
   /**
@@ -1110,5 +1137,10 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @NotNull
   Dimension getScrollableViewMinSize() {
     return myScrollableViewMinSize;
+  }
+
+  @NotNull
+  public VisualLintIssueProvider getVisualLintIssueProvider() {
+    return myVisualLintIssueProvider;
   }
 }

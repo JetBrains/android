@@ -118,8 +118,6 @@ class ComposePreviewInspectorTest {
 }
 
 private data class TestSourceLocation(
-  override val className: String,
-  override val methodName: String = "",
   override val fileName: String = "",
   override val lineNumber: Int = -1,
   override val packageHash: Int = -1

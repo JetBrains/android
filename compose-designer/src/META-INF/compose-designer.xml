@@ -17,7 +17,7 @@
 <idea-plugin>
   <extensionPoints>
     <!--
-    Extension point for EditorNotification$Provider that generate notification that will be displayed in the PreviewEditor
+    Extension point for EditorNotificationProvider that generate notification that will be displayed in the PreviewEditor
     (as opposed to spanning the whole width of the FileEditor.
     A notification provider that wants this behaviour should extend this point and not the regular editorNotificationProvider.
     -->
@@ -27,8 +27,6 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <lang.documentationProvider language="kotlin" implementationClass="com.android.tools.idea.compose.documentation.ComposeDocumentationProvider" order="first"/>
-
-    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
 
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
@@ -158,6 +156,14 @@
                      key="inspection.unit.test.files"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewShouldNotBeCalledRecursively"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.recursive.name"
+                     level="WEAK WARNING"/>
+
     <fileType name="DeviceSpecFile"
               language="DeviceSpec"
               implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecFileType"
@@ -204,6 +210,10 @@
 
   <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.handlers">
     <viewHandlerProvider implementation="com.android.tools.idea.compose.preview.uibuilder.handler.ComposeViewHandlerProvider" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
+    <infoCollector implementation="com.android.tools.idea.compose.preview.ComposePreviewTroubleInfoCollector" />
   </extensions>
 
   <actions>

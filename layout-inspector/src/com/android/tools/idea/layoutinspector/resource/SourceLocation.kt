@@ -20,7 +20,7 @@ import com.intellij.pom.Navigatable
 /**
  * A location in the source.
  *
- * The [source] is a human readable form consisting of a filename and a line number.
- * The [navigatable] is a location the IDE can navigate to.
+ * The [source] is a human readable form consisting of a filename and a line number. The
+ * [navigatable] is a location the IDE can navigate to.
  */
 data class SourceLocation(val source: String, val navigatable: Navigatable?)

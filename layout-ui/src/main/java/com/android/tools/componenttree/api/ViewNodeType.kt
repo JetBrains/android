@@ -26,24 +26,16 @@ import javax.swing.tree.TreeCellRenderer
  */
 abstract class ViewNodeType<T> : NodeType<T> {
 
-  /**
-   * Returns the qualified tag name of [node].
-   */
+  /** Returns the qualified tag name of [node]. */
   abstract fun tagNameOf(node: T): String
 
-  /**
-   * Returns the id of [node] if present.
-   */
+  /** Returns the id of [node] if present. */
   abstract fun idOf(node: T): String?
 
-  /**
-   * The text attribute value lookup of the node if applicable.
-   */
+  /** The text attribute value lookup of the node if applicable. */
   abstract fun textValueOf(node: T): String?
 
-  /**
-   * The icon representing the component type, can optionally include state information.
-   */
+  /** The icon representing the component type, can optionally include state information. */
   abstract fun iconOf(node: T): Icon?
 
   abstract fun isEnabled(node: T): Boolean
@@ -53,8 +45,6 @@ abstract class ViewNodeType<T> : NodeType<T> {
   override fun toSearchString(node: T): String =
     ViewTreeCellRenderer.computeSearchString(this, node)
 
-  /**
-   * If true the renderer will display a faint representation of the node
-   */
+  /** If true the renderer will display a faint representation of the node */
   abstract fun isDeEmphasized(node: T): Boolean
 }

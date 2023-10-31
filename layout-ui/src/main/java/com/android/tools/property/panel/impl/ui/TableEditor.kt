@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.stdui.registerAnActionKey
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TableEditingRequest
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
@@ -32,6 +33,7 @@ import com.android.tools.property.ptable.PTableCellRendererProvider
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.psi.codeStyle.NameUtil
@@ -45,37 +47,52 @@ import javax.swing.SwingUtilities
 private const val DEFAULT_ROW_HEIGHT = 24
 private const val MINIMUM_ROW_HEIGHT = 20
 
-/**
- * A standard table control for editing multiple properties in a tabular form.
- */
-class TableEditor(val lineModel: TableLineModelImpl,
-                  rendererProvider: PTableCellRendererProvider,
-                  editorProvider: PTableCellEditorProvider,
-                  val actions: List<AnAction> = emptyList(),
-                  nameColumnFraction: ColumnFraction = ColumnFraction()) {
+/** A standard table control for editing multiple properties in a tabular form. */
+class TableEditor(
+  val lineModel: TableLineModelImpl,
+  rendererProvider: PTableCellRendererProvider,
+  editorProvider: PTableCellEditorProvider,
+  val actions: List<AnAction> = emptyList(),
+  nameColumnFraction: ColumnFraction = ColumnFraction()
+) {
 
-  private val table = PTable.create(lineModel.tableModel, lineModel, rendererProvider, editorProvider, { getToolTipText(it) }, ::updateUI,
-                                    nameColumnFraction)
+  private val table =
+    PTable.create(
+      lineModel.tableModel,
+      lineModel,
+      rendererProvider,
+      editorProvider,
+      { getToolTipText(it) },
+      ::updateUI,
+      nameColumnFraction
+    )
   val component = table.component as JTable
 
   init {
     component.background = secondaryPanelBackground
     component.rowHeight = computeRowHeight()
-    lineModel.addValueChangedListener(object : TableRowEditListener {
-      override fun valueChanged() {
-        handleValueChanged()
-      }
+    lineModel.addValueChangedListener(
+      object : TableRowEditListener {
+        override fun valueChanged() {
+          handleValueChanged()
+        }
 
-      override fun editRequest(type: TableEditingRequest, item: PTableItem?) {
-        handleEditRequest(type, item)
+        override fun editRequest(type: TableEditingRequest, item: PTableItem?) {
+          handleEditRequest(type, item)
+        }
       }
-    })
+    )
     component.selectionModel.addListSelectionListener {
       val index = component.selectedRow
-      val item = if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem else null
+      val item =
+        if (index >= 0 && index < component.rowCount) component.getValueAt(index, 1) as? PTableItem
+        else null
       lineModel.selectedItem = item
     }
-    HelpSupportBinding.registerHelpKeyActions(component, { lineModel.selectedItem as? PropertyItem })
+    HelpSupportBinding.registerHelpKeyActions(
+      component,
+      { lineModel.selectedItem as? PropertyItem }
+    )
 
     // In the properties panel we do not want the table to handle it's own navigation.
     // Ignore the events and allow the scrollPane created in PropertiesPage to handle the events.
@@ -83,16 +100,25 @@ class TableEditor(val lineModel: TableLineModelImpl,
     component.registerActionKey({}, KeyStrokes.PAGE_DOWN, "pageDown", { false })
 
     // Register all single keystroke shortcuts.
-    // Ignore the shortscuts with double keystrokes since we cannot add them to the InputMap of the table.
-    // In Intellij there are special handling of these double keystrokes that happens before the normal swing
+    // Ignore the shortscuts with double keystrokes since we cannot add them to the InputMap of the
+    // table.
+    // In Intellij there are special handling of these double keystrokes that happens before the
+    // normal swing
     // key stroke delegation. Here we do not want to take keystrokes away from the cell editors.
     actions.forEach { action ->
       action.shortcutSet.shortcuts
         .filterIsInstance<KeyboardShortcut>()
         .filter { it.secondKeyStroke == null }
         .forEach {
-          component.registerAnActionKey({ action }, it.firstKeyStroke, action.templatePresentation.description)
+          component.registerAnActionKey(
+            { action },
+            it.firstKeyStroke,
+            action.templatePresentation.description
+          )
         }
+    }
+    DataManager.registerDataProvider(component) { dataId ->
+      if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) lineModel.selectedItem else null
     }
   }
 
@@ -139,15 +165,20 @@ class TableEditor(val lineModel: TableLineModelImpl,
     }
     val item = component.getValueAt(tableRow, tableColumn)
     val renderer = component.getCellRenderer(tableRow, tableColumn)
-    val cell = renderer.getTableCellRendererComponent(component, item, false, false, tableRow, tableColumn) ?: return null
+    val cell =
+      renderer.getTableCellRendererComponent(component, item, false, false, tableRow, tableColumn)
+        ?: return null
     val rect = component.getCellRect(tableRow, tableColumn, true)
     cell.setBounds(0, 0, rect.width, rect.height)
-    val control = SwingUtilities.getDeepestComponentAt(cell, event.x - rect.x, event.y - rect.y) as? JComponent
+    val control =
+      SwingUtilities.getDeepestComponentAt(cell, event.x - rect.x, event.y - rect.y) as? JComponent
     return control?.getToolTipText(event)
   }
 
   private fun computeRowHeight(): Int {
-    val property = lineModel.tableModel.items.find { it is PropertyItem } as? PropertyItem ?: return JBUI.scale(DEFAULT_ROW_HEIGHT)
+    val property =
+      lineModel.tableModel.items.find { it is PropertyItem } as? PropertyItem
+        ?: return JBUI.scale(DEFAULT_ROW_HEIGHT)
     val textField = PropertyTextField(TextFieldPropertyEditorModel(property, true))
     return Integer.max(textField.preferredSize.height, JBUI.scale(MINIMUM_ROW_HEIGHT))
   }

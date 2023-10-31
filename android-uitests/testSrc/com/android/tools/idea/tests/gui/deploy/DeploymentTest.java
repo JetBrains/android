@@ -34,8 +34,8 @@ import com.android.tools.deployer.devices.FakeDeviceHandler;
 import com.android.tools.deployer.devices.FakeDeviceLibrary;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler;
+import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler;
 import com.android.tools.idea.run.deployable.DeviceBinder;
-import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.install.patch.PatchInstallingRestarter;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -44,10 +44,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.run.deployment.DeviceSelectorFixture;
 import com.android.tools.idea.tests.util.ddmlib.AndroidDebugBridgeUtils;
 import com.google.common.io.Files;
-import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.ui.RunContentManager;
 import com.intellij.ide.GeneralSettings;
-import com.intellij.ide.GeneralSettings.ProcessCloseConfirmation;
+import com.intellij.ide.ProcessCloseConfirmation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -299,8 +298,7 @@ public class DeploymentTest {
       capturedAndroidDeviceHandler = RunContentManager.getInstance(myProject).getAllDescriptors().stream()
         .filter(descriptor -> descriptor.getProcessHandler() instanceof AndroidProcessHandler)
         .map(descriptor -> (AndroidProcessHandler)descriptor.getProcessHandler())
-        .filter(handler -> handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY).getExecutor() ==
-                           DefaultRunExecutor.getRunExecutorInstance())
+        .filter(handler -> handler.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) != null)
         .filter(handler -> handler.isAssociated(myTargetDevice))
         .filter(handler -> handler.getClient(myTargetDevice) != null)
         .findAny();

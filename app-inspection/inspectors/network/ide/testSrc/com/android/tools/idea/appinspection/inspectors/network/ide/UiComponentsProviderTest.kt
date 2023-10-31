@@ -23,10 +23,10 @@ import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import javax.swing.JLabel
+import com.intellij.util.io.readBytes
 import org.junit.Rule
 import org.junit.Test
-import kotlin.io.path.readBytes
+import javax.swing.JLabel
 
 @RunsInEdt
 class UiComponentsProviderTest {
@@ -37,7 +37,8 @@ class UiComponentsProviderTest {
 
   @Test
   fun createImageDataViewer() {
-    val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
+    val componentsProvider =
+      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
 
     // Valid image results in the creation of an image data viewer.
     assertThat(
@@ -65,7 +66,8 @@ class UiComponentsProviderTest {
 
   @Test
   fun createTextDataViewer() {
-    val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
+    val componentsProvider =
+      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
 
     val viewer =
       componentsProvider.createDataViewer(
@@ -80,7 +82,8 @@ class UiComponentsProviderTest {
 
   @Test
   fun createPrettyDataViewer() {
-    val componentsProvider = DefaultUiComponentsProvider(projectRule.project)
+    val componentsProvider =
+      DefaultUiComponentsProvider(projectRule.project, projectRule.testRootDisposable)
 
     val viewer =
       componentsProvider.createDataViewer(

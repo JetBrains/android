@@ -64,11 +64,13 @@ private fun findLiteralsInClasses(classes: Collection<ByteArray>): List<Compiler
   }
 
 @VisibleForTesting
-internal fun PsiFile.getRelativePath(): String? = runReadAction {
-  ProjectFileIndex.getInstance(project).getSourceRootForFile(virtualFile)?.let { sourceRoot ->
+internal fun PsiFile.getRelativePath(): String? =
+  runReadAction {
+    ProjectFileIndex.getInstance(project).getSourceRootForFile(virtualFile)
+  }?.let { sourceRoot ->
     VfsUtilCore.getRelativePath(virtualFile, sourceRoot)
   }
-}
+
 /**
  * Class that manages the Live Literals declared by the compiler in a class file.
  *

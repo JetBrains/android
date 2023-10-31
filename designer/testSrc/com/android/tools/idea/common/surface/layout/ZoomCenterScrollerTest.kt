@@ -17,39 +17,52 @@ package com.android.tools.idea.common.surface.layout
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
-import kotlin.test.assertEquals
 
 class ZoomCenterScrollerTest {
 
   @Test
   fun testScrollAfterZoomIn1() {
-    // Test case: viewport size: (500 x 500). View component size changes from (1000 x 1000) to (2000 x 2000).
+    // Test case: viewport size: (500 x 500). View component size changes from (1000 x 1000) to
+    // (2000 x 2000).
     val viewRect = Rectangle(250, 250, 500, 500)
 
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(viewRect.width)
     whenever(viewportComponent.height).thenReturn(viewRect.height)
-    val viewport = TestDesignSurfaceViewport(Dimension(2000, 2000), viewRect, viewportComponent = viewportComponent)
+    val viewport =
+      TestDesignSurfaceViewport(
+        Dimension(2000, 2000),
+        viewRect,
+        viewportComponent = viewportComponent
+      )
 
-    val scroller = ZoomCenterScroller(Dimension(1000, 1000), Point(viewRect.location), Point(250, 250))
+    val scroller =
+      ZoomCenterScroller(Dimension(1000, 1000), Point(viewRect.location), Point(250, 250))
     scroller.scroll(viewport)
     assertEquals(Point(750, 750), viewport.viewPosition)
   }
 
   @Test
   fun testScrollAfterZoomIn2() {
-    // Test case: viewport size: (500 x 500). View component size changes from (1000 x 1000) to (2000 x 2000).
+    // Test case: viewport size: (500 x 500). View component size changes from (1000 x 1000) to
+    // (2000 x 2000).
     val viewRect = Rectangle(250, 250, 500, 500)
 
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
-    val viewport = TestDesignSurfaceViewport(Dimension(2000, 2000), viewRect, viewportComponent = viewportComponent)
+    val viewport =
+      TestDesignSurfaceViewport(
+        Dimension(2000, 2000),
+        viewRect,
+        viewportComponent = viewportComponent
+      )
 
     val scroller = ZoomCenterScroller(Dimension(1000, 1000), viewRect.location, Point(200, 400))
     scroller.scroll(viewport)
@@ -58,13 +71,19 @@ class ZoomCenterScrollerTest {
 
   @Test
   fun testScrollAfterZoomOut1() {
-    // Test case: viewport size: (500 x 500). View component size changes from (2000 x 2000) to (1000 x 1000).
+    // Test case: viewport size: (500 x 500). View component size changes from (2000 x 2000) to
+    // (1000 x 1000).
     val viewRect = Rectangle(500, 500, 500, 500)
 
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
-    val viewport = TestDesignSurfaceViewport(Dimension(1000, 1000), viewRect, viewportComponent = viewportComponent)
+    val viewport =
+      TestDesignSurfaceViewport(
+        Dimension(1000, 1000),
+        viewRect,
+        viewportComponent = viewportComponent
+      )
 
     val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(250, 250))
     scroller.scroll(viewport)
@@ -73,13 +92,19 @@ class ZoomCenterScrollerTest {
 
   @Test
   fun testScrollAfterZoomOut2() {
-    // Test case: viewport size: (500 x 500). View component size changes from (2000 x 2000) to (1000 x 1000).
+    // Test case: viewport size: (500 x 500). View component size changes from (2000 x 2000) to
+    // (1000 x 1000).
     val viewRect = Rectangle(500, 500, 500, 500)
 
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
-    val viewport = TestDesignSurfaceViewport(Dimension(1000, 1000), viewRect, viewportComponent = viewportComponent)
+    val viewport =
+      TestDesignSurfaceViewport(
+        Dimension(1000, 1000),
+        viewRect,
+        viewportComponent = viewportComponent
+      )
 
     val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(200, 400))
     scroller.scroll(viewport)

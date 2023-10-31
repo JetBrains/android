@@ -27,10 +27,11 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -89,10 +90,14 @@ public class AndroidPluginInfo {
   @Nullable
   public static AndroidPluginInfo findFromModel(@NotNull Project project) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
-      AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-      if (gradleModel != null && getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
+      GradleFacet gradleModel = GradleFacet.getInstance(module);
+      if (gradleModel != null && gradleModel.getGradleModuleModel() != null &&
+          getModuleSystem(module).getType() == AndroidModuleSystem.Type.TYPE_APP) {
         // This is the 'app' module in the project.
-        return new AndroidPluginInfo(module, gradleModel.getAgpVersion(), null);
+        String agpStringVersion = gradleModel.getGradleModuleModel().getAgpVersion();
+        if (agpStringVersion != null) {
+          return new AndroidPluginInfo(module, AgpVersion.tryParse(agpStringVersion), null);
+        }
       }
     }
     return null;
@@ -101,17 +106,19 @@ public class AndroidPluginInfo {
   @Slow
   @Nullable
   private static AndroidPluginInfo findInBuildFiles(@NotNull Project project, @Nullable Module appModule) {
-    Module fileAppModule = null;
-    // Try to find 'app' module or plugin version by reading build.gradle files.
-    BuildFileSearchResult result = searchInBuildFiles(project, appModule == null);
-    if (result.appVirtualFile != null) {
-      fileAppModule = findModuleForFile(result.appVirtualFile, project);
-    }
-    if (fileAppModule != null || appModule != null) {
-      AgpVersion pluginVersion = isNotEmpty(result.pluginVersion) ? AgpVersion.tryParse(result.pluginVersion) : null;
-      return new AndroidPluginInfo(fileAppModule == null ? appModule : fileAppModule, pluginVersion, result.pluginVirtualFile);
-    }
-    return null;
+    return ReadAction.compute(() -> {
+      Module fileAppModule = null;
+      // Try to find 'app' module or plugin version by reading build.gradle files.
+      BuildFileSearchResult result = searchInBuildFiles(project, appModule == null);
+      if (result.appVirtualFile != null) {
+        fileAppModule = findModuleForFile(result.appVirtualFile, project);
+      }
+      if (fileAppModule != null || appModule != null) {
+        AgpVersion pluginVersion = isNotEmpty(result.pluginVersion) ? AgpVersion.tryParse(result.pluginVersion) : null;
+        return new AndroidPluginInfo(fileAppModule == null ? appModule : fileAppModule, pluginVersion, result.pluginVirtualFile);
+      }
+      return null;
+    });
   }
 
   @Slow
@@ -190,12 +197,6 @@ public class AndroidPluginInfo {
   @NotNull
   public Module getModule() {
     return myModule;
-  }
-
-  // Provides singleton mock support in tests
-  @NotNull
-  public LatestKnownPluginVersionProvider getLatestKnownPluginVersionProvider() {
-    return LatestKnownPluginVersionProvider.INSTANCE;
   }
 
   @Nullable

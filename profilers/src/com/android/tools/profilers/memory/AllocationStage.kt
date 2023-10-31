@@ -1,4 +1,3 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.profilers.memory
 
 import com.android.tools.adtui.model.Range
@@ -31,7 +30,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   // - If live tracking session hasn't finished yet, `maxTrackingTimeUs` is +∞
   var minTrackingTimeUs = initMinUs
     private set
-  private var maxTrackingTimeUs = initMaxUs
+  var maxTrackingTimeUs = initMaxUs
     private set
   private val hasStartedTracking get() = minTrackingTimeUs > NEGATIVE_INFINITY
   val hasEndedTracking get() = maxTrackingTimeUs < POSITIVE_INFINITY

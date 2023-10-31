@@ -28,15 +28,10 @@ import com.android.adblib.tools.debugging.sendDdmsExit
 import com.android.adblib.withTextCollector
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.message.LogcatHeader
-import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -50,20 +45,20 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) : DumbAwareA
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = false
     e.presentation.isVisible = false
-    val project = e.getData(CommonDataKeys.PROJECT) ?: return
-    val logcatHeader = getLogcatMessage(e)?.header ?: return
+    val project = e.project ?: return
+    val logcatHeader = e.getLogcatMessage()?.header ?: return
 
-    val device = e.getData(CONNECTED_DEVICE) ?: return
+    val device = e.getConnectedDevice() ?: return
     e.presentation.isVisible = isVisible(device.sdk)
 
-    val process = findProcess(project, logcatHeader, device) ?: return
+    findProcess(project, logcatHeader, device) ?: return
     e.presentation.isEnabled = isEnabled(logcatHeader)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.getData(CommonDataKeys.PROJECT) ?: return
-    val logcatHeader = getLogcatMessage(e)?.header ?: return
-    val device = e.getData(CONNECTED_DEVICE) ?: return
+    val project = e.project ?: return
+    val logcatHeader = e.getLogcatMessage()?.header ?: return
+    val device = e.getConnectedDevice() ?: return
     val process = findProcess(project, logcatHeader, device) ?: return
 
     actionPerformed(AdbLibService.getSession(project), process, logcatHeader.applicationId)
@@ -166,16 +161,4 @@ internal sealed class TerminateAppActions(text: String, icon: Icon) : DumbAwareA
       }
     }
   }
-}
-
-private fun getLogcatMessage(e: AnActionEvent): LogcatMessage? {
-  val editor = e.getData(CommonDataKeys.EDITOR) as EditorEx? ?: return null
-  val offset = editor.caretModel.offset
-
-  var result: LogcatMessage? = null
-  editor.document.processRangeMarkersOverlappingWith(offset, offset) {
-    result = it.getUserData(LOGCAT_MESSAGE_KEY)
-    result == null
-  }
-  return result
 }

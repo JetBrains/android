@@ -225,6 +225,19 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // TRUE | FALSE
+  public static boolean boolean_literal(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "boolean_literal")) return false;
+    if (!nextTokenIs(builder, "<boolean literal>", FALSE, TRUE)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _NONE_, BOOLEAN_LITERAL, "<boolean literal>");
+    result = consumeToken(builder, TRUE);
+    if (!result) result = consumeToken(builder, FALSE);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  /* ********************************************************** */
   // name
   public static boolean collation_name(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "collation_name")) return false;
@@ -2408,6 +2421,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // NUMERIC_LITERAL
   //   | string_literal // X marks a blob literal
+  //   | boolean_literal
   //   | NULL
   //   | CURRENT_TIME
   //   | CURRENT_DATE
@@ -2417,6 +2431,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     boolean result;
     result = consumeToken(builder, NUMERIC_LITERAL);
     if (!result) result = string_literal(builder, level + 1);
+    if (!result) result = boolean_literal(builder, level + 1);
     if (!result) result = consumeToken(builder, NULL);
     if (!result) result = consumeToken(builder, CURRENT_TIME);
     if (!result) result = consumeToken(builder, CURRENT_DATE);
@@ -2627,7 +2642,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // signed_number | name | string_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
+  // signed_number | name | string_literal | boolean_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
   public static boolean pragma_value(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "pragma_value")) return false;
     boolean result;
@@ -2635,6 +2650,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     result = signed_number(builder, level + 1);
     if (!result) result = name(builder, level + 1);
     if (!result) result = string_literal(builder, level + 1);
+    if (!result) result = boolean_literal(builder, level + 1);
     if (!result) result = consumeToken(builder, ON);
     if (!result) result = consumeToken(builder, NO);
     if (!result) result = consumeToken(builder, FULL);
@@ -4093,7 +4109,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
   // 17: POSTFIX(collate_expression)
   // 18: ATOM(literal_expression)
   // 19: ATOM(column_ref_expression)
-  // 20: PREFIX(paren_expression)
+  // 20: ATOM(paren_expression)
   public static boolean expression(PsiBuilder builder, int level, int priority) {
     if (!recursion_guard_(builder, level, "expression")) return false;
     addVariant(builder, "<expression>");
@@ -4797,17 +4813,40 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
+  // '(' expression ( ',' expression )* ')'
   public static boolean paren_expression(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "paren_expression")) return false;
     if (!nextTokenIsSmart(builder, LPAREN)) return false;
-    boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, null);
+    boolean result;
+    Marker marker = enter_section_(builder);
     result = consumeTokenSmart(builder, LPAREN);
-    pinned = result;
-    result = pinned && expression(builder, level, -1);
-    result = pinned && report_error_(builder, consumeToken(builder, RPAREN)) && result;
-    exit_section_(builder, level, marker, PAREN_EXPRESSION, result, pinned, null);
-    return result || pinned;
+    result = result && expression(builder, level + 1, -1);
+    result = result && paren_expression_2(builder, level + 1);
+    result = result && consumeToken(builder, RPAREN);
+    exit_section_(builder, marker, PAREN_EXPRESSION, result);
+    return result;
+  }
+
+  // ( ',' expression )*
+  private static boolean paren_expression_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "paren_expression_2")) return false;
+    while (true) {
+      int pos = current_position_(builder);
+      if (!paren_expression_2_0(builder, level + 1)) break;
+      if (!empty_element_parsed_guard_(builder, "paren_expression_2", pos)) break;
+    }
+    return true;
+  }
+
+  // ',' expression
+  private static boolean paren_expression_2_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "paren_expression_2_0")) return false;
+    boolean result;
+    Marker marker = enter_section_(builder);
+    result = consumeTokenSmart(builder, COMMA);
+    result = result && expression(builder, level + 1, -1);
+    exit_section_(builder, marker, null, result);
+    return result;
   }
 
 }

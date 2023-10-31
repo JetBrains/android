@@ -140,7 +140,7 @@ public class MemoryClassSetViewTest {
   public void testSelectClassSetToShowInClassSetView() {
     assertThat(myClassSetRootNode.getChildCount()).isEqualTo(3);
     //noinspection unchecked
-    List<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
+    @NotNull List<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
     // Verify the ordering is based on retain size.
     assertThat(children.get(0).getAdapter()).isEqualTo(myInstanceObjects.get(2));
     assertThat(children.get(1).getAdapter()).isEqualTo(myInstanceObjects.get(1));

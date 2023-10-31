@@ -16,7 +16,6 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.testutils.TestUtils;
-import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.google.common.base.Preconditions;
 import com.intellij.openapi.util.SystemInfo;
@@ -53,7 +52,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
   private final AndroidSdk sdk;
   private AndroidStudioInstallation install;
   // Currently running emulators
-  private List<Emulator> emulators;
+  private final List<Emulator> emulators;
   private int nextPort = 8554;
 
   @Nullable
@@ -65,7 +64,7 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     this.sdk = sdk;
     this.env = new HashMap<>();
     this.install = null;
-    this.emulators = new ArrayList();
+    this.emulators = new ArrayList<>();
   }
 
   @Override
@@ -187,7 +186,13 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     return install.run(display, env, project, sdk.getSourceDir());
   }
 
-  //Temporary method, will be removed after submitting this review and corresponding AppInsightsTest fix.
+  public void runStudio(@NotNull final AndroidProject project,
+                        Consumer<AndroidStudio> callback) throws Exception {
+    try (AndroidStudio studio = runStudio(project)) {
+      callback.accept(studio);
+    }
+  }
+
   public void runStudio(@NotNull final AndroidProject project,
                         @Nullable final String memoryDashboardName,
                         Consumer<AndroidStudio> callback) throws Exception {
@@ -197,13 +202,13 @@ public class AndroidSystem implements AutoCloseable, TestRule {
     }
   }
 
-  public AndroidStudio runStudioFromApk(String projectPath) throws IOException, InterruptedException {
+  public AndroidStudio runStudioFromApk(AndroidProject project) throws IOException, InterruptedException {
     AndroidStudioInstallation install = getInstallation();
-    return install.runFromExistingProject(display, env, projectPath);
+    return install.run(display, env, project, sdk.getSourceDir());
   }
 
-  public void runStudioFromApk(String projectPath, Consumer<AndroidStudio> callback) throws Exception {
-    try (AndroidStudio studio = runStudioFromApk(projectPath)) {
+  public void runStudioFromApk(AndroidProject project, Consumer<AndroidStudio> callback) throws Exception {
+    try (AndroidStudio studio = runStudioFromApk(project)) {
       callback.accept(studio);
     }
   }

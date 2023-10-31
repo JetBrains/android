@@ -17,26 +17,27 @@ package com.android.tools.idea.run.blaze
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
+import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.LiveEditHelper
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
-import com.android.tools.idea.run.tasks.ConnectDebuggerTask
-import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.util.LaunchUtils
-import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.NopProcessHandler
@@ -47,7 +48,7 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.indicatorRunBlockingCancellable
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.xdebugger.XDebugSession
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -65,9 +66,11 @@ class BlazeAndroidConfigurationExecutor(
   private val consoleProvider: ConsoleProvider,
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
-  override val deviceFutures: DeviceFutures,
+  private val deviceFutures: DeviceFutures,
   private val myLaunchTasksProvider: BlazeLaunchTasksProvider,
-  private val launchOptions: LaunchOptions
+  private val launchOptions: LaunchOptions,
+  private val apkProvider: ApkProvider,
+  private val liveEditService: LiveEditService
 ) : AndroidConfigurationExecutor {
 
   val project = env.project
@@ -82,10 +85,10 @@ class BlazeAndroidConfigurationExecutor(
     val packageName = applicationIdProvider.packageName
     waitPreviousProcessTermination(devices, packageName, indicator)
 
-    val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
+    val processHandler = AndroidProcessHandler(packageName, { it.forceStop(packageName) })
 
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, processHandler, false, indicator, console)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -104,31 +107,33 @@ class BlazeAndroidConfigurationExecutor(
   private suspend fun doRun(
     devices: List<IDevice>,
     processHandler: ProcessHandler,
-    indicator: ProgressIndicator,
-    console: ConsoleView
-  ) = coroutineScope {
+    isDebug: Boolean,
+                            indicator: ProgressIndicator,
+                            console: ConsoleView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
+    env.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
+    env.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
+      override val appId = applicationId
+    })
     stat.beginLaunchTasks()
+    indicator.text = "Launching on devices"
     try {
       printLaunchTaskStartedMessage(console)
 
-      indicator.text = "Getting task for devices"
-
-      // A list of devices that we have launched application successfully.
-      indicator.text = "Launching on devices"
       devices.map { device ->
         async {
           if (launchOptions.isClearAppStorage) {
-            project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+            clearAppStorage(project, device, applicationId, RunStats.from(env))
           }
 
           LaunchUtils.initiateDismissKeyguard(device)
           LOG.info("Launching on device ${device.name}")
           val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator)
-          myLaunchTasksProvider.getTasks(device).forEach {
+          myLaunchTasksProvider.getTasks(device, isDebug).forEach {
             it.run(launchContext)
           }
+          LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationIdProvider, apkProvider, device)
           // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
         }
@@ -165,16 +170,11 @@ class BlazeAndroidConfigurationExecutor(
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, processHandler, true, indicator, console)
 
     val device = devices.single()
-    val debuggerTask = myLaunchTasksProvider.connectDebuggerTask
-      ?: throw RuntimeException(
-        "ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.javaClass.name
-      )
     indicator.text = "Connecting debugger"
-    val session = debuggerTask.perform(device, applicationId, env, indicator, console)
-    session.runContentDescriptor
+    myLaunchTasksProvider.startDebugSession(env, device, console, indicator, applicationId).runContentDescriptor
   }
 
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor =
@@ -196,22 +196,19 @@ class BlazeAndroidConfigurationExecutor(
 
 interface BlazeLaunchTasksProvider {
   @Throws(ExecutionException::class)
-  fun getTasks(device: IDevice): List<BlazeLaunchTask>
+  fun getTasks(device: IDevice, isDebug: Boolean): List<BlazeLaunchTask>
 
-  @get:Throws(ExecutionException::class)
-  val connectDebuggerTask: ConnectDebuggerTask?
+  @Throws(ExecutionException::class)
+  fun startDebugSession(
+    environment: ExecutionEnvironment, device: IDevice, console: ConsoleView,
+    indicator: ProgressIndicator, packageName: String
+  ): XDebugSession
 }
 
 
 interface BlazeLaunchTask {
   @Throws(ExecutionException::class)
   fun run(launchContext: BlazeLaunchContext)
-}
-
-class BlazeLaunchTaskWrapper(private val launchTask: LaunchTask):BlazeLaunchTask {
-  override fun run(launchContext: BlazeLaunchContext) {
-    launchTask.run(LaunchContext(launchContext.env, launchContext.device, launchContext.consoleView, launchContext.processHandler, launchContext.progressIndicator))
-  }
 }
 
 class BlazeLaunchContext(val env: ExecutionEnvironment,

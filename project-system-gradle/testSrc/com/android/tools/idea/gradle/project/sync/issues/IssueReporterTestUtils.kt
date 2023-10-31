@@ -27,9 +27,6 @@ class TestSyncIssueUsageReporter(
   var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null,
   var collectedGradleSyncIssue: GradleSyncIssue? = null
 ) : SyncIssueUsageReporter {
-  override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {
-    collectedFailure = failure
-  }
 
   override fun collect(issue: GradleSyncIssue) {
     collectedGradleSyncIssue = issue

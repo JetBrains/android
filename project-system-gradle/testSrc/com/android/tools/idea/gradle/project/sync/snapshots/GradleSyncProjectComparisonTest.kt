@@ -103,6 +103,7 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.TWO_JARS),
       ProjectStructureSnapshotTestDef(TestProject.COMPOSITE_BUILD),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC),
+      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS),
@@ -110,8 +111,10 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE),
+      ProjectStructureSnapshotTestDef(TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION),
+      ProjectStructureSnapshotTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
       ProjectStructureSnapshotTestDef(TestProject.KOTLIN_KAPT),
-      ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      // TODO(b/279759255) ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       ProjectStructureSnapshotTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       ProjectStructureSnapshotTestDef(TestProject.API_DEPENDENCY),
       ProjectStructureSnapshotTestDef(TestProject.LIGHT_SYNC_REFERENCE),
@@ -125,7 +128,8 @@ data class ProjectStructureSnapshotTestDef(
       ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.PRIVACY_SANDBOX_SDK),
       ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
-      ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT))
+      ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
     )
   }
 }

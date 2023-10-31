@@ -79,7 +79,7 @@ class AndroidCommentsKotlinLiveTemplateTest : LiveTemplateTestCase() {
     myFixture.type("something\n")
 
     // Then:
-    myFixture.checkResult(insertIntoPsiFileAt(location, content = "// ${templateName.toUpperCase()}: something "))
+    myFixture.checkResult(insertIntoPsiFileAt(location, content = "// ${templateName.uppercase()}: something "))
   }
 
   private val TEMPLATE_TODO = "todo"

@@ -30,10 +30,10 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
-        "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//tools/adt/idea/.idea/libraries:studio-proto",
         "//tools/adt/idea/build-attribution:build-analysis-results-proto",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 
@@ -50,6 +50,10 @@ iml_module(
                 "//tools/base/build-system:android_gradle_plugin.zip",
                 "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
             ],
+            "tags": [
+                "no_test_mac",  # b/113099009
+                "no_test_windows",  # b/135665870
+            ],
         },
         "other": {
             "data": [
@@ -59,10 +63,6 @@ iml_module(
             ],
         },
     },
-    tags = [
-        "no_test_mac",  # b/113099009
-        "no_test_windows",  # b/135665870
-    ],
     test_class = "com.android.build.attribution.AndroidBuildAttributionTestSuite",
     test_data = [
         ":test_deps",
@@ -90,7 +90,6 @@ iml_module(
         "//tools/base/build-analyzer/common:studio.android.build-analyzer.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",

@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.EdtRule
@@ -33,9 +34,7 @@ import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -129,6 +128,38 @@ class ComposeColorAnnotatorTest {
           val primaryVariant = Color(color = 0xFFAABBCC)
           val secondaryVariant = Color(color = 0x8057AD28)
         }
+      }
+      """.trimIndent()
+    )
+  }
+
+  @Test
+  fun testColorWithLeadingZero() {
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0xFFFF0000)
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    checkGutterIconInfos(
+      listOf(
+        Color(255, 0, 0, 255),
+      ),
+      includeClickAction = true
+    )
+    setNewColor("Co|lor(0xFFFF0000)", Color(0x0DFF0000, true))
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0x0DFF0000)
       }
       """.trimIndent()
     )
@@ -442,7 +473,7 @@ class ComposeColorReferenceAnnotatorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
     myFixture.testDataPath = getComposePluginTestDataPath()
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)
@@ -469,7 +500,7 @@ class ComposeColorReferenceAnnotatorTest {
     )
 
     val icons = myFixture.findAllGutters()
-    val colorGutterIconRenderer = icons.firstIsInstance<AndroidAnnotatorUtil.ColorRenderer>()
+    val colorGutterIconRenderer = icons.first {it is AndroidAnnotatorUtil.ColorRenderer}
     assertThat((colorGutterIconRenderer.icon as MultipleColorIcon).colors).containsExactlyElementsIn(arrayOf(Color(63, 81, 181)))
   }
 }

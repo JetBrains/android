@@ -16,12 +16,18 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.AnimatedIcon
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
+import org.junit.Assert.assertThrows
+import org.junit.Rule
+import org.junit.Test
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -29,10 +35,10 @@ import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.UIManager
-import org.junit.Assert.assertThrows
-import org.junit.Test
 
 class IconTableComponentTest {
+  @get:Rule val disposableRule = DisposableRule()
+
   @Test
   fun updateTablePresentation() {
     val icon = UIManager.get("Tree.expandedIcon", null) as Icon
@@ -41,15 +47,22 @@ class IconTableComponentTest {
     val selected =
       TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
     val unselected =
-      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = false)
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.GREEN, rowSelected = false)
 
     assertThat(label.icon).isEqualTo(icon)
 
     label.updateTablePresentation(presentationManager, selected)
-    assertSameImage(render(label, label.icon), render(label, icon.applyColor(JBColor.BLUE)))
+    assertThat(label.background).isEqualTo(JBColor.RED)
+    if (ExperimentalUI.isNewUI()) {
+      // We don't change the icon colors in the new UI
+      assertThat(label.icon).isEqualTo(icon)
+    } else {
+      assertSameImage(render(label, label.icon), render(label, icon.applyColor(JBColor.BLUE)))
+    }
 
     label.updateTablePresentation(presentationManager, unselected)
     assertThat(label.icon).isEqualTo(icon)
+    assertThat(label.background).isEqualTo(JBColor.GREEN)
   }
 
   @Test
@@ -100,6 +113,29 @@ class IconTableComponentTest {
     //  }
     //  Thread.sleep(500)
     //  assertThat(renders.get()).isGreaterThan(1)
+  }
+
+  @Test
+  fun focusedButton() {
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    val label = IconButton(UIManager.getIcon("Tree.expandedIcon", null))
+
+    assertThat(label.border).isNull()
+
+    focusManager.focusOwner = label
+
+    assertThat(label.border).isEqualTo(tableCellBorder(selected = false, focused = true))
+
+    label.updateTablePresentation(
+      TablePresentationManager(),
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
+    )
+
+    assertThat(label.border).isEqualTo(tableCellBorder(selected = true, focused = true))
+
+    focusManager.focusOwner = null
+
+    assertThat(label.border).isEqualTo(tableCellBorder(selected = true, focused = false))
   }
 }
 

@@ -38,14 +38,14 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import java.awt.Component
-import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
+import java.awt.Component
+import javax.swing.JPanel
 
 @RunsInEdt
 class NetworkInspectorDetailsPanelTest {

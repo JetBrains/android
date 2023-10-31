@@ -23,6 +23,7 @@ import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

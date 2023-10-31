@@ -17,12 +17,11 @@ package com.android.tools.idea.bleak
 
 import java.util.IdentityHashMap
 
-class LeakInfo(val g: HeapGraph, val leakRoot: Node, private val prevLeakRoot: Node) {
-  private val leaktrace: Leaktrace = leakRoot.getLeaktrace()
-  private val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
-  private val prevChildren = prevLeakRoot.children
-  private val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
-  private val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
+class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
+  val leaktrace: Leaktrace = leakRoot.getLeaktrace()
+  val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
+  val prevChildren = prevLeakRoot.children
+  val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
   val addedChildren = leakRoot.children.filter { c -> prevChildren.all { it.obj !== c.obj }}
   val retainedByNewChildren = mutableListOf<Node>()
   val retainedByAllChildren = mutableListOf<Node>()
@@ -30,7 +29,7 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, private val prevLeakRoot: N
   override fun toString() = buildString {
     appendln(leaktrace)
     appendLine(
-      " ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${addedChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
+      " ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${childrenObjects.size - prevChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
     addedChildren.take(20).forEach {
       appendLine("   Added: ${it.objString()}")
     }

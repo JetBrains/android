@@ -16,9 +16,9 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.xml.PreviewXmlBuilder
 import com.intellij.openapi.actionSystem.DataContext
@@ -53,7 +53,7 @@ internal abstract class ClassPreviewElementModelAdapter<T : ClassPreviewElement,
   }
 
   override fun applyToConfiguration(previewElement: T, configuration: Configuration) {
-    configuration.target = configuration.configurationManager.highestApiTarget
+    configuration.target = configuration.settings.highestApiTarget
   }
 
   override fun modelToElement(model: M): T? =

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.actions
 
-import com.android.tools.idea.streaming.PushButtonAction
+import com.android.tools.idea.streaming.core.PushButtonAction
 import com.android.tools.idea.streaming.device.actions.DevicePushButtonAction
 import com.android.tools.idea.streaming.emulator.actions.EmulatorPushButtonAction
 import com.android.tools.idea.streaming.emulator.actions.getEmulatorController

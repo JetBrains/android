@@ -22,10 +22,10 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.visual.ColorBlindModeModelsProvider
 import com.android.tools.idea.uibuilder.visual.verifyAdaptiveShapeReflected
 import com.android.tools.idea.uibuilder.visual.verifyDeviceReflected
+import com.android.tools.idea.uibuilder.visual.verifyDeviceStateReflected
 import com.android.tools.idea.uibuilder.visual.verifyFontReflected
 import com.android.tools.idea.uibuilder.visual.verifyLocaleReflected
 import com.android.tools.idea.uibuilder.visual.verifyNightModeReflected
-import com.android.tools.idea.uibuilder.visual.verifyDeviceStateReflected
 import com.android.tools.idea.uibuilder.visual.verifyTargetReflected
 import com.android.tools.idea.uibuilder.visual.verifyThemeReflected
 import com.android.tools.idea.uibuilder.visual.verifyUiModeReflected
@@ -51,9 +51,7 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
 
     assertNotEmpty(nlModels)
     val displayNames = ColorBlindMode.values().map { it.displayName }
-    nlModels.forEach {
-      assertTrue(displayNames.contains(it.modelDisplayName))
-    }
+    nlModels.forEach { assertTrue(displayNames.contains(it.modelDisplayName)) }
   }
 
   fun testReflectConfigurationFromSource() {
@@ -81,7 +79,8 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("Xml")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"

@@ -47,6 +47,19 @@ iml_module(
     srcs = ["android-extensions-idea/src"],
     iml_files = ["android-extensions-idea/intellij.android.kotlin.extensions.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
+    test_data = glob([
+        "android-extensions-idea/testData/**",
+        "idea-android/testData/android/AndroidManifest.xml",
+    ]) + [
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
+    test_srcs = ["android-extensions-idea/tests"],
+    test_tags = [
+        # Kotlin synthetics are deprecated and will not be supported with Kotlin K2.
+        # See https://android-developers.googleblog.com/2022/02/discontinuing-kotlin-synthetics-for-views.html
+        "no_k2",
+    ],
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common"],
     # do not sort: must match IML order
@@ -54,11 +67,12 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions.common[module]",
         "//tools/analytics-library/crash:analytics-crash[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.tests[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
     ],
 )
 
@@ -71,17 +85,15 @@ iml_module(
         "no_test_windows",
     ],
     test_class = "org.jetbrains.kotlin.android.KotlinAndroidTestSuite",
-    test_data = [
-        ":testData",
+    test_data = glob([
+        "idea-android/testData/**",
+    ]) + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
     ],
     test_shard_count = 2,
-    test_srcs = [
-        "android-extensions-idea/tests",
-        "idea-android/tests",
-    ],
+    test_srcs = ["idea-android/tests"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -89,9 +101,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
-        "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -103,16 +113,6 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
     ],
-)
-
-filegroup(
-    name = "testData",
-    srcs = glob([
-        "idea-android/testData/**",
-        "android-extensions-idea/testData/**",
-        "android-extensions-runtime/src/**",
-    ]),
-    visibility = ["//visibility:public"],
 )
 
 # managed by go/iml_to_build

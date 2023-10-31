@@ -38,17 +38,15 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.WEB_VIEW;
-import static java.util.Locale.ROOT;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -58,6 +56,7 @@ import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -88,6 +87,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,6 +110,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_WIDTH = "layout_conversion_wrapWidth"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT = "layout_conversion_wrapHeight"; //$NON-NLS-1$
   private static final HashSet<String> ourExcludedTags = new HashSet<>(Arrays.asList(TAG_LAYOUT, TAG_DATA, TAG_VARIABLE, TAG_IMPORT));
+  public static final String ACTION_UNDO_ID = "convert_constraintlayout_id";
   private final NlDesignSurface mySurface;
 
   public ConvertToConstraintLayoutAction(@NotNull NlDesignSurface surface) {
@@ -280,7 +281,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     public void execute() {
       WriteCommandAction.Builder builder =
-        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getSceneManager().getModel().getFile());
+        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getSceneManager().getModel().getFile())
+          .withName(TITLE).withGroupId(ACTION_UNDO_ID);
       builder.run(() -> preLayoutRun());
       layout();
       builder.run(() -> postLayoutRun());
@@ -350,7 +352,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
               manager.removeRenderListener(this);
 
               myEditor.measureChildren(layout, null)
-                .whenCompleteAsync((sizes, ex) -> NlWriteCommandActionUtil.run(layout, "Infer Constraints", () -> {
+                .whenCompleteAsync(
+                  (sizes, ex) -> NlWriteCommandActionUtil.run(
+                    Collections.singletonList(layout), "Infer Constraints", ACTION_UNDO_ID, () -> {
                   for (NlComponent component : sizes.keySet()) {
                     Dimension d = sizes.get(component);
                     component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
@@ -378,11 +382,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         int dph = myEditor.pxToDp(NlComponentHelperKt.getH(child));
         AttributesTransaction transaction = child.startAttributeTransaction();
         // Record the bounds for use by Scout
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(Locale.US, VALUE_N_DP, dpw));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(Locale.US, VALUE_N_DP, dph));
         // position in absolute coordinates
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(Locale.US, VALUE_N_DP, dpx));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(Locale.US, VALUE_N_DP, dpy));
         //* Set to wrap Scout can use
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);

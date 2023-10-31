@@ -19,22 +19,20 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.event.HyperlinkListener
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class DesignerCommonIssueSidePanelTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun testHyperlinkListener() {
-    val listener = HyperlinkListener { }
+    val listener = HyperlinkListener {}
     val issue = TestIssue(hyperlinkListener = listener)
     val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable)
     panel.loadIssueNode(TestIssueNode(issue))
@@ -46,15 +44,15 @@ class DesignerCommonIssueSidePanelTest {
   @Test
   fun testLoadIssue() {
     val panel = DesignerCommonIssueSidePanel(rule.project, rule.testRootDisposable)
-    assertFalse { panel.loadIssueNode(null) }
+    assertFalse(panel.loadIssueNode(null))
     assertFalse(panel.hasFirstComponent())
     assertFalse(panel.hasSecondComponent())
 
-    assertFalse { panel.loadIssueNode(TestNode()) }
+    assertFalse(panel.loadIssueNode(TestNode()))
     assertFalse(panel.hasFirstComponent())
     assertFalse(panel.hasSecondComponent())
 
-    assertTrue { panel.loadIssueNode(TestIssueNode(TestIssue())) }
+    assertTrue(panel.loadIssueNode(TestIssueNode(TestIssue())))
     assertTrue(panel.hasFirstComponent())
     assertFalse(panel.hasSecondComponent())
 

@@ -20,8 +20,6 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.followEle
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isNonExpressionPropertiesElement;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.METHOD;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.GROOVY;
-import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.KOTLIN;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement.getStandardProjectKey;
@@ -31,7 +29,6 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
-import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
@@ -596,17 +593,52 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, ExternalToModelMap.empty, ExternalToModelMap.empty);
+    return getExternalToModelMap(converter, ExternalToModelMap.empty, ExternalToModelMap.empty, ExternalToModelMap.empty);
   }
 
-  protected final @NotNull ExternalToModelMap getExternalToModelMap(
+  protected static @NotNull ExternalToModelMap getExternalToModelMap(
     @NotNull GradleDslNameConverter converter,
     ExternalToModelMap groovy,
     ExternalToModelMap kts
   ) {
-    Kind kind = converter.getKind();
-    if (kind == GROOVY) return groovy;
-    if (kind == KOTLIN) return kts;
+    return getExternalToModelMap(converter, groovy, kts, kts);
+  }
+
+  protected static @NotNull ExternalToModelMap getExternalToModelMap(
+    @NotNull GradleDslNameConverter converter,
+    ExternalToModelMap groovy,
+    ExternalToModelMap kts,
+    ExternalToModelMap declarative
+  ) {
+    return getExternalProperties(converter.getKind(), groovy, kts, declarative);
+  }
+
+  protected static @NotNull ExternalToModelMap getExternalProperties(
+    @NotNull Kind kind,
+    ExternalToModelMap groovy,
+    ExternalToModelMap kts) {
+    return getExternalProperties(kind, groovy, kts, kts);
+  }
+
+  protected static @NotNull ExternalToModelMap getExternalProperties(
+    @NotNull Kind kind,
+    ExternalToModelMap groovy,
+    ExternalToModelMap kts,
+    ExternalToModelMap declarative) {
+    switch (kind) {
+      case NONE -> {
+        return ExternalToModelMap.empty;
+      }
+      case GROOVY -> {
+        return groovy;
+      }
+      case KOTLIN -> {
+        return kts;
+      }
+      case TOML -> {
+        return declarative;
+      }
+    }
     return ExternalToModelMap.empty;
   }
 
@@ -847,11 +879,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       Pattern pattern;
       GradleDslElement table;
       if ("plugins".equals(tableName) || "bundles".equals(tableName) || "versions".equals(tableName)) {
-        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(2, referenceParts.size())));
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.stream().skip(2).map(Pattern::quote).toList()));
         table = versionCatalogFile.getElement(tableName);
       }
       else {
-        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(1, referenceParts.size())));
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.stream().skip(1).map(Pattern::quote).toList()));
         table = versionCatalogFile.getElement("libraries");
       }
       if (table == null) return null;

@@ -111,7 +111,7 @@ interface ProjectSystemSyncManager {
   }
 
   /** Listener which provides a callback for when syncs complete */
-  interface SyncResultListener {
+  fun interface SyncResultListener {
     @AnyThread
     fun syncEnded(result: SyncResult)
   }

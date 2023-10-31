@@ -19,7 +19,6 @@ import com.android.tools.asdriver.tests.Adb;
 import com.android.tools.asdriver.tests.AndroidProject;
 import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
-import com.android.tools.asdriver.tests.ComponentMatchersBuilder;
 import com.android.tools.asdriver.tests.Emulator;
 import com.android.tools.asdriver.tests.MavenRepo;
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher;
@@ -63,12 +62,7 @@ public class DebuggerTest {
 
       System.out.println("Debugging the application");
       studio.executeAction("android.deploy.DebugWithoutBuild");
-
-      // XDebuggerTree's presence represents that the debugger hit a breakpoint.
-      System.out.println("Checking for the debugger UI");
-      ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
-      builder.addSwingClassRegexMatch(".*XDebuggerTree$");
-      studio.waitForComponent(builder);
+      studio.resumeProgramFromDebugging();
     }
   }
 }

@@ -17,10 +17,12 @@ package com.android.tools.adtui.swing.popup
 
 import javax.swing.JComponent
 
-/**
- * Fake custom component popup for tests to verify content.
- */
-class FakeComponentPopup(val contentPanel: JComponent,
-                         val preferableFocusComponent: JComponent?,
-                         focusable: Boolean,
-                         requestFocus: Boolean) : FakeJBPopup<Unit>(emptyList(), isRequestFocus = requestFocus)
+/** Fake custom component popup for tests to verify content. */
+class FakeComponentPopup(
+  val contentPanel: JComponent,
+  val preferableFocusComponent: JComponent?,
+  focusable: Boolean,
+  requestFocus: Boolean
+) : FakeJBPopup<Unit>(emptyList(), isRequestFocus = requestFocus) {
+  override fun getContent() = contentPanel
+}

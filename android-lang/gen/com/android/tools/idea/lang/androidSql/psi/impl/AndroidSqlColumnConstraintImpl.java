@@ -46,6 +46,12 @@ public class AndroidSqlColumnConstraintImpl extends ASTWrapperPsiElement impleme
 
   @Override
   @Nullable
+  public AndroidSqlBooleanLiteral getBooleanLiteral() {
+    return findChildByClass(AndroidSqlBooleanLiteral.class);
+  }
+
+  @Override
+  @Nullable
   public AndroidSqlCollationName getCollationName() {
     return findChildByClass(AndroidSqlCollationName.class);
   }

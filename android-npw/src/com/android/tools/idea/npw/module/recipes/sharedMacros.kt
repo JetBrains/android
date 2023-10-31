@@ -22,7 +22,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTe
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.getMaterialComponentName
@@ -97,8 +96,8 @@ fun proguardConfig(
     """
   }
 
-fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVersion: GradlePluginVersion): String {
-  val isNewAGP = AgpVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("7.0.0") >= 0
+fun toAndroidFieldVersion(fieldName: String, fieldValue: String, agpVersion: AgpVersion): String {
+  val isNewAGP = agpVersion.compareIgnoringQualifiers("7.0.0") >= 0
   val versionNumber = fieldValue.toIntOrNull()
   return when {
     isNewAGP && versionNumber == null -> "${fieldName}Preview \"${fieldValue.replace("android-", "")}\""
@@ -109,7 +108,7 @@ fun toAndroidFieldVersion(fieldName: String, fieldValue: String, gradlePluginVer
 }
 
 fun androidConfig(
-  gradlePluginVersion: GradlePluginVersion,
+  agpVersion: AgpVersion,
   buildApiString: String,
   minApi: String,
   targetApi: String,
@@ -125,12 +124,12 @@ fun androidConfig(
   cppStandard: CppStandardType
 ): String {
   val propertiesBlock = if (isDynamicFeature) {
-    toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)
+    toAndroidFieldVersion("minSdk", minApi, agpVersion)
   }
   else {
     """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
-    ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-    ${renderIf(!isLibraryProject) { toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion) }}
+    ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
+    ${renderIf(!isLibraryProject) { toAndroidFieldVersion("targetSdk", targetApi, agpVersion) }}
     ${renderIf(!isLibraryProject) { "versionCode 1" }}
     ${renderIf(!isLibraryProject) { "versionName \"1.0\"" }}
     """
@@ -172,7 +171,7 @@ fun androidConfig(
   return """
     android {
     namespace '$applicationId'
-    ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
+    ${toAndroidFieldVersion("compileSdk", buildApiString, agpVersion)}
 
     defaultConfig {
       $propertiesBlock

@@ -219,12 +219,12 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       myLogger = myThrottleProgress ? new ThrottledProgressWrapper(customLogger) : customLogger;
     }
 
-    Project[] projects = ProjectManager.getInstance().getOpenProjects();
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
       ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
+        @NotNull Project[] projects = ProjectManager.getInstance().getOpenProjects();
         for (Project project : projects) {
           if (!project.isDisposed()) {
             project.getMessageBus().syncPublisher(SdkInstallListener.TOPIC)
@@ -255,7 +255,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     myBackgroundAction.setTask(task);
 
     ProgressIndicator indicator;
-    boolean hasOpenProjects = projects.length > 0;
+    boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
     if (hasOpenProjects) {
       indicator = new BackgroundableProcessIndicator(task);
     }

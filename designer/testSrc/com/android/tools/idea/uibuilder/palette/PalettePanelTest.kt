@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Dependency
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
@@ -64,18 +64,18 @@ import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import junit.framework.Assert.assertFalse
 import org.intellij.lang.annotations.Language
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.isNull
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyCollection
 import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.isNull
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -99,8 +99,7 @@ private const val CHECKBOX_ITEM_INDEX = 2
 class PalettePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule
-  val chain = RuleChain.outerRule(projectRule).around(JBPopupRule()).around(EdtRule())!!
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(JBPopupRule()).around(EdtRule())!!
 
   private val myTreeDumper = NlTreeDumper(true, false)
   private var myDependencyManager: DependencyManager? = null
@@ -115,7 +114,8 @@ class PalettePanelTest {
     projectRule.replaceService(CopyPasteManager::class.java, mock())
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
     projectRule.replaceProjectService(GradleDependencyManager::class.java, mock())
-    myPanel = PalettePanel(projectRule.project, myDependencyManager!!, projectRule.testRootDisposable)
+    myPanel =
+      PalettePanel(projectRule.project, myDependencyManager!!, projectRule.testRootDisposable)
   }
 
   @After
@@ -171,7 +171,9 @@ class PalettePanelTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val itemList = myPanel!!.itemList
     val x = itemList.width - 10
-    itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON1_MASK, x, 10, 1, false))
+    itemList.dispatchEvent(
+      MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON1_MASK, x, 10, 1, false)
+    )
     verify(myDependencyManager!!).ensureLibraryIsIncluded(eq(itemList.selectedValue))
   }
 
@@ -188,7 +190,9 @@ class PalettePanelTest {
   @Test
   fun testSearchPaletteWithCustomComponent() {
     // Regression test for b/65842975
-    @Language("JAVA") val widget = """package a.b;
+    @Language("JAVA")
+    val widget =
+      """package a.b;
 
 import android.content.Context;
 import android.webkit.WebView;
@@ -240,16 +244,26 @@ public class MyWebView extends android.webkit.WebView {
   @Test
   fun testShiftHelpOnPaletteItem() {
     setUpLayoutDesignSurface()
-    val listener = myPanel!!.itemList.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_MASK))
+    val listener =
+      myPanel!!
+        .itemList
+        .getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_MASK))
     assertThat(listener).isNotNull()
     val event: ActionEvent = mock()
     listener.actionPerformed(event)
-    verify(BrowserLauncher.instance).browse(eq("https://developer.android.com/reference/android/widget/TextView.html"), isNull(), isNull())
+    verify(BrowserLauncher.instance)
+      .browse(
+        eq("https://developer.android.com/reference/android/widget/TextView.html"),
+        isNull(),
+        isNull()
+      )
   }
 
   @Test
   fun testDragAndDropAreLoggedForAnalytics() {
-    @Language("XML") val representation = """<android.support.constraint.ConstraintLayout
+    @Language("XML")
+    val representation =
+      """<android.support.constraint.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -265,7 +279,13 @@ public class MyWebView extends android.webkit.WebView {
     val list: JList<Palette.Item> = myPanel!!.itemList
     val handler = list.transferHandler
     imitateDragAndDrop(handler, list)
-    verify(usageTracker).logDropFromPalette(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(), representation, "Layouts", -1)
+    verify(usageTracker)
+      .logDropFromPalette(
+        AndroidXConstants.CONSTRAINT_LAYOUT.defaultName(),
+        representation,
+        "Layouts",
+        -1
+      )
   }
 
   @Test
@@ -295,19 +315,20 @@ public class MyWebView extends android.webkit.WebView {
     val surface = setUpLayoutDesignSurface()
     myPanel!!.categoryList.selectedIndex = BUTTON_CATEGORY_INDEX
     myPanel!!.itemList.selectedIndex = CHECKBOX_ITEM_INDEX
-    val listener = myPanel!!.itemList.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))
+    val listener =
+      myPanel!!.itemList.getActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0))
     assertThat(listener).isNotNull()
     val event: ActionEvent = mock()
     listener.actionPerformed(event)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(myTreeDumper.toTree(surface.model!!.components)).isEqualTo(
-      """NlComponent{tag=<LinearLayout>, instance=0}
+    assertThat(myTreeDumper.toTree(surface.model!!.components))
+      .isEqualTo(
+        """NlComponent{tag=<LinearLayout>, instance=0}
     NlComponent{tag=<TextView>, instance=1}
     NlComponent{tag=<CheckBox>, instance=2}"""
-    )
-    assertThat(myTreeDumper.toTree(surface.selectionModel.selection)).isEqualTo(
-      "NlComponent{tag=<CheckBox>, instance=2}"
-    )
+      )
+    assertThat(myTreeDumper.toTree(surface.selectionModel.selection))
+      .isEqualTo("NlComponent{tag=<CheckBox>, instance=2}")
   }
 
   @Test
@@ -319,7 +340,9 @@ public class MyWebView extends android.webkit.WebView {
     val y = bounds.y + bounds.height / 2
 
     // On some OS we get context menus on mouse pressed events
-    itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_PRESSED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true))
+    itemList.dispatchEvent(
+      MouseEvent(itemList, MouseEvent.MOUSE_PRESSED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true)
+    )
     val popupFactory = JBPopupFactory.getInstance() as FakeJBPopupFactory
     assertThat(popupFactory.getChildPopups(itemList)).hasSize(1)
     assertThat(itemList.selectedIndex).isEqualTo(3)
@@ -334,7 +357,9 @@ public class MyWebView extends android.webkit.WebView {
     val y = bounds.y + bounds.height / 2
 
     // On some OS we get context menus on mouse released events
-    itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true))
+    itemList.dispatchEvent(
+      MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.BUTTON3_MASK, x, y, 1, true)
+    )
     val popupFactory = JBPopupFactory.getInstance() as FakeJBPopupFactory
     assertThat(popupFactory.getChildPopups(itemList)).hasSize(1)
     assertThat(itemList.selectedIndex).isEqualTo(3)
@@ -348,14 +373,14 @@ public class MyWebView extends android.webkit.WebView {
     val event: AnActionEvent = mock()
     myPanel!!.addToDesignAction.actionPerformed(event)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(myTreeDumper.toTree(surface.model!!.components)).isEqualTo(
-      """NlComponent{tag=<LinearLayout>, instance=0}
+    assertThat(myTreeDumper.toTree(surface.model!!.components))
+      .isEqualTo(
+        """NlComponent{tag=<LinearLayout>, instance=0}
     NlComponent{tag=<TextView>, instance=1}
     NlComponent{tag=<CheckBox>, instance=2}"""
-    )
-    assertThat(myTreeDumper.toTree(surface.selectionModel.selection)).isEqualTo(
-      "NlComponent{tag=<CheckBox>, instance=2}"
-    )
+      )
+    assertThat(myTreeDumper.toTree(surface.selectionModel.selection))
+      .isEqualTo("NlComponent{tag=<CheckBox>, instance=2}")
   }
 
   @Test
@@ -368,10 +393,13 @@ public class MyWebView extends android.webkit.WebView {
     val presentation = myPanel!!.addToDesignAction.templatePresentation.clone()
     val gradleDependencyManager = GradleDependencyManager.getInstance(projectRule.project)
     `when`(event.presentation).thenReturn(presentation)
-    `when`(gradleDependencyManager.findMissingDependencies(any(Module::class.java), anyCollection()))
-      .thenReturn(listOf(GradleCoordinate.parseCoordinateString(SdkConstants.ADS_ARTIFACT)))
+    `when`(
+        gradleDependencyManager.findMissingDependencies(any(Module::class.java), anyCollection())
+      )
+      .thenReturn(listOf(Dependency.parse(SdkConstants.ADS_ARTIFACT)))
 
-    // This statement would fail if the user is asked if they want to add a dependency on play-services-ads:
+    // This statement would fail if the user is asked if they want to add a dependency on
+    // play-services-ads:
     myPanel!!.addToDesignAction.update(event)
   }
 
@@ -382,7 +410,12 @@ public class MyWebView extends android.webkit.WebView {
     myPanel!!.itemList.selectedIndex = CHECKBOX_ITEM_INDEX
     val event: AnActionEvent = mock()
     myPanel!!.androidDocAction.actionPerformed(event)
-    verify(BrowserLauncher.instance).browse(eq("https://developer.android.com/reference/android/widget/CheckBox.html"), isNull(), isNull())
+    verify(BrowserLauncher.instance)
+      .browse(
+        eq("https://developer.android.com/reference/android/widget/CheckBox.html"),
+        isNull(),
+        isNull()
+      )
   }
 
   @Test
@@ -392,14 +425,21 @@ public class MyWebView extends android.webkit.WebView {
     myPanel!!.itemList.selectedIndex = CHECKBOX_ITEM_INDEX
     val event: AnActionEvent = mock()
     myPanel!!.materialDocAction.actionPerformed(event)
-    verify(BrowserLauncher.instance).browse(eq("https://d.android.com/r/studio-ui/designer/material/checkbox"), isNull(), isNull())
+    verify(BrowserLauncher.instance)
+      .browse(
+        eq("https://d.android.com/r/studio-ui/designer/material/checkbox"),
+        isNull(),
+        isNull()
+      )
   }
 
   @Test
   fun testPopupMenuWithPreferences() {
     setUpPreferenceDesignSurface()
     val itemList = myPanel!!.itemList
-    itemList.dispatchEvent(MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true))
+    itemList.dispatchEvent(
+      MouseEvent(itemList, MouseEvent.MOUSE_RELEASED, 0, InputEvent.CTRL_DOWN_MASK, 10, 10, 1, true)
+    )
 
     // Popup shown for first item in the item list:
     val popupFactory = JBPopupFactory.getInstance() as FakeJBPopupFactory
@@ -412,7 +452,8 @@ public class MyWebView extends android.webkit.WebView {
     setUpLayoutDesignSurface()
     val itemList = myPanel!!.itemList
     assertThat(itemList.emptyText.text).isEqualTo("No favorites")
-    assertThat(itemList.emptyText.secondaryComponent.getCharSequence(false)).isEqualTo("Right click to add")
+    assertThat(itemList.emptyText.secondaryComponent.getCharSequence(false))
+      .isEqualTo("Right click to add")
     myPanel!!.categoryList.selectedIndex = BUTTON_CATEGORY_INDEX
     assertThat(itemList.emptyText.text).isEqualTo("Empty group")
     assertThat(itemList.emptyText.secondaryComponent.getCharSequence(false)).isEqualTo("")
@@ -451,10 +492,15 @@ public class MyWebView extends android.webkit.WebView {
         val y = bounds.y + bounds.height / 2
         val app = ApplicationManager.getApplication() as ApplicationEx
         // During the menu popup and MenuGroup.update, we are not allowed to write to PSI.
-        // At runtime this is checked because an async DataContext is used in ActionUpdater.expandActionGroupAsync.
+        // At runtime this is checked because an async DataContext is used in
+        // ActionUpdater.expandActionGroupAsync.
         // Simulate that here by adding the no write check up front:
         @Suppress("UnstableApiUsage")
-        ProgressIndicatorUtils.runActionAndCancelBeforeWrite(app, { error("No writes allowed") }, { ui.mouse.rightClick(x, y) })
+        ProgressIndicatorUtils.runActionAndCancelBeforeWrite(
+          app,
+          { error("No writes allowed") },
+          { ui.mouse.rightClick(x, y) }
+        )
       }
     }
   }
@@ -469,11 +515,24 @@ public class MyWebView extends android.webkit.WebView {
     return statusBar
   }
 
-  private fun checkTypingStartsFiltering(component: JComponent, character: Char, expectSearchStarted: Boolean) {
+  private fun checkTypingStartsFiltering(
+    component: JComponent,
+    character: Char,
+    expectSearchStarted: Boolean
+  ) {
     val toolWindow = TestToolWindow()
     myPanel!!.registerCallbacks(toolWindow)
     for (listener in component.keyListeners) {
-      listener.keyTyped(KeyEvent(component, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, KeyEvent.VK_UNDEFINED, character))
+      listener.keyTyped(
+        KeyEvent(
+          component,
+          KeyEvent.KEY_TYPED,
+          System.currentTimeMillis(),
+          0,
+          KeyEvent.VK_UNDEFINED,
+          character
+        )
+      )
     }
     if (expectSearchStarted) {
       assertThat(toolWindow.initialSearchString).isEqualTo(character.toString())
@@ -504,17 +563,19 @@ public class MyWebView extends android.webkit.WebView {
   }
 
   private fun createDesignSurface(layoutType: DesignerEditorFileType): DesignSurface<*> {
-    val (resourceFolder, name) = when(layoutType) {
-      LayoutFileType -> SdkConstants.FD_RES_LAYOUT to "layout.xml"
-      PreferenceScreenFileType -> SdkConstants.FD_RES_XML to "preference.xml"
-      MenuFileType -> SdkConstants.FD_RES_MENU to "menu.xml"
-      else -> error("unknown type")
-    }
+    val (resourceFolder, name) =
+      when (layoutType) {
+        LayoutFileType -> SdkConstants.FD_RES_LAYOUT to "layout.xml"
+        PreferenceScreenFileType -> SdkConstants.FD_RES_XML to "preference.xml"
+        MenuFileType -> SdkConstants.FD_RES_MENU to "menu.xml"
+        else -> error("unknown type")
+      }
     myModel = createModel(resourceFolder, name).build()
     val surface = myModel!!.surface
     LayoutTestUtilities.createScreen(myModel)
     doReturn(layoutType).`when`(surface).layoutType
-    // setToolContextAsyncImpl requires some operations to be executed on the UI thread so let the events execute until it completes
+    // setToolContextAsyncImpl requires some operations to be executed on the UI thread so let the
+    // events execute until it completes
     try {
       pumpEventsAndWaitForFuture(myPanel!!.setToolContextAsyncImpl(surface), 5, TimeUnit.SECONDS)
     } catch (e: Exception) {
@@ -537,25 +598,36 @@ public class MyWebView extends android.webkit.WebView {
   }
 
   private fun createModel(resourceFolder: String, name: String): ModelBuilder =
-    NlModelBuilderUtil.model(projectRule, resourceFolder, name,
-                             ComponentDescriptor(SdkConstants.LINEAR_LAYOUT)
-                               .withBounds(0, 0, 2000, 2000)
-                               .matchParentWidth()
-                               .matchParentHeight()
-                               .children(
-                                 ComponentDescriptor(SdkConstants.TEXT_VIEW)
-                                   .withBounds(200, 200, 200, 200)
-                                   .id("@id/myText")
-                                   .matchParentWidth()
-                                   .height("100dp")
-                               ))
+    NlModelBuilderUtil.model(
+      projectRule,
+      resourceFolder,
+      name,
+      ComponentDescriptor(SdkConstants.LINEAR_LAYOUT)
+        .withBounds(0, 0, 2000, 2000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          ComponentDescriptor(SdkConstants.TEXT_VIEW)
+            .withBounds(200, 200, 200, 200)
+            .id("@id/myText")
+            .matchParentWidth()
+            .height("100dp")
+        )
+    )
 
   private fun imitateDragAndDrop(handler: TransferHandler, component: JComponent): Boolean {
-    val createTransferable = handler.javaClass.getDeclaredMethod("createTransferable", JComponent::class.java)
+    val createTransferable =
+      handler.javaClass.getDeclaredMethod("createTransferable", JComponent::class.java)
     createTransferable.isAccessible = true
-    val transferable = createTransferable.invoke(handler, component) as? Transferable ?: return false
+    val transferable =
+      createTransferable.invoke(handler, component) as? Transferable ?: return false
     val exportDone =
-      handler.javaClass.getDeclaredMethod("exportDone", JComponent::class.java, Transferable::class.java, Int::class.javaPrimitiveType)
+      handler.javaClass.getDeclaredMethod(
+        "exportDone",
+        JComponent::class.java,
+        Transferable::class.java,
+        Int::class.javaPrimitiveType
+      )
     exportDone.isAccessible = true
     exportDone.invoke(handler, component, transferable, DnDConstants.ACTION_MOVE)
     return true

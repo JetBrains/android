@@ -48,7 +48,6 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
@@ -62,10 +61,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.impl.HeadlessDataManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
@@ -314,7 +310,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
-    textView.layout(SceneContext.get(screenView), 0);
+    textView.layout(screenView.getContext(), 0);
 
     int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
     int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());
@@ -394,7 +390,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
-    textView.layout(SceneContext.get(screenView), 0);
+    textView.layout(screenView.getContext(), 0);
 
     int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
     int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());

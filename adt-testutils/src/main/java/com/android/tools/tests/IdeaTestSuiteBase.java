@@ -19,29 +19,23 @@ import static com.android.testutils.TestUtils.resolveWorkspacePath;
 
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
+import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.RepoLinker;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
-import org.junit.ClassRule;
 
+@JarTestSuiteRunner.FinalizerTest(LastInIdeaTestSuite.class)
 public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
-
-  // Note: the leak checker can be disabled in an individual test suite by setting leakChecker.enabled = false.
-  @ClassRule public static final LeakCheckerRule leakChecker = new LeakCheckerRule();
 
   static {
     try {
@@ -128,7 +122,7 @@ public class IdeaTestSuiteBase {
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = TestUtils.getWorkspaceRoot().resolve(outputPath).toFile();
+    File outDir = resolveWorkspacePath(outputPath).toFile();
     if (!outDir.isDirectory() && !outDir.mkdirs()) {
       throw new RuntimeException("Failed to create output directory: " + outDir);
     }
@@ -195,7 +189,7 @@ public class IdeaTestSuiteBase {
 
   @NotNull
   private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
-    Path file = TestUtils.getWorkspaceRoot().resolve(relativePath);
+    Path file = resolveWorkspacePath(relativePath);
     if (!Files.exists(file)) {
       throw new IllegalArgumentException(relativePath + " does not exist");
     }

@@ -21,12 +21,12 @@ import static org.mockito.Mockito.when;
 
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderResultStats;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.RenderResultStats;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -34,6 +34,7 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.google.wireless.android.sdk.stats.LayoutEditorState;
 import com.intellij.mock.MockModule;
+import com.intellij.mock.MockProject;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.UIUtil;
 
@@ -93,7 +94,8 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
     when(result.getRootViews()).thenReturn(ImmutableList.of(rootView));
     when(result.getRenderResult()).thenReturn(renderResult);
     when(result.getLogger()).thenReturn(logger);
-    when(result.getModule()).thenReturn(new MockModule(getTestRootDisposable()));
+    MockModule module = new MockModule(new MockProject(null, getTestRootDisposable()), getTestRootDisposable());
+    when(result.getModule()).thenReturn(module);
     when(result.getStats()).thenReturn(new RenderResultStats(-1, 230L, -1, -1, -1));
 
     tracker.logRenderResult(LayoutEditorRenderResult.Trigger.EDIT, result, CommonUsageTracker.RenderResultType.RENDER);

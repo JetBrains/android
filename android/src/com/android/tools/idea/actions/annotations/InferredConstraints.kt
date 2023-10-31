@@ -304,7 +304,7 @@ class InferredConstraints private constructor(
    * Returns a list of all annotations; if [namesOnly] it will only use
    * simple names
    */
-  private fun getAllAnnotations(namesOnly: Boolean): List<String> {
+  fun getAllAnnotations(namesOnly: Boolean): List<String> {
     return getAnnotations(annotations, namesOnly)
   }
 
@@ -475,7 +475,7 @@ class InferredConstraints private constructor(
    * incompatible or implicit other annotations such as `@StringRes` or
    * `@DimenRes`.
    */
-  private fun clearResourceTypes() {
+  fun clearResourceTypes() {
     if (ignore) {
       return
     }
@@ -1368,7 +1368,7 @@ class InferredConstraints private constructor(
      * A map from qualified annotation name back to the corresponding index in
      * the [annotationNames] array
      */
-    private val annotationToIndex: MutableMap<String, Int> = mutableMapOf()
+    val annotationToIndex: MutableMap<String, Int> = mutableMapOf()
 
     private fun isResourceAnnotation(qualifiedName: String): Boolean {
       val index = annotationToIndex[qualifiedName] ?: return false

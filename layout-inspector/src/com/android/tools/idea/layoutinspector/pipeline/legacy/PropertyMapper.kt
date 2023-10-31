@@ -87,9 +87,7 @@ import com.android.SdkConstants.VALUE_VERTICAL
 import com.android.tools.idea.layoutinspector.properties.PropertyType
 import java.util.Locale
 
-/**
- * Conversion of legacy layout inspector properties to recognizable attribute names and values.
- */
+/** Conversion of legacy layout inspector properties to recognizable attribute names and values. */
 object PropertyMapper {
   private var mapping: Map<String, PropertyDefinition>? = null
 
@@ -100,7 +98,9 @@ object PropertyMapper {
 
   private fun createMapping(): Map<String, PropertyDefinition> {
     val gravityIntMapping = GravityIntMapping()
-    val gravityMapper: (String) -> String = { gravityIntMapping.fromIntValue(toInt(it) ?: 0).joinToString(separator = "|") }
+    val gravityMapper: (String) -> String = {
+      gravityIntMapping.fromIntValue(toInt(it) ?: 0).joinToString(separator = "|")
+    }
     val idMapper: (String) -> String = { mapId(it) }
     val colorMapper: (String) -> String = { mapColor(it) }
 
@@ -108,7 +108,8 @@ object PropertyMapper {
 
       // android.app.ActionBar.LayoutParams
       // android.widget.LinearLayout.LayoutParams
-      "layout_gravity" to PropertyDefinition(ATTR_LAYOUT_GRAVITY, PropertyType.GRAVITY, gravityMapper),
+      "layout_gravity" to
+        PropertyDefinition(ATTR_LAYOUT_GRAVITY, PropertyType.GRAVITY, gravityMapper),
       "layout_weight" to PropertyDefinition(ATTR_LAYOUT_WEIGHT, PropertyType.FLOAT),
 
       // android.view.View
@@ -117,20 +118,30 @@ object PropertyMapper {
       "getAlpha()" to PropertyDefinition(ATTR_ALPHA, PropertyType.FLOAT),
       "getAutofillHints()" to PropertyDefinition(ATTR_AUTOFILL_HINTS, PropertyType.STRING),
       "getBaseline()" to PropertyDefinition("baseline", PropertyType.DIMENSION),
-      "getContentDescription()" to PropertyDefinition(ATTR_CONTENT_DESCRIPTION, PropertyType.STRING),
-      "getDefaultFocusHighlightEnabled()" to PropertyDefinition("defaultFocusHighlightEnabled", PropertyType.BOOLEAN),
+      "getContentDescription()" to
+        PropertyDefinition(ATTR_CONTENT_DESCRIPTION, PropertyType.STRING),
+      "getDefaultFocusHighlightEnabled()" to
+        PropertyDefinition("defaultFocusHighlightEnabled", PropertyType.BOOLEAN),
       "getElevation()" to PropertyDefinition(ATTR_ELEVATION, PropertyType.DIMENSION_FLOAT),
-      "getFilterTouchesWhenObscured()" to PropertyDefinition("filterTouchesWhenObscured", PropertyType.BOOLEAN),
+      "getFilterTouchesWhenObscured()" to
+        PropertyDefinition("filterTouchesWhenObscured", PropertyType.BOOLEAN),
       "getFitsSystemWindows()" to PropertyDefinition("fitsSystemWindows", PropertyType.BOOLEAN),
-      "getFocusable()" to PropertyDefinition(ATTR_FOCUSABLE, PropertyType.STRING) { mapFocusable(it) },
+      "getFocusable()" to
+        PropertyDefinition(ATTR_FOCUSABLE, PropertyType.STRING) { mapFocusable(it) },
       "getHeight()" to PropertyDefinition(ATTR_HEIGHT, PropertyType.DIMENSION),
-      "getImportantForAccessibility()" to PropertyDefinition("importantForAccessibility", PropertyType.STRING),
-      "getImportantForAutofill()" to PropertyDefinition("importantForAutofill", PropertyType.STRING),
-      "getImportantForContentCapture()" to PropertyDefinition("importantForContentCapture", PropertyType.INT32),
-      "getLayoutDirection()" to PropertyDefinition("layoutDirection", PropertyType.STRING) { mapLayoutDirection(it) },
+      "getImportantForAccessibility()" to
+        PropertyDefinition("importantForAccessibility", PropertyType.STRING),
+      "getImportantForAutofill()" to
+        PropertyDefinition("importantForAutofill", PropertyType.STRING),
+      "getImportantForContentCapture()" to
+        PropertyDefinition("importantForContentCapture", PropertyType.INT32),
+      "getLayoutDirection()" to
+        PropertyDefinition("layoutDirection", PropertyType.STRING) { mapLayoutDirection(it) },
       "getLocationOnScreen()" to PropertyDefinition("locationOnScreen", PropertyType.OBJECT),
-      "getMeasuredHeightAndState()" to PropertyDefinition("measuredHeightAndState", PropertyType.DIMENSION),
-      "getMeasuredWidthAndState()" to PropertyDefinition("measuredWidthAndState", PropertyType.DIMENSION),
+      "getMeasuredHeightAndState()" to
+        PropertyDefinition("measuredHeightAndState", PropertyType.DIMENSION),
+      "getMeasuredWidthAndState()" to
+        PropertyDefinition("measuredWidthAndState", PropertyType.DIMENSION),
       "getPivotX()" to PropertyDefinition("transformPivotX", PropertyType.DIMENSION_FLOAT),
       "getPivotY()" to PropertyDefinition("transformPivotY", PropertyType.DIMENSION_FLOAT),
       "getRotation()" to PropertyDefinition("rotation", PropertyType.FLOAT),
@@ -138,44 +149,53 @@ object PropertyMapper {
       "getRotationY()" to PropertyDefinition("rotationY", PropertyType.FLOAT),
       "getScaleX()" to PropertyDefinition("scaleX", PropertyType.FLOAT),
       "getScaleY()" to PropertyDefinition("scaleY", PropertyType.FLOAT),
-      "getScrollBarStyle()" to PropertyDefinition(ATTR_SCROLLBAR_STYLE, PropertyType.STRING) { mapScrollBarStyle(it) },
+      "getScrollBarStyle()" to
+        PropertyDefinition(ATTR_SCROLLBAR_STYLE, PropertyType.STRING) { mapScrollBarStyle(it) },
       "getSolidColor()" to PropertyDefinition("solidColor", PropertyType.COLOR, colorMapper),
       "getTag()" to PropertyDefinition(ATTR_TAG, PropertyType.STRING),
-      "getTextAlignment()" to PropertyDefinition(ATTR_TEXT_ALIGNMENT, PropertyType.STRING) { mapTextAlignment(it) },
-      "getTextDirection()" to PropertyDefinition("textDirection", PropertyType.STRING) { mapTextDirection(it) },
+      "getTextAlignment()" to
+        PropertyDefinition(ATTR_TEXT_ALIGNMENT, PropertyType.STRING) { mapTextAlignment(it) },
+      "getTextDirection()" to
+        PropertyDefinition("textDirection", PropertyType.STRING) { mapTextDirection(it) },
       "getTransitionName()" to PropertyDefinition("transitionName", PropertyType.OBJECT),
       "getTranslationX()" to PropertyDefinition("translationX", PropertyType.DIMENSION_FLOAT),
       "getTranslationY()" to PropertyDefinition("translationY", PropertyType.DIMENSION_FLOAT),
       "getTranslationZ()" to PropertyDefinition("translationZ", PropertyType.DIMENSION_FLOAT),
-      "getVisibility()" to PropertyDefinition(ATTR_VISIBILITY, PropertyType.STRING) { it.lowercase(Locale.US) },
+      "getVisibility()" to
+        PropertyDefinition(ATTR_VISIBILITY, PropertyType.STRING) { it.lowercase(Locale.US) },
       "getWidth()" to PropertyDefinition(ATTR_WIDTH, PropertyType.DIMENSION),
       "getX()" to PropertyDefinition(ATTR_X, PropertyType.DIMENSION_FLOAT),
       "getY()" to PropertyDefinition(ATTR_Y, PropertyType.DIMENSION_FLOAT),
       "getZ()" to PropertyDefinition(ATTR_Z, PropertyType.DIMENSION_FLOAT),
       "hasFocus()" to PropertyDefinition("hasFocus", PropertyType.BOOLEAN),
-      "hasOverlappingRendering()" to PropertyDefinition("hasOverlappingRendering", PropertyType.BOOLEAN),
+      "hasOverlappingRendering()" to
+        PropertyDefinition("hasOverlappingRendering", PropertyType.BOOLEAN),
       "hasShadow()" to PropertyDefinition("hasShadow", PropertyType.BOOLEAN),
       "hasTransientState()" to PropertyDefinition("hasTransientState", PropertyType.BOOLEAN),
-      "isActivated()" to PropertyDefinition("activated", PropertyType.BOOLEAN),  // hasAttrId=false
+      "isActivated()" to PropertyDefinition("activated", PropertyType.BOOLEAN), // hasAttrId=false
       "isClickable()" to PropertyDefinition(ATTR_CLICKABLE, PropertyType.BOOLEAN),
-      "isDrawingCacheEnabled()" to PropertyDefinition("drawingCacheEnabled", PropertyType.BOOLEAN),  // hasAttrId=false
+      "isDrawingCacheEnabled()" to
+        PropertyDefinition("drawingCacheEnabled", PropertyType.BOOLEAN), // hasAttrId=false
       "isEnabled()" to PropertyDefinition(ATTR_ENABLED, PropertyType.BOOLEAN),
-      "isFocusableInTouchMode()" to PropertyDefinition("focusableInTouchMode", PropertyType.BOOLEAN),
+      "isFocusableInTouchMode()" to
+        PropertyDefinition("focusableInTouchMode", PropertyType.BOOLEAN),
       "isFocused()" to PropertyDefinition("focused", PropertyType.BOOLEAN),
       "isFocusedByDefault()" to PropertyDefinition("focusedByDefault", PropertyType.BOOLEAN),
       "isForceDarkAllowed()" to PropertyDefinition("forceDarkAllowed", PropertyType.BOOLEAN),
-      "isHapticFeedbackEnabled()" to PropertyDefinition("hapticFeedbackEnabled", PropertyType.BOOLEAN),
+      "isHapticFeedbackEnabled()" to
+        PropertyDefinition("hapticFeedbackEnabled", PropertyType.BOOLEAN),
       "isHardwareAccelerated()" to PropertyDefinition("hardwareAccelerated", PropertyType.BOOLEAN),
       "isHovered()" to PropertyDefinition("hovered", PropertyType.BOOLEAN),
       "isInTouchMode()" to PropertyDefinition("inTouchMode", PropertyType.BOOLEAN),
-      "isKeyboardNavigationCluster()" to PropertyDefinition("keyboardNavigationCluster", PropertyType.BOOLEAN),
-      "isLayoutRtl()" to PropertyDefinition("layoutRtl", PropertyType.BOOLEAN),  // hasAttrId=false
+      "isKeyboardNavigationCluster()" to
+        PropertyDefinition("keyboardNavigationCluster", PropertyType.BOOLEAN),
+      "isLayoutRtl()" to PropertyDefinition("layoutRtl", PropertyType.BOOLEAN), // hasAttrId=false
       "isOpaque()" to PropertyDefinition("opaque", PropertyType.BOOLEAN),
       "isPressed()" to PropertyDefinition("pressed", PropertyType.BOOLEAN),
-      "isSelected()" to PropertyDefinition("selected", PropertyType.BOOLEAN),  // hasAttrId=false
+      "isSelected()" to PropertyDefinition("selected", PropertyType.BOOLEAN), // hasAttrId=false
       "isSoundEffectsEnabled()" to PropertyDefinition("soundEffectsEnabled", PropertyType.BOOLEAN),
       "mBottom" to PropertyDefinition(ATTR_BOTTOM, PropertyType.DIMENSION),
-      "mClipBounds" to PropertyDefinition("clipBounds", PropertyType.STRING),  // hasAttrId=false
+      "mClipBounds" to PropertyDefinition("clipBounds", PropertyType.STRING), // hasAttrId=false
       "mID" to PropertyDefinition(ATTR_ID, PropertyType.RESOURCE) { mapId(it) },
       "mLayerType" to PropertyDefinition("layerType", PropertyType.STRING) { mapLayerType(it) },
       "getLocationOnScreen_x()" to PropertyDefinition(ATTR_LEFT, PropertyType.DIMENSION),
@@ -198,18 +218,34 @@ object PropertyMapper {
       // android.view.ViewGroup
       "getClipChildren()" to PropertyDefinition("clipChildren", PropertyType.BOOLEAN),
       "getClipToPadding()" to PropertyDefinition("clipToPadding", PropertyType.BOOLEAN),
-      "getDescendantFocusability()" to PropertyDefinition("descendantFocusability", PropertyType.STRING) { mapDescendantFocusability(it) },
-      "getPersistentDrawingCache()" to PropertyDefinition("persistentDrawingCache", PropertyType.STRING) { mapPersistentDrawingCache(it) },
-      "getTouchscreenBlocksFocus()" to PropertyDefinition("touchscreenBlocksFocus", PropertyType.BOOLEAN),
-      "isChildrenDrawingOrderEnabled()" to PropertyDefinition("childrenDrawingOrderEnabled", PropertyType.BOOLEAN),
-      "mChildCountWithTransientState" to PropertyDefinition("childCountWithTransientState", PropertyType.INT32),
+      "getDescendantFocusability()" to
+        PropertyDefinition("descendantFocusability", PropertyType.STRING) {
+          mapDescendantFocusability(it)
+        },
+      "getPersistentDrawingCache()" to
+        PropertyDefinition("persistentDrawingCache", PropertyType.STRING) {
+          mapPersistentDrawingCache(it)
+        },
+      "getTouchscreenBlocksFocus()" to
+        PropertyDefinition("touchscreenBlocksFocus", PropertyType.BOOLEAN),
+      "isChildrenDrawingOrderEnabled()" to
+        PropertyDefinition("childrenDrawingOrderEnabled", PropertyType.BOOLEAN),
+      "mChildCountWithTransientState" to
+        PropertyDefinition("childCountWithTransientState", PropertyType.INT32),
 
       // android.view.ViewGroup.LayoutParams
-      "layout_height" to PropertyDefinition(ATTR_LAYOUT_HEIGHT, PropertyType.DIMENSION) { mapLayoutWidthAndHeight(it) },
-      "layout_width" to PropertyDefinition(ATTR_LAYOUT_WIDTH, PropertyType.DIMENSION) { mapLayoutWidthAndHeight(it) },
+      "layout_height" to
+        PropertyDefinition(ATTR_LAYOUT_HEIGHT, PropertyType.DIMENSION) {
+          mapLayoutWidthAndHeight(it)
+        },
+      "layout_width" to
+        PropertyDefinition(ATTR_LAYOUT_WIDTH, PropertyType.DIMENSION) {
+          mapLayoutWidthAndHeight(it)
+        },
 
       // android.view.ViewGroup.MarginLayoutParams
-      "layout_bottomMargin" to PropertyDefinition(ATTR_LAYOUT_MARGIN_BOTTOM, PropertyType.DIMENSION),
+      "layout_bottomMargin" to
+        PropertyDefinition(ATTR_LAYOUT_MARGIN_BOTTOM, PropertyType.DIMENSION),
       "layout_endMargin" to PropertyDefinition(ATTR_LAYOUT_MARGIN_END, PropertyType.DIMENSION),
       "layout_leftMargin" to PropertyDefinition(ATTR_LAYOUT_MARGIN_LEFT, PropertyType.DIMENSION),
       "layout_rightMargin" to PropertyDefinition(ATTR_LAYOUT_MARGIN_RIGHT, PropertyType.DIMENSION),
@@ -230,24 +266,30 @@ object PropertyMapper {
       "getUrl()" to PropertyDefinition("url", PropertyType.STRING),
 
       // android.widget.AbsListView
-      "getCacheColorHint()" to PropertyDefinition("cacheColorHint", PropertyType.COLOR, colorMapper),
+      "getCacheColorHint()" to
+        PropertyDefinition("cacheColorHint", PropertyType.COLOR, colorMapper),
       "getSelectedView()" to PropertyDefinition("selectedView", PropertyType.OBJECT),
       "isFastScrollEnabled()" to PropertyDefinition("fastScrollEnabled", PropertyType.BOOLEAN),
-      "isScrollingCacheEnabled()" to PropertyDefinition("scrollingCacheEnabled", PropertyType.BOOLEAN),
-      "isSmoothScrollbarEnabled()" to PropertyDefinition("smoothScrollbarEnabled", PropertyType.BOOLEAN),
+      "isScrollingCacheEnabled()" to
+        PropertyDefinition("scrollingCacheEnabled", PropertyType.BOOLEAN),
+      "isSmoothScrollbarEnabled()" to
+        PropertyDefinition("smoothScrollbarEnabled", PropertyType.BOOLEAN),
       "isStackFromBottom()" to PropertyDefinition("stackFromBottom", PropertyType.BOOLEAN),
       "isTextFilterEnabled()" to PropertyDefinition("textFilterEnabled", PropertyType.BOOLEAN),
 
       // android.widget.AbsListView.LayoutParams
       "layout_forceAdd" to PropertyDefinition("layout_forceAdd", PropertyType.BOOLEAN),
-      "layout_recycledHeaderFooter" to PropertyDefinition("layout_recycledHeaderFooter", PropertyType.BOOLEAN),
+      "layout_recycledHeaderFooter" to
+        PropertyDefinition("layout_recycledHeaderFooter", PropertyType.BOOLEAN),
 
       // android.widget.ActionMenuView.LayoutParams
       "layout_cellsUsed" to PropertyDefinition("layout_cellsUsed", PropertyType.INT32),
       "layout_expandable" to PropertyDefinition("layout_expandable", PropertyType.BOOLEAN),
       "layout_extraPixels" to PropertyDefinition("layout_extraPixels", PropertyType.DIMENSION),
-      "layout_isOverflowButton()" to PropertyDefinition("layout_isOverflowButton", PropertyType.BOOLEAN),
-      "layout_preventEdgeOffset" to PropertyDefinition("layout_preventEdgeOffset", PropertyType.BOOLEAN),
+      "layout_isOverflowButton()" to
+        PropertyDefinition("layout_isOverflowButton", PropertyType.BOOLEAN),
+      "layout_preventEdgeOffset" to
+        PropertyDefinition("layout_preventEdgeOffset", PropertyType.BOOLEAN),
 
       // android.widget.AdapterView
       "mFirstPosition" to PropertyDefinition("firstPosition", PropertyType.INT32),
@@ -260,9 +302,12 @@ object PropertyMapper {
       "isChecked()" to PropertyDefinition(ATTR_CHECKED, PropertyType.BOOLEAN),
 
       // android.widget.FrameLayout
-      "mForegroundPaddingBottom" to PropertyDefinition("foregroundPaddingBottom", PropertyType.DIMENSION),
-      "mForegroundPaddingLeft" to PropertyDefinition("foregroundPaddingLeft", PropertyType.DIMENSION),
-      "mForegroundPaddingRight" to PropertyDefinition("foregroundPaddingRight", PropertyType.DIMENSION),
+      "mForegroundPaddingBottom" to
+        PropertyDefinition("foregroundPaddingBottom", PropertyType.DIMENSION),
+      "mForegroundPaddingLeft" to
+        PropertyDefinition("foregroundPaddingLeft", PropertyType.DIMENSION),
+      "mForegroundPaddingRight" to
+        PropertyDefinition("foregroundPaddingRight", PropertyType.DIMENSION),
       "mForegroundPaddingTop" to PropertyDefinition("foregroundPaddingTop", PropertyType.DIMENSION),
       "mMeasureAllChildren" to PropertyDefinition("measureAllChildren", PropertyType.BOOLEAN),
 
@@ -277,10 +322,12 @@ object PropertyMapper {
 
       // android.widget.LinearLayout
       "mBaselineAligned" to PropertyDefinition("baselineAligned", PropertyType.BOOLEAN),
-      "mBaselineAlignedChildIndex" to PropertyDefinition("baselineAlignedChildIndex", PropertyType.INT32),
+      "mBaselineAlignedChildIndex" to
+        PropertyDefinition("baselineAlignedChildIndex", PropertyType.INT32),
       "mBaselineChildTop" to PropertyDefinition("baselineChildTop", PropertyType.DIMENSION),
       "mGravity" to PropertyDefinition(ATTR_GRAVITY, PropertyType.GRAVITY, gravityMapper),
-      "mOrientation" to PropertyDefinition(ATTR_ORIENTATION, PropertyType.STRING) { mapOrientation(it) },
+      "mOrientation" to
+        PropertyDefinition(ATTR_ORIENTATION, PropertyType.STRING) { mapOrientation(it) },
       "mTotalLength" to PropertyDefinition("totalLength", PropertyType.DIMENSION),
       "mUseLargestChild" to PropertyDefinition("useLargestChild", PropertyType.BOOLEAN),
       "mWeightSum" to PropertyDefinition("weightSum", PropertyType.FLOAT),
@@ -297,29 +344,52 @@ object PropertyMapper {
       "getSecondaryProgress()" to PropertyDefinition("secondaryProgress", PropertyType.INT32),
 
       // android.widget.RelativeLayout.LayoutParams
-      "layout_alignWithParent" to PropertyDefinition(ATTR_LAYOUT_ALIGN_WITH_PARENT_MISSING, PropertyType.BOOLEAN),
-      "layout_mRules_leftOf" to PropertyDefinition(ATTR_LAYOUT_TO_LEFT_OF, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_rightOf" to PropertyDefinition(ATTR_LAYOUT_TO_RIGHT_OF, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_above" to PropertyDefinition(ATTR_LAYOUT_ABOVE, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_below" to PropertyDefinition(ATTR_LAYOUT_BELOW, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignBaseline" to PropertyDefinition(ATTR_LAYOUT_ALIGN_BASELINE, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignLeft" to PropertyDefinition(ATTR_LAYOUT_ALIGN_LEFT, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignTop" to PropertyDefinition(ATTR_LAYOUT_ALIGN_TOP, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignRight" to PropertyDefinition(ATTR_LAYOUT_ALIGN_RIGHT, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignBottom" to PropertyDefinition(ATTR_LAYOUT_ALIGN_BOTTOM, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignParentLeft" to PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_LEFT, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignParentTop" to PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_TOP, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignParentRight" to PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignParentBottom" to PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_center" to PropertyDefinition(ATTR_LAYOUT_CENTER_IN_PARENT, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_centerHorizontal" to PropertyDefinition(ATTR_LAYOUT_CENTER_HORIZONTAL, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_centerVertical" to PropertyDefinition(ATTR_LAYOUT_CENTER_VERTICAL, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_startOf" to PropertyDefinition(ATTR_LAYOUT_TO_START_OF, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_endOf" to PropertyDefinition(ATTR_LAYOUT_TO_END_OF, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignStart" to PropertyDefinition(ATTR_LAYOUT_ALIGN_START, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignEnd" to PropertyDefinition(ATTR_LAYOUT_ALIGN_END, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignParentStart" to PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_START, PropertyType.RESOURCE, idMapper),
-      "layout_mRules_alignParentEnd" to PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_END, PropertyType.RESOURCE, idMapper),
+      "layout_alignWithParent" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_WITH_PARENT_MISSING, PropertyType.BOOLEAN),
+      "layout_mRules_leftOf" to
+        PropertyDefinition(ATTR_LAYOUT_TO_LEFT_OF, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_rightOf" to
+        PropertyDefinition(ATTR_LAYOUT_TO_RIGHT_OF, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_above" to
+        PropertyDefinition(ATTR_LAYOUT_ABOVE, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_below" to
+        PropertyDefinition(ATTR_LAYOUT_BELOW, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignBaseline" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_BASELINE, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignLeft" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_LEFT, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignTop" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_TOP, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignRight" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_RIGHT, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignBottom" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_BOTTOM, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignParentLeft" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_LEFT, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignParentTop" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_TOP, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignParentRight" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_RIGHT, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignParentBottom" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_BOTTOM, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_center" to
+        PropertyDefinition(ATTR_LAYOUT_CENTER_IN_PARENT, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_centerHorizontal" to
+        PropertyDefinition(ATTR_LAYOUT_CENTER_HORIZONTAL, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_centerVertical" to
+        PropertyDefinition(ATTR_LAYOUT_CENTER_VERTICAL, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_startOf" to
+        PropertyDefinition(ATTR_LAYOUT_TO_START_OF, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_endOf" to
+        PropertyDefinition(ATTR_LAYOUT_TO_END_OF, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignStart" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_START, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignEnd" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_END, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignParentStart" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_START, PropertyType.RESOURCE, idMapper),
+      "layout_mRules_alignParentEnd" to
+        PropertyDefinition(ATTR_LAYOUT_ALIGN_PARENT_END, PropertyType.RESOURCE, idMapper),
 
       // android.widget.ScrollView
       "mFillViewport" to PropertyDefinition("fillViewport", PropertyType.BOOLEAN),
@@ -340,7 +410,8 @@ object PropertyMapper {
       "getSelectionEnd()" to PropertyDefinition("selectionEnd", PropertyType.INT32),
       "getSelectionStart()" to PropertyDefinition("selectionStart", PropertyType.INT32),
       "getTextSize()" to PropertyDefinition(ATTR_TEXT_SIZE, PropertyType.DIMENSION_FLOAT),
-      "getTypefaceStyle()" to PropertyDefinition(ATTR_TEXT_STYLE, PropertyType.STRING) { mapTextStyle(it) },
+      "getTypefaceStyle()" to
+        PropertyDefinition(ATTR_TEXT_STYLE, PropertyType.STRING) { mapTextStyle(it) },
       "mCurTextColor" to PropertyDefinition(ATTR_TEXT_COLOR, PropertyType.COLOR, colorMapper),
       "mGravity" to PropertyDefinition("gravity", PropertyType.GRAVITY, gravityMapper),
       "mText" to PropertyDefinition("text", PropertyType.STRING)
@@ -350,8 +421,7 @@ object PropertyMapper {
   internal fun toInt(value: String): Int? {
     if (value.startsWith("0x")) {
       return value.substring(2).toIntOrNull(16)
-    }
-    else {
+    } else {
       return value.toIntOrNull()
     }
   }
@@ -465,7 +535,8 @@ object PropertyMapper {
 
   private fun mapColor(value: String): String {
     val intValue = toInt(value) ?: 0
-    return if ((intValue and 0xFF000000.toInt()) != 0) "#%08X".format(intValue) else "#%06X".format(intValue)
+    return if ((intValue and 0xFF000000.toInt()) != 0) "#%08X".format(intValue)
+    else "#%06X".format(intValue)
   }
 
   private fun mapId(value: String): String = if (value.startsWith("id/")) "@$value" else ""

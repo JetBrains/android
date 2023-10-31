@@ -33,7 +33,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
     var result = delegate.transition(state, tracker)
-    if (result.newState.connections.selected?.isConfigured() != true) {
+    if (result.newState.connections.selected?.isConfigured != true) {
       return StateTransition(
         result.newState.copy(
           issues =

@@ -15,22 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static com.android.tools.idea.project.messages.MessageType.INFO;
+
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-
-import static com.android.tools.idea.project.messages.MessageType.INFO;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class EncodingValidationStrategy extends AndroidProjectValidationStrategy {
   @NotNull private final EncodingProjectManager myEncodings;

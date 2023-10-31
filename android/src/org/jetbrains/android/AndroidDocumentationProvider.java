@@ -7,8 +7,8 @@ import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -75,7 +75,7 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
 
     // Creating a basic configuration in case rendering of webp or xml drawables.
     Configuration configuration =
-      Configuration.create(ConfigurationManager.getOrCreateInstance(androidFacet.getModule()), null, FolderConfiguration.createDefault());
+      Configuration.create(ConfigurationManager.getOrCreateInstance(androidFacet.getModule()), FolderConfiguration.createDefault());
     return AndroidJavaDocRenderer.render(module, configuration, resourceReference.getResourceUrl());
   }
 

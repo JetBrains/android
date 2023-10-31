@@ -57,7 +57,8 @@ class AbsolutePlaceholderTest : SceneTest() {
     val absoluteLayout = myScene.getSceneComponent("absolute")!!
     val placeholder = AbsolutePlaceholder(absoluteLayout)
 
-    // The center point is at (absoluteLayout.drawX + 10, absoluteLayout.drawY +10), which is inside absoluteLayout.
+    // The center point is at (absoluteLayout.drawX + 10, absoluteLayout.drawY +10), which is inside
+    // absoluteLayout.
     val left = absoluteLayout.drawX - 10
     val top = absoluteLayout.drawY - 10
     val right = absoluteLayout.drawX + 30
@@ -74,7 +75,8 @@ class AbsolutePlaceholderTest : SceneTest() {
     val absoluteLayout = myScene.getSceneComponent("absolute")!!
     val placeholder = AbsolutePlaceholder(absoluteLayout)
 
-    // The center point is at (absoluteLayout.drawX - 20, absoluteLayout.drawY - 20), which is outside absoluteLayout.
+    // The center point is at (absoluteLayout.drawX - 20, absoluteLayout.drawY - 20), which is
+    // outside absoluteLayout.
     val left = absoluteLayout.drawX - 50
     val top = absoluteLayout.drawY - 50
     val right = absoluteLayout.drawX + 10
@@ -114,24 +116,31 @@ class AbsolutePlaceholderTest : SceneTest() {
     mySceneManager.update()
 
     val nlComponent = textView.authoritativeNlComponent
-    assertEquals("50dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X))
-    assertEquals("60dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y))
+    assertEquals(
+      "50dp",
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_X)
+    )
+    assertEquals(
+      "60dp",
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_Y)
+    )
   }
 
   override fun createModel(): ModelBuilder {
-    return model("absolute.xml",
-                 component(SdkConstants.ABSOLUTE_LAYOUT)
-                   .withBounds(0, 0, 1000, 1000)
-                   .id("@id/absolute")
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(0, 0, 200, 200)
-                       .id("@id/textView")
-                       .width("100dp")
-                       .height("100dp")
-                   )
+    return model(
+      "absolute.xml",
+      component(SdkConstants.ABSOLUTE_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .id("@id/absolute")
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(0, 0, 200, 200)
+            .id("@id/textView")
+            .width("100dp")
+            .height("100dp")
+        )
     )
   }
 }

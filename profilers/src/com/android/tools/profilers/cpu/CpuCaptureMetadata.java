@@ -114,6 +114,27 @@ public class CpuCaptureMetadata {
   }
 
   /**
+   * This enum correlates to the CpuProfilerEntryPoint field of the CpuCaptureMetadata
+   * metric proto, which is only tracked on CPU trace capture. Therefore, this enum
+   * will only be used/tracked when there is a CPU capture taken.
+   */
+  public enum CpuProfilerEntryPoint {
+    UNKNOWN,
+    /** User enters the CpuProfilerStage by clicking the CpuMonitor */
+    CPU_MONITOR,
+    /** User enters the CpuProfilerStage by performing a startup trace */
+    STARTUP_PROFILING,
+    /** User enters the CpuProfilerStage via the Energy Profiler deprecation panel hyperlink */
+    ENERGY_DEPRECATION_LINK,
+    /** User selects an ongoing session performing a capture */
+    ONGOING_SESSION_SELECTION,
+    /** User navigates back to parent stage or the child stage fails to load */
+    CHILD_STAGE_BACK_BTN_OR_FAILURE,
+    /** User enters the CpuProfilerStage via an Energy Task */
+    ENERGY_TASK;
+  }
+
+  /**
    * Whether the capture + parsing finished successfully or if there was an error in the capturing or parsing steps.
    * It's null until set by {@link setStatus(CaptureStatus)}.
    */
@@ -132,6 +153,11 @@ public class CpuCaptureMetadata {
    * Duration (in milliseconds) from the first trace data timestamp to the last one.
    */
   private long myRecordDurationMs;
+
+  /**
+   * The entry point used by the user to enter the CpuProfilerStage.
+   */
+  private CpuProfilerEntryPoint myEntryPoint;
 
   /**
    * Size (in bytes) of the trace file parsed into capture.
@@ -218,6 +244,15 @@ public class CpuCaptureMetadata {
   public void setRecordDurationMs(long recordDurationMs) {
     myRecordDurationMs = recordDurationMs;
   }
+
+  public CpuProfilerEntryPoint getCpuProfilerEntryPoint() {
+    return myEntryPoint;
+  }
+
+  public void setCpuProfilerEntryPoint(CpuProfilerEntryPoint entryPoint) {
+    myEntryPoint = entryPoint;
+  }
+
 
   @NotNull
   public ProfilingConfiguration getProfilingConfiguration() {

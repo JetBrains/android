@@ -28,8 +28,9 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.Refere
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.ComposePreviewElement
-import com.android.tools.idea.compose.preview.namespaceVariations
+import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Sdks
@@ -42,6 +43,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -50,30 +52,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 private fun ComposePreviewElement.annotationText(): String =
   ReadAction.compute<String, Throwable> { previewElementDefinitionPsi?.element?.text ?: "" }
 
-@RunWith(Parameterized::class)
-class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationPackage: String) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
+class PreviewPickerTests {
 
-  private val composableAnnotationFqName = "$composableAnnotationPackage.Composable"
-  private val previewToolingPackage = previewAnnotationPackage
-
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
 
   @get:Rule val edtRule = EdtRule()
   private val fixture
@@ -95,8 +80,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview
@@ -169,8 +154,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val annotationWithParameters =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview(name = "Test")
@@ -184,8 +169,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val emptyAnnotation =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview
@@ -203,8 +188,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview(name = "Test", fontScale = 1.2f, backgroundColor = 4294901760)
@@ -231,8 +216,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview(name = "Test")
@@ -243,7 +228,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
-    assertEquals("1f", model.properties["", "fontScale"].defaultValue)
+    assertEquals(if (isK2Plugin()) "1.0f" else "1f", model.properties["", "fontScale"].defaultValue)
     assertEquals("false", model.properties["", "showBackground"].defaultValue)
     assertEquals("false", model.properties["", "showDecoration"].defaultValue)
     assertEquals("Default (en-US)", model.properties["", "locale"].defaultValue)
@@ -276,8 +261,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview
@@ -318,8 +303,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview
@@ -359,8 +344,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview(fontScale = 1.0f, name = "MyPreview", apiLevel = 1)
@@ -728,8 +713,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationFqName
-      import $previewToolingPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview(name = "Test")

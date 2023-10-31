@@ -18,13 +18,13 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_JDK_UPDATE
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
-import com.intellij.openapi.externalSystem.util.DisposeAwareProjectChange
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.project.Project
+import com.intellij.util.application
 
 /**
  * Data service that updates the project Jdk located under .idea/misc.xml and used to resolve
@@ -43,10 +43,10 @@ class ProjectJdkUpdateService : AbstractProjectDataService<ProjectJdkUpdateData,
   ) {
     if (toImport.isEmpty() || projectData == null) return
     require(toImport.size == 1) { "Expected to get a single project but got ${toImport.size}: $toImport" }
-    ExternalSystemApiUtil.executeProjectChangeAction(object : DisposeAwareProjectChange(project) {
-      override fun execute() {
-        JdkUtils.updateProjectJdkWithPath(project, toImport.single().data.jdkPath)
-      }
-    })
+    application.invokeAndWait {
+      // This method ends up configuring the project JDK, this is a critic moment since different parts require it like KMP
+      // setup for this reason we should wait for its execution, to avoid flaky tests and unexpected behaviour.
+      runWriteAction { JdkUtils.updateProjectJdkWithPath(project, toImport.single().data.jdkPath) }
+    }
   }
 }

@@ -92,17 +92,8 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.atomic.AtomicInteger
+import com.intellij.util.io.isDirectory
+import com.intellij.util.io.isFile
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -126,7 +117,21 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
-import kotlin.io.path.*
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.createFile
+import kotlin.io.path.exists
+import kotlin.io.path.fileSize
+import kotlin.io.path.isRegularFile
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"

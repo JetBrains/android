@@ -18,7 +18,6 @@ package com.android.tools.profilers.sessions
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.stdui.CommonAction
-import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -56,6 +55,8 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent.VK_BACK_SPACE
+import java.awt.event.KeyEvent.VK_ENTER
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 
@@ -452,12 +453,12 @@ class SessionsViewTest {
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
     val ui = FakeUi(sessionsPanel)
     ui.keyboard.setFocus(sessionItem1)
-    ui.keyboard.press(FakeKeyboard.Key.ENTER)
-    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    ui.keyboard.press(VK_ENTER)
+    ui.keyboard.release(VK_ENTER)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session1)
     ui.keyboard.setFocus(sessionItem0)
-    ui.keyboard.press(FakeKeyboard.Key.ENTER)
-    ui.keyboard.release(FakeKeyboard.Key.ENTER)
+    ui.keyboard.press(VK_ENTER)
+    ui.keyboard.release(VK_ENTER)
     assertThat(mySessionsManager.selectedSession).isEqualTo(session2)
   }
 
@@ -482,8 +483,8 @@ class SessionsViewTest {
     // Delete the ongoing session
     FakeUi(sessionsPanel).let { ui ->
       ui.keyboard.setFocus(sessionItem)
-      ui.keyboard.press(FakeKeyboard.Key.BACKSPACE)
-      ui.keyboard.release(FakeKeyboard.Key.BACKSPACE)
+      ui.keyboard.press(VK_BACK_SPACE)
+      ui.keyboard.release(VK_BACK_SPACE)
       assertThat(mySessionsManager.sessionArtifacts).hasSize(1)
       assertThat(mySessionsManager.selectedSession).isEqualTo(Common.Session.getDefaultInstance())
       assertThat(mySessionsManager.profilingSession).isEqualTo(Common.Session.getDefaultInstance())
@@ -495,8 +496,8 @@ class SessionsViewTest {
       sessionItem = sessionsPanel.getComponent(0) as SessionItemView
       ui.layout()
       ui.keyboard.setFocus(sessionItem)
-      ui.keyboard.press(FakeKeyboard.Key.BACKSPACE)
-      ui.keyboard.release(FakeKeyboard.Key.BACKSPACE)
+      ui.keyboard.press(VK_BACK_SPACE)
+      ui.keyboard.release(VK_BACK_SPACE)
       assertThat(mySessionsManager.sessionArtifacts).hasSize(0)
     }
   }

@@ -24,17 +24,15 @@ import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class ToggleIssueDetailActionTest {
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory()
 
   private lateinit var toolWindow: ToolWindow
   private lateinit var service: IssuePanelService
@@ -47,9 +45,8 @@ class ToggleIssueDetailActionTest {
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
-    val content = contentManager.factory.createContent(null, "Current File", true).apply {
-      isCloseable = false
-    }
+    val content =
+      contentManager.factory.createContent(null, "Current File", true).apply { isCloseable = false }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
 
@@ -64,41 +61,53 @@ class ToggleIssueDetailActionTest {
     val action = ToggleIssueDetailAction()
 
     service.setSharedIssuePanelVisibility(false)
-    TestActionEvent.createTestEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }.let { event ->
-      action.update(event)
-      assertEquals("Show Issue Detail", event.presentation.text)
-      assertTrue(event.presentation.isVisible)
-      assertFalse(event.presentation.isEnabled)
-    }
+    TestActionEvent.createTestEvent {
+        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
+      }
+      .let { event ->
+        action.update(event)
+        assertEquals("Show Issue Detail", event.presentation.text)
+        assertTrue(event.presentation.isVisible)
+        assertFalse(event.presentation.isEnabled)
+      }
 
     service.setSharedIssuePanelVisibility(true)
-    TestActionEvent.createTestEvent { when {
-      PlatformDataKeys.PROJECT.`is`(it) -> rule.project
-      PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
-      else -> null }
-    }.let { event ->
-      action.update(event)
-      assertEquals("Show Issue Detail", event.presentation.text)
-      assertTrue(event.presentation.isVisible)
-      assertFalse(event.presentation.isEnabled)
-    }
+    TestActionEvent.createTestEvent {
+        when {
+          PlatformDataKeys.PROJECT.`is`(it) -> rule.project
+          PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
+          else -> null
+        }
+      }
+      .let { event ->
+        action.update(event)
+        assertEquals("Show Issue Detail", event.presentation.text)
+        assertTrue(event.presentation.isVisible)
+        assertFalse(event.presentation.isEnabled)
+      }
 
-    TestActionEvent.createTestEvent { when {
-      PlatformDataKeys.PROJECT.`is`(it) -> rule.project
-      PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
-      else -> null }
-    }.let { event ->
-      action.update(event)
-      assertEquals("Show Issue Detail", event.presentation.text)
-      assertTrue(event.presentation.isVisible)
-      assertTrue(event.presentation.isEnabled)
-    }
+    TestActionEvent.createTestEvent {
+        when {
+          PlatformDataKeys.PROJECT.`is`(it) -> rule.project
+          PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
+          else -> null
+        }
+      }
+      .let { event ->
+        action.update(event)
+        assertEquals("Show Issue Detail", event.presentation.text)
+        assertTrue(event.presentation.isVisible)
+        assertTrue(event.presentation.isEnabled)
+      }
   }
 
   @Test
   fun testIsSelected() {
     val action = ToggleIssueDetailAction()
-    val event = TestActionEvent.createTestEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }
+    val event =
+      TestActionEvent.createTestEvent {
+        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
+      }
 
     service.setSharedIssuePanelVisibility(false)
     assertFalse(action.isSelected(event))
@@ -110,7 +119,10 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testSelect() {
     val action = ToggleIssueDetailAction()
-    val event = TestActionEvent.createTestEvent { if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null }
+    val event =
+      TestActionEvent.createTestEvent {
+        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
+      }
     service.setSharedIssuePanelVisibility(true)
 
     action.setSelected(event, false)

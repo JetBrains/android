@@ -20,8 +20,9 @@ import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOG
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -43,7 +44,6 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
-import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -54,6 +54,7 @@ import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.res.FrameworkResourceRepositoryManager;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
@@ -83,8 +84,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
@@ -107,17 +108,20 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Nullable
   @Override
-  public Version getHighestKnownVersion(@NonNull GradleCoordinate coordinate, @Nullable Predicate<Version> filter) {
+  public Version getHighestKnownVersion(@NonNull Dependency dependency, @Nullable Predicate<Version> filter) {
     AndroidSdkHandler sdkHandler = getSdk();
     if (sdkHandler == null) {
       return null;
     }
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, filter, logger);
+    com.android.ide.common.gradle.Module module = dependency.getModule();
+    if (module == null) return null;
+    RemotePackage sdkPackage =
+      SdkMavenRepository.findLatestRemoteVersion(module, dependency.getExplicitlyIncludesPreview(), sdkHandler, filter, logger);
     if (sdkPackage != null) {
-      GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
+      Component found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.getPath());
       if (found != null) {
-        return found.getLowerBoundVersion();
+        return found.getVersion();
       }
     }
 

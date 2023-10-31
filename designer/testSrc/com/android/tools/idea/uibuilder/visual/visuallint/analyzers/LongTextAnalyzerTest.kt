@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.Assert
 import org.intellij.lang.annotations.Language
@@ -29,7 +29,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@Language("XML") private const val LAYOUT_WITH_LONG_TEXT =
+@Language("XML")
+private const val LAYOUT_WITH_LONG_TEXT =
   """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
           android:layout_width="match_parent"
           android:layout_height="match_parent">
@@ -43,8 +44,7 @@ import org.junit.Test
 
 class LongTextAnalyzerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setup() {
@@ -53,17 +53,27 @@ class LongTextAnalyzerTest {
 
   @After
   fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
   }
 
   @Test
   fun testTextSplitOnSeveralLines() {
-    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
-    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
+    val file =
+      projectRule.fixture
+        .addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT)
+        .virtualFile
+    val configuration =
+      RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_phone")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.project,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file,
+        configuration
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -71,8 +81,7 @@ class LongTextAnalyzerTest {
         val result = task.render().get()
         val issues = LongTextAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(0, issues.size)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -80,10 +89,22 @@ class LongTextAnalyzerTest {
 
   @Test
   fun testTextOnOneLongLine() {
-    val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT).virtualFile
-    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
+    val file =
+      projectRule.fixture
+        .addFileToProject("res/layout/layout.xml", LAYOUT_WITH_LONG_TEXT)
+        .virtualFile
+    val configuration =
+      RenderTestUtil.getConfiguration(projectRule.module, file, "_device_class_tablet")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.project,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file,
+        configuration
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -91,9 +112,11 @@ class LongTextAnalyzerTest {
         val result = task.render().get()
         val issues = LongTextAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
-        Assert.assertEquals("textview1 <TextView> has lines containing more than 120 characters", issues[0].message)
-      }
-      catch (ex: java.lang.Exception) {
+        Assert.assertEquals(
+          "textview1 <TextView> has lines containing more than 120 characters",
+          issues[0].message
+        )
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }

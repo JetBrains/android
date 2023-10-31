@@ -57,6 +57,8 @@ class LayoutBindingPackageFactory(val project: Project) {
    */
   @Synchronized
   fun getOrCreatePsiPackage(facet: AndroidFacet, packageName: String): PsiPackage {
+    // AndroidFacet is Disposable; use it now instead of holding this instance in the closure indefinitely.
+    val sourceProviderManager = SourceProviderManager.getInstance(facet)
     return layoutBindingPsiPackages.computeIfAbsent(packageName) {
       object : PsiPackageImpl(PsiManager.getInstance(project), packageName) {
         override fun isValid(): Boolean = true
@@ -68,7 +70,7 @@ class LayoutBindingPackageFactory(val project: Project) {
           // It doesn't matter to us that this won't be the actual, final generated directory; it's just enough to fool
           // the resolution system.
           // See also: https://issuetracker.google.com/180946610
-          val srcDir = SourceProviderManager.getInstance(facet).sources.javaDirectories.firstOrNull()?.toIoFile() ?: return emptyArray()
+          val srcDir = sourceProviderManager.sources.javaDirectories.firstOrNull()?.toIoFile() ?: return emptyArray()
           val databindingDir = FakeDirectory(File(srcDir, packageName.replace('.', '/')))
           // The following line creates a PsiDirectory but doesn't actually create a directory on disk
           return arrayOf(PsiDirectoryFactory.getInstance(project).createDirectory(databindingDir))

@@ -59,7 +59,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   }
 
   fun testColumnsReturnCorrectListOfColumns() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val columnNames = listOf("col1", "col2")
 
@@ -85,7 +85,7 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testRowCountReturnsCorrectNumberOfRows() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val rowCountCellValue =
         SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(12345).build()

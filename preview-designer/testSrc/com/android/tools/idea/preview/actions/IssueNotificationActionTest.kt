@@ -26,38 +26,29 @@ import kotlin.test.assertTrue
 
 class IssueNotificationActionTest {
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  /**
-   * Function to create the test [IssueNotificationAction].
-   */
-  private fun createIssueNotificationAction(
-    popup: InformationPopup,
-    alarm: Alarm
-  ) = IssueNotificationAction(
-    createStatusInfo = { _, _ -> null },
-    createInformationPopup = { _, _ -> popup },
-    popupAlarm = alarm
-  ).also {
-    // Adding a fake action event with the action event that contains our fake [DataContext]
-    it.actionEventCreator = { _, _ -> projectRule.createFakeActionEvent(it) }
-  }
+  /** Function to create the test [IssueNotificationAction]. */
+  private fun createIssueNotificationAction(popup: InformationPopup, alarm: Alarm) =
+    IssueNotificationAction(
+        createStatusInfo = { _, _ -> null },
+        createInformationPopup = { _, _ -> popup },
+        popupAlarm = alarm
+      )
+      .also {
+        // Adding a fake action event with the action event that contains our fake [DataContext]
+        it.actionEventCreator = { _, _ -> projectRule.createFakeActionEvent(it) }
+      }
 
   @Test
   fun testTheAlarmShowsPopupOnMouseEnter() {
     // Given the popup not visible
     var showPopup = false
-    val fakePopup: InformationPopup = createFakePopup(
-      onShowPopup = {
-        showPopup = true
-      }
-    )
+    val fakePopup: InformationPopup = createFakePopup(onShowPopup = { showPopup = true })
 
     var actualDelayMillis = 0
-    val fakeAlarm = createFakeAlarm(onAddRequest = { delayMillis ->
-      actualDelayMillis = delayMillis
-    })
+    val fakeAlarm =
+      createFakeAlarm(onAddRequest = { delayMillis -> actualDelayMillis = delayMillis })
 
     val issueNotificationAction = createIssueNotificationAction(fakePopup, fakeAlarm)
 
@@ -95,4 +86,3 @@ class IssueNotificationActionTest {
     assertTrue { cancelAllRequestsCounter == 4 }
   }
 }
-

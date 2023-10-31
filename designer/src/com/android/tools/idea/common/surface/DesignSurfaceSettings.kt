@@ -41,29 +41,32 @@ class DesignSurfaceSettings : PersistentStateComponent<SurfaceState> {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): DesignSurfaceSettings = project.getService(DesignSurfaceSettings::class.java)
+    fun getInstance(project: Project): DesignSurfaceSettings =
+      project.getService(DesignSurfaceSettings::class.java)
   }
 }
 
 @Suppress("MemberVisibilityCanBePrivate")
 class SurfaceState {
   /**
-   * The map of file path and zoom level. We use path string here because [PersistentStateComponent] doesn't support [File] type.
-   * This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field directly,
-   * use [saveFileScale] and [loadFileScale] instead.
+   * The map of file path and zoom level. We use path string here because [PersistentStateComponent]
+   * doesn't support [File] type. This field is public because [PersistentStateComponent] needs to
+   * access its getter and setter. Do not access this field directly, use [saveFileScale] and
+   * [loadFileScale] instead.
    */
   var filePathToZoomLevelMap: MutableMap<String, Double> = HashMap()
 
   /**
-   * The map of file path and the drawable background type. We use path string here because [PersistentStateComponent] doesn't support
-   * [File] type. This field is public because [PersistentStateComponent] needs to access its getter and setter. Do not access this field
+   * The map of file path and the drawable background type. We use path string here because
+   * [PersistentStateComponent] doesn't support [File] type. This field is public because
+   * [PersistentStateComponent] needs to access its getter and setter. Do not access this field
    * directly, use [saveDrawableBackgroundType] and [loadDrawableBackgroundType] instead.
    */
   var filePathToDrawableBackgroundType: MutableMap<String, DrawableBackgroundType> = HashMap()
 
   /**
-   * Remember the last [DrawableBackgroundType] use selects. This [DrawableBackgroundType] is applied when user opens a drawable file which
-   * it is never opened before.
+   * Remember the last [DrawableBackgroundType] use selects. This [DrawableBackgroundType] is
+   * applied when user opens a drawable file which it is never opened before.
    */
   var lastSelectedDrawableBackgroundType: DrawableBackgroundType = DrawableBackgroundType.NONE
 
@@ -78,20 +81,24 @@ class SurfaceState {
     val relativePath = getRelativePathInProject(project, file) ?: return
     if (scale == null) {
       filePathToZoomLevelMap.remove(relativePath)
-    }
-    else {
+    } else {
       filePathToZoomLevelMap[relativePath] = scale
     }
   }
 
   @Transient
   fun loadDrawableBackgroundType(project: Project, file: VirtualFile): DrawableBackgroundType {
-    val relativePath = getRelativePathInProject(project, file) ?: return lastSelectedDrawableBackgroundType
+    val relativePath =
+      getRelativePathInProject(project, file) ?: return lastSelectedDrawableBackgroundType
     return filePathToDrawableBackgroundType[relativePath] ?: lastSelectedDrawableBackgroundType
   }
 
   @Transient
-  fun saveDrawableBackgroundType(project: Project, file: VirtualFile, type: DrawableBackgroundType) {
+  fun saveDrawableBackgroundType(
+    project: Project,
+    file: VirtualFile,
+    type: DrawableBackgroundType
+  ) {
     lastSelectedDrawableBackgroundType = type
     val relativePath = getRelativePathInProject(project, file) ?: return
     filePathToDrawableBackgroundType[relativePath] = type

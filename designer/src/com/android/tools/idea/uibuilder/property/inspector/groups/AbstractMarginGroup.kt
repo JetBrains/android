@@ -20,24 +20,35 @@ import com.android.tools.idea.uibuilder.property.inspector.androidSortOrder
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.ptable.PTableItem
 
-abstract class AbstractMarginGroup(override val name: String,
-                                   private val all: NlPropertyItem?,
-                                   private val left: NlPropertyItem?,
-                                   private val right: NlPropertyItem?,
-                                   private val start: NlPropertyItem?,
-                                   private val end: NlPropertyItem?,
-                                   private val top: NlPropertyItem?,
-                                   private val bottom: NlPropertyItem?,
-                                   private val horizontal: NlPropertyItem?,
-                                   private val vertical: NlPropertyItem?): GroupSpec<NlPropertyItem> {
+abstract class AbstractMarginGroup(
+  override val name: String,
+  private val all: NlPropertyItem?,
+  private val left: NlPropertyItem?,
+  private val right: NlPropertyItem?,
+  private val start: NlPropertyItem?,
+  private val end: NlPropertyItem?,
+  private val top: NlPropertyItem?,
+  private val bottom: NlPropertyItem?,
+  private val horizontal: NlPropertyItem?,
+  private val vertical: NlPropertyItem?
+) : GroupSpec<NlPropertyItem> {
   override val value: String?
-    get() = "[${part(all)}, ${part(left, start, horizontal)}, ${part(top, vertical)}, " +
-            "${part(right, end, horizontal)}, ${part(bottom, vertical)}]"
+    get() =
+      "[${part(all)}, ${part(left, start, horizontal)}, ${part(top, vertical)}, " +
+        "${part(right, end, horizontal)}, ${part(bottom, vertical)}]"
 
   override val itemFilter: (NlPropertyItem) -> Boolean
     get() = {
       when (it) {
-        all, left, right, start, end, top, bottom, vertical, horizontal -> true
+        all,
+        left,
+        right,
+        start,
+        end,
+        top,
+        bottom,
+        vertical,
+        horizontal -> true
         else -> false
       }
     }
@@ -53,7 +64,11 @@ abstract class AbstractMarginGroup(override val name: String,
     return name == (other as? AbstractMarginGroup)?.name
   }
 
-  private fun part(property: NlPropertyItem?, override: NlPropertyItem? = null, override2: NlPropertyItem? = null): String {
+  private fun part(
+    property: NlPropertyItem?,
+    override: NlPropertyItem? = null,
+    override2: NlPropertyItem? = null
+  ): String {
     return override2?.value ?: override?.value ?: property?.value ?: "?"
   }
 }

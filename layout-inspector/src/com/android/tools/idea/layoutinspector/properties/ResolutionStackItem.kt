@@ -20,24 +20,25 @@ import com.android.ide.common.rendering.api.ResourceReference
 /**
  * Specifies an overridden property value.
  *
- * These value are usually found in styles where the value
- * has been overridden by another style or a direct attribute
- * assignment of the xml tag.
+ * These value are usually found in styles where the value has been overridden by another style or a
+ * direct attribute assignment of the xml tag.
  */
 class ResolutionStackItem(
   property: InspectorGroupPropertyItem,
   reference: ResourceReference,
   value: String?
-) : InspectorPropertyItem(
-  property.namespace,
-  property.name,
-  "",               // The name of the PTableItem is empty, such that is isn't repeated in the properties table.
-  property.type,
-  value,
-  property.section,
-  reference,
-  property.viewId,
-  property.lookup) {
+) :
+  InspectorPropertyItem(
+    property.namespace,
+    property.name,
+    "", // The name of the PTableItem is empty, such that is isn't repeated in the properties table.
+    property.type,
+    value,
+    property.section,
+    reference,
+    property.viewId,
+    property.lookup
+  ) {
 
   /** This item need a ResolutionEditor for display */
   override val needsResolutionEditor: Boolean

@@ -16,18 +16,18 @@
 package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
-import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax.UNKNOWN
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
+import com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.AUGMENT_LIST
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
-import java.lang.IllegalStateException
 
 interface TomlDslNameConverter: GradleDslNameConverter {
   override fun getKind() = TOML
@@ -55,5 +55,23 @@ interface TomlDslNameConverter: GradleDslNameConverter {
     return "$name"
   }
 
-  override fun externalNameForParent(modelName: String, context: GradleDslElement) = ExternalNameInfo(modelName, UNKNOWN)
+  override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
+    val map = context.getExternalToModelMap(this)
+    var result = ExternalNameInfo(modelName, ExternalNameInfo.ExternalNameSyntax.UNKNOWN)
+    for (e in map.entrySet) {
+      if (e.modelEffectDescription.property.name == modelName) {
+
+        if (e.versionConstraint?.isOkWith(this.context.agpVersion) == false) continue
+        when (e.modelEffectDescription.semantics) {
+          VAR -> return ExternalNameInfo(e.surfaceSyntaxDescription.name,
+                                         ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT)
+          AUGMENT_LIST ->
+            result = ExternalNameInfo(e.surfaceSyntaxDescription.name, ExternalNameInfo.ExternalNameSyntax.METHOD)
+
+          else -> Unit
+        }
+      }
+    }
+    return result
+  }
 }

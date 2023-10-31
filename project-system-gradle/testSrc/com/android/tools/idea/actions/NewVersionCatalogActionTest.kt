@@ -41,7 +41,6 @@ import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
-import java.lang.RuntimeException
 
 
 @RunsInEdt
@@ -218,7 +217,7 @@ class NewVersionCatalogActionTest {
 
   private fun PreparedTestProject.Context.createTestDataContext(project: Project, name: String): DataContext = DataContext {
     when (it) {
-      TestDialogBuilder.TestAnswers.KEY.name -> TestDialogBuilder.TestAnswers(name, "Version Catalog File")
+      TestDialogBuilder.TestAnswers.KEY.name -> TestDialogBuilder.TestAnswers(name, NewVersionCatalogAction.VERSION_CATALOG_TEMPLATE)
       LangDataKeys.IDE_VIEW.name -> object : IdeView {
         val directory = PsiManager.getInstance(project).findDirectory(project.baseDir)!!
         override fun getDirectories(): Array<PsiDirectory> = Array(1) { directory }

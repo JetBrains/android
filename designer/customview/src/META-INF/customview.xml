@@ -17,7 +17,7 @@
 <idea-plugin>
   <extensionPoints>
     <!--
-    Extension point for EditorNotification$Provider that generate notification that will be displayed in the PreviewEditor
+    Extension point for EditorNotificationProvider that generate notification that will be displayed in the PreviewEditor
     (as opposed to spanning the whole width of the FileEditor.
     A notification provider that wants this behaviour should extend this point and not the regular editorNotificationProvider.
     -->

@@ -62,6 +62,5 @@ class PsiXmlFile(@VisibleForTesting val xmlFile: XmlFile) : RenderXmlFile {
     }
   }
 
-  override val psiFile: PsiFile
-    get() = xmlFile
+  override fun get(): PsiFile = xmlFile
 }

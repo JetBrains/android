@@ -15,10 +15,11 @@
  */
 package com.android.tools.compose.aa.code
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
@@ -51,7 +52,9 @@ fun KtAnalysisSession.getComposableFunctionRenderParts(functionSymbol: KtFunctio
 }
 
 fun KtAnalysisSession.renderValueParameters(valueParamsInParen: List<KtValueParameterSymbol>, closingString: String) = buildString {
-  error("K2 not supported in Android Studio Flamingo")
+  append("(")
+  valueParamsInParen.joinTo(buffer = this) { it.render(KtDeclarationRendererForSource.WITH_SHORT_NAMES) }
+  append(closingString)
 }
 
 private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
@@ -65,10 +68,15 @@ private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbo
 }
 
 fun KtAnalysisSession.isComposableFunctionParameter(valueParamSymbol: KtValueParameterSymbol): Boolean {
+  // Since vararg is not a function type parameter, we have to return false for a parameter with a vararg.
+  // In FE1.0, it was simple because vararg has an array type and checking that the parameter is a function type returns false.
+  // On the other hand, K2's value parameter symbol deliberately unwraps it and returns the element type as a symbol's returnType.
+  // We need a separate check for a vararg.
+  if (valueParamSymbol.isVararg) return false
+
   val parameterType = valueParamSymbol.returnType
   // Mimic FE1.0 `KotlinType.isBuiltinFunctionalType`.
   val isBuiltinFunctionalType = parameterType.isFunctionType || parameterType.isSuspendFunctionType
-  return isBuiltinFunctionalType && COMPOSABLE_FQ_NAMES.any {
-    parameterType.annotationsByClassId(ClassId.topLevel(FqName(it))).isNotEmpty()
-  }
+  return isBuiltinFunctionalType &&
+         parameterType.annotationsByClassId(ClassId.topLevel(FqName(COMPOSABLE_ANNOTATION_FQ_NAME))).isNotEmpty()
 }

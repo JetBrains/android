@@ -23,7 +23,7 @@ import java.awt.datatransfer.Transferable
 
 private const val NOT_IMPLEMENTED = "Not Implemented"
 
-class MockCopyPasteManager: CopyPasteManager() {
+class MockCopyPasteManager : CopyPasteManager() {
   var current: Transferable? = null
 
   override fun setContents(content: Transferable) {
@@ -35,8 +35,7 @@ class MockCopyPasteManager: CopyPasteManager() {
   override fun getAllContents() = current?.let { arrayOf(it) } ?: emptyArray()
 
   override fun <T : Any?> getContents(flavor: DataFlavor): T? {
-    @Suppress("UNCHECKED_CAST")
-    return current?.isDataFlavorSupported(flavor) as? T
+    @Suppress("UNCHECKED_CAST") return current?.isDataFlavorSupported(flavor) as? T
   }
 
   override fun areDataFlavorsAvailable(vararg flavors: DataFlavor?): Boolean {
@@ -44,8 +43,12 @@ class MockCopyPasteManager: CopyPasteManager() {
   }
 
   override fun addContentChangedListener(listener: ContentChangedListener) = error(NOT_IMPLEMENTED)
-  override fun addContentChangedListener(listener: ContentChangedListener, parentDisposable: Disposable) = error(NOT_IMPLEMENTED)
-  override fun removeContentChangedListener(listener: ContentChangedListener) = error(NOT_IMPLEMENTED)
+  override fun addContentChangedListener(
+    listener: ContentChangedListener,
+    parentDisposable: Disposable
+  ) = error(NOT_IMPLEMENTED)
+  override fun removeContentChangedListener(listener: ContentChangedListener) =
+    error(NOT_IMPLEMENTED)
   override fun stopKillRings() = error(NOT_IMPLEMENTED)
   override fun stopKillRings(document: Document) = error(NOT_IMPLEMENTED)
   override fun isCutElement(element: Any?): Boolean = error(NOT_IMPLEMENTED)

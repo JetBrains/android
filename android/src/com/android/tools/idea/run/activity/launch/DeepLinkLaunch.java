@@ -17,6 +17,7 @@ package com.android.tools.idea.run.activity.launch;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
+import static com.android.tools.idea.run.configuration.execution.ExecutionUtils.printShellCommand;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
@@ -25,15 +26,10 @@ import com.android.tools.idea.instantapp.InstantAppUrlFinder;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.configuration.AndroidBackgroundTaskReceiver;
-import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.tasks.AndroidDeepLinkLaunchTask;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ui.ConsoleView;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -41,36 +37,49 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class DeepLinkLaunch extends ActivityLaunchOption<DeepLinkLaunch.State> {
+public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
   public static final DeepLinkLaunch INSTANCE = new DeepLinkLaunch();
 
-  public static final class State extends ActivityLaunchOptionState {
+  @NotNull
+  @Override
+  public String getId() {
+    return AndroidRunConfiguration.LAUNCH_DEEP_LINK;
+  }
+
+  @NotNull
+  @Override
+  public String getDisplayName() {
+    return "URL";
+  }
+
+  @NotNull
+  @Override
+  public State createState() {
+    return new State();
+  }
+
+  @NotNull
+  @Override
+  public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
+    return new DeepLinkConfigurable(project, context);
+  }
+
+  public static final class State extends LaunchOptionState {
     public String DEEP_LINK = "";
 
-    @Nullable
     @Override
-    public AppLaunchTask getLaunchTask(@NotNull String applicationId,
-                                       @NotNull AndroidFacet facet,
-                                       @NotNull StartActivityFlagsProvider startActivityFlagsProvider,
-                                       @NotNull ProfilerState profilerState,
-                                       @NotNull ApkProvider apkProvider) {
-      return new AndroidDeepLinkLaunchTask(DEEP_LINK, startActivityFlagsProvider);
-    }
-
-    @Override
-    public void launch(@NotNull IDevice device,
-                       @NotNull App app,
-                       @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
-                       @NotNull ConsoleView console) throws ExecutionException {
+    protected void doLaunch(@NotNull IDevice device,
+                            @NotNull App app,
+                            @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
+                            @NotNull ConsoleView console) throws ExecutionException {
       IShellOutputReceiver receiver = new AndroidBackgroundTaskReceiver(console);
       String quotedLink = "'" + DEEP_LINK.replace("'", "'\\''") + "'";
       String command = "am start" +
                        " -a android.intent.action.VIEW" +
                        " -c android.intent.category.BROWSABLE" +
                        " -d " + quotedLink + (extraFlags.isEmpty() ? "" : " " + extraFlags);
-      console.print("$ adb shell " + command, ConsoleViewContentType.NORMAL_OUTPUT);
+      printShellCommand(console, command);
       try {
         device.executeShellCommand(command, receiver, 15, TimeUnit.SECONDS);
       }
@@ -112,30 +121,12 @@ public class DeepLinkLaunch extends ActivityLaunchOption<DeepLinkLaunch.State> {
       }
       return ImmutableList.of();
     }
-  }
 
-  @NotNull
-  @Override
-  public String getId() {
-    return AndroidRunConfiguration.LAUNCH_DEEP_LINK;
-  }
-
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return "URL";
-  }
-
-  @NotNull
-  @Override
-  public State createState() {
-    return new State();
-  }
-
-  @NotNull
-  @Override
-  public LaunchOptionConfigurable<State> createConfigurable(@NotNull Project project, @NotNull LaunchOptionConfigurableContext context) {
-    return new DeepLinkConfigurable(project, context);
+    @NotNull
+    @Override
+    public String getId() {
+      return "LAUNCH_DEEP_LINK";
+    }
   }
 }
 

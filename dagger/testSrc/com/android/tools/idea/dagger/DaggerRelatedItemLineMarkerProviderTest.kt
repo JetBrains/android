@@ -38,9 +38,6 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.testFramework.registerServiceInstance
 import icons.StudioIcons.Misc.DEPENDENCY_CONSUMER
 import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
-import java.awt.event.MouseEvent
-import javax.swing.Icon
-import javax.swing.JLabel
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -48,10 +45,13 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.junit.Ignore
+import java.awt.event.MouseEvent
+import javax.swing.Icon
+import javax.swing.JLabel
 
 abstract class DaggerRelatedItemLineMarkerProviderTestBase(
-  private val daggerUsingIndexEnabled: Boolean
+  private val daggerUsingIndexEnabled: Boolean,
+  private val expectProviderToBeDisabledByProperty: Boolean,
 ) : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
 
@@ -86,6 +86,35 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
     } catch (e: java.awt.HeadlessException) {
       // This error appears when AS tries to open a popup after the click in Headless environment.
     }
+  }
+
+  fun testGetName() {
+    val provider = DaggerRelatedItemLineMarkerProvider()
+    assertThat(provider.name).isEqualTo("Dagger related items")
+  }
+
+  fun testGetId() {
+    // The value of the id doesn't really matter, but it needs to be present in order for the icons
+    // available for disabling in settings.
+    val provider = DaggerRelatedItemLineMarkerProvider()
+    assertThat(provider.id).isNotEmpty()
+  }
+
+  fun testIsEnabledByDefault() {
+    val provider = DaggerRelatedItemLineMarkerProvider()
+
+    System.setProperty("disable.dagger.relateditems.gutter.icons", "false")
+    assertThat(provider.isEnabledByDefault).isTrue()
+
+    System.setProperty("disable.dagger.relateditems.gutter.icons", "true")
+    if (expectProviderToBeDisabledByProperty) {
+      assertThat(provider.isEnabledByDefault).isFalse()
+    } else {
+      assertThat(provider.isEnabledByDefault).isTrue()
+    }
+
+    // Make sure to clear the property so that it doesn't pollute other tests.
+    System.clearProperty("disable.dagger.relateditems.gutter.icons")
   }
 
   fun testGutterIcons() {
@@ -1355,6 +1384,41 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
       .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
 
+  fun testNavigationGoesToTargetElement() {
+    myFixture.configureByText(
+      "Components.kt",
+      // language=kotlin
+      """
+      import dagger.Component
+
+      @Component
+      interface MyComp<caret>onent {}
+
+      @Component(dependencies = [MyComponent::class])
+      interface MyDependentComponent
+      """
+        .trimIndent()
+    )
+
+    clickOnIcon(
+      myFixture.findGuttersAtCaret().single() as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    )
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import dagger.Component
+
+      @Component
+      interface MyComponent {}
+
+      @Component(dependencies = [MyComponent::class])
+      interface <caret>MyDependentComponent
+      """
+        .trimIndent()
+    )
+  }
+
   private fun PsiElement.className(): String? =
     when (this) {
       is PsiClass -> name
@@ -1364,8 +1428,13 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
 }
 
 class DaggerRelatedItemLineMarkerProviderTestV1 :
-  DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = false)
+  DaggerRelatedItemLineMarkerProviderTestBase(
+    daggerUsingIndexEnabled = false,
+    expectProviderToBeDisabledByProperty = true
+  )
 
-@Ignore // TODO(b/265846405): Start running test when index is enabled
 class DaggerRelatedItemLineMarkerProviderTestV2 :
-  DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = true)
+  DaggerRelatedItemLineMarkerProviderTestBase(
+    daggerUsingIndexEnabled = true,
+    expectProviderToBeDisabledByProperty = false
+  )

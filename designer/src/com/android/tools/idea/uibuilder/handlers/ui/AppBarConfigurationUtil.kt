@@ -38,18 +38,21 @@ fun formatNamespaces(namespaces: Map<String, String>): String {
 object Templates {
   // TODO: Remove the hardcoded AppBar height (192dp) and ID (appbar).
   @JvmStatic
-  fun getCoordinatorLayout(project: Project,
-                           androidPrefix: String,
-                           autoPrefix: String,
-                           namespaceDeclarations: String,
-                           fitsSystemWindows: String,
-                           scrollFlags: String,
-                           scrollInterpolator: String,
-                           backgroundImage: String,
-                           behaviourOverlapTop: String,
-                           scrollYPosition: String,
-                           pageContentAsXml: String,
-                           fab: String) = """
+  fun getCoordinatorLayout(
+    project: Project,
+    androidPrefix: String,
+    autoPrefix: String,
+    namespaceDeclarations: String,
+    fitsSystemWindows: String,
+    scrollFlags: String,
+    scrollInterpolator: String,
+    backgroundImage: String,
+    behaviourOverlapTop: String,
+    scrollYPosition: String,
+    pageContentAsXml: String,
+    fab: String
+  ) =
+    """
     <${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}
       $namespaceDeclarations
       $fitsSystemWindows
@@ -88,18 +91,22 @@ object Templates {
       $fab
 
     </${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}>
-  """.trimIndent()
+  """
+      .trimIndent()
 
   @JvmStatic
-  fun getCoordinatorLayoutWithTabs(project: Project,
-                                   androidPrefix: String,
-                                   autoPrefix: String,
-                                   namespaceDeclarations: String,
-                                   scrollFlags: String,
-                                   tabItems: String,
-                                   scrollYPosition: String,
-                                   pageContentAsXml: String,
-                                   fab: String) = """
+  fun getCoordinatorLayoutWithTabs(
+    project: Project,
+    androidPrefix: String,
+    autoPrefix: String,
+    namespaceDeclarations: String,
+    scrollFlags: String,
+    tabItems: String,
+    scrollYPosition: String,
+    pageContentAsXml: String,
+    fab: String
+  ) =
+    """
     <${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}
       $namespaceDeclarations
       $androidPrefix:layout_width="match_parent"
@@ -131,21 +138,24 @@ object Templates {
       </${CLASS_NESTED_SCROLL_VIEW.getNameInProject(project)}>
       $fab
     </${CLASS_COORDINATOR_LAYOUT.getNameInProject(project)}>
-  """.trimIndent()
+  """
+      .trimIndent()
 
   @JvmStatic
-  fun getTagFloatingActionButton(project: Project, androidPrefix: String, imageSrc: String) = """
+  fun getTagFloatingActionButton(project: Project, androidPrefix: String, imageSrc: String) =
+    """
     <${CLASS_FLOATING_ACTION_BUTTON.getNameInProject(project)}
         $androidPrefix:layout_height="wrap_content"
         $androidPrefix:layout_width="wrap_content"
         $androidPrefix:src="$imageSrc"
         $androidPrefix:layout_gravity="bottom|end"
         $androidPrefix:layout_margin="16dp"/>"
-    """.trimIndent()
-
+    """
+      .trimIndent()
 
   @JvmStatic
-  fun getImageView(androidPrefix: String, collapseMode: String, imageSrc: String) = """
+  fun getImageView(androidPrefix: String, collapseMode: String, imageSrc: String) =
+    """
     <ImageView
         $androidPrefix:id="@+id/app_bar_image"
         $androidPrefix:layout_width="match_parent"
@@ -153,23 +163,27 @@ object Templates {
         $collapseMode
         $androidPrefix:src="$imageSrc"
         $androidPrefix:scaleType="centerCrop"/>
-  """.trimIndent()
+  """
+      .trimIndent()
 
   @JvmStatic
-  fun getTabItem(project: Project, androidPrefix: String, textAttribute: String) = """
+  fun getTabItem(project: Project, androidPrefix: String, textAttribute: String) =
+    """
     <${CLASS_TAB_ITEM.getNameInProject(project)}
       $androidPrefix:layout_height="wrap_content"
       $androidPrefix:layout_width="wrap_content"
       $androidPrefix:text="$textAttribute"/>
-  """.trimIndent()
+  """
+      .trimIndent()
 
   @JvmStatic
-  fun getTextView(androidPrefix: String, text: String) = """
+  fun getTextView(androidPrefix: String, text: String) =
+    """
     <TextView
       $androidPrefix:layout_height="match_parent"
       $androidPrefix:layout_width="wrap_content"
       $androidPrefix:text="$text"
       $androidPrefix:padding="16dp"/>
-    """.trimIndent()
+    """
+      .trimIndent()
 }
-

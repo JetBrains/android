@@ -20,13 +20,11 @@ import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
 import kotlin.properties.Delegates
 
-/**
- * A model for table embedded in the properties panel.
- */
-class TableLineModelImpl(override val tableModel: PTableModel,
-                         override val isSearchable: Boolean) : GenericInspectorLineModel(), TableLineModel {
+/** A model for table embedded in the properties panel. */
+class TableLineModelImpl(override val tableModel: PTableModel, override val isSearchable: Boolean) :
+  GenericInspectorLineModel(), TableLineModel {
 
-  override var filter by Delegates.observable("") { _, _, _ -> fireValueChanged()}
+  override var filter by Delegates.observable("") { _, _, _ -> fireValueChanged() }
 
   override val focusable: Boolean
     get() = true
@@ -66,15 +64,18 @@ class TableLineModelImpl(override val tableModel: PTableModel,
 
   private fun nextSelectedItem(item: PTableItem): PTableItem? {
     val index: Int = tableModel.items.indexOf(item)
-    val next: Int = when {
-      index + 1 < tableModel.items.size -> index + 1
-      index > 0 -> index - 1
-      else -> return null
-    }
+    val next: Int =
+      when {
+        index + 1 < tableModel.items.size -> index + 1
+        index > 0 -> index - 1
+        else -> return null
+      }
     return tableModel.items[next]
   }
 
   private fun fireEditRequest(request: TableEditingRequest, item: PTableItem? = null) {
-    listeners.toTypedArray().filterIsInstance<TableRowEditListener>().forEach { it.editRequest(request, item) }
+    listeners.toTypedArray().filterIsInstance<TableRowEditListener>().forEach {
+      it.editRequest(request, item)
+    }
   }
 }

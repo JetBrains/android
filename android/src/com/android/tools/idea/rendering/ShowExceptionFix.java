@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.rendering;
 
+import com.android.tools.rendering.RenderProblem;
 import com.intellij.openapi.project.Project;
 import java.lang.ref.WeakReference;
 import org.jetbrains.android.util.AndroidUtils;

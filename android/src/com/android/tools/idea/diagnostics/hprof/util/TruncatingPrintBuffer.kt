@@ -24,7 +24,7 @@ class TruncatingPrintBuffer(
   private val tailLimit: Int,
   private val printFunc: (String) -> Any
 ) : Closeable {
-  private val queue: Queue<String> = LinkedList()
+  private val queue: Queue<String> = LinkedList<String>()
   private var linesPrinted = 0
   private var linesLost = 0
   private var closed = false

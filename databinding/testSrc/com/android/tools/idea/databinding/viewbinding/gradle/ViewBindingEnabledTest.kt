@@ -26,11 +26,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.kotlin.descriptors.resolveClassByFqName
-import org.jetbrains.kotlin.idea.caches.project.toDescriptor
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
-import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
-import org.jetbrains.kotlin.name.FqName
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -89,10 +84,7 @@ class ViewBindingEnabledTest {
     StudioResourceRepositoryManager.getAppResources(facet)
 
     // Context needed for searching for light classes
-    val moduleDescriptor = facet.mainModule.toDescriptor()!!
-    val classDescriptor = moduleDescriptor.resolveClassByFqName(FqName("com.android.example.viewbinding.MainActivity"),
-                                                                NoLookupLocation.WHEN_FIND_BY_FQNAME)!!
-    val context = classDescriptor.findPsi()!!
+    val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     var lastModificationCount = ViewBindingEnabledTrackingService.instance.modificationCount
 

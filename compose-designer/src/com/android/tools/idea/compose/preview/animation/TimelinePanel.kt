@@ -19,7 +19,6 @@ import com.android.tools.idea.compose.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElementStatus
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.UIUtil
@@ -47,7 +46,7 @@ internal const val DEFAULT_MAX_DURATION_MS = 10000L
 open class TimelinePanel(
   val tooltip: Tooltip,
   val previewState: AnimationPreviewState,
-  val tracker: ComposeAnimationEventTracker
+  val tracker: AnimationTracker
 ) : JSlider(0, DEFAULT_MAX_DURATION_MS.toInt(), 0) {
   private var cachedSliderWidth = 0
   private var cachedMax = 0
@@ -106,7 +105,7 @@ open class TimelinePanel(
   val sliderUI: TimelineSliderUI
     get() = ui as TimelineSliderUI
 
-  private var zoomValue = 1
+  var zoomValue = 1
   fun scale(z: Int) {
     zoomValue = z
   }
@@ -161,6 +160,8 @@ open class TimelinePanel(
  * * The tick lines also match the parent height
  */
 open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timeline) {
+
+  private data class VerticalTick(val x: Int, val y1: Int, val y2: Int)
 
   val positionProxy =
     object : PositionProxy {
@@ -230,9 +231,11 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
   final override fun paintTrack(g: Graphics) {
     g as Graphics2D
+    val frozenLines = getFrozenLines()
     paintMajorTicks(g)
+    paintVerticalFrozenTicks(g, frozenLines)
     paintElements(g)
-    paintFreezeLines(g)
+    paintFreezeLines(g, frozenLines)
   }
 
   final override fun paintFocus(g: Graphics?) {
@@ -282,8 +285,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       }
     // Add vertical ticks.
     g.color = InspectorColors.TIMELINE_TICK_COLOR
-    val tickIncrement = max(1, slider.majorTickSpacing / InspectorLayout.TIMELINE_TICKS_PER_LABEL)
-    for (tick in 0..slider.maximum step tickIncrement) {
+    getMajorTicksSpacing().forEach { tick ->
       val xPos = xPositionForValue(tick)
       g.drawLine(xPos, InspectorLayout.timelineHeaderHeightScaled(), xPos, tickRect.height)
     }
@@ -296,24 +298,26 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       }
   }
 
+  private fun getMajorTicksSpacing(): List<Int> {
+    val tickIncrement = max(1, slider.majorTickSpacing / InspectorLayout.TIMELINE_TICKS_PER_LABEL)
+    return (0..slider.maximum step tickIncrement).toList()
+  }
+
   /**
-   * Paint vertical freeze lines for all frozen elements. If [separateElements] is not true, the
-   * line will have the height of the panel.
+   * Get vertical freeze lines for all frozen elements. If [separateElements] is not true, the line
+   * will have the height of the panel.
    */
-  private fun paintFreezeLines(g: Graphics2D) {
-    g.color = InspectorColors.FREEZE_LINE_COLOR
-    g.stroke = InspectorLayout.freezeLineStroke
+  private fun getFrozenLines(): List<VerticalTick> {
+    val frozenTicks = mutableListOf<VerticalTick>()
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements())
       elements.forEach { element ->
         if (element.frozen) {
           val frozenValue = element.state.frozenValue
-          g.drawLine(
-            xPositionForValue(frozenValue),
-            totalHeight + 2,
-            xPositionForValue(frozenValue),
-            totalHeight + element.heightScaled() - 2
-          )
+          val x = xPositionForValue(frozenValue)
+          val y1 = totalHeight + 2
+          val y2 = totalHeight + element.heightScaled() - 2
+          frozenTicks.add(VerticalTick(x, y1, y2))
         }
         totalHeight += element.heightScaled()
       }
@@ -321,14 +325,33 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       elements.firstOrNull()?.also {
         if (it.frozen) {
           val frozenValue = it.state.frozenValue
-          g.drawLine(
-            xPositionForValue(frozenValue),
-            InspectorLayout.timelineHeaderHeightScaled() + 2,
-            xPositionForValue(frozenValue),
-            slider.height - 2
-          )
+          val x = xPositionForValue(frozenValue)
+          val y1 = InspectorLayout.timelineHeaderHeightScaled() + 2
+          val y2 = slider.height - 2
+          frozenTicks.add(VerticalTick(x, y1, y2))
         }
       }
+
+    return frozenTicks
+  }
+
+  /**
+   * Paint vertical freeze lines for all frozen elements. If [separateElements] is not true, the
+   * line will have the height of the panel.
+   */
+  private fun paintFreezeLines(g: Graphics2D, lines: List<VerticalTick>) {
+    g.color = InspectorColors.FREEZE_LINE_COLOR
+    g.stroke = InspectorLayout.freezeLineStroke
+    lines.forEach { g.drawLine(it.x, it.y1, it.x, it.y2) }
+  }
+
+  private fun paintVerticalFrozenTicks(g: Graphics2D, ticks: List<VerticalTick>) {
+    g.color = InspectorColors.TIMELINE_FROZEN_TICK_COLOR
+    g.stroke = InspectorLayout.simpleStroke
+    getMajorTicksSpacing().forEach { tick ->
+      val xPos = xPositionForValue(tick)
+      ticks.forEach { g.drawLine(xPos, it.y1, xPos, it.y2) }
+    }
   }
 
   /** [TrackListener] to allow setting [slider] value when clicking and scrubbing the timeline. */
@@ -370,23 +393,15 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
     override fun mouseReleased(e: MouseEvent) {
       super.mouseReleased(e)
-      timeline.tracker.invoke(
-        if (activeElement == null) {
-          if (isDragging)
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-              .DRAG_ANIMATION_INSPECTOR_TIMELINE
-          else
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-              .CLICK_ANIMATION_INSPECTOR_TIMELINE
-        } else {
-          if (isDragging)
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.DRAG_TIMELINE_LINE
-          // TODO Add click event for timeline element.
-          else
-            ComposeAnimationToolingEvent.ComposeAnimationToolingEventType
-              .CLICK_ANIMATION_INSPECTOR_TIMELINE
-        }
-      )
+      if (activeElement == null) {
+        if (isDragging) timeline.tracker.dragAnimationInspectorTimeline()
+        else timeline.tracker.clickAnimationInspectorTimeline()
+      } else {
+        if (isDragging) timeline.tracker.dragTimelineLine()
+        // TODO Add click event for timeline element.
+        else timeline.tracker.clickAnimationInspectorTimeline()
+      }
+
       isDragging = false
       if (activeElement?.status == TimelineElementStatus.Dragged) {
         timeline.dragEndListeners.forEach { it() }

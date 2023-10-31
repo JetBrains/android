@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
+import com.android.ide.common.gradle.Component
 import com.google.common.collect.Sets
 import java.io.File
 import kotlin.reflect.KClass
@@ -189,6 +190,10 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
       processPathValue(v.path)
     }
 
+    fun processComponent(v: Component) {
+      prop(propertyName) { v.toString().replaceKnownPaths() }
+    }
+
     fun processString(v: String) {
       prop(propertyName) { v.replaceKnownPaths() }
     }
@@ -282,6 +287,8 @@ class ModelDumper(private val specializedDumpers: List<SpecializedDumper>) {
         processString(v.toString())
       v is File ->
         processFile(v)
+      v is Component ->
+        processComponent(v)
       v::class.memberProperties.isNotEmpty() ->
         processObject(v)
       else ->

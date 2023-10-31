@@ -33,15 +33,14 @@ import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 import javax.swing.event.TableModelEvent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
-import studio.network.inspection.NetworkInspectorProtocol
 
 class RulesTableView(
   project: Project,
@@ -51,15 +50,13 @@ class RulesTableView(
   usageTracker: NetworkInspectorTracker
 ) {
 
-  @VisibleForTesting val persistentStateComponent: RulesPersistentStateComponent = project.service()
-
+  private val persistentStateComponent: RulesPersistentStateComponent = project.service()
   val component: JComponent
-
-  val tableModel = RulesTableModel()
+  val tableModel: RulesTableModel =
+    RulesTableModel(persistentStateComponent.state.rulesList).also { scope.initPersistentRules() }
   val table = TableView(tableModel)
 
   init {
-    initPersistentRules()
     val decorator =
       ToolbarDecorator.createDecorator(table)
         .setAddAction {
@@ -202,27 +199,23 @@ class RulesTableView(
     }
   }
 
-  private fun initPersistentRules() {
-    tableModel.items = persistentStateComponent.myRuleDataState.rulesList
-
-    scope.launch {
-      persistentStateComponent.myRuleDataState.rulesList.forEach { ruleData ->
-        ruleData.ruleDataListener = createNewRuleDataListener()
-        client.interceptResponse(
-          NetworkInspectorProtocol.InterceptCommand.newBuilder()
-            .apply {
-              interceptRuleAddedBuilder.apply {
-                ruleId = ruleData.id
-                rule = ruleData.toProto()
-              }
+  private fun CoroutineScope.initPersistentRules() = launch {
+    persistentStateComponent.state.rulesList.forEach { ruleData ->
+      ruleData.ruleDataListener = createNewRuleDataListener()
+      client.interceptResponse(
+        NetworkInspectorProtocol.InterceptCommand.newBuilder()
+          .apply {
+            interceptRuleAddedBuilder.apply {
+              ruleId = ruleData.id
+              rule = ruleData.toProto()
             }
-            .build()
-        )
+          }
+          .build()
+      )
 
-        // Increment the ID to the current ID so that new rule ID don't conflict with existing ones.
-        while (getLatestId() < ruleData.id) {
-          newId()
-        }
+      // Increment the ID to the current ID so that new rule ID don't conflict with existing ones.
+      while (getLatestId() < ruleData.id) {
+        newId()
       }
     }
   }

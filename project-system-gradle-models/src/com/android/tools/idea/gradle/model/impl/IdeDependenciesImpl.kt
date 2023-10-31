@@ -18,15 +18,49 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
+import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import java.io.Serializable
 
-data class IdeDependenciesCoreImpl(
-  override val dependencies: List<IdeDependencyCoreImpl>
-) : IdeDependenciesCore, Serializable
+/**
+ * We need a sealed interface so that the model classes pass validation, we can't use the [IdeDependenciesCore] interface
+ * as this is in a different package. We still need other references to this interface within com.android.tools.idea.gradle.model
+ */
+sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable
+
+data class IdeDependenciesCoreDirect(
+  override val dependencies: List<IdeDependencyCore>,
+) : IdeDependenciesCoreImpl, Serializable {
+  override fun lookup(ref: Int): IdeDependencyCore = dependencies[ref]
+}
+
+fun IdeDependenciesCore.lookupAll(indexes: List<Int>?): List<IdeDependencyCore>? {
+  return indexes?.map { this.lookup(it) }
+}
+
+data class IdeDependenciesCoreRef(
+  val referee: IdeDependenciesCoreDirect,
+  val index: Int,
+  override val dependencies: List<IdeDependencyCore> = transitiveClosure(referee.lookup(index), referee),
+) : IdeDependenciesCoreImpl, Serializable {
+  override fun lookup(ref: Int): IdeDependencyCore = referee.lookup(ref)
+}
+
+fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenciesCoreDirect): List<IdeDependencyCore> {
+  val result = LinkedHashSet<IdeDependencyCore>()
+  val queue = ArrayDeque(classpath.lookupAll(rootDependency.dependencies).orEmpty())
+  while (queue.isNotEmpty()) {
+    val value = queue.removeFirst()
+    if (result.contains(value)) continue
+    result.add(value)
+    queue.addAll(classpath.lookupAll(value.dependencies).orEmpty())
+  }
+
+  return result.toList()
+}
 
 data class IdeDependenciesImpl(
   private val classpath: IdeDependenciesCore,
@@ -50,10 +84,11 @@ data class IdeDependenciesImpl(
   }
   override val libraries by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
   override val unresolvedDependencies = classpath.dependencies
+  override val lookup: (Int) -> IdeDependencyCore = { classpath.lookup(it) }
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
-  return IdeDependenciesCoreImpl(object : List<IdeDependencyCoreImpl> {
+  return IdeDependenciesCoreDirect(object : List<IdeDependencyCoreImpl> {
     override val size: Int get() = unexpected()
     override fun get(index: Int): IdeDependencyCoreImpl = unexpected()
     override fun indexOf(element: IdeDependencyCoreImpl): Int = unexpected()

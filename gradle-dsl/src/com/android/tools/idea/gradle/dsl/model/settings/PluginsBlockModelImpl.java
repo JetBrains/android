@@ -28,8 +28,6 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.PluginModelImpl;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
@@ -92,10 +90,12 @@ public class PluginsBlockModelImpl extends GradleDslBlockModel implements Plugin
   }
 
   @Override
-  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply) {
+  public @NotNull PluginModel applyPlugin(@NotNull String plugin, @Nullable String version, @Nullable Boolean apply) {
     GradleDslInfixExpression expression = new GradleDslInfixExpression(myDslElement, null);
     expression.setNewLiteral(ID, plugin.trim());
-    expression.setNewLiteral(VERSION, version);
+    if(version != null) {
+      expression.setNewLiteral(VERSION, version);
+    }
     if (apply != null) {
       expression.setNewLiteral(APPLY, apply);
     }

@@ -318,7 +318,7 @@ class NavSceneTest {
     assertDrawRectEquals(sceneView, component2, 580f, 400f, 76.5f, 128f)
     assertDrawRectEquals(sceneView, nested, 400f, 400f, 70f, 19f)
 
-    whenever(surface.currentNavigation).then { model.find("nested")!! }
+    whenever<NlComponent>(surface.currentNavigation).then { model.find("nested")!! }
     scene.sceneManager.update()
     val component3 = scene.getSceneComponent("fragment3")!!
     moveComponentTo(component3, 200, 20)
@@ -745,7 +745,7 @@ class NavSceneTest {
     }
 
     val surface = model.surface as NavDesignSurface
-    whenever(surface.currentNavigation).then { model.find("nav1")!! }
+    whenever<NlComponent>(surface.currentNavigation).then { model.find("nav1")!! }
 
     val scene = surface.scene!!
     scene.sceneManager.update()

@@ -1,4 +1,4 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.util;
 
 import com.intellij.DynamicBundle;
@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-public final class AndroidBundle {
+public class AndroidBundle {
   private static final @NonNls String BUNDLE = "messages.AndroidBundle";
   private static final DynamicBundle INSTANCE = new DynamicBundle(AndroidBundle.class, BUNDLE);
 

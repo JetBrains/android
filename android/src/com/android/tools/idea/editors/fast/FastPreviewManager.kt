@@ -16,14 +16,13 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
-import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.toDisplayString
@@ -268,6 +267,7 @@ class FastPreviewManager private constructor(
    */
   private val requestTracker = CacheBuilder.newBuilder()
     .maximumSize(maxCachedRequests.toLong())
+    .softValues()
     .build<CompileRequestId, CompletableDeferred<Pair<CompilationResult, String>>>()
 
   private val compilingMutex = Mutex(false)
@@ -307,7 +307,7 @@ class FastPreviewManager private constructor(
    * or fast preview is disabled.
    */
   val isAvailable: Boolean
-    get() = isEnabled && !PreviewPowerSaveManager.isInPowerSaveMode
+    get() = isEnabled && !EssentialsMode.isEnabled()
 
   /**
    * Returns true while there is a compilation request running of this project.
@@ -351,17 +351,17 @@ class FastPreviewManager private constructor(
                              tracker: FastPreviewTrackerManager.Request = FastPreviewTrackerManager.getInstance(project).trackRequest()): Pair<CompilationResult, String> = compilingMutex.withLock {
     val startTime = System.currentTimeMillis()
     val requestId = createCompileRequestId(files, module)
-    val (isRunning: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
-      var isRunning = true
+    val (existingRequest: Boolean, pendingRequest: CompletableDeferred<Pair<CompilationResult, String>>) = synchronized(requestTracker) {
+      var existingRequest = true
       val request = requestTracker.get(requestId) {
         log.debug("New request with id=$requestId")
-        isRunning = false
+        existingRequest = false
         CompletableDeferred()
       }
-      isRunning to request
+      existingRequest to request
     }
     // If the request is already running, we wait for the result of that one instead.
-    if (isRunning) {
+    if (existingRequest) {
       log.debug("Waiting for request id=$requestId")
       return@withLock pendingRequest.await()
     }
@@ -451,7 +451,7 @@ class FastPreviewManager private constructor(
           requestTracker.invalidate(requestId)
         }
         pendingRequest.complete(it)
-    }
+      }
       try {
         project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onCompilationComplete(result, files)
         if (result == CompilationResult.Success) {
@@ -518,7 +518,7 @@ class FastPreviewManager private constructor(
     disableReason = null
     disableForThisSession = false
     FastPreviewTrackerManager.getInstance(project).userEnabled()
-    FastPreviewConfiguration.getInstance().isEnabled = StudioFlags.COMPOSE_FAST_PREVIEW.get()
+    FastPreviewConfiguration.getInstance().isEnabled = true
 
     if (!wasEnabled && isEnabled) {
       project.messageBus.syncPublisher(FAST_PREVIEW_MANAGER_TOPIC).onFastPreviewStatusChanged(isEnabled)

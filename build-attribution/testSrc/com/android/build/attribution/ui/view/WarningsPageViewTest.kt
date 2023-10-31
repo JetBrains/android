@@ -16,6 +16,8 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.JetifierNotUsed
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
@@ -35,7 +37,7 @@ import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
 import org.junit.Before
@@ -165,6 +167,7 @@ class WarningsPageViewTest {
         override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
       }
       confCachingData = ConfigurationCachingTurnedOn
+      jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
     }
     val model = WarningsDataPageModelImpl(data)
     view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply {
@@ -177,18 +180,19 @@ class WarningsPageViewTest {
     assertThat(view.component.components.any { it.isVisible }).isFalse()
 
     val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
-    assertThat(emptyStatusText.toStringState()).isEqualTo("""
-      java.awt.Rectangle[x=29,y=45,width=542,height=64]
-      This build has no warnings. To learn more about its performance, check out these views:| width=542 height=20
-      Tasks impacting build duration| width=193 height=20
-      Plugins with tasks impacting build duration| width=268 height=20
+    val emptyStatusLines = emptyStatusText.wrappedFragmentsIterable.map { it as SimpleColoredComponent }
+
+    assertThat(emptyStatusLines.joinToString(separator = "\n") { it.getCharSequence(true) }).isEqualTo("""
+      This build has no warnings. To learn more about its performance, check out these views:
+      Tasks impacting build duration
+      Plugins with tasks impacting build duration
     """.trimIndent())
     // Try click on row centers. Only second and third rows should react being links.
-    fakeUi.clickRelativeTo(view.component, 300, 45 + 10)
+    fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(0))
     Mockito.verifyNoInteractions(mockHandlers)
-    fakeUi.clickRelativeTo(view.component, 300, 45 + 32)
+    fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(1))
     Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(null)
-    fakeUi.clickRelativeTo(view.component, 300, 45 + 55)
+    fakeUi.clickRelativeTo(view.component, 300, emptyStatusText.rowCenterY(2))
     Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.flags.ifEnabled
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
@@ -41,24 +40,28 @@ import com.android.tools.idea.preview.actions.ShowProblemsPanel
 import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Insets
 import java.lang.ref.WeakReference
 import kotlin.reflect.KFunction0
-import org.jetbrains.annotations.VisibleForTesting
 
 /** Returns the status when Fast Preview is disabled. */
 private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Status) =
@@ -162,18 +165,28 @@ fun defaultCreateInformationPopup(
       return@let InformationPopupImpl(
           title = null,
           description = previewStatusNotification.description,
-          additionalActions =
-            listOfNotNull(StudioFlags.COMPOSE_FAST_PREVIEW.ifEnabled { ToggleFastPreviewAction() }),
+          additionalActions = listOf(ToggleFastPreviewAction()),
           links = linksList
         )
         .also { newPopup ->
           // Register the data provider of the popup to be the same as the one used in the toolbar.
-          // This allows for actions within the
-          // popup to query for things like the Editor even when the Editor is not directly related
-          // to
-          // the popup.
+          // This allows for actions within the popup to query for things like the Editor even
+          // when the Editor is not directly related to the popup.
+          // We ensure that only EDT safe requests are passed to the dataContext and others are
+          // simply not returned. If, for example, a PSI request is made, the caller will make sure
+          // to first grab the BGT_DATA_PROVIDER and then send the request. The BGT_DATA_PROVIDER
+          // will respond to any requests since it's safe from the threading perspective.
           DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
-            dataContext.getData(dataId)
+            return@registerDataProvider when (dataId) {
+              PlatformCoreDataKeys.BGT_DATA_PROVIDER.name ->
+                DataProvider { dataContext.getData(it) }
+              PlatformCoreDataKeys.PROJECT.name,
+              PlatformCoreDataKeys.MODULE.name,
+              PlatformCoreDataKeys.EDITOR.name,
+              PlatformCoreDataKeys.CONTEXT_COMPONENT.name,
+              PlatformCoreDataKeys.FILE_EDITOR.name -> dataContext.getData(dataId)
+              else -> null
+            }
           }
         }
     }
@@ -245,11 +258,17 @@ private fun DataContext.createTitleActionLink(
  * - Syntax errors
  */
 class PreviewIssueNotificationAction(
+  parentDisposable: Disposable,
   createInformationPopup: (Project, DataContext) -> InformationPopup? =
     ::defaultCreateInformationPopup
 ) : IssueNotificationAction(::getStatusInfo, createInformationPopup), RightAlignedToolbarAction {
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
   override fun margins(): Insets {
-    return JBUI.insets(3)
+    return JBUI.insets(3, 7)
   }
 
   override fun update(e: AnActionEvent) {
@@ -258,6 +277,9 @@ class PreviewIssueNotificationAction(
       e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
     }
   }
+
+  // EDT is needed because of calls to ComposePreviewManager.status() in getStatusInfo
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 }
 
 /**
@@ -275,8 +297,8 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   RightAlignedToolbarAction,
   CustomComponentAction {
 
-  // EDT is needed to read the preview status without holding the read lock
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  // Actions calling findComposePreviewManagersForContext in the update method, must run in BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   companion object {
     private const val ACTION_ID =
@@ -311,7 +333,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val isRefreshing =
-      findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
+      findComposePreviewManagersForContext(e.dataContext).any {
+        e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
+          it.status().isRefreshing
+        }
+      }
     presentation.isEnabled = !isRefreshing
     templateText?.let {
       presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
@@ -343,11 +369,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
  * [DefaultActionGroup] that shows the notification chip and the
  * [ForceCompileAndRefreshActionForNotification] button when applicable.
  */
-class ComposeNotificationGroup(surface: DesignSurface<*>) :
+class ComposeNotificationGroup(surface: DesignSurface<*>, parentDisposable: Disposable) :
   DefaultActionGroup(
     listOf(
       ComposeHideFilterAction(surface),
-      PreviewIssueNotificationAction(),
+      PreviewIssueNotificationAction(parentDisposable),
       ForceCompileAndRefreshActionForNotification.getInstance()
     )
   )

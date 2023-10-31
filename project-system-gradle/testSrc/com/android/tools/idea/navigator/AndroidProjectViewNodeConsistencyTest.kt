@@ -16,14 +16,10 @@
 package com.android.tools.idea.navigator
 
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
 
 @RunsInEdt
 @RunWith(Parameterized::class)

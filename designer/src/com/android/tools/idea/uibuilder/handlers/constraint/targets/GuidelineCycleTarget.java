@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentU
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import java.awt.Cursor;
 import java.util.List;
+import java.util.Locale;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -142,11 +143,11 @@ public class GuidelineCycleTarget extends GuidelineTarget {
       dimension = parent.getDrawWidth();
     }
     if (begin != null) {
-      String position = String.format(SdkConstants.VALUE_N_DP, value);
+      String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, value);
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
     }
     else if (end != null) {
-      String position = String.format(SdkConstants.VALUE_N_DP, (int)dimension - value);
+      String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, (int)dimension - value);
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
     }
     else if (percent != null) {
@@ -169,14 +170,14 @@ public class GuidelineCycleTarget extends GuidelineTarget {
   }
 
   private static void setBegin(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
-    String position = String.format(SdkConstants.VALUE_N_DP, value);
+    String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, value);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);
   }
 
   private static void setEnd(AttributesTransaction transaction, @AndroidDpCoordinate int value) {
-    String position = String.format(SdkConstants.VALUE_N_DP, value);
+    String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, value);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, null);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
     transaction.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, null);

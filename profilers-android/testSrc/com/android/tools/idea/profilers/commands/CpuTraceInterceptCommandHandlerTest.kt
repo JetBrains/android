@@ -26,7 +26,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.android.tools.profilers.TraceConfigOptionsUtils

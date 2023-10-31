@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.rendering.imagepool.ImagePool
+import com.android.tools.idea.diagnostics.heap.HeapSnapshotStatistics
+import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderTask
+import com.android.tools.rendering.imagepool.ImagePool
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.math.Quantiles
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.ThrowableComputable
 import junit.framework.TestCase
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import java.time.Instant
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -118,6 +124,7 @@ internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurementAdap
 /**
  * A [MetricMeasurement] that measures the memory usage delta between [before] and [after].
  */
+// TODO(b/292229448): replace all usages of this measurement with HeapSnapshotMemoryUseMeasurement
 internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurementAdapter<T>(metric) {
   private var initialMemoryUse = -1L
 
@@ -130,6 +137,39 @@ internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurementAdapte
                  Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMemoryUse)
 }
 
+/**
+ * A [MetricMeasurement] that measures the memory usage using the [HeapSnapshotTraverseService].
+ *
+ * When [component] is null, the measure is done over the whole [category]. Otherwhise, the
+ * measure is done only over the given [component], which must be part of th given [category].
+ *
+ * For more information on the existing categories and components, take a look at
+ * tools/adt/idea/android/resources/diagnostics/integration_test_memory_usage_config.textproto
+ */
+internal class HeapSnapshotMemoryUseMeasurement<T>(private val category: String, private val component: String?, metric: Metric) : MetricMeasurementAdapter<T>(metric) {
+  companion object {
+    // Reusable across instances because the collection is an expensive process
+    private var stats: HeapSnapshotStatistics? = null
+  }
+
+  override fun before() {
+    // Make sure the memory usage stats will be collected again on next 'after'
+    stats = null
+  }
+
+  override fun after(result: T): MetricSample {
+    if (stats == null) stats = HeapSnapshotTraverseService.getInstance().collectMemoryStatistics(false, true)!!
+    val bytes = (if (component == null ) {
+      // Full category
+      stats!!.categoryComponentStats.single { it.componentCategory.componentCategoryLabel == category }
+    }
+    else {
+      // Specific component
+      stats!!.componentStats.single { it.component.componentCategory.componentCategoryLabel == category && it.component.componentLabel == component }
+    }).ownedClusterStat.objectsStatistics.totalSizeInBytes
+    return MetricSample(Instant.now().toEpochMilli(), bytes)
+  }
+}
 
 /**
  * A [MetricMeasurement] that measures the inflate time of a render.
@@ -249,11 +289,13 @@ internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>
   assert(measures.map { it.metric.metricName }.distinct().count() == measures.map { it.metric.metricName }.count()) {
     "Metrics can not have duplicate names"
   }
-  System.gc()
   repeat(warmUpCount) {
     operation()
   }
-
+  runGC()
+  // Make sure to make any memory measurements at the end as their 'after' method
+  // is slow and may affect the result of other time related metrics
+  measures.sortedBy { it is HeapSnapshotMemoryUseMeasurement }
   val metricSamples: LinkedListMultimap<String, MetricSample> = LinkedListMultimap.create()
   repeat(samplesCount) {
     measures.forEach { it.before() }
@@ -261,6 +303,7 @@ internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>
     measures.forEach {
       it.after(result)?.let { value -> metricSamples.put(it.metric.metricName, value) }
     }
+    runGC()
   }
 
   measures.forEach { measure ->
@@ -351,3 +394,15 @@ fun verifyValidatorResult(result: RenderResult) {
 }
 
 fun ImagePool.Image.getPixel(x: Int, y: Int) = this.getCopy(x, y, 1, 1)!!.getRGB(0, 0)
+
+/**
+ * When [System.gc] is called, a "best effort" garbage collection is triggered, but there is no
+ * guarantees on its result. Adding some repetitions and delays could increase the probability
+ * of it having any effect, but it is still not guaranteed.
+ */
+fun runGC() = runBlocking {
+  repeat(3) {
+    delay(1000)
+    System.gc()
+  }
+}

@@ -25,13 +25,13 @@ import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.ITEM_STATE_CHANGED
 import javax.swing.JPanel
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
-import org.jetbrains.annotations.VisibleForTesting
 
 /** A dialog box that allows adding and editing header rules. */
 class HeaderRuleDialog(

@@ -3,9 +3,9 @@
 package org.jetbrains.android.actions;
 
 import com.android.AndroidXConstants;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.CommonBundle;

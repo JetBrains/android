@@ -18,9 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
-import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
-import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.Utils
@@ -51,12 +49,13 @@ class SwitchSurfaceLayoutManagerActionTest {
 
     var enabled = true
     val nonMultiChoiceAction = SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }
+    val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.
-    nonMultiChoiceAction.update(TestActionEvent.createTestEvent())
+    nonMultiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(nonMultiChoiceAction))
     enabled = false
-    nonMultiChoiceAction.update(TestActionEvent.createTestEvent())
+    nonMultiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(nonMultiChoiceAction))
 
     enabled = true
@@ -64,10 +63,10 @@ class SwitchSurfaceLayoutManagerActionTest {
       SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }
         .apply { templatePresentation.isMultiChoice = true }
     // It should always be multi-choice no matter it is enabled or not.
-    multiChoiceAction.update(TestActionEvent.createTestEvent())
+    multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))
     enabled = false
-    multiChoiceAction.update(TestActionEvent.createTestEvent())
+    multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))
   }
 }

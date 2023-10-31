@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="google-api-client">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/api-client/google-api-client/2.2.0/google-api-client-2.2.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/http-client/google-http-client-gson/1.42.3/google-http-client-gson-1.42.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/http-client/google-http-client/1.42.3/google-http-client-1.42.3.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/io/opencensus/opencensus-api/0.31.1/opencensus-api-0.31.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/io/opencensus/opencensus-contrib-http-util/0.31.1/opencensus-contrib-http-util-0.31.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

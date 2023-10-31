@@ -27,14 +27,16 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.ide.CopyPasteManager
 import java.awt.datatransfer.DataFlavor
 
-class NlDesignSurfaceActionHandler @JvmOverloads constructor(
+class NlDesignSurfaceActionHandler
+@JvmOverloads
+constructor(
   surface: DesignSurface<*>,
   @VisibleForTesting copyPasteManager: CopyPasteManager = CopyPasteManager.getInstance()
 ) : DesignSurfaceActionHandler(surface, copyPasteManager) {
 
   override fun deleteElement(dataContext: DataContext) {
     // For layout editor we may delete selected constraints.
-    if (ConstraintComponentUtilities.clearSelectedConstraint(mySurface)){
+    if (ConstraintComponentUtilities.clearSelectedConstraint(mySurface)) {
       return
     }
     super.deleteElement(dataContext)
@@ -61,10 +63,12 @@ class NlDesignSurfaceActionHandler @JvmOverloads constructor(
     return receiver
   }
 
-  override fun canHandleChildren(component: NlComponent,
-                                 pasted: MutableList<NlComponent>): Boolean {
+  override fun canHandleChildren(
+    component: NlComponent,
+    pasted: MutableList<NlComponent>
+  ): Boolean {
     val handlerManager = ViewHandlerManager.get(component.model.project)
-    val handler = handlerManager.getHandler(component)
+    val handler = handlerManager.getHandler(component) {}
     return handler is ViewGroupHandler
   }
 }

@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.transport.FailedToStartServerException
 import com.android.tools.idea.transport.TransportDeviceManager
@@ -29,28 +29,33 @@ import com.android.tools.profiler.proto.Transport
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportError
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotificationPanel.Status
 
-/**
- * Class responsible for listening to events published by the transport.
- */
+private const val TWO_VERSIONS_RUNNING_KEY = "two.versions.of.studio.running"
+
+/** Class responsible for listening to events published by the transport. */
 class TransportErrorListener(
-  private val project: Project,
+  project: Project,
+  private val notificationModel: NotificationModel,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
-  private val disposable: Disposable
-  ) : TransportDeviceManager.TransportDeviceManagerListener {
-  private val errorMessage = LayoutInspectorBundle.message("two.versions.of.studio.running")
+  disposable: Disposable
+) : TransportDeviceManager.TransportDeviceManagerListener {
 
   private var hasStartServerFailed = false
     set(value) {
       field = value
-      val bannerService = InspectorBannerService.getInstance(project)
       if (hasStartServerFailed) {
-        // the banner can't be dismissed. It will automatically be dismissed when the Transport tries to start again.
-        bannerService?.addNotification(errorMessage, emptyList())
+        // the banner can't be dismissed. It will automatically be dismissed when the Transport
+        // tries to start again.
+        notificationModel.addNotification(
+          TWO_VERSIONS_RUNNING_KEY,
+          LayoutInspectorBundle.message(TWO_VERSIONS_RUNNING_KEY),
+          Status.Error,
+          emptyList()
+        )
         // TODO(b/258453315) log to metrics
-      }
-      else {
-        bannerService?.removeNotification(errorMessage)
+      } else {
+        notificationModel.removeNotification(TWO_VERSIONS_RUNNING_KEY)
       }
     }
 
@@ -62,11 +67,14 @@ class TransportErrorListener(
     hasStartServerFailed = false
   }
 
-  override fun onTransportDaemonException(device: Common.Device, exception: java.lang.Exception) { }
+  override fun onTransportDaemonException(device: Common.Device, exception: java.lang.Exception) {}
 
-  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) { }
+  override fun onTransportProxyCreationFail(device: Common.Device, exception: Exception) {}
 
-  override fun onStartTransportDaemonServerFail(device: Common.Device, exception: FailedToStartServerException) {
+  override fun onStartTransportDaemonServerFail(
+    device: Common.Device,
+    exception: FailedToStartServerException
+  ) {
     // this happens if the transport can't start the server on the designated port.
     // for example if multiple versions of Studio are running.
     hasStartServerFailed = true
@@ -76,7 +84,10 @@ class TransportErrorListener(
     )
   }
 
-  override fun customizeProxyService(proxy: TransportProxy) { }
-  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) { }
-  override fun customizeAgentConfig(configBuilder: Agent.AgentConfig.Builder, runConfig: AndroidRunConfigurationBase?) { }
+  override fun customizeProxyService(proxy: TransportProxy) {}
+  override fun customizeDaemonConfig(configBuilder: Transport.DaemonConfig.Builder) {}
+  override fun customizeAgentConfig(
+    configBuilder: Agent.AgentConfig.Builder,
+    runConfig: AndroidRunConfigurationBase?
+  ) {}
 }

@@ -39,5 +39,5 @@ class GlancePreviewActionManager(private val surface: DesignSurface<LayoutlibSce
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
-    createStatusIcon(PreviewStatusIcon(sceneView), sceneView.surface)
+    createStatusIcon(PreviewStatusIcon(sceneView), surface)
 }

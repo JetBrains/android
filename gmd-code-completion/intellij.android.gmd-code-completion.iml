@@ -15,15 +15,6 @@
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../studio/google/cloud/testing/firebase-testing/lib/google-api-services-testing-v1-revsnapshot-1.20.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
@@ -34,5 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
+    <orderEntry type="library" name="google-api-client" level="project" />
   </component>
 </module>

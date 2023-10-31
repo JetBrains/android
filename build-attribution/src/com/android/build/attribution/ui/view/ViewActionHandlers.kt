@@ -102,4 +102,12 @@ interface ViewActionHandlers {
   fun migrateToNonTransitiveRClass()
 
   fun redirectToTaskCategoryWarningsPage(taskCategory: TaskCategory)
+
+  fun windowsDefenderPageHandler(): WindowsDefenderPageHandler
+}
+
+interface WindowsDefenderPageHandler {
+  fun runAutoExclusionScript(callback: (Boolean) -> Unit)
+  fun ignoreCheckForProject()
+  fun trackShowingManualInstructions()
 }

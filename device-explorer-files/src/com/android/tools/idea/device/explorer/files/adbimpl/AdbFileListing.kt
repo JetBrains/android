@@ -31,8 +31,6 @@ class AdbFileListing(
   private val LOGGER = thisLogger()
   private val myShellCommandsUtil = AdbShellCommandsUtil.create(myDevice)
 
-  val root: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
-
   suspend fun getChildren(parentEntry: AdbFileListingEntry): List<AdbFileListingEntry> {
     return getChildrenRunAs(parentEntry, null)
   }
@@ -52,6 +50,17 @@ class AdbFileListing(
         commandResult.throwIfError()
       }
       entries
+    }
+  }
+
+  suspend fun getRoot(): AdbFileListingEntry {
+    return withContext(dispatcher) {
+      val command = getCommand(null, "stat -c \"%A %U %G %z %s %n\" ").withDirectoryEscapedPath("/").build() //$NON-NLS-1$
+      val commandResult = myShellCommandsUtil.executeCommand(command)
+      if (commandResult.output.isEmpty() || commandResult.isError) {
+        commandResult.throwIfError()
+      }
+      processStatOutputLine(commandResult.output[0])
     }
   }
 
@@ -106,6 +115,42 @@ class AdbFileListing(
     }
     return command.withText(text)
   }
+
+  private fun processStatOutputLine(line: String): AdbFileListingEntry {
+    if (line.isEmpty()) {
+      LOGGER.warn("Stat command return an unexpected empty line, using default root instead")
+      return defaultRoot
+    }
+
+    val m = FileListingService.STAT_PATTERN.matcher(line)
+    if (!m.matches()) {
+      LOGGER.warn("Stat command return an unexpected string pattern, using default root instead")
+      return defaultRoot
+    }
+
+    val permissions = m.group(1)
+    val owner = m.group(2)
+    val group = m.group(3)
+    val date = m.group(4)
+    val time = if (m.group(5).length > 5) m.group(5).substring(0,5) else m.group(5)
+    val size = m.group(7)
+    val name = m.group(8)
+
+    return AdbFileListingEntry(
+      name,
+      getObjectType(permissions),
+      permissions,
+      owner,
+      group,
+      date,
+      time,
+      size,
+      null
+    )
+  }
+  companion object {
+    private val defaultRoot: AdbFileListingEntry = AdbFileListingEntryBuilder().setPath("/").setKind(EntryKind.DIRECTORY).build()
+  }
 }
 
 private fun processLsOutputLine(line: String, escaping: Boolean, parentEntry: AdbFileListingEntry): AdbFileListingEntry? {
@@ -134,16 +179,7 @@ private fun processLsOutputLine(line: String, escaping: Boolean, parentEntry: Ad
   var info: String? = null
 
   // and the type
-  var objectType = EntryKind.OTHER
-  when (permissions[0]) {
-    '-' -> objectType = EntryKind.FILE
-    'b' -> objectType = EntryKind.BLOCK
-    'c' -> objectType = EntryKind.CHARACTER
-    'd' -> objectType = EntryKind.DIRECTORY
-    'l' -> objectType = EntryKind.SYMBOLIC_LINK
-    's' -> objectType = EntryKind.SOCKET
-    'p' -> objectType = EntryKind.FIFO
-  }
+  val objectType = getObjectType(permissions)
 
   // now check what we may be linking to
   if (objectType == EntryKind.SYMBOLIC_LINK) {
@@ -175,6 +211,20 @@ private fun processLsOutputLine(line: String, escaping: Boolean, parentEntry: Ad
     size,
     info
   )
+}
+
+private fun getObjectType(permissions: String): EntryKind {
+  var objectType = EntryKind.OTHER
+  when (permissions[0]) {
+    '-' -> objectType = EntryKind.FILE
+    'b' -> objectType = EntryKind.BLOCK
+    'c' -> objectType = EntryKind.CHARACTER
+    'd' -> objectType = EntryKind.DIRECTORY
+    'l' -> objectType = EntryKind.SYMBOLIC_LINK
+    's' -> objectType = EntryKind.SOCKET
+    'p' -> objectType = EntryKind.FIFO
+  }
+  return objectType
 }
 
 private fun getName(result: MatchResult, escaping: Boolean): String {

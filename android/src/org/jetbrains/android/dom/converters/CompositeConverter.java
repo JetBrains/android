@@ -18,12 +18,11 @@ package org.jetbrains.android.dom.converters;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Composite version of {@link ResolvingConverter}.

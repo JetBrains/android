@@ -32,7 +32,7 @@ private val LOG : Logger by lazy { Logger.getInstance(ResourceImporter::class.ja
 interface ResourceImporter {
 
   companion object {
-    val EP_NAME: ExtensionPointName<ResourceImporter> = ExtensionPointName.create("com.android.resourceImporter")
+    val EP_NAME: ExtensionPointName<ResourceImporter> = ExtensionPointName.create<ResourceImporter>("com.android.resourceImporter")
   }
 
   /**

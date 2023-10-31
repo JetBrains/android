@@ -29,16 +29,17 @@ import java.util.function.Supplier
 import java.util.stream.Collector
 
 object LegacyTreeParser {
-  /** Parses the flat string representation of a view node and returns the root node.  */
-  fun parseLiveViewNode(bytes: ByteArray, propertyUpdater: LegacyPropertiesProvider.Updater): Pair<ViewNode, String>? {
+  /** Parses the flat string representation of a view node and returns the root node. */
+  fun parseLiveViewNode(
+    bytes: ByteArray,
+    propertyUpdater: LegacyPropertiesProvider.Updater
+  ): Pair<ViewNode, String>? {
     var rootNodeAndHash: Pair<ViewNode, String>? = null
     var lastNodeAndHash: Pair<ViewNode, String>? = null
     var lastWhitespaceCount = Integer.MIN_VALUE
     val stack = Stack<ViewNode>()
 
-    val input = BufferedReader(
-      InputStreamReader(ByteArrayInputStream(bytes), Charsets.UTF_8)
-    )
+    val input = BufferedReader(InputStreamReader(ByteArrayInputStream(bytes), Charsets.UTF_8))
 
     for (line in input.lines().collect(MergeNewLineCollector)) {
       if ("DONE.".equals(line, ignoreCase = true)) {
@@ -73,7 +74,11 @@ object LegacyTreeParser {
     return rootNodeAndHash
   }
 
-  private fun createViewNode(parent: ViewNode?, data: String, propertyLoader: LegacyPropertiesProvider.Updater): Pair<ViewNode, String> {
+  private fun createViewNode(
+    parent: ViewNode?,
+    data: String,
+    propertyLoader: LegacyPropertiesProvider.Updater
+  ): Pair<ViewNode, String> {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
     val hashId = hash.toLongOrNull(16) ?: 0
@@ -87,10 +92,10 @@ object LegacyTreeParser {
   }
 
   /**
-   * A custom collector that handles a special case see b/79183623
-   * If a text field has text containing a new line it'll cause the view node output to be split
-   * across multiple lines so the collector processes the file output and merges those back into a
-   * single line so we can correctly create view nodes.
+   * A custom collector that handles a special case see b/79183623 If a text field has text
+   * containing a new line it'll cause the view node output to be split across multiple lines so the
+   * collector processes the file output and merges those back into a single line so we can
+   * correctly create view nodes.
    */
   private object MergeNewLineCollector : Collector<String, MutableList<String>, List<String>> {
     override fun characteristics(): Set<Collector.Characteristics> {
@@ -99,17 +104,17 @@ object LegacyTreeParser {
 
     override fun supplier() = Supplier<MutableList<String>> { mutableListOf() }
     override fun finisher() = Function<MutableList<String>, List<String>> { it.toList() }
-    override fun combiner() =
-      BinaryOperator<MutableList<String>> { t, u -> t.apply { addAll(u) } }
+    override fun combiner() = BinaryOperator<MutableList<String>> { t, u -> t.apply { addAll(u) } }
 
-    override fun accumulator() = BiConsumer<MutableList<String>, String> { stringGroup, line ->
-      val newLine = line.trim()
-      // add the original line because we need to keep the spacing to determine hierarchy
-      if (newLine.startsWith("\\n")) {
-        stringGroup[stringGroup.lastIndex] = stringGroup.last() + line
-      } else {
-        stringGroup.add(line)
+    override fun accumulator() =
+      BiConsumer<MutableList<String>, String> { stringGroup, line ->
+        val newLine = line.trim()
+        // add the original line because we need to keep the spacing to determine hierarchy
+        if (newLine.startsWith("\\n")) {
+          stringGroup[stringGroup.lastIndex] = stringGroup.last() + line
+        } else {
+          stringGroup.add(line)
+        }
       }
-    }
   }
 }

@@ -24,25 +24,19 @@ import static com.intellij.openapi.util.text.StringUtil.getPackageName;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestExecutionOption;
 import com.android.tools.idea.model.TestOptions;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.ApkProvider;
-import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.LaunchOptions;
 import com.android.tools.idea.run.ValidationError;
-import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.AndroidTestExtraParam;
 import com.android.tools.idea.run.editor.AndroidTestExtraParamKt;
-import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.TestRunParameters;
-import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.codeInsight.AnnotationUtil;
@@ -167,7 +161,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
     }
 
-    // TODO: Resolve direct AndroidGradleModel dep (b/22596984)
     AndroidModel androidModel = AndroidModel.get(facet);
     if (androidModel == null) {
       return Pair.create(Boolean.FALSE, AndroidBundle.message("android.cannot.run.library.project.error"));
@@ -264,11 +257,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return TestCompileType.ANDROID_TESTS;
   }
 
-  private static int getTestSourceRootCount(@NotNull Module module) {
-    final ModuleRootManager manager = ModuleRootManager.getInstance(module);
-    return manager.getSourceRoots(true).length - manager.getSourceRoots(false).length;
-  }
-
   private List<ValidationError> checkTestMethod() {
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     final PsiClass testClass;
@@ -345,47 +333,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   }
 
   /**
-   * Returns the qualified class name of the default instrumentation runner class of the given facet.
-   */
-  @NotNull
-  public static String getDefaultInstrumentationRunner(@Nullable AndroidFacet facet) {
-    if (facet == null) {
-      return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
-    }
-    AndroidModel androidModel = AndroidModel.get(facet);
-    if (androidModel != null) {
-      // When a project is a gradle based project, instrumentation runner is always specified
-      // by AGP DSL (even if you have androidTest/AndroidManifest.xml with instrumentation tag,
-      // these values are always overwritten by AGP).
-      String runner = androidModel.getTestOptions().getInstrumentationRunner();
-      if (isEmptyOrSpaces(runner)) {
-        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
-      }
-      else {
-        return runner;
-      }
-    }
-    else {
-      // In non-Gradle project, instrumentation runner must be defined in AndroidManifest.
-      return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
-        Manifest manifest = Manifest.getMainManifest(facet);
-        if (manifest == null) {
-          return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
-        }
-        for (Instrumentation instrumentation : manifest.getInstrumentations()) {
-          if (instrumentation != null) {
-            PsiClass instrumentationClass = instrumentation.getInstrumentationClass().getValue();
-            if (instrumentationClass != null) {
-              return instrumentationClass.getQualifiedName();
-            }
-          }
-        }
-        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
-      });
-    }
-  }
-
-  /**
    * Returns the extra options string to be passed to the instrumentation runner.
    *
    * @see #EXTRA_OPTIONS
@@ -397,8 +344,8 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     if (AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE) {
       // Extra options defined in build.gradle are always included in AGP, adding them here would duplicate them.
       extraParams = SequencesKt.toList(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS));
-
-    } else {
+    }
+    else {
       extraParams = AndroidTestExtraParamKt.merge(AndroidTestExtraParam.parseFromString(EXTRA_OPTIONS),
                                                   AndroidTestExtraParamKt.getAndroidTestExtraParams(facet));
     }
@@ -520,5 +467,51 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       .map(AndroidModel::getTestOptions)
       .map(TestOptions::getExecutionOption)
       .orElse(TestExecutionOption.HOST);
+  }
+
+  private static int getTestSourceRootCount(@NotNull Module module) {
+    final ModuleRootManager manager = ModuleRootManager.getInstance(module);
+    return manager.getSourceRoots(true).length - manager.getSourceRoots(false).length;
+  }
+
+  /**
+   * Returns the qualified class name of the default instrumentation runner class of the given facet.
+   */
+  @NotNull
+  public static String getDefaultInstrumentationRunner(@Nullable AndroidFacet facet) {
+    if (facet == null) {
+      return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+    }
+    AndroidModel androidModel = AndroidModel.get(facet);
+    if (androidModel != null) {
+      // When a project is a gradle based project, instrumentation runner is always specified
+      // by AGP DSL (even if you have androidTest/AndroidManifest.xml with instrumentation tag,
+      // these values are always overwritten by AGP).
+      String runner = androidModel.getTestOptions().getInstrumentationRunner();
+      if (isEmptyOrSpaces(runner)) {
+        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+      }
+      else {
+        return runner;
+      }
+    }
+    else {
+      // In non-Gradle project, instrumentation runner must be defined in AndroidManifest.
+      return DumbService.getInstance(facet.getModule().getProject()).runReadActionInSmartMode(() -> {
+        Manifest manifest = Manifest.getMainManifest(facet);
+        if (manifest == null) {
+          return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+        }
+        for (Instrumentation instrumentation : manifest.getInstrumentations()) {
+          if (instrumentation != null) {
+            PsiClass instrumentationClass = instrumentation.getInstrumentationClass().getValue();
+            if (instrumentationClass != null) {
+              return instrumentationClass.getQualifiedName();
+            }
+          }
+        }
+        return DEFAULT_ANDROID_INSTRUMENTATION_RUNNER_CLASS;
+      });
+    }
   }
 }

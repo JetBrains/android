@@ -31,6 +31,7 @@ import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.adtui.model.updater.Updatable
+import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
@@ -46,7 +47,6 @@ import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.diagnostic.Logger
-import com.android.tools.idea.io.grpc.StatusRuntimeException
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
@@ -66,7 +66,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val aspect = AspectModel<MemoryProfilerAspect>()
   val gcStatsModel = makeModel(makeGcSeries())
 
-  private val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData)
+  val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData)
   val allocationSamplingRateDurations = makeModel(allocationSamplingRateDataSeries)
 
   val detailedMemoryUsage = DetailedMemoryUsage(profilers, this)

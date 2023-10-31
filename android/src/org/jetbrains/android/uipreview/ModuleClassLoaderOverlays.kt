@@ -16,8 +16,8 @@
 package org.jetbrains.android.uipreview
 
 import com.android.tools.idea.projectsystem.getHolderModule
-import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage

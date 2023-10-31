@@ -19,35 +19,35 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.BlockingDaemonClient
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
-import com.android.tools.idea.editors.fast.fastCompile
 import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import java.util.concurrent.CancellationException
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 class FastPreviewUtilTest {
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
+  private lateinit var testFile: PsiFile
 
-  private val testFile: PsiFile by lazy {
-    projectRule.fixture.addFileToProject(
-      "src/Test.kt",
-      """
+  @Before
+  fun setUp() {
+    testFile =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
       fun testA() {
       }
 
@@ -55,8 +55,8 @@ class FastPreviewUtilTest {
         testA()
       }
     """
-        .trimIndent()
-    )
+          .trimIndent()
+      )
   }
 
   @Test
@@ -64,7 +64,11 @@ class FastPreviewUtilTest {
     projectRule.module.loadComposeRuntimeInClassPath()
     runBlocking(workerThread) {
       val (result, _) =
-        fastCompile(projectRule.testRootDisposable, testFile.module!!, setOf(testFile))
+        fastCompile(
+          projectRule.testRootDisposable,
+          runReadAction { testFile.module }!!,
+          setOf(testFile)
+        )
       assertEquals(CompilationResult.Success, result)
     }
   }
@@ -86,7 +90,7 @@ class FastPreviewUtilTest {
               val (result, _) =
                 fastCompile(
                   projectRule.testRootDisposable,
-                  testFile.module!!,
+                  runReadAction { testFile.module }!!,
                   setOf(testFile),
                   testPreviewManager
                 )

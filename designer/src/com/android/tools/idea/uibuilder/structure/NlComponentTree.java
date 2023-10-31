@@ -621,7 +621,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
         return;
       }
 
-      ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component);
+      ViewHandler handler = NlComponentHelperKt.getViewHandler((NlComponent)component, () -> {});
       if (handler != null) {
         handler.onActivateInComponentTree((NlComponent)component);
       }

@@ -15,31 +15,64 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.facet.ProjectFacetManager
-import com.intellij.facet.ui.FacetDependentToolWindow
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
-import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidBundle
 
-internal class ShowLayoutInspectorAction : DumbAwareAction() {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+class ShowLayoutInspectorAction :
+  DumbAwareAction() {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     val project = e.project
-    e.presentation.isEnabled = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+    e.presentation.isEnabled =
+      project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project!!
-    for (windowEp in FacetDependentToolWindow.EXTENSION_POINT_NAME.extensionList) {
-      if (windowEp.id == LAYOUT_INSPECTOR_TOOL_WINDOW_ID) {
-        ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID)!!.activate(null)
-        break
-      }
+    val project = e.project ?: return
+    if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+      showLayoutInspectorDiscoveryPopUp(project)
+      activateToolWindow(project, RUNNING_DEVICES_TOOL_WINDOW_ID)
+    } else {
+      activateToolWindow(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID)
     }
+  }
+
+  private fun showLayoutInspectorDiscoveryPopUp(project: Project) {
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("LAYOUT_INSPECTOR_DISCOVERY")
+    val notification =
+      notificationGroup.createNotification(
+        LayoutInspectorBundle.message("layout.inspector.discovery.title"),
+        LayoutInspectorBundle.message("layout.inspector.discovery.description"),
+        NotificationType.INFORMATION
+      )
+    notification.addAction(
+      object : NotificationAction(LayoutInspectorBundle.message("opt.out")) {
+        override fun actionPerformed(e: AnActionEvent, notification: Notification) {
+          notification.expire()
+          ShowSettingsUtil.getInstance()
+            .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+        }
+      }
+    )
+    notification.notify(project)
+  }
+
+  private fun activateToolWindow(project: Project, toolWindowId: String) {
+    ToolWindowManager.getInstance(project).getToolWindow(toolWindowId)?.activate(null)
   }
 }

@@ -24,40 +24,42 @@ import com.android.tools.property.ptable.PTableItem
 
 const val CONSTRAINT_GROUP_NAME = "layout_constraints"
 
-class ConstraintGroup(properties: PropertiesTable<NlPropertyItem>): GroupSpec<NlPropertyItem> {
-  private val hasConstraints = properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_CONSTRAINTSET) != null
-  private val others = setOf(
-    SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
-    SdkConstants.ATTR_MIN_WIDTH,
-    SdkConstants.ATTR_MIN_HEIGHT,
-    SdkConstants.ATTR_MAX_WIDTH,
-    SdkConstants.ATTR_MAX_HEIGHT,
-    SdkConstants.ATTR_LAYOUT_OPTIMIZATION_LEVEL,
-    SdkConstants.ATTR_BARRIER_DIRECTION,
-    SdkConstants.ATTR_BARRIER_ALLOWS_GONE_WIDGETS,
-    SdkConstants.CONSTRAINT_REFERENCED_IDS,
-    SdkConstants.ATTR_LAYOUT_CHAIN_HELPER_USE_RTL,
-    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
-    SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
-    SdkConstants.ATTR_FLOW_WRAP_MODE,
-    SdkConstants.ATTR_FLOW_MAX_ELEMENTS_WRAP,
-    SdkConstants.ATTR_FLOW_FIRST_HORIZONTAL_BIAS,
-    SdkConstants.ATTR_FLOW_FIRST_HORIZONTAL_STYLE,
-    SdkConstants.ATTR_FLOW_HORIZONTAL_BIAS,
-    SdkConstants.ATTR_FLOW_HORIZONTAL_STYLE,
-    SdkConstants.ATTR_FLOW_HORIZONTAL_ALIGN,
-    SdkConstants.ATTR_FLOW_HORIZONTAL_GAP,
-    SdkConstants.ATTR_FLOW_LAST_HORIZONTAL_BIAS,
-    SdkConstants.ATTR_FLOW_LAST_HORIZONTAL_STYLE,
-    SdkConstants.ATTR_FLOW_FIRST_VERTICAL_BIAS,
-    SdkConstants.ATTR_FLOW_FIRST_VERTICAL_STYLE,
-    SdkConstants.ATTR_FLOW_VERTICAL_BIAS,
-    SdkConstants.ATTR_FLOW_VERTICAL_STYLE,
-    SdkConstants.ATTR_FLOW_VERTICAL_ALIGN,
-    SdkConstants.ATTR_FLOW_VERTICAL_GAP,
-    SdkConstants.ATTR_FLOW_LAST_VERTICAL_BIAS,
-    SdkConstants.ATTR_FLOW_LAST_VERTICAL_STYLE
-  )
+class ConstraintGroup(properties: PropertiesTable<NlPropertyItem>) : GroupSpec<NlPropertyItem> {
+  private val hasConstraints =
+    properties.getOrNull(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_CONSTRAINTSET) != null
+  private val others =
+    setOf(
+      SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
+      SdkConstants.ATTR_MIN_WIDTH,
+      SdkConstants.ATTR_MIN_HEIGHT,
+      SdkConstants.ATTR_MAX_WIDTH,
+      SdkConstants.ATTR_MAX_HEIGHT,
+      SdkConstants.ATTR_LAYOUT_OPTIMIZATION_LEVEL,
+      SdkConstants.ATTR_BARRIER_DIRECTION,
+      SdkConstants.ATTR_BARRIER_ALLOWS_GONE_WIDGETS,
+      SdkConstants.CONSTRAINT_REFERENCED_IDS,
+      SdkConstants.ATTR_LAYOUT_CHAIN_HELPER_USE_RTL,
+      SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+      SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+      SdkConstants.ATTR_FLOW_WRAP_MODE,
+      SdkConstants.ATTR_FLOW_MAX_ELEMENTS_WRAP,
+      SdkConstants.ATTR_FLOW_FIRST_HORIZONTAL_BIAS,
+      SdkConstants.ATTR_FLOW_FIRST_HORIZONTAL_STYLE,
+      SdkConstants.ATTR_FLOW_HORIZONTAL_BIAS,
+      SdkConstants.ATTR_FLOW_HORIZONTAL_STYLE,
+      SdkConstants.ATTR_FLOW_HORIZONTAL_ALIGN,
+      SdkConstants.ATTR_FLOW_HORIZONTAL_GAP,
+      SdkConstants.ATTR_FLOW_LAST_HORIZONTAL_BIAS,
+      SdkConstants.ATTR_FLOW_LAST_HORIZONTAL_STYLE,
+      SdkConstants.ATTR_FLOW_FIRST_VERTICAL_BIAS,
+      SdkConstants.ATTR_FLOW_FIRST_VERTICAL_STYLE,
+      SdkConstants.ATTR_FLOW_VERTICAL_BIAS,
+      SdkConstants.ATTR_FLOW_VERTICAL_STYLE,
+      SdkConstants.ATTR_FLOW_VERTICAL_ALIGN,
+      SdkConstants.ATTR_FLOW_VERTICAL_GAP,
+      SdkConstants.ATTR_FLOW_LAST_VERTICAL_BIAS,
+      SdkConstants.ATTR_FLOW_LAST_VERTICAL_STYLE
+    )
 
   override val name: String
     get() = CONSTRAINT_GROUP_NAME
@@ -67,11 +69,11 @@ class ConstraintGroup(properties: PropertiesTable<NlPropertyItem>): GroupSpec<Nl
 
   override val itemFilter: (NlPropertyItem) -> Boolean
     get() = {
-      hasConstraints && (
-        it.name.startsWith("layout_constraint") ||
-        it.name.startsWith("layout_constrained") ||
-        it.name.startsWith("layout_goneMargin") ||
-        others.contains(it.name))
+      hasConstraints &&
+        (it.name.startsWith("layout_constraint") ||
+          it.name.startsWith("layout_constrained") ||
+          it.name.startsWith("layout_goneMargin") ||
+          others.contains(it.name))
     }
 
   override val comparator: Comparator<PTableItem>

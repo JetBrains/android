@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.util.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -27,6 +31,7 @@ import com.intellij.util.xmlb.annotations.OptionTag;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XCollection;
 import com.intellij.util.xmlb.annotations.XCollection.Style;
+import com.intellij.util.xmlb.annotations.XMap;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -35,7 +40,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -84,17 +91,21 @@ public final class DevicesSelectedService {
   private final @NotNull PersistentStateComponent myPersistentStateComponent;
 
   @NotNull
+  private final RunManager myRunManager;
+
+  @NotNull
   private final Clock myClock;
 
   @SuppressWarnings("unused")
   private DevicesSelectedService(@NotNull Project project) {
-    this(project.getService(PersistentStateComponent.class), Clock.systemDefaultZone());
+    this(project.getService(PersistentStateComponent.class), RunManager.getInstance(project), Clock.systemDefaultZone());
   }
 
   @VisibleForTesting
   @NonInjectable
-  DevicesSelectedService(@NotNull PersistentStateComponent persistentStateComponent, @NotNull Clock clock) {
+  DevicesSelectedService(@NotNull PersistentStateComponent persistentStateComponent, @NotNull RunManager runManager, @NotNull Clock clock) {
     myPersistentStateComponent = persistentStateComponent;
+    myRunManager = runManager;
     myClock = clock;
   }
 
@@ -108,7 +119,7 @@ public final class DevicesSelectedService {
       return Optional.empty();
     }
 
-    State state = myPersistentStateComponent.getState();
+    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
 
     TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices,
                                                                        state.getRunningDeviceTargetSelectedWithDropDown(),
@@ -167,7 +178,7 @@ public final class DevicesSelectedService {
   }
 
   public void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
-    State state = myPersistentStateComponent.getState();
+    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
     state.multipleDevicesSelectedInDropDown = false;
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetSelectedWithDropDown(), targetSelectedWithComboBox);
@@ -179,15 +190,16 @@ public final class DevicesSelectedService {
   }
 
   boolean isMultipleDevicesSelectedInComboBox() {
-    return myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown;
+    return myPersistentStateComponent.getState(getSelectedRunConfiguration()).multipleDevicesSelectedInDropDown;
   }
 
   void setMultipleDevicesSelectedInComboBox(boolean multipleDevicesSelectedInComboBox) {
-    myPersistentStateComponent.getState().multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
+    var configuration = getSelectedRunConfiguration();
+    myPersistentStateComponent.getState(configuration).multipleDevicesSelectedInDropDown = multipleDevicesSelectedInComboBox;
   }
 
   @NotNull Set<Target> getTargetsSelectedWithDialog(@NotNull List<Device> devices) {
-    State state = myPersistentStateComponent.getState();
+    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
 
     Collection<RunningDeviceTarget> runningDeviceTargets = state.getRunningDeviceTargetsSelectedWithDialog();
     TargetsForReadingSupplier supplier = new TargetsForReadingSupplier(devices, runningDeviceTargets, state.getTargetsSelectedWithDialog());
@@ -199,31 +211,92 @@ public final class DevicesSelectedService {
   }
 
   void setTargetsSelectedWithDialog(@NotNull Set<Target> targetsSelectedWithDialog) {
-    State state = myPersistentStateComponent.getState();
+    var state = myPersistentStateComponent.getState(getSelectedRunConfiguration());
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(state.getTargetsSelectedWithDialog(), targetsSelectedWithDialog);
 
     state.setRunningDeviceTargetsSelectedWithDialog(supplier.getDialogRunningDeviceTargets());
     state.setTargetsSelectedWithDialog(supplier.getDialogTargets());
   }
 
+  @Nullable
+  private RunConfiguration getSelectedRunConfiguration() {
+    var configurationAndSettings = myRunManager.getSelectedConfiguration();
+    if (configurationAndSettings == null) {
+      return null;
+    }
+    return configurationAndSettings.getConfiguration();
+  }
+
   @com.intellij.openapi.components.State(name = "deploymentTargetDropDown", storages = @Storage("deploymentTargetDropDown.xml"))
   @Service
   @VisibleForTesting
-  static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<State> {
-    private @NotNull State myState = new State();
+  static final class PersistentStateComponent implements com.intellij.openapi.components.PersistentStateComponent<MapState> {
+    @NotNull
+    private MapState myMapState = new MapState();
 
+    @NotNull
+    private final RunManager myRunManager;
+
+    PersistentStateComponent(@NotNull Project project) {
+      myRunManager = RunManager.getInstance(project);
+    }
+
+    @NotNull
+    State getState(@Nullable RunConfiguration runConfiguration) {
+      if (runConfiguration == null || Strings.isNullOrEmpty(runConfiguration.getName())) {
+        return new State();
+      }
+
+      if (!DeployableToDevice.deploysToLocalDevice(runConfiguration)) {
+        // We do not want to keep track of states for configurations that don't deploy to local devices
+        return new State();
+      }
+
+      return myMapState.value.computeIfAbsent(runConfiguration.getName(), configuration -> new State());
+    }
+
+    @NotNull
     @Override
-    public @NotNull State getState() {
-      return myState;
+    public MapState getState() {
+      removeStatesForNonValidRunConfigurations();
+      return myMapState;
     }
 
     @Override
-    public void loadState(@NotNull State state) {
-      myState = state;
+    public void loadState(@NotNull MapState mapState) {
+      myMapState = mapState;
+      removeStatesForNonValidRunConfigurations();
+    }
+
+    private void removeStatesForNonValidRunConfigurations() {
+      myMapState.value.entrySet().removeIf(entry -> !validRunConfigurationExists(entry.getKey()));
+    }
+
+    private boolean validRunConfigurationExists(String runConfigurationName) {
+      return myRunManager.getAllConfigurationsList().stream()
+        .filter(DeployableToDevice::deploysToLocalDevice)
+        .anyMatch(runConfiguration -> runConfiguration.getName().equals(runConfigurationName));
     }
   }
 
-  private static final class State {
+  static final class MapState {
+    @NotNull
+    @XMap
+    public Map<String, State> value = new HashMap<>();
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+      return object instanceof MapState state && value.equals(state.value);
+    }
+  }
+
+  @VisibleForTesting
+  static final class State {
     @OptionTag(tag = "runningDeviceTargetSelectedWithDropDown", nameAttribute = "")
     public @Nullable TargetState runningDeviceTargetSelectedWithDropDown;
 
@@ -469,7 +542,7 @@ public final class DevicesSelectedService {
 
       switch (type) {
         case VIRTUAL_DEVICE_PATH:
-          return new VirtualDevicePath(value);
+          return new VirtualDevicePath(Path.of(value));
         case VIRTUAL_DEVICE_NAME:
           return new VirtualDeviceName(value);
         case SERIAL_NUMBER:

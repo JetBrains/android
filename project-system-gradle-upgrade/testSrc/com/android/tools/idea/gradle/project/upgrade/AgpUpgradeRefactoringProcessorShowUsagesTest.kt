@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
@@ -42,11 +42,10 @@ class AgpUpgradeRefactoringProcessorShowUsagesTest {
   val project by lazy { projectRule.project }
 
   val currentAgpVersion = AgpVersion.parse("4.1.0")
-  val latestKnown by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
 
   @Test
   fun testShowUsageViewNoBuildFiles() {
-    val processor = AgpUpgradeRefactoringProcessor(project, currentAgpVersion, latestKnown)
+    val processor = AgpUpgradeRefactoringProcessor(project, currentAgpVersion, AgpVersions.latestKnown)
     val usages = processor.doFindUsages()
     processor.doPreviewRefactoring(usages)
     val usageView = UsageViewManager.getInstance(project).selectedUsageView!!
@@ -58,7 +57,7 @@ class AgpUpgradeRefactoringProcessorShowUsagesTest {
   @Test
   fun testShowUsageViewMinimalBuildFile() {
     addMinimalBuildGradleToProject()
-    val processor = AgpUpgradeRefactoringProcessor(project, currentAgpVersion, latestKnown)
+    val processor = AgpUpgradeRefactoringProcessor(project, currentAgpVersion, AgpVersions.latestKnown)
     val usages = processor.doFindUsages()
     processor.doPreviewRefactoring(usages)
     val usageView = UsageViewManager.getInstance(project).selectedUsageView!!

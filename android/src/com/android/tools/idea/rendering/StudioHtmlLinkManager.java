@@ -29,27 +29,30 @@ import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ASSIGN_FRAGMENT_URL;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ASSIGN_LAYOUT_URL;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_BUILD;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_CLEAR_CACHE_AND_NOTIFY;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_CREATE_CLASS;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_DISABLE_SANDBOX;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_EDIT_ATTRIBUTE;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_EDIT_CLASSPATH;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_OPEN;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_OPEN_CLASS;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_REFRESH_RENDER;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_REPLACE_ATTRIBUTE_VALUE;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_REPLACE_TAGS;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_SHOW_TAG;
-import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_SYNC;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEBUG_DEPENDENCY;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_FRAGMENT_URL;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_LAYOUT_URL;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD_MODULE;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_CLEAR_CACHE_AND_NOTIFY;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_CREATE_CLASS;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_DISABLE_SANDBOX;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_EDIT_ATTRIBUTE;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_EDIT_CLASSPATH;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_OPEN;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_OPEN_CLASS;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_REFRESH_RENDER;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_REPLACE_ATTRIBUTE_VALUE;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_REPLACE_TAGS;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_SHOW_TAG;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_SYNC;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.projectsystem.DependencyType;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
@@ -57,9 +60,13 @@ import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.lint.detector.api.Lint;
+import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -162,6 +169,10 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       assert file != null;
       handleReplaceTagsUrl(url, module, file);
     }
+    else if (url.equals(URL_BUILD_MODULE)) {
+      assert module != null;
+      handleBuildModuleUrl(url, file);
+    }
     else if (url.equals(URL_BUILD)) {
       assert module != null;
       handleBuildProjectUrl(url, module.getProject());
@@ -228,8 +239,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
         linkRunnable.run();
       }
     }
-    else if (url.startsWith(URL_ADD_DEPENDENCY) && module != null) {
-      assert module.getModuleFile() != null;
+    else if ((url.startsWith(URL_ADD_DEPENDENCY) || url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) && module != null) {
       handleAddDependency(url, module);
       ProjectSystemUtil.getSyncManager(module.getProject())
         .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
@@ -350,6 +360,11 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       String rightTag = url.substring(delimiterPos + 1);
       new ReplaceTagFix((XmlFile)file, wrongTag, rightTag).run();
     }
+  }
+
+  private static void handleBuildModuleUrl(@NotNull String url, @NotNull PsiFile psiFile) {
+    assert url.equals(URL_BUILD_MODULE) : url;
+    ProjectSystemUtil.getProjectSystem(psiFile.getProject()).getBuildManager().compileFilesAndDependencies(Lists.newArrayList(psiFile.getVirtualFile()));
   }
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
@@ -856,15 +871,28 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
   @VisibleForTesting
   @UiThread
   static void handleAddDependency(@NotNull String url, @NotNull final Module module) {
-    assert url.startsWith(URL_ADD_DEPENDENCY) : url;
-    String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
+    String coordinateStr;
+    DependencyType dependencyType;
+    if (url.startsWith(URL_ADD_DEPENDENCY)) {
+      dependencyType = DependencyType.IMPLEMENTATION;
+      coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
+    }
+    else if (url.startsWith(URL_ADD_DEBUG_DEPENDENCY)) {
+      dependencyType = DependencyType.DEBUG_IMPLEMENTATION;
+      coordinateStr = url.substring(URL_ADD_DEBUG_DEPENDENCY.length());
+    }
+    else {
+      return;
+    }
+
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
     if (coordinate == null) {
       Logger.getInstance(StudioHtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
-    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false, false)
-                                .isEmpty()) {
+    if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false,
+                                                                   false, dependencyType)
+      .isEmpty()) {
       return;
     }
     Logger.getInstance(StudioHtmlLinkManager.class).warn("Could not add dependency " + coordinate);

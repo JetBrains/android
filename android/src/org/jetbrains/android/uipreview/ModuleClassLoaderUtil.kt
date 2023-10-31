@@ -19,13 +19,10 @@ package org.jetbrains.android.uipreview
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.PseudoClass
 import com.android.tools.idea.rendering.classloading.PseudoClassLocator
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
-import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
@@ -33,6 +30,10 @@ import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffi
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
+import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite
+import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -222,11 +223,9 @@ internal class ModuleClassLoaderImpl(module: Module,
   }
 
   private fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
-                                     binaryCache: ClassBinaryCache,
-                                     externalLibraries: List<Path>,
-                                     onClassLoaded: (String) -> Unit,
-                                     onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
-    val externalLibrariesClassLoader = createUrlClassLoader(externalLibraries)
+                             binaryCache: ClassBinaryCache,
+                             onClassLoaded: (String) -> Unit,
+                             onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     // Non project classes loading pipeline
     val nonProjectTransformationId = nonProjectTransforms.id
     // map of fqcn -> library path used to be able to insert classes into the ClassBinaryCache
@@ -279,7 +278,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   init {
     val nonProjectLoader = createNonProjectLoader(nonProjectTransforms,
                                                   binaryCache,
-                                                  externalLibraries,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
     // Project classes loading pipeline
@@ -288,7 +286,7 @@ internal class ModuleClassLoaderImpl(module: Module,
     }
     else {
       MultiLoader(
-        createOptionalOverlayLoader(module, onClassRewrite),
+        createOptionalOverlayLoader(nonProjectLoader, onClassRewrite),
         createProjectLoader(projectSystemLoader, nonProjectLoader, onClassRewrite)
       )
     }
@@ -310,10 +308,10 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Creates an overlay loader. See [OverlayLoader].
    */
-  private fun createOptionalOverlayLoader(module: Module, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
+  private fun createOptionalOverlayLoader(dependenciesLoader: DelegatingClassLoader.Loader?, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     return createProjectLoader(ListeningLoader(OverlayLoader(overlayManager), onAfterLoad = { fqcn, _ ->
       recordOverlayLoadedClass(fqcn)
-    }), null, onClassRewrite)
+    }), dependenciesLoader, onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {

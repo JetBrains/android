@@ -19,15 +19,19 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import kotlinx.coroutines.runBlocking
 
 class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureTestCase() {
-  private lateinit var provider : CustomViewPreviewRepresentationProvider
+  private lateinit var provider: CustomViewPreviewRepresentationProvider
 
   override fun setUp() {
     super.setUp()
-    myFixture.addFileToProject("src/android/view/View.kt", """
+    myFixture.addFileToProject(
+      "src/android/view/View.kt",
+      """
       package android.view
 
       class View
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     provider = CustomViewPreviewRepresentationProvider()
   }
 
@@ -47,18 +51,26 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
   }
 
   fun testQuickRejectKotlinWhenNoIncludes() = runBlocking {
-    val file = myFixture.addFileToProject("src/com/example/CustomView.kt", """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/CustomView.kt",
+        """
       package com.example
 
       import android.view.View
 
       class CustomView() : View()
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     assertFalse(provider.accept(project, file))
   }
 
   fun testQuickRejectJavaWhenNoIncludes() = runBlocking {
-    val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/CustomView.java",
+        """
       package com.example;
 
       import android.view.View;
@@ -68,12 +80,17 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
           super();
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     assertFalse(provider.accept(project, file))
   }
 
   fun testAcceptKotlinWhenHasViewsAndIncludes() = runBlocking {
-    val file = myFixture.addFileToProject("src/com/example/CustomView.kt", """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/CustomView.kt",
+        """
       package com.example
 
       import android.view.View
@@ -81,12 +98,17 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
       import android.content.Context
 
       class CustomView() : View()
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     assertTrue(provider.accept(project, file))
   }
 
   fun testAcceptJavaWhenHasViewsAndDirectIncludes() = runBlocking {
-    val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/CustomView.java",
+        """
       package com.example;
 
       import android.view.View;
@@ -98,12 +120,17 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
           super();
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     assertTrue(provider.accept(project, file))
   }
 
   fun testAcceptJavaWhenHasViewsAndInDirectIncludes() = runBlocking {
-    val file = myFixture.addFileToProject("src/com/example/CustomView.java", """
+    val file =
+      myFixture.addFileToProject(
+        "src/com/example/CustomView.java",
+        """
       package com.example;
 
       import android.view.View;
@@ -115,7 +142,9 @@ class CustomViewPreviewRepresentationProviderTest : LightJavaCodeInsightFixtureT
           super();
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     assertTrue(provider.accept(project, file))
   }
 }

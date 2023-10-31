@@ -25,9 +25,7 @@ import org.junit.Test
 
 @Suppress("DialogTitleCapitalization")
 class IssuedFileNodeTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testPresentationWithoutIssue() {
@@ -49,7 +47,13 @@ class IssuedFileNodeTest {
   fun testPresentationWithSingleIssue() {
     // single issue case
     val file = projectRule.fixture.addFileToProject("path/to/fileName", "content").virtualFile
-    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file)))))
+    val root =
+      DesignerCommonIssueRoot(
+        null,
+        DesignerCommonIssueTestProvider(listOf(TestIssue(source = IssueSourceWithFile(file))))
+      ) {
+        LayoutValidationNodeFactory
+      }
     val node = IssuedFileNode(file, root)
     node.update()
 
@@ -66,9 +70,18 @@ class IssuedFileNodeTest {
   fun testPresentationWithMultipleIssues() {
     // multiple issues case
     val file = projectRule.fixture.addFileToProject("path/to/fileName", "content").virtualFile
-    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(
-      listOf(TestIssue(source = IssueSourceWithFile(file)), TestIssue(source = IssueSourceWithFile(file))))
-    )
+    val root =
+      DesignerCommonIssueRoot(
+        null,
+        DesignerCommonIssueTestProvider(
+          listOf(
+            TestIssue(source = IssueSourceWithFile(file)),
+            TestIssue(source = IssueSourceWithFile(file))
+          )
+        )
+      ) {
+        LayoutValidationNodeFactory
+      }
     val node = IssuedFileNode(file, root)
     node.update()
 

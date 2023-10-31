@@ -19,7 +19,6 @@ import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.psi.annotateType
 import com.android.tools.idea.psi.light.NullabilityLightFieldBuilder
 import com.android.utils.usLocaleCapitalize
-import com.android.utils.usLocaleDecapitalize
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement

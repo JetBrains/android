@@ -104,7 +104,7 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     fun getLeaktrace(): Leaktrace {
       val path = getPath()
       if (path.isEmpty()) return Leaktrace(listOf(LeaktraceElement("ROOT", "", null)))
-      return Leaktrace(path.map { it.signature() }.plus(LeaktraceElement(path.tip().type.name, "", path.tip().obj)))
+      return Leaktrace(path.map { it.signature() })
     }
 
     fun markAsGrowing() {
@@ -263,12 +263,12 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
   }
 
-  fun getLeaks(prevGraph: HeapGraph, dominatorTimeout: Duration): List<LeakInfo> {
+  fun getLeaks(prevGraph: HeapGraph, ignoreList: IgnoreList<LeakInfo>, dominatorTimeout: Duration): List<LeakInfo> {
     val leaks = leakRoots.mapNotNull { root ->
       (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
         LeakInfo(this, root, prevRoot)
       }
-    }
+    }.filterNot { ignoreList.matches(it) }
     var startTime = System.currentTimeMillis()
     leaks.forEach { leak ->
       if (System.currentTimeMillis() - startTime > dominatorTimeout.toMillis()) return@forEach
@@ -327,11 +327,11 @@ class Edge(val start: Node, val end: Node, val label: Expander.Label): DoNotTrac
   // the signature is only used for ignore-listing
   fun signature(): LeaktraceElement =
     if (start.isRootNode) {
-      LeaktraceElement("ROOT", if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName, end.obj)
+      LeaktraceElement(if (end.obj === BootstrapClassloaderPlaceholder) "BootstrapClassLoader" else end.type.simpleName, "ROOT", end.obj)
     } else if (label is Expander.FieldLabel && (label.field.modifiers and Modifier.STATIC) != 0) {
-      LeaktraceElement(label.field.declaringClass.name, label.signature(), end.obj)
+      LeaktraceElement(end.type.name, label.signature(), end.obj)
     } else {
-      LeaktraceElement(start.type.name, label.signature(), end.obj)
+      LeaktraceElement(end.type.name, label.signature(), end.obj)
     }
 
   fun previous(): Edge? = start.incomingEdge

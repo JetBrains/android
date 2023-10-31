@@ -18,7 +18,6 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
-import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
@@ -84,7 +83,8 @@ private data class ResourceClasses(
 }
 
 /**
- * A [LightResourceClassService] that provides R classes for local modules by finding manifests of all Android modules in the project.
+ * A [LightResourceClassService] that provides R classes for local modules by finding manifests of all Android modules in the project. This
+ * implementation of [LightResourceClassService] is intended for use with the Gradle build system.
  */
 class ProjectLightResourceClassService(private val project: Project) : LightResourceClassService {
   companion object {
@@ -134,7 +134,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
       val libsWithResources = findAllLibrariesWithResources(project).values
       aarPackageNamesCache.retainAll(libsWithResources) // remove old items that are not needed anymore
-      CachedValueProvider.Result(
+      CachedValueProvider.Result<Multimap<String, ExternalAndroidLibrary>>(
         Multimaps.index(libsWithResources) { getAarPackageName(it!!) },
         ProjectRootManager.getInstance(project)
       )
@@ -280,7 +280,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     return LibraryTablesRegistrar.getInstance()
       .getLibraryTable(project)
       .libraries
-      .firstOrNull { it.name?.endsWith(modelLibrary.address) == true }
+      .firstOrNull { it.name?.endsWith(modelLibrary.libraryName()) == true }
   }
 
   override fun findRClassPackage(packageName: String): PsiPackage? {

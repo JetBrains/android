@@ -34,30 +34,35 @@ import com.intellij.psi.PsiFile
 import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import icons.StudioIcons
 
-private val SEVERITY_TO_ICON = mapOf(
-  Pair(SpellCheckerSeveritiesProvider.TYPO, StudioIcons.Common.TYPO_STACK),
-  Pair(HighlightSeverity.WEAK_WARNING, StudioIcons.Common.WEAK_WARNING_STACK),
-  Pair(HighlightSeverity.WARNING, StudioIcons.Common.WARNING_STACK),
-  Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK)
-)
+private val SEVERITY_TO_ICON =
+  mapOf(
+    Pair(SpellCheckerSeveritiesProvider.TYPO, StudioIcons.Common.TYPO_STACK),
+    Pair(HighlightSeverity.WEAK_WARNING, StudioIcons.Common.WEAK_WARNING_STACK),
+    Pair(HighlightSeverity.WARNING, StudioIcons.Common.WARNING_STACK),
+    Pair(HighlightSeverity.ERROR, StudioIcons.Common.ERROR_STACK)
+  )
 
 /**
- * Custom [TrafficLightRenderer] to be used by resource files.
- * It shows the number of errors, warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
+ * Custom [TrafficLightRenderer] to be used by resource files. It shows the number of errors,
+ * warnings... displayed in the Design Tools tab of the error panel if there are Visual Lint issues.
  */
-class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) : TrafficLightRenderer(file.project, editor.document) {
+class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) :
+  TrafficLightRenderer(file.project, editor.document) {
   private val severities = severityRegistrar.allSeverities
   private val errorCountArray = IntArray(severities.size)
 
   init {
     val messageBusConnection = project.messageBus.connect(this)
-    messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { _, _ ->
-      ApplicationManager.getApplication().invokeLater {
-        if (!project.isDisposed) {
-          ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
+    messageBusConnection.subscribe(
+      IssueProviderListener.TOPIC,
+      IssueProviderListener { _, _ ->
+        ApplicationManager.getApplication().invokeLater {
+          if (!project.isDisposed) {
+            ErrorStripeUpdateManager.getInstance(project).repaintErrorStripePanel(editor, file)
+          }
         }
       }
-    })
+    )
   }
 
   override fun refresh(editorMarkupModel: EditorMarkupModelImpl?) {
@@ -81,9 +86,11 @@ class ResourceFileTrafficLightRender(file: PsiFile, editor: Editor) : TrafficLig
 
   override fun getStatus(): AnalyzerStatus {
     val status = super.getStatus()
-    val nonZeroSeverities = errorCountArray.indices.reversed().filterNot { errorCountArray[it] == 0 }.map {
-      severityRegistrar.getSeverityByIndex(it)
-    }
+    val nonZeroSeverities =
+      errorCountArray.indices
+        .reversed()
+        .filterNot { errorCountArray[it] == 0 }
+        .map { severityRegistrar.getSeverityByIndex(it) }
     val items = mutableListOf<StatusItem>()
     val currentItems = status.expandedStatus
     if (currentItems.size != nonZeroSeverities.size) {
@@ -115,13 +122,13 @@ class ResourceFileTrafficLightRendererContributor : TrafficLightRendererContribu
     if (!StudioFlags.NELE_USE_CUSTOM_TRAFFIC_LIGHTS_FOR_RESOURCES.get()) {
       return null
     }
-    // Use this customized renderer only for resource files, returning null means that the default renderer will be used.
+    // Use this customized renderer only for resource files, returning null means that the default
+    // renderer will be used.
     return ReadAction.compute<TrafficLightRenderer?, RuntimeException> {
       file?.let {
         if (isInResourceSubdirectory(it)) {
           ResourceFileTrafficLightRender(it, editor)
-        }
-        else {
+        } else {
           null
         }
       }

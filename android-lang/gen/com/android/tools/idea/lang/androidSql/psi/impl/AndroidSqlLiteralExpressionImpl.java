@@ -52,6 +52,12 @@ public class AndroidSqlLiteralExpressionImpl extends AndroidSqlExpressionImpl im
 
   @Override
   @Nullable
+  public AndroidSqlBooleanLiteral getBooleanLiteral() {
+    return findChildByClass(AndroidSqlBooleanLiteral.class);
+  }
+
+  @Override
+  @Nullable
   public PsiElement getDoubleQuoteStringLiteral() {
     return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
   }

@@ -9,8 +9,10 @@ public final class TestProjectPaths {
 
   public static final String ANDROIDX_WITH_LIB_MODULE = "projects/androidxWithLibModule";
   public static final String ANDROID_LIBRARY_AS_TEST_DEPENDENCY = "projects/AndroidLibraryAsTestDependency";
+  public static final String ANDROID_KOTLIN_MULTIPLATFORM = "projects/androidKotlinMultiplatform";
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
+  public static final String APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE = "projects/appWithWearAndTvAndAutomotiveModules";
   public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
   public static final String APPLICATION_ID_SUFFIX = "projects/applicationIdSuffix";
   public static final String APPLICATION_ID_VARIANT_API = "projects/applicationIdViaVariantApi";
@@ -18,6 +20,7 @@ public final class TestProjectPaths {
   public static final String APP_WITH_ACTIVITY_IN_LIB = "projects/appWithActivityInLib";
 
   public static final String BASIC = "projects/basic";
+  public static final String BASIC_KOTLIN_GRADLE_DSL = "projects/basicKotlinGradleDsl";
   public static final String NO_MODULES = "projects/projectWithNoModules";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String BUILD_ANALYZER_CHECK_ANALYZERS = "projects/buildAnalyzer/checkAnalyzers";
@@ -29,6 +32,8 @@ public final class TestProjectPaths {
   public static final String DEPENDENT_NATIVE_MODULES = "projects/dependentNativeModules";
   public static final String DYNAMIC_APP = "projects/dynamicApp";
   public static final String DYNAMIC_APP_WITH_VARIANTS = "projects/dynamicAppWithVariants";
+  public static final String ETR_WITH_ANDROIDX = "projects/EtrWithAndroidx";
+  public static final String ETR_WITHOUT_ANDROIDX = "projects/EtrTestProject";
   public static final String HELLO_JNI = "projects/helloJni";
   public static final String IMPORTING = "projects/importing";
   public static final String INSTANT_APP = "projects/instantApp";
@@ -40,12 +45,15 @@ public final class TestProjectPaths {
   public static final String KOTLIN_WITH_VERSION_CATALOG = "projects/kotlinWithVersionCatalog";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String KOTLIN_LIB = "projects/kotlinLib";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
   public static final String MANIFEST_CONFLICT_BUILD_TYPE_AND_FLAVOR = "projects/manifestConflict/buildTypeAndFlavorConflict";
   public static final String MANIFEST_CONFLICT_MIN_SDK = "projects/manifestConflict/minSdk";
   public static final String MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_NOT_IN_XML = "projects/manifestConflict/dynamicFeatureAttributeConflictNotInPrimaryXml";
   public static final String MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_IN_XML = "projects/manifestConflict/dynamicFeatureAttributeConflictInPrimaryXml";
+  public static final String MIGRATE_BUILD_CONFIG = "projects/migrateBuildConfig";
+  public static final String MIGRATE_BUILD_CONFIG_WITH_GENERATED_SOURCES = "projects/migrateBuildConfigWithGeneratedSources";
   public static final String MIGRATE_TO_ANDROID_X = "projects/migrateToAndroidX";
   public static final String MIGRATE_TO_ANDROID_X_KTS = "projects/migrateToAndroidXKTS";
   public static final String MIGRATE_TO_APP_COMPAT = "projects/migrateToAppCompat";

@@ -15,10 +15,14 @@
  */
 package com.android.tools.idea.logcat.messages
 
+import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.SYSTEM_HEADER
+import com.android.tools.idea.logcat.hyperlinks.StudioBotFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
 import java.time.ZoneId
 
+
+private val exceptionLinePattern = Regex("\n\\s*at .+\\(.+\\)\n")
 
 /**
  * Formats [LogcatMessage]'s into a [TextAccumulator]
@@ -28,6 +32,8 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
   // TODO(aalbert): This was borrowed from Pidcat. Should we do it too? Should we also do it for app?
   private var previousTag: String? = null
   private var previousPid: Int? = null
+
+  private val issueExplainer = IssueExplainer.get()
 
   fun formatMessages(
     formattingOptions: FormattingOptions,
@@ -39,38 +45,51 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
     val headerWidth = formattingOptions.getHeaderWidth()
     val newline = "\n".padEnd(headerWidth + 1)
     for (message in messages) {
-      if (message.header === SYSTEM_HEADER) {
-        textAccumulator.accumulate(message.message + '\n')
-        continue
-      }
       val start = textAccumulator.getTextLength()
       val header = message.header
-      val tag = header.tag
-      val appName = header.getAppName()
 
-      textAccumulator.accumulate(formattingOptions.timestampFormat.format(header.timestamp, zoneId))
-      textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))
-      textAccumulator.accumulate(
-        text = formattingOptions.tagFormat.format(tag, previousTag),
-        textAttributes = logcatColors.getTagColor(tag))
-      textAccumulator.accumulate(
-        text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid))
-
-      formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
-
-      val messageText = when {
-        softWrapWidth == null || softWrapWidth <= headerWidth -> message.message
-        else -> wordWrap(message.message, softWrapWidth - headerWidth)
+      if (message.header === SYSTEM_HEADER) {
+        textAccumulator.accumulate(message.message)
       }
-      textAccumulator.accumulate(
-        text = messageText.replace("\n", newline),
-        textAttributesKey = logcatColors.getMessageKey(header.logLevel))
+      else {
+        val tag = header.tag
+        val appName = header.getAppName()
+
+        textAccumulator.accumulate(formattingOptions.timestampFormat.format(header.timestamp, zoneId))
+        textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))
+        textAccumulator.accumulate(
+          text = formattingOptions.tagFormat.format(tag, previousTag),
+          textAttributes = logcatColors.getTagColor(tag))
+        textAccumulator.accumulate(
+          text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid))
+
+        formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
+
+        val msg = when {
+          !issueExplainer.isAvailable() -> message.message
+          exceptionLinePattern.containsMatchIn(message.message) -> insertStudioBotText(message.message)
+          else -> message.message
+        }
+
+        val messageText = when {
+          softWrapWidth == null || softWrapWidth <= headerWidth -> msg
+          else -> wordWrap(msg, softWrapWidth - headerWidth)
+        }
+        textAccumulator.accumulate(
+          text = messageText.replace("\n", newline),
+          textAttributesKey = logcatColors.getMessageKey(header.logLevel))
+        previousTag = tag
+        previousPid = header.pid
+      }
       textAccumulator.accumulate("\n")
       val end = textAccumulator.getTextLength()
       textAccumulator.addMessageRange(start, end - 1, message)
-
-      previousTag = tag
-      previousPid = header.pid
     }
+  }
+
+  private fun insertStudioBotText(message: String): String {
+    val split = message.split("\n", ignoreCase = false, limit = 2)
+    assert(split.size > 1)
+    return "${split[0]} ${StudioBotFilter.linkText}\n${split[1]}"
   }
 }

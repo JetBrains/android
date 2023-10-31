@@ -26,17 +26,18 @@ import com.android.ide.common.resources.ResourceResolver.THEME_NAME
 import com.android.resources.ScreenSize
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
+import com.android.tools.configurations.ThemeInfoProvider
+import com.android.tools.dom.ActivityAttributesSnapshot
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
-import com.android.tools.idea.model.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
-import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryActivitiesFromManifestIndex
 import com.android.tools.idea.model.queryApplicationThemeFromManifestIndex
 import com.android.tools.idea.run.activity.DefaultActivityLocator
+import com.android.tools.module.AndroidModuleInfo
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
@@ -46,6 +47,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.util.SlowOperations
 import org.jetbrains.android.facet.AndroidFacet
+import kotlin.math.max
 
 private const val ANDROID_THEME = PREFIX_ANDROID + "Theme"
 private const val ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme."
@@ -268,11 +270,12 @@ fun getDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTar
   }
 
   // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
-  val targetSdk = moduleInfo.targetSdkVersion.apiLevel
+  // We do use a max between targetSdk and minSdk because when targetSdk is not defined, targetSdkVersion.apiLevel is set to 1.
+  val targetOrMinSdk = max(moduleInfo.targetSdkVersion.apiLevel, moduleInfo.minSdkVersion.apiLevel)
 
-  val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetSdk
+  val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetOrMinSdk
 
-  val apiLevel = targetSdk.coerceAtMost(renderingTargetSdk)
+  val apiLevel = targetOrMinSdk.coerceAtMost(renderingTargetSdk)
   return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + when {
     apiLevel >= 21 -> "Theme.Material.Light"
     apiLevel >= 14 || apiLevel >= 11 && screenSize == ScreenSize.XLARGE -> "Theme.Holo"

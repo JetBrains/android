@@ -19,14 +19,16 @@ import com.intellij.execution.Executor
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
-import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.GenericProgramRunner
 import com.intellij.openapi.project.Project
 import javax.swing.Icon
 
-internal fun createFakeExecutionEnvironment(project: Project, name: String): ExecutionEnvironment {
+internal fun createFakeExecutionEnvironment(project: Project,
+                                            name: String,
+                                            executor: Executor = DefaultRunExecutor.getRunExecutorInstance()): ExecutionEnvironment {
   val runProfile = object : RunProfile {
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? = null
     override fun getName() = name
@@ -38,7 +40,7 @@ internal fun createFakeExecutionEnvironment(project: Project, name: String): Exe
     override fun getRunnerId() = "FakeDebuggerRunner"
   }
 
-  return ExecutionEnvironmentBuilder(project, DefaultDebugExecutor.getDebugExecutorInstance())
+  return ExecutionEnvironmentBuilder(project, executor)
     .runProfile(runProfile)
     .runner(programRunner)
     .build()

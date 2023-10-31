@@ -21,15 +21,16 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.res.ids.ResourceIdManager;
 import com.android.utils.Pair;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.concurrency.EdtExecutorService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -156,6 +157,23 @@ public class MotionLayoutComponentHelper {
       return tmpPath.length;
     }
     return -1;
+  }
+
+  private void whenDesignToolAvailable(@NotNull Runnable runnable) {
+    if (myDesignTool != null) {
+      runnable.run();
+      return;
+    }
+
+    if (myFuture == null) {
+      return;
+    }
+
+    myFuture.thenRunAsync(() -> {
+      if (myDesignTool == null) {
+        runnable.run();
+      }
+    }, EdtExecutorService.getInstance());
   }
 
   private boolean isMyDesignToolAvailable() {
@@ -397,9 +415,6 @@ public class MotionLayoutComponentHelper {
   }
 
   private boolean setTransitionPosition(float position) {
-    if (!isMyDesignToolAvailable()) {
-      return false;
-    }
     if (myCallSetTransitionPosition == null) {
       try {
         myCallSetTransitionPosition = myDesignTool.getClass().getMethod("setToolPosition", float.class);
@@ -438,18 +453,17 @@ public class MotionLayoutComponentHelper {
     return true;
   }
 
-  public boolean setProgress(float value) {
-    if (!isMyDesignToolAvailable()) {
-      return false;
-    }
-    NlModel model = myMotionLayoutComponent.getModel();
-    //model.notifyModified(NlModel.ChangeType.EDIT);
-    if (!setTransitionPosition(value)) {
-      return false;
-    }
-    model.notifyLiveUpdate(false);
-    refresh(myMotionLayoutComponent);
-    return true;
+  public void setProgress(float value) {
+    whenDesignToolAvailable(() -> {
+      NlModel model = myMotionLayoutComponent.getModel();
+
+      if (!setTransitionPosition(value)) {
+        return;
+      }
+
+      model.notifyLiveUpdate(false);
+      refresh(myMotionLayoutComponent);
+    });
   }
 
   public void setTransition(String start, String end) {
@@ -497,46 +511,45 @@ public class MotionLayoutComponentHelper {
   }
 
   public void setState(String state) {
-    if (!isMyDesignToolAvailable()) {
-      return;
-    }
-    if (myCallSetState == null) {
-      try {
-        myCallSetState = myDesignTool.getClass().getMethod("setState", String.class);
-      }
-      catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    whenDesignToolAvailable(() -> {
+      if (myCallSetState == null) {
+        try {
+          myCallSetState = myDesignTool.getClass().getMethod("setState", String.class);
         }
-        myCallSetState = null;
+        catch (NoSuchMethodException e) {
+          if (DEBUG) {
+            e.printStackTrace();
+          }
+          myCallSetState = null;
+          return;
+        }
+      }
+      if (myCallSetState != null) {
+        try {
+          RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+            try {
+              myCallSetState.invoke(myDesignTool, state);
+            }
+            catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+              myCallSetState = null;
+              if (DEBUG) {
+                e.printStackTrace();
+              }
+            }
+          });
+        }
+        catch (Exception e) {
+          if (DEBUG) {
+            e.printStackTrace();
+          }
+        }
+      }
+      if (myCallSetState == null) {
         return;
       }
-    }
-    if (myCallSetState != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCallSetState.invoke(myDesignTool, state);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallSetState = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
-      }
-    }
-    if (myCallSetState == null) {
-      return;
-    }
-    NlModel model = myMotionLayoutComponent.getModel();
-    model.notifyLiveUpdate(false);
+      NlModel model = myMotionLayoutComponent.getModel();
+      model.notifyLiveUpdate(false);
+    });
   }
 
   public void disableAutoTransition(boolean disable) {

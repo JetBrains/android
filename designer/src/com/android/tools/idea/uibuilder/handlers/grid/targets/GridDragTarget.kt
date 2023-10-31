@@ -32,16 +32,13 @@ import com.intellij.openapi.util.text.StringUtil
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Graphics2D
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 private const val MIN_WIDTH = 16
 private const val MIN_HEIGHT = 16
 
 /**
- * Target to handle the drag of GridLayout's children
- * FIXME: lock the grid decoration when dragging widget.
+ * Target to handle the drag of GridLayout's children FIXME: lock the grid decoration when dragging
+ * widget.
  */
 class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDragTarget {
 
@@ -93,7 +90,12 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     offsetY = y - myComponent.getDrawY(System.currentTimeMillis())
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>, ignored: SceneContext) {
+  override fun mouseDrag(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    closestTargets: List<Target>,
+    ignored: SceneContext
+  ) {
     myComponent.isDragging = true
 
     val parent = myComponent.parent ?: return
@@ -101,8 +103,16 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     val dragX = x - offsetX
     val dragY = y - offsetY
 
-    val componentX = max(parent.drawX, min(dragX, parent.drawX + parent.drawWidth - myComponent.drawWidth))
-    val componentY = max(parent.drawY, min(dragY, parent.drawY + parent.drawHeight - myComponent.drawHeight))
+    val componentX =
+      Math.max(
+        parent.drawX,
+        Math.min(dragX, parent.drawX + parent.drawWidth - myComponent.drawWidth)
+      )
+    val componentY =
+      Math.max(
+        parent.drawY,
+        Math.min(dragY, parent.drawY + parent.drawHeight - myComponent.drawHeight)
+      )
     myComponent.setPosition(componentX, componentY)
 
     val component = myComponent.nlComponent
@@ -113,7 +123,11 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     myComponent.scene.repaint()
   }
 
-  private fun updateAttributes(attributes: AttributesTransaction, @AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
+  private fun updateAttributes(
+    attributes: AttributesTransaction,
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int
+  ) {
     if (barrier == null) return
     val b = barrier as GridBarriers
     selectedColumn = b.getColumnAtX(x)
@@ -127,7 +141,11 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     }
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTarget: List<Target>) {
+  override fun mouseRelease(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    closestTarget: List<Target>
+  ) {
     if (!myComponent.isDragging) return
 
     myComponent.isDragging = false
@@ -138,11 +156,10 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
     updateAttributes(attributes, x, y)
     attributes.apply()
 
-    if (!(abs(x - firstMouseX) <= 1 && abs(y - firstMouseY) <= 1)) {
-      WriteCommandAction
-          .writeCommandAction(component.model.file)
-          .withName("Dragged " + StringUtil.getShortName(component.tagName))
-          .run<Throwable> { attributes.commit() }
+    if (!(Math.abs(x - firstMouseX) <= 1 && Math.abs(y - firstMouseY) <= 1)) {
+      WriteCommandAction.writeCommandAction(component.model.file)
+        .withName("Dragged " + StringUtil.getShortName(component.tagName))
+        .run<Throwable> { attributes.commit() }
     }
 
     myComponent.updateTargets()
@@ -155,16 +172,18 @@ class GridDragTarget(isSupportLibrary: Boolean) : BaseTarget(), NonPlaceholderDr
 
   override fun getPreferenceLevel() = Target.DRAG_LEVEL
 
-  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? =
+    Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 
   override fun canChangeSelection() = true
 }
 
-private class DrawDraggableRegionCommand(@AndroidDpCoordinate val x1: Int,
-                                         @AndroidDpCoordinate val y1: Int,
-                                         @AndroidDpCoordinate val x2: Int,
-                                         @AndroidDpCoordinate val y2: Int)
-  : DrawCommand {
+private class DrawDraggableRegionCommand(
+  @AndroidDpCoordinate val x1: Int,
+  @AndroidDpCoordinate val y1: Int,
+  @AndroidDpCoordinate val x2: Int,
+  @AndroidDpCoordinate val y2: Int
+) : DrawCommand {
 
   override fun getLevel() = DrawCommand.CLIP_LEVEL
 
@@ -180,11 +199,12 @@ private class DrawDraggableRegionCommand(@AndroidDpCoordinate val x1: Int,
   override fun serialize() = "${javaClass.name}:($x1, $y1) - ($x2, $y2)"
 }
 
-private class DragCellCommand(@AndroidDpCoordinate val x: Int,
-                              @AndroidDpCoordinate val y: Int,
-                              @AndroidDpCoordinate val w: Int,
-                              @AndroidDpCoordinate val h: Int)
-  : DrawCommand {
+private class DragCellCommand(
+  @AndroidDpCoordinate val x: Int,
+  @AndroidDpCoordinate val y: Int,
+  @AndroidDpCoordinate val w: Int,
+  @AndroidDpCoordinate val h: Int
+) : DrawCommand {
 
   override fun getLevel() = DrawCommand.CLIP_LEVEL
 

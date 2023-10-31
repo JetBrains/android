@@ -177,4 +177,18 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       .toList()
   }
 
+  override fun isNamespaceOrParentPackage(packageName: String): Boolean {
+    val projectScope = GlobalSearchScope.projectScope(project)
+    for (facet in ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
+      val moduleNamespace = facet.getModuleSystem().getPackageName() ?: continue
+      // Check if the moduleNamespace is exactly the package name, or is a subpackage
+      if (!moduleNamespace.startsWith(packageName)) continue
+      // packageName=com.example should not match moduleNamespace=com.example2
+      if (moduleNamespace.length > packageName.length && moduleNamespace[packageName.length] != '.') continue
+      val mainManifestFile = facet.sourceProviders.mainManifestFile ?: continue
+      if (!mainManifestFile.let(projectScope::contains)) continue
+      return true
+    }
+    return false
+  }
 }

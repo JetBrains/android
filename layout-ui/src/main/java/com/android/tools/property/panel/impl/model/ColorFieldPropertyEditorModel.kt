@@ -20,20 +20,17 @@ import com.intellij.openapi.actionSystem.AnAction
 import icons.StudioIcons
 import javax.swing.Icon
 
-/**
- * Model of a TextField control with a color button on the left for editing a color property.
- */
-class ColorFieldPropertyEditorModel(property: PropertyItem): TextFieldWithLeftButtonEditorModel(property, true) {
+/** Model of a TextField control with a color button on the left for editing a color property. */
+class ColorFieldPropertyEditorModel(property: PropertyItem) :
+  TextFieldWithLeftButtonEditorModel(property, true) {
 
-  /**
-   * The [property] defines the icon used on the left button.
-   */
+  /** The [property] defines the icon used on the left button. */
   override val leftButtonIcon: Icon?
-    get() = property.colorButton?.actionIcon ?: if (readOnly) null else StudioIcons.LayoutEditor.Extras.PIPETTE
+    get() =
+      property.colorButton?.actionIcon
+        ?: if (readOnly) null else StudioIcons.LayoutEditor.Extras.PIPETTE
 
-  /**
-   * The [property] defines the action used for the left button.
-   */
+  /** The [property] defines the action used for the left button. */
   override val buttonAction: AnAction?
     get() = property.colorButton?.action
 }

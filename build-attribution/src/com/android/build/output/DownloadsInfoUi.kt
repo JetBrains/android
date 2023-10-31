@@ -17,8 +17,8 @@ package com.android.build.output
 
 import com.android.build.attribution.analyzers.minGradleVersionProvidingDownloadEvents
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.stats.FeatureSurveys
-import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
 import com.intellij.build.events.BuildEventPresentationData
@@ -59,15 +59,15 @@ private const val DOWNLOAD_INFO_VIEW_SURVEY_NAME = "DOWNLOAD_INFO_VIEW_SURVEY"
  * [DownloadsInfoUIModel] contains the logic of how this page is populated and reacts on user interactions.
  */
 class DownloadsInfoExecutionConsole(
-  private val buildId: ExternalSystemTaskId,
-  private val buildFinishedDisposable: CheckedDisposable,
-  private val buildStartTimestampMs: Long,
+  val buildId: ExternalSystemTaskId,
+  val buildFinishedDisposable: CheckedDisposable,
+  val buildStartTimestampMs: Long,
   val gradleVersion: GradleVersion?,
-  private val featureSurveys: FeatureSurveys = FeatureSurveys
+  val featureSurveys: FeatureSurveys = FeatureSurveys
 ) : ExecutionConsole {
   val uiModel = DownloadsInfoUIModel()
 
-  private val requestsTable = object : TableView<DownloadRequestItem>(uiModel.requestsTableModel) {
+  val requestsTable = object : TableView<DownloadRequestItem>(uiModel.requestsTableModel) {
     override fun createRowSorter(model: TableModel?): TableRowSorter<TableModel?> {
       return object : DefaultColumnInfoBasedRowSorter(model) {
         override fun toggleSortOrder(column: Int) {
@@ -96,7 +96,7 @@ class DownloadsInfoExecutionConsole(
     speedSearch.setFilteringMode(true)
   }
 
-  private val reposTable = TableView(uiModel.repositoriesTableModel).apply {
+  val reposTable = TableView(uiModel.repositoriesTableModel).apply {
     name = "repositories table"
     resetDefaultFocusTraversalKeys()
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)

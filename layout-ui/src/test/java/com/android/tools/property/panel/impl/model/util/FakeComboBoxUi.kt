@@ -16,6 +16,8 @@
 package com.android.tools.property.panel.impl.model.util
 
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
+import com.intellij.ui.components.JBList
+import com.intellij.util.ui.JBInsets
 import javax.swing.JComboBox
 import javax.swing.JComponent
 
@@ -24,6 +26,8 @@ class FakeComboBoxUI : DarculaComboBoxUI() {
     @Suppress("UNCHECKED_CAST")
     comboBox = component as JComboBox<Any>
     popup = FakeComboPopup(comboBox)
+    listBox = JBList()
+    padding = JBInsets(0, 0, 0, 0)
     installListeners()
     installComponents()
     installKeyboardActions()
@@ -32,8 +36,7 @@ class FakeComboBoxUI : DarculaComboBoxUI() {
   override fun setPopupVisible(comboBox: JComboBox<*>?, visible: Boolean) {
     if (visible) {
       popup.show()
-    }
-    else {
+    } else {
       popup.hide()
     }
   }

@@ -33,7 +33,7 @@ open class TimeBasedReminder(
   protected val settingsPropertyRoot: String,
   private val timePeriod: Long = DAYS.toMillis(1)
 ) {
-  private val doNotAskForProjectPropertyString = "$settingsPropertyRoot.do.not.ask.for.project"
+  val doNotAskForProjectPropertyString = "$settingsPropertyRoot.do.not.ask.for.project"
   var doNotAskForApplication: Boolean
     get() =  PropertiesComponent.getInstance().getBoolean("$settingsPropertyRoot.do.not.show.again", false)
     set(value) = PropertiesComponent.getInstance().setValue("$settingsPropertyRoot.do.not.show.again", value)

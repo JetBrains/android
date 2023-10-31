@@ -20,6 +20,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ANY_TYPE_
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ANY_TYPE_AND_NUM_OF_ARGS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ASTERISK
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.AT
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.AT_INTERFACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CLASS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CLOSE_BRACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.COLON
@@ -31,6 +32,7 @@ import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FILE_NAME
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.FLAG_TOKEN
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.IMPLEMENTS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.INT
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.INTERFACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.JAVA_IDENTIFIER
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.JAVA_IDENTIFIER_WITH_WILDCARDS
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.LPAREN
@@ -513,6 +515,50 @@ class ProguardR8LexerTest : AndroidLexerTestCase(ProguardR8Lexer()) {
       "-printusage" to FLAG_TOKEN,
       SPACE,
       "\"xxx'" to UNTERMINATED_DOUBLE_QUOTED_STRING
+    )
+  }
+
+  /** Regression test for b/158189488. */
+  fun testAtInterface() {
+    // See syntax at https://www.guardsquare.com/manual/configuration/usage#classspecification.
+    // In this case, "@interface" is interpreted as the class type (interface|class|enum) before the class name.
+    assertTokenTypes(
+      """
+        -keep @interface butterknife.*
+      """.trimIndent(),
+      "-keep" to FLAG_TOKEN,
+      SPACE,
+      "@interface" to AT_INTERFACE,
+      SPACE,
+      "butterknife" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "*" to ASTERISK
+    )
+  }
+
+  fun testAtInterfaceNegativeCase() {
+    // See syntax at https://www.guardsquare.com/manual/configuration/usage#classspecification.
+    // In this case, "@interface.remaining.name" is interpreted as an annotation type.
+    assertTokenTypes(
+      """
+        -keep @interface.remaining.name interface androidx.interface.Keep
+      """.trimIndent(),
+      "-keep" to FLAG_TOKEN,
+      SPACE,
+      "@" to AT,
+      "interface" to INTERFACE,
+      "." to DOT,
+      "remaining" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "name" to JAVA_IDENTIFIER,
+      SPACE,
+      "interface" to INTERFACE,
+      SPACE,
+      "androidx" to JAVA_IDENTIFIER,
+      "." to DOT,
+      "interface" to INTERFACE,
+      "." to DOT,
+      "Keep" to JAVA_IDENTIFIER,
     )
   }
 }

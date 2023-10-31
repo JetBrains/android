@@ -20,8 +20,8 @@ import com.android.tools.property.ptable.PTableGroupItem
 /**
  * A data structure designed for a property which contains flags.
  *
- * The [value] of the property will be a string of flag names separated by
- * an implementation defined separator.
+ * The [value] of the property will be a string of flag names separated by an implementation defined
+ * separator.
  *
  * @param T the actual type of a flag item
  */
@@ -36,16 +36,14 @@ interface FlagsPropertyItem<out T : FlagPropertyItem> : PropertyItem {
   val maskValue: Int
 }
 
-/**
- * A [FlagsPropertyItem] that will display the flags as children in a properties table.
- */
+/** A [FlagsPropertyItem] that will display the flags as children in a properties table. */
 interface FlagsPropertyGroupItem<out T : FlagPropertyItem> : FlagsPropertyItem<T>, PTableGroupItem
 
 /**
  * A single flag represented as a [PropertyItem].
  *
- * The [value] of the property is implementation defined but would typically be either
- * "true" or "false".
+ * The [value] of the property is implementation defined but would typically be either "true" or
+ * "false".
  */
 interface FlagPropertyItem : PropertyItem {
   /** The flags property this flag belongs to */

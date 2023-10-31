@@ -34,11 +34,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import javax.swing.Icon
-import javax.swing.JComponent
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
+import javax.swing.Icon
+import javax.swing.JComponent
 
 class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
   companion object {

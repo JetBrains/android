@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview
 
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
@@ -40,10 +40,14 @@ private class TextAdapter(private val modelsToElements: Map<Any, TestPreviewElem
   override fun modelToElement(model: Any) = modelsToElements[model]
 
   override fun toXml(previewElement: TestPreviewElement) = ""
-  override fun applyToConfiguration(previewElement: TestPreviewElement, configuration: Configuration) { }
-  override fun createDataContext(previewElement: TestPreviewElement) = DataContext { }
+  override fun applyToConfiguration(
+    previewElement: TestPreviewElement,
+    configuration: Configuration
+  ) {}
+  override fun createDataContext(previewElement: TestPreviewElement) = DataContext {}
   override fun toLogString(previewElement: TestPreviewElement) = ""
-  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) = LightVirtualFile()
+  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =
+    LightVirtualFile()
 }
 
 class MatchElementsToModelTest {
@@ -61,87 +65,84 @@ class MatchElementsToModelTest {
     val element4 = TestPreviewElement("qwe")
 
     run {
-      val modelsToElements = mapOf(
-        model1 to element3,
-        model2 to element1,
-        model3 to element2,
-      )
+      val modelsToElements =
+        mapOf(
+          model1 to element3,
+          model2 to element1,
+          model3 to element2,
+        )
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result = matchElementsToModels(
-        listOf(model1, model2, model3),
-        listOf(element1, element2, element3),
-        adapter
-      )
+      val result =
+        matchElementsToModels(
+          listOf(model1, model2, model3),
+          listOf(element1, element2, element3),
+          adapter
+        )
 
       assertEquals(listOf(1, 2, 0), result)
     }
 
     run {
-      val modelsToElements = mapOf(
-        model1 to element1,
-        model2 to element2,
-        model3 to element3,
-      )
+      val modelsToElements =
+        mapOf(
+          model1 to element1,
+          model2 to element2,
+          model3 to element3,
+        )
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result = matchElementsToModels(
-        listOf(model2, model3),
-        listOf(element1, element2, element3),
-        adapter
-      )
+      val result =
+        matchElementsToModels(listOf(model2, model3), listOf(element1, element2, element3), adapter)
 
       assertEquals(listOf(-1, 0, 1), result)
     }
 
     run {
-      val modelsToElements = mapOf(
-        model1 to element1,
-        model2 to element2,
-        model3 to element3,
-      )
+      val modelsToElements =
+        mapOf(
+          model1 to element1,
+          model2 to element2,
+          model3 to element3,
+        )
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result = matchElementsToModels(
-        listOf(model1, model2, model3),
-        listOf(element2, element3),
-        adapter)
+      val result =
+        matchElementsToModels(listOf(model1, model2, model3), listOf(element2, element3), adapter)
 
       assertEquals(listOf(1, 2), result)
     }
 
     run {
-      val modelsToElements = mapOf(
-        model1 to element4,
-        model2 to element31,
-        model3 to element11,
-      )
+      val modelsToElements =
+        mapOf(
+          model1 to element4,
+          model2 to element31,
+          model3 to element11,
+        )
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result = matchElementsToModels(
-        listOf(model1, model2, model3),
-        listOf(element1, element2, element3),
-        adapter)
+      val result =
+        matchElementsToModels(
+          listOf(model1, model2, model3),
+          listOf(element1, element2, element3),
+          adapter
+        )
 
       assertEquals(listOf(2, 0, 1), result)
     }
 
     run {
-      val modelsToElements = mapOf(
-        model1 to element1,
-        model2 to null
-      )
+      val modelsToElements = mapOf(model1 to element1, model2 to null)
 
       val adapter = TextAdapter(modelsToElements)
 
-      val result = matchElementsToModels(
-        listOf(model1, model2),
-        listOf(element1, element2),
-        adapter)
+      val result =
+        matchElementsToModels(listOf(model1, model2), listOf(element1, element2), adapter)
 
       assertEquals(listOf(0, 1), result)
     }
@@ -149,10 +150,7 @@ class MatchElementsToModelTest {
     run {
       val adapter = TextAdapter(mapOf())
 
-      val result = matchElementsToModels(
-        listOf(),
-        listOf(element1),
-        adapter)
+      val result = matchElementsToModels(listOf(), listOf(element1), adapter)
 
       assertEquals(listOf(-1), result)
     }

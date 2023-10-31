@@ -194,6 +194,8 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
+    if lib == "studio_plugin_rust.xml":
+      continue  # Special case: the Rust plugin is built separately.
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 
@@ -253,7 +255,7 @@ def check_artifacts(dir):
   if len(manifests) == 1:
     manifest = os.path.basename(manifests[0])
 
-  return "AI-" + version_major, files[0], files[1], files[2], files[3], files[4], files[5], manifest
+  return "AI", files[0], files[1], files[2], files[3], files[4], files[5], manifest
 
 
 def download(workspace, bid):
@@ -321,6 +323,14 @@ def extract(workspace, dir, delete_after, metadata):
   print("Untaring linux distribution...")
   with tarfile.open(dir + "/" + linux, "r") as tar:
     tar.extractall(path + "/linux")
+
+  # Workaround for b/267679210.
+  print("Patching app.jar to work around b/267679210")
+  for platform in PLATFORMS:
+    app_jar_path = path + HOME_PATHS[platform] + "/lib/app.jar"
+    os.system(f"jar xf {app_jar_path} __index__")
+    os.system(f"jar uf {app_jar_path} __index__")
+    os.remove("__index__")
 
   if manifest:
     xml = ET.parse(dir + "/" + manifest)

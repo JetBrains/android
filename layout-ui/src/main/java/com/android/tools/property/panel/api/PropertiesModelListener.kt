@@ -15,15 +15,13 @@
  */
 package com.android.tools.property.panel.api
 
-/**
- * Listener for [PropertiesModel] events.
- */
+/** Listener for [PropertiesModel] events. */
 interface PropertiesModelListener<P : PropertyItem> {
   /**
    * The property items in the [PropertiesModel] were (re)generated.
    *
-   * There may be different reasons why this happened.
-   * One example: the user selected different object to display properties for.
+   * There may be different reasons why this happened. One example: the user selected different
+   * object to display properties for.
    */
   fun propertiesGenerated(model: PropertiesModel<P>) {}
 

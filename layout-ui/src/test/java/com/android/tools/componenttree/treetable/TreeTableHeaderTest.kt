@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
 import org.junit.ClassRule
@@ -58,16 +59,11 @@ class TreeTableHeaderTest {
   private val disposableRule = DisposableRule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @get:Rule
-  val chain = RuleChain
-    .outerRule(EdtRule())
-    .around(IconLoaderRule())
-    .around(disposableRule)!!
+  val chain = RuleChain.outerRule(EdtRule()).around(IconLoaderRule()).around(disposableRule)!!
 
   private val column1 = ColumnDefinition()
   private val column2 = ColumnDefinition()
@@ -138,8 +134,14 @@ class TreeTableHeaderTest {
     panel.add(icon1, BorderLayout.NORTH)
     panel.add(scrollPane, BorderLayout.CENTER)
     panel.add(icon2, BorderLayout.SOUTH)
-    panel.setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB")))
-    panel.setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, setOf(AWTKeyStroke.getAWTKeyStroke("TAB")))
+    panel.setFocusTraversalKeys(
+      KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS,
+      setOf(AWTKeyStroke.getAWTKeyStroke("shift TAB"))
+    )
+    panel.setFocusTraversalKeys(
+      KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+      setOf(AWTKeyStroke.getAWTKeyStroke("TAB"))
+    )
     val ui = FakeUi(panel, createFakeWindow = true)
     val manager = FakeKeyboardFocusManager(disposableRule.disposable)
     manager.focusOwner = icon1
@@ -173,21 +175,24 @@ class TreeTableHeaderTest {
   }
 
   private fun FakeKeyboard.pressTab() = pressAndRelease(KeyEvent.VK_TAB)
-  private fun FakeKeyboard.pressBackTab() = with(this) {
-    press(KeyEvent.VK_SHIFT)
-    pressAndRelease(KeyEvent.VK_TAB)
-    release(KeyEvent.VK_SHIFT)
-  }
+  private fun FakeKeyboard.pressBackTab() =
+    with(this) {
+      press(KeyEvent.VK_SHIFT)
+      pressAndRelease(KeyEvent.VK_TAB)
+      release(KeyEvent.VK_SHIFT)
+    }
 
   private fun createTreeTable(): JScrollPane {
-    val result = ComponentTreeBuilder()
-      .withNodeType(ItemNodeType())
-      .withNodeType(StyleNodeType())
-      .withColumn(createIntColumn<Int>("c1", { 4 }, headerRenderer = column2.renderer))
-      .withoutTreeSearch()
-      .withInvokeLaterOption { it.run() }
-      .withHeaderRenderer(column1.renderer)
-      .build()
+    val result = runInEdtAndGet {
+      ComponentTreeBuilder()
+        .withNodeType(ItemNodeType())
+        .withNodeType(StyleNodeType())
+        .withColumn(createIntColumn<Int>("c1", { 4 }, headerRenderer = column2.renderer))
+        .withoutTreeSearch()
+        .withInvokeLaterOption { it.run() }
+        .withHeaderRenderer(column1.renderer)
+        .build()
+    }
     val table = result.focusComponent as TreeTableImpl
     table.setUI(HeadlessTableUI())
     table.tree.setUI(HeadlessTreeUI())
@@ -219,20 +224,25 @@ class TreeTableHeaderTest {
     var clickCount = 0
     var pressCount = 0
     var releaseCount = 0
-    private val listener = object : MouseAdapter() {
-      override fun mousePressed(event: MouseEvent) { pressCount++ }
-      override fun mouseReleased(event: MouseEvent) { releaseCount++ }
-      override fun mouseClicked(event: MouseEvent) { clickCount++ }
-    }
+    private val listener =
+      object : MouseAdapter() {
+        override fun mousePressed(event: MouseEvent) {
+          pressCount++
+        }
+        override fun mouseReleased(event: MouseEvent) {
+          releaseCount++
+        }
+        override fun mouseClicked(event: MouseEvent) {
+          clickCount++
+        }
+      }
 
     init {
       addMouseListener(listener)
     }
   }
 
-  /**
-   * This mimics what the IdeTooltipManager does...
-   */
+  /** This mimics what the IdeTooltipManager does... */
   private class ToolTipManager(disposable: Disposable) {
     var lastToolTip: String? = null
       private set
@@ -244,7 +254,11 @@ class TreeTableHeaderTest {
     }
 
     init {
-      Toolkit.getDefaultToolkit().addAWTEventListener(listener, AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK)
+      Toolkit.getDefaultToolkit()
+        .addAWTEventListener(
+          listener,
+          AWTEvent.MOUSE_EVENT_MASK or AWTEvent.MOUSE_MOTION_EVENT_MASK
+        )
       Disposer.register(disposable) { Toolkit.getDefaultToolkit().removeAWTEventListener(listener) }
     }
   }

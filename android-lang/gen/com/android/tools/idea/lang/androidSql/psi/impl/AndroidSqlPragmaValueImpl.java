@@ -46,6 +46,12 @@ public class AndroidSqlPragmaValueImpl extends ASTWrapperPsiElement implements A
 
   @Override
   @Nullable
+  public AndroidSqlBooleanLiteral getBooleanLiteral() {
+    return findChildByClass(AndroidSqlBooleanLiteral.class);
+  }
+
+  @Override
+  @Nullable
   public AndroidSqlSignedNumber getSignedNumber() {
     return findChildByClass(AndroidSqlSignedNumber.class);
   }

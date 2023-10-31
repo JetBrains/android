@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +49,25 @@ public class VerifyNpwPhoneAndTabletCppTemplatesTest {
 
   @Test
   public void  testGameActivityCppTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(0));
+    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(0), Language.Java);
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testNativeCppTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(1));
+    boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(1), Language.Java);
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
+    validateViewBindingInGradleFile();
   }
 
+  private void validateViewBindingInGradleFile() {
+    String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
+    assertThat((buildGradleContents).contains("viewBinding = true")).isTrue();
+  }
 }

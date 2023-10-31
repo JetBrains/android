@@ -25,7 +25,6 @@ import icons.StudioIcons.LayoutEditor.Properties
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
-
 import javax.swing.Icon
 
 class NlVisibilityButtonTest {
@@ -50,36 +49,41 @@ class NlVisibilityButtonTest {
       false,
       EmptyIcon.ICON_16,
       null, // Hover icon alpha.
-      Properties.VISIBLE)
+      Properties.VISIBLE
+    )
     assertPresentationCreation(
       Visibility.VISIBLE,
       false,
       Properties.VISIBLE,
       Properties.VISIBLE,
-      Properties.VISIBLE)
+      Properties.VISIBLE
+    )
     assertPresentationCreation(
       Visibility.INVISIBLE,
       false,
       Properties.INVISIBLE,
       Properties.INVISIBLE,
-      Properties.INVISIBLE)
+      Properties.INVISIBLE
+    )
     assertPresentationCreation(
       Visibility.GONE,
       false,
       Properties.GONE,
       Properties.GONE,
-      Properties.GONE)
+      Properties.GONE
+    )
   }
 
   private fun assertPresentationCreation(
-      visibility: Visibility,
-      isToolsAttr: Boolean,
-      expectedIcon: Icon,
-      expectedHoverIcon: Icon?,
-      expectedClickIcon: Icon) {
-    val model = if (isToolsAttr)
-      generateModel(Visibility.NONE, visibility) else
-      generateModel(visibility, Visibility.NONE)
+    visibility: Visibility,
+    isToolsAttr: Boolean,
+    expectedIcon: Icon,
+    expectedHoverIcon: Icon?,
+    expectedClickIcon: Icon
+  ) {
+    val model =
+      if (isToolsAttr) generateModel(Visibility.NONE, visibility)
+      else generateModel(visibility, Visibility.NONE)
     val presenter = ButtonPresentation(model)
 
     assertEquals(expectedIcon, presenter.icon)

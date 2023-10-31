@@ -7,34 +7,38 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-jdwppacket" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwppacket:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwppacket:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket/223.0.1.0/studio.android.sdktools.jdwppacket-223.0.1.0.jar">
-              <sha256sum>c2005cf66d44e63a6d07879b726ebbb77018bd99d360111ad60772654a6e094c</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket/231.0.1.4/studio.android.sdktools.jdwppacket-231.0.1.4.jar">
+              <sha256sum>f06f741ee37bdf1e66c7cb24461aef3ea253870583f3a1da82b87c4a31b38854</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket/223.0.1.0/studio.android.sdktools.jdwppacket-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket/231.0.1.4/studio.android.sdktools.jdwppacket-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket/231.0.1.4/studio.android.sdktools.jdwppacket-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-jdwppacket-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwppacket_test:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.jdwppacket_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket_test/223.0.1.0/studio.android.sdktools.jdwppacket_test-223.0.1.0.jar">
-              <sha256sum>47f1a0dc9182cc656959e1677b36a289157ecc3221301423505e15cdcadb9cff</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket_test/231.0.1.4/studio.android.sdktools.jdwppacket_test-231.0.1.4.jar">
+              <sha256sum>86535308aabf0251653bbef93b4674220e33ed2f190769701c2052d664084a99</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket_test/223.0.1.0/studio.android.sdktools.jdwppacket_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket_test/231.0.1.4/studio.android.sdktools.jdwppacket_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.jdwppacket_test/231.0.1.4/studio.android.sdktools.jdwppacket_test-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

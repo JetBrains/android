@@ -28,6 +28,13 @@ import com.android.ddmlib.TimeoutException
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.ddms.DevicePropertyUtil
+import com.android.tools.idea.io.grpc.ManagedChannel
+import com.android.tools.idea.io.grpc.MethodDescriptor
+import com.android.tools.idea.io.grpc.ServerCallHandler
+import com.android.tools.idea.io.grpc.ServerServiceDefinition
+import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.idea.io.grpc.stub.ServerCalls
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy.ProxyCommandHandler
 import com.android.tools.profiler.proto.Commands.Command.CommandType
@@ -47,13 +54,6 @@ import com.android.tools.profiler.proto.Transport.VersionResponse
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
-import com.android.tools.idea.io.grpc.ManagedChannel
-import com.android.tools.idea.io.grpc.MethodDescriptor
-import com.android.tools.idea.io.grpc.ServerCallHandler
-import com.android.tools.idea.io.grpc.ServerServiceDefinition
-import com.android.tools.idea.io.grpc.StatusRuntimeException
-import com.android.tools.idea.io.grpc.stub.ServerCalls
-import com.android.tools.idea.io.grpc.stub.StreamObserver
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.jetbrains.annotations.TestOnly
@@ -222,7 +222,8 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   }
 
   private fun getProcesses(request: GetProcessesRequest, responseObserver: StreamObserver<GetProcessesResponse>) =
-    responseObserver.onLast(GetProcessesResponse.newBuilder().addAllProcess(cachedProcesses.values).build())
+    responseObserver.onLast(
+      GetProcessesResponse.newBuilder().addAllProcess(synchronized(cachedProcesses) { cachedProcesses.values }).build())
 
   @VisibleForTesting
   fun execute(request: ExecuteRequest, responseObserver: StreamObserver<ExecuteResponse>) = request.command.let { command ->
@@ -278,7 +279,9 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
   private fun<C> updateProcesses(getList: IDevice.() -> Array<C>, summarizeClient: (C) -> ClientSummary?, level: ExposureLevel) {
     if (isDeviceApiSupported) {
       val currentProcesses = ddmlibDevice.getList().mapNotNull(summarizeClient)
-      val previousProcessIds = cachedProcesses.mapNotNullTo(mutableSetOf()) { (id, p) -> id.takeIf { p.exposureLevel >= level } }
+      val previousProcessIds = synchronized(cachedProcesses) {
+        cachedProcesses.mapNotNullTo(mutableSetOf()) { (id, p) -> id.takeIf { p.exposureLevel >= level } }
+      }
       val addedProcesses = currentProcesses.filterNot { it.pid in previousProcessIds }
       val removedProcessIds = previousProcessIds - currentProcesses.map(ClientSummary::pid)
 
@@ -324,7 +327,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
       .setExposureLevel(level)
       .setPackageName(client.packageName)
       .build()
-    cachedProcesses[client.pid] = newProcess
+    synchronized(cachedProcesses) { cachedProcesses[client.pid] = newProcess }
     // New pipeline event - create a ProcessStarted event for each process.
     proxyEventQueue.offer(
       Common.Event.newBuilder()
@@ -338,17 +341,19 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
     )
   }
 
-  private fun removeProcess(clientPid: Int, timestampNs: Long) = cachedProcesses.remove(clientPid)?.let { process ->
-    // New data pipeline event.
-    proxyEventQueue.offer(
-      Common.Event.newBuilder()
-        .setGroupId(process.pid.toLong())
-        .setPid(process.pid)
-        .setKind(Common.Event.Kind.PROCESS)
-        .setIsEnded(true)
-        .setTimestamp(timestampNs)
-        .build()
-    )
+  private fun removeProcess(clientPid: Int, timestampNs: Long) = synchronized(cachedProcesses) {
+    cachedProcesses.remove(clientPid)?.let { process ->
+      // New data pipeline event.
+      proxyEventQueue.offer(
+        Common.Event.newBuilder()
+          .setGroupId(process.pid.toLong())
+          .setPid(process.pid)
+          .setKind(Common.Event.Kind.PROCESS)
+          .setIsEnded(true)
+          .setTimestamp(timestampNs)
+          .build()
+      )
+    }
   }
 
   companion object {

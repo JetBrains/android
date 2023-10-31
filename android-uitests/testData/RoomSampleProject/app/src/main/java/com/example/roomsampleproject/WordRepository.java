@@ -12,7 +12,6 @@ import java.util.List;
 
 public class WordRepository {
 
-
     private WordDao mWordDao;
 
     private List<Word> mAllWords;

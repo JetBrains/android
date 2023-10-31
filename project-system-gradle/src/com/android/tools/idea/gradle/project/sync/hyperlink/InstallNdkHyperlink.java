@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.android.SdkConstants.FD_NDK;
 import static com.android.SdkConstants.FD_NDK_SIDE_BY_SIDE;
 import static com.android.repository.api.RepoManager.DEFAULT_EXPIRATION_PERIOD_MS;
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.sdk.wizard.SdkQuickfixUtils.createDialogForPaths;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_NDK_INSTALLED;
 
@@ -72,7 +73,7 @@ public class InstallNdkHyperlink extends SyncIssueNotificationHyperlink {
   public void execute(@NotNull Project project) {
     // Remove any value old value from ndk.dir
     try {
-      LocalProperties localProperties = new LocalProperties(project);
+      LocalProperties localProperties = new LocalProperties(getBaseDirPath(project));
       localProperties.setAndroidNdkPath((File)null);
       localProperties.save();
     }

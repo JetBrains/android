@@ -28,14 +28,12 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.AndroidFileChangeListener;
-import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.impl.ProjectUtilKt;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -48,8 +46,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -61,7 +57,6 @@ import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.ui.EditorNotifications;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -79,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
-public class GradleFiles implements Disposable {
+public class GradleFiles implements Disposable.Default {
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -102,10 +97,7 @@ public class GradleFiles implements Disposable {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
-  @Override
-  public void dispose() {
-  }
-
+  @SuppressWarnings("UsagesOfObsoleteApi") // Replacement of StartupActivity is a co-routine interface that shouldn't be implemented in Java
   public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
@@ -137,41 +129,21 @@ public class GradleFiles implements Disposable {
   }
 
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
-    if (file == null) {
+    if (file == null || !file.isValid()) {
       return;
     }
 
-    if (AndroidSdkPathStore.getInstance().getAndroidSdkPath() == null) return;
+    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+    if (psiFile == null) {
+      return;
+    }
 
-    ReadAction.nonBlocking(() -> {
-        if (!file.isValid()) return new GradleFileState(false, false);
+    // Always remove first before possibly adding to prevent the case that the listener could be added twice.
+    PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
 
-        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-        if (psiFile == null) {
-          return new GradleFileState(false, false);
-        }
-
-        return new GradleFileState(true, isGradleFile(psiFile) || isExternalBuildFile(psiFile));
-      })
-      .finishOnUiThread(ModalityState.nonModal(), state -> {
-        if (!state.isValid) return;
-
-        // Always remove first before possibly adding to prevent the case that the listener could be added twice.
-        PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
-
-        if (state.isGradleFile) {
-          PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener, this);
-        }
-      })
-      .coalesceBy(this)
-      .expireWith(this)
-      .submit(AppExecutorUtil.getAppExecutorService());
-  }
-
-  private record GradleFileState(
-    boolean isValid,
-    boolean isGradleFile
-  ) {
+    if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
+      PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener, this);
+    }
   }
 
   @NotNull
@@ -324,7 +296,7 @@ public class GradleFiles implements Disposable {
         }
       }
     };
-    Future wrapperHashFuture = executorService.submit(
+    Future<?> wrapperHashFuture = executorService.submit(
       () -> progressManager.executeProcessUnderProgress(computeWrapperHashRunnable, progressIndicator)
     );
     try {
@@ -337,7 +309,7 @@ public class GradleFiles implements Disposable {
     removeExternalBuildFiles();
     List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
-    List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(project).getModules());
+    List<Module> modules = ImmutableList.copyOf(ModuleManager.getInstance(project).getModules());
 
     Consumer<Module> computeHashes = module -> {
       VirtualFile buildFile = getGradleBuildFile(module);
@@ -388,7 +360,7 @@ public class GradleFiles implements Disposable {
       for (String fileName : fileNames) {
         ProgressManager.checkCanceled();
         File filePath = new File(rootFolderPath, fileName);
-        if (filePath.isFile()) {
+        if (filePath.isFile() && rootFolder != null) {
           VirtualFile virtualFile = rootFolder.findChild(fileName);
           if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
             application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
@@ -399,19 +371,21 @@ public class GradleFiles implements Disposable {
       File gradlePath = new File(rootFolderPath, "gradle");
       if (gradlePath.isDirectory()) {
         File[] gradleFiles = gradlePath.listFiles((dir, name) -> name.endsWith(".versions.toml"));
-        for (File tomlFile : gradleFiles) {
-          ProgressManager.checkCanceled();
-          if (tomlFile.isFile()) {
-            VirtualFile virtualFile = VfsUtil.findFileByIoFile(tomlFile, false);
-            if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-              application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+        if (gradleFiles != null) {
+          for (File tomlFile : gradleFiles) {
+            ProgressManager.checkCanceled();
+            if (tomlFile.isFile()) {
+              VirtualFile virtualFile = findFileByIoFile(tomlFile, false);
+              if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+                application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+              }
             }
           }
         }
       }
     };
     if (rootFolder != null) {
-      Future projectWideFilesFuture = executorService.submit(
+      Future<?> projectWideFilesFuture = executorService.submit(
         () -> progressManager.executeProcessUnderProgress(projectWideFilesRunnable, progressIndicator)
       );
       try {
@@ -435,6 +409,7 @@ public class GradleFiles implements Disposable {
     } else {
       // If we are not running in tests, schedule ourselves on a background thread so that we don't accidentally freeze the UI if our
       // disk IO is slow.
+      //noinspection deprecation,UnstableApiUsage
       ProjectUtilKt.executeOnPooledIoThread(myProject, this::updateFileHashes);
     }
   }
@@ -453,11 +428,11 @@ public class GradleFiles implements Disposable {
    */
   public boolean areGradleFilesModified() {
     // Checks if any file in myChangedFiles actually has changes.
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> !checkHashesOfChangedFiles());
+    return ReadAction.compute(() -> !checkHashesOfChangedFiles());
   }
 
   public boolean areExternalBuildFilesModified() {
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+    return ReadAction.compute(() -> {
       synchronized (myLock) {
         return !filterHashes(myChangedExternalFiles);
       }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.ui.components.JBLabel
 import javax.swing.JComponent
 
@@ -26,13 +27,29 @@ import javax.swing.JComponent
  * @param U the JComponent used to render this value
  */
 interface Column<T, C, U : JComponent> {
+  /** The name of the column. */
   val name: String
+
+  /** If overridden, an alternative name to be used in column headers. */
+  val columnHeaderName: String
+    get() = name
 
   /** Provides the value of this column for a given row value. */
   val attribute: Attribute<T, C>
 
+  /** If true, the column remains displayed even when the table is grouped by this column. */
+  val visibleWhenGrouped: Boolean
+    get() = false
+
   /** Creates the JComponent for this column for a particular row. */
   fun createUi(rowValue: T): U
+
+  /**
+   * If the UI for this column has MouseListeners, this delegate should be installed as an
+   * additional MouseListener if the standard mouse behavior for the row is still desired (i.e.,
+   * selecting the row).
+   */
+  fun installMouseDelegate(component: U, mouseDelegate: DelegateMouseEventHandler) {}
 
   /**
    * Updates the UI based on the current value. Updating the UI only in response to this method
@@ -68,6 +85,9 @@ open class LabelColumn<T>(
 ) : Column<T, String, JBLabel> {
 
   override fun createUi(rowValue: T) = JBLabel()
+
+  // KT-39603
+  override fun installMouseDelegate(component: JBLabel, mouseDelegate: DelegateMouseEventHandler) {}
 
   override fun updateValue(rowValue: T, component: JBLabel, value: String) {
     component.text = value

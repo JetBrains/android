@@ -16,19 +16,18 @@
 package com.android.tools.idea.common.actions
 
 import com.android.resources.NightMode
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions.ACTION_TOGGLE_DEVICE_NIGHT_MODE
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Toggle night mode between Night and Not Night in the provided [DesignSurface]
- */
+/** Toggle night mode between Night and Not Night in the provided [DesignSurface] */
 class ToggleDeviceNightModeAction : AnAction() {
 
   override fun update(e: AnActionEvent) {
@@ -36,7 +35,8 @@ class ToggleDeviceNightModeAction : AnAction() {
       e.presentation.isEnabled = false
       return
     }
-    e.presentation.isEnabled = e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_NIGHT_MODE)
+    e.presentation.isEnabled =
+      e.getData(DESIGN_SURFACE).isActionSupported(NlSupportedActions.SWITCH_NIGHT_MODE)
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -48,9 +48,13 @@ class ToggleDeviceNightModeAction : AnAction() {
     }
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
   companion object {
     @JvmStatic
     val instance: ToggleDeviceNightModeAction
-      get() = ActionManager.getInstance().getAction(ACTION_TOGGLE_DEVICE_NIGHT_MODE) as ToggleDeviceNightModeAction
+      get() =
+        ActionManager.getInstance().getAction(ACTION_TOGGLE_DEVICE_NIGHT_MODE)
+          as ToggleDeviceNightModeAction
   }
 }

@@ -26,7 +26,7 @@ class CustomConfigurationSetCreatePaletteTest {
 
   @Test
   fun testSetNameCannotBeBlank() {
-    val palette = CustomConfigurationSetCreatePalette { }
+    val palette = CustomConfigurationSetCreatePalette {}
 
     val textField = ComponentUtil.findComponentsOfType(palette, JBTextField::class.java).single()
     val addButton = ComponentUtil.findComponentsOfType(palette, JButton::class.java).single()

@@ -17,7 +17,10 @@ package com.android.tools.idea.compose.annotator
 
 import com.android.SdkConstants
 import com.android.tools.idea.compose.pickers.PsiPickerManager
+import com.android.tools.idea.compose.pickers.preview.utils.containingPackage
 import com.android.tools.idea.compose.pickers.spring.model.SpringPickerPropertiesModel
+import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProvider
+import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProviderK2
 import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING
 import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
@@ -35,7 +38,13 @@ import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.containingPackage
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
@@ -43,6 +52,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallElement
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UCallExpression
@@ -59,6 +69,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
   override fun getName(): String = message("picker.spring.annotator.name")
 
+  @OptIn(KtAllowAnalysisOnEdt::class)
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (suppressAndroidPlugin()) return null
 
@@ -78,8 +89,20 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     val module = element.module ?: return null
 
     val callElement = element.parentOfType<KtCallElement>() ?: return null
-    val resolvedCall = callElement.getResolvedCall(callElement.analyze(BodyResolveMode.PARTIAL))
-    val resolvedPackage = resolvedCall?.candidateDescriptor?.containingPackage()
+    var resolvedCall: ResolvedCall<*>? = null
+    val resolvedPackage =
+      if (isK2Plugin()) {
+        allowAnalysisOnEdt {
+          analyze(callElement) {
+            val functionSymbol =
+              callElement.resolveCall()?.singleFunctionCallOrNull()?.symbol ?: return@analyze null
+            containingPackage(functionSymbol)
+          }
+        }
+      } else {
+        resolvedCall = callElement.getResolvedCall(callElement.analyze(BodyResolveMode.PARTIAL))
+        resolvedCall?.candidateDescriptor?.containingPackage()
+      }
     if (resolvedPackage == null) {
       log.warn("Unable to resolve package for SpringSpec call")
       return null
@@ -104,7 +127,13 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
       SpringPickerPropertiesModel(
         project = module.project,
         module = module,
-        resolvedCall = resolvedCall
+        file = callElement.containingKtFile,
+        psiPropertiesProvider =
+          if (isK2Plugin()) {
+            SpringPropertiesProviderK2(callElement)
+          } else {
+            resolvedCall?.let { SpringPropertiesProvider(it) } ?: return null
+          },
       )
 
     return LineMarkerInfo<PsiElement>(

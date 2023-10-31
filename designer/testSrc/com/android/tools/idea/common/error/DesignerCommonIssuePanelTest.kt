@@ -16,8 +16,13 @@
 package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.utils.HtmlBuilder
 import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.impl.DataManagerImpl
@@ -31,19 +36,18 @@ import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import javax.swing.tree.TreePath
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @Suppress("UnstableApiUsage")
 class DesignerCommonIssuePanelTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   @RunsInEdt
   @Test
@@ -53,19 +57,30 @@ class DesignerCommonIssuePanelTest {
     val provider = DesignerCommonIssueTestProvider(listOf(infoSeverityIssue, warningSeverityIssue))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
     val treeModel = tree.model
 
     val root = (treeModel.root!! as DesignerCommonIssueRoot)
-    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
+    root.setComparator(
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
+    )
 
     val noFileNode = root.getChildren().single() as NoFileNode
     run {
       panel.setViewOptionFilter { true }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       assertEquals(2, noFileNode.getChildren().size)
       assertEquals(warningSeverityIssue, (noFileNode.getChildren()[0].issue))
@@ -73,16 +88,20 @@ class DesignerCommonIssuePanelTest {
     }
 
     run {
-      panel.setViewOptionFilter { !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal) }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      panel.setViewOptionFilter {
+        !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal)
+      }
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       assertEquals(1, noFileNode.getChildren().size)
       assertEquals(warningSeverityIssue, (noFileNode.getChildren()[0].issue))
     }
 
     run {
-      panel.setViewOptionFilter { !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal) }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      panel.setViewOptionFilter {
+        !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal)
+      }
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       assertEquals(1, noFileNode.getChildren().size)
       assertEquals(infoSeverityIssue, (noFileNode.getChildren()[0].issue))
@@ -90,9 +109,10 @@ class DesignerCommonIssuePanelTest {
 
     run {
       panel.setViewOptionFilter {
-        !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal).contains(it.severity.myVal)
+        !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal)
+          .contains(it.severity.myVal)
       }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       // If there is no issue, then tree has no file node.
       assertEquals(0, root.getChildren().size)
@@ -102,16 +122,28 @@ class DesignerCommonIssuePanelTest {
   @RunsInEdt
   @Test
   fun testShowSidePanelWhenSelectIssueNode() {
-    val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
+    val provider =
+      DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
     val root = (tree.model.root!! as DesignerCommonIssueRoot)
-    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
+    root.setComparator(
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
+    )
     val fileNode = root.getChildren().single() as NoFileNode
     val issueNode = fileNode.getChildren().single()
     val splitter = UIUtil.findComponentOfType(panel.getComponent(), OnePixelSplitter::class.java)!!
@@ -135,20 +167,48 @@ class DesignerCommonIssuePanelTest {
 
     val file = rule.fixture.addFileToProject("res/layout/my_layout.xml", "")
 
-    val fileIssue = TestIssue(source = IssueSourceWithFile(file.virtualFile, "my_layout"), description = "layout issue")
+    val fileIssue =
+      TestIssue(
+        source = IssueSourceWithFile(file.virtualFile, "my_layout"),
+        description = "layout issue"
+      )
     val noFileIssue = TestIssue(description = "other issue")
 
+    val composeFile = rule.fixture.addFileToProject("src/Compose.kt", "Compose file")
+    val nlModel = Mockito.mock(NlModel::class.java)
+    Mockito.`when`(nlModel.virtualFile).thenReturn(composeFile.virtualFile)
+    val navigatable = OpenFileDescriptor(rule.project, composeFile.virtualFile)
+    val component = NlComponent(nlModel, 651L).apply { setNavigatable(navigatable) }
+    val visualLintIssue =
+      VisualLintRenderIssue.builder()
+        .summary("")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(nlModel)
+        .components(mutableListOf(component))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
 
-    val provider = DesignerCommonIssueTestProvider(listOf(fileIssue, noFileIssue))
+    val provider = DesignerCommonIssueTestProvider(listOf(fileIssue, noFileIssue, visualLintIssue))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel =
+      DesignerCommonIssuePanel(
+        rule.testRootDisposable,
+        rule.project,
+        model,
+        { LayoutValidationNodeFactory },
+        provider
+      ) {
+        ""
+      }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 
     tree.isRootVisible = false
     tree.expandRow(1)
+    tree.expandRow(3)
     tree.expandRow(0)
 
     // Now the tree structure becomes:
@@ -157,6 +217,8 @@ class DesignerCommonIssuePanelTest {
     //   |- IssueNode: fileIssue
     // NoFileNode: Layout Validation
     //   |- IssueNode: noFileIssue
+    //   |- VisualLintIssueNode: visualLintIssue
+    //     |- NavigatableFileNode
     // --------
 
     run {
@@ -193,7 +255,7 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<NoFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
+      assertEquals(listOf(noFileIssue, visualLintIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -206,6 +268,31 @@ class DesignerCommonIssuePanelTest {
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
       assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
+    }
+
+    run {
+      // Test VisualLintIssueNode: visualLintIssue
+      tree.setSelectionRow(4)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<VisualLintIssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
+    }
+
+    run {
+      // Test NavigatableFileNode
+      tree.setSelectionRow(5)
+      val context = DataManager.getInstance().getDataContext(tree)
+
+      assertInstanceOf<NavigatableFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
+      assertEquals(composeFile.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
+      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
+      val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
+      assertInstanceOf<OpenFileDescriptor>(navigatable)
+      val descriptor = navigatable as OpenFileDescriptor
+      assertEquals(rule.project, descriptor.project)
+      assertEquals(composeFile.virtualFile, descriptor.file)
     }
   }
 }

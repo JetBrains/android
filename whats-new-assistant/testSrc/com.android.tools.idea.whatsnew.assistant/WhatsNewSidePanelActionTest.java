@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.whatsnew.assistant;
 
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.google.common.truth.Truth;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import org.junit.Before;
@@ -30,6 +31,7 @@ public class WhatsNewSidePanelActionTest {
 
   private Presentation myPresentation;
   private AnActionEvent myEvent;
+  private Runnable myBrowseToWhatsNewUrl;
 
   @Before
   public void mockEvent() {
@@ -39,37 +41,31 @@ public class WhatsNewSidePanelActionTest {
     Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
   }
 
+  @Before
+  public void mockBrowseToWhatsNewUrl() {
+    myBrowseToWhatsNewUrl = Mockito.mock(Runnable.class);
+  }
+
   @Test
   public void updateProjectIsNull() {
-    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
-    action.update(myEvent);
+    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction(myBrowseToWhatsNewUrl);
 
-/* b/176625399
-    Truth.assertThat(myPresentation.isEnabled()).isFalse();
-b/176625399 */
+    action.update(myEvent);
+    assertTrue(myPresentation.isEnabled());
+
+    action.actionPerformed(myEvent);
+    Mockito.verify(myBrowseToWhatsNewUrl).run();
   }
 
   @Test
   public void updateProjectIsNotNull() {
-    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
+    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction(myBrowseToWhatsNewUrl);
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
+
     action.update(myEvent);
+    assertTrue(myPresentation.isEnabled());
 
-    Truth.assertThat(myPresentation.isEnabled()).isTrue();
-  }
-
-  @Test
-  public void updateProjectIsNullThenChanges() {
-    WhatsNewSidePanelAction action = new WhatsNewSidePanelAction();
-    action.update(myEvent);
-
-/* b/176625399
-    Truth.assertThat(myPresentation.isEnabled()).isFalse();
-b/176625399 */
-
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
-    action.update(myEvent);
-
-    Truth.assertThat(myPresentation.isEnabled()).isTrue();
+    action.actionPerformed(myEvent);
+    Mockito.verify(myBrowseToWhatsNewUrl, Mockito.never()).run();
   }
 }

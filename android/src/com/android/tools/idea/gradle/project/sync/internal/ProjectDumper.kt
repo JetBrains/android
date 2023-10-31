@@ -21,7 +21,6 @@ import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.plugin.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
@@ -35,8 +34,9 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 import java.io.File
+import java.lang.Math.max
 import java.util.Locale
-import kotlin.math.max
+
 /**
  * A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests.
  */
@@ -96,10 +96,10 @@ class ProjectDumper(
     val variantSegmentToReplace = stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1,
                                                        stringFile.lastIndexOf(abiSegment) - 1)
     val pathsToReplace = mapOf(
-      "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
-      "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
-      "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}",
-      "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.toUpperCase(Locale.ROOT)}}")
+      "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      "/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
+      "/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}")
     var result = this.path
     for ((old, new) in pathsToReplace) {
       result = result.replace(old, new)
@@ -167,21 +167,16 @@ class ProjectDumper(
     return res
   }
 
-  fun String.toPrintableString(): String = when (this) {
-    SdkConstants.CURRENT_BUILD_TOOLS_VERSION -> "<CURRENT_BUILD_TOOLS_VERSION>"
-    "30.0.3" -> "<CURRENT_BUILD_TOOLS_VERSION>"
-    else -> this
-  }
+  fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
+  else this
 
-
+  fun String.replaceCurrentSdkVersion(apiLevel: Int, codename: String?) = if (apiLevel == SdkVersionInfo.HIGHEST_KNOWN_API && codename == null) "<SDK_VERSION>" else this
   fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
-  private fun String.replaceCurrentBuildToolsVersion(): String =
-    replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION, "<BUILD_TOOLS_VERSION>")
-      .replace("30.0.3", "<BUILD_TOOLS_VERSION>")
+  fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
     this
-      .replaceAgpVersion()
+      .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
@@ -254,19 +249,7 @@ class ProjectDumper(
       }
       .removeAndroidVersionsFromPath()
 
-  fun String.replaceAgpVersion(): String {
-    val agpVersionToReplace = agpVersionToReplace()
-
-    if (this == agpVersionToReplace) return "<AGP_VERSION>"
-    return replace("-$agpVersionToReplace", "-<AGP_VERSION>")
-      .replace(": $agpVersionToReplace".trim(), ": <AGP_VERSION>".trim())
-  }
-
-  private fun agpVersionToReplace(): String = when {
-    IdeInfo.getInstance().isAndroidStudio -> ANDROID_GRADLE_PLUGIN_VERSION
-    // - sign is added to avoid replacing 28.0.0 -> 2<AGP_VERSION>
-    else -> AndroidGradlePluginVersion.LATEST_STABLE_VERSION
-  }
+  fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
 
   fun String.replaceGradleVersion() = replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
 
@@ -283,7 +266,7 @@ class ProjectDumper(
   }
 
   /**
-   * Temporarily configures additional identation and optionally configures a new current directory root which will be replaced
+   * Temporarily configures additional indentation and optionally configures a new current directory root which will be replaced
    * with [rootName] in the output and runs [code].
    */
   fun nest(root: File? = null, rootName: String? = null, code: ProjectDumper.() -> Unit) {
@@ -299,7 +282,7 @@ class ProjectDumper(
     this.currentRootDirectoryName = savedRootName
   }
 
-  private fun String.removeAndroidVersionsFromPath(): String =
+  fun String.removeAndroidVersionsFromPath(): String =
     androidPathPattern.find(this)?.groups?.get(1)?.let {
       this.replace(it.value, "<VERSION>")
     } ?: this
@@ -339,7 +322,6 @@ class ProjectDumper(
 
   override fun toString(): String = output.toString().trimIndent()
 }
-
 
 private fun String.replaceJavaVersionLikeMatch(regex: Regex, regexVersionGroupIndex: Int, placeholderName: String) =
   replace(regex) {

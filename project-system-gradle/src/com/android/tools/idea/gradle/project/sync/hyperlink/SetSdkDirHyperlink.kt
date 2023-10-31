@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.sdk.AndroidSdkData
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_SDK_PATH_CHANGED
@@ -28,7 +29,6 @@ import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.ModalityUiUtil
-import com.android.tools.sdk.AndroidSdkData
 import java.io.File
 
 class SetSdkDirHyperlink(

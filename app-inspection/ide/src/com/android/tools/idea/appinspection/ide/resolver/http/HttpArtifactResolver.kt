@@ -29,10 +29,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
 import com.intellij.util.io.createDirectories
+import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
 import java.nio.file.Path
-import kotlinx.coroutines.withContext
 
 class HttpArtifactResolver(
   private val fileService: FileService,

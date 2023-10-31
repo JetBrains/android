@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -37,7 +38,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -143,6 +143,11 @@ public class IssueNotificationAction extends ToggleAction {
       }
     });
 
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @NotNull

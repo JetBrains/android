@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec
+import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec
 import com.android.tools.idea.gradle.dsl.utils.GRADLE_PATH_SEPARATOR
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
@@ -23,17 +24,24 @@ import com.google.common.collect.Lists
 
 class LibraryDeclarationSpecImpl(private var name: String,
                                  private var group: String,
-                                 private var version: String?) : LibraryDeclarationSpec {
+                                 private var version: VersionDeclarationSpec?) : LibraryDeclarationSpec {
+
 
   companion object {
     fun create(notation: String): LibraryDeclarationSpecImpl? {
+      // TOML dependency notation must have at least group and name
+      // version is optional since it can be defined by BOM
       val segments = Splitter.on(GRADLE_PATH_SEPARATOR).trimResults().omitEmptyStrings().splitToList(notation)
-      return if (segments.size > 1) { // requires at least group and name, version is optional
-        LibraryDeclarationSpecImpl(segments[1],
-                                   segments[0],
-                                   segments.getOrNull(2))
+      return when (segments.size) {
+        2 -> {
+          LibraryDeclarationSpecImpl(segments[1], segments[0], null)
+        }
+        3 -> {
+          val versionSpec = VersionDeclarationSpecImpl.create(segments[2])
+          LibraryDeclarationSpecImpl(segments[1], segments[0], versionSpec)
+        }
+        else -> null
       }
-      else null
     }
   }
 
@@ -41,7 +49,7 @@ class LibraryDeclarationSpecImpl(private var name: String,
 
   override fun getGroup(): String = group
 
-  override fun getVersion(): String? = version
+  override fun getVersion(): VersionDeclarationSpec? = version
 
   fun setName(newName: String) {
     name = newName
@@ -51,14 +59,23 @@ class LibraryDeclarationSpecImpl(private var name: String,
     group = newGroup
   }
 
-  fun setVersion(newVersion: String?) {
+  fun setVersion(newVersion: VersionDeclarationSpec?) {
     version = newVersion
+  }
+
+  fun setStringVersion(newVersion: String?){
+    version = newVersion?.let { VersionDeclarationSpecImpl.create(it) }
   }
 
   override fun toString(): String = compactNotation()
 
-  override fun compactNotation(): String =
-    Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(
-      Lists.newArrayList(group, name, version)
+  override fun compactNotation(): String {
+    val versionString = version?.let {
+      val str = it.compactNotation()
+      if (str.isNullOrBlank()) null else str
+    }
+    return Joiner.on(GRADLE_PATH_SEPARATOR).skipNulls().join(
+      Lists.newArrayList(group, name, versionString)
     )
+  }
 }

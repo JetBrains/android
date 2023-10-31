@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.lint.detector.api.stripIdPrefix
-import com.intellij.ui.ExperimentalUI
+import com.intellij.ui.NewUiValue
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
@@ -37,25 +37,22 @@ import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreeCellRenderer
 import javax.swing.tree.TreePath
 
-
 /**
- * This cell renderer displays two labels.
- * The first one shows the id of the component if present, or the tag and the icon.
- * The second one shows the title returned by the handler.
+ * This cell renderer displays two labels. The first one shows the id of the component if present,
+ * or the tag and the icon. The second one shows the title returned by the handler.
  *
- * Labels are then trimmed with an ellipsis if they don't fit the inside the tree.
- * We also ensure that we leave enough space to paint the error badges on the right.
+ * Labels are then trimmed with an ellipsis if they don't fit the inside the tree. We also ensure
+ * that we leave enough space to paint the error badges on the right.
  */
-class NlTreeCellRenderer(
-  private val myBadgeHandler: NlTreeBadgeHandler
-) : JPanel(FlowLayout(FlowLayout.LEFT, 0, JBUI.scale(2))),
-    TreeCellRenderer {
+class NlTreeCellRenderer(private val myBadgeHandler: NlTreeBadgeHandler) :
+  JPanel(FlowLayout(FlowLayout.LEFT, 0, JBUI.scale(2))), TreeCellRenderer {
   private val primaryLabel = JLabel()
-  private val secondaryLabel = JLabel().apply {
-    border = JBUI.Borders.emptyLeft(8)
-    foreground = NamedColorUtil.getInactiveTextColor()
-    font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-  }
+  private val secondaryLabel =
+    JLabel().apply {
+      border = JBUI.Borders.emptyLeft(8)
+      foreground = NamedColorUtil.getInactiveTextColor()
+      font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+    }
 
   private val primaryLabelMetrics = primaryLabel.getFontMetrics(primaryLabel.font)
   private val secondaryLabelMetrics = secondaryLabel.getFontMetrics(secondaryLabel.font)
@@ -82,7 +79,8 @@ class NlTreeCellRenderer(
     secondaryLabel.text = null
     val treeFocused = tree.hasFocus()
     primaryLabel.foreground = UIUtil.getListForeground(selected, treeFocused)
-    secondaryLabel.foreground = if(selected && treeFocused) primaryLabel.foreground else UIUtil.getLabelDisabledForeground()
+    secondaryLabel.foreground =
+      if (selected && treeFocused) primaryLabel.foreground else UIUtil.getLabelDisabledForeground()
 
     if (value is String) {
       primaryLabel.text = value
@@ -102,12 +100,17 @@ class NlTreeCellRenderer(
       }
       NlVisibilityModel.Visibility.INVISIBLE -> {
         primaryLabel.font = nlComponentFont
-        primaryLabel.foreground = UIUtil.makeTransparent(primaryLabel.foreground, primaryLabel.background, 0.5)
+        primaryLabel.foreground =
+          UIUtil.makeTransparent(primaryLabel.foreground, primaryLabel.background, 0.5)
       }
       NlVisibilityModel.Visibility.GONE -> {
-        primaryLabel.font = nlComponentFont.deriveFont(
-          nlComponentFont.attributes + (TextAttribute.STRIKETHROUGH to TextAttribute.STRIKETHROUGH_ON))
-        primaryLabel.foreground = UIUtil.makeTransparent(primaryLabel.foreground, primaryLabel.background, 0.5)
+        primaryLabel.font =
+          nlComponentFont.deriveFont(
+            nlComponentFont.attributes +
+              (TextAttribute.STRIKETHROUGH to TextAttribute.STRIKETHROUGH_ON)
+          )
+        primaryLabel.foreground =
+          UIUtil.makeTransparent(primaryLabel.foreground, primaryLabel.background, 0.5)
       }
     }
 
@@ -115,11 +118,16 @@ class NlTreeCellRenderer(
     val leftOffset = getLeftOffset(tree, path)
 
     val facet = value.model.facet
-    val handler = if (!facet.isDisposed) ViewHandlerManager.get(facet).getHandler(value) else null
+    val handler =
+      if (!facet.isDisposed) ViewHandlerManager.get(facet).getHandler(value) {} else null
 
-    primaryLabel.icon = handler?.getIcon(value)?.let {
-      if (selected && treeFocused && !ExperimentalUI.isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it
-    } ?: StudioIcons.LayoutEditor.Palette.VIEW
+    primaryLabel.icon =
+      handler?.getIcon(value)?.let {
+        if (selected && treeFocused && !NewUiValue.isEnabled())
+          ColoredIconGenerator.generateWhiteIcon(it)
+        else it
+      }
+        ?: StudioIcons.LayoutEditor.Palette.VIEW
 
     val id = stripIdPrefix(value.id)
     var primaryLabelText = id.ifBlank { handler?.getTitle(value) }
@@ -139,34 +147,40 @@ class NlTreeCellRenderer(
     // Trim text
     var availableSpace = computeAvailableSpace(row, primaryLabel.icon, cellWidth)
     val previousLength = primaryLabelText.length
-    primaryLabelText = AdtUiUtils.shrinkToFit(primaryLabelText, primaryLabelMetrics, availableSpace.toFloat())
+    primaryLabelText =
+      AdtUiUtils.shrinkToFit(primaryLabelText, primaryLabelMetrics, availableSpace.toFloat())
 
     // If the primary text has been shrunk, there is no need to display the secondary
-    secondaryLabelText = if (primaryLabelText.length == previousLength) {
-      availableSpace -= primaryLabelMetrics.stringWidth(primaryLabelText)
-      AdtUiUtils.shrinkToFit(secondaryLabelText, secondaryLabelMetrics, availableSpace.toFloat())
-    }
-    else {
-      ""
-    }
+    secondaryLabelText =
+      if (primaryLabelText.length == previousLength) {
+        availableSpace -= primaryLabelMetrics.stringWidth(primaryLabelText)
+        AdtUiUtils.shrinkToFit(secondaryLabelText, secondaryLabelMetrics, availableSpace.toFloat())
+      } else {
+        ""
+      }
     toolTipText = createTooltipText(value.tagName, primaryLabelText, secondaryLabelText)
     primaryLabel.text = primaryLabelText
     secondaryLabel.text = secondaryLabelText
     return this
   }
 
-  private fun createTooltipText(tagName: String, primaryLabelText: String, secondaryLabelText: String) =
+  private fun createTooltipText(
+    tagName: String,
+    primaryLabelText: String,
+    secondaryLabelText: String
+  ) =
     """
     <html>
         ${tagName.substringAfterLast('.', tagName)}<br/>
         ${getHiddenText(primaryLabelText, secondaryLabelText)}
     </html>
-    """.trimIndent()
+    """
+      .trimIndent()
 
   /**
-   * We only want to show the hidden part of the cell in the tooltip:
-   * if nothing is hidden there is no tooltip and if only the second part is
-   * hidden, we only display the second part in the tooltip.
+   * We only want to show the hidden part of the cell in the tooltip: if nothing is hidden there is
+   * no tooltip and if only the second part is hidden, we only display the second part in the
+   * tooltip.
    */
   private fun getHiddenText(primaryLabelText: String, secondaryLabelText: String): String {
     var tooltip: String = if (primaryLabel.text != primaryLabelText) primaryLabel.text else ""
@@ -183,8 +197,8 @@ class NlTreeCellRenderer(
   }
 
   private fun computeAvailableSpace(row: Int, icon: Icon?, cellWidth: Int) =
-    (cellWidth
-     - primaryLabel.iconTextGap
-     - myBadgeHandler.getTotalBadgeWidth(row)
-     - (icon?.iconWidth ?: 0))
+    (cellWidth -
+      primaryLabel.iconTextGap -
+      myBadgeHandler.getTotalBadgeWidth(row) -
+      (icon?.iconWidth ?: 0))
 }

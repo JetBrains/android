@@ -15,34 +15,30 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
-import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
-import com.android.tools.idea.rendering.RenderLogger
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
-import kotlin.test.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
-import org.junit.rules.TestRule
 import org.mockito.Mockito
 
 class ComposePreviewStatusIconActionTest {
-  val projectRule = AndroidProjectRule.inMemory()
-
-  @get:Rule val chain: TestRule = RuleChain.outerRule(projectRule).around(FastPreviewRule())
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val composePreviewManager = TestComposePreviewManager()
 
@@ -72,6 +68,7 @@ class ComposePreviewStatusIconActionTest {
   private val sceneManagerMock = Mockito.mock(LayoutlibSceneManager::class.java)
   private val renderResultMock = Mockito.mock(RenderResult::class.java)
   private val renderLoggerMock = Mockito.mock(RenderLogger::class.java)
+  private val resultMock = Mockito.mock(Result::class.java)
   private var renderError = false
   init {
     Mockito.`when`(sceneViewMock.sceneManager).then {
@@ -85,6 +82,9 @@ class ComposePreviewStatusIconActionTest {
     }
     Mockito.`when`(renderLoggerMock.hasErrors()).then {
       return@then renderError
+    }
+    Mockito.`when`(renderResultMock.renderResult).then {
+      return@then resultMock
     }
   }
 

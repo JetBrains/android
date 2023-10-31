@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device.screenshot
 
 import com.android.prefs.AndroidLocationsSingleton
+import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager.DeviceFilter
@@ -70,8 +71,7 @@ internal class DeviceScreenshotOptions(
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
     val framingOptions = mutableListOf<DeviceFramingOption>()
-    val deviceManager = DeviceManagers.getDeviceManager(
-      AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
+    val deviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
     val devices = deviceManager.getDevices(EnumSet.of(DeviceFilter.USER, DeviceFilter.DEFAULT, DeviceFilter.VENDOR))
     val device = deviceModel?.let { devices.find { it.displayName == deviceModel } }
     if (device != null) {
@@ -95,9 +95,18 @@ internal class DeviceScreenshotOptions(
       val displaySize = screenshotImage.displaySize
       val displayDensity = screenshotImage.displayDensity
       if (displaySize != null && displayDensity.isFinite()) {
+        val descriptors = DeviceArtDescriptor.getDescriptors(null).associateBy { it.id }
+        if (isAutomotive) {
+          val automotive = descriptors["automotive_1024"]
+          val screenSize = automotive?.getScreenSize(ScreenOrientation.LANDSCAPE)
+          if (screenSize != null &&
+              abs(screenSize.height.toDouble() / screenSize.width - displaySize.height.toDouble() / displaySize.width) < 0.01) {
+            framingOptions.add(DeviceFramingOption(automotive))
+          }
+        }
         val diagonalSize = hypot(displaySize.width.toDouble(), displaySize.height.toDouble()) / displayDensity
         val deviceArtId = if (diagonalSize < MIN_TABLET_DIAGONAL_SIZE) "phone" else "tablet"
-        DeviceArtDescriptor.getDescriptors(null).find { it.id == deviceArtId }?.let { framingOptions.add(DeviceFramingOption(it)) }
+        descriptors[deviceArtId]?.let { framingOptions.add(DeviceFramingOption(it)) }
       }
     }
     return framingOptions

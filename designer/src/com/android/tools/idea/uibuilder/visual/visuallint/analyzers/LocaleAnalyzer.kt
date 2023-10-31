@@ -18,28 +18,29 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.RenderConfiguration
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.utils.HtmlBuilder
 
-/**
- * [VisualLintAnalyzer] for issues with texts in different locales.
- */
-class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) : VisualLintAnalyzer() {
+/** [VisualLintAnalyzer] for issues with texts in different locales. */
+class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
+  VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LOCALE_TEXT
 
   override val backgroundEnabled: Boolean
     get() = LocaleAnalyzerInspection.localeBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val config = renderResult.renderContext?.configuration
 
@@ -62,12 +63,14 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   }
 
   /**
-   * Builds map of base config issues.
-   * Map contains component as hash, and boolean on the types of issues as value
+   * Builds map of base config issues. Map contains component as hash, and boolean on the types of
+   * issues as value
    */
   private fun buildMap(view: ViewInfo, baseConfigIssues: VisualLintBaseConfigIssues) {
     getKey(view)?.let { key ->
-      baseConfigIssues.componentState.getOrPut(key) { VisualLintBaseConfigIssues.BaseConfigComponentState() }.hasI18NEllipsis = isEllipsized(view)
+      baseConfigIssues.componentState
+        .getOrPut(key) { VisualLintBaseConfigIssues.BaseConfigComponentState() }
+        .hasI18NEllipsis = isEllipsized(view)
       baseConfigIssues.componentState[key]!!.hasI18NTextTooBig = isTextTooBig(view)
     }
   }
@@ -78,15 +81,17 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   }
 
   /** Returns true if the configuration is the base configuration. */
-  private fun isBaseConfig(config: RenderConfiguration?): Boolean {
+  private fun isBaseConfig(config: Configuration?): Boolean {
     // TODO: Follow up and investigate if there's better way to detect base config.
     return config?.locale?.toString() == "__"
   }
 
   /** Find issues related to locale texts */
-  private fun findLocaleIssues(view: ViewInfo,
-                               baseConfigIssues: VisualLintBaseConfigIssues,
-                               model: NlModel): List<VisualLintIssueContent> {
+  private fun findLocaleIssues(
+    view: ViewInfo,
+    baseConfigIssues: VisualLintBaseConfigIssues,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val key = getKey(view) ?: return issues
     val value = baseConfigIssues.componentState[key]
@@ -103,24 +108,31 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   /** Create issues related to text ellipsized */
   private fun createEllipsizedIssue(view: ViewInfo, locale: String): VisualLintIssueContent {
     val summary = "The text is ellipsized in locale \"$locale\"."
-    val content = HtmlBuilder().add("The text is ellipsized in locale \"$locale\" but not in default locale.")
-      .newline()
-      .add("This might not be the intended behaviour. Consider increasing the text view size.")
+    val content =
+      HtmlBuilder()
+        .add("The text is ellipsized in locale \"$locale\" but not in default locale.")
+        .newline()
+        .add("This might not be the intended behaviour. Consider increasing the text view size.")
     return VisualLintIssueContent(view, summary) { content }
   }
 
   /** Create issues related to text being too big (so it doesn't fit in text view) */
-  private fun createTextTooBigIssue(value: VisualLintBaseConfigIssues.BaseConfigComponentState?, view: ViewInfo, locale: String): VisualLintIssueContent {
+  private fun createTextTooBigIssue(
+    value: VisualLintBaseConfigIssues.BaseConfigComponentState?,
+    view: ViewInfo,
+    locale: String
+  ): VisualLintIssueContent {
     val summary = "The text might be cut off."
-    val content = if (value == null) {
-      HtmlBuilder().add("The text is too large in locale \"$locale\" to fit inside the TextView.")
-    }
-    else {
-      // Base locale is not cut off but this locale is - create an issue with appropriate message
-      HtmlBuilder().add("The text is too large in locale \"$locale\" to fit inside the TextView.")
-        .newline()
-        .add("This behavior is different from default locale and might not be intended behavior.")
-    }
+    val content =
+      if (value == null) {
+        HtmlBuilder().add("The text is too large in locale \"$locale\" to fit inside the TextView.")
+      } else {
+        // Base locale is not cut off but this locale is - create an issue with appropriate message
+        HtmlBuilder()
+          .add("The text is too large in locale \"$locale\" to fit inside the TextView.")
+          .newline()
+          .add("This behavior is different from default locale and might not be intended behavior.")
+      }
     return VisualLintIssueContent(view, summary) { content }
     // TODO: As a follow up, create a render lint that captures base locale text being cut off.
   }
@@ -166,9 +178,11 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
 
     return requiredTextBoundsWidth > textView.width
   }
-
 }
 
-object LocaleAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LOCALE_TEXT, "localeBackground") {
-  var localeBackground = true
+class LocaleAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.LOCALE_TEXT, "localeBackground") {
+  companion object {
+    var localeBackground = true
+  }
 }

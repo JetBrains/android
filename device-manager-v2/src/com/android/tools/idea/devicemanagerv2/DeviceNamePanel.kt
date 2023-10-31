@@ -16,32 +16,32 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.getReleaseNameAndDetails
-import com.android.tools.adtui.categorytable.TableComponent
-import com.android.tools.adtui.categorytable.TablePresentation
-import com.android.tools.adtui.categorytable.TablePresentationManager
-import com.android.tools.idea.wearpairing.WearPairingManager
+import com.android.tools.adtui.categorytable.IconLabel
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
+import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import javax.swing.GroupLayout
 import javax.swing.LayoutStyle.ComponentPlacement
 import kotlin.math.min
-import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A panel that renders the name of the device, along with its wear pairing status and a second line
  * to indicate more details, such as its Android version or an error state.
  */
-internal class DeviceNamePanel(private val wearPairingManager: WearPairingManager) :
-  JBPanel<DeviceNamePanel>(null), TableComponent {
-
-  internal val nameLabel = JBLabel()
-  internal val line2Label = JBLabel()
-  private val pairedLabel = JBLabel()
+internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
+  internal val deviceIcon = IconLabel(null)
+  internal val twoLineLabel = TwoLineLabel()
+  internal val pairedLabel = IconLabel(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
 
   init {
     isOpaque = false
@@ -50,13 +50,9 @@ internal class DeviceNamePanel(private val wearPairingManager: WearPairingManage
     val horizontalGroup =
       layout
         .createSequentialGroup()
+        .addComponent(deviceIcon)
         .addPreferredGap(ComponentPlacement.RELATED)
-        .addGroup(
-          layout
-            .createParallelGroup()
-            .addComponent(nameLabel, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-            .addComponent(line2Label, 0, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-        )
+        .addComponent(twoLineLabel)
         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
         .addComponent(pairedLabel)
         .addGap(JBUI.scale(4))
@@ -64,12 +60,12 @@ internal class DeviceNamePanel(private val wearPairingManager: WearPairingManage
     val verticalGroup =
       layout
         .createParallelGroup(GroupLayout.Alignment.CENTER)
+        .addComponent(deviceIcon)
         .addGroup(
           layout
             .createSequentialGroup()
             .addContainerGap(GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
-            .addComponent(nameLabel)
-            .addComponent(line2Label)
+            .addComponent(twoLineLabel)
             .addContainerGap(GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
         )
         .addComponent(pairedLabel)
@@ -77,39 +73,67 @@ internal class DeviceNamePanel(private val wearPairingManager: WearPairingManage
     layout.setHorizontalGroup(horizontalGroup)
     layout.setVerticalGroup(verticalGroup)
 
-    line2Label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-
     this.layout = layout
   }
 
   fun update(deviceRowData: DeviceRowData) {
-    nameLabel.text = deviceRowData.name
-    line2Label.text = deviceRowData.toLine2Text()
-
-    // TODO: Update pairedLabel
+    deviceIcon.baseIcon = deviceRowData.icon
+    twoLineLabel.line1Label.text = deviceRowData.name
+    twoLineLabel.line2Label.text = deviceRowData.toLine2Text()
+    updatePairingState(deviceRowData.pairingStatus)
   }
 
+  private fun updatePairingState(pairList: List<PairingStatus>) {
+    pairedLabel.isVisible = pairList.isNotEmpty()
+    if (pairList.isNotEmpty()) {
+      pairedLabel.baseIcon =
+        when {
+          pairList.any { it.state == PairingState.CONNECTED } ->
+            StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED
+          else -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+        }
+    }
+
+    fun PairingStatus.pairingStatusString() =
+      when (state) {
+        PairingState.CONNECTED ->
+          message("wear.assistant.device.list.accessible.description.status.connected", displayName)
+        else ->
+          message("wear.assistant.device.list.accessible.description.status.paired", displayName)
+      }
+
+    pairedLabel.accessibleContext.accessibleDescription =
+      when {
+        pairList.isEmpty() -> null
+        else -> pairList.joinToString(separator = "\n") { it.pairingStatusString() }
+      }
+  }
+
+  /**
+   * Returns the appropriate text for the second line of the device cell, using the following in
+   * order:
+   * 1. The status message, if the device state is transitioning and one is present.
+   * 2. The error message, if there's an error.
+   * 3. Reservation information, if present.
+   * 4. Android version
+   */
   private fun DeviceRowData.toLine2Text() =
+    stateTransitionText() ?: errorText() ?: reservationText() ?: androidVersionText()
+
+  private fun DeviceRowData.errorText() = error?.message
+
+  private fun DeviceRowData.reservationText() = handle?.state?.reservation?.line2Text()
+
+  private fun DeviceRowData.androidVersionText() =
     when (androidVersion) {
       null -> ""
       else -> androidVersion.toLabelText() + (abi?.cpuArch?.let { " | $it" } ?: "")
     }
+}
 
-  private fun AndroidVersion.toLabelText(): String {
-    val (name, details) = getReleaseNameAndDetails(includeCodeName = true)
-    return name + (details?.let { " ($details)" } ?: "")
-  }
-
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation
-  ) {
-    manager.applyPresentation(nameLabel, presentation)
-    manager.applyPresentation(
-      line2Label,
-      presentation.copy(foreground = presentation.foreground.lighten())
-    )
-  }
+internal fun AndroidVersion.toLabelText(): String {
+  val (name, details) = getReleaseNameAndDetails(includeCodeName = true)
+  return name + (details?.let { " ($details)" } ?: "")
 }
 
 /**
@@ -123,4 +147,21 @@ internal fun Color.lighten() =
     val green = min(green + 50, 255)
     val blue = min(blue + 50, 255)
     JBColor(Color(red, green, blue), darker())
+  }
+
+internal fun DeviceRowData.stateTransitionText() =
+  handle?.state?.takeIf { it.isTransitioning }?.status?.takeIf { it.isNotEmpty() }
+
+internal fun Reservation.line2Text(zoneId: ZoneId = ZoneId.systemDefault()): String? =
+  when {
+    endTime != null -> {
+      val formattedDate =
+        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(zoneId).format(endTime)
+      when {
+        stateMessage.isEmpty() -> "Device will expire at $formattedDate"
+        else -> "${stateMessage}; device will expire at $formattedDate"
+      }
+    }
+    stateMessage.isNotEmpty() -> stateMessage
+    else -> null
   }

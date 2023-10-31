@@ -27,12 +27,13 @@ const val DEFAULT_MIN_API_LEVEL = AndroidVersion.VersionCodes.LOLLIPOP_MR1
  * Extension of [LayoutTestCase] that provides support for using a minAPI in a test.
  *
  * This is achieved specifying a manifest file with minSdkVersion and targetSdkVersion specified.
- * The minSdkVersion can be specified by the test name:
- *    testXyzMinApi17   -   will cause a manifest with minSdkVersion set to 17.
- * If the test name has no MinApi specified in the test name, the default [DEFAULT_MIN_API_LEVEL] is used.
- * Alternatively a test can override the [setUpManifest] method to customize the manifest.
+ * The minSdkVersion can be specified by the test name: testXyzMinApi17 - will cause a manifest with
+ * minSdkVersion set to 17. If the test name has no MinApi specified in the test name, the default
+ * [DEFAULT_MIN_API_LEVEL] is used. Alternatively a test can override the [setUpManifest] method to
+ * customize the manifest.
  */
-abstract class MinApiLayoutTestCase(private val provideManifest: Boolean = true) : LayoutTestCase() {
+abstract class MinApiLayoutTestCase(private val provideManifest: Boolean = true) :
+  LayoutTestCase() {
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -50,13 +51,15 @@ abstract class MinApiLayoutTestCase(private val provideManifest: Boolean = true)
     fun setUpManifest(fixture: CodeInsightTestFixture, testName: String? = null) {
       val minApiAsString = testName?.substringAfter("MinApi", DEFAULT_MIN_API_LEVEL.toString())
       val minApi = minApiAsString?.toIntOrNull() ?: DEFAULT_MIN_API_LEVEL
-      val manifest = """
+      val manifest =
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example">
               <uses-sdk android:minSdkVersion="$minApi"
                         android:targetSdkVersion="$MOST_RECENT_API_LEVEL"/>
       </manifest>
-""".trimIndent()
+"""
+          .trimIndent()
       fixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifest)
     }
   }

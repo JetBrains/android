@@ -19,10 +19,10 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 private const val APP_INSPECTION_TOOL_WINDOW_TITLE = "App Inspection"
 

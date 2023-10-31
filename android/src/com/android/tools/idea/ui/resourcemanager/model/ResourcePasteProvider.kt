@@ -19,10 +19,14 @@ import com.android.SdkConstants
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.res.ensureNamespaceImported
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.util.ReformatUtil
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -31,6 +35,7 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.editor.Caret
 import com.intellij.openapi.editor.actions.PasteAction
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
@@ -39,11 +44,6 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.android.tools.idea.res.ensureNamespaceImported
-import com.android.tools.idea.util.ReformatUtil
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtProperty
@@ -58,7 +58,7 @@ import org.jetbrains.kotlin.psi.psiUtil.startOffset
  */
 class ResourcePasteProvider : PasteProvider {
 
-  private val IMAGE_LIKE_TYPES: Set<ResourceType> = setOf(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.COLOR)
+  private val IMAGE_LIKE_TYPES = setOf<ResourceType>(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.COLOR)
 
   override fun performPaste(dataContext: DataContext) {
     val caret = CommonDataKeys.CARET.getData(dataContext)!!
@@ -202,11 +202,20 @@ class ResourcePasteProvider : PasteProvider {
                                   caret: Caret,
                                   resourceReference: String): Boolean {
     if (xmlAttribute == null) return false
-    runWriteAction {
+    val replaceStartOffset = runWriteAction {
+      val textRange = xmlAttribute.valueElement?.valueTextRange
+      if (textRange != null && xmlAttribute.value?.startsWith("@{") == true
+        && caret.offset > textRange.startOffset + 1 && caret.offset < textRange.endOffset) {
+        // If caret is inside databinding, replace only the value inside the bracket
+        xmlAttribute.setValue("@{$resourceReference}")
+        return@runWriteAction textRange.startOffset + 2
+      }
       xmlAttribute.setValue(resourceReference)
+      return@runWriteAction textRange?.startOffset ?: -1
     }
-    xmlAttribute.valueElement?.valueTextRange?.startOffset?.let {
-      caret.selectStringFromOffset(resourceReference, it)
+
+    if (replaceStartOffset > -1) {
+      caret.selectStringFromOffset(resourceReference, replaceStartOffset)
     }
     return true
   }

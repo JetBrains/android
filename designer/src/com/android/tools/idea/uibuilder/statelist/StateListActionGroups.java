@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.statelist;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.ThemeMenuAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;

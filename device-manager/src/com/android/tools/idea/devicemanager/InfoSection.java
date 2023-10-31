@@ -16,9 +16,6 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.adtui.stdui.StandardColors;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.wearpairing.WearPairingManager;
-import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
@@ -28,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Formatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -88,44 +84,6 @@ public class InfoSection extends JBPanel<InfoSection> {
     layout.setVerticalGroup(verticalGroup);
 
     setLayout(layout);
-  }
-
-  public static @NotNull Optional<InfoSection> newPairedDeviceSection(@NotNull Device device,
-                                                                               @NotNull WearPairingManager manager) {
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      return Optional.empty();
-    }
-    String key = device.getKey().toString();
-    List<PhoneWearPair> pairList = manager.getPairsForDevice(key);
-
-    if (pairList.isEmpty()) {
-      return Optional.empty();
-    }
-
-    PhoneWearPair pair = pairList.get(0);
-    InfoSection section = new InfoSection("Paired device");
-    setText(section.addNameAndValueLabels("Paired with"), pair.getPeerDevice(key).getDisplayName());
-    String paringStatus;
-    switch (pair.getPairingStatus()) {
-      case OFFLINE:
-        paringStatus = "Offline";
-        break;
-      case CONNECTING:
-        paringStatus = "Connecting";
-        break;
-      case CONNECTED:
-        paringStatus = "Connected";
-        break;
-      case PAIRING_FAILED:
-        paringStatus = "Error pairing";
-        break;
-      default:
-        throw new AssertionError(pair.getPairingStatus());
-    }
-    setText(section.addNameAndValueLabels("Status"), paringStatus);
-    section.setLayout();
-
-    return Optional.of(section);
   }
 
   public static void setText(@NotNull JLabel label, @Nullable Object value) {

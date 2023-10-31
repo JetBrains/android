@@ -42,7 +42,7 @@ import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.openapi.wm.impl.content.ContentLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.Component;
@@ -95,10 +95,10 @@ public class ProjectViewFixture extends ToolWindowFixture {
 
   private void changePane(@NotNull String paneName) {
     myToolWindow.getComponent().requestFocusInWindow();
-    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byText(BaseLabel.class, "Project:"));
+    Component projectDropDown = GuiTests.waitUntilFound(myRobot, Matchers.byType(ContentLabel.class).andIsShowing().andIsEnabled().andIsVisible());
     myRobot.click(projectDropDown.getParent());
 
-    String paneFullName = "Content name=" + paneName;
+    String paneFullName = "Content name=" + paneName + "; tab name='"+ paneName +"'; toolwindow='"+ paneName +"'";
     GuiTests.clickPopupMenuItemMatching(s -> s.equals(paneFullName), projectDropDown, myRobot);
   }
 

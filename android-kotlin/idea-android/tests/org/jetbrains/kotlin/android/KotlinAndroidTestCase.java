@@ -26,14 +26,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -87,10 +85,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     myFixture.setUp();
     myFixture.setTestDataPath(getTestDataPath());
     myModule = moduleFixtureBuilder.getFixture().getModule();
-
-    // Create the iml file for a module on disk. This is necessary for correct Kotlin resolution of light classes,
-    // see AndroidResolveScopeEnlarger.
-    VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/"), myModule.getModuleFilePath());
 
     // Must be done before addAndroidFacet, and must always be done, even if a test provides
     // its own custom manifest file. However, in that case, we will delete it shortly below.

@@ -19,6 +19,8 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.ImageConverter
+import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
@@ -26,6 +28,7 @@ import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
+import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
@@ -43,20 +46,21 @@ import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_NOTIFICA
 import com.android.tools.idea.flags.StudioFlags.EMBEDDED_EMULATOR_TRACE_SCREENSHOTS
 import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
-import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.EmulatorSettings
-import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
-import com.android.tools.idea.streaming.RUNNING_DEVICES_NOTIFICATION_GROUP
+import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.RUNNING_DEVICES_NOTIFICATION_GROUP
+import com.android.tools.idea.streaming.core.isSameAspectRatio
+import com.android.tools.idea.streaming.core.rotatedByQuadrants
+import com.android.tools.idea.streaming.core.scaled
+import com.android.tools.idea.streaming.core.scaledDown
+import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
-import com.android.tools.idea.streaming.isSameAspectRatio
-import com.android.tools.idea.streaming.rotatedByQuadrants
-import com.android.tools.idea.streaming.scaled
-import com.android.tools.idea.streaming.scaledDown
-import com.android.tools.idea.streaming.scaledUnbiased
 import com.google.protobuf.TextFormat.shortDebugString
-import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -64,7 +68,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
@@ -123,6 +126,7 @@ import java.awt.event.ComponentEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.awt.event.InputEvent
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyAdapter
@@ -130,7 +134,6 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_END
@@ -145,7 +148,6 @@ import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
@@ -193,9 +195,11 @@ class EmulatorView(
     get() = screenshotShape.orientation
     internal set(value) {
       if (value != screenshotShape.orientation && deviceFrameVisible) {
-        requestScreenshotFeed(currentDisplaySize, value)
+        requestScreenshotFeed(deviceDisplaySize, value)
       }
     }
+  override val apiLevel: Int
+    get() = emulatorConfig.api
 
   private var lastScreenshot: Screenshot? = null
   private val displayTransform = AffineTransform()
@@ -203,16 +207,13 @@ class EmulatorView(
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
   private val initialOrientation: Int
     get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientation.number else SkinRotation.PORTRAIT.number
-  private val currentDisplaySize: Dimension
-    get() = screenshotShape.activeDisplayRegion?.size ?: deviceDisplaySize
   private val deviceDisplayRegion: Rectangle
     get() = screenshotShape.activeDisplayRegion ?: Rectangle(deviceDisplaySize)
   internal val displayMode: DisplayMode?
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
   override val deviceDisplaySize: Dimension
-    get() = displaySize ?: emulatorConfig.displaySize
-  override val deviceSerialNumber: String
-    get() = emulator.emulatorId.serialNumber
+    get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
+  override val deviceId: DeviceId = DeviceId.ofEmulator(emulator.emulatorId)
 
   @get:VisibleForTesting
   var frameTimestampMillis = 0L
@@ -231,6 +232,19 @@ class EmulatorView(
   private var mouseWheelSender: StreamObserver<WheelEvent>? = null
 
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  private val postureListeners: MutableList<PostureListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  @Volatile
+  internal var currentPosture: PostureDescriptor? = null
+    private set(value) {
+      if (field != value) {
+        field = value
+        if (value != null) {
+          for (listener in postureListeners) {
+            listener.postureChanged(value)
+          }
+        }
+      }
+    }
 
   var deviceFrameVisible: Boolean = deviceFrameVisible
     set(value) {
@@ -270,26 +284,61 @@ class EmulatorView(
    */
   private var lastTouchCoordinates: Point? = null
 
-  private var virtualSceneCameraActive = false
+  /**
+   * Which MOUSE_ENTERED or MOUSE_EXITED is observed at the last time.
+   */
+  private var mouseIsInside: Boolean = false
+
+  /**
+   * Last observed modifier state.
+   */
+  private var lastModifiers: Int = 0
+
+  private var virtualSceneCameraPrompt: String? = null
     set(value) {
       if (value != field) {
         field = value
-        if (value) {
-          multiTouchMode = false
-          if (isFocusOwner) {
-            showVirtualSceneCameraPrompt()
+        if (value != null) {
+          if (EmulatorSettings.getInstance().showCameraControlPrompts) {
+            showVirtualSceneCameraPrompt(value)
           }
         }
         else {
-          virtualSceneCameraOperating = false
           hideVirtualSceneCameraPrompt()
         }
       }
     }
 
-  private var virtualSceneCameraOperating = false
+  private fun updateCameraPromptAndMultiTouchFeedback(event: InputEvent) = updateCameraPromptAndMultiTouchFeedback(event.modifiersEx)
+
+  private fun updateCameraPromptAndMultiTouchFeedback(modifiers: Int = lastModifiers) {
+    lastModifiers = modifiers
+
+    val cameraReadyToOperate = virtualSceneCameraActive && isFocusOwner && !isHardwareInputEnabled()
+    virtualSceneCameraOperating = cameraReadyToOperate && modifiers and SHIFT_DOWN_MASK != 0
+    virtualSceneCameraPrompt = when {
+      virtualSceneCameraOperating -> {
+        val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
+        "Move camera with $keys keys, rotate with mouse or arrow keys"
+      }
+      cameraReadyToOperate -> "Hold Shift to control camera"
+      else -> null
+    }
+
+    multiTouchMode = mouseIsInside && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 && !isHardwareInputEnabled()
+  }
+
+  private var virtualSceneCameraActive = false
     set(value) {
       if (value != field) {
+        field = value
+        updateCameraPromptAndMultiTouchFeedback()
+      }
+    }
+
+  private var virtualSceneCameraOperating = false
+    set(value) {
+      if (field != value) {
         field = value
         if (value) {
           startOperatingVirtualSceneCamera()
@@ -328,13 +377,11 @@ class EmulatorView(
 
       addFocusListener(object : FocusListener {
         override fun focusGained(event: FocusEvent) {
-          if (virtualSceneCameraActive) {
-            showVirtualSceneCameraPrompt()
-          }
+          updateCameraPromptAndMultiTouchFeedback()
         }
 
         override fun focusLost(event: FocusEvent) {
-          hideVirtualSceneCameraPrompt()
+          updateCameraPromptAndMultiTouchFeedback()
         }
       })
     }
@@ -355,6 +402,7 @@ class EmulatorView(
     cancelNotificationFeed()
     cancelScreenshotFeed()
     emulator.removeConnectionStateListener(this)
+    virtualSceneCameraOperating = false
     stats?.let { Disposer.dispose(it) } // The stats object has to be disposed last.
   }
 
@@ -366,6 +414,14 @@ class EmulatorView(
     displayConfigurationListeners.remove(listener)
   }
 
+  fun addPostureListener(listener: PostureListener) {
+    postureListeners.add(listener)
+  }
+
+  fun removePostureListener(listener: PostureListener) {
+    postureListeners.remove(listener)
+  }
+
   override fun canZoom(): Boolean = isConnected
 
   override fun computeActualSize(): Dimension =
@@ -374,10 +430,10 @@ class EmulatorView(
   private fun computeActualSize(orientationQuadrants: Int): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(orientationQuadrants, currentDisplaySize)
+      skin.getRotatedFrameSize(orientationQuadrants, deviceDisplaySize)
     }
     else {
-      currentDisplaySize.rotatedByQuadrants(orientationQuadrants)
+      deviceDisplaySize.rotatedByQuadrants(orientationQuadrants)
     }
   }
 
@@ -411,6 +467,7 @@ class EmulatorView(
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
       lastScreenshot = null
+      hideLongRunningOperationIndicatorInstantly()
       showDisconnectedStateMessage("Disconnected from the Emulator")
     }
 
@@ -421,7 +478,7 @@ class EmulatorView(
     if (emulatorOutOfDateNotificationShown) {
       return
     }
-    val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
+    val project = getProject() ?: return
     val title = "Emulator is out of date"
     val message = XmlStringUtil.wrapInHtml("Please update the Android Emulator")
     val notification = RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(title, message, NotificationType.WARNING)
@@ -437,17 +494,20 @@ class EmulatorView(
     emulatorOutOfDateNotificationShown = true
   }
 
-  override fun paintComponent(g: Graphics) {
-    super.paintComponent(g)
+  override fun paintComponent(graphics: Graphics) {
+    super.paintComponent(graphics)
 
     val screenshot = lastScreenshot ?: return
+    if (frameNumber == 0) {
+      hideLongRunningOperationIndicatorInstantly()
+    }
     val skin = screenshot.skinLayout
     assert(screenshotShape.width != 0)
     assert(screenshotShape.height != 0)
     val displayRect = computeDisplayRectangle(skin)
     displayRectangle = displayRect
 
-    g as Graphics2D
+    val g = graphics.create() as Graphics2D
     val physicalToVirtualScale = 1.0 / screenScale
     g.scale(physicalToVirtualScale, physicalToVirtualScale) // Set the scale to draw in physical pixels.
 
@@ -463,8 +523,6 @@ class EmulatorView(
 
     frameNumber = screenshotShape.frameNumber
     notifyFrameListeners(displayRect, screenshot.image)
-
-    paintDecorations(g, displayRect)
 
     if (multiTouchMode) {
       // Draw multi-touch visual feedback.
@@ -509,7 +567,7 @@ class EmulatorView(
 
   private fun requestScreenshotFeed() {
     if (isConnected) {
-      requestScreenshotFeed(currentDisplaySize, displayOrientationQuadrants)
+      requestScreenshotFeed(deviceDisplaySize, displayOrientationQuadrants)
     }
   }
 
@@ -572,19 +630,17 @@ class EmulatorView(
     notificationFeed = null
   }
 
-  private fun showVirtualSceneCameraPrompt(prompt: String = "Hold Shift to control camera") {
+  private fun showVirtualSceneCameraPrompt(prompt: String) {
     if (EmulatorSettings.getInstance().showCameraControlPrompts) {
-      findNotificationHolderPanel()?.showNotification(prompt)
+      findNotificationHolderPanel()?.showFadeOutNotification(prompt)
     }
   }
 
   private fun hideVirtualSceneCameraPrompt() {
-    findNotificationHolderPanel()?.hideNotification()
+    findNotificationHolderPanel()?.hideFadeOutNotification()
   }
 
   private fun startOperatingVirtualSceneCamera() {
-    val keys = EmulatorSettings.getInstance().cameraVelocityControls.keys
-    showVirtualSceneCameraPrompt("Move camera with $keys keys, rotate with mouse or arrow keys")
     val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
     val cursor = AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
     val rootPane = glass.rootPane
@@ -618,7 +674,6 @@ class EmulatorView(
   private fun stopOperatingVirtualSceneCamera() {
     virtualSceneCameraVelocityController?.let(Disposer::dispose)
     virtualSceneCameraVelocityController = null
-    showVirtualSceneCameraPrompt()
     val glass = IdeGlassPaneUtil.find(this) as IdeGlassPaneEx
     glass.setCursor(null, this)
     UIUtil.setCursor(glass.rootPane, null)
@@ -646,10 +701,15 @@ class EmulatorView(
     requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
   }
 
+  override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
+    super.hardwareInputStateChanged(event, enabled)
+    event.inputEvent?.let { updateCameraPromptAndMultiTouchFeedback(it) }
+  }
+
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {
     override fun onNext(response: EmulatorNotification) {
       if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
-        LOG.info("Notification ${response.event}")
+        LOG.info("Received notification: ${shortDebugString(response)}")
       }
 
       if (notificationReceiver != this) {
@@ -657,19 +717,64 @@ class EmulatorView(
       }
 
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-        when (response.event) {
-          VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
-          VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
-          DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners()
-          else -> {}
+        when {
+          response.hasCameraNotification() -> virtualSceneCameraActive = response.cameraNotification.active
+          response.hasDisplayConfigurationsChangedNotification() ->
+              checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification)
+          response.hasPosture() -> updateCurrentPosture(response.posture.value)
+          else  -> {
+            // Old style notifications.
+            // TODO: Remove the following 'when' statement after January 1, 2024.
+            when (response.event) {
+              VIRTUAL_SCENE_CAMERA_ACTIVE -> virtualSceneCameraActive = true
+              VIRTUAL_SCENE_CAMERA_INACTIVE -> virtualSceneCameraActive = false
+              DISPLAY_CONFIGURATIONS_CHANGED_UI -> notifyDisplayConfigurationListeners(null)
+              else -> {}
+            }
+          }
         }
       }
     }
 
-    private fun notifyDisplayConfigurationListeners() {
-      for (listener in displayConfigurationListeners) {
-        listener.displayConfigurationChanged()
+    private fun checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(notification: DisplayConfigurationsChangedNotification) {
+      val displayConfigs = notification.displayConfigurations.displaysList
+      // Check for b/290831895.
+      if (displayConfigs.find { it.width <= 0 || it.height <= 0 } != null) {
+        LOG.error("Invalid display configuration in $notification")
+        notifyDisplayConfigurationListeners(null)
       }
+      else {
+        notifyDisplayConfigurationListeners(displayConfigs)
+      }
+    }
+
+    private fun notifyDisplayConfigurationListeners(displayConfigs: List<DisplayConfiguration>?) {
+      for (listener in displayConfigurationListeners) {
+        listener.displayConfigurationChanged(displayConfigs)
+      }
+    }
+
+    private fun updateCurrentPosture(posture: PostureValue) {
+      emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: LOG.error("Unexpected posture: $posture")
+    }
+  }
+
+  override val hardwareInput: HardwareInput = object : HardwareInput() {
+    override fun sendToDevice(id: Int, keyCode: Int, modifierEx: Int) {
+      if (!isConnected) {
+        return
+      }
+      val keyName = VK_TO_DOM_KEY_NAME[keyCode] ?: return
+      val eventType = when (id) {
+        KeyEvent.KEY_PRESSED -> KeyEventType.keydown
+        KeyEvent.KEY_RELEASED -> KeyEventType.keyup
+        else -> return
+      }
+      val grpcEvent = KeyboardEvent.newBuilder()
+          .setKey(keyName)
+          .setEventType(eventType)
+          .build()
+      emulator.sendKey(grpcEvent)
     }
   }
 
@@ -695,7 +800,15 @@ class EmulatorView(
     }
 
     override fun keyTyped(event: KeyEvent) {
+      if (isHardwareInputEnabled()) {
+        return
+      }
+
       if (virtualSceneCameraOperating) {
+        return
+      }
+
+      if (event.isAltDown || event.isControlDown || event.isMetaDown) {
         return
       }
 
@@ -706,11 +819,13 @@ class EmulatorView(
 
       val keyboardEvent = KeyboardEvent.newBuilder().setText(c.toString()).build()
       emulator.sendKey(keyboardEvent)
+      event.consume()
     }
 
     override fun keyPressed(event: KeyEvent) {
-      if (event.keyCode == VK_SHIFT && event.modifiersEx == SHIFT_DOWN_MASK && virtualSceneCameraActive) {
-        virtualSceneCameraOperating = true
+      updateCameraPromptAndMultiTouchFeedback(event)
+      if (isHardwareInputEnabled()) {
+        hardwareInput.forwardEvent(event)
         return
       }
 
@@ -733,8 +848,11 @@ class EmulatorView(
     }
 
     override fun keyReleased(event: KeyEvent) {
-      if (event.keyCode == VK_SHIFT) {
-        virtualSceneCameraOperating = false
+      updateCameraPromptAndMultiTouchFeedback(event)
+
+      if (isHardwareInputEnabled()) {
+        hardwareInput.forwardEvent(event)
+        return
       }
 
       virtualSceneCameraVelocityController?.keyReleased(event.keyCode)
@@ -745,24 +863,6 @@ class EmulatorView(
     private fun keyPressedOrReleased(event: KeyEvent) {
       val keyCode = event.keyCode
       val modifiers = event.modifiersEx
-
-      if (keyCode == VK_CONTROL) {
-        if (modifiers == CTRL_DOWN_MASK) {
-          multiTouchMode = true
-        }
-        else if ((modifiers and CTRL_DOWN_MASK) == 0) {
-          multiTouchMode = false
-        }
-      }
-
-      // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
-      if (keyCode == VK_TAB && modifiers == SHIFT_DOWN_MASK) {
-        if (event.id == KEY_PRESSED) {
-          val tabEvent = KeyEvent(event.component, event.id, event.getWhen(), 0, keyCode, event.keyChar, event.keyLocation)
-          traverseFocusLocally(tabEvent)
-        }
-        return
-      }
 
       if (!isConnected) {
         return
@@ -775,14 +875,15 @@ class EmulatorView(
           val eventType = if (event.id == KEY_PRESSED) KeyEventType.keydown else KeyEventType.keyup
           emulator.sendKey(createKeyboardEvent(keyName, eventType))
           emulator.releaseModifierKeys(modifiers)
+          event.consume()
         }
       }
       else if (event.id == KEY_PRESSED) {
         emulator.pressModifierKeys(emulatorKeyStroke.modifiers)
         emulator.sendKey(KeyboardEvent.newBuilder().setKey(emulatorKeyStroke.keyName).setEventType(KeyEventType.keypress).build())
         emulator.releaseModifierKeys(emulatorKeyStroke.modifiers)
+        event.consume()
       }
-      event.consume()
     }
 
     private fun hostKeyStrokeToEmulatorKeyStroke(hostKeyCode: Int, modifiers: Int): EmulatorKeyStroke? {
@@ -875,6 +976,7 @@ class EmulatorView(
     }
 
     override fun mouseEntered(event: MouseEvent) {
+      mouseIsInside = true
       updateMultiTouchMode(event)
     }
 
@@ -884,7 +986,8 @@ class EmulatorView(
         sendMouseEvent(event.x, event.y, 0)
       }
       lastTouchCoordinates = null
-      multiTouchMode = false
+      mouseIsInside = false
+      updateMultiTouchMode(event)
     }
 
     override fun mouseDragged(event: MouseEvent) {
@@ -915,7 +1018,7 @@ class EmulatorView(
 
     private fun updateMultiTouchMode(event: MouseEvent) {
       val oldMultiTouchMode = multiTouchMode
-      multiTouchMode = (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !virtualSceneCameraOperating
+      updateCameraPromptAndMultiTouchFeedback(event)
       if (multiTouchMode && oldMultiTouchMode) {
         repaint() // If multitouch mode changed above, the repaint method was already called.
       }
@@ -1064,7 +1167,7 @@ class EmulatorView(
       // a fresh feed for the accurate rotation.
       if (imageRotation != orientationQuadrants) {
         EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          requestScreenshotFeed(currentDisplaySize, imageRotation)
+          requestScreenshotFeed(deviceDisplaySize, imageRotation)
         }
         expectedFrameNumber++
         return

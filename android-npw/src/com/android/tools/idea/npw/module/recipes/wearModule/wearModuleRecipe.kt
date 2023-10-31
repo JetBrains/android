@@ -25,7 +25,7 @@ fun RecipeExecutor.generateWearModule(
   data: ModuleTemplateData,
   appTitle: String?,
   useKts: Boolean,
-  useVersionCatalog: Boolean = false
+  useVersionCatalog: Boolean = true,
 ) {
   val usesFeatureBlock = """<uses-feature android:name="android.hardware.type.watch" />"""
   generateCommonModule(
@@ -37,11 +37,9 @@ fun RecipeExecutor.generateWearModule(
       hasRoundIcon = false),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
     themesXml = null, colorsXml = null,
+    noKtx = true,
     useVersionCatalog = useVersionCatalog
   )
 
   addDependency("com.google.android.gms:play-services-wearable:+")
-  addDependency("com.android.support:percent:+")
-  addDependency("com.android.support:support-v4:+")
-  addDependency("com.android.support:recyclerview-v7:+")
 }

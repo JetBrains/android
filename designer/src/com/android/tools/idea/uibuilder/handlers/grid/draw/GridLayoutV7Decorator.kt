@@ -15,7 +15,5 @@
  */
 package com.android.tools.idea.uibuilder.handlers.grid.draw
 
-/**
- * Decorator for GridLayoutV7 which is in support library.
- */
+/** Decorator for GridLayoutV7 which is in support library. */
 open class GridLayoutV7Decorator : GridLayoutDecorator()

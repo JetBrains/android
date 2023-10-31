@@ -915,6 +915,32 @@ class VariablesTableTest {
     }
   }
 
+  @Test
+  fun testValidationCatalogVariableValue() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+
+      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
+        it.toString().contains("libs")
+      } as VersionCatalogNode
+      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(),
+                 equalTo(setOf("constraint-layout", "guava", "junit", "")))
+      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVersion")))
+
+      //create variable
+      variablesTable.selectNode(versionCatalogNode)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
+      variablesTable.simulateTextInput("newVersion")
+
+      variablesTable.editCellAt(variablesTable.selectedRow,1)
+      val textBox = variablesTable.editorComponent as JBTextField
+      textBox.text = ""
+      assertThat(textBox.getWarningMessage(), equalTo("Variable value cannot be empty."))
+    }
+  }
+
   private fun emulateInputAndAssertWarning(variablesTable: VariablesTable, input:String, expectedMessage:String){
     variablesTable.simulateTextInput(input) { textBox ->
       assertThat(textBox.getWarningMessage(), equalTo(expectedMessage))

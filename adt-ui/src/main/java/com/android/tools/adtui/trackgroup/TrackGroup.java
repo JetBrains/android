@@ -45,6 +45,7 @@ import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.AbstractAction;
@@ -175,6 +176,23 @@ public class TrackGroup extends AspectObserver {
     MouseEventHandler trackContentMouseEventHandler = new TrackContentMouseEventHandler();
     myOverlay.addMouseListener(trackContentMouseEventHandler);
     myOverlay.addMouseMotionListener(trackContentMouseEventHandler);
+    // Add mouse listener to track hovering over track groups.
+    myOverlay.addMouseListener(new MouseListener() {
+      @Override
+      public void mouseEntered(MouseEvent e) {
+        TrackGroupModel model = getModel();
+        String title = model.getTitle();
+        model.getActionListeners().forEach(listener -> listener.onMouseOver(title));
+      }
+      @Override
+      public void mouseClicked(MouseEvent e) { }
+      @Override
+      public void mousePressed(MouseEvent e) { }
+      @Override
+      public void mouseReleased(MouseEvent e) { }
+      @Override
+      public void mouseExited(MouseEvent e) { }
+    });
 
     // A panel responsible for forwarding mouse events to the tracks' title component.
     myTrackTitleOverlay.setOpaque(false);

@@ -2,8 +2,8 @@
 package com.android.tools.compose
 
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 

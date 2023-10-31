@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.structure.model
 
 import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
+import com.intellij.openapi.diagnostic.Logger
 import javax.swing.Icon
 
 interface PsModel {
@@ -55,3 +56,5 @@ interface PsModelDescriptor {
     fun <T: PsModel> receive(model: T, property: ModelProperty<T, *, *, *>)
   }
 }
+
+internal val LOG = Logger.getInstance("Ps Model")

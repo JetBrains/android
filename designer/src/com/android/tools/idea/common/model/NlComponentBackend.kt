@@ -17,7 +17,6 @@ package com.android.tools.idea.common.model
 
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
 
@@ -25,6 +24,7 @@ import com.intellij.util.IncorrectOperationException
  * Backend impl for interaction with psi elements within NlComponents.
  *
  * Currently only holds xml specific impl.
+ *
  * TODO: Update APIs accordingly once refactoring is finished.
  * TODO: Evaluate if psi element dependencies are necessary.
  */
@@ -34,12 +34,11 @@ interface NlComponentBackend {
   fun setTagElement(tag: XmlTag)
 
   // TODO: remove
-  @Deprecated("Use getTag", ReplaceWith("getTag()"))
-  fun getTagDeprecated(): XmlTag
+  @Deprecated("Use getTag", ReplaceWith("getTag()")) fun getTagDeprecated(): XmlTag
 
   /**
-   * Returns the [XmlTag] element, or null if the tag was not set or the tag element is no longer valid.
-   * Has to be called with read access allowed.
+   * Returns the [XmlTag] element, or null if the tag was not set or the tag element is no longer
+   * valid. Has to be called with read access allowed.
    */
   val tag: XmlTag?
 
@@ -47,8 +46,9 @@ interface NlComponentBackend {
   fun getTagName(): String
 
   /**
-   * Returns the value of an attribute. May block if not run inside a read action.
-   * If read access is not allowed, it'll schedule operations on the read-accessible thread.
+   * Returns the value of an attribute. May block if not run inside a read action. If read access is
+   * not allowed, it'll schedule operations on the read-accessible thread.
+   *
    * @return attribute of the string value.
    */
   fun getAttribute(attribute: String, namespace: String?): String?

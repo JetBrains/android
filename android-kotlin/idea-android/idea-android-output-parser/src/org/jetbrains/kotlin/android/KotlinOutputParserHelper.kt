@@ -144,5 +144,5 @@ private fun addMessage(message: Message, messages: MutableList<Message>): Boolea
 }
 
 private fun createMessage(messageKind: Message.Kind, text: String): Message {
-    return Message(messageKind, text.trim(), text, Optional.absent(), ImmutableList.of())
+    return Message(messageKind, text.trim(), text, Optional.absent<String>(), ImmutableList.of())
 }

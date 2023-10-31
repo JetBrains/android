@@ -17,34 +17,29 @@ package com.android.tools.idea.editors.manifest
 
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
-import javax.swing.JComponent
+import java.util.function.Function
 
 class StaleManifestNotificationProvider : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): java.util.function.Function<in FileEditor, out JComponent?> {
-    return java.util.function.Function { createNotificationPanel(it) }
-  }
-  private fun createNotificationPanel(fileEditor: FileEditor): EditorNotificationPanel? {
-    if (fileEditor !is ManifestEditor || !fileEditor.isShowingStaleManifest) {
-      return null
-    }
-    return EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).also {
-      it.setText(
-        if (fileEditor.failedToComputeFreshManifest()) {
+
+  override fun collectNotificationData(project: Project, file: VirtualFile): Function<FileEditor, EditorNotificationPanel?> {
+    return Function { fileEditor ->
+      if (fileEditor !is ManifestEditor || !fileEditor.isShowingStaleManifest) {
+        return@Function null
+      }
+      EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).also { panel ->
+        panel.text = if (fileEditor.failedToComputeFreshManifest()) {
           FAILED_TO_RECOMPUTE_MESSAGE
-        }
-        else {
+        } else {
           RECOMPUTING_MESSAGE
         }
-      )
+      }
     }
   }
 
   companion object {
-    private val KEY = Key.create<EditorNotificationPanel>("stale.manifest.notification.panel")
 
     const val FAILED_TO_RECOMPUTE_MESSAGE = "Failed to compute the merged manifest. The manifest shown here may be out of date."
 

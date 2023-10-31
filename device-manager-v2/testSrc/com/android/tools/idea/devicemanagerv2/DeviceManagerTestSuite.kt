@@ -16,10 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.testutils.JarTestSuiteRunner
-import com.android.testutils.JarTestSuiteRunner.ExcludeClasses
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
-@ExcludeClasses(DeviceManagerTestSuite::class) // a suite mustn't contain itself
-object DeviceManagerTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) object DeviceManagerTestSuite : IdeaTestSuiteBase()

@@ -59,6 +59,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.fest.reflect.core.Reflection.field;
 
 public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> {
+
   @NotNull
   public static IdeSettingsDialogFixture find(@NotNull Robot robot) {
     return new IdeSettingsDialogFixture(robot, find(robot, SettingsDialog.class, new GenericTypeMatcher<JDialog>(JDialog.class) {
@@ -144,6 +145,11 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
   @NotNull
   public IdeSettingsDialogFixture selectExperimentalPage() {
     return selectPage("Experimental");
+  }
+
+  @NotNull
+  public IdeSettingsDialogFixture selectGradlePage() {
+    return selectPage("Build, Execution, Deployment/Build Tools/Gradle");
   }
 
   public JCheckBoxFixture findCheckBox(@NotNull String text) {

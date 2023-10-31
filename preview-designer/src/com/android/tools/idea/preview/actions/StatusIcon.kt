@@ -21,47 +21,20 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
 
-/**
- * Wraps [component] into a [JComponent] that has a fixed size regardless of the [component] visibility.
- */
-private fun fixedSizeWrapper(component: JComponent) =
-  JPanel(BorderLayout()).apply {
-    border = JBUI.Borders.empty()
-    isOpaque = false
-    isVisible = true
-    add(component, BorderLayout.LINE_END)
-
-    // Make the size to be fixed, even when the no icon is visible
-    minimumSize = component.minimumSize
-    preferredSize = component.minimumSize
-  }
-
-/**
- * Returns a preview status icon from corresponding [AnAction] and a [target] component.
- */
+/** Returns a preview status icon from corresponding [AnAction] and a [target] component. */
 fun createStatusIcon(action: AnAction, target: JComponent): JComponent {
-  val component =
-    ActionManagerEx.getInstanceEx()
-      .createActionToolbar(
-        "sceneView",
-        DefaultActionGroup(action),
-        true,
-        false
-      )
-      .apply {
-        targetComponent = target
-        (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
-        layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
-      }
-      .component
-      .apply {
-        isOpaque = false
-        border = JBUI.Borders.empty()
-      }
-
-  return fixedSizeWrapper(component)
+  return ActionManagerEx.getInstanceEx()
+    .createActionToolbar("sceneView", DefaultActionGroup(action), true, false)
+    .apply {
+      targetComponent = target
+      (this as? ActionToolbarImpl)?.setForceMinimumSize(true)
+      layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+    }
+    .component
+    .apply {
+      isOpaque = false
+      border = JBUI.Borders.empty()
+    }
 }

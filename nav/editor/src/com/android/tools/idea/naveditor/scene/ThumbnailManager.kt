@@ -16,13 +16,14 @@
 package com.android.tools.idea.naveditor.scene
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.RenderService
-import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
-import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.rendering.RenderService
+import com.android.tools.rendering.RenderTask
+import com.android.tools.res.LocalResourceRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
@@ -231,7 +232,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
                                 configuration: Configuration,
                                 renderService: RenderService): CompletableFuture<RenderTask> {
     return renderService.taskBuilder(facet, configuration)
-      .withPsiFile(file)
+      .withPsiFile(PsiXmlFile(file))
       .build()
       .whenComplete { task, _ -> task.setDecorations(false) }
   }

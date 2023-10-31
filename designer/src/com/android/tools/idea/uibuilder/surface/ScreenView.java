@@ -23,21 +23,22 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.Density;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction;
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
+import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer;
 import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
+import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
 import java.util.function.Function;
@@ -152,17 +153,16 @@ public class ScreenView extends ScreenViewBase {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
     if (screenView.hasBorderLayer()) {
-      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().getRotateSurfaceDegree()));
+      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().isRotating()));
     }
-    builder.add(new ScreenViewLayer(screenView));
-
-    DesignSurface<?> surface = screenView.getSurface();
+    NlDesignSurface surface = screenView.getSurface();
+    builder.add(new ScreenViewLayer(screenView, surface, surface::getRotateSurfaceDegree));
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
 
     if(StudioFlags.NELE_OVERLAY_PROVIDER.get()) {
-      builder.add(new OverlayLayer(screenView));
+      builder.add(new OverlayLayer(screenView, surface::getOverlayConfiguration));
     }
 
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
@@ -170,7 +170,7 @@ public class ScreenView extends ScreenViewBase {
     }
 
     if (NELE_RENDER_DIAGNOSTICS.get()) {
-      builder.add(new DiagnosticsLayer(surface));
+      builder.add(new DiagnosticsLayer(surface, surface.getProject()));
     }
 
     return builder.build();

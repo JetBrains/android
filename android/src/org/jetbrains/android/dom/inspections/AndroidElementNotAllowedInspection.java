@@ -1,5 +1,9 @@
 package org.jetbrains.android.dom.inspections;
 
+import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+import static com.android.SdkConstants.VIEW_TAG;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInspection.InspectionManager;
@@ -16,6 +20,7 @@ import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.analysis.XmlAnalysisBundle;
 import com.intellij.xml.util.XmlTagUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.dom.AndroidAnyTagDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -25,6 +30,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
+  private static final List<String> BUILT_IN_TAGS = Arrays.asList(VIEW_INCLUDE, VIEW_FRAGMENT, VIEW_TAG);
 
   @Nls
   @NotNull
@@ -83,14 +89,14 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
         if (descriptor instanceof AndroidAnyTagDescriptor ||
             descriptor instanceof TagFromClassDescriptor && ((TagFromClassDescriptor)descriptor).getClazz() == null) {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
-          if (startTagNameElement != null && !isUnknownCustomView(tag)) {
+          if (startTagNameElement != null && !isUnknownCustomView(tag) && !BUILT_IN_TAGS.contains(tag.getName())) {
             myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlAnalysisBundle.message(
               "xml.inspections.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
 
           final XmlToken endTagNameElement = XmlTagUtil.getEndTagNameElement(tag);
-          if (endTagNameElement != null && !isUnknownCustomView(tag)) {
+          if (endTagNameElement != null && !isUnknownCustomView(tag) && !BUILT_IN_TAGS.contains(tag.getName())) {
             myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlAnalysisBundle.message(
               "xml.inspections.element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));

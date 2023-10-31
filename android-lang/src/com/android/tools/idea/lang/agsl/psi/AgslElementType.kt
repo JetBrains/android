@@ -19,4 +19,4 @@ import com.android.tools.idea.lang.agsl.AgslLanguage
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.annotations.NonNls
 
-class AgslElementType(@NonNls debugName: String) : IElementType(debugName, AgslLanguage.PRIVATE_AGSL_LANGUAGE)
+class AgslElementType(@NonNls debugName: String) : IElementType(debugName, AgslLanguage.INSTANCE)

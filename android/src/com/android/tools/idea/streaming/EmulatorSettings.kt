@@ -21,6 +21,7 @@ import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.util.xmlb.XmlSerializerUtil
+import kotlin.reflect.KProperty
 import org.jetbrains.android.util.AndroidBundle
 
 /**
@@ -29,63 +30,15 @@ import org.jetbrains.android.util.AndroidBundle
 @State(name = "Emulator", storages = [Storage("emulator.xml")])
 class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
 
+  var launchInToolWindow: Boolean by ChangeNotifyingProperty(true)
+  var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(true)
+  var activateOnTestLaunch: Boolean by ChangeNotifyingProperty(false)
+  var synchronizeClipboard: Boolean by ChangeNotifyingProperty(true)
+  var showCameraControlPrompts: Boolean by ChangeNotifyingProperty(true)
+  var cameraVelocityControls: CameraVelocityControls by ChangeNotifyingProperty(DEFAULT_CAMERA_VELOCITY_CONTROLS)
+  var snapshotAutoDeletionPolicy: SnapshotAutoDeletionPolicy by ChangeNotifyingProperty(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY)
+
   private var initialized = false
-
-  var launchInToolWindow = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnAppLaunch: Boolean = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnTestLaunch: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var synchronizeClipboard = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var showCameraControlPrompts = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var cameraVelocityControls = DEFAULT_CAMERA_VELOCITY_CONTROLS
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var snapshotAutoDeletionPolicy = DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
 
   override fun getState(): EmulatorSettings {
     return this
@@ -113,17 +66,27 @@ class EmulatorSettings : PersistentStateComponent<EmulatorSettings> {
     }
   }
 
+  enum class CameraVelocityControls(val keys: String, val label: String) {
+    WASDQE("WASDQE", "WASDQE (for QWERTY keyboard)"),
+    ZQSDAE("ZQSDAE", "ZQSDAE (for AZERTY keyboard)"),
+  }
+
   enum class SnapshotAutoDeletionPolicy(@NlsContexts.Label val displayName: String) {
     DELETE_AUTOMATICALLY(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.delete")),
     ASK_BEFORE_DELETING(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ask")),
     DO_NOT_DELETE(AndroidBundle.message("android.emulator.settings.incompatible.snapshot.policy.ignore"))
   }
 
-  enum class CameraVelocityControls(val keys: String, val label: String) {
-    WASDQE("WASDQE", "WASDQE (for QWERTY keyboard)"),
-    ZQSDAE("ZQSDAE", "ZQSDAE (for AZERTY keyboard)"),
+  private inner class ChangeNotifyingProperty<T>(var value: T) {
+    operator fun getValue(thisRef: EmulatorSettings, property: KProperty<*>) = value
+    operator fun setValue(thisRef: EmulatorSettings, property: KProperty<*>, newValue: T) {
+      if (value != newValue) {
+        value = newValue
+        notifyListeners()
+      }
+    }
   }
 }
 
-val DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY = EmulatorSettings.SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING
 val DEFAULT_CAMERA_VELOCITY_CONTROLS = EmulatorSettings.CameraVelocityControls.WASDQE
+val DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY = EmulatorSettings.SnapshotAutoDeletionPolicy.ASK_BEFORE_DELETING

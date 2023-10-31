@@ -32,7 +32,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.util.InheritanceUtil
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.util.AndroidSlowOperations
 
 /** Object that can detect wear tile preview elements in a file. */
 internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTilePreviewElement> {

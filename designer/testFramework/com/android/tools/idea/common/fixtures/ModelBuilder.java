@@ -44,6 +44,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import java.io.File;
@@ -141,17 +142,30 @@ public class ModelBuilder {
   }
 
   @NotNull
-  public SyncNlModel build() {
+  public SyncNlModel build(boolean activate) {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
     final SyncNlModel model = buildWithoutSurface();
-    return WriteAction.compute(() -> {
+    if (activate) {
+      // We use the class to activate the model since the builder might be collected and we do not want the model to accidentally be
+      // deactivated.
+      model.activate(ModelBuilder.class);
+    }
+    EdtTestUtil.runInEdtAndWait(() -> WriteAction.run(() -> {
       // TODO(b/194482298): Refactor below functions, to create DesignSurface<?> first then add the NlModel.
       DesignSurface<? extends SceneManager> surface = DesignSurfaceTestUtil.createMockSurfaceWithModel(project, project, myManagerFactory,
-                                                                               mySurfaceClass, myInteractionHandlerCreator, model);
+                                                                                                       mySurfaceClass,
+                                                                                                       myInteractionHandlerCreator,
+                                                                                                       model);
       model.setDesignSurface(surface);
-      return model;
-    });
+    }));
+    if (activate) model.flushPendingUpdates();
+    return model;
+  }
+
+  @NotNull
+  public SyncNlModel build() {
+    return build(true);
   }
 
   /**
@@ -161,7 +175,7 @@ public class ModelBuilder {
   public SyncNlModel buildWithoutSurface() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
-    return WriteAction.compute(() -> {
+    return EdtTestUtil.runInEdtAndGet(() -> WriteAction.compute(() -> {
       String xml = toXml();
       try {
         assertNotNull(xml, XmlUtils.parseDocument(xml, true));
@@ -194,7 +208,7 @@ public class ModelBuilder {
         model.getConfiguration().setDevice(myDevice, true);
       }
       return model;
-    });
+    }));
   }
 
   @Nullable

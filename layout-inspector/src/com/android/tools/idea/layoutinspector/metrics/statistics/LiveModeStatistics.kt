@@ -17,33 +17,21 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorLiveMode
 
-/**
- * Accumulator of live mode statistics for analytics.
- */
+/** Accumulator of live mode statistics for analytics. */
 class LiveModeStatistics {
-  /**
-   * How many times did the user click the refresh button on the toolbar
-   */
+  /** How many times did the user click the refresh button on the toolbar */
   private var refreshButtonClicks = 0
 
-  /**
-   * How many times did the user click to select a component while live updates are on
-   */
+  /** How many times did the user click to select a component while live updates are on */
   private var clicksWithLiveUpdates = 0
 
-  /**
-   * How many times did the user click to select a component while live updates are off
-   */
+  /** How many times did the user click to select a component while live updates are off */
   private var clicksWithoutLiveUpdates = 0
 
-  /**
-   * Inspector is receiving live updates
-   */
+  /** Inspector is receiving live updates */
   var currentModeIsLive = false
 
-  /**
-   * Start a new session by resetting all counters.
-   */
+  /** Start a new session by resetting all counters. */
   fun start() {
     currentModeIsLive = false
     refreshButtonClicks = 0
@@ -51,9 +39,7 @@ class LiveModeStatistics {
     clicksWithoutLiveUpdates = 0
   }
 
-  /**
-   * Save the session data recorded since [start].
-   */
+  /** Save the session data recorded since [start]. */
   fun save(dataSupplier: () -> DynamicLayoutInspectorLiveMode.Builder) {
     if (refreshButtonClicks > 0 || clicksWithLiveUpdates > 0 || clicksWithoutLiveUpdates > 0) {
       dataSupplier().let {
@@ -64,16 +50,12 @@ class LiveModeStatistics {
     }
   }
 
-  /**
-   * Log that the refresh button was activated.
-   */
+  /** Log that the refresh button was activated. */
   fun refreshButtonClicked() {
     refreshButtonClicks++
   }
 
-  /**
-   * Log that a component was selected.
-   */
+  /** Log that a component was selected. */
   fun selectionMade() {
     if (currentModeIsLive) clicksWithLiveUpdates++ else clicksWithoutLiveUpdates++
   }

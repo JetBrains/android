@@ -19,6 +19,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.HistogramUtil;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
+import com.android.tools.idea.diagnostics.crash.ExceptionRateLimiter;
 import com.android.tools.idea.diagnostics.crash.UploadFields;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
@@ -57,6 +58,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationFullContent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -69,6 +71,8 @@ import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -78,11 +82,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -163,6 +170,8 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private final ExceptionDataCollection myExceptionDataCollection = ExceptionDataCollection.getInstance();
 
+  private final ExceptionRateLimiter exceptionRateLimiter = new ExceptionRateLimiter();
+
   @SuppressWarnings("unused")  // Called reflectively.
   public AndroidStudioSystemHealthMonitor() {
     this(new StudioReportDatabase(new File(PathManager.getTempPath(), "reports.dmp")));
@@ -181,20 +190,21 @@ public final class AndroidStudioSystemHealthMonitor {
     return false;
   }
 
+  private final List<Runnable> myOomListeners = new LinkedList<>();
+  private final Executor myOomListenersExecutor =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("OutOfMemory-notifier", 1);
+
+  public void registerOutOfMemoryErrorListener(Runnable runnable, Disposable parentDisposable) {
+    myOomListeners.add(runnable);
+    Disposer.register(parentDisposable, () -> myOomListeners.remove(runnable));
+  }
+
   public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
     return null;
   }
 
   public static Integer getMaxHistogramReportsCount() {
     return MAX_HISTOGRAM_REPORTS_COUNT;
-  }
-
-  public static Integer getMaxPerformanceReportsCount() {
-    return MAX_PERFORMANCE_REPORTS_COUNT;
-  }
-
-  public static Integer getMaxFreezeReportsCount() {
-    return MAX_FREEZE_REPORTS_COUNT;
   }
 
   private static long freeUpMemory() {
@@ -296,6 +306,10 @@ public final class AndroidStudioSystemHealthMonitor {
   private boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind kind) {
     Throwable t = event.getThrowable();
 
+    if (t instanceof OutOfMemoryError) {
+      myOomListenersExecutor.execute(() -> myOomListeners.forEach(Runnable::run));
+    }
+
     if (myExceptionDataCollection.requiresConfirmation(t)) {
       UploadFields fields = myExceptionDataCollection.getExceptionUploadFields(event.getThrowable(), false, true);
       List<Attachment> attachments = new ArrayList<>();
@@ -314,14 +328,7 @@ public final class AndroidStudioSystemHealthMonitor {
     if (AnalyticsSettings.getOptedIn()) {
       if (t != null) {
         if (isReportableCrash(t)) {
-          incrementAndSaveExceptionCount(t);
-          ErrorReportSubmitter reporter = null;
-          if (reporter != null) {
-            StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
-            IdeaLoggingEvent e = new AndroidStudioExceptionEvent(t.getMessage(), t, stackTrace);
-            reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
-            });
-          }
+          reportThrowableToCrash(t);
         }
       }
     }
@@ -338,6 +345,26 @@ public final class AndroidStudioSystemHealthMonitor {
     catch (Throwable throwable) {
       LOG.warn("Exception while handling exception event", throwable);
       return false;
+    }
+  }
+
+  private void reportThrowableToCrash(Throwable t) {
+    incrementAndSaveExceptionCount(t);
+    ErrorReportSubmitter reporter = null;
+    if (reporter != null) {
+      StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
+      String signature = ExceptionDataCollection.Companion.calculateSignature(t);
+      ExceptionRateLimiter.Permit permit = exceptionRateLimiter.tryAcquireForSignature(signature);
+      if (permit.getPermissionType() == ExceptionRateLimiter.PermissionType.ALLOW) {
+        IdeaLoggingEvent e = new AndroidStudioExceptionEvent(
+          t.getMessage(), t, stackTrace,
+          signature,
+          permit.getGlobalExceptionCounter(),
+          permit.getLocalExceptionCounter(),
+          permit.getDeniedSinceLastAllow());
+        reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
+        });
+      }
     }
   }
 
@@ -635,12 +662,42 @@ public final class AndroidStudioSystemHealthMonitor {
     return null;
   }
 
-  private static class AndroidStudioExceptionEvent extends IdeaLoggingEvent {
+  public static class AndroidStudioExceptionEvent extends IdeaLoggingEvent {
     private final StackTrace myStackTrace;
 
-    public AndroidStudioExceptionEvent(String message, Throwable throwable, @NotNull StackTrace stackTrace) {
+    private final String signature;
+    private final int exceptionIndex;
+    private final int signatureIndex;
+    private final int deniedSinceLastAllow;
+
+    public AndroidStudioExceptionEvent(String message, Throwable throwable,
+                                       @NotNull StackTrace stackTrace,
+                                       @NotNull String signature,
+                                       int globalCount,
+                                       int signatureIndex,
+                                       int deniedSinceLastAllow) {
       super(message, throwable);
       myStackTrace = stackTrace;
+      this.signature = signature;
+      this.exceptionIndex = globalCount;
+      this.signatureIndex = signatureIndex;
+      this.deniedSinceLastAllow = deniedSinceLastAllow;
+    }
+
+    public String getSignature() {
+      return signature;
+    }
+
+    public int getExceptionIndex() {
+      return exceptionIndex;
+    }
+
+    public int getSignatureIndex() {
+      return signatureIndex;
+    }
+
+    public int getDeniedSinceLastAllow() {
+      return deniedSinceLastAllow;
     }
 
     @Nullable
@@ -648,7 +705,10 @@ public final class AndroidStudioSystemHealthMonitor {
     public Object getData() {
       return ImmutableMap.of("Type", "Exception", // keep consistent with the error reporter in android plugin
                              "md5", myStackTrace.md5string(),
-                             "summary", myStackTrace.summarize(50));
+                             "summary", myStackTrace.summarize(50),
+                             "exceptionIndex", exceptionIndex,
+                             "signatureIndex", signatureIndex,
+                             "deniedSinceLastAllow", deniedSinceLastAllow);
     }
   }
 }

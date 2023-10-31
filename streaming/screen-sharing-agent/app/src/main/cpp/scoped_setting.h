@@ -36,8 +36,9 @@ public:
 private:
   Settings::Table table_;
   const std::string key_;
-  bool restore_required_;
-  std::string saved_value_;
+  bool current_value_known_;
+  std::string current_value_;
+  std::string original_value_;
 
   DISALLOW_COPY_AND_ASSIGN(ScopedSetting);
 };

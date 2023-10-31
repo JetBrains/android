@@ -20,8 +20,8 @@ import com.android.tools.idea.codenavigation.CodeLocation
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 import com.android.tools.inspectors.common.api.stacktrace.ThreadId
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
-import javax.swing.JComponent
 import org.jetbrains.annotations.VisibleForTesting
+import javax.swing.JComponent
 
 /** Tab which shows a stack trace to where a network request was created. */
 class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView) : TabContent() {
@@ -41,9 +41,4 @@ class CallStackTabContent(@VisibleForTesting val stackTraceView: StackTraceView)
 }
 
 /** Captures the stacktrace content contained in an [HttpData] object. */
-private fun HttpData.codeLocations(): List<CodeLocation> =
-  trace
-    .split('\n')
-    .map { line -> line.trim { it <= ' ' } }
-    .filter { line -> line.isNotEmpty() }
-    .mapNotNull { line -> StackFrameParser.parseFrame(line) }
+private fun HttpData.codeLocations(): List<CodeLocation> = StackFrameParser.parseStack(trace)

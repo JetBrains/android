@@ -21,7 +21,6 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
@@ -33,6 +32,8 @@ import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.AvdManagerCache
+import com.android.tools.idea.sdk.IdeAvdManagers
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
@@ -67,8 +68,6 @@ import com.intellij.xdebugger.XDebuggerManagerListener
 import com.intellij.xdebugger.frame.XExecutionStack
 import com.intellij.xdebugger.frame.XStackFrame
 import com.intellij.xdebugger.frame.XSuspendContext
-import com.android.tools.idea.sdk.AvdManagerCache
-import com.android.tools.idea.sdk.IdeAvdManagers
 import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException
@@ -466,7 +465,7 @@ private fun EmulatorController.deleteSnapshotSync(snapshotId: String): Boolean {
 private fun EmulatorController.pushSnapshotSync(snapshotId: String, snapshotFile: File, indicator: ProgressIndicator): Boolean {
   val format = if (snapshotFile.isDirectory) {
     SnapshotPackage.Format.DIRECTORY
-  } else if (snapshotFile.extension.toLowerCase() == "gz") {
+  } else if (snapshotFile.extension.lowercase() == "gz") {
     SnapshotPackage.Format.TARGZ
   } else {
     SnapshotPackage.Format.TAR

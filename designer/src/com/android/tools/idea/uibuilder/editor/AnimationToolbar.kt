@@ -58,18 +58,21 @@ internal const val NO_ANIMATION_TOOLTIP = "There is no animation to play"
  * Control that provides controls for animations (play, pause, stop and frame-by-frame steps).
  *
  * @param parentDisposable Parent [Disposable]
- * @param listener         [AnimationListener] that will be called in every tick
- * @param tickStepMs       Number of milliseconds to advance in every animator tick
- * @param minTimeMs        Start milliseconds for the animation
- * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
+ * @param listener [AnimationListener] that will be called in every tick
+ * @param tickStepMs Number of milliseconds to advance in every animator tick
+ * @param minTimeMs Start milliseconds for the animation
+ * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no
+ *   time limit
  */
-open class AnimationToolbar protected constructor(parentDisposable: Disposable,
-                                                  listener: AnimationListener,
-                                                  tickStepMs: Long,
-                                                  minTimeMs: Long,
-                                                  initialMaxTimeMs: Long,
-                                                  toolbarType: AnimationToolbarType)
-  : JPanel(), AnimationController, Disposable {
+open class AnimationToolbar
+protected constructor(
+  parentDisposable: Disposable,
+  listener: AnimationListener,
+  tickStepMs: Long,
+  minTimeMs: Long,
+  initialMaxTimeMs: Long,
+  toolbarType: AnimationToolbarType
+) : JPanel(), AnimationController, Disposable {
   private val myAnimationListener: AnimationListener
   private val myPlayButton: JButton
   private val myPauseButton: JButton
@@ -80,15 +83,14 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private val myMinTimeMs: Long
   protected val controlBar: JPanel
 
-  /**
-   * Slider that allows stepping frame by frame at different speeds
-   */
+  /** Slider that allows stepping frame by frame at different speeds */
   private val myFrameControl: JSlider
   private var myTimeSliderModel: DefaultBoundedRangeModel? = null
-  private val speedControlButton: ActionButton
+  protected val speedControlButton: ActionButton
 
   /**
-   * The progress bar to indicate the current progress of animation. User can also click/drag the indicator to set the progress.
+   * The progress bar to indicate the current progress of animation. User can also click/drag the
+   * indicator to set the progress.
    */
   protected var myTimeSlider: JSlider? = null
   private var myTimeSliderChangeModel: ChangeListener? = null
@@ -104,7 +106,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   private var _forceElapsedReset: Boolean = false
 
   /**
-   * Ticker to control "real-time" animations and the frame control animations (the slider that allows moving at different speeds)
+   * Ticker to control "real-time" animations and the frame control animations (the slider that
+   * allows moving at different speeds)
    */
   private var myTicker: ScheduledFuture<*>? = null
   private var myFramePositionMs: Long = 0
@@ -114,23 +117,25 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
 
   private val controllerListeners = mutableListOf<AnimationControllerListener>()
 
-  /**
-   * Creates a new toolbar control button
-   */
-  private fun newControlButton(baseIcon: Icon,
-                               label: String,
-                               tooltip: String?,
-                               action: AnimationToolbarAction,
-                               callback: Runnable)
-  : JButton {
+  /** Creates a new toolbar control button */
+  private fun newControlButton(
+    baseIcon: Icon,
+    label: String,
+    tooltip: String?,
+    action: AnimationToolbarAction,
+    callback: Runnable
+  ): JButton {
     val button: JButton = CommonButton()
     button.name = label
     button.icon = baseIcon
     button.addActionListener { e: ActionEvent? ->
       myAnalyticsManager.trackAction(toolbarType, action)
-      // When action is performed, some buttons are disabled or become invisible, which may make the focus move to the next component in the
-      // editor. We move the focus to toolbar here, so the next traversed component is still in the toolbar after action is performed.
-      // In practice, when user presses tab after action performed, the first enabled button in the toolbar will gain the focus.
+      // When action is performed, some buttons are disabled or become invisible, which may make the
+      // focus move to the next component in the
+      // editor. We move the focus to toolbar here, so the next traversed component is still in the
+      // toolbar after action is performed.
+      // In practice, when user presses tab after action performed, the first enabled button in the
+      // toolbar will gain the focus.
       this@AnimationToolbar.requestFocusInWindow()
       callback.run()
     }
@@ -142,10 +147,14 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     return button
   }
 
-  /**
-   * Set the enabled states of all the toolbar controls
-   */
-  protected fun setEnabledState(play: Boolean, pause: Boolean, stop: Boolean, frame: Boolean, speed: Boolean) {
+  /** Set the enabled states of all the toolbar controls */
+  protected fun setEnabledState(
+    play: Boolean,
+    pause: Boolean,
+    stop: Boolean,
+    frame: Boolean,
+    speed: Boolean
+  ) {
     myPlayButton.isEnabled = play
     myPauseButton.isEnabled = pause
     myStopButton.isEnabled = stop
@@ -154,7 +163,9 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   }
 
   /**
-   * Set the visibility of play and pause buttons. Note that this doesn't affect the enabled states of them.
+   * Set the visibility of play and pause buttons. Note that this doesn't affect the enabled states
+   * of them.
+   *
    * @see setEnabledState
    */
   protected fun setVisibilityOfPlayAndPauseButtons(playing: Boolean) {
@@ -162,12 +173,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myPauseButton.isVisible = playing
   }
 
-  /**
-   * Set the tooltips of all the toolbar controls
-   */
-  protected fun setTooltips(play: String?,
-                            pause: String?,
-                            stop: String?) {
+  /** Set the tooltips of all the toolbar controls */
+  protected fun setTooltips(play: String?, pause: String?, stop: String?) {
     myPlayButton.toolTipText = play
     myPauseButton.toolTipText = pause
     myStopButton.toolTipText = stop
@@ -176,17 +183,24 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   final override fun play() {
     stopFrameTicker()
     myLastTickMs = System.currentTimeMillis()
-    myTicker = EdtExecutorService.getScheduledExecutorInstance()
-      .scheduleWithFixedDelay({
-        val now = System.currentTimeMillis()
-        val elapsed = now - myLastTickMs
-        myLastTickMs = now
-        onTick((elapsed * currentSpeedFactor).roundToLong())
-        if (myMaxTimeMs != -1L && myFramePositionMs >= myMaxTimeMs) {
-          myTicker?.cancel(false)
-          myTicker = null
-          controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.COMPLETE) }
-        }}, 0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS)
+    myTicker =
+      EdtExecutorService.getScheduledExecutorInstance()
+        .scheduleWithFixedDelay(
+          {
+            val now = System.currentTimeMillis()
+            val elapsed = now - myLastTickMs
+            myLastTickMs = now
+            onTick((elapsed * currentSpeedFactor).roundToLong())
+            if (myMaxTimeMs != -1L && myFramePositionMs >= myMaxTimeMs) {
+              myTicker?.cancel(false)
+              myTicker = null
+              controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.COMPLETE) }
+            }
+          },
+          0L,
+          TICKER_STEP.toLong(),
+          TimeUnit.MILLISECONDS
+        )
     controllerListeners.forEach { it.onPlayStatusChanged(PlayStatus.PLAY) }
   }
 
@@ -209,11 +223,13 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
   }
 
   final override fun setFrameMs(frameMs: Long) {
-    val calibratedFramePosition = when {
-      frameMs < myMinTimeMs -> if (myLoopEnabled) myMaxTimeMs else myMinTimeMs
-      !isUnlimitedAnimationToolbar && frameMs > myMaxTimeMs -> if (myLoopEnabled) myMinTimeMs else myMaxTimeMs
-      else -> frameMs
-    }
+    val calibratedFramePosition =
+      when {
+        frameMs < myMinTimeMs -> if (myLoopEnabled) myMaxTimeMs else myMinTimeMs
+        !isUnlimitedAnimationToolbar && frameMs > myMaxTimeMs ->
+          if (myLoopEnabled) myMinTimeMs else myMaxTimeMs
+        else -> frameMs
+      }
     myFramePositionMs = calibratedFramePosition
     controllerListeners.forEach { it.onCurrentFrameMsChanged(calibratedFramePosition) }
     myAnimationListener.animateTo(this, myFramePositionMs)
@@ -259,9 +275,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     controllerListeners.add(listener)
   }
 
-  /**
-   * True if this is an animation toolbar for an unlimited toolbar
-   */
+  /** True if this is an animation toolbar for an unlimited toolbar */
   private val isUnlimitedAnimationToolbar: Boolean
     get() = myMaxTimeMs == -1L
 
@@ -278,32 +292,51 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
      * Constructs a new AnimationToolbar
      *
      * @param parentDisposable Parent [Disposable]
-     * @param listener         [AnimationListener] that will be called in every tick
-     * @param tickStepMs       Number of milliseconds to advance in every animator tick
-     * @param minTimeMs        Start milliseconds for the animation
+     * @param listener [AnimationListener] that will be called in every tick
+     * @param tickStepMs Number of milliseconds to advance in every animator tick
+     * @param minTimeMs Start milliseconds for the animation
      */
-    fun createUnlimitedAnimationToolbar(parentDisposable: Disposable,
-                                        listener: AnimationListener,
-                                        tickStepMs: Long,
-                                        minTimeMs: Long): AnimationToolbar {
-      return AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, -1, AnimationToolbarType.UNLIMITED)
+    fun createUnlimitedAnimationToolbar(
+      parentDisposable: Disposable,
+      listener: AnimationListener,
+      tickStepMs: Long,
+      minTimeMs: Long
+    ): AnimationToolbar {
+      return AnimationToolbar(
+        parentDisposable,
+        listener,
+        tickStepMs,
+        minTimeMs,
+        -1,
+        AnimationToolbarType.UNLIMITED
+      )
     }
 
     /**
      * Constructs a new AnimationToolbar
      *
      * @param parentDisposable Parent [Disposable]
-     * @param listener         [AnimationListener] that will be called in every tick
-     * @param tickStepMs       Number of milliseconds to advance in every animator tick
-     * @param minTimeMs        Start milliseconds for the animation
-     * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no time limit
+     * @param listener [AnimationListener] that will be called in every tick
+     * @param tickStepMs Number of milliseconds to advance in every animator tick
+     * @param minTimeMs Start milliseconds for the animation
+     * @param initialMaxTimeMs Maximum number of milliseconds for the animation or -1 if there is no
+     *   time limit
      */
-    fun createAnimationToolbar(parentDisposable: Disposable,
-                               listener: AnimationListener,
-                               tickStepMs: Long,
-                               minTimeMs: Long,
-                               initialMaxTimeMs: Long): AnimationToolbar {
-      return AnimationToolbar(parentDisposable, listener, tickStepMs, minTimeMs, initialMaxTimeMs, AnimationToolbarType.LIMITED)
+    fun createAnimationToolbar(
+      parentDisposable: Disposable,
+      listener: AnimationListener,
+      tickStepMs: Long,
+      minTimeMs: Long,
+      initialMaxTimeMs: Long
+    ): AnimationToolbar {
+      return AnimationToolbar(
+        parentDisposable,
+        listener,
+        tickStepMs,
+        minTimeMs,
+        initialMaxTimeMs,
+        AnimationToolbarType.LIMITED
+      )
     }
   }
 
@@ -314,27 +347,43 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
     myMinTimeMs = minTimeMs
     myMaxTimeMs = initialMaxTimeMs
     this.toolbarType = toolbarType
-    myPlayButton = newControlButton(
-      StudioIcons.LayoutEditor.Motion.PLAY, "Play", DEFAULT_PLAY_TOOLTIP,
-      AnimationToolbarAction.PLAY
-    ) { play() }
+    myPlayButton =
+      newControlButton(
+        StudioIcons.LayoutEditor.Motion.PLAY,
+        "Play",
+        DEFAULT_PLAY_TOOLTIP,
+        AnimationToolbarAction.PLAY
+      ) {
+        play()
+      }
     myPlayButton.isEnabled = true
-    myPauseButton = newControlButton(
-      StudioIcons.LayoutEditor.Motion.PAUSE, "Pause", DEFAULT_PAUSE_TOOLTIP,
-      AnimationToolbarAction.PAUSE
-    ) { pause() }
+    myPauseButton =
+      newControlButton(
+        StudioIcons.LayoutEditor.Motion.PAUSE,
+        "Pause",
+        DEFAULT_PAUSE_TOOLTIP,
+        AnimationToolbarAction.PAUSE
+      ) {
+        pause()
+      }
     myPauseButton.isEnabled = false
     myPauseButton.isVisible = false
     // TODO(b/176806183): Before having a reset icon, use refresh icon instead.
-    myStopButton = newControlButton(
-      StudioIcons.LayoutEditor.Motion.GO_TO_START, "Stop", DEFAULT_STOP_TOOLTIP,
-      AnimationToolbarAction.STOP
-    ) { stop() }
-    controlBar = object : JPanel(FlowLayout()) {
-      override fun updateUI() {
-        setUI(DesignSurfaceToolbarUI())
+    myStopButton =
+      newControlButton(
+        StudioIcons.LayoutEditor.Motion.GO_TO_START,
+        "Stop",
+        DEFAULT_STOP_TOOLTIP,
+        AnimationToolbarAction.STOP
+      ) {
+        stop()
       }
-    }
+    controlBar =
+      object : JPanel(FlowLayout()) {
+        override fun updateUI() {
+          setUI(DesignSurfaceToolbarUI())
+        }
+      }
     speedControlButton = createPlaySpeedActionButton { currentSpeedFactor = it }
     val buttonsPanel = Box.createHorizontalBox()
     buttonsPanel.add(myStopButton)
@@ -356,12 +405,13 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         seek(newPositionMs)
         myTimeSlider!!.repaint()
       }
-      myTimeSlider = object : JSlider(0, 100, 0) {
-        override fun updateUI() {
-          setUI(AnimationToolbarSliderUI(this))
-          updateLabelUIs()
+      myTimeSlider =
+        object : JSlider(0, 100, 0) {
+          override fun updateUI() {
+            setUI(AnimationToolbarSliderUI(this))
+            updateLabelUIs()
+          }
         }
-      }
       myTimeSlider!!.isOpaque = false
       myTimeSlider!!.border = JBUI.Borders.empty()
       myTimeSliderModel!!.addChangeListener(myTimeSliderChangeModel)
@@ -383,27 +433,33 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         return@addChangeListener
       }
       val frameChange = myTickStepMs * value
-      myTicker = EdtExecutorService.getScheduledExecutorInstance().scheduleWithFixedDelay(
-        { onTick(frameChange) },
-        0L, TICKER_STEP.toLong(), TimeUnit.MILLISECONDS
-      )
+      myTicker =
+        EdtExecutorService.getScheduledExecutorInstance()
+          .scheduleWithFixedDelay(
+            { onTick(frameChange) },
+            0L,
+            TICKER_STEP.toLong(),
+            TimeUnit.MILLISECONDS
+          )
     }
 
-    myFrameControl.addMouseListener(object : MouseAdapter() {
-      override fun mouseReleased(e: MouseEvent) {
-        if (!myFrameControl.isEnabled) {
-          return
+    myFrameControl.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseReleased(e: MouseEvent) {
+          if (!myFrameControl.isEnabled) {
+            return
+          }
+          stopFrameTicker()
+          myFrameControl.value = 0
         }
-        stopFrameTicker()
-        myFrameControl.value = 0
       }
-    })
+    )
     stop()
     playStatus = PlayStatus.STOP
     registerAnimationControllerListener(MyControllerListener())
   }
 
-  private inner class MyControllerListener: AnimationControllerListener {
+  private inner class MyControllerListener : AnimationControllerListener {
     override fun onPlayStatusChanged(newStatus: PlayStatus) {
       playStatus = newStatus
       when (newStatus) {
@@ -431,7 +487,8 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
         val timeSliderModel = myTimeSliderModel
         if (timeSliderModel != null) {
           timeSliderModel.removeChangeListener(myTimeSliderChangeModel)
-          timeSliderModel.value = ((newFrameMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
+          timeSliderModel.value =
+            ((newFrameMs - myMinTimeMs) / (myMaxTimeMs - myMinTimeMs).toFloat() * 100).toInt()
           timeSliderModel.addChangeListener(myTimeSliderChangeModel)
         }
       }
@@ -442,12 +499,20 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
 private fun createPlaySpeedActionButton(callback: (Double) -> Unit): ActionButton {
   val action = AnimationSpeedActionGroup(callback)
   val presentation = PresentationFactory().getPresentation(action)
-  val button = ActionButton(action, presentation, ActionPlaces.TOOLBAR, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+  val button =
+    ActionButton(
+      action,
+      presentation,
+      ActionPlaces.TOOLBAR,
+      ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+    )
   button.addPropertyChangeListener("enabled") {
-    presentation.description = if (button.isEnabled) DEFAULT_SPEED_CONTROL_TOOLTIP else NO_ANIMATION_TOOLTIP
+    presentation.description =
+      if (button.isEnabled) DEFAULT_SPEED_CONTROL_TOOLTIP else NO_ANIMATION_TOOLTIP
     button.update()
   }
-  // The button has a down arrow in the bottom-right corner, which is close to the right bounds of button.
+  // The button has a down arrow in the bottom-right corner, which is close to the right bounds of
+  // button.
   // Add a right border to make the visual effect balanced.
   button.border = JBUI.Borders.emptyRight(4)
   return button

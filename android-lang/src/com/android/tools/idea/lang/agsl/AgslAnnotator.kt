@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lang.agsl
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lang.agsl.psi.AgslGlslIdentifier
 import com.android.tools.idea.lang.agsl.psi.AgslReservedKeyword
 import com.android.tools.idea.lang.agsl.psi.AgslUnsupportedKeyword
@@ -26,14 +25,11 @@ import com.intellij.psi.PsiElement
 
 class AgslAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (!StudioFlags.AGSL_LANGUAGE_SUPPORT.get()) {
-      return
-    }
     when (element) {
       is AgslUnsupportedKeyword -> {
         holder.newAnnotation(
           ERROR,
-          "`${element.text}` is not allowed in ${AgslLanguage.PRIVATE_AGSL_LANGUAGE.displayName}"
+          "`${element.text}` is not allowed in ${AgslLanguage.INSTANCE.displayName}"
         ).create()
       }
       is AgslReservedKeyword -> {
@@ -45,7 +41,7 @@ class AgslAnnotator : Annotator {
       is AgslGlslIdentifier -> {
         holder.newAnnotation(
           ERROR,
-          "GLSL predefined variables (`gl_*`) are not allowed in ${AgslLanguage.PRIVATE_AGSL_LANGUAGE.displayName}"
+          "GLSL predefined variables (`gl_*`) are not allowed in ${AgslLanguage.INSTANCE.displayName}"
         ).create()
       }
     }

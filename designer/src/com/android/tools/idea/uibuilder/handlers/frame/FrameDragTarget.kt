@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.frame
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.target.DragBaseTarget
 
-class FrameDragTarget: DragBaseTarget() {
+class FrameDragTarget : DragBaseTarget() {
   override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {
     // TODO: provide attribute:layout_gravity for FrameLayoutHandler
   }

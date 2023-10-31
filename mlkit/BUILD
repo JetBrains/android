@@ -29,6 +29,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
         "//tools/adt/idea/android-templates:intellij.android.templates[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

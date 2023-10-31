@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,21 +33,19 @@ import javax.swing.JComponent
 private const val ROTATION_FRAMES = 20L
 private const val ROTATION_TIMEOUT = 10_000L
 
-object Toggle3dAction : AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
-  @VisibleForTesting
-  var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
-  @VisibleForTesting
-  var getCurrentTimeMillis = { System.currentTimeMillis() }
+class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
+  AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
+  @VisibleForTesting var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
+  @VisibleForTesting var getCurrentTimeMillis = { System.currentTimeMillis() }
 
   override fun actionPerformed(event: AnActionEvent) {
-    val model = event.getData(DEVICE_VIEW_MODEL_KEY) ?: return
+    val renderModel = renderModelProvider()
     val inspector = LayoutInspector.get(event)
     val client = inspector?.currentClient
 
-    if (model.isRotated) {
-      model.resetRotation()
-    }
-    else {
+    if (renderModel.isRotated) {
+      renderModel.resetRotation()
+    } else {
       client?.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
       val timerStart = getCurrentTimeMillis()
       val executor = executorFactory()
@@ -71,43 +69,50 @@ object Toggle3dAction : AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLi
             executor.shutdown()
             return@scheduleAtFixedRate
           }
-          model.xOff = iteration * 0.45 / ROTATION_FRAMES
-          model.yOff = iteration * 0.06 / ROTATION_FRAMES
-          model.refresh()
-        }, 0, 15, TimeUnit.MILLISECONDS)
+          renderModel.xOff = iteration * 0.45 / ROTATION_FRAMES
+          renderModel.yOff = iteration * 0.06 / ROTATION_FRAMES
+          renderModel.refresh()
+        },
+        0,
+        15,
+        TimeUnit.MILLISECONDS
+      )
     }
   }
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    val model = event.getData(DEVICE_VIEW_MODEL_KEY)
+    val model = renderModelProvider()
     val inspector = LayoutInspector.get(event)
     val client = inspector?.currentClient
     val inspectorModel = inspector?.inspectorModel
-    event.presentation.icon = if (model?.isRotated == true) StudioIcons.LayoutInspector.RESET_VIEW else StudioIcons.LayoutInspector.MODE_3D
-    if (model != null && model.overlay == null &&
+    event.presentation.icon =
+      if (model.isRotated) StudioIcons.LayoutInspector.RESET_VIEW
+      else StudioIcons.LayoutInspector.MODE_3D
+    if (
+      model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
-        (client.isCapturing || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)) {
+        (client.isCapturing || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)
+    ) {
       event.presentation.isEnabled = true
       if (model.isRotated) {
         event.presentation.text = "2D Mode"
         event.presentation.description =
           "Inspect the layout in 2D mode. Enabling this mode has less impact on your device's runtime performance."
-      }
-      else {
+      } else {
         event.presentation.text = "3D Mode"
         event.presentation.description =
           "Visually inspect the hierarchy by clicking and dragging to rotate the layout. Enabling this mode consumes more device " +
-          "resources and might impact runtime performance."
+            "resources and might impact runtime performance."
       }
-    }
-    else {
+    } else {
       event.presentation.isEnabled = false
-      val isLowerThenApi29 = client != null && client.isConnected && client.process.device.apiLevel < 29
+      val isLowerThenApi29 =
+        client != null && client.isConnected && client.process.device.apiLevel < 29
       @Suppress("DialogTitleCapitalization")
       event.presentation.text =
         when {
-          model?.overlay != null -> "Rotation not available when overlay is active"
+          model.overlay != null -> "Rotation not available when overlay is active"
           isLowerThenApi29 -> "Rotation not available for devices below API 29"
           else -> "Error while rendering device image, rotation not available"
         }
@@ -115,8 +120,9 @@ object Toggle3dAction : AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLi
   }
 
   @Suppress("DialogTitleCapitalization")
-  override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
-    // TODO: link for performance issue
-    BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode")
-  }
+  override fun getTooltipLink(owner: JComponent?) =
+    TooltipLinkProvider.TooltipLink("Learn More") {
+      // TODO: link for performance issue
+      BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode")
+    }
 }

@@ -18,12 +18,14 @@ package com.android.tools.idea.common.scene
 import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.interpolate
 
-class LerpEllipse(start: SwingEllipse, end: SwingEllipse, duration: Int)
-  : LerpValue<SwingEllipse>(start, end, duration) {
+class LerpEllipse(start: SwingEllipse, end: SwingEllipse, duration: Int) :
+  LerpValue<SwingEllipse>(start, end, duration) {
   override fun interpolate(fraction: Float): SwingEllipse {
-    return SwingEllipse(interpolate(start.x, end.x, fraction),
-                        interpolate(start.y, end.y, fraction),
-                        interpolate(start.width, end.width, fraction),
-                        interpolate(start.height, end.height, fraction))
+    return SwingEllipse(
+      interpolate(start.x, end.x, fraction),
+      interpolate(start.y, end.y, fraction),
+      interpolate(start.width, end.width, fraction),
+      interpolate(start.height, end.height, fraction)
+    )
   }
 }

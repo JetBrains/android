@@ -30,9 +30,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.intellij.testFramework.RunsInEdt
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
-import org.junit.Ignore
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -42,8 +40,6 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-
-  private val gradleVersion = "5.5"
 
   @Test
   fun testObsoleteTestCompileConfigurationInLibrary() {
@@ -183,10 +179,8 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
     }
   }
 
-  // TODO(b/129135682): enable when bug is fixed. Also, should use "3.5.0"?
-  @Ignore("b/129135682")
   @Test
-  fun laterTestObsoleteTestCompileConfigurationInFeature() {
+  fun testObsoleteTestCompileConfigurationInFeature() {
     val preparedProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     preparedProject.open { resolvedProject ->
@@ -205,10 +199,8 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
     }
   }
 
-  // TODO(b/129135682): enable when bug is fixed. Also, should use "3.5.0"?
-  @Ignore("b/129135682")
   @Test
-  fun laterTestObsoleteCompileConfigurationInFeature() {
+  fun testObsoleteCompileConfigurationInFeature() {
     val preparedProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
     preparedProject.open { resolvedProject ->
@@ -216,6 +208,46 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
 
       val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
       val module = project.findModuleByName("obsoleteScopesFeature") as PsAndroidModule
+
+      val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
+      val issues = analyzer.analyze(module).toList()
+
+      checkIssuesFor(issues,
+                     "androidx.appcompat:appcompat:1.0.2",
+                     setOf("Obsolete dependency configuration found: <b>compile</b>" to ""),
+                     setOf("compile" to "api", "compile" to "implementation"))
+    }
+  }
+
+  @Test
+  fun testObsoleteTestCompileConfigurationInDynamicFeature() {
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
+      val module = project.findModuleByName("obsoleteScopesDynamicFeature") as PsAndroidModule
+
+      val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
+      val issues = analyzer.analyze(module).toList()
+
+      checkIssuesFor(issues,
+                     "junit:junit:4.12",
+                     setOf("Obsolete dependency configuration found: <b>testCompile</b>" to ""),
+                     setOf("testCompile" to "testImplementation"))
+    }
+  }
+
+  @Test
+  fun testObsoleteCompileConfigurationInDynamicFeature() {
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.PSD_UPGRADE, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
+    preparedProject.open { resolvedProject ->
+      val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+      val context = PsContextImpl(project, projectRule.testRootDisposable, disableAnalysis = true, disableResolveModels = true)
+      val module = project.findModuleByName("obsoleteScopesDynamicFeature") as PsAndroidModule
 
       val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
       val issues = analyzer.analyze(module).toList()
@@ -269,8 +301,6 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
     }
   }
 
-  // TODO(b/129135682): write DynamicFeature tests when bug is fixed
-
   private fun checkIssuesFor(
     issues: List<PsIssue>,
     name: String,
@@ -279,9 +309,9 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
   ) {
     val issueSet = issueSetFor(issues, name)
     val issueMessages = issueSet.map { it.text to it.description!! }.toSet()
-    assertThat(issueMessages, equalTo(expectedMessages))
+    assertEquals(expectedMessages, issueMessages)
     val quickFixChanges = quickFixChangesFor(issueSet)
-    assertThat(quickFixChanges, equalTo(expectedChanges))
+    assertEquals(expectedChanges, quickFixChanges)
   }
 
   private fun issueSetFor(issues: List<PsIssue>, name: String): Set<PsIssue> {
@@ -296,4 +326,3 @@ class PsModuleDependencyConfigurationsAnalyzerTest {
       .toSet()
   }
 }
-

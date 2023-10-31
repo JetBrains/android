@@ -46,7 +46,8 @@ import java.util.concurrent.TimeUnit
  * @param name the parameter name
  * @param section the section the parameter will show up in the parameters/attributes table
  * @param viewId the compose node this parameter belongs to
- * @param packageName the package name of the enclosing class as found in the synthetic name of the lambda
+ * @param packageName the package name of the enclosing class as found in the synthetic name of the
+ *   lambda
  * @param fileName the name of the enclosing file
  * @param lambdaName the second part of the synthetic lambda name examples: "1", "f1$1"
  * @param startLineNumber the first line number of the lambda as reported by JVMTI (1 based)
@@ -65,42 +66,52 @@ class LambdaParameterItem(
   val startLineNumber: Int,
   val endLineNumber: Int,
   lookup: ViewNodeAndResourceLookup
-): ParameterItem(
-  name,
-  PropertyType.LAMBDA,
-  value = "λ",
-  section,
-  viewId,
-  lookup,
-  rootId,
-  index,
-), LinkPropertyItem {
-  override val link = object : AnAction("$fileName:$startLineNumber") {
-    override fun actionPerformed(event: AnActionEvent) {
-      val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
-      executeOnPooledThread {
-        gotoLambdaLocation(event, popupLocation)
-      }.also { futureCaptor?.invoke(it) }
+) :
+  ParameterItem(
+    name,
+    PropertyType.LAMBDA,
+    value = "λ",
+    section,
+    viewId,
+    lookup,
+    rootId,
+    index,
+  ),
+  LinkPropertyItem {
+  override val link =
+    object : AnAction("$fileName:$startLineNumber") {
+      override fun actionPerformed(event: AnActionEvent) {
+        val popupLocation = JBPopupFactory.getInstance().guessBestPopupLocation(event.dataContext)
+        executeOnPooledThread { gotoLambdaLocation(event, popupLocation) }
+          .also { futureCaptor?.invoke(it) }
+      }
     }
-  }
 
-  /**
-   * Allow tests to control the execution of [gotoLambdaLocation].
-   */
-  @VisibleForTesting
-  var futureCaptor: ((Future<*>) -> Unit)? = null
+  /** Allow tests to control the execution of [gotoLambdaLocation]. */
+  @VisibleForTesting var futureCaptor: ((Future<*>) -> Unit)? = null
 
   @Slow
   private fun gotoLambdaLocation(event: AnActionEvent, popupLocation: RelativePoint) {
     val location = runReadAction {
-      lookup.resourceLookup.findLambdaLocation(packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber)
+      lookup.resourceLookup.findLambdaLocation(
+        packageName,
+        fileName,
+        lambdaName,
+        functionName,
+        startLineNumber,
+        endLineNumber
+      )
     }
     location.navigatable?.let {
       if (runReadAction { it.canNavigate() }) {
         invokeLater {
-          // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when focus is removed
+          // Execute this via invokeLater to avoid painting errors by JBTable (hover line) when
+          // focus is removed
           it.navigate(true)
-          LayoutInspector.get(event)?.currentClient?.stats?.gotoSourceFromPropertyValue(lookup.selection)
+          LayoutInspector.get(event)
+            ?.currentClient
+            ?.stats
+            ?.gotoSourceFromPropertyValue(lookup.selection)
           if (location.source.endsWith(":unknown")) {
             showBalloonError("Could not determine exact source location", popupLocation)
           }
@@ -108,25 +119,38 @@ class LambdaParameterItem(
         return
       }
     }
-    invokeLater {
-      showBalloonError("Could not determine source location", popupLocation)
-    }
+    invokeLater { showBalloonError("Could not determine source location", popupLocation) }
   }
 
   @Suppress("SameParameterValue")
   @UiThread
   private fun showBalloonError(content: String, popupLocation: RelativePoint) {
     val globalScheme = EditorColorsManager.getInstance().globalScheme
-    val background = globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND) ?: UIUtil.getToolTipBackground()
-    val balloon = JBPopupFactory.getInstance()
-      .createHtmlTextBalloonBuilder(content, AllIcons.General.BalloonWarning, background, null)
-      .setBorderColor(JBColor.border())
-      .setBorderInsets(JBInsets.create(4, 4))
-      .setFadeoutTime(TimeUnit.SECONDS.toMillis(4))
-      .createBalloon()
+    val background =
+      globalScheme.getColor(EditorColors.NOTIFICATION_BACKGROUND) ?: UIUtil.getToolTipBackground()
+    val balloon =
+      JBPopupFactory.getInstance()
+        .createHtmlTextBalloonBuilder(content, AllIcons.General.BalloonWarning, background, null)
+        .setBorderColor(JBColor.border())
+        .setBorderInsets(JBInsets.create(4, 4))
+        .setFadeoutTime(TimeUnit.SECONDS.toMillis(4))
+        .createBalloon()
     balloon.show(popupLocation, Balloon.Position.above)
   }
 
-  override fun clone(): LambdaParameterItem = LambdaParameterItem(
-    name, section, viewId, rootId, index, packageName, fileName, lambdaName, functionName, startLineNumber, endLineNumber, lookup)
+  override fun clone(): LambdaParameterItem =
+    LambdaParameterItem(
+      name,
+      section,
+      viewId,
+      rootId,
+      index,
+      packageName,
+      fileName,
+      lambdaName,
+      functionName,
+      startLineNumber,
+      endLineNumber,
+      lookup
+    )
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionTreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
@@ -24,14 +25,11 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.LowMemoryWatcher
 
-/**
- * View-inspector specific logic supporting [AppInspectionTreeLoader].
- */
+/** View-inspector specific logic supporting [AppInspectionTreeLoader]. */
 class ViewInspectorTreeLoader(
-  private val project: Project,
+  private val notificationModel: NotificationModel,
   private val skiaParser: SkiaParser,
   private val viewEvent: LayoutInspectorViewProtocol.LayoutEvent,
   private val resourceLookup: ResourceLookup,
@@ -39,7 +37,8 @@ class ViewInspectorTreeLoader(
   composeResult: GetComposablesResult?,
   private val logEvent: (DynamicLayoutInspectorEventType) -> Unit,
 ) {
-  private var folderConfig = LayoutInspectorViewProtocol.Configuration.getDefaultInstance().convert(1)
+  private var folderConfig =
+    LayoutInspectorViewProtocol.Configuration.getDefaultInstance().convert(1)
 
   // if true, exit immediately and return null
   private var isInterrupted = false
@@ -50,20 +49,36 @@ class ViewInspectorTreeLoader(
     get() = viewNodeCreator.dynamicCapabilities
 
   @Suppress("unused") // Need to keep a reference to receive notifications
-  private val lowMemoryWatcher = LowMemoryWatcher.register(
-    {
-      isInterrupted = true
-    }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
+  private val lowMemoryWatcher =
+    LowMemoryWatcher.register(
+      { isInterrupted = true },
+      LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC
+    )
 
   fun loadComponentTree(): AndroidWindow? {
     val configuration = viewEvent.configuration
     val appContext = viewEvent.appContext
-    if (configuration !== LayoutInspectorViewProtocol.Configuration.getDefaultInstance() ||
-        appContext !== LayoutInspectorViewProtocol.AppContext.getDefaultInstance()) {
-      folderConfig = configuration.convert(process.device.apiLevel)
-      resourceLookup.updateConfiguration(folderConfig, configuration.fontScale, appContext.convert(), viewNodeCreator.strings, process)
-    }
+    folderConfig = configuration.convert(process.device.apiLevel)
+    val context = appContext.convert()
+    val theme = context.theme.createReference(viewNodeCreator.strings)
+    resourceLookup.updateConfiguration(
+      folderConfig,
+      theme,
+      process,
+      configuration.fontScale,
+      context.mainDisplayOrientation,
+      context.screenSize,
+      context.isRunningInMainDisplay
+    )
     val rootView = viewNodeCreator.createRootViewNode { isInterrupted } ?: return null
-    return ViewAndroidWindow(project, skiaParser, rootView, viewEvent, folderConfig, { isInterrupted }, logEvent)
+    return ViewAndroidWindow(
+      notificationModel,
+      skiaParser,
+      rootView,
+      viewEvent,
+      folderConfig,
+      { isInterrupted },
+      logEvent
+    )
   }
 }

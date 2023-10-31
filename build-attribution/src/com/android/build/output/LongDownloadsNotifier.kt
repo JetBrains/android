@@ -17,7 +17,7 @@ package com.android.build.output
 
 import com.android.build.attribution.BUILD_ANALYZER_NOTIFICATION_GROUP_ID
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent

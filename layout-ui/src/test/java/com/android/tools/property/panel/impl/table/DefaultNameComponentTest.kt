@@ -26,11 +26,12 @@ class DefaultNameComponentTest {
   @Test
   fun testDoubleClick() {
     var toggleCount = 0
-    val tableSupport = object : TableSupport {
-      override fun toggleGroup() {
-        toggleCount++
+    val tableSupport =
+      object : TableSupport {
+        override fun toggleGroup() {
+          toggleCount++
+        }
       }
-    }
     val component = DefaultNameComponent(tableSupport)
     component.size = Dimension(500, 200)
     val ui = FakeUi(component)

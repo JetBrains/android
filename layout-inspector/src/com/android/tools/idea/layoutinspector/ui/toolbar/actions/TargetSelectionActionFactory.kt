@@ -37,36 +37,60 @@ val ICON_LEGACY_PHONE: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllI
 @VisibleForTesting
 val ICON_LEGACY_EMULATOR: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR, AllIcons.General.WarningDecorator) }
 
-// TODO this class can be removed once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
+// TODO this class can be removed once the flag
+// DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
 //  and we stop using [SelectProcessAction].
 // A [DropDownAction] with a button.
-data class DropDownActionWithButton(val dropDownAction: DropDownAction, val getButton: () -> JComponent?)
+data class DropDownActionWithButton(
+  val dropDownAction: DropDownAction,
+  val getButton: () -> JComponent?
+)
 
-/**
- * Factory class responsible for creating either a [SelectDeviceAction] or a [SelectProcessAction].
- */
+/** Factory class responsible for creating either a device or process picker. */
 object TargetSelectionActionFactory {
   fun getAction(layoutInspector: LayoutInspector): DropDownActionWithButton? {
     return if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
+      // auto-connect is enabled, return a device picker
       val action = getDeviceSelectorAction(layoutInspector) ?: return null
       DropDownActionWithButton(action) { action.button }
-    }
-    else {
+    } else {
+      // auto-connect is not enabled, return a process picker
       val action = getProcessSelectorAction(layoutInspector) ?: return null
       DropDownActionWithButton(action) { action.button }
     }
   }
 
-  // TODO remove once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
+  /**
+   * Returns the process picker to use when Layout Inspector is running inside the Running Devices
+   * Tool Window.
+   */
+  fun getSingleDeviceProcessPicker(
+    layoutInspector: LayoutInspector,
+    targetDeviceSerialNumber: String
+  ): SingleDeviceSelectProcessAction? {
+    val model = layoutInspector.deviceModel ?: return null
+    return SingleDeviceSelectProcessAction(
+      deviceModel = model,
+      targetDeviceSerialNumber = targetDeviceSerialNumber,
+      onProcessSelected = { newProcess ->
+        layoutInspector.processModel?.selectedProcess = newProcess
+      }
+    )
+  }
+
+  // TODO remove once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+  // is removed
   private fun getProcessSelectorAction(layoutInspector: LayoutInspector): SelectProcessAction? {
     val model = layoutInspector.processModel ?: return null
     return SelectProcessAction(
       model = model,
       supportsOffline = false,
       createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
-      stopPresentation = SelectProcessAction.StopPresentation(
-        "Stop Inspector",
-        "Stop running the layout inspector against the current process"),
+      stopPresentation =
+        SelectProcessAction.StopPresentation(
+          "Stop Inspector",
+          "Stop running the layout inspector against the current process"
+        ),
       onStopAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution
     )
@@ -76,25 +100,32 @@ object TargetSelectionActionFactory {
     val model = layoutInspector.deviceModel ?: return null
     return SelectDeviceAction(
       deviceModel = model,
-      onDeviceSelected = { newDevice -> layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice) },
-      onProcessSelected = { newProcess -> layoutInspector.processModel?.selectedProcess = newProcess },
+      onDeviceSelected = { newDevice ->
+        layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice)
+      },
+      onProcessSelected = { newProcess ->
+        layoutInspector.processModel?.selectedProcess = newProcess
+      },
       onDetachAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution
     )
   }
 
-  private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
-    device.apiLevel < AndroidVersion.VersionCodes.M -> {
-      event.presentation.isEnabled = false
-      event.presentation.text = "${device.buildDeviceName()} (Unsupported for API < ${AndroidVersion.VersionCodes.M})"
+  private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) =
+    when {
+      device.apiLevel < AndroidVersion.VersionCodes.M -> {
+        event.presentation.isEnabled = false
+        event.presentation.text =
+          "${device.buildDeviceName()} (Unsupported for API < ${AndroidVersion.VersionCodes.M})"
+      }
+      device.apiLevel < AndroidVersion.VersionCodes.Q -> {
+        event.presentation.icon = device.toLegacyIcon()
+        event.presentation.text =
+          "${device.buildDeviceName()} (Live inspection disabled for API < ${AndroidVersion.VersionCodes.Q})"
+      }
+      else -> {}
     }
-    device.apiLevel < AndroidVersion.VersionCodes.Q -> {
-      event.presentation.icon = device.toLegacyIcon()
-      event.presentation.text = "${device.buildDeviceName()} (Live inspection disabled for API < ${AndroidVersion.VersionCodes.Q})"
-    }
-    else -> {
-    }
-  }
 }
 
-private fun DeviceDescriptor?.toLegacyIcon() = if (this?.isEmulator == true) ICON_LEGACY_EMULATOR else ICON_LEGACY_PHONE
+private fun DeviceDescriptor?.toLegacyIcon() =
+  if (this?.isEmulator == true) ICON_LEGACY_EMULATOR else ICON_LEGACY_PHONE

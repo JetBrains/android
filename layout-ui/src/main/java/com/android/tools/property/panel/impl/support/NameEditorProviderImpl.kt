@@ -15,6 +15,7 @@
  */
 package com.android.tools.property.panel.impl.support
 
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -25,12 +26,15 @@ import javax.swing.JComponent
 /**
  * A standard provider for a property name editor.
  *
- * For a given property this class will provide a model and a UI for an editor of that property name.
- * There is only one implementation at this time.
+ * For a given property this class will provide a model and a UI for an editor of that property
+ * name. There is only one implementation at this time.
  */
 class NameEditorProviderImpl<in P : NewPropertyItem> : EditorProvider<P> {
 
-  override fun createEditor(property: P, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(
+    property: P,
+    context: EditorContext
+  ): Pair<PropertyEditorModel, JComponent> {
     val model = PropertyNameEditorModel(property)
     val editor = PropertyTextField(model)
     return Pair(model, editor)

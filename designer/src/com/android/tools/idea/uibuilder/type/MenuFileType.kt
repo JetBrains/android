@@ -23,5 +23,6 @@ import org.jetbrains.android.dom.menu.MenuDomFileDescription
 object MenuFileType : LayoutEditorFileType("menu") {
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.MENU
 
-  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && MenuDomFileDescription.isMenuFile(file)
+  override fun isResourceTypeOf(file: PsiFile) =
+    file is XmlFile && MenuDomFileDescription.isMenuFile(file)
 }

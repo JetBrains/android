@@ -18,48 +18,66 @@ package com.android.tools.idea.layoutinspector.pipeline.adb
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import kotlinx.coroutines.CoroutineScope
 import java.net.Socket
 import java.util.ArrayDeque
+import java.util.Deque
+
+class SimpleCommand(val args: List<String>, val result: String?) {
+  constructor(command: String, result: String?) : this(command.split(' '), result)
+}
 
 /**
- * A fake handler that intercepts ADB shell commands used at various points by the layout
- * inspector.
+ * A fake handler that intercepts ADB shell commands used at various points by the layout inspector.
  */
 class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewProperties {
   override var debugViewAttributes: String? = null
   override var debugViewAttributesApplicationPackage: String? = null
   override var debugViewAttributesChangesCount: Int = 0
+  val extraCommands = mutableListOf<SimpleCommand>()
 
-  override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-    val response = when (command) {
-      "shell" -> handleShellCommand(args) ?: return false
-      else -> return false
-    }
+  override fun accept(
+    server: FakeAdbServer,
+    socketScope: CoroutineScope,
+    socket: Socket,
+    device: DeviceState,
+    command: String,
+    args: String
+  ): Boolean {
+    val response =
+      when (command) {
+        "shell" -> handleShellCommand(args) ?: return false
+        else -> return false
+      }
     writeOkay(socket.getOutputStream())
     writeString(socket.getOutputStream(), response)
     return true
   }
 
   private fun handleShellCommand(argsAsString: String): String? {
-    val args = ArrayDeque(argsAsString.split(' '))
-    val command = args.poll()
-    // DebugViewAttributes spawns a blocking subshell on a background thread in production; this flow is not easily testable so just
+    val args = argsAsString.split(' ')
+    // DebugViewAttributes spawns a blocking subshell on a background thread in production; this
+    // flow is not easily testable so just
     // treat it like a no-op.
-    if (command == "sh") return ""
-    if (command == "echo") return args.joinToString(" ")
-
-    if (command != "settings") {
-      return null
+    return when (args.firstOrNull()) {
+      "sh" -> ""
+      "echo" -> args.subList(1, args.size).joinToString(" ")
+      "settings" -> handleSettingsCommand(ArrayDeque(args.subList(1, args.size)))
+      else -> extraCommands.find { it.args == args }?.result
     }
+  }
+
+  private fun handleSettingsCommand(args: Deque<String>): String? {
     val operation = args.poll()
     if (args.poll() != "global") {
       return null
     }
-    val variable = when (args.poll()) {
-      "debug_view_attributes" -> this::debugViewAttributes
-      "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
-      else -> return null
-    }
+    val variable =
+      when (args.poll()) {
+        "debug_view_attributes" -> this::debugViewAttributes
+        "debug_view_attributes_application_package" -> this::debugViewAttributesApplicationPackage
+        else -> return null
+      }
     val argument = if (args.isEmpty()) "" else args.poll()
     if (args.isNotEmpty()) {
       return null
@@ -69,10 +87,14 @@ class FakeShellCommandHandler : DeviceCommandHandler("shell"), AdbDebugViewPrope
         variable.get().toString()
       }
       "put" -> {
-        variable.set(argument); debugViewAttributesChangesCount++; ""
+        variable.set(argument)
+        debugViewAttributesChangesCount++
+        ""
       }
       "delete" -> {
-        variable.set(null); debugViewAttributesChangesCount++; ""
+        variable.set(null)
+        debugViewAttributesChangesCount++
+        ""
       }
       else -> null
     }

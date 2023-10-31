@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
-import com.android.tools.idea.streaming.PushButtonAction
+import com.android.tools.idea.streaming.core.PushButtonAction
 import com.android.tools.idea.streaming.device.AKEYCODE_UNKNOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP

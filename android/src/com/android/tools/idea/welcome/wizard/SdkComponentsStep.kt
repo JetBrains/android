@@ -32,6 +32,7 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
+import com.android.tools.sdk.AndroidSdkData
 import com.android.tools.sdk.isValid
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationNamesInfo
@@ -52,7 +53,6 @@ import com.intellij.util.containers.notNullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
-import com.android.tools.sdk.AndroidSdkData
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.LabelPosition
 import com.intellij.ui.dsl.builder.panel
@@ -214,7 +214,7 @@ class SdkComponentsStep(
   override fun getPreferredFocusComponent(): JComponent = componentsTable
 
   // This belonged to InstallComponentPath before. TODO: maybe it should actually be in onWizardStarting to avoid/reduce freezes?
-  private lateinit var componentInstaller: ComponentInstaller
+  lateinit var componentInstaller: ComponentInstaller
 
   init {
     val localHandler = model.localHandler

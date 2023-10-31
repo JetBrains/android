@@ -73,18 +73,19 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_71("7.1.0", gradleVersion = "7.2", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72_V1("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V1, compileSdk = "32"),
   AGP_72("7.2.0", gradleVersion = "7.3.3", modelVersion = ModelVersion.V2, compileSdk = "32"),
-  AGP_73("7.3.0-rc01", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
-  AGP_74("7.4.0-alpha09", gradleVersion = "7.5", modelVersion = ModelVersion.V2),
+  AGP_73("7.3.0", gradleVersion = "7.4", modelVersion = ModelVersion.V2),
+  AGP_74("7.4.1", gradleVersion = "7.5", modelVersion = ModelVersion.V2),
   AGP_80("8.0.0-beta04", gradleVersion = "8.0"),
+  AGP_81("8.1.0", gradleVersion = "8.0"),
 
   // Must be last to represent the newest version.
-  AGP_81(null, gradleVersion = null);
+  AGP_82(null, gradleVersion = null);
   override fun toString(): String {
     return "Agp($agpVersion, g=$gradleVersion, k=$kotlinVersion, m=$modelVersion)"
   }
   companion object {
     @JvmField
-    val AGP_CURRENT = AGP_81
+    val AGP_CURRENT = AGP_82
     val selected: AgpVersionSoftwareEnvironmentDescriptor
       get() {
         if (OldAgpSuite.AGP_VERSION == null && OldAgpSuite.GRADLE_VERSION == null) return AGP_CURRENT
@@ -149,7 +150,8 @@ fun IntegrationTestEnvironment.outputCurrentlyRunningTest(testDefinition: AgpInt
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_81 -> "_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_82 -> "_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_81 -> "_Agp_8.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_Agp_8.0_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_31 -> "_Agp_3.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_33_WITH_5_3_1 -> "_Agp_3.3_"

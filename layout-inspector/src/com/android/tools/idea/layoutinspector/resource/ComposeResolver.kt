@@ -26,14 +26,14 @@ import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.psi.KtFile
 
-/**
- * Service for finding Composable function locations.
- */
+/** Service for finding Composable function locations. */
 open class ComposeResolver(val project: Project) {
 
   @Slow
   fun findComposableNavigatable(node: ComposeViewNode): Navigatable? {
-    val ktFile = findKotlinFile(node.composeFilename) { packageNameHash(it) == node.composePackageHash } ?: return null
+    val ktFile =
+      findKotlinFile(node.composeFilename) { packageNameHash(it) == node.composePackageHash }
+        ?: return null
     val vFile = ktFile.virtualFile ?: return null
     return PsiNavigationSupport.getInstance().createNavigatable(project, vFile, node.composeOffset)
   }
@@ -46,9 +46,8 @@ open class ComposeResolver(val project: Project) {
   @Slow
   protected fun findKotlinFile(fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
     val files = FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project))
-    if (files.size == 1) {
-      return files[0] as? KtFile
-    }
-    return files.asSequence().filterIsInstance<PsiClassOwner>().find { packageNameMatcher(it.packageName) } as? KtFile
+    return files.asSequence().filterIsInstance<PsiClassOwner>().find {
+      packageNameMatcher(it.packageName)
+    } as? KtFile
   }
 }

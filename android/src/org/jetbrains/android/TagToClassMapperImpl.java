@@ -19,11 +19,11 @@ import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static org.jetbrains.android.facet.AndroidClassesForXmlUtilKt.getTagNamesByClass;
 
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.psi.TagToClassMapper;
+import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;

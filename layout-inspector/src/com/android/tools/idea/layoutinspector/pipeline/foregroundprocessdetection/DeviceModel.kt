@@ -26,10 +26,11 @@ import java.util.concurrent.CopyOnWriteArraySet
 /**
  * Keeps track of the currently selected device.
  *
- * The selected device is controlled by [ForegroundProcessDetection],
- * and it is used by [SelectedDeviceAction].
+ * The selected device is controlled by [ForegroundProcessDetection], and it is used by
+ * [SelectedDeviceAction].
  */
-class DeviceModel(parentDisposable: Disposable, private val processesModel: ProcessesModel): Disposable {
+class DeviceModel(parentDisposable: Disposable, private val processesModel: ProcessesModel) :
+  Disposable {
 
   @TestOnly
   constructor(
@@ -37,27 +38,44 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
     processesModel: ProcessesModel,
     foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>
   ) : this(parentDisposable, processesModel) {
-    foregroundProcessDetectionSupportedDevices.addAll(foregroundProcessDetectionSupportedDeviceTest)
+    foregroundProcessDetectionSupportedDeviceTest.forEach {
+      foregroundProcessDetectionDevicesSupport[it] = ForegroundProcessDetectionSupport.SUPPORTED
+    }
   }
 
   init {
     Disposer.register(parentDisposable, this)
-    ForegroundProcessDetection.addDeviceModel(this)
+    ForegroundProcessDetectionImpl.addDeviceModel(this)
   }
 
   override fun dispose() {
-    ForegroundProcessDetection.removeDeviceModel(this)
+    ForegroundProcessDetectionImpl.removeDeviceModel(this)
   }
 
   /**
-   * The device on which the on-device library is polling for foreground process.
-   * When null, it means that we are not polling on any device.
+   * Allow connecting only to this device. This is useful for the embedded Layout Inspector, in this
+   * mode we should connect only to the currently visible device. Once embedded mode is the only
+   * mode, Layout Inspector code that auto-select the device can be removed, this property with it.
+   */
+  var forcedDeviceSerialNumber: String? = null
+
+  /**
+   * The device on which the on-device library is polling for foreground process. When null, it
+   * means that we are not polling on any device.
    *
-   * [selectedDevice] should only be set by [ForegroundProcessDetection],
-   * this is to make sure that there is consistency between the [selectedDevice] and the device we are polling on.
+   * [selectedDevice] should only be set by [ForegroundProcessDetection], this is to make sure that
+   * there is consistency between the [selectedDevice] and the device we are polling on.
    */
   var selectedDevice: DeviceDescriptor? = null
     internal set(value) {
+      if (
+        forcedDeviceSerialNumber != null &&
+          value?.serial != null &&
+          value.serial != forcedDeviceSerialNumber
+      ) {
+        return
+      }
+
       // each time the selected device changes, the selected process should be reset
       // If selectedDevice is null, no device was selected. So we should not reset the process,
       // because selectedProcess might be set by the user from the process picker.
@@ -75,10 +93,9 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
 
   val newSelectedDeviceListeners = CopyOnWriteArraySet<(DeviceDescriptor?) -> Unit>()
 
-  /**
-   * The set of connected devices that support foreground process detection.
-   */
-  internal val foregroundProcessDetectionSupportedDevices = mutableSetOf<DeviceDescriptor>()
+  /** The set of connected devices and their support of foreground process detection. */
+  internal val foregroundProcessDetectionDevicesSupport =
+    mutableMapOf<DeviceDescriptor, ForegroundProcessDetectionSupport>()
 
   val devices: Set<DeviceDescriptor>
     get() {
@@ -95,7 +112,20 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
       return processesModel.processes
     }
 
-  fun supportsForegroundProcessDetection(device: DeviceDescriptor): Boolean {
-    return foregroundProcessDetectionSupportedDevices.contains(device)
+  fun getForegroundProcessDetectionSupport(
+    device: DeviceDescriptor
+  ): ForegroundProcessDetectionSupport {
+    return foregroundProcessDetectionDevicesSupport[device]
+      ?: ForegroundProcessDetectionSupport.NOT_SUPPORTED
   }
+}
+
+enum class ForegroundProcessDetectionSupport {
+  SUPPORTED,
+  NOT_SUPPORTED,
+  /**
+   * The handshake is started but not concluded yet. So we don't know if fg process detection is
+   * supported or not.
+   */
+  HANDSHAKE_IN_PROGRESS
 }

@@ -14,34 +14,38 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-resource-repository" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/223.0.1.0/studio.android.sdktools.resource-repository-223.0.1.0.jar">
-              <sha256sum>33db8f323b286f737a5e44238ec2090cefe073a20c73c52560748406cbfe72e6</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/231.0.1.4/studio.android.sdktools.resource-repository-231.0.1.4.jar">
+              <sha256sum>2da46bf7f1f59fe0fa2e6a0a365d66586c664241d13f54795db46e0f077e5595</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/223.0.1.0/studio.android.sdktools.resource-repository-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/231.0.1.4/studio.android.sdktools.resource-repository-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/231.0.1.4/studio.android.sdktools.resource-repository-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-resource-repository-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository_test:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/223.0.1.0/studio.android.sdktools.resource-repository_test-223.0.1.0.jar">
-              <sha256sum>41f55b51ed5c1bdd387000c3d15e30914605886ce6891f0dc98dbf744f2a5b74</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/231.0.1.4/studio.android.sdktools.resource-repository_test-231.0.1.4.jar">
+              <sha256sum>6bcdc761ac21569bb9a119fdca985f4f443f546dd8b4a9d5053ba0d0f4295441</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/223.0.1.0/studio.android.sdktools.resource-repository_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/231.0.1.4/studio.android.sdktools.resource-repository_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/231.0.1.4/studio.android.sdktools.resource-repository_test-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

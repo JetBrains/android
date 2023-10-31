@@ -17,7 +17,6 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
@@ -46,10 +45,9 @@ interface ProjectSystemBuildManager {
   fun addBuildListener(parentDisposable: Disposable, buildListener: BuildListener)
 
   /**
-   * Returns true if the project is currently being built, false otherwise. Should only be called from the EDT thread since calling it from
-   * any other thread might return an outdated value.
+   * Returns true if the project is currently being built, false otherwise.
    */
-  @get:UiThread
+  @Deprecated("Do not add new uses of this method as it's error prone")
   val isBuilding: Boolean
 
   enum class BuildStatus {

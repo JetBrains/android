@@ -24,9 +24,6 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  SyncPerfTestSuite.class,               // a suite mustn't contain itself
-})
 public class SyncPerfTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
 
@@ -42,46 +39,6 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
     }
     catch(Exception e) {
       LOG.warning("Could not prepare Dolphin project: " + e);
-    }
-
-    try {
-      setUpSourceZip("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/src.zip",
-                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100,
-                     new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncTest.diff", 2));
-      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
-    }
-    catch(Exception e) {
-      LOG.warning("Could not prepare Base100 project: " + e);
-    }
-
-    try {
-      setUpSourceZip("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/src.zip",
-                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100_KOTLIN,
-                     new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncKotlinTest.diff", 2));
-      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
-    }
-    catch(Exception e) {
-      LOG.warning("Could not prepare Base100Kotlin project: " + e);
-    }
-
-    try {
-      setUpSourceZip("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
-                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.SANTA_TRACKER,
-                     new DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2));
-      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip");
-    }
-    catch(Exception e) {
-      LOG.warning("Could not prepare SantaTracker project: " + e);
-    }
-
-    try {
-      setUpSourceZip("prebuilts/studio/buildbenchmarks/extra-large.2020.09.18/src.zip",
-                     "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.EXTRA_LARGE,
-                     new DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2020.09.18/setupForSyncTest.diff", 2));
-      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/extra-large.2020.09.18/repo.zip");
-    }
-    catch(Exception e) {
-      LOG.warning("Could not prepare extra-large project: " + e);
     }
 
     linkIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.manifest");

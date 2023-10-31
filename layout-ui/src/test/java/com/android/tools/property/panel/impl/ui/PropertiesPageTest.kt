@@ -51,13 +51,10 @@ import javax.swing.JLabel
 
 class PropertiesPageTest {
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val cleaner = MockitoCleanerRule()
+  @get:Rule val cleaner = MockitoCleanerRule()
 
   private var disposable: Disposable? = null
   private var page: PropertiesPage? = null
@@ -67,11 +64,16 @@ class PropertiesPageTest {
   @Before
   @Suppress("UNCHECKED_CAST")
   fun setUp() {
-    val controlTypeProvider = mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
+    val controlTypeProvider =
+      mock(ControlTypeProvider::class.java) as ControlTypeProvider<PropertyItem>
     val editorProvider = mock(EditorProvider::class.java) as EditorProvider<PropertyItem>
     disposable = Disposer.newDisposable()
-    ApplicationManager.getApplication().registerOrReplaceServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(),
-                                                                         disposable!!)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(
+        PropertiesComponent::class.java,
+        PropertiesComponentMock(),
+        disposable!!
+      )
     tableUI = TableUIProvider(controlTypeProvider, editorProvider)
     tableModel = mock(PTableModel::class.java)
     page = PropertiesPage(disposable!!)
@@ -109,18 +111,18 @@ class PropertiesPageTest {
   fun testSeparatorAddedBeforeFirstEditorComponent() {
     page!!.addEditor(makeEditor())
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,
-                    CollapsibleLabelModel::class.java)
+    checkLineModels(pageLines, SeparatorLineModel::class.java, CollapsibleLabelModel::class.java)
   }
 
   @Test
   fun testSeparatorAddedBeforeFirstCustomComponent() {
     page!!.addComponent(JLabel())
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,
-                    GenericInspectorLineModel::class.java)
+    checkLineModels(
+      pageLines,
+      SeparatorLineModel::class.java,
+      GenericInspectorLineModel::class.java
+    )
   }
 
   @Test
@@ -136,10 +138,12 @@ class PropertiesPageTest {
     page!!.addTable(tableModel!!, false, tableUI!!, emptyList())
     page!!.addSubTitle("SubTitle")
 
-    checkLineModels(pageLines,
-                    CollapsibleLabelModel::class.java,
-                    TableLineModel::class.java,
-                    CollapsibleLabelModel::class.java)
+    checkLineModels(
+      pageLines,
+      CollapsibleLabelModel::class.java,
+      TableLineModel::class.java,
+      CollapsibleLabelModel::class.java
+    )
   }
 
   @Test
@@ -148,13 +152,15 @@ class PropertiesPageTest {
     page!!.addTitle("Title1")
     page!!.addEditor(makeEditor())
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,      // Top separator
-                    CollapsibleLabelModel::class.java,   // Editor
-                    SeparatorLineModel::class.java,      // Separator before title
-                    TitleLineModel::class.java,          // Title
-                    SeparatorLineModel::class.java,      // Separator after title
-                    CollapsibleLabelModel::class.java)   // Editor
+    checkLineModels(
+      pageLines,
+      SeparatorLineModel::class.java, // Top separator
+      CollapsibleLabelModel::class.java, // Editor
+      SeparatorLineModel::class.java, // Separator before title
+      TitleLineModel::class.java, // Title
+      SeparatorLineModel::class.java, // Separator after title
+      CollapsibleLabelModel::class.java
+    ) // Editor
   }
 
   @Test
@@ -164,17 +170,21 @@ class PropertiesPageTest {
     title.makeExpandable(true)
     page!!.addEditor(makeEditor(), title)
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,      // Top separator
-                    CollapsibleLabelModel::class.java,   // Editor
-                    SeparatorLineModel::class.java,      // Separator before title
-                    TitleLineModel::class.java,          // Title
-                    SeparatorLineModel::class.java,      // Separator after title
-                    CollapsibleLabelModel::class.java)   // Editor
+    checkLineModels(
+      pageLines,
+      SeparatorLineModel::class.java, // Top separator
+      CollapsibleLabelModel::class.java, // Editor
+      SeparatorLineModel::class.java, // Separator before title
+      TitleLineModel::class.java, // Title
+      SeparatorLineModel::class.java, // Separator after title
+      CollapsibleLabelModel::class.java
+    ) // Editor
 
-    checkLineModels(title.children,
-                    SeparatorLineModel::class.java,      // Separator after title
-                    CollapsibleLabelModel::class.java)   // Editor
+    checkLineModels(
+      title.children,
+      SeparatorLineModel::class.java, // Separator after title
+      CollapsibleLabelModel::class.java
+    ) // Editor
   }
 
   @Test
@@ -184,15 +194,16 @@ class PropertiesPageTest {
     title.makeExpandable(true)
     page!!.addTable(tableModel!!, false, tableUI!!, emptyList(), title)
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,
-                    CollapsibleLabelModel::class.java,
-                    SeparatorLineModel::class.java,
-                    TitleLineModel::class.java,
-                    TableLineModel::class.java)
+    checkLineModels(
+      pageLines,
+      SeparatorLineModel::class.java,
+      CollapsibleLabelModel::class.java,
+      SeparatorLineModel::class.java,
+      TitleLineModel::class.java,
+      TableLineModel::class.java
+    )
 
-    checkLineModels(title.children,
-                    TableLineModel::class.java)
+    checkLineModels(title.children, TableLineModel::class.java)
   }
 
   @Test
@@ -203,20 +214,24 @@ class PropertiesPageTest {
     page!!.addEditor(makeEditor(), title1)
     page!!.addTitle("Title2")
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,     // Separator before editor
-                    CollapsibleLabelModel::class.java,  // Editor
-                    SeparatorLineModel::class.java,     // Separator before first title
-                    TitleLineModel::class.java,         // First Title
-                    SeparatorLineModel::class.java,     // Separator after first title
-                    CollapsibleLabelModel::class.java,  // Editor
-                    SeparatorLineModel::class.java,     // Separator before second title
-                    TitleLineModel::class.java)         // Second title
+    checkLineModels(
+      pageLines,
+      SeparatorLineModel::class.java, // Separator before editor
+      CollapsibleLabelModel::class.java, // Editor
+      SeparatorLineModel::class.java, // Separator before first title
+      TitleLineModel::class.java, // First Title
+      SeparatorLineModel::class.java, // Separator after first title
+      CollapsibleLabelModel::class.java, // Editor
+      SeparatorLineModel::class.java, // Separator before second title
+      TitleLineModel::class.java
+    ) // Second title
 
-    checkLineModels(title1.children,
-                    SeparatorLineModel::class.java,     // Separator after first title
-                    CollapsibleLabelModel::class.java,  // Editor
-                    SeparatorLineModel::class.java)     // Separator before second title, must be in previous group
+    checkLineModels(
+      title1.children,
+      SeparatorLineModel::class.java, // Separator after first title
+      CollapsibleLabelModel::class.java, // Editor
+      SeparatorLineModel::class.java
+    ) // Separator before second title, must be in previous group
   }
 
   @Test
@@ -226,16 +241,17 @@ class PropertiesPageTest {
     page!!.addEditor(makeEditor(), editor1)
     page!!.addTitle("Title")
 
-    checkLineModels(pageLines,
-                    SeparatorLineModel::class.java,     // Separator before first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    CollapsibleLabelModel::class.java,  // Second editor
-                    SeparatorLineModel::class.java,     // Separator before second title
-                    TitleLineModel::class.java)         // Title
+    checkLineModels(
+      pageLines,
+      SeparatorLineModel::class.java, // Separator before first editor
+      CollapsibleLabelModel::class.java, // First editor
+      CollapsibleLabelModel::class.java, // Second editor
+      SeparatorLineModel::class.java, // Separator before second title
+      TitleLineModel::class.java
+    ) // Title
 
-    checkLineModels(editor1.children,
-                    CollapsibleLabelModel::class.java)  // Second editor
-                                                        // The separator before the title should NOT be in this group !
+    checkLineModels(editor1.children, CollapsibleLabelModel::class.java) // Second editor
+    // The separator before the title should NOT be in this group !
   }
 
   @Test
@@ -251,20 +267,24 @@ class PropertiesPageTest {
     page!!.addEditor(makeEditor(), editor3) as CollapsibleLabelModel
     page!!.addTitle("Title2")
 
-    checkLineModels(pageLines,
-                    TitleLineModel::class.java,         // First title
-                    SeparatorLineModel::class.java,     // Separator after first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    CollapsibleLabelModel::class.java,  // Second editor
-                    CollapsibleLabelModel::class.java,  // Third editor
-                    CollapsibleLabelModel::class.java,  // Forth editor
-                    SeparatorLineModel::class.java,     // Separator before second title
-                    TitleLineModel::class.java)         // Second title
+    checkLineModels(
+      pageLines,
+      TitleLineModel::class.java, // First title
+      SeparatorLineModel::class.java, // Separator after first editor
+      CollapsibleLabelModel::class.java, // First editor
+      CollapsibleLabelModel::class.java, // Second editor
+      CollapsibleLabelModel::class.java, // Third editor
+      CollapsibleLabelModel::class.java, // Forth editor
+      SeparatorLineModel::class.java, // Separator before second title
+      TitleLineModel::class.java
+    ) // Second title
 
-    checkLineModels(title1.children,
-                    SeparatorLineModel::class.java,     // Separator after first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    SeparatorLineModel::class.java)     // Separator before second title
+    checkLineModels(
+      title1.children,
+      SeparatorLineModel::class.java, // Separator after first editor
+      CollapsibleLabelModel::class.java, // First editor
+      SeparatorLineModel::class.java
+    ) // Separator before second title
   }
 
   @Test
@@ -278,29 +298,35 @@ class PropertiesPageTest {
     val title2 = page!!.addTitle("Title1") as TitleLineModel
     title2.makeExpandable(true)
 
-    checkLineModels(pageLines,
-                    TitleLineModel::class.java,         // First title
-                    SeparatorLineModel::class.java,     // Separator before first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    SeparatorLineModel::class.java,     // Separator after first editor
-                    TitleLineModel::class.java,         // First subtitle
-                    SeparatorLineModel::class.java,     // Separator before second editor
-                    CollapsibleLabelModel::class.java,  // Second editor
-                    CollapsibleLabelModel::class.java,  // Third editor
-                    SeparatorLineModel::class.java,     // Separator after third editor
-                    TitleLineModel::class.java)         // Second title
+    checkLineModels(
+      pageLines,
+      TitleLineModel::class.java, // First title
+      SeparatorLineModel::class.java, // Separator before first editor
+      CollapsibleLabelModel::class.java, // First editor
+      SeparatorLineModel::class.java, // Separator after first editor
+      TitleLineModel::class.java, // First subtitle
+      SeparatorLineModel::class.java, // Separator before second editor
+      CollapsibleLabelModel::class.java, // Second editor
+      CollapsibleLabelModel::class.java, // Third editor
+      SeparatorLineModel::class.java, // Separator after third editor
+      TitleLineModel::class.java
+    ) // Second title
 
-    checkLineModels(title1.children,
-                    SeparatorLineModel::class.java,     // Separator before first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    SeparatorLineModel::class.java,     // Separator after first editor
-                    TitleLineModel::class.java)         // First subtitle
+    checkLineModels(
+      title1.children,
+      SeparatorLineModel::class.java, // Separator before first editor
+      CollapsibleLabelModel::class.java, // First editor
+      SeparatorLineModel::class.java, // Separator after first editor
+      TitleLineModel::class.java
+    ) // First subtitle
 
-    checkLineModels(subtitle1.children,
-                    SeparatorLineModel::class.java,     // Separator before second editor
-                    CollapsibleLabelModel::class.java,  // Second editor
-                    CollapsibleLabelModel::class.java,  // Third editor
-                    SeparatorLineModel::class.java)     // Separator after third editor  (bug: missing)
+    checkLineModels(
+      subtitle1.children,
+      SeparatorLineModel::class.java, // Separator before second editor
+      CollapsibleLabelModel::class.java, // Second editor
+      CollapsibleLabelModel::class.java, // Third editor
+      SeparatorLineModel::class.java
+    ) // Separator after third editor  (bug: missing)
   }
 
   @Test
@@ -310,35 +336,41 @@ class PropertiesPageTest {
     page!!.addEditor(makeEditor(), title1)
     val subtitle1 = page!!.addSubTitle("SubTitle1", parent = title1) as TitleLineModel
     page!!.addEditor(makeEditor(), subtitle1)
-    page!!.addEditor(makeEditor(), title1)   // <= Note: this editor has title1 as parent !!
+    page!!.addEditor(makeEditor(), title1) // <= Note: this editor has title1 as parent !!
     val title2 = page!!.addTitle("Title1") as TitleLineModel
     title2.makeExpandable(true)
 
-    checkLineModels(pageLines,
-                    TitleLineModel::class.java,         // First title
-                    SeparatorLineModel::class.java,     // Separator before first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    SeparatorLineModel::class.java,     // Separator after first editor
-                    TitleLineModel::class.java,         // First subtitle
-                    SeparatorLineModel::class.java,     // Separator before second editor
-                    CollapsibleLabelModel::class.java,  // Second editor
-                    SeparatorLineModel::class.java,     // Separator before third editor
-                    CollapsibleLabelModel::class.java,  // Third editor
-                    SeparatorLineModel::class.java,     // Separator after third editor
-                    TitleLineModel::class.java)         // Second title
+    checkLineModels(
+      pageLines,
+      TitleLineModel::class.java, // First title
+      SeparatorLineModel::class.java, // Separator before first editor
+      CollapsibleLabelModel::class.java, // First editor
+      SeparatorLineModel::class.java, // Separator after first editor
+      TitleLineModel::class.java, // First subtitle
+      SeparatorLineModel::class.java, // Separator before second editor
+      CollapsibleLabelModel::class.java, // Second editor
+      SeparatorLineModel::class.java, // Separator before third editor
+      CollapsibleLabelModel::class.java, // Third editor
+      SeparatorLineModel::class.java, // Separator after third editor
+      TitleLineModel::class.java
+    ) // Second title
 
-    checkLineModels(title1.children,
-                    SeparatorLineModel::class.java,     // Separator before first editor
-                    CollapsibleLabelModel::class.java,  // First editor
-                    SeparatorLineModel::class.java,     // Separator after first editor
-                    TitleLineModel::class.java,         // First subtitle
-                    SeparatorLineModel::class.java,     // Separator before third editor
-                    CollapsibleLabelModel::class.java,  // Third editor
-                    SeparatorLineModel::class.java)     // Separator after third editor
+    checkLineModels(
+      title1.children,
+      SeparatorLineModel::class.java, // Separator before first editor
+      CollapsibleLabelModel::class.java, // First editor
+      SeparatorLineModel::class.java, // Separator after first editor
+      TitleLineModel::class.java, // First subtitle
+      SeparatorLineModel::class.java, // Separator before third editor
+      CollapsibleLabelModel::class.java, // Third editor
+      SeparatorLineModel::class.java
+    ) // Separator after third editor
 
-    checkLineModels(subtitle1.children,
-                    SeparatorLineModel::class.java,     // Separator before second editor
-                    CollapsibleLabelModel::class.java)  // Second editor
+    checkLineModels(
+      subtitle1.children,
+      SeparatorLineModel::class.java, // Separator before second editor
+      CollapsibleLabelModel::class.java
+    ) // Second editor
   }
 
   private fun checkLineModels(lines: List<InspectorLineModel>?, vararg classes: Class<*>) {

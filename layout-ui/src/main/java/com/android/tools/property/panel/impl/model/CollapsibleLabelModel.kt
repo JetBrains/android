@@ -26,19 +26,21 @@ import javax.swing.Icon
 import kotlin.properties.Delegates
 
 // Prefix to the keys used to store/restore the state of expandable groups in the inspector
-@VisibleForTesting
-const val KEY_PREFIX = "inspector.open."
+@VisibleForTesting const val KEY_PREFIX = "inspector.open."
 
 /**
  * Model for a label in the property inspector.
  *
  * This model supports collapsing of child lines.
+ *
  * @property name A name used to identify an editor and/or a section of editors.
  * @property editorModel The model of an optional editor for this label.
- * @property properties A place to store the expansion state of this label such that it can be restored later.
+ * @property properties A place to store the expansion state of this label such that it can be
+ *   restored later.
  * @property expandable True if this label is expandable.
  * @property expanded True if this label is currently expanded.
- * @property icon Shows the expansion state f this is an expandable label, otherwise it may show the namespace of the property.
+ * @property icon Shows the expansion state f this is an expandable label, otherwise it may show the
+ *   namespace of the property.
  */
 open class CollapsibleLabelModel(
   val name: String,
@@ -147,4 +149,4 @@ open class CollapsibleLabelModel(
  *
  * The model is used for generated separators around title elements in the properties panel.
  */
-class TitleLineModel(name: String): CollapsibleLabelModel(name)
+class TitleLineModel(name: String) : CollapsibleLabelModel(name)

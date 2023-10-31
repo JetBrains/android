@@ -26,12 +26,12 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
 import com.android.tools.property.panel.impl.model.util.FakeFlagsPropertyItem
 import com.android.tools.property.panel.impl.support.SimpleControlTypeProvider
 import com.android.tools.property.panel.impl.table.EditorPanel
 import com.android.tools.property.panel.impl.table.PTableCellEditorProviderImpl
-import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
@@ -49,23 +49,24 @@ import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JComponent
 import javax.swing.JScrollPane
+import javax.swing.JTextField
 
 class FlagPropertyEditorTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setUp() {
-    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
-    whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT)).thenReturn(SomeAction("ClearText"))
+    ApplicationManager.getApplication()
+      .replaceService(ActionManager::class.java, mock(), disposableRule.disposable)
+    whenever(ActionManager.getInstance().getAction(IdeActions.ACTION_CLEAR_TEXT))
+      .thenReturn(SomeAction("ClearText"))
   }
 
   @Test
@@ -98,6 +99,11 @@ class FlagPropertyEditorTest {
   fun testPanelWillRestoreEditingInTable() {
     val table = createTableWithFlagEditors()
     val flagEditor = getEditorFromTable(table, 1)
+
+    // The flag editor should have a JTextField and not a PropertyLabel:
+    assertThat(flagEditor.components.single { it is JTextField }).isNotNull()
+    assertThat(flagEditor.components.singleOrNull { it is PropertyLabel }).isNull()
+
     val panel = FlagPropertyPanel(flagEditor.editorModel, flagEditor.tableParent!!, 400)
     val swingTable = table.component as PTableImpl
     swingTable.removeEditor()
@@ -106,28 +112,85 @@ class FlagPropertyEditorTest {
     assertThat(swingTable.editingRow).isEqualTo(1)
   }
 
+  @Test
+  fun testRendererUsesLabel() {
+    val tableEditor = createTableWithFlagEditors()
+    val table = tableEditor.component
+    val renderer = table.getCellRenderer(0, 1)
+    val component =
+      renderer.getTableCellRendererComponent(table, table.getValueAt(0, 1), false, false, 0, 1)
+        as? JComponent
+    val flagEditor = component?.components?.single() as? FlagPropertyEditor ?: error("unexpected")
+    // The flag renderer should have a PropertyLabel and not a JTextField:
+    assertThat(flagEditor.components.single { it is PropertyLabel }).isNotNull()
+    assertThat(flagEditor.components.singleOrNull { it is JTextField }).isNull()
+  }
+
   private fun createTableWithFlagEditors(): TableEditor {
-    val flag1 = FakeFlagsPropertyItem(ANDROID_URI, ATTR_INPUT_TYPE, listOf("text", "date", "datetime"), listOf(1, 6, 2))
-    val flag2 = FakeFlagsPropertyItem(ANDROID_URI, "autoLink", listOf("none", "web", "email", "phone", "all"), listOf(0, 1, 2, 4, 7))
-    val flag3 = FakeFlagsPropertyItem(
-      ANDROID_URI,
-      "long",
-      listOf("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"),
-      listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14))
+    val flag1 =
+      FakeFlagsPropertyItem(
+        ANDROID_URI,
+        ATTR_INPUT_TYPE,
+        listOf("text", "date", "datetime"),
+        listOf(1, 6, 2)
+      )
+    val flag2 =
+      FakeFlagsPropertyItem(
+        ANDROID_URI,
+        "autoLink",
+        listOf("none", "web", "email", "phone", "all"),
+        listOf(0, 1, 2, 4, 7)
+      )
+    val flag3 =
+      FakeFlagsPropertyItem(
+        ANDROID_URI,
+        "long",
+        listOf(
+          "one",
+          "two",
+          "three",
+          "four",
+          "five",
+          "six",
+          "seven",
+          "eight",
+          "nine",
+          "ten",
+          "eleven",
+          "twelve",
+          "thirteen",
+          "fourteen"
+        ),
+        listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
+      )
     val tableModel = PTableTestModel(flag1, flag2, flag3)
     val lineModel = TableLineModelImpl(tableModel, true)
-    val enumSupportProvider = object : EnumSupportProvider<PropertyItem> {
-      override fun invoke(property: PropertyItem): EnumSupport? {
-        return null
+    val enumSupportProvider =
+      object : EnumSupportProvider<PropertyItem> {
+        override fun invoke(property: PropertyItem): EnumSupport? {
+          return null
+        }
       }
-    }
     val controlTypeProvider = SimpleControlTypeProvider<PropertyItem>(ControlType.FLAG_EDITOR)
-    val nameControlTypeProvider = SimpleControlTypeProvider<NewPropertyItem>(ControlType.TEXT_EDITOR)
+    val nameControlTypeProvider =
+      SimpleControlTypeProvider<NewPropertyItem>(ControlType.TEXT_EDITOR)
     val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-    val cellEditorProvider = PTableCellEditorProviderImpl(
-      NewPropertyItem::class.java, nameControlTypeProvider, EditorProvider.createForNames(),
-      FlagsPropertyItem::class.java, controlTypeProvider, editorProvider)
-    return TableEditor(lineModel, DefaultPTableCellRendererProvider(), cellEditorProvider)
+    val uiProvider = TableUIProvider(controlTypeProvider, editorProvider)
+
+    val cellEditorProvider =
+      PTableCellEditorProviderImpl(
+        NewPropertyItem::class.java,
+        nameControlTypeProvider,
+        EditorProvider.createForNames(),
+        FlagsPropertyItem::class.java,
+        controlTypeProvider,
+        editorProvider
+      )
+    return TableEditor(
+      lineModel,
+      uiProvider.tableCellRendererProvider,
+      uiProvider.tableCellEditorProvider
+    )
   }
 
   private fun getEditorFromTable(table: TableEditor, row: Int): FlagPropertyEditor {

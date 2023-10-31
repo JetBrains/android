@@ -21,12 +21,12 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
 import com.android.tools.idea.gradle.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -71,12 +71,22 @@ fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescri
 fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().compiledApis)
 
-fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
-  ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
-  ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
-  ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
-  ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11"),
-))
+fun languageLevels(model: PsAndroidModule): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> {
+  val languageLevels = mutableListOf(
+    ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
+    ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
+    ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
+    ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11")
+  )
+  model.compileSdkVersion.maybeValue?.toIntOrNull()?.let { compileSdkVersion ->
+    // API 34 supports Java 17 https://developer.android.com/build/jdks
+    // TODO Update with proper AndroidVersion b/291757992
+    if(compileSdkVersion >= 34) {
+      languageLevels.add(ValueDescriptor(value = LanguageLevel.JDK_17, description = "Java 17"))
+    }
+  }
+  return immediateFuture(languageLevels)
+}
 
 fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
   ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.${it.name}")))
@@ -141,23 +151,25 @@ fun productFlavorMatchingFallbackValues(project: PsProject, dimension: String?):
 
 private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
 fun dependencyVersionValues(model: PsDeclaredLibraryDependency): ListenableFuture<List<ValueDescriptor<String>>> =
-  Futures.transform(
-    model.parent.parent.repositorySearchFactory
-      .create(model.parent.getArtifactRepositories())
-      .search(SearchRequest(SearchQuery(model.spec.group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
-    { it!!.toVersionValueDescriptors() },
-    directExecutor())
+  model.spec.group?.let { group ->
+    Futures.transform(
+      model.parent.parent.repositorySearchFactory
+        .create(model.parent.getArtifactRepositories())
+        .search(SearchRequest(SingleModuleSearchQuery(group, model.spec.name), MAX_ARTIFACTS_TO_REQUEST, 0)),
+      { it!!.toVersionValueDescriptors() },
+      directExecutor())
+  } ?: immediateFuture(listOf())
 
 fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<ValueDescriptor<String>>> =
   Futures.transform(
     model.repositorySearchFactory
       .create(model.getPluginArtifactRepositories())
-      .search(SearchRequest(SearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
+      .search(SearchRequest(SingleModuleSearchQuery("com.android.tools.build", "gradle"), MAX_ARTIFACTS_TO_REQUEST, 0)),
     { sr ->
       val searchResult = sr!!
       // TODO(b/242691473): going through toString() here is not pretty, but the type information is buried quite deep.
       val versions = searchResult.artifacts.flatMap { it.versions }.distinct().mapNotNull { AgpVersion.tryParse(it.toString()) }.toSet()
-      val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      val latestKnown = AgpVersions.latestKnown
       // return only results that will not lead to forced upgrades
       searchResult.toVersionValueDescriptors {
         // TODO(b/242691473): again, not pretty

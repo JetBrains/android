@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations
 
 import com.android.resources.NightMode
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.configurations.Configuration
 import com.intellij.openapi.actionSystem.DataContext
 import icons.StudioIcons
 

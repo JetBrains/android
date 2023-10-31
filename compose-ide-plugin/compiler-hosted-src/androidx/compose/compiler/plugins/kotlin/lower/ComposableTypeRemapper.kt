@@ -377,6 +377,7 @@ class ComposerTypeRemapper(
         return annotations.hasAnnotation(ComposeFqNames.Composable)
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private val IrConstructorCall.annotationClass
         get() = this.symbol.owner.returnType.classifierOrNull
 

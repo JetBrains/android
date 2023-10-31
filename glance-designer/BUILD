@@ -20,6 +20,7 @@ iml_module(
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -27,7 +28,6 @@ iml_module(
 iml_module(
     name = "intellij.android.glance-designer.tests",
     iml_files = ["intellij.android.glance-designer.tests.iml"],
-    resources = ["testSrc/META-INF"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.glance.preview.GlanceDesignerTestSuite",
     test_friends = ["//tools/adt/idea/glance-designer:intellij.android.glance-designer"],

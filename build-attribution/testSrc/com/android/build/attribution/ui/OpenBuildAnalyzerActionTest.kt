@@ -20,17 +20,19 @@ import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.data.BuildRequestHolder
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.TaskContainer
+import com.android.tools.idea.Projects
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.testFramework.MapDataContext
 import com.google.common.truth.Truth.assertThat
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
@@ -41,8 +43,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import java.util.UUID
 import javax.swing.JPanel
-import com.android.tools.idea.Projects
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 @RunsInEdt
 class OpenBuildAnalyzerActionTest {

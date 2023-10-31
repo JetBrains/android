@@ -65,9 +65,9 @@ public class GradleBuildState {
     return project.getService(GradleBuildState.class);
   }
 
-  public GradleBuildState(@NotNull Project project) {
+  public GradleBuildState(@NotNull Project project, @NotNull MessageBus messageBus) {
     myProject = project;
-    myMessageBus = project.getMessageBus();
+    myMessageBus = messageBus;
   }
 
   public void buildStarted(@NotNull BuildContext context) {

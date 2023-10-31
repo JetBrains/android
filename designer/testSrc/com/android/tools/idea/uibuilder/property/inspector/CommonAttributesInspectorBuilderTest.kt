@@ -57,11 +57,9 @@ import org.junit.Test
 @RunsInEdt
 class CommonAttributesInspectorBuilderTest {
 
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Before
   fun setUp() {

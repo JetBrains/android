@@ -19,15 +19,16 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButton
 
-/**
- * An [ActionButton] that is focusable.
- */
+/** An [ActionButton] that is focusable. */
 class FocusableActionButton(action: AnAction) :
-  ActionButton(action, action.templatePresentation.clone(), "", ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE) {
+  ActionButton(
+    action,
+    action.templatePresentation.clone(),
+    "",
+    ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE
+  ) {
 
   init {
     registerActionKey({ click() }, KeyStrokes.ENTER, "enter")

@@ -15,9 +15,6 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.code.completion.ComposeMaterialIconLookupElement.Companion.resourcePathFromFqName
 import com.android.tools.idea.project.DefaultModuleSystem
@@ -26,7 +23,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -49,7 +45,7 @@ class ComposeCompletionContributorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    myFixture.stubComposableAnnotation()
   }
 
   @Test
@@ -668,15 +664,16 @@ class ComposeCompletionContributorTest {
       """.trimIndent()
     )
 
-    // When:
-    ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = false
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
-    myFixture.completeBasic()
+    try {
+      // When:
+      ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = false
+      myFixture.configureFromExistingVirtualFile(file.virtualFile)
+      myFixture.completeBasic()
 
-    // Then:
-    myFixture.checkResult(
-      // language=kotlin
-      """
+      // Then:
+      myFixture.checkResult(
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.runtime.Composable
@@ -686,9 +683,10 @@ class ComposeCompletionContributorTest {
         FoobarOne()
       }
       """.trimIndent()
-    )
-
-    ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
+      )
+    } finally {
+      ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled = true
+    }
   }
 
   @Test
@@ -1215,10 +1213,7 @@ class ComposeCompletionContributorTest {
     val accountBox = runReadAction { myFixture.elementAtCaret }
     assertThat(accountBox).isInstanceOf(KtProperty::class.java)
 
-    val mockLookupElement: LookupElement = mock()
-    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
-
-    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isTrue()
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(accountBox) }).isTrue()
   }
 
   @Test
@@ -1262,10 +1257,7 @@ class ComposeCompletionContributorTest {
     val accountBox = runReadAction { myFixture.elementAtCaret }
     assertThat(accountBox).isInstanceOf(KtProperty::class.java)
 
-    val mockLookupElement: LookupElement = mock()
-    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
-
-    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isFalse()
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(accountBox) }).isFalse()
   }
 
   @Test

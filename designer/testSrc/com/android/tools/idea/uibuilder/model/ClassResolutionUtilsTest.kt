@@ -24,12 +24,13 @@ import org.junit.Rule
 import org.junit.Test
 
 class ClassResolutionUtilsTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
-    projectRule.fixture.addFileToProject("src/google/simpleapplication/CustomView.java", """
+    projectRule.fixture.addFileToProject(
+      "src/google/simpleapplication/CustomView.java",
+      """
       package google.simpleapplication;
 
       import android.content.Context;
@@ -40,7 +41,9 @@ class ClassResolutionUtilsTest {
           super(context);
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -49,11 +52,18 @@ class ClassResolutionUtilsTest {
       val textViewClass = findClassForViewTag(projectRule.project, "TextView")
       assertNotNull(textViewClass)
       assertEquals(textViewClass, findClassesForViewTag(projectRule.project, "TextView").single())
-      assertEquals(textViewClass, findClassesForViewTag(projectRule.project, "android.widget.TextView").single())
+      assertEquals(
+        textViewClass,
+        findClassesForViewTag(projectRule.project, "android.widget.TextView").single()
+      )
 
-      val customViewClass = findClassForViewTag(projectRule.project, "google.simpleapplication.CustomView")
+      val customViewClass =
+        findClassForViewTag(projectRule.project, "google.simpleapplication.CustomView")
       assertNotNull(customViewClass)
-      assertEquals(customViewClass, findClassesForViewTag(projectRule.project, "google.simpleapplication.CustomView").single())
+      assertEquals(
+        customViewClass,
+        findClassesForViewTag(projectRule.project, "google.simpleapplication.CustomView").single()
+      )
     }
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -24,18 +25,20 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.ThreeStateCheckBox
 
-/**
- * A standard control for editing a boolean property value with 3 states: on/off/unset.
- */
-class PropertyThreeStateCheckBox(model: ThreeStateBooleanPropertyEditorModel) :
-  PropertyTextFieldWithLeftButton(model, CustomThreeStateCheckBox(model)) {
+/** A standard control for editing a boolean property value with 3 states: on/off/unset. */
+class PropertyThreeStateCheckBox(
+  model: ThreeStateBooleanPropertyEditorModel,
+  context: EditorContext
+) : PropertyTextFieldWithLeftButton(model, context, CustomThreeStateCheckBox(model)) {
 
   private val checkBox = leftComponent as CustomThreeStateCheckBox
 
   @VisibleForTesting
   var state: ThreeStateCheckBox.State
     get() = checkBox.state
-    set(value) { checkBox.state = value }
+    set(value) {
+      checkBox.state = value
+    }
 
   override fun updateFromModel() {
     super.updateFromModel()
@@ -69,13 +72,12 @@ private class CustomThreeStateCheckBox(
     try {
       state = toThreeStateValue(propertyModel.value)
       isFocusable = !propertyModel.readOnly
-    }
-    finally {
+    } finally {
       stateChangeFromModel = false
     }
   }
 
-  override fun getToolTipText(): String? {
+  override fun getToolTipText(): String {
     return propertyModel.tooltip
   }
 
@@ -85,7 +87,8 @@ private class CustomThreeStateCheckBox(
 
   private fun toThreeStateValue(value: String?) =
     when (value) {
-      "", null -> State.DONT_CARE
+      "",
+      null -> State.DONT_CARE
       SdkConstants.VALUE_TRUE -> State.SELECTED
       else -> State.NOT_SELECTED
     }

@@ -59,6 +59,8 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.SystemProperties.getUserHome
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.singletonList
@@ -66,8 +68,6 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JRadioButton
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 
 private val EXPORT_FORMATS_ALL = listOf(DB, SQL, CSV(mock()))
 

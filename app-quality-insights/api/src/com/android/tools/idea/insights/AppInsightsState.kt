@@ -3,6 +3,7 @@ package com.android.tools.idea.insights
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.QueryFilters
+import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 
@@ -21,7 +22,8 @@ data class Filters(
   val devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
   val operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
     MultiSelection.emptySelection(),
-  val signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+  val signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
+  val visibilityType: Selection<VisibilityType> = selectionOf(VisibilityType.ALL)
 ) {
   fun withVersions(value: Set<Version>) =
     copy(versions = versions.selectMatching { it.value in value })
@@ -38,6 +40,9 @@ data class Filters(
     copy(operatingSystems = operatingSystems.selectMatching { it.value in value })
 
   fun withSignal(value: SignalType) = copy(signal = signal.select(value))
+
+  fun withVisibilityType(value: VisibilityType) =
+    copy(visibilityType = visibilityType.select(value))
 }
 
 data class Timed<out V>(val value: V, val time: Instant)
@@ -45,7 +50,7 @@ data class Timed<out V>(val value: V, val time: Instant)
 /** Represents the App Insights state model. */
 data class AppInsightsState(
   /** Available Connections. */
-  val connections: Selection<VariantConnection>,
+  val connections: Selection<Connection>,
 
   /** Available time interval filter values. */
   val filters: Filters,
@@ -89,27 +94,30 @@ data class AppInsightsState(
 
   fun selectSignal(value: SignalType): AppInsightsState = copy(filters = filters.withSignal(value))
 
+  fun selectVisibilityType(value: VisibilityType): AppInsightsState =
+    copy(filters = filters.withVisibilityType(value))
+
   /** Returns a new state with a new [Fatality] toggled. */
   fun toggleFatality(value: FailureType): AppInsightsState =
     copy(filters = filters.withFatalityToggle(value))
 
   /** Returns a new state with a new [FirebaseConnection] selected. */
-  fun selectConnection(value: VariantConnection): AppInsightsState =
+  fun selectConnection(value: Connection): AppInsightsState =
     copy(connections = connections.select(value))
 }
 
-fun AppInsightsState.toIssueRequest(): IssueRequest? {
-  if (connections.selected?.connection == null || filters.timeInterval.selected == null) {
+fun AppInsightsState.toIssueRequest(clock: Clock): IssueRequest? {
+  if (connections.selected == null || filters.timeInterval.selected == null) {
     return null
   }
   return IssueRequest(
-    connection = connections.selected?.connection!!,
+    connection = connections.selected,
     filters =
       QueryFilters(
         interval =
-          Instant.now().let {
+          clock.instant().let {
             Interval(
-              startTime = it.minus(Duration.ofDays(filters.timeInterval.selected!!.numDays)),
+              startTime = it.minus(Duration.ofDays(filters.timeInterval.selected.numDays)),
               endTime = it
             )
           },
@@ -123,7 +131,8 @@ fun AppInsightsState.toIssueRequest(): IssueRequest? {
           if (filters.operatingSystems.allSelected()) setOf(OperatingSystemInfo.ALL)
           else filters.operatingSystems.selected.asSequence().map { it.value }.toSet(),
         eventTypes = filters.failureTypeToggles.selected.toList(),
-        signal = filters.signal.selected ?: SignalType.SIGNAL_UNSPECIFIED
+        signal = filters.signal.selected ?: SignalType.SIGNAL_UNSPECIFIED,
+        visibilityType = filters.visibilityType.selected ?: VisibilityType.ALL
       )
   )
 }

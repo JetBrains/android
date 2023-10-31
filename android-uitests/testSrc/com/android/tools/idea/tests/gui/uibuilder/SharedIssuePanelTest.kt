@@ -15,20 +15,21 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder
 
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProblemsPaneFixture
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 /**

@@ -17,20 +17,16 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.idea.insights.ui.Timestamp
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.JBUI
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicReference
-import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /** A display only action for showing timestamp for issues fetch/refresh from last. */
@@ -38,15 +34,9 @@ class AppInsightsDisplayRefreshTimestampAction(
   timestamp: Flow<Timestamp>,
   private val clock: Clock,
   scope: CoroutineScope
-) : AnAction(), CustomComponentAction {
+) : AnAction() {
   private val lastModifiedTimestamp: AtomicReference<Timestamp> =
     AtomicReference(Timestamp.UNINITIALIZED)
-  private val label =
-    JBLabel().apply {
-      text = displayText
-      isEnabled = false
-      border = JBUI.Borders.empty(0, 5, 0, 5)
-    }
 
   @VisibleForTesting
   val displayText: String
@@ -61,24 +51,31 @@ class AppInsightsDisplayRefreshTimestampAction(
         }
 
         // Force updating display text after timestamp update (i.e. loading state change).
-        label.text = displayText
+        ActivityTracker.getInstance().inc()
       }
     }
 
     scope.launch {
       // Force updating display text every minute.
       while (true) {
-        label.text = displayText
+        ActivityTracker.getInstance().inc()
         delay(UPDATE_INTERVAL_IN_MILLIS)
       }
     }
   }
 
+  override fun update(e: AnActionEvent) {
+    e.presentation.apply {
+      isEnabled = false
+      text = displayText
+    }
+  }
+
   override fun actionPerformed(e: AnActionEvent) = Unit
 
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
-    return label
-  }
+  override fun displayTextInToolbar() = true
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   companion object {
     private val UPDATE_INTERVAL_IN_MILLIS = Duration.ofMinutes(1).toMillis()

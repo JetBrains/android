@@ -70,12 +70,18 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
                               "This attribute must be set as a reference to a drawable resource containing the image " +
                               "(for example <code>@drawable/icon</code>)." +
                               "<br><br>Issue id: MissingApplicationIcon<br><br>More info:<br><a href=\"" +
+                              "#lint/link_info<MissingApplicationIcon<" +
                               "https://developer.android.com/studio/publish/preparing#publishing-configure" +
                               "\">https://developer.android.com/studio/publish/preparing#publishing-configure</a><br><br>" +
                               "Vendor: Android Open Source Project<br/>" +
-                              "Contact: <a href=\"https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
-                              "Feedback: <a href=\"https://issuetracker.google.com/issues/new?component=192708\">https://issuetracker.google.com/issues/new?component=192708</a><br/>";
-    String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "MissingApplicationIcon", editor);
+                              "Contact: <a href=\"" +
+                              "#lint/link_info<MissingApplicationIcon<" +
+                              "https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
+                              "Feedback: <a href=\"" +
+                              "#lint/link_info<MissingApplicationIcon<" +
+                              "https://issuetracker.google.com/issues/new?component=192708\">" +
+                              "https://issuetracker.google.com/issues/new?component=192708</a><br/>";
+    String description = TooltipLinkHandlerEP.getDescription(LintInspectionDescriptionLinkHandler.LINK_PREFIX + "MissingApplicationIcon", editor);
     assertThat(description).isEqualTo(issueExplanation);
   }
 
@@ -98,13 +104,19 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
                               "    &lt;/issue>" +
                               "&lt;/lint>" +
                               "</pre><br><br>" +
-                              "More info:<br><a href=\"https://developer.android.com/kotlin/interop#nullability_annotations\">" +
+                              "More info:<br><a href=\"" +
+                              "#lint/link_info<UnknownNullness<" +
+                              "https://developer.android.com/kotlin/interop#nullability_annotations\">" +
                               "https://developer.android.com/kotlin/interop#nullability_annotations</a><br><br>" +
                               "Vendor: Android Open Source Project<br/>" +
-                              "Contact: <a href=\"https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
-                              "Feedback: <a href=\"https://issuetracker.google.com/issues/new?component=192708\">" +
+                              "Contact: <a href=\"" +
+                              "#lint/link_info<UnknownNullness<" +
+                              "https://groups.google.com/g/lint-dev\">https://groups.google.com/g/lint-dev</a><br/>" +
+                              "Feedback: <a href=\"" +
+                              "#lint/link_info<UnknownNullness<" +
+                              "https://issuetracker.google.com/issues/new?component=192708\">" +
                               "https://issuetracker.google.com/issues/new?component=192708</a><br/>";
-    String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "UnknownNullness", editor);
+    String description = TooltipLinkHandlerEP.getDescription(LintInspectionDescriptionLinkHandler.LINK_PREFIX + "UnknownNullness", editor);
     assertThat(description).isEqualTo(issueExplanation);
   }
 
@@ -120,7 +132,7 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
       Category.CORRECTNESS, 6, Severity.WARNING, new Implementation(ApiDetector.class, Scope.JAVA_FILE_SCOPE));
     AndroidLintInspectionBase.getInspectionShortNameByIssue(project, testIssue);
 
-    String description = TooltipLinkHandlerEP.getDescription(LintExternalAnnotator.LINK_PREFIX + "TestThirdPartyIssue", editor);
+    String description = TooltipLinkHandlerEP.getDescription(LintInspectionDescriptionLinkHandler.LINK_PREFIX + "TestThirdPartyIssue", editor);
     assertThat(description).isEqualTo(explanation + "<br><br>Issue id: TestThirdPartyIssue");
   }
 }

@@ -32,8 +32,7 @@ class FakePropertyModel : PropertiesModel<FakePropertyItem> {
     table.put(property.namespace, property.name, property)
   }
 
-  override fun deactivate() {
-  }
+  override fun deactivate() {}
 
   override fun addListener(listener: PropertiesModelListener<FakePropertyItem>) {
     listeners.add(listener)

@@ -34,6 +34,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 
@@ -116,6 +117,8 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
+        "//tools/adt/idea/project-system-gradle-psd:liblint-checks-proto.lib[test]",
     ],
 )
 
@@ -176,4 +179,13 @@ maven_repository(
         "@maven//:org.mockito.mockito-core_4.8.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
+)
+
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "liblint-checks-proto.lib",
+    jars = ["//tools/base/lint:liblint-checks-proto.lib.jar"],
+    visibility = ["//visibility:public"],
 )

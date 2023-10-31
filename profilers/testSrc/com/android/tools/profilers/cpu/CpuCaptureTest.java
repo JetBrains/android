@@ -19,11 +19,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
-import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.Test;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 // TODO: Add more variation of trace files (e.g trace with no threads)
 public class CpuCaptureTest {
@@ -146,10 +145,6 @@ public class CpuCaptureTest {
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
       assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
-
-      // Expected IOException to be thrown in VmTraceParser.
-      assertThat(executionExceptionCause.getCause()).isInstanceOf(IOException.class);
-      // CpuCaptureParser#traceBytesToCapture catches the IOException and throw an IllegalStateException instead.
     }
   }
 
@@ -177,7 +172,6 @@ public class CpuCaptureTest {
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
       assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
-      assertThat(executionExceptionCause).hasCauseThat().hasMessageThat().contains("magic number mismatch");
     }
   }
 

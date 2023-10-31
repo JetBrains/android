@@ -17,7 +17,6 @@ package com.android.tools.idea.devicemanager;
 
 import static com.android.tools.idea.wearpairing.AndroidWearPairingBundle.message;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
@@ -121,13 +120,11 @@ public class DeviceTableCellRenderer<D extends Device> implements TableCellRende
 
     myPairedLabel.setForeground(foreground);
 
-    if (StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      Optional<Icon> icon = getPairedLabelIcon(device);
+    Optional<Icon> icon = getPairedLabelIcon(device);
 
-      TableCellRenderers.setIcon(myPairedLabel, icon.orElse(null), selected);
-      myPairedLabel.setVisible(icon.isPresent());
-      myPanel.setToolTipText(getPairedTooltip(device));
-    }
+    TableCellRenderers.setIcon(myPairedLabel, icon.orElse(null), selected);
+    myPairedLabel.setVisible(icon.isPresent());
+    myPanel.setToolTipText(getPairedTooltip(device));
 
     myPanel.setBackground(Tables.getBackground(table, selected));
     myPanel.setBorder(Tables.getBorder(selected, focused));

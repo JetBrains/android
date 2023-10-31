@@ -32,12 +32,10 @@ import com.intellij.util.ui.ColorIcon
 import java.text.DecimalFormat
 import javax.swing.Icon
 
-private const val DEFAULT_DENSITY = 160  // Same as Density.MEDIUM.dpiValue
+private const val DEFAULT_DENSITY = 160 // Same as Density.MEDIUM.dpiValue
 private const val DEFAULT_DENSITY_FLOAT = 160.0f
 
-/**
- * A [PropertyItem] in the inspector with a snapshot of the value.
- */
+/** A [PropertyItem] in the inspector with a snapshot of the value. */
 open class InspectorPropertyItem(
 
   /** The namespace of the attribute e.g. "http://schemas.android.com/apk/res/android" */
@@ -66,12 +64,18 @@ open class InspectorPropertyItem(
 
   /** The property [ViewNode] and [ResourceLookup] */
   val lookup: ViewNodeAndResourceLookup
-
 ) : PropertyItem {
 
-  constructor(namespace: String, attrName: String, type: PropertyType, value: String?, group: PropertySection,
-              source: ResourceReference?, viewId: Long, lookup: ViewNodeAndResourceLookup) :
-    this(namespace, attrName, attrName, type, value, group, source, viewId, lookup)
+  constructor(
+    namespace: String,
+    attrName: String,
+    type: PropertyType,
+    value: String?,
+    group: PropertySection,
+    source: ResourceReference?,
+    viewId: Long,
+    lookup: ViewNodeAndResourceLookup
+  ) : this(namespace, attrName, attrName, type, value, group, source, viewId, lookup)
 
   /** The type of the attribute */
   var type = initialType
@@ -87,54 +91,64 @@ open class InspectorPropertyItem(
   /**
    * The integer value of a dimension or -1 for other types.
    *
-   * Note: for a DIMENSION_FLOAT this value should be converted using Float.fromBits(dimensionValue).
+   * Note: for a DIMENSION_FLOAT this value should be converted using
+   * Float.fromBits(dimensionValue).
    */
   var dimensionValue: Int = computeDimensionValue(initialType)
     private set
 
-  private fun computeDimensionValue(type: PropertyType): Int = when (type) {
-    PropertyType.DIMENSION -> initialValue?.toIntOrNull() ?: -1
-    PropertyType.DIMENSION_EM,
-    PropertyType.DIMENSION_DP,
-    PropertyType.DIMENSION_FLOAT,
-    PropertyType.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
-    else -> -1
-  }
+  private fun computeDimensionValue(type: PropertyType): Int =
+    when (type) {
+      PropertyType.DIMENSION -> initialValue?.toIntOrNull() ?: -1
+      PropertyType.DIMENSION_EM,
+      PropertyType.DIMENSION_DP,
+      PropertyType.DIMENSION_FLOAT,
+      PropertyType.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
+      else -> -1
+    }
 
   override var value: String?
-    get() = when (type) {
-      PropertyType.DIMENSION -> formatDimension(dimensionValue)
-      PropertyType.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
-      PropertyType.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
-      PropertyType.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
-      PropertyType.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
-      else -> initialValue
-    }
+    get() =
+      when (type) {
+        PropertyType.DIMENSION -> formatDimension(dimensionValue)
+        PropertyType.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
+        PropertyType.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
+        PropertyType.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
+        PropertyType.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
+        else -> initialValue
+      }
     set(_) {}
 
-  override fun hashCode(): Int = HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
+  override fun hashCode(): Int =
+    HashCodes.mix(namespace.hashCode(), attrName.hashCode(), source?.hashCode() ?: 0)
 
   override fun equals(other: Any?): Boolean =
     other is InspectorPropertyItem &&
-    namespace == other.namespace &&
-    attrName == other.attrName &&
-    source == other.source &&
-    javaClass == other.javaClass
+      namespace == other.namespace &&
+      attrName == other.attrName &&
+      source == other.source &&
+      javaClass == other.javaClass
 
-  override val helpSupport = object : HelpSupport {
-    override fun browse() {
-      val view = lookup[viewId] ?: return
-      val location = lookup.resourceLookup.findFileLocations(this@InspectorPropertyItem, view, 1).singleOrNull() ?: return
-      location.navigatable?.navigate(true)
+  override val helpSupport =
+    object : HelpSupport {
+      override fun browse() {
+        val view = lookup[viewId] ?: return
+        val location =
+          lookup.resourceLookup
+            .findFileLocations(this@InspectorPropertyItem, view, 1)
+            .singleOrNull()
+            ?: return
+        location.navigatable?.navigate(true)
+      }
     }
-  }
 
   override var colorButton = createColorButton()
 
   private fun formatDimension(pixels: Int): String? {
     if (pixels == -1 || pixels == Int.MIN_VALUE || pixels == Int.MAX_VALUE) {
       // -1 means not supported for some attributes e.g. baseline of View
-      // MIN_VALUE means not supported for some attributes e.g. layout_marginStart in ViewGroup.MarginLayoutParams
+      // MIN_VALUE means not supported for some attributes e.g. layout_marginStart in
+      // ViewGroup.MarginLayoutParams
       // MAX-VALUE means not specified for some attributes e.g. maxWidth of TextView
       return initialValue
     }
@@ -154,7 +168,11 @@ open class InspectorPropertyItem(
     val resourceLookup = lookup.resourceLookup
     // If we are unable to get the dpi from the device, just show pixels
     val dpi = resourceLookup.dpi ?: return "${formatFloat(pixels)}px"
-    if (name == ATTR_TEXT_SIZE && resourceLookup.fontScale != 0.0f && PropertiesSettings.dimensionUnits == DimensionUnits.DP) {
+    if (
+      name == ATTR_TEXT_SIZE &&
+        resourceLookup.fontScale != 0.0f &&
+        PropertiesSettings.dimensionUnits == DimensionUnits.DP
+    ) {
       val spFactor = pixelsToSpFactor
       if (spFactor != null) {
         return "${DecimalFormat("0.0").format(pixels * spFactor)}sp"
@@ -205,7 +223,8 @@ open class InspectorPropertyItem(
       return DEFAULT_DENSITY_FLOAT / fontScale / dpi
     }
 
-  private fun formatFloat(value: Float): String = if (value == 0.0f) "0" else DecimalFormat("0.0##").format(value)
+  private fun formatFloat(value: Float): String =
+    if (value == 0.0f) "0" else DecimalFormat("0.0##").format(value)
 
   private fun createColorButton(): ActionIconButton? =
     when (type) {
@@ -216,18 +235,25 @@ open class InspectorPropertyItem(
 
   @Slow
   fun resolveDimensionType(view: ViewNode) {
-    if ((type == PropertyType.INT32 || type == PropertyType.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
-      type = if (type == PropertyType.INT32) PropertyType.DIMENSION else PropertyType.DIMENSION_FLOAT
+    if (
+      (type == PropertyType.INT32 || type == PropertyType.FLOAT) &&
+        lookup.resourceLookup.isDimension(view, name)
+    ) {
+      type =
+        if (type == PropertyType.INT32) PropertyType.DIMENSION else PropertyType.DIMENSION_FLOAT
     }
   }
 
-  private class ColorActionIconButton(private val property: InspectorPropertyItem): ActionIconButton {
+  private class ColorActionIconButton(private val property: InspectorPropertyItem) :
+    ActionIconButton {
     override val actionButtonFocusable = false
     override val action: AnAction? = null
     override val actionIcon: Icon?
       get() {
         val view = property.lookup[property.viewId] ?: return null
-        property.lookup.resourceLookup.resolveAsIcon(property, view)?.let { return it }
+        property.lookup.resourceLookup.resolveAsIcon(property, view)?.let {
+          return it
+        }
         val value = property.value
         val color = value?.let { parseColor(value) } ?: return null
         return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))

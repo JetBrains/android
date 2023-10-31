@@ -21,6 +21,7 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_MERGE;
 import static com.android.tools.idea.uibuilder.model.ClassResolutionUtilsKt.findClassesForViewTag;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
@@ -41,12 +42,12 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidSlowOperations;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -64,11 +65,26 @@ public class ViewHandlerManager implements Disposable {
    */
   private static final String HANDLER_CLASS_SUFFIX = "Handler";
 
+  /**
+   *  Callback used when making a handler lookup of a super class of the class we currently are finding a handler for.
+   * {See #createViaIndexLookup}.
+   */
+  private static final Runnable SUPER_CLASS_LOOKUP = () -> {};
+
   private final Project myProject;
-  private final Map<String, ViewHandler> myHandlers = new HashMap<>();
-  public static final ViewHandler NONE = new ViewHandler();
+  private final Map<String, ViewHandler> myHandlers = Collections.synchronizedMap(new HashMap<>());
   private final Map<ViewHandler, List<ViewAction>> myToolbarActions = new HashMap<>();
   private final Map<ViewHandler, List<ViewAction>> myMenuActions = new HashMap<>();
+
+  /**
+   * A {@link ViewHandler} return when no real {@link ViewHandler} can be found.
+   */
+  public static final ViewHandler NONE = new ViewHandler();
+
+  /**
+   * A {@link ViewHandler} return when the lookup is delayed because an index lookup was needed.
+   */
+  public static final ViewHandler TEMP = new ViewHandler();
 
   @NotNull
   public static ViewHandlerManager get(@NotNull Project project) {
@@ -93,10 +109,28 @@ public class ViewHandlerManager implements Disposable {
    * Gets the {@link ViewHandler} associated with the given component, if any
    *
    * @param component the component to find a handler for
-   * @return the corresponding view handler, if any
+   * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+   *                       performed on a background thread and <code>null</code> is returned.
+   *                       This callback is called if the background finds a handler.
+   * @return the corresponding view handler, or null if not found or an index lookup was delayed
    */
   @Nullable
-  public ViewHandler getHandler(@NotNull NlComponent component) {
+  public ViewHandler getHandler(@NotNull NlComponent component, @NotNull Runnable handlerUpdated) {
+    ViewHandler handler = getHandlerOrDefault(component, handlerUpdated);
+    return handler != NONE && handler != TEMP ? handler : null;
+  }
+
+  /**
+   * Gets the {@link ViewHandler} associated with a given component.
+   *
+   * @param component the component to find a handler for
+   * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+   *                       performed on a background thread and {@link #TEMP} is returned.
+   *                       This callback is called if the background finds a handler.
+   * If there is no custom handler found returns an instance of {@link ViewHandler} ({@link #TEMP} if an index lookup was delayed).
+   */
+  @NotNull
+  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component, @NotNull Runnable handlerUpdated) {
     String tag = component.getTagName();
 
     switch (tag) {
@@ -112,65 +146,60 @@ public class ViewHandlerManager implements Disposable {
       case VIEW_MERGE:
         String parentTag = component.getAttribute(TOOLS_URI, ATTR_PARENT_TAG);
         if (parentTag != null) {
-          ViewHandler groupHandler = getHandler(parentTag);
+          ViewHandler groupHandler = getHandlerOrDefault(parentTag, handlerUpdated);
           if (groupHandler instanceof ViewGroupHandler) {
             return new MergeDelegateHandler((ViewGroupHandler)groupHandler);
           }
         }
-        return getHandler(VIEW_MERGE);
+        return getHandlerOrDefault(VIEW_MERGE, handlerUpdated);
 
       default:
-        return getHandler(tag);
+        return getHandlerOrDefault(tag, handlerUpdated);
     }
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with a given component.
-   * If there is no custom handler found returns an instance of {@link TextViewHandler}.
-   */
-  @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull NlComponent component) {
-    ViewHandler handler = getHandler(component);
-    return handler != null ? handler : NONE;
-  }
-
-  /**
-   * Gets the {@link ViewHandler} associated with the given XML tag.
-   * If there is no custom handler found returns an instance of {@link TextViewHandler}.
-   */
-  @NotNull
-  public ViewHandler getHandlerOrDefault(@NotNull String viewTag) {
-    ViewHandler handler = getHandler(viewTag);
-    return handler != null ? handler : NONE;
   }
 
   /**
    * Gets the {@link ViewHandler} associated with the given XML tag, if any
    *
    * @param viewTag the tag to look up
-   * @return the corresponding view handler, if any
+   * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+   *                       performed on a background thread and <code>null</code> is returned.
+   *                       This callback is called if the background finds a handler.
+   * @return the corresponding view handler, or null if not found or an index lookup was delayed
    */
   @Nullable
-  public ViewHandler getHandler(@NotNull String viewTag) {
+  public ViewHandler getHandler(@NotNull String viewTag, @NotNull Runnable handlerUpdated) {
+    ViewHandler handler = getHandlerOrDefault(viewTag, handlerUpdated);
+    return handler != NONE && handler != TEMP ? handler : null;
+  }
+
+  /**
+   * Gets the {@link ViewHandler} associated with the given XML tag.
+   *
+   * @param viewTag the tag to look up
+   * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+   *                       performed on a background thread and {@link #TEMP} is returned.
+   *                       This callback is called if the background finds a handler.
+   * If there is no custom handler found returns an instance of {@link ViewHandler} ({@link #TEMP} if an index lookup was delayed).
+   */
+  @NotNull
+  public ViewHandler getHandlerOrDefault(@NotNull String viewTag, @NotNull Runnable handlerUpdated) {
     ViewHandler handler = myHandlers.get(viewTag);
-    if (handler == null) {
+    if (handler == null || (handler == TEMP && handlerUpdated == SUPER_CLASS_LOOKUP)) {
       if (viewTag.indexOf('.') != -1) {
         String tag = NlComponentHelper.INSTANCE.viewClassToTag(viewTag);
         if (!tag.equals(viewTag)) {
-          handler = getHandler(tag);
-          if (handler != null) {
-            // Alias fully qualified widget name to tag
-            myHandlers.put(viewTag, handler);
-            return handler;
-          }
+          handler = getHandlerOrDefault(tag, handlerUpdated);
+          // Alias fully qualified widget name to tag
+          myHandlers.put(viewTag, handler);
+          return handler;
         }
       }
 
-      handler = createHandler(viewTag);
+      handler = createHandler(viewTag, handlerUpdated);
       myHandlers.put(viewTag, handler);
     }
-
-    return handler != NONE ? handler : null;
+    return handler;
   }
 
   /**
@@ -186,17 +215,20 @@ public class ViewHandlerManager implements Disposable {
   /**
    * Finds the nearest layout/view group handler for the given component.
    *
-   * @param component the component to search from
-   * @param strict    if true, only consider parents of the component, not the component itself
+   * @param component      the component to search from
+   * @param strict         if true, only consider parents of the component, not the component itself
+   * @param handlerUpdated if a component handler lookup require an index lookup, the lookup is
+   *                       performed on a background thread and <code>null</code> is returned.
+   *                       This callback is called if the background finds a handler.
    */
   @Nullable
-  public ViewGroupHandler findLayoutHandler(@NotNull NlComponent component, boolean strict) {
+  public ViewGroupHandler findLayoutHandler(@NotNull NlComponent component, boolean strict, @NotNull Runnable handlerUpdated) {
     NlComponent curr = component;
     if (strict) {
       curr = curr.getParent();
     }
     while (curr != null) {
-      ViewHandler handler = getHandler(curr);
+      ViewHandler handler = getHandler(curr, handlerUpdated);
       if (handler instanceof ViewGroupHandler) {
         return (ViewGroupHandler)handler;
       }
@@ -207,7 +239,8 @@ public class ViewHandlerManager implements Disposable {
     return null;
   }
 
-  private ViewHandler createHandler(@NotNull String viewTag) {
+  @NotNull
+  private ViewHandler createHandler(@NotNull String viewTag, @NotNull Runnable handlerUpdated) {
     // Check if there are any built-in handlers. Do not bother with reflection in these cases.
     ViewHandler builtInHandler = BuiltinViewHandlerProvider.INSTANCE.findHandler(viewTag);
     if (builtInHandler != null) {
@@ -245,6 +278,22 @@ public class ViewHandlerManager implements Disposable {
 
     // We were not able to find built-in or extension defined handlers. We also could not get them via reflection. The last step is
     // to try searching in the users source code and try to use that one.
+    if (handlerUpdated == SUPER_CLASS_LOOKUP || !ApplicationManager.getApplication().isDispatchThread()) {
+      return createViaIndexLookup(viewTag, null);
+    }
+
+    // Find the handler on a background thread.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> createViaIndexLookup(viewTag, handlerUpdated));
+
+    // Return a temporary ViewHandler, that will be replaced when the index lookup finishes.
+    return TEMP;
+  }
+
+  @NotNull
+  private ViewHandler createViaIndexLookup(@NotNull String viewTag, @Nullable Runnable handlerUpdated) {
+    if (myProject.isDisposed()) {
+      return NONE;
+    }
     Logger.getInstance(ViewHandler.class).debug("Looking for user code defined handlers for " + viewTag);
     return ApplicationManager.getApplication().runReadAction((Computable<ViewHandler>)() -> {
       if (myProject.isDisposed()) {
@@ -252,12 +301,10 @@ public class ViewHandlerManager implements Disposable {
       }
 
       try {
-        PsiClass[] viewClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() -> findClassesForViewTag(myProject, viewTag));
+        PsiClass[] viewClasses = findClassesForViewTag(myProject, viewTag);
         if (viewClasses.length > 0) {
           String handlerName = viewTag + HANDLER_CLASS_SUFFIX;
-          PsiClass[] handlerClasses = AndroidSlowOperations.allowSlowOperationsInIdea(() ->
-            JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject))
-          );
+          PsiClass[] handlerClasses = JavaPsiFacade.getInstance(myProject).findClasses(handlerName, GlobalSearchScope.allScope(myProject));
 
           if (handlerClasses.length == 0) {
             // No view handler found for this class; look up the custom view and get the handler for its
@@ -269,7 +316,18 @@ public class ViewHandlerManager implements Disposable {
               if (superClass != null) {
                 String fqn = superClass.getQualifiedName();
                 if (fqn != null) {
-                  return getHandler(NlComponentHelper.INSTANCE.viewClassToTag(fqn));
+                  // When making a lookup of the super class, we don't want the original caller to be notified by handlerUpdated,
+                  // and we don't want to start an index lookup on another thread. Indicate that by passing the constant RECURSIVE_CALLBACK.
+                  ViewHandler handler = getHandlerOrDefault(NlComponentHelper.INSTANCE.viewClassToTag(fqn), SUPER_CLASS_LOOKUP);
+                  if (handler == TEMP) {
+                    Logger.getInstance(ViewHandler.class).warn("Unexpectedly got: TEMP for: " + viewTag);
+                    handler = NONE;
+                  }
+                  if (handler != NONE && handlerUpdated != null) {
+                    handlerUpdated.run();
+                  }
+                  myHandlers.put(viewTag, handler);
+                  return handler;
                 }
               }
             }
@@ -286,8 +344,10 @@ public class ViewHandlerManager implements Disposable {
       }
       catch (IndexNotReadyException ignore) {
         // TODO: Fix the bug: b.android.com/210064
+        myHandlers.put(viewTag, NONE);
         return NONE;
       }
+      myHandlers.put(viewTag, NONE);
       return NONE;
     });
   }
@@ -295,12 +355,14 @@ public class ViewHandlerManager implements Disposable {
   /**
    * Get the toolbar view actions for the given handler.
    * <p>
-   * This method will call {@link ViewHandler#addToolbarActionsToMenu(String, List)}
+   * This method will call {@link ViewHandler#addToolbarActions(List)}
    * but will cache results across invocations.
    *
    * @param handler the handler to look up actions for
    * @return the associated view actions.
    */
+  @NotNull
+  @UiThread
   public List<ViewAction> getToolbarActions(@NotNull ViewHandler handler) {
     List<ViewAction> actions = myToolbarActions.get(handler);
     if (actions == null) {
@@ -317,12 +379,12 @@ public class ViewHandlerManager implements Disposable {
    * This method will call {@link ViewHandler#addPopupMenuActions(SceneComponent, List)} (String, List)}
    * but will cache results across invocations.
    *
-   *
    * @param component the component clicked on
    * @param handler the handler to look up actions for
    * @return the associated view actions.
    */
   @NotNull
+  @UiThread
   public List<ViewAction> getPopupMenuActions(@NotNull SceneComponent component, @NotNull ViewHandler handler) {
     List<ViewAction> actions = myMenuActions.get(handler);
     if (actions == null) {

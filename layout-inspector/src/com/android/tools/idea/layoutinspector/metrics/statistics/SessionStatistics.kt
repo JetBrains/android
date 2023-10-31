@@ -25,122 +25,94 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-/**
- * Accumulators for various actions of interest.
- */
+/** Accumulators for various actions of interest. */
 interface SessionStatistics {
-  /**
-   * Reset all state accumulators.
-   */
+  /** Reset all state accumulators. */
   fun start()
 
-  /**
-   * Save all state accumulators.
-   */
+  /** Save all state accumulators. */
   fun save(data: DynamicLayoutInspectorSession.Builder)
 
-  /**
-   * A selection was made from the Layout Inspector Image.
-   */
+  /** A selection was made from the Layout Inspector Image. */
   fun selectionMadeFromImage(view: ViewNode?)
 
-  /**
-   * A selection was made from the Layout Inspector Component Tree.
-   */
+  /** A selection was made from the Layout Inspector Component Tree. */
   fun selectionMadeFromComponentTree(view: ViewNode?)
 
-  /**
-   * The refresh button was activated.
-   */
+  /** The refresh button was activated. */
   fun refreshButtonClicked()
 
-  /**
-   * Navigate to source from a property value.
-   */
+  /** Navigate to source from a property value. */
   fun gotoSourceFromPropertyValue(view: ViewNode?)
 
-  /**
-   * Navigate to source from the component tree via a menu action.
-   */
+  /** Navigate to source from the component tree via a menu action. */
   fun gotoSourceFromTreeActionMenu(event: AnActionEvent)
 
-  /**
-   * Navigate to source from the component tree via a double click.
-   */
-  fun gotoSourceFromDoubleClick()
+  /** Navigate to source from the component tree via a double click. */
+  fun gotoSourceFromTreeDoubleClick()
 
-  /**
-   * The recomposition numbers changed.
-   */
+  /** Navigate to source from the device render via a double click. */
+  fun gotoSourceFromRenderDoubleClick()
+
+  /** The recomposition numbers changed. */
   fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float)
 
-  /**
-   * The recomposition numbers were reset.
-   */
+  /** The recomposition numbers were reset. */
   fun resetRecompositionCountsClick()
 
-  /**
-   * The connection succeeded in attaching to the process.
-   */
+  /** The connection succeeded in attaching to the process. */
   fun attachSuccess()
 
-  /**
-   * The connection failed to attach to the process.
-   */
+  /** The connection failed to attach to the process. */
   fun attachError(errorCode: AttachErrorCode)
 
-  /**
-   * The compose inspector failed to initialize.
-   */
+  /** The compose inspector failed to initialize. */
   fun composeAttachError(errorCode: AttachErrorCode)
 
-  /**
-   * A frame was received.
-   */
+  /** A frame was received. */
   fun frameReceived()
 
-  /**
-   * A debugger was detected. Indicate if the debugger [isPaused] during attach.
-   */
+  /** A debugger was detected. Indicate if the debugger [isPaused] during attach. */
   fun debuggerInUse(isPaused: Boolean)
 
-  /**
-   * Live mode changed.
-   */
+  /** Live mode changed. */
   var currentModeIsLive: Boolean
 
-  /**
-   * 3D mode changed.
-   */
+  /** 3D mode changed. */
   var currentMode3D: Boolean
 
-  /**
-   * Whether the system nodes are currently being hidden.
-   */
+  /** Whether the system nodes are currently being hidden. */
   var hideSystemNodes: Boolean
 
-  /**
-   * Whether recomposition counts are currently being shown.
-   */
+  /** Whether recomposition counts are currently being shown. */
   var showRecompositions: Boolean
 
-  /**
-   * The current recomposition highlight color selected.
-   */
+  /** The current recomposition highlight color selected. */
   var recompositionHighlightColor: Int
 
-  /**
-   * The current progress in the launch monitor
-   */
+  /** The current progress in the launch monitor */
   var currentProgress: AttachErrorState
 }
 
 class SessionStatisticsImpl(
   clientType: ClientType,
-  areMultipleProjectsOpen: () -> Boolean = { LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen() },
-  isAutoConnectEnabled: () -> Boolean = { LayoutInspectorSettings.getInstance().autoConnectEnabled }
+  areMultipleProjectsOpen: () -> Boolean = {
+    LayoutInspectorOpenProjectsTracker.areMultipleProjectsOpen()
+  },
+  isAutoConnectEnabled: () -> Boolean = {
+    LayoutInspectorSettings.getInstance().autoConnectEnabled
+  },
+  isEmbeddedLayoutInspector: () -> Boolean = {
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+  }
 ) : SessionStatistics {
-  private val attach = AttachStatistics(clientType, areMultipleProjectsOpen, isAutoConnectEnabled)
+  private val attach =
+    AttachStatistics(
+      clientType,
+      areMultipleProjectsOpen,
+      isAutoConnectEnabled,
+      isEmbeddedLayoutInspector
+    )
   private val live = LiveModeStatistics()
   private val rotation = RotationStatistics()
   private val compose = ComposeStatistics()
@@ -191,8 +163,12 @@ class SessionStatisticsImpl(
     goto.gotoSourceFromTreeActionMenu(event)
   }
 
-  override fun gotoSourceFromDoubleClick() {
-    goto.gotoSourceFromDoubleClick()
+  override fun gotoSourceFromTreeDoubleClick() {
+    goto.gotoSourceFromTreeDoubleClick()
+  }
+
+  override fun gotoSourceFromRenderDoubleClick() {
+    goto.gotoSourceFromRenderDoubleClick()
   }
 
   override fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
@@ -223,27 +199,39 @@ class SessionStatisticsImpl(
     attach.debuggerInUse(isPaused)
   }
 
-  override var currentModeIsLive : Boolean
+  override var currentModeIsLive: Boolean
     get() = live.currentModeIsLive
-    set(value) { live.currentModeIsLive = value }
+    set(value) {
+      live.currentModeIsLive = value
+    }
 
   override var currentMode3D: Boolean
     get() = rotation.currentMode3D
-    set(value) { rotation.currentMode3D = value }
+    set(value) {
+      rotation.currentMode3D = value
+    }
 
   override var hideSystemNodes: Boolean
     get() = system.hideSystemNodes
-    set(value) { system.hideSystemNodes = value }
+    set(value) {
+      system.hideSystemNodes = value
+    }
 
   override var showRecompositions: Boolean
     get() = compose.showRecompositions
-    set(value) { compose.showRecompositions = value }
+    set(value) {
+      compose.showRecompositions = value
+    }
 
   override var recompositionHighlightColor: Int
     get() = compose.recompositionHighlightColor
-    set(value) { compose.recompositionHighlightColor = value }
+    set(value) {
+      compose.recompositionHighlightColor = value
+    }
 
   override var currentProgress: AttachErrorState
     get() = attach.currentProgress
-    set(value) { attach.currentProgress = value }
+    set(value) {
+      attach.currentProgress = value
+    }
 }

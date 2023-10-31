@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.common.error
 
-class DesignerCommonIssueNodeComparator(sortedBySeverity: Boolean, sortedByName: Boolean) : Comparator<DesignerCommonIssueNode> {
+class DesignerCommonIssueNodeComparator(sortedBySeverity: Boolean, sortedByName: Boolean) :
+  Comparator<DesignerCommonIssueNode> {
   private val comparator: Comparator<DesignerCommonIssueNode>
 
   init {
@@ -29,7 +30,8 @@ class DesignerCommonIssueNodeComparator(sortedBySeverity: Boolean, sortedByName:
     this.comparator = comparator
   }
 
-  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int = comparator.compare(o1, o2)
+  override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int =
+    comparator.compare(o1, o2)
 }
 
 object IssueNodeSeverityComparator : Comparator<DesignerCommonIssueNode> {
@@ -45,7 +47,7 @@ object IssueNodeSeverityComparator : Comparator<DesignerCommonIssueNode> {
       return 0
     }
     // Use minus operator to show the more important issue first.
-    return - o1.issue.severity.compareTo(o2.issue.severity)
+    return -o1.issue.severity.compareTo(o2.issue.severity)
   }
 }
 
@@ -63,7 +65,8 @@ object IssueNodeNameComparator : Comparator<DesignerCommonIssueNode> {
       return isEqualsIgnoredCase
     }
     // If they are same regardless the case, the lower case should be first.
-    // Node: 'a' compare to 'A' is positive, but we want the lower case be first. Reverse the result by using minus operator.
-    return - o1.name.compareTo(o2.name)
+    // Node: 'a' compare to 'A' is positive, but we want the lower case be first. Reverse the result
+    // by using minus operator.
+    return -o1.name.compareTo(o2.name)
   }
 }

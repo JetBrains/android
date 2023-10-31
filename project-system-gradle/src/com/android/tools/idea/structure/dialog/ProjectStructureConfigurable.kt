@@ -16,10 +16,10 @@
 package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
 import com.google.common.collect.Maps
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -73,7 +73,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import kotlin.math.max
 
 class ProjectStructureConfigurable(private val myProject: Project) : SearchableConfigurable, Place.Navigator, Configurable.NoMargin,
                                                                      Configurable.NoScroll {
@@ -216,7 +215,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     val left = object : JPanel(BorderLayout()) {
       override fun getMinimumSize(): Dimension {
         val original = super.getMinimumSize()
-        return Dimension(max(original.width, JBUI.scale(150)), original.height)
+        return Dimension(Math.max(original.width, JBUI.scale(150)), original.height)
       }
     }
 
@@ -401,10 +400,9 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
   override fun disposeUIResources() {
     if (!myUiInitialized) return
     try {
-
       myUiState.proportion = mySplitter!!.proportion
       (mySelectedConfigurable as? MasterDetailsComponent)?.saveSideProportion()
-      myConfigurables.keys.forEach(Consumer { it.disposeUIResources() })
+      myConfigurables.keys.forEach(Consumer<Configurable> { it.disposeUIResources() })
 
       myUiState.save(myProject)
 
@@ -413,6 +411,11 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
     finally {
       myConfigurables.clear()
       myUiInitialized = false
+      mySplitter = null
+      mySidePanel = null
+      myToolbarComponent = null
+      myErrorsComponent = null
+      myToFocus = null
     }
   }
 

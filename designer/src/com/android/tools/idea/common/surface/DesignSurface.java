@@ -25,6 +25,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.analytics.DesignerAnalyticsManager;
 import com.android.tools.idea.common.editor.ActionManager;
@@ -40,7 +41,6 @@ import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SecondarySelectionModel;
 import com.android.tools.idea.common.model.SelectionListener;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
@@ -52,8 +52,6 @@ import com.android.tools.idea.common.surface.layout.NonScrollableDesignSurfaceVi
 import com.android.tools.idea.common.surface.layout.ScrollableDesignSurfaceViewport;
 import com.android.tools.idea.common.type.DefaultDesignerFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
@@ -80,6 +78,8 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
+import com.intellij.ui.content.ContentManagerEvent;
+import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -108,6 +108,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -121,7 +122,7 @@ import javax.swing.JViewport;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import org.jetbrains.android.facet.AndroidFacet;
+import javax.swing.event.TreeSelectionListener;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -214,7 +215,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull private final JComponent myContentContainerPane;
   @NotNull private final DesignSurfaceViewport myViewport;
   @NotNull private final JLayeredPane myLayeredPane;
-  @NotNull private final SceneViewPanel mySceneViewPanel;
+  @NotNull protected final SceneViewPanel mySceneViewPanel;
   @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
   private final GuiInputHandler myGuiInputHandler;
@@ -290,6 +291,17 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   private final IssueListener myIssueListener;
 
+  @NotNull
+  private final TreeSelectionListener myIssuePanelSelectionListener = e -> repaint();
+
+  @NotNull
+  private final ContentManagerListener myIssuePanelTabListener = new ContentManagerListener() {
+    @Override
+    public void selectionChanged(@NotNull ContentManagerEvent event) {
+      repaint();
+    }
+  };
+
   public DesignSurface(
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
@@ -349,6 +361,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     mySceneViewPanel = new SceneViewPanel(
       this::getSceneViews,
       () -> getGuiInputHandler().getLayers(),
+      this::getActionManager,
+      this,
+      this::shouldRenderErrorsPanel,
       positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
 
@@ -469,15 +484,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return myViewport;
   }
 
-  /**
-   * When true, the surface will autoscroll when the mouse gets near the edges. See {@link JScrollPane#setAutoscrolls(boolean)}
-   */
-  protected void setSurfaceAutoscrolls(boolean enabled) {
-    if (myScrollPane != null) {
-      myScrollPane.setAutoscrolls(enabled);
-    }
-  }
-
   @SurfaceScreenScalingFactor
   @Override
   public double getScreenScalingFactor() {
@@ -518,11 +524,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @NotNull
   public SelectionModel getSelectionModel() {
-    return mySelectionModel;
-  }
-
-  @NotNull
-  public SecondarySelectionModel getSecondarySelectionModel() {
     return mySelectionModel;
   }
 
@@ -893,7 +894,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    * Returns the list of SceneViews attached to this surface
    */
   @NotNull
-  protected ImmutableCollection<SceneView> getSceneViews() {
+  public ImmutableCollection<SceneView> getSceneViews() {
     return getSceneManagers().stream()
       .flatMap(sceneManager -> sceneManager.getSceneViews().stream())
       .collect(ImmutableList.toImmutableList());
@@ -904,30 +905,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     for (SceneView sceneView : getSceneViews()) {
       sceneView.onHover(x, y);
     }
-  }
-
-  /**
-   * Gives us a chance to change layers behaviour upon drag and drop interaction starting
-   * <p>
-   * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
-   */
-  public void startDragDropInteraction() {
-    for (SceneView sceneView : getSceneViews()) {
-      sceneView.onDragStart();
-    }
-    repaint();
-  }
-
-  /**
-   * Gives us a chance to change layers behaviour upon drag and drop interaction ending
-   * <p>
-   * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
-   */
-  public void stopDragDropInteraction() {
-    for (SceneView sceneView : getSceneViews()) {
-      sceneView.onDragEnd();
-    }
-    repaint();
   }
 
   /**
@@ -1089,6 +1066,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public boolean canZoomToActual() {
     double currentScale = getScale();
     return (currentScale > 1 && canZoomOut()) || (currentScale < 1 && canZoomIn());
+  }
+
+  public Map<SceneView, Rectangle> findSceneViewRectangles() {
+    return mySceneViewPanel.findSceneViewRectangles();
+  }
+
+  public Rectangle getCurrentScrollRectangle() {
+    if (myScrollPane == null) return null;
+    return new Rectangle(myScrollPane.getViewport().getViewPosition(), myScrollPane.getViewport().getSize());
   }
 
   /**
@@ -1865,11 +1851,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return null;
   }
 
-  /**
-   * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).
-   */
-  public abstract boolean isLayoutDisabled();
-
   @NotNull
   @Override
   public ImmutableCollection<Configuration> getConfigurations() {
@@ -1907,11 +1888,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       }
       return myErrorQueue;
     }
-  }
-
-  @NotNull
-  public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
-    return ConfigurationManager.getOrCreateInstance(facet.getModule());
   }
 
   @Override
@@ -1986,5 +1962,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public IssueListener getIssueListener() {
     return myIssueListener;
+  }
+
+  @NotNull
+  public TreeSelectionListener getIssuePanelSelectionListener() {
+    return myIssuePanelSelectionListener;
+  }
+
+  @NotNull
+  public ContentManagerListener getIssuePanelTabListener() {
+    return myIssuePanelTabListener;
   }
 }

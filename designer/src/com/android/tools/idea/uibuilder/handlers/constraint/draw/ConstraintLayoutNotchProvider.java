@@ -21,6 +21,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -105,17 +106,20 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent");
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, String.format(SdkConstants.VALUE_N_DP, 16));
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START, String.format(SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+                              String.format(Locale.US, SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START,
+                              String.format(Locale.US, SdkConstants.VALUE_N_DP, 16));
     }));
     notchesBuilder.add(new Notch.Horizontal(owner, x2 - snappableComponent.getDrawWidth() - 16, x2 - 16, (NlAttributesHolder attributes) -> {
       if (hasLeft(attributes) || hasRight(attributes)) {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent");
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, String.format(SdkConstants.VALUE_N_DP, 16));
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END, String.format(SdkConstants.VALUE_N_DP, 16));
-
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT,
+                              String.format(Locale.US, SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END,
+                              String.format(Locale.US, SdkConstants.VALUE_N_DP, 16));
     }));
 
     int y1 = owner.getDrawY();
@@ -135,14 +139,16 @@ public class ConstraintLayoutNotchProvider implements Notch.Provider {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent");
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, String.format(SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+                              String.format(Locale.US, SdkConstants.VALUE_N_DP, 16));
     }));
     notchesBuilder.add(new Notch.Vertical(owner, y2 - snappableComponent.getDrawHeight() - 16, y2 - 16, (NlAttributesHolder attributes) -> {
       if (hasTop(attributes) || hasBottom(attributes) || hasBaseline(attributes)) {
         return;
       }
       attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent");
-      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, String.format(SdkConstants.VALUE_N_DP, 16));
+      attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM,
+                              String.format(Locale.US, SdkConstants.VALUE_N_DP, 16));
     }));
   }
 }

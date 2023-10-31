@@ -23,6 +23,7 @@ import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.google.common.base.CaseFormat
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResult
@@ -93,7 +94,7 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
 private fun KtAnalysisSession.isLambdaWithNoParameters(valueParameterSymbol: KtValueParameterSymbol): Boolean {
   // The only type in the list is the return type (can be Unit).
   val functionalReturnType = valueParameterSymbol.returnType as? KtFunctionalType ?: return false
-  return functionalReturnType.parameterTypes.size == 1
+  return functionalReturnType.ownTypeArguments.size == 1
 }
 
 /**
@@ -148,21 +149,16 @@ class ComposeCompletionContributor : CompletionContributor() {
     // If there's no PsiElement, just leave the result alone.
     val psi = lookupElement.psiElement ?: return completionResult
 
-    // For @Composable functions: remove the "special" lookup element (docs below), but otherwise apply @Composable function decoration.
-    if (psi.isComposableFunction()) {
-      return if (lookupElement.isForSpecialLambdaLookupElement()) null
-      else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
-    }
+    return when {
+      psi.isComposableFunction() ->
+        if (lookupElement.isForSpecialLambdaLookupElement()) null
+        else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
 
-    // Decorate Compose material icons with the actual icons.
-    if (ComposeMaterialIconLookupElement.appliesTo(lookupElement)) {
-      // We know we'll want material icons, so start warming up the cache.
-      ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).ensureIconsLoaded()
-      return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
-    }
+      ComposeMaterialIconLookupElement.appliesTo(psi) -> completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
 
-    // No transformation needed.
-    return completionResult
+      // No transformation needed.
+      else -> completionResult
+    }
   }
 
   /**
@@ -246,6 +242,12 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
 @VisibleForTesting
 internal class ComposeMaterialIconLookupElement(private val original: LookupElement)
   : LookupElementDecorator<LookupElement>(original) {
+
+  init {
+    // We know we'll want material icons, so start warming up the cache.
+    ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).ensureIconsLoaded()
+  }
+
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
@@ -271,8 +273,7 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
     )
 
     /** Whether ComposeMaterialIconLookupElement can apply to the given [LookupElement]. */
-    fun appliesTo(lookupElement: LookupElement): Boolean {
-      val psiElement = lookupElement.psiElement ?: return false
+    fun appliesTo(psiElement: PsiElement): Boolean {
       if (psiElement !is KtProperty) return false
       val fqName = psiElement.kotlinFqName?.asString() ?: return false
 
@@ -283,25 +284,19 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
     }
 
     /**
-     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names.
+     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names, with additional underscores
+     * separating digits from non-digit characters.
      *
-     * eg: "AccountBox" -> "account_box"
+     * eg: "AccountBox3" -> "account_box_3"
      *
      * If a material icon's name starts with a number, the property name has an underscore prepended to make it a valid identifier, even
      * though the underscore doesn't appear in the file path and name.
      *
-     * eg: "_1kPlus" -> "1k_plus"
+     * eg: "_1kPlus42" -> "1k_plus_42"
      */
     private fun String.camelCaseToSnakeCase(): String {
-      val camelName = trimStart('_')
-      return camelName.withIndex().joinToString("") { (i, ch) ->
-        when {
-          i == 0 -> ch.lowercaseChar().toString()
-          ch.isUpperCase() -> "_${ch.lowercaseChar()}"
-          ch.isDigit() && !camelName[i - 1].isDigit() -> "_$ch"
-          else -> ch.toString()
-        }
-      }
+      val str = trimStart('_').replace(Regex("(\\D)(\\d)"), "$1_$2")
+      return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, str)
     }
 
     @VisibleForTesting
@@ -434,7 +429,6 @@ private class ComposeInsertHandlerForK1(val functionDescriptor: FunctionDescript
                               context.isNextElementOpenCurlyBrace())
   }
 }
-
 
 private class ComposeInsertHandlerForK2(val functionElement: KtNamedFunction, callType: CallType<*>) : ComposeInsertHandler(
   callType) {

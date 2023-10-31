@@ -15,7 +15,8 @@
  */
 package com.android.gmdcodecompletion.completions.lookupelementprovider
 
-import com.android.gmdcodecompletion.DevicePropertyName
+import com.android.gmdcodecompletion.ConfigurationParameterName
+import com.android.gmdcodecompletion.ConfigurationParameterName.*
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.android.gmdcodecompletion.MinAndTargetApiLevel
 import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement
@@ -37,19 +38,17 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
   // short names for Android OS image source for managed virtual devices
   private val SYSTEM_IMAGE_SOURCE = listOf("aosp-atd", "aosp", "google-atd", "google")
 
-  override fun generateDevicePropertyValueSuggestionList(devicePropertyName: DevicePropertyName,
+  override fun generateDevicePropertyValueSuggestionList(configurationParameterName: ConfigurationParameterName,
                                                          deviceProperties: CurrentDeviceProperties,
                                                          minAndTargetApiLevel: MinAndTargetApiLevel,
                                                          deviceCatalog: GmdDeviceCatalog): Collection<LookupElement> {
     deviceCatalog as ManagedVirtualDeviceCatalog
-    return when (devicePropertyName) {
-      DevicePropertyName.DEVICE_ID -> generateManagedVirtualDeviceIdSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
-      DevicePropertyName.API_PREVIEW -> generateManagedVirtualDeviceApiPreviewSuggestion(deviceProperties, minAndTargetApiLevel,
-                                                                                         deviceCatalog)
-
-      DevicePropertyName.SYS_IMAGE_SOURCE -> generateManagedVirtualDeviceImageSource(deviceProperties, deviceCatalog)
-      DevicePropertyName.API_LEVEL -> generateManagedVirtualDeviceApiLevelSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
-      DevicePropertyName.REQUIRE64BIT -> generateManagedVirtualDeviceRequire64Bit(deviceProperties, deviceCatalog)
+    return when (configurationParameterName) {
+      DEVICE_ID -> generateManagedVirtualDeviceIdSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
+      API_PREVIEW -> generateManagedVirtualDeviceApiPreviewSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
+      SYS_IMAGE_SOURCE -> generateManagedVirtualDeviceImageSource(deviceProperties, deviceCatalog)
+      API_LEVEL -> generateManagedVirtualDeviceApiLevelSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
+      REQUIRE64BIT -> generateManagedVirtualDeviceRequire64Bit(deviceProperties, deviceCatalog)
       else -> emptyList()
     }
   }
@@ -57,8 +56,8 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
   private fun generateManagedVirtualDeviceIdSuggestion(deviceProperties: CurrentDeviceProperties,
                                                        minAndTargetApiLevel: MinAndTargetApiLevel,
                                                        deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
-    var specifiedApiLevel: Int? = deviceProperties[DevicePropertyName.API_LEVEL]?.toIntOrNull()
-    val apiPreview = deviceProperties[DevicePropertyName.API_PREVIEW]?.removeDoubleQuote()
+    var specifiedApiLevel: Int? = deviceProperties[API_LEVEL]?.toIntOrNull()
+    val apiPreview = deviceProperties[API_PREVIEW]?.removeDoubleQuote()
     if (specifiedApiLevel != null && apiPreview != null) return emptyList()
     if (apiPreview != null) {
       val apiPreviewLevel = deviceCatalog.apiLevels.filter { it.apiPreview == apiPreview }.map { it.apiLevel }.toSet()
@@ -106,9 +105,9 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
 
   private fun generateManagedVirtualDeviceImageSource(deviceProperties: CurrentDeviceProperties,
                                                       deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
-    val apiLevel = deviceProperties[DevicePropertyName.API_LEVEL]?.toIntOrNull()
-    val apiPreview = deviceProperties[DevicePropertyName.API_PREVIEW]?.removeDoubleQuote()
-    val require64Bit = deviceProperties[DevicePropertyName.REQUIRE64BIT]?.toBoolean() ?: false
+    val apiLevel = deviceProperties[API_LEVEL]?.toIntOrNull()
+    val apiPreview = deviceProperties[API_PREVIEW]?.removeDoubleQuote()
+    val require64Bit = deviceProperties[REQUIRE64BIT]?.toBoolean() ?: false
     if (apiLevel != null && apiPreview != null) return emptyList()
     // Drop any image source that is not consistent with existing device definition
     val imageSources = deviceCatalog.apiLevels.filter {
@@ -130,9 +129,9 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
 
   private fun generateManagedVirtualDeviceRequire64Bit(deviceProperties: CurrentDeviceProperties,
                                                        deviceCatalog: ManagedVirtualDeviceCatalog): Collection<LookupElement> {
-    val apiLevel = deviceProperties[DevicePropertyName.API_LEVEL]?.toIntOrNull()
-    val apiPreview = deviceProperties[DevicePropertyName.API_PREVIEW]?.removeDoubleQuote()
-    val imageSource = deviceProperties[DevicePropertyName.SYS_IMAGE_SOURCE]?.removeDoubleQuote()
+    val apiLevel = deviceProperties[API_LEVEL]?.toIntOrNull()
+    val apiPreview = deviceProperties[API_PREVIEW]?.removeDoubleQuote()
+    val imageSource = deviceProperties[SYS_IMAGE_SOURCE]?.removeDoubleQuote()
     // API level and API preview should not be present at the same time for a given device
     if (apiLevel != null && apiPreview != null) return emptyList()
     val requires64Bit = deviceCatalog.apiLevels.filter {
@@ -158,11 +157,11 @@ object ManagedVirtualLookupElementProvider : BaseLookupElementProvider() {
                                                                      targetSdk: Int) -> Collection<LookupElement>
   ): Collection<LookupElement> {
     // Return if API preview is set
-    if (deviceProperties[DevicePropertyName.API_LEVEL] != null || deviceProperties[DevicePropertyName.API_PREVIEW] != null) return emptyList()
+    if (deviceProperties[API_LEVEL] != null || deviceProperties[API_PREVIEW] != null) return emptyList()
 
-    val deviceId = deviceProperties[DevicePropertyName.DEVICE_ID]?.removeDoubleQuote() ?: ""
-    val require64Bit = deviceProperties[DevicePropertyName.REQUIRE64BIT]?.toBoolean() ?: false
-    val imageSource = deviceProperties[DevicePropertyName.SYS_IMAGE_SOURCE]?.removeDoubleQuote()
+    val deviceId = deviceProperties[DEVICE_ID]?.removeDoubleQuote() ?: ""
+    val require64Bit = deviceProperties[REQUIRE64BIT]?.toBoolean() ?: false
+    val imageSource = deviceProperties[SYS_IMAGE_SOURCE]?.removeDoubleQuote()
 
     val validApiInfoList = deviceCatalog.apiLevels.filter {
       it.apiLevel > 0 && it.apiLevel >= minAndTargetApiLevel.minSdk &&

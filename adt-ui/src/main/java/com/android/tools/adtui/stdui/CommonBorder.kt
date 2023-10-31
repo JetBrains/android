@@ -43,7 +43,6 @@ import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 import javax.swing.border.Border
 import kotlin.math.max
-import kotlin.math.sqrt
 
 /**
  * A [Border] that has curved edges.
@@ -176,7 +175,7 @@ class CommonBorder(private val cornerRadius: Float,
       bottom = rect.y + rect.height
       corner = cornerRadius + stroke / 2f
       curve1 = cornerRadius / 2f
-      curve2 = cornerRadius - cornerRadius * sqrt(3.0).toFloat() / 2f
+      curve2 = cornerRadius - cornerRadius * Math.sqrt(3.0).toFloat() / 2f
       if (stroke > 1f || hiDpi) {
         rect.applyInset(-stroke / 2f)
       }

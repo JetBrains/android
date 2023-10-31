@@ -51,7 +51,6 @@ import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
@@ -106,7 +105,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
       profilerProperties = null,
       alwaysDeployApkFromBundle = false,
       deployAsInstant = false,
-      disabledDynamicFeatureModuleNames = emptySet()
+      disabledDynamicFeatureModuleNames = emptySet(),
+      supportsPrivacySandbox = false,
     )
   }
 

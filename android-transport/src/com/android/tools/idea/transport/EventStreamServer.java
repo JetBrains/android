@@ -16,15 +16,15 @@
 package com.android.tools.idea.transport;
 
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.tools.idea.io.grpc.Server;
+import com.android.tools.idea.io.grpc.ServerBuilder;
+import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.intellij.openapi.Disposable;
-import com.android.tools.idea.io.grpc.Server;
-import com.android.tools.idea.io.grpc.ServerBuilder;
-import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

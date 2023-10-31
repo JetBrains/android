@@ -25,6 +25,7 @@ import static com.android.SdkConstants.VALUE_N_DP;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public class AbsoluteResizeTarget extends ResizeWithSnapBaseTarget {
@@ -34,11 +35,11 @@ public class AbsoluteResizeTarget extends ResizeWithSnapBaseTarget {
   }
 
   private static void updateXPos(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(VALUE_N_DP, Math.max(x, 0)));
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_X, String.format(Locale.US, VALUE_N_DP, Math.max(x, 0)));
   }
 
   private static void updateYPos(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int y) {
-    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(VALUE_N_DP, Math.max(y, 0)));
+    attributes.setAttribute(ANDROID_URI, ATTR_LAYOUT_Y, String.format(Locale.US, VALUE_N_DP, Math.max(y, 0)));
   }
 
   protected static void updateWidth(@NotNull NlAttributesHolder attributes, @NotNull String width) {

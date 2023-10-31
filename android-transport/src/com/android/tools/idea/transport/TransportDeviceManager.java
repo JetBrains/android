@@ -28,12 +28,12 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
 import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.profiler.proto.Agent;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
@@ -529,7 +529,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
       // Create metrics event to report callstack.
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.ANDROID_PROFILER)
-        .setDeviceInfo(AndroidStudioUsageTracker.deviceToDeviceInfo(myDevice))
+        .setDeviceInfo(UsageTrackerUtils.deviceToDeviceInfo(myDevice))
         .setAndroidProfilerEvent(AndroidProfilerEvent.newBuilder()
                                    .setType(AndroidProfilerEvent.Type.PERFD_CRASHED)
                                    .setPerfdCrashInfo(crashInfo));

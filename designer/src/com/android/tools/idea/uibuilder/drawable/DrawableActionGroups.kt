@@ -22,9 +22,7 @@ import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
-/**
- * The default [ToolbarActionGroups] for Drawable files.
- */
+/** The default [ToolbarActionGroups] for Drawable files. */
 class DrawableActionGroups(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup {

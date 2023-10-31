@@ -22,7 +22,6 @@ import com.android.build.attribution.ui.model.BuildAnalyzerViewModel
 import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.WarningsDataPageModelImpl
 import com.android.tools.adtui.TreeWalker
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.Separator

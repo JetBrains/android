@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -377,7 +379,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:22.17.3")
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:[22.17.3,22.17.4)")
     assertThat(missing).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.17.3"))
     assertThat(found).isEmpty()
   }
@@ -499,6 +501,7 @@ private fun ideAndroidLibrary(artifactAddress: String) =
   AndroidLibraryDependency(
     IdeAndroidLibraryImpl(
       artifactAddress = artifactAddress,
+      component = Component.parse(artifactAddress),
       name = "",
       folder = File("libraryFolder").resolve(artifactAddress.replace(':', '-')),
       _manifest = "manifest.xml",

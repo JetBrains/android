@@ -46,12 +46,25 @@ public class VerifyNpwPhoneAndTabletNavigationTemplatesTest {
   public void  testBottomNavigationViewsActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
+    validateViewBindingInGradleFile();
   }
 
   @Test
   public void  testNavigationDrawerViewsActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(1));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
+    validateViewBindingInGradleFile();
+  }
+
+  private void validateViewBindingInGradleFile() {
+    String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
+    assertThat((buildGradleContents).contains("viewBinding = true")).isTrue();
   }
 
 }

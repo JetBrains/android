@@ -38,6 +38,9 @@ data class Frame(
   // Filename of the code
   val file: String = "",
 
+  // The raw symbol no matter it's unhydrateable or not
+  val rawSymbol: String = "",
+
   // The hydrated symbol, or the raw symbol if it's unhydrateable
   val symbol: String = "",
 
@@ -85,6 +88,9 @@ data class ExceptionStack(
 
   // The error message included in the exception
   val exceptionMessage: String = "",
+
+  // The raw exception message
+  val rawExceptionMessage: String = ""
 )
 
 /**
@@ -97,11 +103,20 @@ data class StacktraceGroup(
   val exceptions: List<ExceptionStack> = listOf()
 )
 
+data class DeviceType(val name: String) : GroupAware<DeviceType> {
+  override fun compareTo(other: DeviceType) = name.compareTo(other.name)
+  override val groupName = name
+  companion object {
+    val UNKNOWN = DeviceType("Unknown")
+  }
+}
+
 /** Metadata about the device running an app. */
 data class Device(
   val manufacturer: String,
   val model: String,
-  val displayName: String = "$manufacturer $model"
+  val displayName: String = "$manufacturer $model",
+  val deviceType: DeviceType = DeviceType.UNKNOWN
 ) : Comparable<Device> {
   companion object {
     val ALL = Device(manufacturer = "", model = "")
@@ -131,6 +146,8 @@ enum class PlayTrack(val displayName: String) : GroupAware<PlayTrack> {
 
   override val groupName: String
     get() = displayName
+
+  companion object
 }
 
 /** Represents the Version of an App. */
@@ -144,21 +161,6 @@ data class Version(
     val ALL = Version(buildVersion = "", displayVersion = "ALL", displayName = "ALL")
   }
 
-  // TODO(vkryachko): remove equals and hashCode.
-  override fun equals(other: Any?): Boolean {
-    if (other !is Version) return false
-    return other.buildVersion == buildVersion &&
-      other.displayVersion == displayVersion &&
-      other.displayName == displayName
-  }
-
-  override fun hashCode(): Int {
-    var result = buildVersion.hashCode()
-    result = 31 * result + displayVersion.hashCode()
-    result = 31 * result + displayName.hashCode()
-    return result
-  }
-
   override fun toString(): String {
     if (this == ALL) {
       return "All app versions"
@@ -170,7 +172,7 @@ data class Version(
 /** Event metadata captured at the time of the event, plus additional analysis. */
 data class EventData(
   // Metadata about the device.
-  val device: Device = Device("", ""),
+  val device: Device = Device("", "", ""),
 
   // Metadata about operating system.
   val operatingSystemInfo: OperatingSystemInfo = OperatingSystemInfo("", ""),
@@ -186,9 +188,12 @@ data class Event(
 
   // Describes the crash or non-fatal error / exception, and potentially the
   // state of the other threads in the process at time of the Event.
-  val stacktraceGroup: StacktraceGroup = StacktraceGroup()
+  val stacktraceGroup: StacktraceGroup = StacktraceGroup(),
+  val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE
 ) {
-  companion object
+  companion object {
+    val EMPTY = Event()
+  }
 }
 
 /**

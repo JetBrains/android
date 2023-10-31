@@ -66,12 +66,13 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This performs direct conversion of RelativeLayout to ConstraintLayout
@@ -249,7 +250,7 @@ public class ScoutDirectConvert {
       }
       else {
         int margin = targetMargin + childMargin;
-        creatList.add(new String[]{ANDROID_URI, srcMargin, String.format(VALUE_N_DP, margin)});
+        creatList.add(new String[]{ANDROID_URI, srcMargin, String.format(Locale.US, VALUE_N_DP, margin)});
       }
     }
   }

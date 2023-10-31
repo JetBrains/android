@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleProjects.isOfflineBuildModeEnabled;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -30,7 +29,6 @@ import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -69,7 +67,6 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       }
     }
     else {
-      GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
       List<VirtualFile> buildFiles = ContainerUtil.map(affectedModules, m -> buildFileMap.get(m));
       Module module = affectedModules.get(0);
 
@@ -84,9 +81,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
       }
 
       if (IdeInfo.getInstance().isAndroidStudio()) {
-        if (coordinate != null) {
-          quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, coordinate));
-        }
+        quickFixes.add(new ShowDependencyInProjectStructureHyperlink(module, dependency));
       }
     }
 

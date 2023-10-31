@@ -45,18 +45,22 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
 
   fun testBasicTracking() {
     analyticsManager.trackAlign()
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ALIGN)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ALIGN)
 
     analyticsManager.trackToggleAutoConnect(true)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_ON_AUTOCONNECT)
 
     analyticsManager.trackToggleAutoConnect(false)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.TURN_OFF_AUTOCONNECT)
   }
 
   fun testLayoutType() {
     whenever(surface.layoutType).thenReturn(DefaultDesignerFileType)
-    assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.UNKNOWN_TYPE) // By default, we don't infer any types
+    assertThat(analyticsManager.layoutType)
+      .isEqualTo(LayoutEditorState.Type.UNKNOWN_TYPE) // By default, we don't infer any types
 
     whenever(surface.layoutType).thenReturn(LayoutFileType)
     assertThat(analyticsManager.layoutType).isEqualTo(LayoutEditorState.Type.LAYOUT)
@@ -66,7 +70,8 @@ class NlAnalyticsManagerTest : AndroidTestBase() {
   }
 
   fun testSurfaceType() {
-    assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
+    assertThat(analyticsManager.surfaceType)
+      .isEqualTo(LayoutEditorState.Surfaces.BOTH) // Set in setup
 
     whenever(surface.screenViewProvider).thenReturn(NlScreenViewProvider.BLUEPRINT)
     assertThat(analyticsManager.surfaceType).isEqualTo(LayoutEditorState.Surfaces.BLUEPRINT_SURFACE)

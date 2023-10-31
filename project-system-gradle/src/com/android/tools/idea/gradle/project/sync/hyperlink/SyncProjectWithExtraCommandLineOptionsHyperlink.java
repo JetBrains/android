@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REFRESH_DEPENDENCIES;
 
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;

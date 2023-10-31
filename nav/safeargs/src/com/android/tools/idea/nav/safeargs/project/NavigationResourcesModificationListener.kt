@@ -80,7 +80,10 @@ class NavigationResourcesModificationListener(
       return false
     }
 
-    val navResourceVfs = StudioResourceRepositoryManager.getModuleResources(facet)
+    // If module resources aren't cached, we don't want to load them now on the event thread; just say the file is relevant. In the case
+    // where it's not truly relevant but we increment the modification trackers anyway, we may have some unnecessary cache invalidation.
+    val moduleResources = StudioResourceRepositoryManager.getInstance(facet).cachedModuleResources ?: return true
+    val navResourceVfs = moduleResources
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
       .values()
       .mapNotNull(ResourceItem::getSourceAsVirtualFile)
@@ -118,7 +121,7 @@ class NavigationResourcesModificationListener(
    * [StartupActivity] responsible for ensuring that a [Project] has a [NavigationResourcesModificationListener]
    * subscribed to listen for both VFS and Document changes when opening projects.
    */
-  internal class SubscriptionStartupActivity : ProjectActivity {
+  class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
       val resourceListener = NavigationResourcesModificationListener(project)
       project.listenUntilNextSync(listener = object : SyncResultListener {

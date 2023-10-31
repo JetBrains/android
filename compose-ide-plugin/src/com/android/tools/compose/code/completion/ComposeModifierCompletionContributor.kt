@@ -17,12 +17,13 @@ package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSE_MODIFIER_FQN
 import com.android.tools.compose.callReturnTypeFqName
-import com.android.tools.compose.matchingParamTypeFqName
 import com.android.tools.compose.isComposeEnabled
+import com.android.tools.compose.matchingParamTypeFqName
 import com.android.tools.compose.returnTypeFqName
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionResult
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.completion.PrefixMatcher
@@ -36,6 +37,9 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
@@ -57,6 +61,7 @@ import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.idea.util.receiverTypesWithIndex
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -72,6 +77,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -126,11 +132,52 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     if (isMethodCalledOnImportedModifier) {
       val extensionFunctionsNames = extensionFunctions.map { it.name.asString() }.toSet()
       resultSet.runRemainingContributors(parameters) { completionResult ->
-        val skipResult = (completionResult.lookupElement.psiElement as? KtFunction)?.name?.let { extensionFunctionsNames.contains(it) }
-        if (skipResult != true) {
-          resultSet.passResult(completionResult)
-        }
+        consumerCompletionResultFromRemainingContributor(completionResult, extensionFunctionsNames, element, resultSet)
       }
+    }
+  }
+
+  @VisibleForTesting
+  fun consumerCompletionResultFromRemainingContributor(
+    completionResult: CompletionResult,
+    extensionFunctionsNames: Set<String>,
+    completionPositionElement: PsiElement,
+    resultSet: CompletionResultSet
+  ) {
+    val suggestedKtFunction = completionResult.lookupElement.psiElement as? KtFunction
+    val alreadyAddedResult = suggestedKtFunction?.name?.let { extensionFunctionsNames.contains(it) } == true
+
+    // Only call [isVisibleFromCompletionPosition] if the function is on an internal object, since that method is heavier.
+    // TODO (b/280093734): Remove this workaround once https://youtrack.jetbrains.com/issue/KTIJ-23360 is resolved.
+    val isOnInvisibleObject =
+      suggestedKtFunction?.containingClassOrObject?.hasModifier(KtTokens.INTERNAL_KEYWORD) == true &&
+      !suggestedKtFunction.isVisibleFromCompletionPosition(completionPositionElement)
+
+    if (!alreadyAddedResult && !isOnInvisibleObject) {
+      resultSet.passResult(completionResult)
+    }
+  }
+
+  /**
+   * Checks if the given function is visible from the completion position. Workaround for b/279049842 and b/252977033.
+   *
+   * Some suggestions for Modifier extensions are extension functions that live on internal objects in Compose libraries. These aren't legal
+   * to be directly referenced from users' code, but the Kotlin plugin suggests them anyway. This is tracked by
+   * https://youtrack.jetbrains.com/issue/KTIJ-23360.
+   *
+   * In the meantime, this method checks whether the containing class/object of the function is visible from the completion position. If
+   * not, then it will be filtered out from results.
+   */
+  private fun KtFunction.isVisibleFromCompletionPosition(completionPosition: PsiElement): Boolean {
+    // This is Compose, we should always be completing in a KtFile. If not, let's just assume things are visible so as not to muck with
+    // whatever behavior is happening.
+    val ktFile = completionPosition.containingFile as? KtFile ?: return true
+
+    val elementToAnalyze = this.containingClassOrObject ?: this
+    analyze(elementToAnalyze) {
+      val symbolWithVisibility = elementToAnalyze.getSymbol() as? KtSymbolWithVisibility ?: return true
+
+      return isVisible(symbolWithVisibility, useSiteFile = ktFile.getFileSymbol(), position = completionPosition)
     }
   }
 

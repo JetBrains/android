@@ -30,6 +30,7 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintCom
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Stack;
 
 
@@ -123,29 +124,29 @@ public class ConstraintSet {
       if (wid.getScoutWidget().isGuideline()) {
         continue;
       }
-      tempBase = String.format("DrawConnection,1,%dx%dx%dx%d,",
+      tempBase = String.format(Locale.US, "DrawConnection,1,%dx%dx%dx%d,",
                                (int)wid.getScoutWidget().getX(),
                                (int)wid.getScoutWidget().getY(),
                                wid.getScoutWidget().getWidthInt(),
                                wid.getScoutWidget().getHeightInt());
       if (wid.north.destWidget() != Connection.NO_CONNECTION) {
         connections += tempBase;
-        connections += String.format("%d,%s,0,false,0,0,false,0.5,0,0,0\n", 2, wid.north.getDisplayString());
+        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 2, wid.north.getDisplayString());
       }
 
       if (wid.south.destWidget() != Connection.NO_CONNECTION) {
         connections += tempBase;
-        connections += String.format("%d,%s,0,false,0,0,false,0.5,0,0,0\n", 3, wid.south.getDisplayString());
+        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 3, wid.south.getDisplayString());
       }
 
       if (wid.east.destWidget() != Connection.NO_CONNECTION) {
         connections += tempBase;
-        connections += String.format("%d,%s,0,false,0,0,false,0.5,0,0,0\n", 1, wid.east.getDisplayString());
+        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 1, wid.east.getDisplayString());
       }
 
       if (wid.west.destWidget() != Connection.NO_CONNECTION) {
         connections += tempBase;
-        connections += String.format("%d,%s,0,false,0,0,false,0.5,0,0,0\n", 0, wid.west.getDisplayString());
+        connections += String.format(Locale.US, "%d,%s,0,false,0,0,false,0.5,0,0,0\n", 0, wid.west.getDisplayString());
       }
     }
     connections += "UNClip\n";

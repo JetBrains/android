@@ -15,8 +15,14 @@
  */
 package com.android.tools.idea.common.model
 
-
 @Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.VALUE_PARAMETER,
-    AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.FIELD, AnnotationTarget.PROPERTY)
+@Target(
+  AnnotationTarget.FUNCTION,
+  AnnotationTarget.PROPERTY_GETTER,
+  AnnotationTarget.PROPERTY_SETTER,
+  AnnotationTarget.VALUE_PARAMETER,
+  AnnotationTarget.LOCAL_VARIABLE,
+  AnnotationTarget.FIELD,
+  AnnotationTarget.PROPERTY
+)
 annotation class AndroidCoordinate

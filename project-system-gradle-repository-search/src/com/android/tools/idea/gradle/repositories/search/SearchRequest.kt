@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-data class SearchQuery(val groupId: String?, val artifactName: String?)
+sealed class SearchQuery(open val groupId: String?, open val artifactName: String?)
+data class SingleModuleSearchQuery(override val groupId: String, override val artifactName: String): SearchQuery(groupId, artifactName)
+data class ArbitraryModulesSearchQuery(override val groupId: String?, override val artifactName: String?): SearchQuery(groupId, artifactName)
 data class SearchRequest(val query: SearchQuery, val rowCount: Int, val start: Int)
 

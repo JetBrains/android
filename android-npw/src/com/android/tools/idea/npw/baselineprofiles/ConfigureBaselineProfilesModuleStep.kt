@@ -16,64 +16,114 @@
 package com.android.tools.idea.npw.baselineprofiles
 
 import com.android.AndroidProjectTypes
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
 
-private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.0.0"
 private const val GMD_LINK = "https://d.android.com/r/studio-ui/testing/gradle-managed-devices"
 
+private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
+  "android.hardware.type.automotive",
+  "android.hardware.type.watch",
+  "android.software.leanback"
+)
+
 class ConfigureBaselineProfilesModuleStep(
-  model: NewBaselineProfilesModuleModel
+  model: NewBaselineProfilesModuleModel,
+  disposable: Disposable? = null,
 ) : ConfigureModuleStep<NewBaselineProfilesModuleModel>(
   model = model,
   formFactor = FormFactor.MOBILE,
   minSdkLevel = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION,
   basePackage = getSuggestedProjectPackage(),
-  title = AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.app")
+  title = AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.app"),
+  parentDisposable = disposable
 ) {
-  private val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
 
+  @VisibleForTesting
+  val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
+
+  @VisibleForTesting
   @Suppress("DialogTitleCapitalization")
-  private val useGmdCheck = JBCheckBox("Use Gradle Managed Device")
+  val useGmdCheck = JBCheckBox("Use Gradle Managed Device")
 
   init {
     bindTargetModule()
     validateMinAgpVersion()
 
-    bindings.bindTwoWay(SelectedProperty(useGmdCheck), model.useGmd)
+    bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
+    bindings.bind(model.agpVersion, agpVersion)
   }
 
   private fun bindTargetModule() {
-    val appModules = AndroidProjectInfo.getInstance(model.project)
-      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
 
-    appModules.forEach { targetModuleCombo.addItem(it) }
-    if (appModules.isNotEmpty()) {
-      model.targetModule.value = appModules.first()
+    // Map each module with the parsed manifests. This allows to check later
+    // what uses-feature tags are defined in the manifest and whether a module is for tv,
+    // automotive and/or wear. We only enable GMD for smartphones.
+    val appModules = AndroidProjectInfo
+      .getInstance(model.project)
+      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
+      .filter { it.androidFacet != null }
+      .associateWith { module ->
+        AndroidManifestIndex.getDataForMergedManifestContributors(module.androidFacet!!).toList().flatMap { it.usedFeatures }
+      }
+
+    appModules.forEach { e ->
+      targetModuleCombo.addItem(e.key)
+    }
+
+    targetModuleCombo.addItemListener { itemEvent ->
+      appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv()?.let {
+        useGmdCheck.isEnabled = !it
+        useGmdCheck.isSelected = !it
+      }
+    }
+
+    // Tries to select the first non automotive, tv, wear project
+    appModules
+      .toList()
+      .firstOrNull { !it.second.usesFeatureAutomotiveOrWearOrTv() }
+      ?.first
+      ?.let {
+        model.targetModule.value = it
+        useGmdCheck.isEnabled = true
+        useGmdCheck.isSelected = true
+      }
+
+    // If nothing was selected, then select the first of the list and set `use gmd` false
+    if (!model.targetModule.isPresent.get()) {
+      appModules.firstOrNull()?.let { model.targetModule.value = it.key }
+      useGmdCheck.isEnabled = false
+      useGmdCheck.isSelected = false
     }
 
     bindings.bindTwoWay(SelectedItemProperty(targetModuleCombo), model.targetModule)
@@ -85,12 +135,10 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   private fun validateMinAgpVersion() {
-    val minAgpVersion = AgpVersion.parse(BASELINE_PROFILES_AGP_MIN_VERSION)
-
     validatorPanel.registerValidator(agpVersion, createValidator { version ->
-      if (version.isPresent && version.get().compareIgnoringQualifiers(minAgpVersion) < 0) {
+      if (version.isPresent && version.get().compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
         Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BASELINE_PROFILES_AGP_MIN_VERSION)
+          AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BP_PLUGIN_MIN_SUPPORTED.toString())
         )
       }
       else {
@@ -100,6 +148,14 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   override fun createMainPanel(): JPanel = panel {
+    row {
+      comment("<strong>" + AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") + "</strong>")
+    }
+
+    row {
+      comment(AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description.extra"))
+    }
+
     row(
       contextLabel("Target application", AndroidBundle.message("android.wizard.module.help.baselineprofiles.target.module.description"))) {
       cell(targetModuleCombo).horizontalAlign(HorizontalAlign.FILL)
@@ -152,3 +208,4 @@ class ConfigureBaselineProfilesModuleStep(
   }
 }
 
+fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any { it.name in USES_FEATURE_OTHER_FORM_FACTORS && it.required?.toBooleanStrictOrNull() ?: true }

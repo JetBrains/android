@@ -31,8 +31,9 @@ class DesignSurfaceFloatingActionsToolbarProvider(
   private val designSurface: DesignSurface<*>,
   component: JComponent,
   parentDisposable: Disposable
-) : EditorActionsFloatingToolbarProvider(component, parentDisposable, "Surface"), DesignSurfaceListener {
-
+) :
+  EditorActionsFloatingToolbarProvider(component, parentDisposable, "Surface"),
+  DesignSurfaceListener {
 
   init {
     designSurface.addListener(this)
@@ -55,8 +56,7 @@ class DesignSurfaceFloatingActionsToolbarProvider(
     return if (designSurface.isEditable) {
       // Only editable file types support panning.
       EditableDesignSurfaceActionGroups()
-    }
-    else {
+    } else {
       BasicDesignSurfaceActionGroups()
     }
   }

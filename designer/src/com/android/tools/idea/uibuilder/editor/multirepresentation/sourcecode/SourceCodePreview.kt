@@ -20,8 +20,11 @@ import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.util.runWhenSmartAndSynced
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.DumbService.Companion.DUMB_MODE
 import com.intellij.psi.PsiFile
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -32,39 +35,58 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param editor the [Editor] for the file.
  * @param providers list of [PreviewRepresentationProvider] for this file type.
  */
-internal class SourceCodePreview(psiFile: PsiFile, textEditor: Editor, providers: Collection<PreviewRepresentationProvider>) :
-  MultiRepresentationPreview(psiFile, textEditor, providers) {
+internal class SourceCodePreview(
+  psiFile: PsiFile,
+  textEditor: Editor,
+  providers: Collection<PreviewRepresentationProvider>
+) : MultiRepresentationPreview(psiFile, textEditor, providers) {
 
   val project = psiFile.project
 
   private val afterSyncUpdateScheduled = AtomicBoolean(false)
 
   init {
-    project.messageBus.connect().subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
-      /**
-       * In case we are at the project startup we do not want to get [updateRepresentationsAsync] executed simply on the [exitDumbMode] for
-       * the project is not started yet and AndroidModel is not initialized. Instead, we want to schedule [runWhenSmartAndSynced] during
-       * the Dumb Mode so that it gets scheduled with [DumbService.runWhenSmart] that waits for the project to finish initialization.
-       */
-      override fun enteredDumbMode() {
-        if (afterSyncUpdateScheduled.getAndSet(true)) {
-          return
-        }
-        project.runWhenSmartAndSynced(
-          parentDisposable = this@SourceCodePreview,
-          callback = {
-            afterSyncUpdateScheduled.set(false)
-            updateRepresentationsAsync()
+    project.messageBus
+      .connect(this as Disposable)
+      .subscribe(
+        DUMB_MODE,
+        object : DumbService.DumbModeListener {
+          /**
+           * In case we are at the project startup we do not want to get
+           * [updateRepresentationsAsync] executed simply on the [exitDumbMode] for the project is
+           * not started yet and AndroidModel is not initialized. Instead, we want to schedule
+           * [runWhenSmartAndSynced] during the Dumb Mode so that it gets scheduled with
+           * [DumbService.runWhenSmart] that waits for the project to finish initialization.
+           */
+          override fun enteredDumbMode() {
+            if (afterSyncUpdateScheduled.getAndSet(true)) {
+              return
+            }
+            // invokeLater required due to IDEA-321276: calling runWhenSmart() inside
+            // DumbModeListener does not work properly.
+            invokeLater {
+              project.runWhenSmartAndSynced(
+                parentDisposable = this@SourceCodePreview,
+                callback = {
+                  afterSyncUpdateScheduled.set(false)
+                  updateRepresentationsAsync()
+                }
+              )
+            }
           }
-        )
-      }
-    })
+        }
+      )
 
-    setupChangeListener(project, psiFile, {
-      if (project.getSyncManager().isSyncInProgress()) {
-        return@setupChangeListener
-      }
-      updateRepresentationsAsync()
-    }, this)
+    setupChangeListener(
+      project,
+      psiFile,
+      {
+        if (project.getSyncManager().isSyncInProgress()) {
+          return@setupChangeListener
+        }
+        updateRepresentationsAsync()
+      },
+      this
+    )
   }
 }

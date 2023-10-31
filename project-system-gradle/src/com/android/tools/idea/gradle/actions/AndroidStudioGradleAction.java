@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.intellij.ide.impl.TrustedProjects;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -44,7 +45,7 @@ public abstract class AndroidStudioGradleAction extends AnAction {
   @Override
   public final void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    if (project == null || !isGradleProject(project)) {
+    if (project == null || !isGradleProject(project) || !TrustedProjects.isTrusted(project)) {
       e.getPresentation().setEnabledAndVisible(false);
       return;
     }

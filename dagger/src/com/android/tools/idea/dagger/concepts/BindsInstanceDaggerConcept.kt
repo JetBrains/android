@@ -30,8 +30,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.parentOfType
-import java.io.DataInput
-import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
@@ -39,6 +37,8 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
+import java.io.DataInput
+import java.io.DataOutput
 
 /**
  * Represents a method or parameter marked with @BindsInstance in Dagger.
@@ -94,7 +94,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     val singleParameter = wrapper.getParameters().singleOrNull() ?: return
 
     indexEntries.addIndexValue(
-      singleParameter.getType().getSimpleName(),
+      singleParameter.getType().getSimpleName() ?: "",
       BindsInstanceBuilderMethodIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
     )
   }
@@ -108,7 +108,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
       wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotations.BINDS_INSTANCE) }
     for (parameter in bindsInstanceParameters) {
       indexEntries.addIndexValue(
-        parameter.getType().getSimpleName(),
+        parameter.getType().getSimpleName() ?: "",
         BindsInstanceFactoryMethodParameterIndexValue(
           containingClass.getFqName(),
           wrapper.getSimpleName(),

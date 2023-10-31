@@ -15,9 +15,24 @@
  */
 package com.android.tools.idea.streaming.emulator
 
+import com.android.ddmlib.IDevice
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
+import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
 import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.TemporaryDirectoryRule
+import com.google.common.util.concurrent.Futures.immediateFailedFuture
+import com.google.common.util.concurrent.Futures.immediateFuture
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import org.junit.rules.ExternalResource
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -29,40 +44,53 @@ import java.nio.file.Path
  * Allows tests to use [FakeEmulator] instead of the real one.
  */
 class FakeEmulatorRule : TestRule {
+
+  val avdRoot: Path by lazy { Files.createDirectories(userHome.resolve(".android/avd")) }
   private val emulators = mutableListOf<FakeEmulator>()
   private var availableGrpcPort = 8554
   private var registrationDirectory: Path? = null
   private val savedUserHome = System.getProperty("user.home")
   private val tempDirectory = TemporaryDirectoryRule()
+  private var disposable: Disposable? = null
+  private val root by lazy { Files.createDirectories(tempDirectory.newPath()) }
+  private val userHome by lazy { Files.createDirectories(root.resolve("home")) }
+
   private val emulatorResource = object : ExternalResource() {
     override fun before() {
+      val disposable = Disposer.newDisposable().also { disposable = it }
       RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-      val root = Files.createDirectories(tempDirectory.newPath())
-      nullableRoot = root
-      val userHome = Files.createDirectories(root.resolve("home"))
-      Files.createDirectories(userHome.resolve("Desktop"))
       System.setProperty("user.home", userHome.toString())
+      Files.createDirectories(userHome.resolve("Desktop"))
       registrationDirectory = Files.createDirectories(root.resolve("avd/running"))
       emulatorCatalog.overrideRegistrationDirectory(registrationDirectory)
+      AvdManagerConnection.setConnectionFactory { sdkHandler, _ -> TestAvdManagerConnection(sdkHandler, avdRoot) }
+      val androidSdks = object : AndroidSdks() {
+        override fun tryToChooseSdkHandler(): AndroidSdkHandler {
+          val sdkRoot = FakeEmulator.getSdkFolder(avdRoot)
+          return AndroidSdkHandler(sdkRoot, sdkRoot)
+        }
+      }
+      ApplicationManager.getApplication()?.registerOrReplaceServiceInstance(AndroidSdks::class.java, androidSdks, disposable)
     }
 
     override fun after() {
-      for (emulator in emulators) {
-        emulator.stop()
+      try {
+        for (emulator in emulators) {
+          emulator.stop()
+        }
       }
-      System.setProperty("user.home", savedUserHome)
-      registrationDirectory = null
-      val emulatorCatalog = RunningEmulatorCatalog.getInstance()
-      emulatorCatalog.overrideRegistrationDirectory(null)
-      RuntimeConfigurationOverrider.clearOverride()
+      finally {
+        disposable?.let { Disposer.dispose(it) }
+        System.setProperty("user.home", savedUserHome)
+        registrationDirectory = null
+        val emulatorCatalog = RunningEmulatorCatalog.getInstance()
+        emulatorCatalog.overrideRegistrationDirectory(null)
+        RuntimeConfigurationOverrider.clearOverride()
+        AvdManagerConnection.resetConnectionFactory()
+      }
     }
   }
-
-  private var nullableRoot: Path? = null
-
-  val root: Path
-    get() = nullableRoot ?: throw IllegalStateException()
 
   override fun apply(base: Statement, description: Description): Statement {
     return tempDirectory.apply(emulatorResource.apply(base, description), description)
@@ -70,9 +98,9 @@ class FakeEmulatorRule : TestRule {
 
   fun newPath(): Path = tempDirectory.newPath()
 
-  fun newEmulator(avdFolder: Path, standalone: Boolean = false): FakeEmulator {
+  fun newEmulator(avdFolder: Path): FakeEmulator {
     val dir = registrationDirectory ?: throw IllegalStateException()
-    val emulator = FakeEmulator(avdFolder, availableGrpcPort++, dir, standalone)
+    val emulator = FakeEmulator(avdFolder, availableGrpcPort++, dir)
     emulators.add(emulator)
     return emulator
   }
@@ -81,6 +109,23 @@ class FakeEmulatorRule : TestRule {
 
     override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
       return InProcessChannelBuilder.forName(FakeEmulator.grpcServerName(port))
+    }
+  }
+
+  private inner class TestAvdManagerConnection(
+    sdkHandler: AndroidSdkHandler,
+    avdHomeFolder: Path,
+  ) : AvdManagerConnection(sdkHandler, avdHomeFolder, MoreExecutors.newDirectExecutorService()) {
+
+    override fun getAvds(forceRefresh: Boolean): List<AvdInfo> {
+      return super.getAvds(true) // Always refresh in tests.
+    }
+
+    override fun startAvd(project: Project?, avd: AvdInfo, requestType: RequestType): ListenableFuture<IDevice> {
+      val emulator = emulators.firstOrNull { it.avdFolder == avd.dataFolderPath } ?:
+          return immediateFailedFuture(IllegalArgumentException("Unknown AVD: ${avd.id}"))
+      emulator.start(standalone = requestType != RequestType.DIRECT_RUNNING_DEVICES)
+      return immediateFuture(null)
     }
   }
 }

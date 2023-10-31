@@ -153,6 +153,7 @@ open class PsProductFlavor(
 
     val dimension: SimpleProperty<PsProductFlavor, String> = property(
       "Dimension",
+      preferredVariableName = { variableName("$name-dimension") },
       resolvedValueGetter = { dimension },
       parsedPropertyGetter = { dimension() },
       getter = { asString() },

@@ -16,11 +16,11 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 import java.awt.Dimension
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
-import org.junit.Test
 
 class CompressedVerticalLayoutTest {
   @Test

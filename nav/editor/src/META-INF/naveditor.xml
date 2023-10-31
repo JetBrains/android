@@ -71,4 +71,14 @@
     <assistantBundleCreator implementation="com.android.tools.idea.naveditor.actions.NavEditorPanelAssistantBundleCreator"/>
     <scrollHandler implementation="com.android.tools.idea.naveditor.actions.NavEditorHelpScrollHandler" />
   </extensions>
+
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.android.tools.idea.naveditor.editor.addDestinationMenuToken"
+                    interface="com.android.tools.idea.naveditor.editor.AddDestinationMenuToken"
+                    area="IDEA_PROJECT"/>
+    <extensionPoint qualifiedName="com.android.tools.idea.naveditor.surface.navDesignSurfaceToken"
+                    interface="com.android.tools.idea.naveditor.surface.NavDesignSurfaceToken"
+                    area="IDEA_PROJECT"/>
+  </extensionPoints>
+
 </idea-plugin>

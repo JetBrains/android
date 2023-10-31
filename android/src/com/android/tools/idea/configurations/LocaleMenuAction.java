@@ -20,6 +20,8 @@ import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationModelModule;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
@@ -237,7 +239,7 @@ public class LocaleMenuAction extends DropDownAction {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
         // Also set the project-wide locale, since locales (and rendering targets) are project wide
-        configuration.getConfigurationManager().setLocale(myLocale);
+        configuration.getSettings().setLocale(myLocale);
       }
     }
   }

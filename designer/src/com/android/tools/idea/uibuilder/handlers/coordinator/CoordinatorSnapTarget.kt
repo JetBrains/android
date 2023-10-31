@@ -25,19 +25,24 @@ import com.android.tools.idea.common.scene.target.BaseTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.model.ensureLiveId
 import java.awt.Color
-import kotlin.math.min
 
 /**
- * A "snap" target for CoordinatorLayout. When a CoordinatorDragTarget
- * is moved close to this, we'll snap the component at the location.
+ * A "snap" target for CoordinatorLayout. When a CoordinatorDragTarget is moved close to this, we'll
+ * snap the component at the location.
  */
 class CoordinatorSnapTarget(type: Type) : BaseTarget(), NonPlaceholderDragTarget {
   private val DEBUG: Boolean = false
 
   enum class Type {
-    LEFT, LEFT_TOP, LEFT_BOTTOM,
-    RIGHT, RIGHT_TOP, RIGHT_BOTTOM,
-    TOP, CENTER, BOTTOM
+    LEFT,
+    LEFT_TOP,
+    LEFT_BOTTOM,
+    RIGHT,
+    RIGHT_TOP,
+    RIGHT_BOTTOM,
+    TOP,
+    CENTER,
+    BOTTOM
   }
 
   private var myType: Type = type
@@ -45,12 +50,18 @@ class CoordinatorSnapTarget(type: Type) : BaseTarget(), NonPlaceholderDragTarget
 
   override fun getPreferenceLevel(): Int = Target.ANCHOR_LEVEL
 
-  override fun layout(context: SceneContext, left: Int, top: Int, right: Int, bottom: Int): Boolean {
+  override fun layout(
+    context: SceneContext,
+    left: Int,
+    top: Int,
+    right: Int,
+    bottom: Int
+  ): Boolean {
     var l = left
     var t = top
     var r = right
     var b = bottom
-    val d = min(min(b - t, r - l) / 4, mySize)
+    val d = Math.min(Math.min(b- t, r- l) / 4, mySize)
     if (myType == Type.RIGHT_TOP || myType == Type.RIGHT || myType == Type.RIGHT_BOTTOM) {
       l = r - d
     } else if (myType == Type.TOP || myType == Type.CENTER || myType == Type.BOTTOM) {
@@ -87,21 +98,27 @@ class CoordinatorSnapTarget(type: Type) : BaseTarget(), NonPlaceholderDragTarget
   fun isSnapped(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) =
     coordinateInRange(x, myLeft, myRight) && coordinateInRange(y, myTop, myBottom)
 
-  private fun coordinateInRange(x: Int, left: Float, right: Float): Boolean = x >= left && x <= right
+  private fun coordinateInRange(x: Int, left: Float, right: Float): Boolean =
+    x >= left && x <= right
 
   fun snap(attributes: NlAttributesHolder) {
-    val value = when (myType) {
-      Type.LEFT -> "start|center"
-      Type.RIGHT -> "end|center"
-      Type.TOP -> "top|center"
-      Type.BOTTOM -> "bottom|center"
-      Type.LEFT_TOP -> "start|top"
-      Type.LEFT_BOTTOM -> "start|bottom"
-      Type.CENTER -> "center"
-      Type.RIGHT_TOP -> "end|top"
-      Type.RIGHT_BOTTOM -> "end|bottom"
-    }
+    val value =
+      when (myType) {
+        Type.LEFT -> "start|center"
+        Type.RIGHT -> "end|center"
+        Type.TOP -> "top|center"
+        Type.BOTTOM -> "bottom|center"
+        Type.LEFT_TOP -> "start|top"
+        Type.LEFT_BOTTOM -> "start|bottom"
+        Type.CENTER -> "center"
+        Type.RIGHT_TOP -> "end|top"
+        Type.RIGHT_BOTTOM -> "end|bottom"
+      }
     attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, value)
-    attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR, SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId())
+    attributes.setAttribute(
+      SdkConstants.AUTO_URI,
+      SdkConstants.ATTR_LAYOUT_ANCHOR,
+      SdkConstants.NEW_ID_PREFIX + myComponent.nlComponent.ensureLiveId()
+    )
   }
 }

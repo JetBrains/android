@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.google.common.base.Verify.verifyNotNull;
-import static org.fest.reflect.core.Reflection.field;
-
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.OccurenceNavigatorSupport;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.usageView.UsageViewContentManager;
 import com.intellij.usages.impl.GroupNode;
-import javax.swing.JComponent;
-import javax.swing.JTree;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+
+import static com.google.common.base.Verify.verifyNotNull;
+import static org.fest.reflect.core.Reflection.field;
 
 public class FindToolWindowFixture {
 
   public static class ContentFixture {
     @NotNull private final Content myContent;
 
-    ContentFixture(@NotNull IdeFrameFixture parent) {
+    public ContentFixture(@NotNull IdeFrameFixture parent) {
       UsageViewContentManager usageViewManager = UsageViewContentManager.getInstance(parent.getProject());
       myContent = verifyNotNull(usageViewManager.getSelectedContent());
     }
@@ -67,7 +67,7 @@ public class FindToolWindowFixture {
     }
 
     @NotNull
-    private Tree getContentsTree() {
+    public Tree getContentsTree() {
       JComponent component = myContent.getComponent();
       OccurenceNavigatorSupport navigatorSupport = field("mySupport").ofType(OccurenceNavigatorSupport.class).in(component).get();
       return (Tree)field("myTree").ofType(JTree.class).in(navigatorSupport).get();

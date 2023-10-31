@@ -460,6 +460,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       return;
     }
 
+    // TODO(b/291955340): Violates @RequiresBackgroundThread
     final Set<String> processNames = collectAllProcessNames(myProject);
 
     TreeNode selectedDeviceNode = null;

@@ -8,33 +8,35 @@
     <orderEntry type="module" module-name="android.sdktools.lint-model" />
     <orderEntry type="module" module-name="android.sdktools.lint-checks" />
     <orderEntry type="module" module-name="android.sdktools.lint.cli" />
-    <orderEntry type="module-library" exported="">
-      <library name="precompiled-lint-testinfrastructure" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.testinfrastructure:223.0.1.0">
+    <orderEntry type="module-library" exported="" scope="TEST" >
+      <library name="precompiled-lint.testinfrastructure" type="repository" >
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.testinfrastructure:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure/223.0.1.0/studio.android.sdktools.lint.testinfrastructure-223.0.1.0.jar">
-              <sha256sum>c4e6ef2a35c98dd68a7e76e09a4e5ad696ea5055194fdbbb37e72396ef5e7885</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure/231.0.1.4/studio.android.sdktools.lint.testinfrastructure-231.0.1.4.jar">
+              <sha256sum>d71042c12aae762450d23c2d437b151284f25cfd874b2f0d84588d07f06b9846</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure/223.0.1.0/studio.android.sdktools.lint.testinfrastructure-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure/231.0.1.4/studio.android.sdktools.lint.testinfrastructure-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure/231.0.1.4/studio.android.sdktools.lint.testinfrastructure-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-lint-testinfrastructure-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.testinfrastructure_test:223.0.1.0">
+      <library name="precompiled-lint.testinfrastructure-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.lint.testinfrastructure_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure_test/223.0.1.0/studio.android.sdktools.lint.testinfrastructure_test-223.0.1.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure_test/231.0.1.4/studio.android.sdktools.lint.testinfrastructure_test-231.0.1.4.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure_test/223.0.1.0/studio.android.sdktools.lint.testinfrastructure_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.lint.testinfrastructure_test/231.0.1.4/studio.android.sdktools.lint.testinfrastructure_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

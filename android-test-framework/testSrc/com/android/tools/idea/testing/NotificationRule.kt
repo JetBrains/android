@@ -19,49 +19,54 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.project.Project
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.ProjectRule
+import org.junit.rules.ExternalResource
 import javax.swing.Icon
 
 /**
  * A rule that allows verification of [Notification]s posted during a test.
  *
- * The rules subscribes to the [com.intellij.util.messages.MessageBus] and collects posted notifications in a list of data objects that
+ * The rule subscribes to the [com.intellij.util.messages.MessageBus] and collects posted notifications in a list of data objects that
  * encapsulate the fields of a [Notification] that a test might care about.
  *
- * Note that the [Notification] class itself is not good for us because it doesn't have an equals() method and it contains fields we
+ * Note that the [Notification] class itself is not good for us because it doesn't have an equals() method, and it contains fields we
  * definitely do not want to assert on for example, [Notification.id].
  */
-class NotificationRule private constructor(private val project: () -> Project, private val disposable: () -> Disposable) : TestRule {
+class NotificationRule(private val project: () -> Project) : ExternalResource() {
 
-  constructor(rule: AndroidProjectRule) : this(rule::project, rule::testRootDisposable)
+  private val disposable: Disposable = Disposer.newDisposable("NotificationRule")
 
-  constructor(rule: EdtAndroidProjectRule) : this(rule::project, rule::testRootDisposable)
+  constructor(rule: ProjectRule) : this(rule::project)
+
+  constructor(rule: AndroidProjectRule) : this(rule::project)
+
+  constructor(rule: EdtAndroidProjectRule) : this(rule::project)
 
   private val _notifications: MutableList<NotificationInfo> = mutableListOf()
   val notifications: List<NotificationInfo> = _notifications
 
-  override fun apply(base: Statement, description: Description?): Statement {
-    return object : Statement() {
-      override fun evaluate() {
-        project().messageBus.connect(disposable()).subscribe(Notifications.TOPIC, object : Notifications {
-          override fun notify(notification: Notification) {
-            _notifications.add(NotificationInfo(
-              notification.groupId,
-              notification.icon,
-              notification.title,
-              notification.subtitle,
-              notification.content,
-              notification.type,
-              notification.isImportant,
-            ))
-          }
-        })
-        base.evaluate()
+  override fun before() {
+    project().messageBus.connect(disposable).subscribe(Notifications.TOPIC, object : Notifications {
+      override fun notify(notification: Notification) {
+        _notifications.add(NotificationInfo(
+          notification.groupId,
+          notification.icon,
+          notification.title,
+          notification.subtitle,
+          notification.content,
+          notification.type,
+          notification.isImportant,
+          notification.actions
+        ))
       }
-    }
+    })
+  }
+
+  override fun after() {
+    Disposer.dispose(disposable)
   }
 
   /**
@@ -75,5 +80,6 @@ class NotificationRule private constructor(private val project: () -> Project, p
     val content: String? = null,
     val type: NotificationType,
     val important: Boolean? = false,
+    val actions: MutableList<AnAction>,
   )
 }

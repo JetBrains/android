@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.layoutinspector.resource.data
 
+import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.resources.ResourceUrl
 import com.android.tools.idea.layoutinspector.common.StringTable
 
 /**
  * Represents the components of a resource ID.
  *
- * For example, with "@android:id/textView", "android" is the namespace, "id" is the type, and "textView" is the name.
+ * For example, with "@android:id/textView", "android" is the namespace, "id" is the type, and
+ * "textView" is the name.
  */
 class Resource(
   val type: Int = 0, // Key for a StringTable
@@ -41,5 +44,18 @@ class Resource(
     val resType = ResourceType.fromFolderName(type) ?: return null
 
     return ResourceReference(resNamespace, resType, name)
+  }
+}
+
+fun createReference(url: String?, projectPackageName: String?): ResourceReference? {
+  if (url == null || projectPackageName == null) {
+    return null
+  }
+  val projectNamespace = ResourceNamespace.fromPackageName(projectPackageName)
+  return ResourceUrl.parse(url)?.resolve(projectNamespace) {
+    when (it) {
+      SdkConstants.ANDROID_NS_NAME -> SdkConstants.ANDROID_URI
+      else -> projectNamespace.xmlNamespaceUri
+    }
   }
 }

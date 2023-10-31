@@ -18,13 +18,11 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
-import icons.StudioIcons
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertNotNull
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
@@ -38,18 +36,17 @@ class SceneViewErrorsPanelTest {
   private lateinit var panelParent: JPanel
 
   companion object {
-    @JvmField
-    @ClassRule
-    val appRule = ApplicationRule()
+    @JvmField @ClassRule val appRule = ApplicationRule()
   }
 
   @Before
   fun setUp() {
     invokeAndWaitIfNeeded {
-      panelParent = JPanel().apply {
-        layout = BorderLayout()
-        size = Dimension(1000, 800)
-      }
+      panelParent =
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(1000, 800)
+        }
       fakeUi = FakeUi(panelParent, 1.0, true)
       fakeUi.root.validate()
     }
@@ -72,7 +69,7 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
-    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Some issues were found while trying to render this preview") })
+    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Render problem") })
   }
 
   @Test
@@ -80,9 +77,9 @@ class SceneViewErrorsPanelTest {
     val sceneViewErrorsPanel = SceneViewErrorsPanel()
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
-    assertEquals(100, sceneViewErrorsPanel.minimumSize.height)
+    assertEquals(35, sceneViewErrorsPanel.minimumSize.height)
     assertEquals(150, sceneViewErrorsPanel.minimumSize.width)
-    assertEquals(100, sceneViewErrorsPanel.preferredSize.height)
+    assertEquals(35, sceneViewErrorsPanel.preferredSize.height)
     assertEquals(150, sceneViewErrorsPanel.preferredSize.width)
   }
 }

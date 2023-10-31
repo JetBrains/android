@@ -21,14 +21,12 @@ import com.android.ide.common.resources.ResourceRepository
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.res.AndroidDependenciesCache
-import com.android.tools.idea.res.ResourceClassRegistry
-import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.util.VirtualFileSystemOpener.recognizes
-import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.res.ResourceClassRegistry
 import com.android.tools.res.ResourceNamespacing
+import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -49,17 +47,6 @@ private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
       AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(it)
     }
     catch (ignore: IOException) {
-      // Workaround for https://issuetracker.google.com/127647973
-      // Until fixed, the VFS might have an outdated view of the gradle cache directory. Some manifests might appear as missing but they
-      // are actually there. In those cases, we issue a refresh call to fix the problem.
-      if (recognizes(it)) {
-        manifestFile.toVirtualFile(true)
-        try {
-          return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(it)
-        }
-        catch (_: IOException) {
-        }
-      }
       null
     }
   }
@@ -68,28 +55,22 @@ private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
 /**
  * Register this [ExternalAndroidLibrary] with the [ResourceClassRegistry].
  */
-private fun ExternalAndroidLibrary.registerLibraryResources(
-  repositoryManager: StudioResourceRepositoryManager,
-  classRegistry: ResourceClassRegistry,
-  idManager: ResourceIdManager) {
-  val appResources = repositoryManager.appResources
+private fun ResourceClassRegistry.registerLibraryResources(
+  externalLib: ExternalAndroidLibrary,
+  idManager: ResourceIdManager,
+  repositoryManager: StudioResourceRepositoryManager) {
 
   // Choose which resources should be in the generated R class. This is described in the JavaDoc of ResourceClassGenerator.
-  val rClassContents: ResourceRepository
-  val resourcesNamespace: ResourceNamespace
-  val packageName: String?
+  val (rClassContents: ResourceRepository, resourcesNamespace: ResourceNamespace, packageName: String?) =
   if (repositoryManager.namespacing === ResourceNamespacing.DISABLED) {
-    packageName = getResolvedPackageName() ?: return
-    rClassContents = appResources
-    resourcesNamespace = ResourceNamespace.RES_AUTO
+    val resolvedPackageName = externalLib.getResolvedPackageName() ?: return
+    Triple(repositoryManager.appResources, ResourceNamespace.RES_AUTO, resolvedPackageName)
   }
   else {
-    val aarResources = repositoryManager.findLibraryResources(this) ?: return
-    rClassContents = aarResources
-    resourcesNamespace = aarResources.namespace
-    packageName = aarResources.packageName
+    val aarResources = repositoryManager.findLibraryResources(externalLib) ?: return
+    Triple(aarResources, aarResources.namespace, aarResources.packageName)
   }
-  classRegistry.addLibrary(rClassContents, idManager, packageName, resourcesNamespace)
+  this.addLibrary(rClassContents, idManager, packageName, resourcesNamespace)
 }
 
 /**
@@ -124,7 +105,7 @@ private fun registerResources(module: Module) {
   }
   module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }
-    .forEach { it.registerLibraryResources(repositoryManager, classRegistry, idManager) }
+    .forEach { classRegistry.registerLibraryResources(it, idManager, repositoryManager) }
 }
 
 // matches foo.bar.R or foo.bar.R$baz
@@ -139,7 +120,7 @@ class LibraryResourceClassLoader(
   module: Module,
   private val childLoader: DelegatingClassLoader.Loader
 ) : ClassLoader(parent) {
-  private val moduleRef = WeakReference(module)
+  val moduleRef = WeakReference(module)
 
   init {
     registerResources(module)

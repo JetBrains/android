@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.compiler.options.CompileStepBeforeRun
@@ -31,6 +32,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
@@ -39,7 +41,6 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
@@ -48,8 +49,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         "src/Test.kt",
         // language=kotlin
         """
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -59,11 +60,13 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent()
       )
     composableFunction = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -100,6 +103,18 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     }
   }
 
+  fun testSetupConfigurationFromContextWhenEssentialsModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
+
+    val context = ConfigurationContext(composableFunction)
+    val runConfiguration = newComposePreviewRunConfiguration()
+    val producer = ComposePreviewRunConfigurationProducer()
+    // We shouldn't be able to create a configuration from context when essentials mode is enabled.
+    assertFalse(
+      producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
+    )
+  }
+
   fun testParameterProvider() {
     val file =
       myFixture.addFileToProjectAndInvalidate(
@@ -108,9 +123,9 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         """
         package my.composable.app
 
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
         import androidx.compose.ui.tooling.preview.PreviewParameter
-        import androidx.compose.Composable
 
         class Names: CollectionPreviewParameterProvider<String>(listOf("Android", "Studio"))
 
@@ -147,8 +162,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         """
         package com.example.mylibrary
 
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Composable
         @Preview
@@ -168,7 +183,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     )
   }
 
-  fun testSetupConfigurationFromContextMultipreviw() {
+  fun testSetupConfigurationFromContextMultipreview() {
     val file =
       myFixture.addFileToProjectAndInvalidate(
         "src/TestMultipreview.kt",
@@ -176,8 +191,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         """
         package my.composable.app
 
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
 
         @Preview
         annotation class MyAnnotation
@@ -204,7 +219,7 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         // language=kotlin
         """
         import androidx.compose.ui.tooling.preview.Preview
-        import androidx.compose.Composable
+        import androidx.compose.runtime.Composable
 
         @Preview
         @Composable
@@ -279,6 +294,19 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
     runConfiguration.name = "Preview2"
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
+  }
+
+  fun testIsConfigurationFromContextWhenEssentialsModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
+    val producer = ComposePreviewRunConfigurationProducer()
+    val context = ConfigurationContext(composableFunction)
+    val runConfiguration = newComposePreviewRunConfiguration()
+
+    runConfiguration.name = "Preview1"
+    runConfiguration.composableMethodFqn = "TestKt.Preview1"
+    // Configuration shouldn't match when Compose Preview Essentials Mode is enabled,
+    // even if both name and FQN match.
+    assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
   private fun createConfigurationFromElement(

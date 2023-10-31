@@ -26,7 +26,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
-import com.android.tools.idea.uibuilder.model.layoutHandler
+import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Cursor
 import java.awt.event.InputEvent
@@ -52,8 +52,14 @@ class CommonDragTargetTest : SceneTest() {
     myInteraction.mouseRelease(150f, 200f)
 
     textView.authoritativeNlComponent.let {
-      assertEquals("100dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("150dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "100dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "150dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
     assertFalse(linearLayout.children.contains(textView))
 
@@ -68,10 +74,17 @@ class CommonDragTargetTest : SceneTest() {
     myInteraction.mouseDown("textView2")
     myInteraction.mouseRelease(60f, 60f)
 
-    // The result would be 16dp due to snapped by TargetSnapper. In non-snapped case it would be 10dp.
+    // The result would be 16dp due to snapped by TargetSnapper. In non-snapped case it would be
+    // 10dp.
     textView2.authoritativeNlComponent.let {
-      assertEquals("16dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("16dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "16dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "16dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
     assertEquals(constraintLayout.children[1], textView2)
   }
@@ -85,8 +98,14 @@ class CommonDragTargetTest : SceneTest() {
     myInteraction.mouseRelease(80f, 80f)
 
     textView2.authoritativeNlComponent.let {
-      assertEquals("30dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("30dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "30dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "30dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
     assertEquals(constraintLayout.children[1], textView2)
   }
@@ -101,13 +120,25 @@ class CommonDragTargetTest : SceneTest() {
     myInteraction.mouseRelease(150f, 200f)
 
     textView.authoritativeNlComponent.let {
-      assertEquals("100dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("150dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "100dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "150dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
 
     textView2.authoritativeNlComponent.let {
-      assertEquals("200dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("150dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "200dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "150dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
   }
 
@@ -119,16 +150,27 @@ class CommonDragTargetTest : SceneTest() {
 
     myInteraction.select(textView, textView2)
     myInteraction.mouseDown("textView")
-    myInteraction.mouseRelease((button.drawX + button.drawWidth / 2).toFloat(), button.drawY.toFloat())
+    myInteraction.mouseRelease(
+      (button.drawX + button.drawWidth / 2).toFloat(),
+      button.drawY.toFloat()
+    )
 
     textView.authoritativeNlComponent.let {
-      assertNull(it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertNull(it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertNull(
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertNull(
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
 
     textView2.authoritativeNlComponent.let {
-      assertNull(it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertNull(it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertNull(
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertNull(
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
 
     val linearLayout = myScreen.get("@id/linear").sceneComponent!!
@@ -145,11 +187,20 @@ class CommonDragTargetTest : SceneTest() {
 
     myInteraction.select(textView)
     myInteraction.mouseDown("textView")
-    myInteraction.mouseCancel((button.drawX + button.drawWidth / 2).toFloat(), button.drawY.toFloat())
+    myInteraction.mouseCancel(
+      (button.drawX + button.drawWidth / 2).toFloat(),
+      button.drawY.toFloat()
+    )
 
     textView.authoritativeNlComponent.let {
-      assertEquals("0dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("0dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "0dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "0dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
     assertFalse(linearLayout.children.contains(textView))
   }
@@ -163,16 +214,31 @@ class CommonDragTargetTest : SceneTest() {
 
     myInteraction.select(textView, textView2)
     myInteraction.mouseDown("textView")
-    myInteraction.mouseCancel((button.drawX + button.drawWidth / 2).toFloat(), button.drawY.toFloat())
+    myInteraction.mouseCancel(
+      (button.drawX + button.drawWidth / 2).toFloat(),
+      button.drawY.toFloat()
+    )
 
     textView.authoritativeNlComponent.let {
-      assertEquals("0dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("0dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "0dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "0dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
 
     textView2.authoritativeNlComponent.let {
-      assertEquals("100dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-      assertEquals("0dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+      assertEquals(
+        "100dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
+      assertEquals(
+        "0dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+      )
     }
 
     assertFalse(linearLayout.children.contains(textView))
@@ -188,14 +254,31 @@ class CommonDragTargetTest : SceneTest() {
 
     myInteraction.select(textView)
     myInteraction.mouseDown("textView")
-    myInteraction.mouseRelease((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-                               (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
+    myInteraction.mouseRelease(
+      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat()
+    )
 
     val nlComponent = textView.nlComponent
-    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF))
-    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF))
-    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF))
-    assertEquals(SdkConstants.ATTR_PARENT, nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF))
+    assertEquals(
+      SdkConstants.ATTR_PARENT,
+      nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF)
+    )
+    assertEquals(
+      SdkConstants.ATTR_PARENT,
+      nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF)
+    )
+    assertEquals(
+      SdkConstants.ATTR_PARENT,
+      nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
+    )
+    assertEquals(
+      SdkConstants.ATTR_PARENT,
+      nlComponent.getAttribute(
+        SdkConstants.SHERPA_URI,
+        SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF
+      )
+    )
 
     // Restore to original setting of auto-connect
     setAutoConnection(myScreen.screen, textView, autoconnected)
@@ -210,12 +293,20 @@ class CommonDragTargetTest : SceneTest() {
 
     myInteraction.select(textView)
     myInteraction.mouseDown("textView")
-    myInteraction.mouseRelease((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-                               (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
+    myInteraction.mouseRelease(
+      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat()
+    )
 
     val nlComponent = textView.nlComponent
-    assertEquals("450dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-    assertEquals("450dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    assertEquals(
+      "450dp",
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+    )
+    assertEquals(
+      "450dp",
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+    )
 
     // Restore to original setting of auto-connect
     setAutoConnection(myScreen.screen, textView, autoconnected)
@@ -231,8 +322,10 @@ class CommonDragTargetTest : SceneTest() {
     val y = textView.drawY
 
     myInteraction.mouseDown("textView")
-    myInteraction.mouseDrag((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-                            (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
+    myInteraction.mouseDrag(
+      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat()
+    )
 
     assertTrue(x == textView.drawX)
     assertTrue(y == textView.drawY)
@@ -247,10 +340,14 @@ class CommonDragTargetTest : SceneTest() {
     val transaction = textView.authoritativeNlComponent.startAttributeTransaction()
 
     myInteraction.mouseDown("textView")
-    myInteraction.mouseDrag((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-                            (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
-    myInteraction.mouseRelease((constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
-                               (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat())
+    myInteraction.mouseDrag(
+      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat()
+    )
+    myInteraction.mouseRelease(
+      (constraintLayout.drawX + constraintLayout.drawWidth / 2).toFloat(),
+      (constraintLayout.drawY + constraintLayout.drawHeight / 2).toFloat()
+    )
 
     assertTrue(transaction.isSuccessful)
   }
@@ -264,10 +361,14 @@ class CommonDragTargetTest : SceneTest() {
     val transaction = textView.authoritativeNlComponent.startAttributeTransaction()
 
     myInteraction.mouseDown("textView")
-    myInteraction.mouseDrag((constraintLayout.drawX - constraintLayout.drawWidth).toFloat(),
-                            (constraintLayout.drawY - constraintLayout.drawHeight).toFloat())
-    myInteraction.mouseRelease((constraintLayout.drawX - constraintLayout.drawWidth).toFloat(),
-                               (constraintLayout.drawY - constraintLayout.drawHeight).toFloat())
+    myInteraction.mouseDrag(
+      (constraintLayout.drawX - constraintLayout.drawWidth).toFloat(),
+      (constraintLayout.drawY - constraintLayout.drawHeight).toFloat()
+    )
+    myInteraction.mouseRelease(
+      (constraintLayout.drawX - constraintLayout.drawWidth).toFloat(),
+      (constraintLayout.drawY - constraintLayout.drawHeight).toFloat()
+    )
 
     assertFalse(transaction.isSuccessful)
   }
@@ -333,7 +434,10 @@ class CommonDragTargetTest : SceneTest() {
       myScene.select(listOf())
       val target = CommonDragTarget(textView)
       assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
-      assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
+      assertEquals(
+        Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
+        target.getMouseCursor(InputEvent.ALT_DOWN_MASK)
+      )
     }
 
     run {
@@ -341,63 +445,94 @@ class CommonDragTargetTest : SceneTest() {
       myScene.select(listOf(textView))
       val target = CommonDragTarget(textView)
       assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR), target.getMouseCursor(0))
-      assertEquals(AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE), target.getMouseCursor(InputEvent.ALT_DOWN_MASK))
+      assertEquals(
+        AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE),
+        target.getMouseCursor(InputEvent.ALT_DOWN_MASK)
+      )
     }
   }
 
   private fun setAutoConnection(view: SceneView, component: SceneComponent, on: Boolean) {
     if (ToggleAutoConnectAction.isAutoconnectOn() != on) {
-      ToggleAutoConnectAction().perform(ViewEditorImpl(view),
-                                        component.nlComponent.layoutHandler!!,
-                                        component.parent!!.nlComponent,
-                                        listOf(),
-                                        0)
+      ToggleAutoConnectAction()
+        .perform(
+          ViewEditorImpl(view),
+          component.nlComponent.getLayoutHandler {}!!,
+          component.parent!!.nlComponent,
+          listOf(),
+          0
+        )
     }
   }
 
   override fun createModel(): ModelBuilder {
-    return model("constraint.xml",
-                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-                   .withBounds(0, 0, 2000, 2000)
-                   .id("@id/constraint")
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(0, 0, 200, 200)
-                       .id("@id/textView")
-                       .width("100dp")
-                       .height("100dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "0dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "0dp"),
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(200, 0, 200, 200)
-                       .id("@id/textView2")
-                       .width("100dp")
-                       .height("100dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "0dp"),
-                     component(SdkConstants.LINEAR_LAYOUT)
-                       .withBounds(1400, 1400, 600, 600)
-                       .id("@id/linear")
-                       .width("300dp")
-                       .height("300dp")
-                       .withAttribute(SdkConstants.ATTR_ORIENTATION, SdkConstants.VALUE_VERTICAL)
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "700dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "700dp")
-                       .children(
-                         component(SdkConstants.BUTTON)
-                           .withBounds(1400, 1400, 200, 200)
-                           .id("@id/button")
-                           .width("100dp")
-                           .height("100dp"),
-                         component(SdkConstants.BUTTON)
-                           .withBounds(1400, 1600, 200, 200)
-                           .id("@id/button2")
-                           .width("100dp")
-                           .height("100dp")
-                       )
-                   )
+    return model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+        .withBounds(0, 0, 2000, 2000)
+        .id("@id/constraint")
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(0, 0, 200, 200)
+            .id("@id/textView")
+            .width("100dp")
+            .height("100dp")
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+              "0dp"
+            )
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+              "0dp"
+            ),
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(200, 0, 200, 200)
+            .id("@id/textView2")
+            .width("100dp")
+            .height("100dp")
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+              "100dp"
+            )
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+              "0dp"
+            ),
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(1400, 1400, 600, 600)
+            .id("@id/linear")
+            .width("300dp")
+            .height("300dp")
+            .withAttribute(SdkConstants.ATTR_ORIENTATION, SdkConstants.VALUE_VERTICAL)
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+              "700dp"
+            )
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+              "700dp"
+            )
+            .children(
+              component(SdkConstants.BUTTON)
+                .withBounds(1400, 1400, 200, 200)
+                .id("@id/button")
+                .width("100dp")
+                .height("100dp"),
+              component(SdkConstants.BUTTON)
+                .withBounds(1400, 1600, 200, 200)
+                .id("@id/button2")
+                .width("100dp")
+                .height("100dp")
+            )
+        )
     )
   }
 }

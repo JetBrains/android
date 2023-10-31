@@ -33,9 +33,10 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
   private val itemListener = ItemListener { e: ItemEvent -> saveSelectedApi(e) }
   private lateinit var formFactor: FormFactor
 
-  fun init(ff: FormFactor, items: List<VersionItem>) {
+  fun init(newFormFactor: FormFactor, items: List<VersionItem>) {
     ThreadingAssertions.assertEventDispatchThread()
-    formFactor = ff
+    val isSameFormFactor = ::formFactor.isInitialized && formFactor == newFormFactor
+    formFactor = newFormFactor
     name = "minSdkComboBox" // Name used for testing
 
     val selectedItem = selectedItem
@@ -47,7 +48,9 @@ class AndroidApiLevelComboBox : JComboBox<VersionItem?>() {
     }
 
     // Try to keep the old selection. If not possible (or no previous selection), use the last saved selection.
-    setSelectedItem(selectedItem)
+    // If the form factor changes we want to prevent keeping the old selection and want to ensure the last saved
+    // selection for the new form factor is used instead.
+    setSelectedItem(if (isSameFormFactor) selectedItem else null)
     getSelectedItem() ?: loadSavedApi()
     addItemListener(itemListener)
   }

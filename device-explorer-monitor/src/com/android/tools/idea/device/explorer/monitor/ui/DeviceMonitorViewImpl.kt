@@ -17,25 +17,32 @@ package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
+import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
+import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder.Companion.EMPTY_TREE_TEXT
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
+import com.android.tools.idea.device.explorer.monitor.ui.menu.item.PackageFilterMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RefreshMenuItem
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.ui.table.JBTable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.util.function.Consumer
 import javax.swing.JComponent
 
 class DeviceMonitorViewImpl(
-  model: DeviceMonitorModel,
+  private val model: DeviceMonitorModel,
   private val table: JBTable = ProcessListTableBuilder().build(model.tableModel)
 ): DeviceMonitorView, DeviceMonitorActionsListener {
 
   private val panel = DeviceMonitorPanel()
   private val listeners = mutableListOf<DeviceMonitorViewListener>()
+  private val packageFilterMenuItem = PackageFilterMenuItem(this@DeviceMonitorViewImpl)
 
   override val panelComponent: JComponent
     get() = panel.component
@@ -44,6 +51,21 @@ class DeviceMonitorViewImpl(
     setUpTable()
     createTreePopupMenu()
     createToolbar()
+  }
+
+  override fun trackModelChanges(coroutineScope: CoroutineScope) {
+    coroutineScope.launch {
+      model.isPackageFilterActive.collect {
+        packageFilterMenuItem.isActionSelected = it
+        table.emptyText.text = if (it) "No results (Some processes hidden due to app ID filter)" else EMPTY_TREE_TEXT
+      }
+    }
+
+    coroutineScope.launch {
+      model.isApplicationIdsEmpty.collect {
+        packageFilterMenuItem.shouldBeEnabled = !it
+      }
+    }
   }
 
   override fun addListener(listener: DeviceMonitorViewListener) {
@@ -56,6 +78,17 @@ class DeviceMonitorViewImpl(
   override val numOfSelectedNodes: Int
     get() {
       return table.selectedRowCount
+    }
+
+  override val selectedProcessInfo: List<ProcessInfo>
+    get() {
+      val selectedNodes = getModelRows(table.selectedRows)
+      val processInfoList = mutableListOf<ProcessInfo>()
+      for (selectedNode in selectedNodes) {
+        processInfoList.add(model.tableModel.getValueForRow(selectedNode))
+      }
+
+      return processInfoList
     }
 
   override fun refreshNodes() {
@@ -72,6 +105,10 @@ class DeviceMonitorViewImpl(
 
   override fun debugNodes() {
     listeners.forEach(Consumer { it.debugNodes(getModelRows(table.selectedRows)) })
+  }
+
+  override fun setPackageFilter(isActive: Boolean) {
+    listeners.forEach(Consumer { it.setPackageFilter(isActive) })
   }
 
   private fun setUpTable() {
@@ -92,8 +129,9 @@ class DeviceMonitorViewImpl(
       add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
-      add(RefreshMenuItem(this@DeviceMonitorViewImpl).action) }
-    )
+      add(RefreshMenuItem(this@DeviceMonitorViewImpl).action)
+      if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
+    })
   }
 
   private fun createToolbarSubSection(group: DefaultActionGroup) {

@@ -18,7 +18,6 @@ package com.android.tools.idea.benchmarks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.BeforeClass
 import org.junit.ClassRule
 import org.junit.Test

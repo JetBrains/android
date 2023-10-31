@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose.code
 
-import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
@@ -28,8 +28,8 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.renderer.DescriptorRenderer.ValueParametersHandler
+import org.jetbrains.kotlin.resolve.source.getPsi
 
 /**
  * Represents parts of a Composable function to be used for rendering in various menus or dialogs.
@@ -85,7 +85,7 @@ private fun ValueParameterDescriptor.isRequired(): Boolean {
 
 fun ValueParameterDescriptor.isComposableFunctionParameter(): Boolean {
   val parameterType = type
-  return parameterType.isBuiltinFunctionalType && COMPOSABLE_FQ_NAMES.any { parameterType.annotations.hasAnnotation(FqName(it)) }
+  return parameterType.isBuiltinFunctionalType && parameterType.annotations.hasAnnotation(FqName(COMPOSABLE_ANNOTATION_FQ_NAME))
 }
 
 /**

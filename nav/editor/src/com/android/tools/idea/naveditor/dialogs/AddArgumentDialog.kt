@@ -64,8 +64,8 @@ class AddArgumentDialog(
   private val defaultValueComboModel = MutableCollectionComboBoxModel<String>()
 
   private val psiManager = PsiManager.getInstance(parent.model.project)
-  private val parcelableClass = ClassUtil.findPsiClass(psiManager, CLASS_PARCELABLE)!!
-  private val serializableClass = ClassUtil.findPsiClass(psiManager, "java.io.Serializable")!!
+  internal val parcelableClass = ClassUtil.findPsiClass(psiManager, CLASS_PARCELABLE)!!
+  internal val serializableClass = ClassUtil.findPsiClass(psiManager, "java.io.Serializable")!!
 
   @VisibleForTesting
   val dialogUI = AddArgumentDialogUI()

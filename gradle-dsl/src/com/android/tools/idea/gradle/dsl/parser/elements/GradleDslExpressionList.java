@@ -70,6 +70,12 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
     myIsLiteralList = false;
   }
 
+  public GradleDslExpressionList(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
+    super(parent, null, name);
+    myAppendToArgumentListWithOneElement = false;
+    myIsLiteralList = false;
+  }
+
   public void addParsedExpression(@NotNull GradleDslExpression expression) {
     super.addParsedElement(expression);
   }

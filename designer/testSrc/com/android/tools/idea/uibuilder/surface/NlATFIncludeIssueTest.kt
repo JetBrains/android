@@ -26,11 +26,10 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 
 @RunWith(JUnit4::class)
-class NlATFIncludeIssueTest: LayoutTestCase() {
+class NlATFIncludeIssueTest : LayoutTestCase() {
 
   public override fun setUp() {
     super.setUp()
@@ -51,43 +50,50 @@ class NlATFIncludeIssueTest: LayoutTestCase() {
 
   @Test
   fun ignoreIssue() {
-    val model = model("linear.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .withBounds(0, 0, 1000, 1000)
-                        .id("@id/linear")
-                        .matchParentWidth()
-                        .matchParentHeight()
-                        .children(
-                          component(SdkConstants.VIEW_INCLUDE)
-                        )).build()
+    val model =
+      model(
+          "linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .id("@id/linear")
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(component(SdkConstants.VIEW_INCLUDE))
+        )
+        .build()
 
     val source: NlComponent = model.components[0].getChild(0)!!
     val atfIssue = NlATFIncludeIssue(source)
 
     val ignore = atfIssue.suppresses.getIfSingle()!!
     ignore.action.run()
-    assertEquals(SdkConstants.ATTR_IGNORE_A11Y_LINTS, source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE))
+    assertEquals(
+      SdkConstants.ATTR_IGNORE_A11Y_LINTS,
+      source.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
+    )
   }
 
   @Test
   fun goto() {
-    val model = model("linear.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .withBounds(0, 0, 1000, 1000)
-                        .id("@id/linear")
-                        .matchParentWidth()
-                        .matchParentHeight()
-                        .children(
-                          component(SdkConstants.VIEW_INCLUDE)
-                        )).build()
+    val model =
+      model(
+          "linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .id("@id/linear")
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(component(SdkConstants.VIEW_INCLUDE))
+        )
+        .build()
 
     val source: NlComponent = model.components[0].getChild(0)!!
     val atfIssue = NlATFIncludeIssue(source)
 
     var openLayoutFixFound = false
-    atfIssue.fixes.filter { it.buttonText == "Open the layout" }.forEach {
-      openLayoutFixFound = true
-    }
+    atfIssue.fixes
+      .filter { it.buttonText == "Open the layout" }
+      .forEach { openLayoutFixFound = true }
     assertTrue(openLayoutFixFound)
   }
 }

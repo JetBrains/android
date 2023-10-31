@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.Assert
 import org.intellij.lang.annotations.Language
@@ -31,8 +31,7 @@ import org.junit.Test
 
 class ButtonSizeAnalyzerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setup() {
@@ -41,14 +40,13 @@ class ButtonSizeAnalyzerTest {
 
   @After
   fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
   }
 
   @Test
   fun testSmallButton() {
-    @Language("XML") val content =
+    @Language("XML")
+    val content =
       """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -70,8 +68,7 @@ class ButtonSizeAnalyzerTest {
         val result = task.render().get()
         val issues = ButtonSizeAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(0, issues.size)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -79,7 +76,8 @@ class ButtonSizeAnalyzerTest {
 
   @Test
   fun testLargeButton() {
-    @Language("XML") val content =
+    @Language("XML")
+    val content =
       """<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -103,8 +101,7 @@ class ButtonSizeAnalyzerTest {
         val issues = ButtonSizeAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(1, issues.size)
         Assert.assertEquals("The button button <Button> is too wide", issues[0].message)
-      }
-      catch (ex: java.lang.Exception) {
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }

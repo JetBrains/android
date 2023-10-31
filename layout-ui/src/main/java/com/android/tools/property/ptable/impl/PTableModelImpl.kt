@@ -28,9 +28,7 @@ import java.util.IdentityHashMap
 import javax.swing.table.AbstractTableModel
 import kotlin.math.min
 
-/**
- * A table model implementation for a JTable.
- */
+/** A table model implementation for a JTable. */
 class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private val items = mutableListOf<PTableItem>()
   private val parentItems = IdentityHashMap<PTableItem, PTableGroupItem>()
@@ -43,23 +41,24 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     items.addAll(tableModel.items)
     recomputeParents()
 
-    tableModel.addListener(object : PTableModelUpdateListener {
-      override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
-        if (!modelChanged) {
-          fireTableChanged(PTableModelRepaintEvent(this@PTableModelImpl))
-        }
-        else {
-          hasEditableCells = ThreeState.UNSURE
-          val previousExpandedPaths = computeExpandedPaths()
-          items.clear()
-          items.addAll(tableModel.items)
-          recomputeParents()
-          restoreExpanded(previousExpandedPaths)
-          val index = if (nextEditedItem != null) indexOf(nextEditedItem) else -1
-          fireTableChanged(PTableModelEvent(this@PTableModelImpl, index))
+    tableModel.addListener(
+      object : PTableModelUpdateListener {
+        override fun itemsUpdated(modelChanged: Boolean, nextEditedItem: PTableItem?) {
+          if (!modelChanged) {
+            fireTableChanged(PTableModelRepaintEvent(this@PTableModelImpl))
+          } else {
+            hasEditableCells = ThreeState.UNSURE
+            val previousExpandedPaths = computeExpandedPaths()
+            items.clear()
+            items.addAll(tableModel.items)
+            recomputeParents()
+            restoreExpanded(previousExpandedPaths)
+            val index = if (nextEditedItem != null) indexOf(nextEditedItem) else -1
+            fireTableChanged(PTableModelEvent(this@PTableModelImpl, index))
+          }
         }
       }
-    })
+    )
   }
 
   override fun getRowCount() = items.count()
@@ -126,8 +125,13 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     get() {
       var editable = hasEditableCells
       if (editable == ThreeState.UNSURE) {
-        editable = ThreeState.fromBoolean(items.any {
-          tableModel.isCellEditable(it, PTableColumn.VALUE) || tableModel.isCellEditable(it, PTableColumn.NAME) })
+        editable =
+          ThreeState.fromBoolean(
+            items.any {
+              tableModel.isCellEditable(it, PTableColumn.VALUE) ||
+                tableModel.isCellEditable(it, PTableColumn.NAME)
+            }
+          )
         hasEditableCells = editable
       }
       return editable.toBoolean()
@@ -154,8 +158,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     if (alreadyExpanded > group.children.size) {
       // Remove the excess items that were expanded before this modification
       items.subList(first + group.children.size, first + alreadyExpanded).clear()
-    }
-    else if (alreadyExpanded < group.children.size) {
+    } else if (alreadyExpanded < group.children.size) {
       // Add the extra items that were added with this modification
       items.addAll(first + itemsToCopy, group.children.subList(itemsToCopy, group.children.size))
     }
@@ -188,8 +191,7 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   private fun toggle(item: PTableGroupItem, index: Int) {
     if (expandedItems.contains(item)) {
       collapse(item, index)
-    }
-    else {
+    } else {
       expand(item, index)
     }
   }
@@ -213,7 +215,11 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     }
   }
 
-  private fun computeExpanded(item: PTableGroupItem, expanded: Set<PTableGroupItem>, list: MutableList<PTableItem>) {
+  private fun computeExpanded(
+    item: PTableGroupItem,
+    expanded: Set<PTableGroupItem>,
+    list: MutableList<PTableItem>
+  ) {
     item.children.forEach {
       list.add(it)
       if (it is PTableGroupItem && expanded.contains(it)) {
@@ -231,7 +237,9 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
   }
 
   private fun expandedRowCount(group: PTableGroupItem): Int {
-    return group.children.sumOf { if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1 }
+    return group.children.sumOf {
+      if (it is PTableGroupItem && expandedItems.contains(it)) 1 + expandedRowCount(it) else 1
+    }
   }
 
   private fun recomputeParents() {

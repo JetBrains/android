@@ -35,6 +35,7 @@ import org.mockito.Answers
 import org.mockito.Mock
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
+import java.util.EnumSet
 
 class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   @Mock
@@ -111,37 +112,35 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;android;armeabi-v7a", 23) {
       val deprecatedDevice = buildTestDevice()
       deprecatedDevice.isDeprecated = true
-      whenever(mockDeviceManager.getDevices(DeviceManager.ALL_DEVICES)).thenReturn(listOf(deprecatedDevice))
+      whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)))
+        .thenReturn(listOf(deprecatedDevice))
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.devices.isEmpty())
-      verify(mockDeviceManager).getDevices(DeviceManager.ALL_DEVICES)
+      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
     }
   }
 
   fun testNoSupportedApiRange() {
     val testApiLevel = 23
     managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;android;armeabi-v7a", testApiLevel) {
-      whenever(mockDeviceManager.getDevices(DeviceManager.ALL_DEVICES)).thenReturn(listOf(buildTestDevice()))
+      whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)))
+        .thenReturn(listOf(buildTestDevice()))
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.devices.isNotEmpty())
       val deviceInfo = deviceCatalog.devices[testDeviceName]!!
-      assertEquals(deviceInfo.supportedApis, (0..testApiLevel).toList())
+      assertEquals(deviceInfo.supportedApis, listOf(23))
       assertEquals(deviceInfo.brand, testBrand)
-      assertEquals(deviceInfo.deviceName, testDeviceName)
     }
   }
 
   fun testFullDeviceInformation() {
     val testSoftware = Software()
-    val minApiLevel = 12
-    val maxApiLevel = 33
-    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-33;android;armeabi-v7a", maxApiLevel) {
-      testSoftware.minSdkLevel = minApiLevel
-      testSoftware.maxSdkLevel = maxApiLevel
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-33;android;armeabi-v7a", 33) {
       val testDevice = buildTestDevice(software = testSoftware)
-      whenever(mockDeviceManager.getDevices(DeviceManager.ALL_DEVICES)).thenReturn(listOf(testDevice))
+      whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)))
+        .thenReturn(listOf(testDevice))
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
-      assertEquals(deviceCatalog.devices[testDeviceName]!!.supportedApis, (minApiLevel..maxApiLevel).toList())
+      assertEquals(deviceCatalog.devices[testDeviceName]!!.supportedApis, listOf(33))
     }
   }
 

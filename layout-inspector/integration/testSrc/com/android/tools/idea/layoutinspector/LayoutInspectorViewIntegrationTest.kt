@@ -25,18 +25,26 @@ import java.util.concurrent.TimeUnit
 
 class LayoutInspectorViewIntegrationTest {
 
-  @get:Rule
-  val system = AndroidSystem.standard()
+  @get:Rule val system = AndroidSystem.standard()
 
   @Test
   fun testEmptyApplication() {
-    val project = AndroidProject("tools/adt/idea/layout-inspector/integration/testData/projects/emptyApplication")
+    val project =
+      AndroidProject(
+        "tools/adt/idea/layout-inspector/integration/testData/projects/emptyApplication"
+      )
 
     system.installation.addVmOption(
-      join(listOf(
-        "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector",
-        "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=false",  // Disable foreground detection: b/262770420
-      ), "\n")
+      join(
+        listOf(
+          "-Didea.log.debug.categories=#com.android.tools.idea.layoutinspector.LayoutInspector",
+          // Disable foreground detection: b/262770420
+          "-Dlayout.inspector.dynamic.layout.inspector.enable.auto.connect.foreground=false",
+          // Disable running devices: b/287696923
+          "-Dlayout.inspector.dynamic.layout.inspector.enable.running.devices=false",
+        ),
+        "\n"
+      )
     )
 
     // Create a maven repo and set it up in the installation and environment
@@ -50,12 +58,25 @@ class LayoutInspectorViewIntegrationTest {
           studio.waitForBuild()
           studio.executeAction("Run")
           val ideaLog = system.installation.ideaLog
-          ideaLog.waitForMatchingLine(".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for " +
-                                      "launched app: com\\.example\\.emptyapplication", 600, TimeUnit.SECONDS)
-          adb.runCommand("shell", "settings", "put global debug_view_attributes 1", emulator = emulator)
+          ideaLog.waitForMatchingLine(
+            ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for " +
+              "launched app: com\\.example\\.emptyapplication",
+            600,
+            TimeUnit.SECONDS
+          )
+          adb.runCommand(
+            "shell",
+            "settings",
+            "put global debug_view_attributes 1",
+            emulator = emulator
+          )
           emulator.waitForBoot()
           studio.executeAction("Android.RunLayoutInspector")
-          ideaLog.waitForMatchingLine(".*g:1 Model Updated for process: com.example.emptyapplication", 120, TimeUnit.SECONDS)
+          ideaLog.waitForMatchingLine(
+            ".*g:1 Model Updated for process: com.example.emptyapplication",
+            120,
+            TimeUnit.SECONDS
+          )
         }
       }
     }

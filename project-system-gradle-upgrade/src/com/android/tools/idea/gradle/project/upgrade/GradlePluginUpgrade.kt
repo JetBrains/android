@@ -21,8 +21,8 @@ import com.android.SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
@@ -59,7 +59,7 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 class RecommendedUpgradeReminder(
   project: Project
 ) : TimeBasedReminder(project, "recommended.upgrade", TimeUnit.DAYS.toMillis(1)) {
-  private var doNotAskForVersion: String?
+  var doNotAskForVersion: String?
     get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
 
@@ -82,7 +82,7 @@ data class Recommendation(val upgrade: Boolean, val strongly: Boolean)
 fun shouldRecommendPluginUpgrade(project: Project): Recommendation {
   // If we don't know the current plugin version then we don't upgrade.
   val current = project.findPluginInfo()?.pluginVersion ?: return Recommendation(false, false)
-  val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val latestKnown = AgpVersions.latestKnown
   val published = IdeGoogleMavenRepository.getAgpVersions()
   return shouldRecommendPluginUpgrade(project, current, latestKnown, published)
 }
@@ -136,7 +136,7 @@ fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Bool
 fun performRecommendedPluginUpgrade(
   project: Project,
   currentVersion: AgpVersion? = project.findPluginInfo()?.pluginVersion,
-  latestKnown: AgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  latestKnown: AgpVersion = AgpVersions.latestKnown,
 ) {
   if (currentVersion == null) return
 
@@ -183,7 +183,7 @@ fun shouldRecommendUpgrade(current: AgpVersion, latestKnown: AgpVersion, publish
 
 /**
  * Returns whether, given the [current] version of AGP and the [latestKnown] version to Studio (which should be the
- * version returned by [LatestKnownPluginVersionProvider] except for tests), we should consider the AGP version
+ * version returned by [AgpVersions.latestKnown] except for tests), we should consider the AGP version
  * compatible with the running IDE.  If the versions are incompatible, we will have caused sync to fail; in most cases we
  * will attempt to offer an upgrade, but some cases (e.g. a newer [current] than [latestKnown]) the user will be responsible
  * for action to get the project to a working state.
@@ -208,7 +208,7 @@ fun performForcedPluginUpgrade(
   currentPluginVersion: AgpVersion,
   newPluginVersion: AgpVersion = computeGradlePluginUpgradeState(
     currentPluginVersion,
-    AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
+    AgpVersions.latestKnown,
     IdeGoogleMavenRepository.getAgpVersions()
   ).target
 ) {

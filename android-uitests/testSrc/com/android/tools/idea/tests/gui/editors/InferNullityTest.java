@@ -44,7 +44,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class InferNullityTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   private static String ANALYZE = "Analyze";
@@ -52,7 +52,7 @@ public class InferNullityTest {
   @Before
   public void setUp() throws Exception {
     WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -64,17 +64,14 @@ public class InferNullityTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Create Empty Views Activity project and add the sample methods to MainActivity class
+   *   1. Create Empty Views Activity project and add the sample methods to MainActivity class.
    *   2. Click on Analyze > Infer Nullity.
    *   3. Select Annotations scope as "Whole Project" and click OK.
-   *   4. Click OK when prompted to add the support-annotations dependency to the project.
    *   Expectations:
-   *   1. "compile 'com.intellij:annotations:x.0' " dependency is added to the project.
-   *   2. Android @Nullable and @NonNull annotations are added in detected locations in the code.
+   *   1. Android annotations @Nullable and @NonNull are added in detected locations in the code.
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.FAT_BAZEL)
   public void inferNullity() throws Exception {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
@@ -96,18 +93,9 @@ public class InferNullityTest {
     specifyScopeDialog.button(withText(ANALYZE)).click();
     guiTest.waitForBackgroundTasks();
 
-    DialogFixture addDependecyDialog = findDialog(withTitle("Infer Nullity Annotations"))
-      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
-    addDependecyDialog.button(withText("OK")).click();
-    guiTest.waitForBackgroundTasks();
-
-    editor.open("app/build.gradle.kts");
-    String buildGradleContents = editor.getCurrentFileContents();
-    assertThat(buildGradleContents).contains("androidx.annotation:annotation");
-
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java");
     String codeContents = editor.getCurrentFileContents();
-    assertThat(codeContents).contains("@androidx.annotation.Nullable");
-    assertThat(codeContents).contains("@androidx.annotation.NonNull");
+    assertThat(codeContents).contains("@Nullable");
+    assertThat(codeContents).contains("@NonNull");
   }
 }

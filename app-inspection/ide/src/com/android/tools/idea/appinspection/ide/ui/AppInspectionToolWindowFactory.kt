@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.isAndroidEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -30,8 +29,7 @@ internal const val APP_INSPECTION_ID = "App Inspection"
 
 class AppInspectionToolWindowFactory : DumbAware, ToolWindowFactory {
 
-  override fun isApplicable(project: Project) =
-    StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get() && isAndroidEnvironment(project)
+  override fun isApplicable(project: Project) = StudioFlags.ENABLE_APP_INSPECTION_TOOL_WINDOW.get()
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val appInspectionToolWindow = AppInspectionToolWindow(toolWindow, project)

@@ -33,9 +33,10 @@ class DesignToolsTroubleInfoCollectorTest {
         FastPreviewStatus: available=true disableReason=null
 
         Project:
-        Module(light_idea_test_case): isLoaded=true isDisposed=false isGradleModule=false
-          isAndroidTest=true isUnitTest=true
-          useAndroidX=false rClassTransitive=true
+        Module(light_idea_test_case): isLoaded=true type=TYPE_APP isDisposed=false
+          isGradleModule=false isAndroidTest=true isUnitTest=true
+          scopeType=ANDROID_TEST useAndroidX=false rClassTransitive=true
+          libDepCount=0
 
 
         IssuePanelService: nIssues=0

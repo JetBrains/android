@@ -16,13 +16,14 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter;
+import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.imagepool.ImagePool;
+import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
@@ -46,6 +47,16 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ScreenViewLayer extends Layer {
 
+  /** Extra rotation for this layer. */
+  public interface ExtraRotation {
+
+    /**
+     * Degree for which the image is rotated when screen rotation feature is enabled.
+     * degree is NaN when screen rotation feature is disabled.
+     */
+    float degree();
+  }
+
   public final static Map<RenderingHints.Key, Object> HQ_RENDERING_HINTS = ImmutableMap.of(
     RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
     RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
@@ -54,6 +65,8 @@ public class ScreenViewLayer extends Layer {
 
   private final ScreenView myScreenView;
 
+  /** Extra rotation when screen rotation feature is enabled. */
+  private final ExtraRotation myScreenRotation;
   /**
    * Cached scaled image
    */
@@ -73,20 +86,23 @@ public class ScreenViewLayer extends Layer {
   /**
    * Create a new ScreenViewLayer for the given screenView.
    * @param screenView The screenView containing the model to render
+   * @param parentDisposable parent [Disposable] for this component
+   * @param rotation extra rotation for this layer
    */
-  public ScreenViewLayer(@NotNull ScreenView screenView) {
-    this(screenView, ColorBlindMode.NONE);
+  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
+    this(screenView, ColorBlindMode.NONE, parentDisposable, rotation);
   }
 
-  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull ColorBlindMode colorBlindFilter) {
-    this(screenView, colorBlindFilter == ColorBlindMode.NONE ? null : new ColorConverter(colorBlindFilter));
+  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull ColorBlindMode colorBlindFilter, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
+    this(screenView, colorBlindFilter == ColorBlindMode.NONE ? null : new ColorConverter(colorBlindFilter), parentDisposable, rotation);
   }
 
-  private ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ColorConverter imageFilter) {
+  private ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ColorConverter imageFilter,  @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
     myScreenView = screenView;
     myLastScale = myScreenView.getScale();
     myImageFilter = imageFilter;
-    Disposer.register(screenView.getSurface(), this);
+    myScreenRotation = rotation;
+    Disposer.register(parentDisposable, this);
     if(myImageFilter != null) Disposer.register(this, myImageFilter);
   }
 
@@ -208,8 +224,7 @@ public class ScreenViewLayer extends Layer {
       }
 
       // When screen rotation feature is enabled, we want to rotate the image.
-      NlDesignSurface surface = myScreenView.getSurface();
-      float degree = surface.getRotateSurfaceDegree();
+      float degree = myScreenRotation.degree();
       if (!Float.isNaN(degree)) {
         // We change the graphic context with the assumption the context will be disposed right after drawing operation.
         g.rotate(Math.toRadians(degree), myScreenView.getX() + myScreenViewSize.width / 2, myScreenView.getY() + myScreenViewSize.height / 2);

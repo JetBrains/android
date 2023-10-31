@@ -43,7 +43,7 @@ private val CENTER_PANEL_BORDER = JBUI.Borders.empty(0, 0, 10, 50)
 
 class SingleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
   : DialogWrapper(null), ActionListener, ItemListener {
-  private val buttonGroup = ButtonGroup()
+  val buttonGroup = ButtonGroup()
   private val buttons: MutableList<JRadioButton> = mutableListOf()
   val ordering: MutableList<Int> = mutableListOf()
 

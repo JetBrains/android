@@ -47,11 +47,13 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.UnknownFileType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.DisposableRule
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.unregisterService
 import com.intellij.xdebugger.XDebugSession
 import com.sun.jdi.Location
@@ -65,24 +67,23 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.RETURNS_DEFAULTS
-import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.withSettings
 import java.util.concurrent.Semaphore
 import kotlin.test.assertFailsWith
 
+private const val COMPANION_PREFIX = "\$-CC"
+
 class AndroidPositionManagerTest {
-  private val myAndroidProjectRule = withSdk()
-  private val disposableRule = DisposableRule()
+  private val projectRule = withSdk()
 
   @get:Rule
-  val rule = RuleChain(myAndroidProjectRule, disposableRule)
+  val rule = RuleChain(projectRule)
 
-  private val project get() = myAndroidProjectRule.project
+  private val project get() = projectRule.project
 
   private val mockDebugProcessImpl: DebugProcessImpl = mock()
   private val mockDebuggerSession: DebuggerSession = mock()
@@ -90,13 +91,25 @@ class AndroidPositionManagerTest {
   private val mockProcessHandler: ProcessHandler = mock()
   private val mockCompoundPositionManager: CompoundPositionManager = mock()
   private val mockDebuggerManagerThreadImpl: DebuggerManagerThreadImpl = mock()
-
   private val mockSdkSourcePositionFinder: SdkSourcePositionFinder = mock()
+  private val mockVirtualMachineProxyImpl: VirtualMachineProxyImpl = mock()
+  private val mockClassPrepareRequestor: ClassPrepareRequestor = mock()
+  private val mockRequestManagerImpl: RequestManagerImpl = mock()
 
   private val targetDeviceAndroidVersion: AndroidVersion = AndroidVersion(30)
   private val installedPackage = UpdatablePackage(FakeRemotePackage("sources;android-${targetDeviceAndroidVersion.apiLevel}"))
-
   private lateinit var myPositionManager: AndroidPositionManager
+  private val allVirtualMachineClasses = mutableListOf<ReferenceType>()
+  private val androidSdkClassLocation: Location
+    get() {
+      val type: MockReferenceType = mock()
+      whenever(type.name()).thenReturn("android.view.View")
+      whenever(type.sourceName()).thenReturn("View.java")
+      val location: MockLocation = mock()
+      whenever(location.declaringType()).thenReturn(type)
+      whenever(location.lineNumber()).thenReturn(12)
+      return location
+    }
 
   @Before
   fun setUp() {
@@ -105,10 +118,21 @@ class AndroidPositionManagerTest {
     whenever(mockDebugProcessImpl.managerThread).thenReturn(mockDebuggerManagerThreadImpl)
     whenever(mockDebugProcessImpl.project).thenReturn(project)
     whenever(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(project))
+    whenever(mockDebugProcessImpl.virtualMachineProxy).thenReturn(mockVirtualMachineProxyImpl)
     whenever(mockDebugProcessImpl.processHandler).thenReturn(mockProcessHandler)
     whenever(mockDebuggerSession.xDebugSession).thenReturn(mockXDebugSession)
-
     whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { targetDeviceAndroidVersion }
+    // todo: In reality, `allClasses` throws so, add a mode where we test when it throws.
+    whenever(mockVirtualMachineProxyImpl.allClasses()).thenReturn(allVirtualMachineClasses)
+    whenever(mockVirtualMachineProxyImpl.classesByName(anyString())).thenAnswer { invocation ->
+      allVirtualMachineClasses.filter { type ->
+        type.name() == invocation.getArgument<String>(0)
+      }
+    }
+    whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManagerImpl)
+    whenever(mockRequestManagerImpl.createClassPrepareRequest(any(), ArgumentMatchers.anyString())).thenAnswer { invocation ->
+      FakeClassPrepareRequest(invocation.arguments[1].toString())
+    }
 
     project.registerServiceInstance(SdkSourcePositionFinder::class.java, mockSdkSourcePositionFinder)
     myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
@@ -126,164 +150,6 @@ class AndroidPositionManagerTest {
       semaphore.release()
     }
     semaphore.acquire()
-  }
-
-  /**
-   * Create a SourcePosition from a one-based line number.
-   */
-  @Suppress("SameParameterValue")
-  private fun createSourcePositionForOneBasedLineNumber(psiFile: PsiFile, line: Int): SourcePosition {
-    assert(line > 0)
-    // SourcePositions are zero-based. Therefore, we need to adjust the line number accordingly.
-    return SourcePosition.createFromLine(psiFile, line - 1)
-  }
-
-  @Test
-  fun testDesugaringSupport_SimpleClass() {
-    @Language("JAVA") val text = """package p1.p2;
-
-class Foo {
-  public void bar() {
-    int test = 2;
-  }
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
-    val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    assertThat(file).isNotNull()
-    val position = createSourcePositionForOneBasedLineNumber(file, 5)
-    runTestDesugaringSupportWhenDesugaringIsRequired(position, false)
-  }
-
-  @Test
-  fun testDesugaringSupport_InterfaceWithStaticInitializer() {
-    @Suppress("UnnecessaryModifier", "StringOperationCanBeSimplified")
-    @Language("JAVA") val text = """package p1.p2;
-
-interface Foo {
-  public static final String STR = new String()
-    .concat("foo");
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
-    val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    assertThat(file).isNotNull()
-    val position = createSourcePositionForOneBasedLineNumber(file, 5)
-    runTestDesugaringSupportWhenDesugaringIsRequired(position, false)
-  }
-
-  @Test
-  fun testDesugaringSupport_InterfaceWithDefaultMethod() {
-    @Language("JAVA") val text = """package p1.p2;
-
-interface Foo {
-  default void bar() {
-    int test = 2;
-  }
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
-    val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    assertThat(file).isNotNull()
-    val position = createSourcePositionForOneBasedLineNumber(file, 5)
-    runTestDesugaringSupportWhenDesugaringIsRequired(position, true)
-  }
-
-  @Test
-  fun testDesugaringSupport_InterfaceWithStaticMethod() {
-    @Language("JAVA") val text = """package p1.p2;
-
-interface Foo {
-  static void bar() {
-    int test = 2;
-  }
-
-  class Inner {
-    static void doSomething() {
-    }
-  }
-}"""
-    val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/p2/Foo.java", text)
-    assertThat(file).isNotNull()
-    val position = createSourcePositionForOneBasedLineNumber(file, 5)
-    runTestDesugaringSupportWhenDesugaringIsRequired(position, true)
-  }
-
-  private fun runTestDesugaringSupportWhenDesugaringIsRequired(position: SourcePosition, isDesugaringRequired: Boolean) {
-    // Mock the VirtualMachine proxy to manage tested types.
-    val vmProxy: VirtualMachineProxyImpl = mock()
-    whenever(mockDebugProcessImpl.virtualMachineProxy).thenReturn(vmProxy)
-    val typesMap = mockReferenceTypes(vmProxy, TOP_CLASS_NAME, INNER_CLASS_NAME, SYNTHESIZED_CLASS_NAME)
-
-    // Mock the RequestManager for the class prepare requests.
-    val mockRequestManager: RequestManagerImpl = mock()
-    whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManager)
-
-    // Attach current project to the mocked debug process.
-    whenever(mockDebugProcessImpl.project).thenReturn(project)
-
-    // Mock locationsOfLine to reflect which class contains the source position.
-    val topClass = typesMap[TOP_CLASS_NAME]!!
-    val innerClassWithoutLocation = typesMap[INNER_CLASS_NAME]!!
-    val desugarCompanionClass = typesMap[SYNTHESIZED_CLASS_NAME]!!
-    val mockLocation: Location = mock()
-    if (isDesugaringRequired) {
-      // If desugaring applies to an interface, its code moves to a synthesized class
-      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(emptyList())
-      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(listOf(mockLocation))
-    }
-    else {
-      // If desugaring was not needed, the interface remains unchanged.
-      whenever(myPositionManager.locationsOfLine(topClass, position)).thenReturn(listOf(mockLocation))
-      whenever(myPositionManager.locationsOfLine(desugarCompanionClass, position)).thenReturn(emptyList())
-    }
-    // The existing inner class is not related to the source position.
-    whenever(myPositionManager.locationsOfLine(innerClassWithoutLocation, position)).thenReturn(emptyList())
-
-    // Check that the list of types contains both the top class and the potential synthesized class.
-    val typesWithPosition = myPositionManager.getAllClasses(position)
-    assertThat(typesWithPosition).isNotNull()
-    if (isDesugaringRequired) {
-      // If desugaring may happen, both interface and its companion class should be returned.
-      assertThat(typesWithPosition).hasSize(2)
-      assertThat(typesWithPosition).containsExactly(topClass, desugarCompanionClass)
-    }
-    else {
-      // Without desugaring, the interface is the only class that contains the source position.
-      assertThat(typesWithPosition).hasSize(1)
-      assertThat(typesWithPosition).containsExactly(topClass)
-    }
-
-    // Mock class prepare requests.
-    val topClassPrepareRequest: ClassPrepareRequest = mock(withSettings().name("CPR:$TOP_CLASS_NAME").defaultAnswer(RETURNS_DEFAULTS))
-    val allInnerClassesPrepareRequest: ClassPrepareRequest = mock(
-      withSettings().name("CPR:all inner classes").defaultAnswer(RETURNS_DEFAULTS))
-    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq(TOP_CLASS_NAME)))
-      .thenReturn(topClassPrepareRequest)
-    whenever(mockRequestManager.createClassPrepareRequest(ArgumentMatchers.notNull(), ArgumentMatchers.eq("$TOP_CLASS_NAME$*")))
-      .thenReturn(allInnerClassesPrepareRequest)
-    val mockRequestor: ClassPrepareRequestor = mock()
-    val classPrepareRequests = myPositionManager.createPrepareRequests(mockRequestor, position)
-    assertThat(classPrepareRequests).isNotNull()
-    if (isDesugaringRequired) {
-      // If desugaring is required, we also create a class prepare request for all inner types of the interface so that we can find
-      // the source position in the companion class (which is one of the inner classes).
-      assertThat(classPrepareRequests).hasSize(2)
-      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest, allInnerClassesPrepareRequest)
-    }
-    else {
-      assertThat(classPrepareRequests).hasSize(1)
-      assertThat(classPrepareRequests).containsExactly(topClassPrepareRequest)
-    }
   }
 
   @Test
@@ -315,7 +181,7 @@ interface Foo {
   fun sourcePosition_locationHasNoDeclaringType() {
     // No declaring type results in `PositionManagerImpl.getPsiFileByLocation()` return a null PsiFile, so this tests a branch of
     // `AndroidPositionManager.getSourcePosition`.
-    val location: Location = mock()
+    val location: MockLocation = mock()
     whenever(location.declaringType()).thenReturn(null)
 
     assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
@@ -323,20 +189,22 @@ interface Foo {
 
   @Test
   fun sourcePosition_locationIsNonAndroidFile() {
-    val type: ReferenceType = mock()
-    whenever(type.name()).thenReturn(TOP_CLASS_NAME)
+    val type: MockReferenceType = mock()
+    whenever(type.name()).thenReturn("p1.p2.Foo")
 
-    val location: Location = mock()
+    val location: MockLocation = mock()
     whenever(location.declaringType()).thenReturn(type)
 
-    @Language("JAVA") val text = """package p1.p2;
-class Foo {
-  private void Bar() {
-    int test = 2;
-  }
-}"""
+    @Language("JAVA") val text = """
+      package p1.p2;
+      class Foo {
+        private void Bar() {
+          int test = 2;
+        }
+      }
+    """.trimIndent()
 
-    val file = myAndroidProjectRule.fixture.addFileToProject("src/p1/Foo.java", text)
+    val file = projectRule.fixture.addFileToProject("src/p1/Foo.java", text)
 
     runReadAction {
       // Ensure that the super class is actually finding this class.
@@ -349,12 +217,11 @@ class Foo {
 
   @Test
   fun sourcePosition_locationIsAnAndroidFile() {
-    val position = SourcePosition.createFromLine(mock(), 1)
-    whenever(mockSdkSourcePositionFinder.getSourcePosition(eq(targetDeviceAndroidVersion.apiLevel), any(), anyInt())).thenReturn(position)
+    runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
 
-    val sourcePosition = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
-
-    assertThat(sourcePosition).isSameAs(position)
+    val lineNumber = androidSdkClassLocation.lineNumber()
+    verify(mockSdkSourcePositionFinder)
+      .getSourcePosition(eq(targetDeviceAndroidVersion.apiLevel), any(), eq(lineNumber - 1))
   }
 
   @Test
@@ -460,7 +327,7 @@ class Foo {
 
     val mockFileEditorManager: FileEditorManager = mock()
     val componentStack = ComponentStack(project)
-    componentStack.registerComponentInstance(FileEditorManager::class.java, mockFileEditorManager)
+    componentStack.registerServiceInstance(FileEditorManager::class.java, mockFileEditorManager)
 
     val listener = MyXDebugSessionListener(mockVirtualFile, project)
 
@@ -475,39 +342,303 @@ class Foo {
     componentStack.restore()
   }
 
-  companion object {
-    // The name of the top class or interface.
-    private const val TOP_CLASS_NAME = "p1.p2.Foo"
-
-    // The name of an inner class that does not contain any tested source position. It is used to make sure we do not incorrectly consider an
-    // inner class that is not related to the breakpoint position that is set up.
-    private const val INNER_CLASS_NAME = "$TOP_CLASS_NAME\$Inner"
-
-    // The name of an inner class that would be the "companion" class to support desugaring. This is the class that will contain the actual
-    // code at execution time. Therefore this is the type where the breakpoint position will be set up.
-    // Note: the name of the synthesized class does not matter. But it has to be an inner class.
-    private const val SYNTHESIZED_CLASS_NAME = "$TOP_CLASS_NAME\$DespairingCompanion"
-
-    private fun mockReferenceTypes(mockVmProxy: VirtualMachineProxyImpl, vararg typeNames: String): Map<String, ReferenceType> {
-      val map = typeNames.associateWith { typeName ->
-        val type: ReferenceType = mock(withSettings().name(typeName).defaultAnswer(RETURNS_DEFAULTS))!!
-        whenever(type.name()).thenReturn(typeName)
-        whenever(mockVmProxy.classesByName(typeName)).thenReturn(listOf(type))
-        type
+  @Test
+  fun createPrepareRequests_InterfaceWithStaticMethod_addsRequest() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+      
+      interface Foo {
+        static void bar() {
+          int test = 2; // break here
+        }
       }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
 
-      whenever(mockVmProxy.allClasses()).thenReturn(map.values.toList())
-      return map
-    }
+    val requests = myPositionManager.createPrepareRequests(mockClassPrepareRequestor, position)
 
-    private val androidSdkClassLocation: Location
-      get() {
-        val type: ReferenceType = mock()
-        whenever(type.name()).thenReturn("android.view.View")
-        whenever(type.sourceName()).thenReturn("View.java")
-        val location: Location = mock()
-        whenever(location.declaringType()).thenReturn(type)
-        return location
-      }
+    assertThat(requests.map { it.toString() }).containsExactly(
+      "p1.p2.Foo",
+      "p1.p2.Foo\$*",
+    )
   }
+
+  @Test
+  fun createPrepareRequests_InnerInterfaceWithStaticMethod_addsRequest() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        interface Bar {
+          static void bar() {
+            int test = 2; // break here
+          }
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val requests = myPositionManager.createPrepareRequests(mockClassPrepareRequestor, position)
+
+    assertThat(requests.map { it.toString() }).containsExactly(
+      "p1.p2.Foo\$Bar",
+      "p1.p2.Foo\$Bar\$*",
+    )
+  }
+
+  @Test
+  fun createPrepareRequests_InterfaceWithDefaultMethod_addsRequest() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+      
+      interface Foo {
+        default void bar() {
+          int test = 2; // break here
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val requests = myPositionManager.createPrepareRequests(mockClassPrepareRequestor, position)
+
+    assertThat(requests.map { it.toString() }).containsExactly(
+      "p1.p2.Foo",
+      "p1.p2.Foo\$*",
+    )
+  }
+
+  @Test
+  fun getExtraPrepareRequests_SimpleClass_noResults() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+      
+      class Foo {
+        static void bar() {
+          int test = 2; // break here
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val requests = myPositionManager.createPrepareRequests(mockClassPrepareRequestor, position)
+
+    assertThat(requests.map { it.toString() }).containsExactly(
+      "p1.p2.Foo",
+    )
+  }
+
+  @Test
+  fun getExtraPrepareRequests_InterfaceWithStaticInitializer_noResults() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+      
+      interface Foo {
+        String STR = "foo"
+          .concat("bar"); // break here
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val requests = myPositionManager.createPrepareRequests(mockClassPrepareRequestor, position)
+
+    assertThat(requests.map { it.toString() }).containsExactly(
+      "p1.p2.Foo",
+    )
+  }
+
+  private fun setupFromFile(content: String): PsiFile {
+    val path = content.lineSequence().first().substringAfter("package ").substringBefore(";").trim().replace('.', '/')
+    val psiFile = projectRule.fixture.addFileToProject("src/$path/Test.java", content)
+    runInEdtAndWait {
+      PsiTreeUtil.findChildrenOfType(psiFile, PsiClass::class.java).forEach { psiClass ->
+        val jvmName = psiClass.getJvmName()
+        val referenceType = FakeReferenceType(jvmName)
+        allVirtualMachineClasses.add(referenceType)
+        if (psiClass.isInterfaceWithStaticMethod()) {
+          allVirtualMachineClasses.add(FakeReferenceType("$jvmName$COMPANION_PREFIX", hasLocations = true))
+        }
+      }
+    }
+    return psiFile
+  }
+
+  private fun PsiFile.getBreakpointPosition(): SourcePosition {
+    val line = text.lineSequence().indexOfFirst { it.contains("break here") }
+    return SourcePosition.createFromLine(this, line)
+  }
+
+  private class FakeReferenceType(
+    val name: String,
+    val hasLocations: Boolean = false,
+    delegate: ReferenceType = mock(),
+  ) : ReferenceType by delegate {
+    override fun name(): String = name
+
+    override fun locationsOfLine(stratum: String?, sourceName: String?, lineNumber: Int) =
+      if (hasLocations) listOf(mock<Location>()) else emptyList()
+  }
+
+  @Test
+  fun getAllClasses_InterfaceWithStaticMethod_hasResults_addsCompanion() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        static void bar() {
+          int test = 2; // break here
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo",
+      "p1.p2.Foo$-CC",
+    )
+  }
+
+  @Test
+  fun getAllClasses_InterfaceWithDefaultMethod_hasResults_addsCompanion() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        default void bar() {
+          int test = 2; // break here
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo",
+      "p1.p2.Foo$-CC",
+    )
+  }
+
+  @Test
+  fun getAllClasses_InnerInterfaceWithStaticMethod_hasResults_addsCompanion() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        interface Bar {
+          static void bar() {
+            int test = 2; // break here
+          }
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo\$Bar",
+      "p1.p2.Foo\$Bar$-CC",
+    )
+  }
+
+  @Test
+  fun getAllClasses_SimpleClass_noResults_doesNotAddCompanion() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+      
+      class Foo {
+        static void bar() {
+          int test = 2; // break here
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo",
+    )
+  }
+
+  @Test
+  fun getAllClasses_InterfaceWithStaticInitializer__doesNotAddCompanion() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+      
+      interface Foo {
+        String STR = "foo"
+          .concat("bar"); // break here
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo",
+    )
+  }
+
+  @Test
+  fun getAllClasses_IgnoresUnrelatedInnerClass() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        static void bar() {
+          int test = 2; // break here
+        }
+        
+        class Unrelated {
+          static void unrelated() {
+            int test = true;
+          }
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo",
+      "p1.p2.Foo$-CC",
+    )
+  }
+
+  class FakeClassPrepareRequest(private val filter: String, delegate: ClassPrepareRequest = mock()) : ClassPrepareRequest by delegate {
+    override fun toString() = filter
+  }
+
+  /*
+   * IDEA doesn't like it when interfaces from `com.sun.jdi` are mocked.
+   */
+
+  private interface MockReferenceType : ReferenceType
+  private interface MockLocation : Location
 }

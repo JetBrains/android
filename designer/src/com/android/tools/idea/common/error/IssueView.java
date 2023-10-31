@@ -76,7 +76,7 @@ public class IssueView extends JPanel {
   private JPanel myDetailPanel;
   private boolean myIsExpanded;
   private final int myDisplayPriority;
-  private boolean myInitialized;
+  private final boolean myInitialized;
 
   @NotNull
   private String myErrorDescriptionContent;
@@ -146,12 +146,7 @@ public class IssueView extends JPanel {
   private void setupFixPanel(@NotNull Issue issue) {
     myFixPanel.setLayout(new BoxLayout(myFixPanel, BoxLayout.Y_AXIS));
     issue.getFixes().forEach(this::createFixEntry);
-    if (myFixPanel.getComponentCount() > 0) {
-      myFixPanel.setVisible(true);
-    }
-    else {
-      myFixPanel.setVisible(false);
-    }
+    myFixPanel.setVisible(myFixPanel.getComponentCount() > 0);
   }
 
   private void setupDescriptionPanel(@NotNull Issue issue) {
@@ -314,7 +309,7 @@ public class IssueView extends JPanel {
     StyleConstants.setBold(attrs, (font.getStyle() & Font.BOLD) != 0);
 
     textPane.getStyledDocument()
-            .setCharacterAttributes(0, textPane.getStyledDocument().getLength() + 1, attrs, false);
+      .setCharacterAttributes(0, textPane.getStyledDocument().getLength() + 1, attrs, false);
   }
 
   /**

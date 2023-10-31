@@ -16,31 +16,34 @@
 package com.android.tools.idea.configurations;
 
 import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_LOCALE;
-import static com.android.tools.idea.configurations.ConfigurationListener.CFG_TARGET;
+import static com.android.tools.configurations.ConfigurationListener.CFG_LOCALE;
+import static com.android.tools.configurations.ConfigurationListener.CFG_TARGET;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.Bridge;
-import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
-import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.rendering.api.StyleItemResourceValue;
-import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.Locale;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationFileState;
+import com.android.tools.configurations.ConfigurationModelModule;
+import com.android.tools.configurations.ConfigurationProjectState;
+import com.android.tools.configurations.ConfigurationSettings;
+import com.android.tools.configurations.ConfigurationStateManager;
+import com.android.tools.configurations.ResourceResolverCache;
+import com.android.tools.layoutlib.AndroidTargets;
 import com.android.tools.res.ResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -52,10 +55,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidSdkData;
-import com.android.tools.sdk.AndroidTargetData;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AvdManagerUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +75,8 @@ import org.jetbrains.annotations.TestOnly;
  * The {@linkplain ConfigurationManager} is also responsible for storing and retrieving
  * the saved configuration state for a given file.
  */
-public class ConfigurationManager implements Disposable {
+public class ConfigurationManager implements Disposable, ConfigurationSettings {
+  private static final String AVD_ID_PREFIX = "_android_virtual_device_id_";
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
   private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
     ConfigurationManager.class.getName() + "ProjectCanonicalKey"
@@ -148,12 +152,14 @@ public class ConfigurationManager implements Disposable {
 
     return configurationManager.getConfiguration(projectFile);
   }
-
-  protected ConfigurationManager(@NotNull Module module) {
-    myConfigurationModule = new StudioConfigurationModelModule(module);
+  protected ConfigurationManager(@NotNull Module module, ConfigurationModelModule config) {
+    myConfigurationModule = config;
     myModule = module;
     Disposer.register(myModule, this);
+  }
 
+  protected ConfigurationManager(@NotNull Module module) {
+    this(module,new StudioConfigurationModelModule(module));
   }
 
   /**
@@ -186,16 +192,16 @@ public class ConfigurationManager implements Disposable {
   @Slow
   @NotNull
   private Configuration create(@NotNull VirtualFile file) {
-    ConfigurationStateManager stateManager = getStateManager();
+    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(file);
     assert file.getParent() != null : file;
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = Configuration.create(this, file, fileState, config);
+    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
-    if (stateManager.getProjectState().getDeviceIds().isEmpty()) {
+    if (stateManager.getProjectState().getDeviceIds().isEmpty() && fileState == null) {
       matcher.findAndSetCompatibleConfig(false);
     }
     else {
@@ -220,13 +226,13 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public Configuration createSimilar(@NotNull VirtualFile file, @NotNull VirtualFile baseFile) {
-    ConfigurationStateManager stateManager = getStateManager();
+    ConfigurationStateManager stateManager = myConfigurationModule.getConfigurationStateManager();
     ConfigurationFileState fileState = stateManager.getConfigurationState(baseFile);
     FolderConfiguration config = FolderConfiguration.getConfigForFolder(file.getParent().getName());
     if (config == null) {
       config = new FolderConfiguration();
     }
-    Configuration configuration = Configuration.create(this, file, fileState, config);
+    Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
     Configuration baseConfig = myCache.get(file);
     if (baseConfig != null) {
       configuration.setEffectiveDevice(baseConfig.getDevice(), baseConfig.getDeviceState());
@@ -239,15 +245,9 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
-   * Returns the associated persistence manager
-   */
-  public ConfigurationStateManager getStateManager() {
-    return myConfigurationModule.getConfigurationStateManager();
-  }
-
-  /**
    * Returns the list of available devices for the current platform and any custom user devices, if any
    */
+  @Override
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
@@ -265,6 +265,7 @@ public class ConfigurationManager implements Disposable {
     return builder.build();
   }
 
+  @Override
   @Nullable
   public Device getDeviceById(@NotNull String id) {
     return getDeviceById(id, getDevices());
@@ -279,6 +280,7 @@ public class ConfigurationManager implements Disposable {
       .orElse(null);
   }
 
+  @Override
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
     AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
@@ -292,19 +294,20 @@ public class ConfigurationManager implements Disposable {
     String avdName = avd.getName();
     Device.Builder builder = new Device.Builder(modelDevice);
     builder.setName(avd.getDisplayName());
-    builder.setId(Configuration.AVD_ID_PREFIX + avdName);
+    builder.setId(AVD_ID_PREFIX + avdName);
     return builder.build();
   }
 
   public static boolean isAvdDevice(@NotNull Device device) {
-    return device.getId().startsWith(Configuration.AVD_ID_PREFIX);
+    return device.getId().startsWith(AVD_ID_PREFIX);
   }
 
   /**
    * Returns all the {@link IAndroidTarget} instances applicable for the current module.
    * Note that this may include non-rendering targets, so for layout rendering contexts,
-   * check individual members by calling {@link #isLayoutLibTarget(IAndroidTarget)} first.
+   * check individual members by calling {@link AndroidTargets#isLayoutLibTarget} first.
    */
+  @Override
   @NotNull
   public IAndroidTarget[] getTargets() {
     AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
@@ -317,17 +320,13 @@ public class ConfigurationManager implements Disposable {
     return new IAndroidTarget[0];
   }
 
-  public static boolean isLayoutLibTarget(@NotNull IAndroidTarget target) {
-    return target.isPlatform() && target.hasRenderingLibrary();
-  }
-
   @Nullable
   public IAndroidTarget getHighestApiTarget() {
     // Note: The target list is already sorted in ascending API order.
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       IAndroidTarget target = targetList[i];
-      if (isLayoutLibTarget(target) && isLayoutLibSupported(target)) {
+      if (AndroidTargets.isLayoutLibTarget(target) && isLayoutLibSupported(target)) {
         return target;
       }
     }
@@ -346,102 +345,19 @@ public class ConfigurationManager implements Disposable {
     return false;
   }
 
-  private static final ResourceReference postSplashAttrReference = ResourceReference.attr(
-    ResourceNamespace.RES_AUTO, "postSplashScreenTheme"
-  );
-
-  /**
-   * Finds the post splash theme if there is any. Themes used in splash screens can have a post splash theme declared.
-   * When a splash screen theme is used in the manifest, the tools should probably not use that one unless the user has explicely selected
-   * it. For "preferred theme" computation purposes, we try to find the post splash screen theme.
-   * See <a href="https://developer.android.com/reference/kotlin/androidx/core/splashscreen/SplashScreen">splash screen documentation.</a>
-   * @param configuration the configuration to use to resolve the post splash theme.
-   * @param themeStyle the default theme found in the manifest.
-   * @return the post activity splash screen if any or {@code themeStyle} otherwise.
-   */
-  @NotNull
-  private String findPostSplashTheme(@NotNull Configuration configuration, @NotNull String themeStyle) {
-    Logger log = Logger.getInstance(ConfigurationManager.class);
-    ResourceUrl themeUrl = ResourceUrl.parseStyleParentReference(themeStyle);
-    if (themeUrl == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to parse theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    ResourceNamespace namespace = ResourceNamespace.fromNamespacePrefix(
-      themeUrl.namespace, ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    ResourceReference reference = themeUrl.resolve(
-      namespace != null ? namespace : ResourceNamespace.RES_AUTO,
-      ResourceNamespace.Resolver.EMPTY_RESOLVER
-    );
-    if (reference == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve reference for theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    ResourceResolverCache resolverCache = getResolverCache();
-    ResourceResolver resourceResolver = resolverCache.getResourceResolver(configuration.getTarget(), themeUrl.toString(), configuration.getFullConfig());
-
-    StyleResourceValue theme = resourceResolver.getStyle(reference);
-    if (theme == null) {
-      if (log.isDebugEnabled()) log.debug(String.format("Unable to resolve theme %s", themeUrl));
-      return themeStyle;
-    }
-
-    StyleItemResourceValue value = resourceResolver.findItemInStyle(theme, postSplashAttrReference);
-    ResourceValue resolvedValue = resourceResolver.resolveResValue(value);
-
-    String postSplashTheme = resolvedValue != null ? resolvedValue.getResourceUrl().toString() : null;
-    String resolveTheme = Objects.requireNonNullElse(postSplashTheme, themeStyle);
-
-    if (log.isDebugEnabled()) log.debug(String.format("Post splash resolved=%s, original theme=%s", postSplashTheme, themeUrl));
-
-    return resolveTheme;
-  }
-
-  /**
-   * Try to get activity theme from manifest. If no theme is found, We fall back to the app theme. If that isn't found,
-    * we use the default system theme.
-   */
-  @NotNull
-  public String computePreferredTheme(@NotNull Configuration configuration) {
-    // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
-    String activityName = configuration.getActivity();
-    ThemeInfoProvider themeInfo = myConfigurationModule.getThemeInfoProvider();
-    if (activityName != null) {
-      String activityFqcn = activityName;
-      if (activityName.startsWith(".")) {
-        String packageName = ProjectSystemUtil.getModuleSystem(myModule).getPackageName();
-        activityFqcn = packageName + activityName;
-      }
-
-      String theme = themeInfo.getThemeNameForActivity(activityFqcn);
-      if (theme != null) {
-        return findPostSplashTheme(configuration, theme);
-      }
-    }
-
-    // Returns an app theme if possible
-    return findPostSplashTheme(configuration, Objects.requireNonNullElseGet(
-      themeInfo.getAppThemeName(),
-      () ->
-        // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
-        // theme is specified in the manifest).
-        themeInfo.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice())
-    ));
-  }
-
+  @Override
   @NotNull
   public final Module getModule() {
     return myModule;
   }
 
+  @Override
   @NotNull
   public Project getProject() {
     return myConfigurationModule.getProject();
   }
 
+  @Override
   @NotNull
   public final ConfigurationModelModule getConfigModule() {
     return myConfigurationModule;
@@ -452,6 +368,7 @@ public class ConfigurationManager implements Disposable {
     myModule.putUserData(KEY, null);
   }
 
+  @Override
   @Nullable
   public Device getDefaultDevice() {
     if (myDefaultDevice == null) {
@@ -487,6 +404,7 @@ public class ConfigurationManager implements Disposable {
     return getHighestApiTarget();
   }
 
+  @Override
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
     ResourceRepositoryManager repositoryManager = myConfigurationModule.getResourceRepositoryManager();
@@ -494,6 +412,7 @@ public class ConfigurationManager implements Disposable {
     return repositoryManager.getLocalesInProject();
   }
 
+  @Override
   @Nullable
   public IAndroidTarget getProjectTarget() {
     AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
@@ -501,11 +420,20 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
+  private static Locale fromLocaleString(@Nullable String locale) {
+    if (locale == null) {
+      return Locale.ANY;
+    }
+    return Locale.create(locale);
+  }
+
+  @Override
+  @NotNull
   public Locale getLocale() {
     if (myLocale == null) {
-      String localeString = getStateManager().getProjectState().getLocale();
+      String localeString = myConfigurationModule.getConfigurationStateManager().getProjectState().getLocale();
       if (localeString != null) {
-        myLocale = ConfigurationProjectState.fromLocaleString(localeString);
+        myLocale = fromLocaleString(localeString);
       }
       else {
         myLocale = Locale.ANY;
@@ -515,11 +443,21 @@ public class ConfigurationManager implements Disposable {
     return myLocale;
   }
 
+  @Nullable
+  private static String toLocaleString(@Nullable Locale locale) {
+    if (locale == null || locale == Locale.ANY) {
+      return null;
+    } else {
+      return locale.qualifier.getFolderSegment();
+    }
+  }
+
+  @Override
   public void setLocale(@NotNull Locale locale) {
     if (!locale.equals(myLocale)) {
       myLocale = locale;
       myStateVersion++;
-      getStateManager().getProjectState().setLocale(ConfigurationProjectState.toLocaleString(locale));
+      myConfigurationModule.getConfigurationStateManager().getProjectState().setLocale(toLocaleString(locale));
       for (Configuration configuration : myCache.values()) {
         configuration.updated(CFG_LOCALE);
       }
@@ -529,8 +467,11 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the most recently used devices, in MRU order
    */
-  public List<Device> getRecentDevices(List<Device> avdDevices) {
-    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
+  @Override
+  @NotNull
+  public List<Device> getRecentDevices() {
+    List<Device> avdDevices = getAvdDevices();
+    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -556,10 +497,11 @@ public class ConfigurationManager implements Disposable {
     return devices;
   }
 
+  @Override
   public void selectDevice(@NotNull Device device) {
     // Manually move the given device to the front of the eligibility queue
     String id = device.getId();
-    List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
+    List<String> deviceIds = myConfigurationModule.getConfigurationStateManager().getProjectState().getDeviceIds();
     deviceIds.remove(id);
     deviceIds.add(0, id);
 
@@ -591,15 +533,29 @@ public class ConfigurationManager implements Disposable {
   }
 
   @Nullable
+  private static IAndroidTarget fromTargetString(@NotNull ConfigurationSettings settings, @Nullable String targetString) {
+    if (targetString != null) {
+      for (IAndroidTarget target : settings.getTargets()) {
+        if (targetString.equals(target.hashString()) && AndroidTargets.isLayoutLibTarget(target)) {
+          return target;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Override
+  @Nullable
   public IAndroidTarget getTarget() {
     if (myTarget == null) {
-      ConfigurationProjectState projectState = getStateManager().getProjectState();
+      ConfigurationProjectState projectState = myConfigurationModule.getConfigurationStateManager().getProjectState();
       if (projectState.isPickTarget()) {
         myTarget = getDefaultTarget();
       }
       else {
         String targetString = projectState.getTarget();
-        myTarget = ConfigurationProjectState.fromTargetString(this, targetString);
+        myTarget = fromTargetString(this, targetString);
         if (myTarget == null) {
           myTarget = getDefaultTarget();
         }
@@ -613,6 +569,7 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the best render target to use for the given minimum API level
    */
+  @Override
   @Nullable
   public IAndroidTarget getTarget(int min) {
     IAndroidTarget target = getTarget();
@@ -623,7 +580,7 @@ public class ConfigurationManager implements Disposable {
     IAndroidTarget[] targetList = getTargets();
     for (int i = targetList.length - 1; i >= 0; i--) {
       target = targetList[i];
-      if (isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min && isLayoutLibSupported(target)) {
+      if (AndroidTargets.isLayoutLibTarget(target) && target.getVersion().getFeatureLevel() >= min && isLayoutLibSupported(target)) {
         return target;
       }
     }
@@ -631,6 +588,12 @@ public class ConfigurationManager implements Disposable {
     return null;
   }
 
+  @Nullable
+  private static String toTargetString(@Nullable IAndroidTarget target) {
+    return target != null ? target.hashString() : null;
+  }
+
+  @Override
   public void setTarget(@Nullable IAndroidTarget target) {
     if (target != myTarget) {
       if (myTarget != null) {
@@ -641,13 +604,13 @@ public class ConfigurationManager implements Disposable {
         // bitmap sets are in memory.
         AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myConfigurationModule.getAndroidPlatform());
         if (targetData != null) {
-          targetData.clearLayoutBitmapCache(myConfigurationModule);
+          targetData.clearLayoutBitmapCache(myConfigurationModule.getModuleKey());
         }
       }
 
       myTarget = target;
       if (target != null) {
-        getStateManager().getProjectState().setTarget(ConfigurationProjectState.toTargetString(target));
+        myConfigurationModule.getConfigurationStateManager().getProjectState().setTarget(toTargetString(target));
         myStateVersion++;
         for (Configuration configuration : myCache.values()) {
           configuration.updated(CFG_TARGET);
@@ -656,10 +619,12 @@ public class ConfigurationManager implements Disposable {
     }
   }
 
+  @Override
   public int getStateVersion() {
     return myStateVersion;
   }
 
+  @Override
   @NotNull
   public ResourceResolverCache getResolverCache() {
     if (myResolverCache == null) {
@@ -667,5 +632,24 @@ public class ConfigurationManager implements Disposable {
     }
 
     return myResolverCache;
+  }
+
+  /** Return the avd devices. */
+  @Override
+  @NotNull
+  public List<Device> getAvdDevices() {
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    if (facet == null) {
+      return Collections.emptyList();
+    }
+    AvdManager avdManager = AvdManagerUtils.getAvdManager(facet);
+    if (avdManager == null) {
+      return Collections.emptyList();
+    }
+
+    return avdManager.getValidAvds().stream()
+      .filter(Objects::nonNull)
+      .map(this::createDeviceForAvd)
+      .collect(Collectors.toList());
   }
 }

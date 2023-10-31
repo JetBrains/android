@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.formatter;
 
+import com.android.xml.AttrNameSplitter;
 import com.intellij.psi.codeStyle.arrangement.ArrangementEntry;
 import com.intellij.psi.codeStyle.arrangement.NameAwareArrangementEntry;
 import com.intellij.psi.codeStyle.arrangement.std.CustomArrangementOrderToken;
@@ -44,7 +45,6 @@ final class AndroidAttributeOrder extends CustomArrangementOrderToken {
     String qualifiedName = ((NameAwareArrangementEntry)attribute).getName();
     assert qualifiedName != null;
 
-    int index = qualifiedName.indexOf(':');
-    return index == -1 ? qualifiedName : qualifiedName.substring(index + 1);
+    return AttrNameSplitter.findLocalName(qualifiedName);
   }
 }

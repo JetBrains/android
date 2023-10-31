@@ -22,7 +22,6 @@ import static com.android.SdkConstants.TEXT_VIEW;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import java.awt.event.InputEvent;
@@ -154,18 +153,18 @@ public class SceneSelectionTest extends SceneTest {
 
   public void testFindComponent() {
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/button").getComponent()),
-                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 201));
+                 myScene.findComponent(myScreen.getScreen().getContext(), 101, 201));
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/button2").getComponent()),
-                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 501));
+                 myScene.findComponent(myScreen.getScreen().getContext(), 101, 501));
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/root").getComponent()),
-                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 101, 101));
+                 myScene.findComponent(myScreen.getScreen().getContext(), 101, 101));
   }
 
   public void testFindNestedComponent() {
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/textView3").getComponent()),
-                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 601, 601));
+                 myScene.findComponent(myScreen.getScreen().getContext(), 601, 601));
     assertEquals(myScene.getSceneComponent(myScreen.findById("@id/linear").getComponent()),
-                 myScene.findComponent(SceneContext.get(myScreen.getScreen()), 801, 801));
+                 myScene.findComponent(myScreen.getScreen().getContext(), 801, 801));
   }
 
   public void testSelectionAfterDragging() {

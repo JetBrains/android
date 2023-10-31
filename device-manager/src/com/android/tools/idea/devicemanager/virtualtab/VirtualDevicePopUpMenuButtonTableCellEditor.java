@@ -17,18 +17,20 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
 
+import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdOptionsModel;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerUsageTracker;
 import com.android.tools.idea.devicemanager.DevicePanel;
+import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.MenuItems;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.ide.actions.RevealFileAction;
@@ -88,7 +90,7 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       DeviceManagerUsageTracker.log(deviceManagerEvent);
       Project project = myPanel.getProject();
 
-      Futures.addCallback(getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo(), RequestType.DIRECT),
+      Futures.addCallback(getDefaultAvdManagerConnection().startAvdWithColdBoot(project, getDevice().getAvdInfo(), RequestType.DIRECT_DEVICE_MANAGER),
                           new ShowErrorDialogFutureCallback(project),
                           EdtExecutorService.getInstance());
     });
@@ -97,10 +99,6 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
   }
 
   private void addPairDeviceItems(@NotNull Collection<JComponent> items) {
-    if (!StudioFlags.WEAR_OS_VIRTUAL_DEVICE_PAIRING_ASSISTANT_ENABLED.get()) {
-      return;
-    }
-
     if (!getDevice().isPairable()) {
       return;
     }
@@ -137,12 +135,19 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
         return;
       }
 
-      Futures.addCallback(table.addDevice(new VirtualDevicePath(model.getCreatedAvd().getId())),
-                          new DeviceManagerFutureCallback<>(VirtualDevicePopUpMenuButtonTableCellEditor.class, table::setSelectedDevice),
-                          EdtExecutorService.getInstance());
+      model.getCreatedAvd()
+        .map(AvdInfo::getId)
+        .map(VirtualDevicePath::new)
+        .map(table::addDevice)
+        .ifPresent(future -> setSelectedDevice(future, table));
     });
 
     return item;
+  }
+
+  private static void setSelectedDevice(@NotNull ListenableFuture<Key> future, @NotNull VirtualDeviceTable table) {
+    var callback = new DeviceManagerFutureCallback<>(VirtualDevicePopUpMenuButtonTableCellEditor.class, table::setSelectedDevice);
+    Futures.addCallback(future, callback, EdtExecutorService.getInstance());
   }
 
   private @NotNull JComponent newShowOnDiskItem() {

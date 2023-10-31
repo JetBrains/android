@@ -42,7 +42,9 @@ class TextFieldPropertyEditorModelTest {
     return createModel(property)
   }
 
-  private fun createModel(property: PropertyItem): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
+  private fun createModel(
+    property: PropertyItem
+  ): Pair<TextFieldPropertyEditorModel, ValueChangedListener> {
     val model = TextFieldPropertyEditorModel(property, true)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -68,9 +70,20 @@ class TextFieldPropertyEditorModelTest {
 
   @Test
   fun testEnterWithInvalidInput() {
-    val (model, _) = createModel(FakePropertyItem(ANDROID_URI, "text", "hello", editingSupport = object: EditingSupport {
-      override val validation: EditingValidation = { Pair(EditingErrorCategory.ERROR, "Error") }
-    }))
+    val (model, _) =
+      createModel(
+        FakePropertyItem(
+          ANDROID_URI,
+          "text",
+          "hello",
+          editingSupport =
+            object : EditingSupport {
+              override val validation: EditingValidation = {
+                Pair(EditingErrorCategory.ERROR, "Error")
+              }
+            }
+        )
+      )
     val line = FakeInspectorLineModel(FakeLineType.PROPERTY)
     model.lineModel = line
     model.text = "world"

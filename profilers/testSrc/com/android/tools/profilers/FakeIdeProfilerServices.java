@@ -28,6 +28,7 @@ import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
 import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
@@ -46,9 +47,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -68,7 +69,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ArtInstrumentedConfiguration(FAKE_ART_INSTRUMENTED_NAME);
   public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new SimpleperfConfiguration(FAKE_SIMPLEPERF_NAME);
   public static final ProfilingConfiguration ATRACE_CONFIG = new AtraceConfiguration(FAKE_ATRACE_NAME);
-  public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME);
+  public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME, false);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new CodeNavigator(
@@ -120,13 +121,20 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myProfileablsBuildsEnabled = true;
 
   /**
+   * Whether the task-based UX should be visible.
+   */
+  private boolean myTaskBasedUxEnabled = false;
+
+  /**
+   * Whether we should be load tracebox.
+   */
+  private boolean myTraceboxEnabled = false;
+
+  /**
    * Whether power and battery data tracks should be visible in system trace and if shown,
    * which graph display style will be used for the power and battery tracks.
-   * Value of HIDE -> Hide both power + battery tracks.
-   * Value of MINMAX -> Show power rails is min-max view and battery counters in zero-based view.
-   * Value of DELTA -> Show power rails in delta view and battery counters in zero-based view.
    */
-  private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.HIDE;
+  private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.DELTA;
 
   /**
    * Whether we support navigate-to-source action for Compose Tracing
@@ -252,7 +260,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isVerboseLoggingEnabled() {
+      public boolean isTestingModeEnabled() {
         return false;
       }
 
@@ -273,7 +281,12 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
       @Override
       public boolean isTaskBasedUxEnabled() {
-        return false;
+        return myTaskBasedUxEnabled;
+      }
+
+      @Override
+      public boolean isTraceboxEnabled() {
+        return myTraceboxEnabled;
       }
     };
   }
@@ -347,7 +360,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       config = new SimpleperfConfiguration(name);
     }
     else if (type == TraceType.PERFETTO) {
-      config = new PerfettoConfiguration(name);
+      config = new PerfettoConfiguration(name, getFeatureConfig().isTraceboxEnabled());
     }
     else if (type == TraceType.ATRACE) {
       config = new AtraceConfiguration(name);
@@ -400,6 +413,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
+  @Override
+  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) { }
+
   @Nullable
   public Notification getNotification() {
     return myNotification;
@@ -421,5 +437,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode mode) {
     mySystemTracePowerProfilerDisplayMode = mode;
+  }
+
+  public void enableTaskBasedUx(boolean enabled) {
+    myTaskBasedUxEnabled = enabled;
   }
 }

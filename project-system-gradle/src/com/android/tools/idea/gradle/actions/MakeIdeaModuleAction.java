@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions;
 import com.android.tools.idea.actions.AndroidStudioActionRemover;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.compiler.actions.MakeModuleAction;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,11 @@ import org.jetbrains.annotations.NotNull;
 public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
   public MakeIdeaModuleAction() {
     super(new MakeModuleAction(), "Make Module(s)");
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

@@ -109,4 +109,9 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   public DeployTarget getDeployTarget(@NotNull Project project) {
     return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get()::getSelectedTargets);
   }
+
+  @Override
+  public boolean canDeployToLocalDevice() {
+    return true;
+  }
 }

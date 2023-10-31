@@ -31,6 +31,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.Alarm;
+import com.intellij.util.MemoryDumpHelper;
 import com.intellij.util.system.CpuArch;
 import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
@@ -56,6 +57,9 @@ public final class HeapSnapshotTraverseService {
   // This is the name of the flag that is used for local E2E integration test runs and is used for enabling extended reports collection and
   // logging.
   private static final String COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS = "studio.collect.extended.memory.reports";
+
+  // The name of the flag that is used for enabling gathering hprof snapshots
+  private static final String DUMP_HPROF_SNAPSHOT = "studio.dump.hprof.snapshot";
   private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
     "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
 
@@ -135,6 +139,21 @@ public final class HeapSnapshotTraverseService {
                                                 /*shouldLogRetainedSizes=*/false));
   }
 
+  @Nullable
+  public HeapSnapshotStatistics collectMemoryStatistics(boolean collectHistograms,
+                                                        boolean collectDisposerTreeInfo) {
+    loadObjectTaggingAgent();
+    if (!agentSuccessfullyLoaded) {
+      return null;
+    }
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(),
+                                                                                     collectHistograms, collectDisposerTreeInfo));
+    if (StatusCode.NO_ERROR != new HeapSnapshotTraverse(stats).walkObjects()) {
+      return null;
+    }
+    return stats;
+  }
+
   /**
    * This method collects memory usage report and dumps it to memory_usage_report.log file. This method is used by the end2end integration
    * testing for collecting components/categories owned sizes that will be reported to perfgate afterwards.
@@ -149,7 +168,7 @@ public final class HeapSnapshotTraverseService {
         return;
       }
 
-      HeapSnapshotStatistics statistics = Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)
+      HeapSnapshotStatistics statistics = (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS) || SystemInfo.isWindows)
                                           ? new HeapSnapshotStatistics(
         new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(), /*collectHistograms=*/
                                true, /*collectDisposerTreeInfo=*/true))
@@ -168,6 +187,20 @@ public final class HeapSnapshotTraverseService {
           BYTES,
           /*shouldLogSharedClusters=*/false,
           /*shouldLogRetainedSizes=*/false));
+
+      statistics = null;
+
+      if (Boolean.getBoolean(DUMP_HPROF_SNAPSHOT)) {
+        try {
+          String hprofFilePath =
+            Paths.get(PathManager.getLogPath(), String.format("heapDump-%s.hprof", System.currentTimeMillis())).toString();
+          LOG.info(String.format("Memory usage report HPROF snapshot was dumped to %s", hprofFilePath));
+          MemoryDumpHelper.captureMemoryDump(hprofFilePath);
+        }
+        catch (Exception e) {
+          LOG.error("Failed to dump hprof snapshot after memory usage report collection", e);
+        }
+      }
     }
     catch (IOException e) {
       LOG.error("Failed to write to the memory report file", e);

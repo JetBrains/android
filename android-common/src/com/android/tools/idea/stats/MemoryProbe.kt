@@ -48,7 +48,7 @@ open class MemoryProbe(
   /**
    * Set to true if the probe was cancelled at any time.
    */
-  private var wasCancelled = false
+  var wasCancelled = false
 
   /**
    * Return the memory referenced by a single [root].

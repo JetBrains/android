@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.navigation.remapInline
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.intellij.openapi.application.ReadAction
@@ -31,14 +30,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
-import java.io.File
-import javax.imageio.ImageIO
-import kotlin.test.assertEquals
 import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import java.io.File
+import javax.imageio.ImageIO
 
 class ViewInfoParserTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
@@ -79,11 +78,7 @@ class ViewInfoParserTest {
 
         val viewInfos =
           ReadAction.compute<List<ComposeViewInfo>, Throwable> {
-              parseViewInfo(
-                rootViewInfo = renderResult.rootViews.single(),
-                lineNumberMapper = remapInline(module),
-                logger = LOG
-              )
+              parseViewInfo(rootViewInfo = renderResult.rootViews.single(), logger = LOG)
             }
             .flatMap { it.allChildren() }
 

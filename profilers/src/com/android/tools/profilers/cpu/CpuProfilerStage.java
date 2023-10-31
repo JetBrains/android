@@ -37,9 +37,9 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Trace.TraceInitiationType;
-import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Trace;
+import com.android.tools.profiler.proto.Trace.TraceInitiationType;
+import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
@@ -152,12 +152,34 @@ public class CpuProfilerStage extends StreamingStage {
    */
   private final Map<Long, CpuTraceInfo> myCompletedTraceIdToInfoMap = new HashMap<>();
 
+  /**
+   * The way in which the user entered the CpuProfilerStage (e.g. Startup Profiling, Monitor Stage).
+   */
+  private final CpuCaptureMetadata.CpuProfilerEntryPoint myEntryPoint;
+
+  private final boolean isTraceboxEnabled;
+
+  @VisibleForTesting
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, new CpuCaptureParser(profilers.getIdeServices()));
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
   }
 
   @VisibleForTesting
-  CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull CpuCaptureParser captureParser) {
+  public CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull CpuCaptureParser captureParser) {
+    this(profilers, captureParser, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
+  }
+
+  /**
+   * This constructor is used for creating CpuProfilerStage instances that allow the user to take CPU captures.
+   * Hence, the entry point is taken as a parameter to be tracked for when the user takes said capture.
+   */
+  public CpuProfilerStage(@NotNull StudioProfilers profilers, CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint) {
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), entryPoint);
+  }
+
+  private CpuProfilerStage(@NotNull StudioProfilers profilers,
+                           @NotNull CpuCaptureParser captureParser,
+                           CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint) {
     super(profilers);
     mySession = profilers.getSession();
 
@@ -194,11 +216,16 @@ public class CpuProfilerStage extends StreamingStage {
     myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
     myCaptureParser = captureParser;
 
+    // Store and track how the user entered the CpuProfilerStage to take a cpu trace.
+    myEntryPoint = entryPoint;
+
     List<Trace.TraceInfo> existingCompletedTraceInfoList =
       CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
         .filter(info -> info.getToTimestamp() != -1).collect(Collectors.toList());
     existingCompletedTraceInfoList.forEach(info -> myCompletedTraceIdToInfoMap.put(info.getTraceId(), new CpuTraceInfo(info)));
     myInProgressTraceHandler = new InProgressTraceHandler();
+
+    isTraceboxEnabled = getStudioProfilers().getIdeServices().getFeatureConfig().isTraceboxEnabled();
   }
 
   private static Logger getLogger() {
@@ -269,6 +296,8 @@ public class CpuProfilerStage extends StreamingStage {
     return myProfilerConfigModel;
   }
 
+  public CpuCaptureMetadata.CpuProfilerEntryPoint getEntryPoint() { return myEntryPoint; }
+
   @Override
   public void enter() {
     logEnterStage();
@@ -326,6 +355,7 @@ public class CpuProfilerStage extends StreamingStage {
   }
 
   public void startCapturing() {
+    LogUtils.log(getClass(), "CPU capture start attempted");
     ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
     assert getStudioProfilers().getProcess() != null;
     Common.Process process = getStudioProfilers().getProcess();
@@ -352,6 +382,7 @@ public class CpuProfilerStage extends StreamingStage {
 
   private void startCapturingCallback(@NotNull Trace.TraceStartStatus status) {
     if (status.getStatus().equals(Trace.TraceStartStatus.Status.SUCCESS)) {
+      LogUtils.log(getClass(), "CPU capture start succeeded");
       // Set myCaptureStartTimeNs before updating the state because the timestamp may be used to construct recording panel.
       myCaptureStartTimeNs = currentTimeNs();
       setCaptureState(CaptureState.CAPTURING);
@@ -369,6 +400,7 @@ public class CpuProfilerStage extends StreamingStage {
 
   @VisibleForTesting
   void stopCapturing() {
+    LogUtils.log(getClass(), "CPU capture stop attempted");
     // We need to send the trace configuration that was used to initiate the capture. Return early if no in-progress trace exists.
     if (Trace.TraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
       return;
@@ -411,6 +443,7 @@ public class CpuProfilerStage extends StreamingStage {
     captureMetadata.setCaptureDurationMs(estimateDurationMs);
     captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(status.getStoppingDurationNs()));
     captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(status.getStatus()));
+    captureMetadata.setCpuProfilerEntryPoint(myEntryPoint);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
 
     getLogger().warn("Unable to stop tracing: " + status.getStatus());
@@ -422,8 +455,8 @@ public class CpuProfilerStage extends StreamingStage {
     if (myCompletedTraceIdToInfoMap.containsKey(traceId)) {
       CpuCaptureStage stage = CpuCaptureStage.create(
         getStudioProfilers(),
-        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration()),
-        traceId);
+        ProfilingConfiguration.fromProto(myCompletedTraceIdToInfoMap.get(traceId).getTraceInfo().getConfiguration(), isTraceboxEnabled),
+        myEntryPoint, traceId);
       if (stage != null) {
         getStudioProfilers().getIdeServices().getMainExecutor().execute(() -> getStudioProfilers().setStage(stage));
         return;
@@ -600,11 +633,13 @@ public class CpuProfilerStage extends StreamingStage {
 
           // Inform CpuCaptureParser to track metrics when the successful trace is parsed.
           if (trace.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
+            LogUtils.log(getClass(), "CPU capture stop succeeded");
             CpuCaptureMetadata captureMetadata =
-              new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration()));
+              new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration(), isTraceboxEnabled));
             // If the capture is successful, we can track a more accurate time, calculated from the capture itself.
             captureMetadata.setCaptureDurationMs(TimeUnit.NANOSECONDS.toMillis(trace.getToTimestamp() - trace.getFromTimestamp()));
             captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(trace.getStopStatus().getStoppingDurationNs()));
+            captureMetadata.setCpuProfilerEntryPoint(myEntryPoint);
             myCaptureParser.trackCaptureMetadata(trace.getTraceId(), captureMetadata);
           }
           else {
@@ -672,7 +707,7 @@ public class CpuProfilerStage extends StreamingStage {
       }
       else {
         // Updates myProfilerConfigModel to the ongoing profiler configuration.
-        myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(traceInfo.getConfiguration()));
+        myProfilerConfigModel.setProfilingConfiguration(ProfilingConfiguration.fromProto(traceInfo.getConfiguration(), isTraceboxEnabled));
       }
       setCaptureState(state);
       getTimeline().setStreaming(true);

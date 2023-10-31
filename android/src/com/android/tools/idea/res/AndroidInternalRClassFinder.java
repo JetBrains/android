@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.intellij.reference.SoftReference.dereference;
 
+import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -40,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.augment.AndroidInternalRClass;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

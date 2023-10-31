@@ -40,46 +40,45 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
   }
 
   fun testAffectedFileWriteAccess() {
-    val editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                   "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                   "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
-                   "\n" +
-                   "    <RelativeLayout />\n" +
-                   "</layout>\n"
+    val editText =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+        "\n" +
+        "    <RelativeLayout />\n" +
+        "</layout>\n"
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!.subTags[0]
     val backend = createBackend(rootTag)
 
     ApplicationManager.getApplication().invokeLater {
-      WriteCommandAction.runWriteCommandAction(project) {
-        assertNotNull(backend.getAffectedFile())
-      }
+      WriteCommandAction.runWriteCommandAction(project) { assertNotNull(backend.getAffectedFile()) }
     }
   }
 
   fun testAffectedFileReadAccess() {
-    val editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                   "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                   "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
-                   "\n" +
-                   "    <RelativeLayout />\n" +
-                   "</layout>\n"
+    val editText =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+        "\n" +
+        "    <RelativeLayout />\n" +
+        "</layout>\n"
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!.subTags[0]
     val backend = createBackend(rootTag)
 
-    ApplicationManager.getApplication().runReadAction {
-      assertNotNull(backend.getAffectedFile())
-    }
+    ApplicationManager.getApplication().runReadAction { assertNotNull(backend.getAffectedFile()) }
   }
 
   fun testAffectedFileWrongAccess() {
-    val editText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                   "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                   "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
-                   "\n" +
-                   "    <RelativeLayout />\n" +
-                   "</layout>\n"
+    val editText =
+      "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+        "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+        "    xmlns:tools123=\"http://schemas.android.com/tools\">\n" +
+        "\n" +
+        "    <RelativeLayout />\n" +
+        "</layout>\n"
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!.subTags[0]
     val backend = createBackend(rootTag)
@@ -92,9 +91,7 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
     whenever(invalidTag.name).thenReturn("")
     val backend = createBackend(invalidTag)
 
-    ApplicationManager.getApplication().runReadAction {
-      assertNull(backend.getAffectedFile())
-    }
+    ApplicationManager.getApplication().runReadAction { assertNull(backend.getAffectedFile()) }
   }
 
   fun testGetAttributeReadPermittedThread() {
@@ -109,13 +106,15 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
         </TextView>
-      """.trimIndent()
+      """
+        .trimIndent()
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!
     val backend = createBackend(rootTag)
 
     ApplicationManager.getApplication().runReadAction {
-      assertEquals(expected, backend.getAttribute("text", ANDROID_URI)) }
+      assertEquals(expected, backend.getAttribute("text", ANDROID_URI))
+    }
   }
 
   fun testGetAttributeReadNotPermittedThread() {
@@ -130,7 +129,8 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
         </TextView>
-      """.trimIndent()
+      """
+        .trimIndent()
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!
     val backend = createBackend(rootTag)
@@ -159,7 +159,8 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
         </TextView>
-      """.trimIndent()
+      """
+        .trimIndent()
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!
     val backend = createBackend(rootTag)
@@ -190,18 +191,21 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
         </TextView>
-      """.trimIndent()
+      """
+        .trimIndent()
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!
     val backend = createBackend(rootTag)
 
     WriteCommandAction.runWriteCommandAction(
-      myModule.project, Runnable {
-      assertTrue(ApplicationManager.getApplication().isReadAccessAllowed)
-      assertTrue(backend.setAttribute("text", ANDROID_URI, changed))
-      // Changed
-      assertEquals(changed, backend.getAttribute("text", ANDROID_URI))
-    })
+      myModule.project,
+      Runnable {
+        assertTrue(ApplicationManager.getApplication().isReadAccessAllowed)
+        assertTrue(backend.setAttribute("text", ANDROID_URI, changed))
+        // Changed
+        assertEquals(changed, backend.getAttribute("text", ANDROID_URI))
+      }
+    )
   }
 
   fun testSetAttributeNlWriteCommandAction() {
@@ -220,7 +224,8 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
         </TextView>
-      """.trimIndent()
+      """
+        .trimIndent()
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!
     val component = NlComponent(model, rootTag)
@@ -234,7 +239,8 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
         assertTrue(backend.setAttribute("text", ANDROID_URI, changed))
         // Changed
         assertEquals(changed, backend.getAttribute("text", ANDROID_URI))
-    })
+      }
+    )
   }
 
   fun testSetAttributeWritePermittedThread() {
@@ -250,17 +256,20 @@ class NlComponentBackendXmlTest : AndroidTestCase() {
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" >
         </TextView>
-      """.trimIndent()
+      """
+        .trimIndent()
     val xmlFile = myFixture.addFileToProject("res/layout/layout.xml", editText) as XmlFile
     val rootTag = xmlFile.rootTag!!
     val backend = createBackend(rootTag)
 
     ApplicationManager.getApplication().runWriteAction {
       assertTrue(ApplicationManager.getApplication().isReadAccessAllowed)
-      assertThrows(IncorrectOperationException::class.java,
-                   ThrowableRunnable<IncorrectOperationException> {
-                     backend.setAttribute("text", ANDROID_URI, changed)
-                   })
+      assertThrows(
+        IncorrectOperationException::class.java,
+        ThrowableRunnable<IncorrectOperationException> {
+          backend.setAttribute("text", ANDROID_URI, changed)
+        }
+      )
     }
   }
 

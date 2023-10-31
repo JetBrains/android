@@ -21,12 +21,12 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common.Device
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerAspect
 import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule

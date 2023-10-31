@@ -54,20 +54,17 @@ import kotlin.system.measureTimeMillis
  * - Start using new NewProjectModel etc to initialise TemplateParameters and set parameter values.
  * - Fix clean model syncing, and hook up clean lint checks.
  *
- * WARNING: This test is designed to be run by TemplateTestSuite. Templates that use viewBinding will fail
- * when tested directly from this class; use bazel instead.
+ * WARNING: This test is designed to be run by TemplateTestSuite. Templates that use viewBinding
+ * will fail when tested directly from this class; use bazel instead.
  */
 class TemplateTest {
   private var runTemplateCoverageOnly: Boolean = false
 
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  @get:Rule val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  var exceptionRule: ExpectedException = ExpectedException.none()
+  @get:Rule var exceptionRule: ExpectedException = ExpectedException.none()
 
   /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
@@ -81,15 +78,17 @@ class TemplateTest {
 
     /**
      * Replace the default RepositoryUrlManager with one that enables repository checks in tests.
-     * This is necessary to fully resolve dynamic gradle coordinates (e.g. appcompat-v7:+ => appcompat-v7:25.3.1).
-     * It will keep coordinates exactly the same as they are resolved within the NPW flow.
+     * This is necessary to fully resolve dynamic gradle coordinates (e.g. appcompat-v7:+ =>
+     * appcompat-v7:25.3.1). It will keep coordinates exactly the same as they are resolved within
+     * the NPW flow.
      *
      * @see RepositoryUrlManager.forceRepositoryChecksInTests
      */
-    IdeComponents(null, disposableRule.disposable).replaceApplicationService(
-      RepositoryUrlManager::class.java,
-      RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true)
-    )
+    IdeComponents(null, disposableRule.disposable)
+      .replaceApplicationService(
+        RepositoryUrlManager::class.java,
+        RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true)
+      )
   }
 
   @After
@@ -101,8 +100,9 @@ class TemplateTest {
   /**
    * Checks the given template in the given category. Supports overridden template values.
    *
-   * @param name              the template name
-   * @param customizers        An instance of [ProjectStateCustomizer]s used for providing template and project overrides.
+   * @param name the template name
+   * @param customizers An instance of [ProjectStateCustomizer]s used for providing template and
+   *   project overrides.
    */
   private fun checkCreateTemplate(
     name: String,
@@ -123,16 +123,15 @@ class TemplateTest {
     val template = TemplateResolver.getTemplateByName(name, category, formFactor)!!
 
     // Name must be title-cased
-    assertThat(template.name).isEqualTo(template.name.split(" ").joinToString(" ") { it.capitalize() })
+    assertThat(template.name)
+      .isEqualTo(template.name.split(" ").joinToString(" ") { it.capitalize() })
 
     // Description and help should not end with spaces or "."
-    assertThat(template.description).doesNotContainMatch("[\\. ]$")
+    assertThat(template.description).doesNotContainMatch("[. ]$")
     template.parameters
-      .map {parameter -> parameter.help }
+      .map { parameter -> parameter.help }
       .filter { it != null && !it.endsWith("etc.") }
-      .forEach {
-        assertThat(it).doesNotContainMatch("[\\. ]$")
-      }
+      .forEach { assertThat(it).doesNotContainMatch("[. ]$") }
 
     templateStateCustomizer.forEach { (parameterName: String, overrideValue: String) ->
       val p = template.parameters.find { it.name == parameterName }!! as StringParameter
@@ -152,39 +151,48 @@ class TemplateTest {
 
   @MustBeDocumented
   @Retention(AnnotationRetention.RUNTIME)
-  @Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+  @Target(
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER
+  )
   annotation class TemplateCheck
 
-  private val withKotlin: ProjectStateCustomizer = { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-    projectData.language = Language.Kotlin
-    // Use the Kotlin version for tests
-    projectData.kotlinVersion = TestUtils.KOTLIN_VERSION_FOR_TESTS
-  }
+  private val withKotlin: ProjectStateCustomizer =
+    { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.language = Language.Kotlin
+      // Use the Kotlin version for tests
+      projectData.kotlinVersion = TestUtils.KOTLIN_VERSION_FOR_TESTS
+    }
 
-  private fun withNewLocation(location: String): TemplateStateCustomizer = mapOf(
-    "New Folder Location" to location
-  )
+  private fun withNewLocation(location: String): TemplateStateCustomizer =
+    mapOf("New Folder Location" to location)
 
   private fun withApplicationId(applicationId: String): ProjectStateCustomizer =
-    { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-        projectData.applicationPackage = applicationId
+    { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+      projectData.applicationPackage = applicationId
     }
 
   private fun withPackage(packageName: String): ProjectStateCustomizer =
     { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-        moduleData.packageName = packageName
-        val paths = GradleAndroidModuleTemplate.createDefaultModuleTemplate(projectRule.project, moduleData.name!!).paths
-        moduleData.setModuleRoots(paths, projectData.topOut!!.path, moduleData.name!!, packageName)
+      moduleData.packageName = packageName
+      val paths =
+        GradleAndroidModuleTemplate.createDefaultModuleTemplate(
+            projectRule.project,
+            moduleData.name!!
+          )
+          .paths
+      moduleData.setModuleRoots(paths, projectData.topOut!!.path, moduleData.name!!, packageName)
     }
 
-
-  //--- Activity templates ---
+  // --- Activity templates ---
   @TemplateCheck
   @Test
   fun testNewBasicActivityMaterial3() {
-    val withMaterial3: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
-      moduleData.isMaterial3 = true
-    }
+    val withMaterial3: ProjectStateCustomizer =
+      { moduleData: ModuleTemplateDataBuilder, _: ProjectTemplateDataBuilder ->
+        moduleData.isMaterial3 = true
+      }
     checkCreateTemplate("Basic Views Activity", withKotlin, withMaterial3)
   }
 
@@ -197,9 +205,11 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivity_notInRootPackage() {
-    checkCreateTemplate("Empty Views Activity",
-                        withApplicationId("com.mycompany.myapp"),
-                        withPackage("com.mycompany.myapp.subpackage"))
+    checkCreateTemplate(
+      "Empty Views Activity",
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage")
+    )
   }
 
   @TemplateCheck
@@ -211,10 +221,12 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewEmptyViewActivityWithKotlin_notInRootPackage() {
-    checkCreateTemplate("Empty Views Activity",
-                        withKotlin,
-                        withApplicationId("com.mycompany.myapp"),
-                        withPackage("com.mycompany.myapp.subpackage"))
+    checkCreateTemplate(
+      "Empty Views Activity",
+      withKotlin,
+      withApplicationId("com.mycompany.myapp"),
+      withPackage("com.mycompany.myapp.subpackage")
+    )
   }
 
   @TemplateCheck
@@ -250,7 +262,11 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewNavigationDrawerActivityWithKotlin() {
-    checkCreateTemplate("Navigation Drawer Views Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate(
+      "Navigation Drawer Views Activity",
+      withKotlin,
+      avoidModifiedModuleName = true
+    )
   }
 
   @TemplateCheck
@@ -283,7 +299,8 @@ class TemplateTest {
     checkCreateTemplate(
       "Fullscreen Views Activity",
       withApplicationId("com.mycompany.myapp"),
-      withPackage("com.mycompany.myapp.subpackage"))
+      withPackage("com.mycompany.myapp.subpackage")
+    )
   }
 
   @TemplateCheck
@@ -343,7 +360,11 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testBottomNavigationActivityWithKotlin() {
-    checkCreateTemplate("Bottom Navigation Views Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate(
+      "Bottom Navigation Views Activity",
+      withKotlin,
+      avoidModifiedModuleName = true
+    )
   }
 
   @TemplateCheck
@@ -355,7 +376,11 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testGoogleAdMobAdsActivityWithKotlin() {
-    checkCreateTemplate("Google AdMob Ads Views Activity", withKotlin, avoidModifiedModuleName = true)
+    checkCreateTemplate(
+      "Google AdMob Ads Views Activity",
+      withKotlin,
+      avoidModifiedModuleName = true
+    )
   }
 
   @TemplateCheck
@@ -396,23 +421,24 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
-  fun testGameActivity(){
+  fun testGameActivity() {
     checkCreateTemplate("Game Activity (C++)", avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
-  fun testGameActivityWithKotlin(){
+  fun testGameActivityWithKotlin() {
     checkCreateTemplate("Game Activity (C++)", withKotlin, avoidModifiedModuleName = true)
   }
 
   @TemplateCheck
   @Test
   fun testComposeActivityMaterial3() {
-    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
-    }
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
+      }
     checkCreateTemplate("Empty Activity", withSpecificKotlin) // Compose is always Kotlin
   }
 
@@ -431,20 +457,22 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewComposeWearActivity() {
-    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
-    }
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+      }
     checkCreateTemplate("Empty Wear App", withSpecificKotlin)
   }
 
   @TemplateCheck
   @Test
   fun testNewComposeWearActivityWithTileAndComplication() {
-    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
-    }
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+      }
     checkCreateTemplate("Empty Wear App With Tile And Complication", withSpecificKotlin)
   }
 
@@ -462,6 +490,17 @@ class TemplateTest {
 
   @TemplateCheck
   @Test
+  fun testNewEmptyComposeForTVActivity() {
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+      }
+    checkCreateTemplate("Empty Activity", withSpecificKotlin, formFactor = FormFactor.Tv)
+  }
+
+  @TemplateCheck
+  @Test
   fun testNewNativeCppActivity() {
     checkCreateTemplate("Native C++")
   }
@@ -472,7 +511,7 @@ class TemplateTest {
     checkCreateTemplate("Native C++", withKotlin, avoidModifiedModuleName = true)
   }
 
-  //--- Fragment templates ---
+  // --- Fragment templates ---
   @TemplateCheck
   @Test
   fun testNewListFragment() {
@@ -593,7 +632,7 @@ class TemplateTest {
     checkCreateTemplate("Login Fragment", withKotlin, avoidModifiedModuleName = true)
   }
 
-  //--- Other templates ---
+  // --- Other templates ---
   @TemplateCheck
   @Test
   fun testNewAppWidget() {
@@ -675,13 +714,19 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewAssetsFolders() {
-    checkCreateTemplate("Assets Folder", templateStateCustomizer = withNewLocation("src/main/assets"))
+    checkCreateTemplate(
+      "Assets Folder",
+      templateStateCustomizer = withNewLocation("src/main/assets")
+    )
   }
 
   @TemplateCheck
   @Test
   fun testNewFontsFolders() {
-    checkCreateTemplate("Font Folder", templateStateCustomizer = withNewLocation("src/main/res/font"))
+    checkCreateTemplate(
+      "Font Folder",
+      templateStateCustomizer = withNewLocation("src/main/res/font")
+    )
   }
 
   @TemplateCheck
@@ -699,31 +744,46 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewRawResourcesFolders() {
-    checkCreateTemplate("Raw Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/raw"))
+    checkCreateTemplate(
+      "Raw Resources Folder",
+      templateStateCustomizer = withNewLocation("src/main/res/raw")
+    )
   }
 
   @TemplateCheck
   @Test
   fun testNewResFolders() {
-    checkCreateTemplate("Res Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
+    checkCreateTemplate(
+      "Res Folder",
+      templateStateCustomizer = withNewLocation("src/main/resources")
+    )
   }
 
   @TemplateCheck
   @Test
   fun testNewJavaResFolders() {
-    checkCreateTemplate("Java Resources Folder", templateStateCustomizer = withNewLocation("src/main/resources"))
+    checkCreateTemplate(
+      "Java Resources Folder",
+      templateStateCustomizer = withNewLocation("src/main/resources")
+    )
   }
 
   @TemplateCheck
   @Test
   fun testNewRenderscriptFolders() {
-    checkCreateTemplate("RenderScript Folder", templateStateCustomizer = withNewLocation("src/main/rs"))
+    checkCreateTemplate(
+      "RenderScript Folder",
+      templateStateCustomizer = withNewLocation("src/main/rs")
+    )
   }
 
   @TemplateCheck
   @Test
   fun testNewXmlRestFolders() {
-    checkCreateTemplate("XML Resources Folder", templateStateCustomizer = withNewLocation("src/main/res/xml"))
+    checkCreateTemplate(
+      "XML Resources Folder",
+      templateStateCustomizer = withNewLocation("src/main/res/xml")
+    )
   }
 
   @TemplateCheck
@@ -768,19 +828,24 @@ class TemplateTest {
 
   @Test
   fun testWizardUiContext() {
-    TemplateResolver.getAllTemplates().filter { it.uiContexts.contains(WizardUiContext.NewProjectExtraDetail) }.forEach {
-      // NewProjectExtraDetail should simultaneously declare NewProject
-      assertThat(it.uiContexts).contains(WizardUiContext.NewProject)
-    }
+    TemplateResolver.getAllTemplates()
+      .filter { it.uiContexts.contains(WizardUiContext.NewProjectExtraDetail) }
+      .forEach {
+        // NewProjectExtraDetail should simultaneously declare NewProject
+        assertThat(it.uiContexts).contains(WizardUiContext.NewProject)
+      }
   }
 
   @Test
   fun testAllTemplatesCovered() {
-    // Create a placeholder version of this class that just collects all the templates it will test when it is run.
+    // Create a placeholder version of this class that just collects all the templates it will test
+    // when it is run.
     val templateTest = TemplateTest().apply { runTemplateCoverageOnly = true }
 
-    // Find all methods annotated with @TemplateCheck and run them (will just add the template name to a list)
-    templateTest::class.memberFunctions
+    // Find all methods annotated with @TemplateCheck and run them (will just add the template name
+    // to a list)
+    templateTest::class
+      .memberFunctions
       .filter { it.findAnnotation<TemplateCheck>() != null }
       .forEach { it.call(templateTest) }
 
@@ -788,26 +853,26 @@ class TemplateTest {
 
     val notCoveredTemplates = templatesWhichShouldBeCovered.minus(templateTest.templatesChecked)
 
-    val failurePrefix = """
+    val failurePrefix =
+      """
         The following templates were not covered by TemplateTest. Please ensure that tests are added to cover
         these templates and that they are annotated with @TemplateCheck.
-        """.trimIndent()
+        """
+        .trimIndent()
 
     assertWithMessage(failurePrefix).that(notCoveredTemplates).isEmpty()
   }
 }
 
 typealias ProjectStateCustomizer = (ModuleTemplateDataBuilder, ProjectTemplateDataBuilder) -> Unit
+
 typealias TemplateStateCustomizer = Map<String, String>
 
-private fun getBoolFromEnvironment(key: String) = System.getProperty(key).orEmpty().toBoolean() || System.getenv(key).orEmpty().toBoolean()
+private fun getBoolFromEnvironment(key: String) =
+  System.getProperty(key).orEmpty().toBoolean() || System.getenv(key).orEmpty().toBoolean()
 
-/**
- * Whether we should run these tests or not.
- */
+/** Whether we should run these tests or not. */
 private val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS")
 
-/**
- * Whether we should enforce that lint passes cleanly on the projects
- */
+/** Whether we should enforce that lint passes cleanly on the projects */
 internal const val CHECK_LINT = false // Needs work on closing projects cleanly

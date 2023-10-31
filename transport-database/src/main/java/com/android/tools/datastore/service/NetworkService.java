@@ -20,17 +20,16 @@ import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.NetworkTable;
 import com.android.tools.datastore.poller.NetworkDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profiler.proto.NetworkServiceGrpc;
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
-import org.jetbrains.annotations.NotNull;
-
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 
 // TODO: Implement a storage container that can read/write data to disk
 public class NetworkService extends NetworkServiceGrpc.NetworkServiceImplBase implements ServicePassThrough {

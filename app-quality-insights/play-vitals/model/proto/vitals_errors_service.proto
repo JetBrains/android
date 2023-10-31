@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package google.play.developer.reporting.v1beta1;
 import "common.proto";
+import "decimal.proto";
 import "device.proto";
 import "metrics.proto";
 import "google/protobuf/timestamp.proto";
@@ -92,12 +93,13 @@ message ErrorReport {
 
   // Start of the hour during which the latest event in this error report
   // occurred.
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   google.protobuf.Timestamp event_time = 5;
 
   // A device model on which an event in this error report occurred on.
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   DeviceModelSummary device_model = 6;
+
+  // The OS version on which an event in this error report occurred on.
+  OsVersion os_version = 7;
 }
 
 // A group of related ErrorReports received for an app.
@@ -147,45 +149,47 @@ message ErrorIssue {
   // The total number of error reports in this issue (only considering
   // occurrences matching the filters and within the requested time
   // period).
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   int64 error_report_count = 5;
 
-  // An estimate of the number of unique users who have experienced an error
-  // in this error group (only considering occurrences matching the filters and
+  // An estimate of the number of unique users who have experienced
+  // this issue (only considering occurrences matching the filters and
   // within the requested time period).
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   int64 distinct_users = 6;
 
   // Start of the hour during which the last error report in this issue
   // occurred.
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   google.protobuf.Timestamp last_error_report_time = 7;
 
   // Link to the issue in Android vitals in the Play Console.
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   string issue_uri = 8;
 
   // The smallest OS version in which this error cluster has occurred in the
   // requested time period (only considering occurrences matching the filters
   // and within the requested time period).
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   OsVersion first_os_version = 9;
 
   // The latest OS version in which this error cluster has occurred in the
   // requested time period (only considering occurrences matching the filters
   // and within the requested time period).
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   OsVersion last_os_version = 10;
 
   // The earliest (inclusive) app version appearing in this ErrorIssue in the
   // requested time period (only considering occurrences matching the filters).
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   AppVersion first_app_version = 11;
 
   // The latest (inclusive) app version appearing in this ErrorIssue in the
   // requested time period (only considering occurrences matching the filters).
-  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   AppVersion last_app_version = 12;
+
+  // List of annotations for an issue. Annotations provide additional
+  // information that may help in diagnosing and fixing the issue.
+  // (-- TODO(b/269246512): Remove visibility restrictions for launch. --)
+  repeated IssueAnnotation annotations = 13;
+
+  // An estimated percentage of users affected by any issue that are
+  // affected by this issue (only considering occurrences matching the filters
+  // and within the requested time period).
+  google.type.Decimal distinct_users_percent = 14;
 }
 
 // Request to search error reports.
@@ -209,7 +213,7 @@ message SearchErrorReportsRequest {
   // this value.
   //
   // If unspecified, at most 50 reports will be returned.
-  // The maximum value is 1000; values above 1000 will be coerced to 1000.
+  // The maximum value is 100; values above 100 will be coerced to 100.
   int32 page_size = 3;
 
   // A page token, received from a previous `SearchErrorReports` call.
@@ -231,8 +235,12 @@ message SearchErrorReportsRequest {
   // * `versionCode`: Matches error reports that occurred in the requested
   //    app version codes only.
   //    Example: `versionCode = 123 OR versionCode = 456`.
-  // * `deviceModel`: Matches error reports that occurred in the requested
-  //    devices. Example: `deviceModel = "walleye" OR deviceModel = "marlin"`.
+  // * `deviceModel`: Matches error issues that occurred in the requested
+  //    devices.
+  //    Example:
+  //      `deviceModel = "google/walleye" OR deviceModel = "google/marlin"`.
+  // * `deviceBrand`: Matches error issues that occurred in the requested
+  //    device brands. Example: `deviceBrand = "Google".
   // * `deviceType`: Matches error reports that occurred in the requested
   //    device types. Example: `deviceType = "PHONE"`.
   // * `errorIssueType`: Matches error reports of the requested types only.
@@ -329,7 +337,11 @@ message SearchErrorIssuesRequest {
   //    app version codes only.
   //    Example: `versionCode = 123 OR versionCode = 456`.
   // * `deviceModel`: Matches error issues that occurred in the requested
-  //    devices. Example: `deviceModel = "walleye" OR deviceModel = "marlin"`.
+  //    devices.
+  //    Example:
+  //      `deviceModel = "google/walleye" OR deviceModel = "google/marlin"`.
+  // * `deviceBrand`: Matches error issues that occurred in the requested
+  //    device brands. Example: `deviceBrand = "Google".
   // * `deviceType`: Matches error issues that occurred in the requested
   //    device types. Example: `deviceType = "PHONE"`.
   // * `errorIssueType`: Matches error issues of the requested types only.
@@ -377,7 +389,7 @@ message SearchErrorIssuesRequest {
   // * `asc` for ascending order.
   // * `desc` for descending order.
   //
-  // Format: A field and an operation e.g., `errorReportCount desc`
+  // Format: A field and an operation, e.g., `errorReportCount desc`
   //
   // *Note:* currently only one field is supported at a time.
   string order_by = 6;
@@ -420,7 +432,7 @@ message GetErrorCountMetricSetRequest {
 //  * `distinctUsers` (`google.type.Decimal`): Count of distinct users
 //     for which reports have been received. Care must be taken not to aggregate
 //     this count further, as it may result in users being counted multiple
-//     times.
+//     times. This value is not rounded, however it may be an approximation.
 //
 // **Required dimension:**
 //
@@ -437,13 +449,16 @@ message GetErrorCountMetricSetRequest {
 //
 //  * `apiLevel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     the API level of Android that was running on the user's device.
+//     the API level of Android that was running on the user's device, e.g., 26.
 //  * `versionCode`
 //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
 //     version of the app that was running on the user's device.
 //  * `deviceModel`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-//     unique identifier of the user's device model.
+//     unique identifier of the user's device model. The form of the
+//     identifier is 'deviceBrand/device', where deviceBrand corresponds
+//     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+//     google/coral.
 //  * `deviceType`
 //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
 //     identifier of the device's form factor, e.g., PHONE.
@@ -536,10 +551,14 @@ message QueryErrorCountMetricSetRequest {
   //
   //  * `apiLevel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
-  //     the API level of Android that was running on the user's device.
+  //     the API level of Android that was running on the user's device,
+  //     e.g., 26.
   //  * `versionCode`
   //     ([int64][google.play.developer.reporting.v1beta1.DimensionValue.int64_value]):
-  //     version of the app that was running on the user's device.
+  //     unique identifier of the user's device model. The form of the
+  //     identifier is 'deviceBrand/device', where deviceBrand corresponds
+  //     to Build.BRAND and device corresponds to Build.DEVICE, e.g.,
+  //     google/coral.
   //  * `deviceModel`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     unique identifier of the user's device model.
@@ -551,6 +570,10 @@ message QueryErrorCountMetricSetRequest {
   //     the type of error. The value should correspond to one of the possible
   //     values in
   //     [ErrorType][google.play.developer.reporting.v1beta1.ErrorType].
+  //  * `isUserPerceived`
+  //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
+  //     denotes whether error is user perceived or not, USER_PERCEIVED or
+  //     NOT_USER_PERCEIVED.
   //  * `issueId`
   //     ([string][google.play.developer.reporting.v1beta1.DimensionValue.string_value]):
   //     the id an error was assigned to. The value should correspond to the
@@ -605,7 +628,8 @@ message QueryErrorCountMetricSetRequest {
   //  * `distinctUsers` (`google.type.Decimal`): Count of distinct users
   //     for which reports have been received. Care must be taken not to
   //     aggregate this count further, as it may result in users being counted
-  //     multiple times.
+  //     multiple times. This value is not rounded, however it may be an
+  //     approximation.
   repeated string metrics = 4;
 
   // Maximum size of the returned data.
@@ -635,4 +659,17 @@ message QueryErrorCountMetricSetResponse {
 
   // Continuation token to fetch the next page of data.
   string next_page_token = 2;
+}
+
+// Representation of an annotation message for an issue.
+message IssueAnnotation {
+  // Category that the annotation belongs to. An annotation will belong to a
+  // single category. Example categories: "Potential fix", "Insight".
+  string category = 1;
+
+  // Title for the annotation.
+  string title = 2;
+
+  // Contains the contents of the annotation message.
+  string body = 3;
 }

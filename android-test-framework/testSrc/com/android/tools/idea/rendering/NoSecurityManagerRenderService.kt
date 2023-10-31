@@ -16,6 +16,8 @@
 @file:JvmName("NoSecurityManagerRenderService")
 package com.android.tools.idea.rendering
 
+import com.android.tools.rendering.RenderService
+
 // Disable security manager during tests (for bazel)
 fun createNoSecurityRenderService(): RenderService {
   return RenderService { it.disableSecurityManager() }

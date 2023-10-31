@@ -27,14 +27,15 @@ import com.intellij.ui.tree.LeafState
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-internal data class TestIssue(override val summary: String = "",
-                              override val description: String = "",
-                              override val severity: HighlightSeverity = HighlightSeverity.WARNING,
-                              override val source: IssueSource = EmptyIssueSource,
-                              override val category: String = "",
-                              val fixList: List<Fix> = emptyList(),
-                              override val hyperlinkListener: HyperlinkListener? = null)
-  : Issue() {
+internal data class TestIssue(
+  override val summary: String = "",
+  override val description: String = "",
+  override val severity: HighlightSeverity = HighlightSeverity.WARNING,
+  override val source: IssueSource = EmptyIssueSource,
+  override val category: String = "",
+  val fixList: List<Fix> = emptyList(),
+  override val hyperlinkListener: HyperlinkListener? = null
+) : Issue() {
 
   override val fixes: Stream<Fix>
     get() = fixList.stream()
@@ -45,9 +46,13 @@ internal object EmptyIssueSource : IssueSource {
   override val displayText: String = ""
 }
 
-internal class IssueSourceWithFile(override val file: VirtualFile, override val displayText: String = "") : IssueSource
+internal class IssueSourceWithFile(
+  override val file: VirtualFile,
+  override val displayText: String = ""
+) : IssueSource
 
-internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) : DesignerCommonIssueProvider<Any> {
+internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) :
+  DesignerCommonIssueProvider<Any> {
   override var viewOptionFilter: DesignerCommonIssueProvider.Filter = EmptyFilter
 
   override fun getFilteredIssues(): List<Issue> = issues.filter(viewOptionFilter)
@@ -57,10 +62,9 @@ internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) 
   override fun dispose() = Unit
 }
 
-/**
- * For testing the functions which need the parent node.
- */
-internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssueNode(project, null) {
+/** For testing the functions which need the parent node. */
+internal class CommonIssueTestParentNode(project: Project) :
+  DesignerCommonIssueNode(project, null) {
   override fun updatePresentation(presentation: PresentationData) = Unit
 
   override fun getName(): String = ""
@@ -70,10 +74,13 @@ internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssue
   override fun getLeafState(): LeafState = LeafState.ALWAYS
 }
 
-fun createTestVisualLintRenderIssue(type: VisualLintErrorType,
-                                    components: List<NlComponent>,
-                                    summary: String = "") : VisualLintRenderIssue {
-  return VisualLintRenderIssue.builder().model(components.first().model)
+fun createTestVisualLintRenderIssue(
+  type: VisualLintErrorType,
+  components: List<NlComponent>,
+  summary: String = ""
+): VisualLintRenderIssue {
+  return VisualLintRenderIssue.builder()
+    .model(components.first().model)
     .summary(summary)
     .severity(HighlightSeverity.WARNING)
     .contentDescriptionProvider { HtmlBuilder() }

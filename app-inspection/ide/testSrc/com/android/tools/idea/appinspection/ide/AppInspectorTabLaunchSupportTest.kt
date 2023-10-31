@@ -37,13 +37,13 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import java.nio.file.Path
-import java.nio.file.Paths
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.nio.file.Paths
 
 class AppInspectorTabLaunchSupportTest {
   private val timer = FakeTimer()

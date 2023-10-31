@@ -20,6 +20,10 @@ import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
 import com.intellij.ide.ui.search.SearchUtil
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.keymap.KeymapManager
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
@@ -27,7 +31,11 @@ import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
+import java.awt.datatransfer.StringSelection
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import javax.swing.DefaultListSelectionModel
+import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 import javax.swing.table.DefaultTableColumnModel
 import javax.swing.table.TableCellRenderer
@@ -40,7 +48,7 @@ class ProcessListTableBuilder {
     val table = JBTable(tableModel).apply {
       showVerticalLines = false
       showHorizontalLines = false
-      emptyText.text = "No debuggable process on device"
+      emptyText.text = EMPTY_TREE_TEXT
       autoCreateColumnsFromModel = false
       autoCreateRowSorter = true
       setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION)
@@ -67,6 +75,8 @@ class ProcessListTableBuilder {
       setComparator(DEBUGGER_COLUMN_INDEX, getStatusComparator())
     }
 
+    table.addKeyListener(getKeyListener(tableModel, table))
+
     return table
   }
 
@@ -78,6 +88,41 @@ class ProcessListTableBuilder {
     TableColumn(USER_ID_COLUMN_INDEX, 100, userIdRenderer(), null).apply { headerValue = "User ID" },
     TableColumn(DEBUGGER_COLUMN_INDEX, 100, statusRenderer(), null).apply { headerValue = "Debugger" }
   )
+
+  private fun getKeyListener(tableModel: DeviceMonitorTableModel, table: JBTable) = object : KeyAdapter() {
+    override fun keyPressed(e: KeyEvent?) {
+      e?.let {
+        val copyShortcuts = KeymapManager.getInstance().activeKeymap.getShortcuts("\$Copy")
+        val copyKeyStroke = KeymapUtil.getKeyStroke(CustomShortcutSet(*copyShortcuts))
+
+        if (KeyStroke.getKeyStroke(it.keyCode, it.modifiersEx).equals(copyKeyStroke)) {
+          copyProcessInfoToClipboard(tableModel, table)
+          it.consume()
+        }
+        /* JTable by default uses ctrl/cmd + c and does not respect keymaps to copy a row.
+        *  It does this by calling toString() on each AbstractTableModel.getColumnClass().
+        *  Since we don't want to keep this default behavior, we are consuming the event.
+        */
+        else if (it.keyCode == KeyEvent.VK_COPY || it.keyCode == KeyEvent.VK_C) {
+          if (it.isControlDown || it.isMetaDown) {
+            it.consume()
+          }
+        }
+      }
+    }
+  }
+
+  private fun copyProcessInfoToClipboard(tableModel: DeviceMonitorTableModel, table: JBTable) {
+    var strToCopy = ""
+    for (index in table.selectedRows) {
+      val processInfo = tableModel.getValueForRow(table.convertRowIndexToModel(index))
+      strToCopy = "$strToCopy${processInfo.processName}: ${processInfo.pid}\n"
+    }
+
+    if (strToCopy.isNotEmpty()) {
+      CopyPasteManager.getInstance().setContents(StringSelection(strToCopy))
+    }
+  }
 
   private fun nameCellRenderer(tableSpeedSearch: TableSpeedSearch) = TableCellRenderer { table, value, isSelected, _, _, _ ->
     val processInfo = value as? ProcessInfo
@@ -241,6 +286,7 @@ class ProcessListTableBuilder {
   }
 
   companion object {
+    const val EMPTY_TREE_TEXT = "No debuggable process on device"
     private val processIcon = StudioIcons.Shell.Filetree.ACTIVITY
     private const val NAME_COLUMN_INDEX = 0
     private const val PID_COLUMN_INDEX = 1

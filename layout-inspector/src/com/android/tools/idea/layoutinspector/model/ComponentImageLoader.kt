@@ -20,20 +20,18 @@ import java.awt.Shape
 import java.util.LinkedList
 
 /**
- * Adds [DrawViewImage] corresponding to the images in the tree rooted at `skiaRoot` to the tree provided in the call to [loadImages].
- * The images added will be in the same order as in a depth-first traversal of `skiaRoot`, and in the normal case will be added to the
- * [ViewNode] with the same `drawId` as the `id` of the [SkiaViewNode]. If the order of nodes in the tree provided to [loadImages] and in
- * `skiaRoot` are different, images will be added to other nodes such that order is preserved.
+ * Adds [DrawViewImage] corresponding to the images in the tree rooted at `skiaRoot` to the tree
+ * provided in the call to [loadImages]. The images added will be in the same order as in a
+ * depth-first traversal of `skiaRoot`, and in the normal case will be added to the [ViewNode] with
+ * the same `drawId` as the `id` of the [SkiaViewNode]. If the order of nodes in the tree provided
+ * to [loadImages] and in `skiaRoot` are different, images will be added to other nodes such that
+ * order is preserved.
  */
-class ComponentImageLoader(
-  private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode
-) {
+class ComponentImageLoader(private val nodeMap: Map<Long, ViewNode>, skiaRoot: SkiaViewNode) {
   private val skiaNodes = LinkedList(skiaRoot.flatten().filter { it.image != null }.toList())
-  private val checkedTreeIds = mutableSetOf<Long>()
+  val checkedTreeIds = mutableSetOf<Long>()
 
-  /**
-   * Load images from skia parser
-   */
+  /** Load images from skia parser */
   fun loadImages(window: AndroidWindow) {
     loadImages(window.root, window.deviceClip)
     window.skpLoadingComplete()
@@ -58,18 +56,27 @@ class ComponentImageLoader(
   }
 
   private fun ViewNode.WriteAccess.addImages(viewRoot: ViewNode, clip: Shape?) {
-    while (skiaNodes.isNotEmpty() &&
-           // The next image is drawn by this node, or some previous node but postponed until now.
-           (skiaNodes.peek().id in checkedTreeIds.plus(viewRoot.drawId) ||
-            // The next image is drawn by a node that we haven't encountered yet, but this node itself also draws, so we have to have the
-            // next image draw first. We also have to make sure that the next image isn't drawn by one of our children, since maybe this
-            // node is drawing after its children.
-            // This should only happen when there's a structural mismatch between the ViewNodes and the SKP (which can happen due to the
-            // way we build the tree in studio, and also potentially because of something happening on the device side).
-            (skiaNodes.any { it.id == viewRoot.drawId } && viewRoot.flatten().none { it.drawId == skiaNodes.peek().id }))) {
+    while (
+      skiaNodes.isNotEmpty() &&
+        // The next image is drawn by this node, or some previous node but postponed until now.
+        (skiaNodes.peek().id in checkedTreeIds.plus(viewRoot.drawId) ||
+          // The next image is drawn by a node that we haven't encountered yet, but this node itself
+          // also draws, so we have to have the
+          // next image draw first. We also have to make sure that the next image isn't drawn by one
+          // of our children, since maybe this
+          // node is drawing after its children.
+          // This should only happen when there's a structural mismatch between the ViewNodes and
+          // the SKP (which can happen due to the
+          // way we build the tree in studio, and also potentially because of something happening on
+          // the device side).
+          (skiaNodes.any { it.id == viewRoot.drawId } &&
+            viewRoot.flatten().none { it.drawId == skiaNodes.peek().id }))
+    ) {
       val skiaNode = skiaNodes.poll()
       val correspondingNode = nodeMap[skiaNode.id]
-      viewRoot.drawChildren.add(DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip))
+      viewRoot.drawChildren.add(
+        DrawViewImage(skiaNode.image ?: continue, correspondingNode ?: continue, clip)
+      )
     }
   }
 }

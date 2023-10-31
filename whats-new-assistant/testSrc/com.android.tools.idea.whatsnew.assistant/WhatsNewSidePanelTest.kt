@@ -56,7 +56,7 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
     whenever(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenAnswer(Answer {
+      .thenAnswer(Answer<InputStream> {
         URL("file:" + resourceFile.path).openStream()
       })
 

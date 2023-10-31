@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.renderer
 
-import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
@@ -24,22 +23,20 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
-import com.android.tools.idea.flags.StudioFlags
-import java.awt.event.KeyEvent
-import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
+import com.android.tools.rendering.classloading.ModuleClassLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 
 class SingleComposePreviewElementRendererTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-
-  @get:Rule val resetFastPreviewFlag = FlagRule(StudioFlags.COMPOSE_FAST_PREVIEW, false)
 
   /** Checks that trying to render an non-existent preview returns a null image */
   @Test
@@ -119,7 +116,22 @@ class SingleComposePreviewElementRendererTest {
       )
     val renderTask = renderTaskFuture.get()!!
     val result = renderTask.render().get()
-    val classLoader = result!!.rootViews.first().viewObject.javaClass.classLoader
+    val classLoader =
+      result!!.rootViews.first().viewObject.javaClass.classLoader as ModuleClassLoader
+
+    // Ensure that the classes we will check were loaded by the test first. If not, it could be the
+    // class has been renamed
+    // or the test is not triggering the leak again.
+    val leakCheckClasses =
+      listOf(
+        "androidx.compose.ui.platform.WindowRecomposer_androidKt",
+        "androidx.compose.runtime.snapshots.SnapshotKt",
+        "androidx.compose.ui.platform.AndroidUiDispatcher",
+        "androidx.compose.ui.platform.AndroidUiDispatcher\$Companion",
+        "_layoutlib_._internal_.kotlin.coroutines.CombinedContext",
+      )
+    leakCheckClasses.forEach { assertTrue("Test did not load $it", classLoader.hasLoadedClass(it)) }
+
     // Check the WindowRecomposer animationScale is empty
     val windowRecomposer =
       classLoader.loadClass("androidx.compose.ui.platform.WindowRecomposer_androidKt")
@@ -130,6 +142,8 @@ class SingleComposePreviewElementRendererTest {
     val pendingRepliesField =
       fontRequestWorker.getDeclaredField("PENDING_REPLIES").apply { isAccessible = true }
     val pendingReplies = pendingRepliesField.get(fontRequestWorker)
+    val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
+    assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after render", 0, size)
 
     assertTrue((animationScaleField.get(windowRecomposer) as Map<*, *>).isNotEmpty())
 
@@ -163,9 +177,6 @@ class SingleComposePreviewElementRendererTest {
       "animationScale should have been cleared",
       (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
     )
-
-    val size = pendingReplies::class.java.getMethod("size").invoke(pendingReplies) as Int
-    assertEquals("FontRequestWorker.PENDING_REPLIES size must be 0 after dispose", 0, size)
 
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
 

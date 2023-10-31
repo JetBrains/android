@@ -22,14 +22,19 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SnappingInfo
 import java.awt.Point
 
-/**
- * The region of [ViewGroupPlaceholder] covered the area of all ViewGroups.
- */
+/** The region of [ViewGroupPlaceholder] covered the area of all ViewGroups. */
 class ViewGroupPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   override val dominate = false
 
-  override val region = Region(host.drawX, host.drawY, host.drawX + host.drawWidth, host.drawY + host.drawHeight, host.depth)
+  override val region =
+    Region(
+      host.drawX,
+      host.drawY,
+      host.drawX + host.drawWidth,
+      host.drawY + host.drawHeight,
+      host.depth
+    )
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
     if (region.contains(info.centerX, info.centerY)) {
@@ -40,5 +45,6 @@ class ViewGroupPlaceholder(host: SceneComponent) : Placeholder(host) {
     return false
   }
 
-  override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) = Unit
+  override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
+    Unit
 }

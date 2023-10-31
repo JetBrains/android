@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.AndroidVersion;
@@ -115,7 +114,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      (model, project) -> myListener,
+                                      model -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       this::newSetDevices);
@@ -145,7 +144,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      (model, project) -> myListener,
+                                      model -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       this::newSetDevices);
@@ -176,28 +175,10 @@ public final class PhysicalDevicePanelTest {
   }
 
   @Test
-  public void initPairUsingWiFiButtonFeatureIsntEnabled() {
-    // Act
-    myPanel = new PhysicalDevicePanel(myProject,
-                                      myParent,
-                                      project -> myService,
-                                      myManager,
-                                      () -> myComponent,
-                                      (model, project) -> myListener,
-                                      PhysicalDeviceDetailsPanel::new,
-                                      mySupplier,
-                                      PhysicalDevicePanel::newSetDevices);
-
-    // Assert
-    assertNull(myPanel.getPairUsingWiFiButton());
-  }
-
-  @Test
   public void initPairUsingWiFiButton() {
     // Arrange
     WiFiPairingController controller = Mockito.mock(WiFiPairingController.class);
 
-    Mockito.when(myService.isFeatureEnabled()).thenReturn(true);
     Mockito.when(myService.createPairingDialogController()).thenReturn(controller);
 
     // Act
@@ -206,7 +187,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      (model, project) -> myListener,
+                                      model -> myListener,
                                       PhysicalDeviceDetailsPanel::new,
                                       mySupplier,
                                       PhysicalDevicePanel::newSetDevices);
@@ -229,7 +210,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      (model, project) -> myListener,
+                                      model -> myListener,
                                       (device, project) -> newPhysicalDeviceDetailsPanel(device),
                                       mySupplier,
                                       this::newSetDevices);
@@ -253,7 +234,7 @@ public final class PhysicalDevicePanelTest {
                                       project -> myService,
                                       myManager,
                                       () -> myComponent,
-                                      (model, project) -> myListener,
+                                      model -> myListener,
                                       (device, project) -> newPhysicalDeviceDetailsPanel(device),
                                       mySupplier,
                                       this::newSetDevices);

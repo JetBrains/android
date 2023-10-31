@@ -66,9 +66,7 @@ internal class DelayedLruActionQueueTest {
     val lruActionQueue = DelayedLruActionQueue(3, Duration.ofMinutes(2), scheduler)
 
     var executionCount = 0
-    repeat(3) {
-      lruActionQueue.addDelayedAction(testDisposable) { executionCount++ }
-    }
+    repeat(3) { lruActionQueue.addDelayedAction(testDisposable) { executionCount++ } }
     assertEquals(0, executionCount)
     assertEquals(3, lruActionQueue.queueSize())
     // Next one will evict one action that will get executed
@@ -101,9 +99,7 @@ internal class DelayedLruActionQueueTest {
       var executionCount = 0
       assertEquals(0, lruActionQueue.queueSize())
       // Check the cancellation also works for evictions
-      repeat(2) {
-        lruActionQueue.addDelayedAction(testDisposable) { executionCount++ }
-      }
+      repeat(2) { lruActionQueue.addDelayedAction(testDisposable) { executionCount++ } }
       val disposable = Disposer.newDisposable()
       lruActionQueue.addDelayedAction(disposable) { executionCount++ }
 

@@ -118,7 +118,7 @@ class NetworkInspectorView(
   private val tooltipPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
   /** View of the active tooltip for stages that contain more than one tooltips. */
-  private var activeTooltipView: TooltipView? = null
+  var activeTooltipView: TooltipView? = null
 
   /** A common component for showing the current selection range. */
   private val selectionTimeLabel = createSelectionTimeLabel()

@@ -36,15 +36,15 @@ import com.google.common.base.Joiner
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.psi.PsiElement
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
+import org.junit.Assert
 import java.io.File
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.lang.reflect.Modifier
 import java.util.Calendar
 import java.util.Locale
 import kotlin.text.Charsets.UTF_8
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
-import org.junit.Assert
 
 /**
  * Ensures that all relevant lint checks are available and registered

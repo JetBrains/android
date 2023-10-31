@@ -15,39 +15,45 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.configurations.ConfigurationListener
+import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
+import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
 
-private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
-  ConfigurationListener.CFG_DEVICE or
-  ConfigurationListener.CFG_DEVICE_STATE or
-  ConfigurationListener.CFG_UI_MODE or
-  ConfigurationListener.CFG_NIGHT_MODE or
-  ConfigurationListener.CFG_THEME or
-  ConfigurationListener.CFG_TARGET or
-  ConfigurationListener.CFG_LOCALE
+private const val EFFECTIVE_FLAGS =
+  ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+    ConfigurationListener.CFG_DEVICE or
+    ConfigurationListener.CFG_DEVICE_STATE or
+    ConfigurationListener.CFG_UI_MODE or
+    ConfigurationListener.CFG_NIGHT_MODE or
+    ConfigurationListener.CFG_THEME or
+    ConfigurationListener.CFG_TARGET or
+    ConfigurationListener.CFG_LOCALE
 
 object LargeFontModelsProvider : VisualizationModelsProvider {
 
   // scale factors here matches the framework.
   @VisibleForTesting
-  val SCALE_TO_DISPLAY_NAME_PAIRS = mutableListOf(
-    (1f to "Default (100%)"),
-    (0.85f to "Small (85%)"),
-    (1.15f to "Large (115%)"),
-    (1.3f to "Largest (130%)"),
-  )
+  val SCALE_TO_DISPLAY_NAME_PAIRS =
+    mutableListOf(
+      (1f to "Default (100%)"),
+      (0.85f to "Small (85%)"),
+      (1.15f to "Large (115%)"),
+      (1.3f to "Largest (130%)"),
+    )
 
-  override fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
+  override fun createNlModels(
+    parentDisposable: Disposable,
+    file: PsiFile,
+    facet: AndroidFacet
+  ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -61,17 +67,23 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     val models = mutableListOf<NlModel>()
 
     for ((scale, displayName) in SCALE_TO_DISPLAY_NAME_PAIRS) {
-      val fontConfig = Configuration.create(defaultConfig, virtualFile)
+      val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
-      val fontModel = NlModel.builder(facet, virtualFile, fontConfig)
-        .withParentDisposable(parentDisposable)
-        .withModelTooltip(fontConfig.toHtmlTooltip())
-        .withComponentRegistrar(NlComponentRegistrar)
-        .build()
+      val fontModel =
+        NlModel.builder(facet, virtualFile, fontConfig)
+          .withParentDisposable(parentDisposable)
+          .withModelTooltip(fontConfig.toHtmlTooltip())
+          .withComponentRegistrar(NlComponentRegistrar)
+          .build()
       fontModel.modelDisplayName = displayName
       models.add(fontModel)
 
-      registerModelsProviderConfigurationListener(fontModel, defaultConfig, fontConfig, EFFECTIVE_FLAGS)
+      registerModelsProviderConfigurationListener(
+        fontModel,
+        defaultConfig,
+        fontConfig,
+        EFFECTIVE_FLAGS
+      )
     }
 
     return models

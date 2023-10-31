@@ -23,7 +23,6 @@ import com.android.tools.idea.sqlite.model.isInMemoryDatabase
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageDialogBuilder
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +30,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import kotlin.coroutines.CoroutineContext
 
 /** Class used to download files needed to enter offline mode. */
 interface OfflineModeManager {

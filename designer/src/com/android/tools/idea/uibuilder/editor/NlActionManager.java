@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.editor;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.util.ActionToolbarUtil;
 import com.android.tools.idea.common.actions.GotoComponentAction;
+import com.android.tools.idea.common.actions.PasteWithNewIds;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.editor.ActionManager;
 import com.android.tools.idea.common.model.NlComponent;
@@ -94,6 +95,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   private GotoComponentAction myGotoComponentAction;
   private AnAction mySelectNextAction;
   private AnAction mySelectPreviousAction;
+  private AnAction myPasteWithNewIdsAction;
 
   public NlActionManager(@NotNull NlDesignSurface surface) {
     super(surface);
@@ -119,6 +121,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       mySelectParent = new SelectParentAction(mySurface);
       mySelectNextAction = new SelectNextAction(mySurface);
       mySelectPreviousAction = new SelectPreviousAction(mySurface);
+      myPasteWithNewIdsAction = new PasteWithNewIds();
     }
     registerAction(mySelectAllAction, IdeActions.ACTION_SELECT_ALL, component);
     registerAction(myGotoComponentAction, IdeActions.ACTION_GOTO_DECLARATION, component);
@@ -217,6 +220,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     group.add(getRegisteredActionByName(IdeActions.ACTION_COPY));
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_PASTE));
+    group.add(myPasteWithNewIdsAction);
     group.addSeparator();
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE));
@@ -289,13 +293,13 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     List<AnAction> actions = new ArrayList<>();
     ViewHandler leafHandler = null;
     if (leafComponent != null) {
-      leafHandler = ViewHandlerManager.get(project).getHandler(leafComponent);
+      leafHandler = ViewHandlerManager.get(project).getHandler(leafComponent, () -> {});
       if (leafHandler != null) {
         actions.addAll(getViewActionsForHandler(leafComponent, selection, editor, leafHandler, toolbar));
       }
     }
     if (parent != null) {
-      ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
+      ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent, () -> {});
       if (handler != null && leafHandler != handler) {
         List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(selection.size());
         // TODO(b/150297043): If the selected components have different parents, do we need to provide the view action from parents?
@@ -350,9 +354,10 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
   public JComponent getSceneViewLeftBar(@NotNull SceneView sceneView) {
     if (OverlayConfiguration.EP_NAME.hasAnyExtensions()) {
       DefaultActionGroup group = new DefaultActionGroup();
-      group.add(new OverlayMenuAction.ToggleCachedOverlayAction(sceneView.getSurface()));
-      group.add(new OverlayMenuAction.UpdateOverlayAction(sceneView.getSurface()));
-      group.add(new OverlayMenuAction.CancelOverlayAction(sceneView.getSurface()));
+      OverlayConfiguration overlayConfiguration = sceneView.getSurface().getOverlayConfiguration();
+      group.add(new OverlayMenuAction.ToggleCachedOverlayAction(overlayConfiguration, sceneView.getSurface()::repaint));
+      group.add(new OverlayMenuAction.UpdateOverlayAction(overlayConfiguration));
+      group.add(new OverlayMenuAction.CancelOverlayAction(overlayConfiguration, sceneView.getSurface()::repaint));
 
       ActionToolbar actionToolbar = com.intellij.openapi.actionSystem.ActionManager.getInstance()
         .createActionToolbar("SceneView", group, false);

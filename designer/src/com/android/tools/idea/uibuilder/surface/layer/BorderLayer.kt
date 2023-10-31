@@ -26,32 +26,35 @@ import java.awt.Graphics2D
 import java.awt.RadialGradientPaint
 import java.awt.RenderingHints
 
-private val defaultBorderColor = JBColor.namedColor(
-  "ScreenView.defaultBorderColor",
-  JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80))
-)
-private val selectedBorderColor = JBColor.namedColor(
-  "ScreenView.selectedBorderColor",
-  JBColor(0x3573f0, 0x548af7)
-)
-private val hoveredBorderColor = JBColor.namedColor(
-  "ScreenView.hoveredBorderColor",
-  JBColor(0x3573f0, 0x548af7)
-)
+private val defaultBorderColor =
+  JBColor.namedColor(
+    "ScreenView.defaultBorderColor",
+    JBColor(Color(0, 0, 0, 40), Color(0, 0, 0, 80))
+  )
+private val selectedBorderColor =
+  JBColor.namedColor("ScreenView.selectedBorderColor", JBColor(0x3573f0, 0x548af7))
+private val hoveredBorderColor =
+  JBColor.namedColor("ScreenView.hoveredBorderColor", JBColor(0x3573f0, 0x548af7))
 
-enum class BorderColor(internal val colorInside: Color, internal val colorOutside: Color, internal val size: Int) {
+enum class BorderColor(
+  internal val colorInside: Color,
+  internal val colorOutside: Color,
+  internal val size: Int
+) {
   DEFAULT_WITH_SHADOW(defaultBorderColor, UIUtil.TRANSPARENT_COLOR, 4),
   DEFAULT_WITHOUT_SHADOW(defaultBorderColor, defaultBorderColor, 1),
   SELECTED(selectedBorderColor, selectedBorderColor, 1),
-  HOVERED(hoveredBorderColor, hoveredBorderColor, 2);
+  HOVERED(hoveredBorderColor, hoveredBorderColor, 2)
 }
 
-class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
-                                            private val myMustPaintBorder: Boolean = false,
-                                            private val rotation : () -> Float,
-                                            private val colorProvider: (SceneView) -> BorderColor = {
-                                              BorderColor.DEFAULT_WITH_SHADOW
-                                            }) : Layer() {
+class BorderLayer
+@JvmOverloads
+constructor(
+  private val myScreenView: SceneView,
+  private val myMustPaintBorder: Boolean = false,
+  private val isRotating: () -> Boolean,
+  private val colorProvider: (SceneView) -> BorderColor = { BorderColor.DEFAULT_WITH_SHADOW }
+) : Layer() {
   override fun paint(g2d: Graphics2D) {
     val screenShape = myScreenView.screenShape
     if (!myMustPaintBorder && screenShape != null) {
@@ -60,7 +63,7 @@ class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
     }
 
     // When screen rotation feature is enabled, we want to hide the border.
-    if (!java.lang.Float.isNaN(rotation())) {
+    if (isRotating()) {
       return
     }
 
@@ -71,12 +74,50 @@ class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
 private object BorderPainter {
   fun paint(g2d: Graphics2D, screenView: SceneView, colorConfig: BorderColor) {
     val borderSize = JBUI.scale(colorConfig.size)
-    val gradLeft = GradientPaint (0f, 0f, colorConfig.colorOutside, borderSize.toFloat(), 0f, colorConfig.colorInside)
-    val gradTop = GradientPaint(0f, 0f, colorConfig.colorOutside, 0f, borderSize.toFloat(), colorConfig.colorInside)
-    val gradRight = GradientPaint(0f, 0f, colorConfig.colorInside, borderSize.toFloat(), 0f, colorConfig.colorOutside)
-    val gradBottom = GradientPaint(0f, 0f, colorConfig.colorInside, 0f, borderSize.toFloat(), colorConfig.colorOutside)
-    val gradCorner = RadialGradientPaint(borderSize.toFloat(), borderSize.toFloat(), borderSize.toFloat(),
-                                                  floatArrayOf(0f, 1f), arrayOf(colorConfig.colorInside, colorConfig.colorOutside))
+    val gradLeft =
+      GradientPaint(
+        0f,
+        0f,
+        colorConfig.colorOutside,
+        borderSize.toFloat(),
+        0f,
+        colorConfig.colorInside
+      )
+    val gradTop =
+      GradientPaint(
+        0f,
+        0f,
+        colorConfig.colorOutside,
+        0f,
+        borderSize.toFloat(),
+        colorConfig.colorInside
+      )
+    val gradRight =
+      GradientPaint(
+        0f,
+        0f,
+        colorConfig.colorInside,
+        borderSize.toFloat(),
+        0f,
+        colorConfig.colorOutside
+      )
+    val gradBottom =
+      GradientPaint(
+        0f,
+        0f,
+        colorConfig.colorInside,
+        0f,
+        borderSize.toFloat(),
+        colorConfig.colorOutside
+      )
+    val gradCorner =
+      RadialGradientPaint(
+        borderSize.toFloat(),
+        borderSize.toFloat(),
+        borderSize.toFloat(),
+        floatArrayOf(0f, 1f),
+        arrayOf(colorConfig.colorInside, colorConfig.colorOutside)
+      )
     val size = screenView.scaledContentSize
     val x = screenView.x
     val y = screenView.y
@@ -114,7 +155,10 @@ private object BorderPainter {
     g2d.transform = tx
 
     // Smoothen the corner shadows
-    g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+    g2d.setRenderingHint(
+      RenderingHints.KEY_INTERPOLATION,
+      RenderingHints.VALUE_INTERPOLATION_BILINEAR
+    )
     g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
     // Paint the corner shadows

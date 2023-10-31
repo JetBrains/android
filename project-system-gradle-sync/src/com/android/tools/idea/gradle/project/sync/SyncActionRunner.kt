@@ -22,11 +22,12 @@ import com.android.builder.model.v2.models.AndroidProject
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.ProjectSyncIssues
 import com.android.builder.model.v2.models.VariantDependencies
+import com.android.builder.model.v2.models.VariantDependenciesAdjacencyList
 import com.android.builder.model.v2.models.Versions
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.GradlePropertiesModel
-import com.android.ide.gradle.model.LegacyApplicationIdModel
+import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.projectsystem.gradle.sync.Counter
@@ -88,6 +89,7 @@ data class ActionToRun<T>(
       BasicAndroidProject::class.java -> fetchesV2Models
       AndroidProject::class.java -> fetchesV2Models
       VariantDependencies::class.java -> fetchesV2Models
+      VariantDependenciesAdjacencyList::class.java -> fetchesV2Models
       AndroidDsl::class.java -> fetchesV2Models
       ProjectSyncIssues::class.java -> fetchesV2Models
       AndroidProjectV1::class.java -> fetchesV1Models
@@ -96,7 +98,7 @@ data class ActionToRun<T>(
       KotlinGradleModel::class.java -> fetchesKotlinModels
       KaptGradleModel::class.java -> fetchesKotlinModels
       KotlinMPPGradleModel::class.java -> fetchesKotlinModels
-      LegacyApplicationIdModel::class.java -> fetchesV1Models || fetchesV2Models
+      LegacyAndroidGradlePluginProperties::class.java -> fetchesV1Models || fetchesV2Models
       NativeModule::class.java -> fetchesV1Models || fetchesV2Models  // We trust actions request it with Gradle models.
       NativeAndroidProject::class.java -> fetchesV1Models
       NativeVariantAbi::class.java -> fetchesV1Models
@@ -184,7 +186,6 @@ class SyncActionRunner private constructor(
   private val syncCounters: SyncCounters,
   private val parallelActionsSupported: Boolean,
   private val canFetchV2ModelsInParallel: Boolean = false,
-  private val canFetchPlatformModelsInParallel: Boolean = false,
   private val canFetchKotlinModelsInParallel: Boolean = false,
 ) : GradleInjectedSyncActionRunner {
 
@@ -196,14 +197,13 @@ class SyncActionRunner private constructor(
     ) = SyncActionRunner(controller, syncCounters, parallelActionsSupported)
   }
 
-  fun enableParallelFetchForV2Models(enable: Boolean = true): SyncActionRunner =
+  fun enableParallelFetchForV2Models(fetchV2ModelsInParallel: Boolean, fetchKotlinModelsInParallel: Boolean): SyncActionRunner =
     SyncActionRunner(
       controller = controller,
       syncCounters = syncCounters,
       parallelActionsSupported = parallelActionsSupported,
-      canFetchV2ModelsInParallel = enable,
-      canFetchPlatformModelsInParallel = canFetchPlatformModelsInParallel,
-      canFetchKotlinModelsInParallel = canFetchKotlinModelsInParallel
+      canFetchV2ModelsInParallel = fetchV2ModelsInParallel,
+      canFetchKotlinModelsInParallel = fetchV2ModelsInParallel && fetchKotlinModelsInParallel
     )
 
   val parallelActionsForV2ModelsSupported: Boolean get() = parallelActionsSupported && canFetchV2ModelsInParallel
@@ -305,6 +305,7 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     BasicAndroidProject::class.java -> projectModel
     AndroidProject::class.java -> projectModel
     VariantDependencies::class.java -> variantDependenciesModel
+    VariantDependenciesAdjacencyList::class.java -> variantDependenciesModel
     AndroidDsl::class.java -> projectModel
     ProjectSyncIssues::class.java -> otherModel
     AndroidProjectV1::class.java -> projectModel
@@ -313,7 +314,7 @@ private fun <T> SyncCounters.measure(modelType: Class<*>, block: () -> T): T {
     KotlinGradleModel::class.java -> kotlinModel
     KaptGradleModel::class.java -> kaptModel
     KotlinMPPGradleModel::class.java -> mppModel
-    LegacyApplicationIdModel::class.java -> otherModel
+    LegacyAndroidGradlePluginProperties::class.java -> otherModel
     NativeModule::class.java -> nativeModel
     NativeAndroidProject::class.java -> nativeModel
     NativeVariantAbi::class.java -> nativeModel

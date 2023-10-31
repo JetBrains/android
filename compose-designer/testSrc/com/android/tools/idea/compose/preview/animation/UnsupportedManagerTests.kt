@@ -21,12 +21,12 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.ui.UIUtil
-import java.awt.Dimension
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.awt.Dimension
 
 @RunWith(Parameterized::class)
 class UnsupportedManagerTests(private val animationType: ComposeAnimationType) : InspectorTests() {

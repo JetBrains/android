@@ -27,9 +27,10 @@ import java.util.concurrent.CountDownLatch
  * indefinitely - otherwise, callers should probably just use [executeShellCommand] directly
  * instead.
  */
-class AbortAdbCommandRunnable(private val adb: AndroidDebugBridge,
-                              private val device: DeviceDescriptor,
-                              private val command: String
+class AbortAdbCommandRunnable(
+  private val adb: AndroidDebugBridge,
+  private val device: DeviceDescriptor,
+  private val command: String
 ) : Runnable {
 
   private val shouldQuit = CountDownLatch(1)

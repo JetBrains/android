@@ -29,20 +29,22 @@ import java.awt.image.BufferedImage
 private const val IMAGE_COPIED_ID = "Image copied"
 
 private class BufferedImageTransferable(val image: BufferedImage) : Transferable {
-  override fun getTransferData(flavor: DataFlavor): BufferedImage = when(flavor) {
-    DataFlavor.imageFlavor -> image
-    else -> throw UnsupportedFlavorException(flavor)
-  }
+  override fun getTransferData(flavor: DataFlavor): BufferedImage =
+    when (flavor) {
+      DataFlavor.imageFlavor -> image
+      else -> throw UnsupportedFlavorException(flavor)
+    }
   override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.imageFlavor)
-  override fun isDataFlavorSupported(flavor: DataFlavor): Boolean = transferDataFlavors.contains(flavor)
+  override fun isDataFlavorSupported(flavor: DataFlavor): Boolean =
+    transferDataFlavors.contains(flavor)
 }
 
-/**
- * [AnAction] that copies the result image from the given [LayoutlibSceneManager].
- */
-class CopyResultImageAction(private val sceneManagerProvider: () -> LayoutlibSceneManager?,
-                            title: String = "Copy Image",
-                            private val actionCompleteText: String = "Image copied") : AnAction(title) {
+/** [AnAction] that copies the result image from the given [LayoutlibSceneManager]. */
+class CopyResultImageAction(
+  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  title: String = "Copy Image",
+  private val actionCompleteText: String = "Image copied"
+) : AnAction(title) {
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = sceneManagerProvider()?.renderResult != null
   }
@@ -52,10 +54,7 @@ class CopyResultImageAction(private val sceneManagerProvider: () -> LayoutlibSce
     CopyPasteManagerEx.getInstance().setContents(BufferedImageTransferable(resultImage))
 
     e.project?.let {
-      Notification(IMAGE_COPIED_ID,
-                   actionCompleteText,
-                   "",
-                   NotificationType.INFORMATION)
+      Notification(IMAGE_COPIED_ID, actionCompleteText, "", NotificationType.INFORMATION)
         .notify(e.project)
     }
   }

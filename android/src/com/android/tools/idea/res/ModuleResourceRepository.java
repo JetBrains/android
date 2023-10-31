@@ -22,6 +22,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.MultiResourceRepository;
 import com.android.utils.TraceUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;

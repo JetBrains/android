@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.builder.model.AndroidProject
+import com.android.tools.idea.explainer.IssueExplainer
+import com.android.tools.idea.gradle.actions.ExplainSyncOrBuildOutput
 import com.android.tools.idea.gradle.filters.AndroidReRunBuildFilter
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
@@ -23,6 +25,7 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionO
 import com.android.tools.idea.gradle.project.build.attribution.buildOutputLine
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.output.BuildOutputParserManager
+import com.android.tools.idea.gradle.project.build.output.ExplainBuildErrorFilter
 import com.android.tools.idea.gradle.run.createOutputBuildAction
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.BuildMode
@@ -400,6 +403,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
 
     private var startBuildEventPosted: Boolean = false
 
+    @Suppress("UnstableApiUsage")
     override fun onStart(id: ExternalSystemTaskId, workingDir: String) {
       val restartAction: AnAction = RestartAction(request)
 
@@ -422,11 +426,22 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
         val buildDescriptor = DefaultBuildDescriptor(id, executionName, workingDir, eventTime)
           .withRestartAction(restartAction).withAction(stopAction)
           .withExecutionFilter(AndroidReRunBuildFilter(workingDir))
+          .withContextAction {
+            // add a new item to the build output popup menu
+            ExplainSyncOrBuildOutput()
+          }
         if (isBuildAttributionEnabledForProject(project)) {
           buildDescriptor.withExecutionFilter(BuildAttributionOutputLinkFilter())
         }
         if (request.doNotShowBuildOutputOnFailure) {
           buildDescriptor.isActivateToolWindowWhenFailed = false
+        }
+        val explainer = IssueExplainer.get()
+        if (explainer.isAvailable()) {
+          // build explainer output text shouldn't contain explainer links,
+          // but it's added here to prevent links without highlighting from appearing
+          // since both build and sync output are managed by BuildOutputParserWrapper
+          buildDescriptor.withExecutionFilter(ExplainBuildErrorFilter(explainer.getConsoleLinkText()))
         }
         val event = StartBuildEventImpl(buildDescriptor, "running...")
         startBuildEventPosted = true

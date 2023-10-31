@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.editing;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -29,7 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialo
 import com.android.tools.idea.tests.gui.framework.fixture.RenameRefactoringDialogFixture.ConflictsDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.edt.GuiQuery;
@@ -40,6 +37,10 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.io.IOException;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /** Tests the editing flow of refactoring */
 @RunWith(GuiTestRemoteRunner.class)
@@ -101,9 +102,9 @@ public class RefactoringFlowTest {
 
     guiTest.robot().waitForIdle();
     //Doing Invoking menu path twice to display refactor dialog box
-    ideFrame.invokeMenuPath("Refactor", "Rename...");
+    ideFrame.invokeMenuPath("Refactor", "Rename\u2026");
     guiTest.robot().waitForIdle();
-    ideFrame.invokeMenuPath("Refactor", "Rename...");
+    ideFrame.invokeMenuPath("Refactor", "Rename\u2026");
 
     // Rename as action_settings, which is already defined
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
@@ -153,7 +154,7 @@ public class RefactoringFlowTest {
     EditorFixture editor = guiTest.ideFrame().getEditor();
     editor.open("app/src/main/res/values/strings.xml");
     editor.moveBetween("hello", "_world");
-    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename...");
+    guiTest.ideFrame().invokeMenuPath("Refactor", "Rename\u2026");
 
     // Rename as action_settings, which is already defined
     RenameRefactoringDialogFixture refactoringDialog = RenameRefactoringDialogFixture.find(guiTest.robot());
@@ -209,7 +210,7 @@ public class RefactoringFlowTest {
 
     guiTest.waitForBackgroundTasks();
     paneFixture.clickPath("SimpleApplication", "app", "src", "main", "java", "google.simpleapplication", "MyActivity")
-      .invokeMenuPath("Refactor", "Rename...");
+      .invokeMenuPath("Refactor", "Rename\u2026");
 
     RenameFileDialogFixture.find(guiTest.ideFrame())
       .enterText(newFileName)

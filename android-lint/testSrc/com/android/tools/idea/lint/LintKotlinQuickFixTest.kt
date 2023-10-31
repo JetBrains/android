@@ -26,9 +26,9 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import java.io.IOException
 import junit.framework.Assert.*
 import org.intellij.lang.annotations.Language
+import java.io.IOException
 
 // Migrated tests from org.jetbrains.kotlin.android.quickfix.AndroidLintQuickfixTestGenerated
 class LintKotlinQuickFixTest : AbstractAndroidLintTest() {

@@ -83,99 +83,103 @@ class TreeTableImplTest {
   private val disposableRule = DisposableRule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @get:Rule
-  val chain = RuleChain
-    .outerRule(MockitoCleanerRule())
-    .around(EdtRule())
-    .around(IconLoaderRule())
-    .around(disposableRule)!!
+  val chain =
+    RuleChain.outerRule(MockitoCleanerRule())
+      .around(EdtRule())
+      .around(IconLoaderRule())
+      .around(disposableRule)!!
 
   private val style1 = Style("style1")
   private val style2 = Style("style2")
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_TEXT_VIEW)
-  private val item3 = Item(SdkConstants.FQCN_BUTTON)
+  private val item3 = Item(SdkConstants.FQCN_BUTTON, "buttonId")
   private val item4 = Item(SdkConstants.FQCN_CHECK_BOX)
-  private val contextPopup = object : ContextPopupHandler {
-    var popupInvokeCount = 0
-      private set
-    var lastItem: Any? = null
+  private val contextPopup =
+    object : ContextPopupHandler {
+      var popupInvokeCount = 0
+        private set
+      var lastItem: Any? = null
 
-    override fun invoke(item: Any, component: JComponent, x: Int, y: Int) {
-      popupInvokeCount++
-      lastItem = item
+      override fun invoke(item: Any, component: JComponent, x: Int, y: Int) {
+        popupInvokeCount++
+        lastItem = item
+      }
     }
-  }
-  private val doubleClickHandler = object : DoubleClickHandler {
-    var clickCount = 0
-      private set
-    var lastItem: Any? = null
+  private val doubleClickHandler =
+    object : DoubleClickHandler {
+      var clickCount = 0
+        private set
+      var lastItem: Any? = null
 
-    override fun invoke(item: Any) {
-      clickCount++
-      lastItem = item
+      override fun invoke(item: Any) {
+        clickCount++
+        lastItem = item
+      }
     }
-  }
-  private val badgeItem = object : IconColumn("b1") {
-    var lastActionItem: Any? = null
-    var lastActionComponent: JComponent? = null
-    var lastActionBounds: Rectangle? = null
-    var lastPopupItem: Any? = null
+  private val badgeItem =
+    object : IconColumn("b1") {
+      var lastActionItem: Any? = null
+      var lastActionComponent: JComponent? = null
+      var lastActionBounds: Rectangle? = null
+      var lastPopupItem: Any? = null
 
-    override var leftDivider: Boolean = false
+      override var leftDivider: Boolean = false
 
-    override fun getIcon(item: Any): Icon? = when (item) {
-      item1 -> StudioIcons.Common.ERROR
-      item2 -> StudioIcons.Common.FILTER
-      else -> null
+      override fun getIcon(item: Any): Icon? =
+        when (item) {
+          item1 -> StudioIcons.Common.ERROR
+          item2 -> StudioIcons.Common.FILTER
+          else -> null
+        }
+
+      override fun getHoverIcon(item: Any): Icon? =
+        when (item) {
+          item1 -> StudioIcons.LayoutEditor.Properties.VISIBLE
+          item2 -> StudioIcons.LayoutEditor.Properties.INVISIBLE
+          else -> null
+        }
+
+      override fun getTooltipText(item: Any): String = "Badge tooltip: $item".trim()
+
+      override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
+        lastActionItem = item
+        lastActionComponent = component
+        lastActionBounds = bounds
+      }
+
+      override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
+        lastPopupItem = item
+      }
     }
+  private val column2 =
+    object {
+      var lastActionItem: Item? = null
+      var lastActionComponent: JComponent? = null
+      var lastActionBounds: Rectangle? = null
+      var lastPopupItem: Item? = null
+      var lastPopupComponent: JComponent? = null
 
-    override fun getHoverIcon(item: Any): Icon? = when (item) {
-      item1 -> StudioIcons.LayoutEditor.Properties.VISIBLE
-      item2 -> StudioIcons.LayoutEditor.Properties.INVISIBLE
-      else -> null
+      fun performAction(item: Item, component: JComponent, bounds: Rectangle) {
+        lastActionItem = item
+        lastActionComponent = component
+        lastActionBounds = bounds
+      }
+
+      @Suppress("UNUSED_PARAMETER")
+      fun showPopup(item: Item, component: JComponent, x: Int, y: Int) {
+        lastPopupItem = item
+        lastPopupComponent = component
+      }
+
+      fun tooltip(item: Item): String {
+        return "Column2 tooltip: ${item.tagName.substringAfterLast('.').trim()}"
+      }
     }
-
-    override fun getTooltipText(item: Any): String = "Badge tooltip: $item".trim()
-
-    override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
-      lastActionItem = item
-      lastActionComponent = component
-      lastActionBounds = bounds
-    }
-
-    override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {
-      lastPopupItem = item
-    }
-  }
-  private val column2 = object {
-    var lastActionItem: Item? = null
-    var lastActionComponent: JComponent? = null
-    var lastActionBounds: Rectangle? = null
-    var lastPopupItem: Item? = null
-    var lastPopupComponent: JComponent? = null
-
-    fun performAction(item: Item, component: JComponent, bounds: Rectangle) {
-      lastActionItem = item
-      lastActionComponent = component
-      lastActionBounds = bounds
-    }
-
-    @Suppress("UNUSED_PARAMETER")
-    fun showPopup(item: Item, component: JComponent, x: Int, y: Int) {
-      lastPopupItem = item
-      lastPopupComponent = component
-    }
-
-    fun tooltip(item: Item): String {
-      return "Column2 tooltip: ${item.tagName.substringAfterLast('.').trim()}"
-    }
-  }
 
   @Before
   fun setUp() {
@@ -185,12 +189,14 @@ class TreeTableImplTest {
     style1.children.add(style2)
     style2.parent = style1
 
-    val settings = object : AdvancedSettings() {
-      override fun getSetting(id: String) = false
-      override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {}
-      override fun getDefault(id: String) = false
-    }
-    ApplicationManager.getApplication().replaceService(AdvancedSettings::class.java, settings, disposableRule.disposable)
+    val settings =
+      object : AdvancedSettings() {
+        override fun getSetting(id: String) = false
+        override fun setSetting(id: String, value: Any, expectType: AdvancedSettingType) {}
+        override fun getDefault(id: String) = false
+      }
+    ApplicationManager.getApplication()
+      .replaceService(AdvancedSettings::class.java, settings, disposableRule.disposable)
   }
 
   @After
@@ -341,6 +347,21 @@ class TreeTableImplTest {
   }
 
   @Test
+  fun testPreserveSelectionOnUpdateUI() {
+    val result = createTree()
+    result.tree.expandRow(0)
+    result.tree.expandRow(1)
+    UIUtil.dispatchAllInvocationEvents()
+    result.selectionModel.currentSelection = listOf(item3)
+    var selectionChanged = false
+    result.selectionModel.addSelectionListener { selection ->
+      selectionChanged = selectionChanged || selection != listOf(item3)
+    }
+    result.focusComponent.updateUI()
+    assertThat(selectionChanged).isFalse()
+  }
+
+  @Test
   fun testIntColumnWidthIncreasedAfterColumnDataChanged() {
     val table = createTreeTable()
     table.tree.expandRow(0)
@@ -421,7 +442,6 @@ class TreeTableImplTest {
     table.removeNotify()
     table.addNotify()
     assertThat(table.tableHeader.isShowing).isTrue()
-
 
     // hide the header
     result.interactions.setHeaderVisibility(false)
@@ -504,8 +524,10 @@ class TreeTableImplTest {
     val table = createTreeTable()
     val renderer = table.getCellRenderer(0, 3)
     val component = renderer.getTableCellRendererComponent(table, item1, true, true, 0, 3)
-    assertThat(component.preferredSize.width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(4))
-    assertThat(table.columnModel.getColumn(3).width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(4))
+    assertThat(component.preferredSize.width)
+      .isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(4))
+    assertThat(table.columnModel.getColumn(3).width)
+      .isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(4))
   }
 
   @Test
@@ -514,8 +536,10 @@ class TreeTableImplTest {
     val table = createTreeTable()
     val renderer = table.getCellRenderer(0, 3)
     val component = renderer.getTableCellRendererComponent(table, item1, true, true, 0, 3)
-    assertThat(component.preferredSize.width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
-    assertThat(table.columnModel.getColumn(3).width).isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
+    assertThat(component.preferredSize.width)
+      .isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
+    assertThat(table.columnModel.getColumn(3).width)
+      .isEqualTo(EmptyIcon.ICON_16.iconWidth + JBUIScale.scale(5))
   }
 
   @Test
@@ -535,10 +559,37 @@ class TreeTableImplTest {
     assertThat(tooltipTextAt(table, 1, 3)).isEqualTo("Badge tooltip: android.widget.TextView")
   }
 
+  @Test
+  fun testTableTooltip() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    // Simulate paint where all cell renders are computed.
+    // This will cause TreeTableCellRenderer to set the tooltip on the table for the last item
+    // painted.
+    for (i in 0 until table.rowCount) {
+      table
+        .getCellRenderer(i, 0)
+        .getTableCellRendererComponent(table, table.getValueAt(i, 0), false, false, i, 0)
+    }
+    // There should be no tooltip on the table itself after a paint.
+    /// That would cause weird tooltip popups: b/287929757
+    assertThat(table.toolTipText).isNull()
+  }
+
   private fun tooltipTextAt(table: TreeTableImpl, row: Int, column: Int): String? {
     val cell = table.getCellRect(row, column, true)
-    val event = MouseEvent(table, MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, cell.centerX.toInt(), cell.centerY.toInt(),
-                           0, false)
+    val event =
+      MouseEvent(
+        table,
+        MouseEvent.MOUSE_MOVED,
+        System.currentTimeMillis(),
+        0,
+        cell.centerX.toInt(),
+        cell.centerY.toInt(),
+        0,
+        false
+      )
     return table.getToolTipText(event)
   }
 
@@ -546,18 +597,26 @@ class TreeTableImplTest {
   fun testColumnColor() {
     val table = createTreeTable()
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
-    assertThat(foregroundOf(table, 1, isSelected = false, hasFocus = false)).isEqualTo(UIUtil.getTableForeground(false, false))
-    assertThat(foregroundOf(table, 1, isSelected = true, hasFocus = false)).isEqualTo(UIUtil.getTableForeground(true, false))
+    assertThat(foregroundOf(table, 1, isSelected = false, hasFocus = false))
+      .isEqualTo(UIUtil.getTableForeground(false, false))
+    assertThat(foregroundOf(table, 1, isSelected = true, hasFocus = false))
+      .isEqualTo(UIUtil.getTableForeground(true, false))
     focusManager.focusOwner = table
-    assertThat(foregroundOf(table, 1, isSelected = false, hasFocus = true)).isEqualTo(UIUtil.getTableForeground(false, true))
-    assertThat(foregroundOf(table, 1, isSelected = true, hasFocus = true)).isEqualTo(UIUtil.getTableForeground(true, true))
+    assertThat(foregroundOf(table, 1, isSelected = false, hasFocus = true))
+      .isEqualTo(UIUtil.getTableForeground(false, true))
+    assertThat(foregroundOf(table, 1, isSelected = true, hasFocus = true))
+      .isEqualTo(UIUtil.getTableForeground(true, true))
 
     focusManager.clearFocusOwner()
-    assertThat(foregroundOf(table, 2, isSelected = false, hasFocus = false)).isEqualTo(JBColor.lightGray)
-    assertThat(foregroundOf(table, 2, isSelected = true, hasFocus = false)).isEqualTo(JBColor.lightGray)
+    assertThat(foregroundOf(table, 2, isSelected = false, hasFocus = false))
+      .isEqualTo(JBColor.lightGray)
+    assertThat(foregroundOf(table, 2, isSelected = true, hasFocus = false))
+      .isEqualTo(JBColor.lightGray)
     focusManager.focusOwner = table
-    assertThat(foregroundOf(table, 2, isSelected = false, hasFocus = true)).isEqualTo(JBColor.lightGray)
-    assertThat(foregroundOf(table, 2, isSelected = true, hasFocus = true)).isEqualTo(UIUtil.getTableForeground(true, true))
+    assertThat(foregroundOf(table, 2, isSelected = false, hasFocus = true))
+      .isEqualTo(JBColor.lightGray)
+    assertThat(foregroundOf(table, 2, isSelected = true, hasFocus = true))
+      .isEqualTo(UIUtil.getTableForeground(true, true))
   }
 
   @Test
@@ -591,7 +650,8 @@ class TreeTableImplTest {
     ui.mouse.click(cell.centerX.toInt(), cell.centerY.toInt())
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
     assertThat(selections).isEqualTo(1)
-    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent })
+      .containsExactly(item1, item2)
 
     // Simulate a model change.
     item1.add(item4)
@@ -601,33 +661,54 @@ class TreeTableImplTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     assertThat(table.treeTableSelectionModel.currentSelection).isEqualTo(listOf(style1))
     assertThat(selections).isEqualTo(1)
-    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent })
+      .containsExactly(item1, item2)
+  }
+
+  @Test
+  fun testExplicitExpansionWithModelUpdate() {
+    val result = createTree() { withExpandableRoot() }
+    val table = result.focusComponent as TreeTableImpl
+    val model = result.model
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // Nothing is expanded:
+    assertThat(table.rowCount).isEqualTo(1)
+
+    // Simulate a model change.
+    model.hierarchyChanged(null, listOf(item1, item2))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    // item1 and item2 are expanded:
+    assertThat(table.rowCount).isEqualTo(4)
   }
 
   @Test
   fun testFullExpansionOnRootUpdates() {
-    val result = createTree {
-      withExpandAllOnRootChange()
-    }
+    val result = createTree { withExpandAllOnRootChange() }
     val table = result.focusComponent as TreeTableImpl
-    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1, item2, style1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent })
+      .containsExactly(item1, item2, style1)
     val model = result.model
     table.tree.collapseRow(1)
-    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent })
+      .containsExactly(item1)
 
     // Simulate a model change with no root change:
     model.treeRoot = item1
 
     // Make sure the expansions are still intact:
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent })
+      .containsExactly(item1)
 
     // Simulate a model change with a root change:
     model.treeRoot = item2
 
     // The tree should be fully expanded:
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent }).containsExactly(item2, style1)
+    assertThat(TreeUtil.collectExpandedPaths(table.tree).map { it.lastPathComponent })
+      .containsExactly(item2, style1)
   }
 
   @RunsInEdt
@@ -652,35 +733,65 @@ class TreeTableImplTest {
     table.tree.expandRow(1)
     assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
 
-    PortableUiFontRule(scale = 4f).apply(object : Statement() {
-      override fun evaluate() {
-        table.updateUI()
-        assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
-      }
-    }, mock()).evaluate()
+    PortableUiFontRule(scale = 4f)
+      .apply(
+        object : Statement() {
+          override fun evaluate() {
+            table.updateUI()
+            assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
+          }
+        },
+        mock()
+      )
+      .evaluate()
   }
 
   @Test
   fun testExpand() {
     val table = createTreeTable()
-    val otherColumnsWidth = listOf(1,2,3).sumOf { table.getCellRect(0, it, true).width }
-    setScrollPaneSize(table, table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1), 800)
+    val otherColumnsWidth = listOf(1, 2, 3).sumOf { table.getCellRect(0, it, true).width }
+    setScrollPaneSize(
+      table,
+      table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1),
+      800
+    )
     table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
     val cellRenderer = table.tree.cellRenderer
-    val renderer1 = cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false) as ColoredViewRenderer
+    val renderer1 =
+      cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false)
+        as ColoredViewRenderer
     renderer1.adjustForPainting()
     assertThat(renderer1.fragments[0].text).endsWith("Layout")
 
-    setScrollPaneSize(table, table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1) - 1, 800)
+    setScrollPaneSize(
+      table,
+      table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1) - 1,
+      800
+    )
     table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
-    val renderer2 = cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false) as ColoredViewRenderer
+    val renderer2 =
+      cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false)
+        as ColoredViewRenderer
     renderer2.adjustForPainting()
     assertThat(renderer2.fragments[0].text).endsWith("...")
   }
 
-  private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
+  private fun foregroundOf(
+    table: JTable,
+    column: Int,
+    isSelected: Boolean,
+    hasFocus: Boolean
+  ): Color {
     val renderer = table.getCellRenderer(0, column)
-    val component = renderer.getTableCellRendererComponent(table, table.getValueAt(0, 2), isSelected, hasFocus, 0, column)
+    val component =
+      renderer.getTableCellRendererComponent(
+        table,
+        table.getValueAt(0, 2),
+        isSelected,
+        hasFocus,
+        0,
+        column
+      )
     return component.foreground
   }
 
@@ -688,9 +799,12 @@ class TreeTableImplTest {
     val scrollPane = getScrollPane(table)
     scrollPane.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
     scrollPane.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
-    scrollPane.setBounds(0, 0,
-                         width + scrollPane.verticalScrollBar.preferredSize.width,
-                         height + scrollPane.horizontalScrollBar.preferredSize.height)
+    scrollPane.setBounds(
+      0,
+      0,
+      width + scrollPane.verticalScrollBar.preferredSize.width,
+      height + scrollPane.horizontalScrollBar.preferredSize.height
+    )
 
     // This disables the "Show scroll bars when scrolling" option on Mac (for this test).
     scrollPane.verticalScrollBar.isOpaque = true
@@ -701,13 +815,15 @@ class TreeTableImplTest {
     return scrollPane
   }
 
-  private fun getScrollPane(table: TreeTableImpl): JScrollPane =
-    table.parent.parent as JScrollPane
+  private fun getScrollPane(table: TreeTableImpl): JScrollPane = table.parent.parent as JScrollPane
 
-  private fun createTreeTable(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }): TreeTableImpl =
-    createTree(customChange).focusComponent as TreeTableImpl
+  private fun createTreeTable(
+    customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }
+  ): TreeTableImpl = createTree(customChange).focusComponent as TreeTableImpl
 
-  private fun createTree(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }): ComponentTreeBuildResult {
+  private fun createTree(
+    customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder = { this }
+  ): ComponentTreeBuildResult {
     val result = createTreeWithScrollPane(customChange)
     val table = result.focusComponent as TreeTableImpl
     result.model.treeRoot = item1
@@ -717,13 +833,24 @@ class TreeTableImplTest {
     return result
   }
 
-  private fun createTreeWithScrollPane(customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder): ComponentTreeBuildResult {
+  private fun createTreeWithScrollPane(
+    customChange: ComponentTreeBuilder.() -> ComponentTreeBuilder
+  ): ComponentTreeBuildResult {
     return ComponentTreeBuilder()
       .withNodeType(ItemNodeType())
       .withNodeType(StyleNodeType())
       .withColumn(createIntColumn("c1", Item::column1))
-      .withColumn(createIntColumn("c2", Item::column2, maxInt = { 6 }, foreground = JBColor.lightGray, action = column2::performAction,
-                                  popup = column2::showPopup, tooltip = column2::tooltip))
+      .withColumn(
+        createIntColumn(
+          "c2",
+          Item::column2,
+          maxInt = { 6 },
+          foreground = JBColor.lightGray,
+          action = column2::performAction,
+          popup = column2::showPopup,
+          tooltip = column2::tooltip
+        )
+      )
       .withBadgeSupport(badgeItem)
       .withContextMenu(contextPopup)
       .withDoubleClick(doubleClickHandler)
@@ -744,11 +871,17 @@ class TreeTableImplTest {
   private val Rectangle.bottom
     get() = y + height
 
-  private fun JTable.cellWidth(columnIndex: Int) =
-    getCellRect(0, columnIndex, true).width
+  private fun JTable.cellWidth(columnIndex: Int) = getCellRect(0, columnIndex, true).width
 
   private fun JTable.badgeIconOf(row: Int, column: Int): Icon? {
-    badgeItem.renderer!!.getTableCellRendererComponent(this, getValueAt(row, column), false, true, row, column)
+    badgeItem.renderer!!.getTableCellRendererComponent(
+      this,
+      getValueAt(row, column),
+      false,
+      true,
+      row,
+      column
+    )
     return badgeItem.renderer!!.icon
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sqlite.ui.exportToFile
 
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.AbstractProgressIndicatorExBase

@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.gradle.preview.runconfiguration
 
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
@@ -34,10 +34,10 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

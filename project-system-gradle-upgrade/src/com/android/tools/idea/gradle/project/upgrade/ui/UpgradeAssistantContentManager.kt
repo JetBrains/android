@@ -35,7 +35,7 @@ class ContentManagerImpl(val project: Project): ContentManager {
       // Force EDT here to ease the testing (see com.intellij.ide.plugins.CreateAllServicesAndExtensionsAction: it instantiates services
       //  on a background thread). There is no performance penalties when already invoked on EDT.
       ToolWindowManager.getInstance(project).registerToolWindow(
-        RegisterToolWindowTask.closable(TOOL_WINDOW_ID, icons.GradleIcons.ToolWindowGradle)
+        RegisterToolWindowTask.closable(TOOL_WINDOW_ID, icons.StudioIcons.Shell.ToolWindows.AGP_UPGRADE_ASSISTANT)
       )
     }
   }

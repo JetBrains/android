@@ -9,7 +9,6 @@
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.assistant" />
-    <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
@@ -31,7 +30,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
@@ -43,18 +41,15 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="module" module-name="intellij.android.jps.model" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.trove" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.core" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.testFramework.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
@@ -62,8 +57,8 @@
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
@@ -75,7 +70,6 @@
     <orderEntry type="module" module-name="intellij.platform.analysis.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.uast" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.xml.dom" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java" scope="TEST" />
     <orderEntry type="module" module-name="intellij.uiDesigner" scope="TEST" />
@@ -83,8 +77,15 @@
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.classLoader" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.trove" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="ASM" level="project" />
+    <orderEntry type="library" scope="TEST" name="rd-core" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
+    <orderEntry type="module" module-name="kotlin.project-wizard.core" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="assertJ" level="project" />
+    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.util.classLoader" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
   </component>
 </module>

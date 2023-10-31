@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.newpsd
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.findSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.items
@@ -24,7 +25,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenc
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.hamcrest.CoreMatchers.equalTo
+import org.junit.After
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

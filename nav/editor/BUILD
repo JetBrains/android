@@ -83,6 +83,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 
@@ -97,5 +98,24 @@ maven_repository(
         "@maven//:junit.junit_4.12",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.nav.editor.gradle",
+    srcs = ["gradle/src"],
+    iml_files = ["gradle/intellij.android.nav.editor.gradle.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/designer:intellij.android.designer[module]",
     ],
 )

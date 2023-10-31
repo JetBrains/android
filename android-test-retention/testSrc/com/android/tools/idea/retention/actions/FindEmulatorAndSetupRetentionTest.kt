@@ -24,12 +24,12 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.ignore.IgnoreWithCondition
 import com.android.testutils.ignore.OnMac
 import com.android.testutils.truth.PathSubject.assertThat
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.testutils.waitForCondition
+import com.android.tools.idea.sdk.AvdManagerCache
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.sdk.AvdManagerCache
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -77,7 +77,7 @@ class FindEmulatorAndSetupRetentionTest {
 
   @Before
   fun setUp() {
-    tempFolder = emulatorRule.root
+    tempFolder = emulatorRule.avdRoot
     snapshotFile = File(tempFolder.resolve("snapshot.tar").toUri())
     snapshotFile.writeText("file content")
     emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(AndroidLocationsSingleton.avdLocation))

@@ -22,9 +22,7 @@ import com.intellij.psi.util.PsiLiteralUtil
 import org.jetbrains.android.dom.converters.DimensionConverter
 import java.util.EnumSet
 
-/**
- * Types of a [NlPropertyItem].
- */
+/** Types of a [NlPropertyItem]. */
 enum class NlPropertyType {
   UNKNOWN,
   ANIM,
@@ -35,8 +33,8 @@ enum class NlPropertyType {
   COLOR,
   COLOR_STATE_LIST,
   DIMENSION,
-  DIMENSION_PIXEL,      // Dimension in pixels (motion layout)
-  DIMENSION_UNIT_LESS,  // Dimension or unit less float (motion layout)
+  DIMENSION_PIXEL, // Dimension in pixels (motion layout)
+  DIMENSION_UNIT_LESS, // Dimension or unit less float (motion layout)
   DESTINATION,
   DRAWABLE,
   ENUM,
@@ -47,7 +45,7 @@ enum class NlPropertyType {
   FRACTION,
   FRAGMENT,
   ID,
-  ID_OR_STRING,        // id or string (motion layout)
+  ID_OR_STRING, // id or string (motion layout)
   INTEGER,
   INTERPOLATOR,
   LAYOUT,
@@ -63,45 +61,46 @@ enum class NlPropertyType {
   XML;
 
   val resourceTypes: EnumSet<ResourceType>
-    get() = when (this) {
-      ANIM -> EnumSet.of(ResourceType.ANIM)
-      ANIMATOR -> EnumSet.of(ResourceType.ANIMATOR, ResourceType.ANIM)
-      ARRAY -> EnumSet.of(ResourceType.ARRAY)
-      BOOLEAN -> EnumSet.of(ResourceType.BOOL)
-      COLOR -> EnumSet.of(ResourceType.COLOR)
-      COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
-      DESTINATION -> EnumSet.of(ResourceType.ID)
-      DIMENSION_PIXEL,
-      DIMENSION -> EnumSet.of(ResourceType.DIMEN)
-      DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
-      FLAGS -> EnumSet.of(ResourceType.STRING)
-      FLOAT -> EnumSet.of(ResourceType.DIMEN)
-      FONT -> EnumSet.of(ResourceType.FONT)
-      FRACTION -> EnumSet.of(ResourceType.FRACTION)
-      FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
-      ID -> EnumSet.of(ResourceType.ID)
-      ID_OR_STRING -> EnumSet.of(ResourceType.ID, ResourceType.STRING)
-      INTEGER -> EnumSet.of(ResourceType.INTEGER)
-      INTERPOLATOR -> EnumSet.of(ResourceType.INTERPOLATOR)
-      LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
-      LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
-      MENU -> EnumSet.of(ResourceType.MENU)
-      NAVIGATION -> EnumSet.of(ResourceType.NAVIGATION)
-      READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
-      STRING -> EnumSet.of(ResourceType.STRING)
-      STRING_ARRAY -> EnumSet.of(ResourceType.ARRAY)
-      STYLE -> EnumSet.of(ResourceType.STYLE)
-      TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
-      THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
-      XML -> EnumSet.of(ResourceType.XML)
-      else -> EnumSet.noneOf(ResourceType.BOOL.javaClass)
-    }
+    get() =
+      when (this) {
+        ANIM -> EnumSet.of(ResourceType.ANIM)
+        ANIMATOR -> EnumSet.of(ResourceType.ANIMATOR, ResourceType.ANIM)
+        ARRAY -> EnumSet.of(ResourceType.ARRAY)
+        BOOLEAN -> EnumSet.of(ResourceType.BOOL)
+        COLOR -> EnumSet.of(ResourceType.COLOR)
+        COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
+        DESTINATION -> EnumSet.of(ResourceType.ID)
+        DIMENSION_PIXEL,
+        DIMENSION -> EnumSet.of(ResourceType.DIMEN)
+        DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
+        FLAGS -> EnumSet.of(ResourceType.STRING)
+        FLOAT -> EnumSet.of(ResourceType.DIMEN)
+        FONT -> EnumSet.of(ResourceType.FONT)
+        FRACTION -> EnumSet.of(ResourceType.FRACTION)
+        FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
+        ID -> EnumSet.of(ResourceType.ID)
+        ID_OR_STRING -> EnumSet.of(ResourceType.ID, ResourceType.STRING)
+        INTEGER -> EnumSet.of(ResourceType.INTEGER)
+        INTERPOLATOR -> EnumSet.of(ResourceType.INTERPOLATOR)
+        LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
+        LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
+        MENU -> EnumSet.of(ResourceType.MENU)
+        NAVIGATION -> EnumSet.of(ResourceType.NAVIGATION)
+        READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
+        STRING -> EnumSet.of(ResourceType.STRING)
+        STRING_ARRAY -> EnumSet.of(ResourceType.ARRAY)
+        STYLE -> EnumSet.of(ResourceType.STYLE)
+        TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
+        THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
+        XML -> EnumSet.of(ResourceType.XML)
+        else -> EnumSet.noneOf(ResourceType.BOOL.javaClass)
+      }
 
   /**
    * Check the specified [literal] value and return the error if any or null.
    *
-   * This method does not check resource values, theme values, and enum values.
-   * Those checks should be made BEFORE calling this method.
+   * This method does not check resource values, theme values, and enum values. Those checks should
+   * be made BEFORE calling this method.
    */
   fun validateLiteral(literal: String): String? {
     if (literal.isEmpty()) {
@@ -109,30 +108,38 @@ enum class NlPropertyType {
     }
     return when (this) {
       THREE_STATE_BOOLEAN,
-      BOOLEAN -> error(literal != SdkConstants.VALUE_TRUE && literal != SdkConstants.VALUE_FALSE) { "Invalid bool value: '$literal'"}
+      BOOLEAN ->
+        error(literal != SdkConstants.VALUE_TRUE && literal != SdkConstants.VALUE_FALSE) {
+          "Invalid bool value: '$literal'"
+        }
       COLOR_STATE_LIST,
       COLOR,
       DRAWABLE -> error(parseColor(literal) == null) { "Invalid color value: '$literal'" }
       ENUM -> "Invalid value: '$literal'"
       FONT_SIZE,
       DIMENSION_PIXEL,
-      DIMENSION -> error(DimensionConverter.INSTANCE.fromString(literal, null) == null) { getDimensionError(literal) }
+      DIMENSION ->
+        error(DimensionConverter.INSTANCE.fromString(literal, null) == null) {
+          getDimensionError(literal)
+        }
       DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)
       FLOAT -> error(PsiLiteralUtil.parseDouble(literal) == null) { "Invalid float: '$literal'" }
-      FRACTION -> error(parseFraction(literal) == null) { "Invalid fraction: '$literal'"}
-      INTEGER -> error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'"}
+      FRACTION -> error(parseFraction(literal) == null) { "Invalid fraction: '$literal'" }
+      INTEGER ->
+        error(PsiLiteralUtil.parseInteger(literal) == null) { "Invalid integer: '$literal'" }
       ID -> "Invalid id: '$literal'"
       else -> null
     }
   }
 
   val allowCustomValues: Boolean
-    get() = when (this) {
-      THREE_STATE_BOOLEAN,
-      BOOLEAN,
-      ENUM -> false
-      else -> true
-    }
+    get() =
+      when (this) {
+        THREE_STATE_BOOLEAN,
+        BOOLEAN,
+        ENUM -> false
+        else -> true
+      }
 
   private fun error(condition: Boolean, message: () -> String): String? {
     return if (condition) message() else null

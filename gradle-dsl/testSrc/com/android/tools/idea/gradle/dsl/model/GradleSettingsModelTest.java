@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;

@@ -30,6 +30,7 @@ import com.android.utils.Pair;
 import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
+import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import java.util.ArrayList;
@@ -103,6 +104,11 @@ public final class FakeFeatureTracker implements FeatureTracker {
    * Number of times zoom to selection is called.
    */
   private int myZoomToSelectionCallCount = 0;
+
+  /**
+   * Count of power rails and battery counters found in a power profiler capture.
+   */
+  private PowerProfilerCaptureMetadata myPowerProfilerCaptureMetadata;
 
   @Override
   public void trackPreTransportDaemonStarts(@NotNull Common.Device transportDevice) {
@@ -500,6 +506,9 @@ public final class FakeFeatureTracker implements FeatureTracker {
   public void trackCollapseTrackGroup(@NotNull String title) { }
 
   @Override
+  public void trackMouseOverTrackGroup(@NotNull String title) { }
+
+  @Override
   public void trackSelectBox(long durationUs, int trackCount) { }
 
   @Override
@@ -541,5 +550,15 @@ public final class FakeFeatureTracker implements FeatureTracker {
 
   public boolean isTrackRecordAllocationsCalled() {
     return myTrackRecordAllocationsCalled;
+  }
+
+  @Override
+  public void trackPowerProfilerCapture(int powerRailCount, int batteryCounterCount) {
+    myPowerProfilerCaptureMetadata =
+      PowerProfilerCaptureMetadata.newBuilder().setPowerRailCount(powerRailCount).setBatteryCounterCount(batteryCounterCount).build();
+  }
+
+  public PowerProfilerCaptureMetadata getPowerProfilerCaptureMetadata() {
+    return myPowerProfilerCaptureMetadata;
   }
 }

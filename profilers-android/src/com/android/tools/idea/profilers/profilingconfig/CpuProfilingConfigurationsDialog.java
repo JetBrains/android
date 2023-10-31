@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.stdui.menu.CommonMenuItem;
 import com.android.tools.adtui.stdui.menu.CommonPopupMenu;
 import com.android.tools.adtui.ui.options.OptionsPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
@@ -345,9 +346,15 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         super("Add Configuration", "Add a new configuration", IconUtil.getAddIcon());
         myPopup = new CommonPopupMenu();
         myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_NATIVE.getName(), SimpleperfConfiguration::new));
-        myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName(), PerfettoConfiguration::new));
+        myPopup.add(buildPopupMenuItemPerfetto(CpuProfilerConfig.Technology.SYSTEM_TRACE.getName()));
         myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA.getName(), ArtInstrumentedConfiguration::new));
         myPopup.add(buildPopupMenuItem(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName(), ArtSampledConfiguration::new));
+      }
+
+      private CommonMenuItem buildPopupMenuItemPerfetto(String name) {
+        CommonAction action = new CommonAction(name, null);
+        action.setAction(() -> addConfiguration(new PerfettoConfiguration(UNNAMED, StudioFlags.PROFILER_TRACEBOX.get())));
+        return new CommonMenuItem(action);
       }
 
       private CommonMenuItem buildPopupMenuItem(String name, Function<String, ProfilingConfiguration> configurationConstructor) {

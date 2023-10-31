@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.ChooseClassDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -26,11 +24,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlPaletteFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import icons.StudioIcons;
-import java.awt.event.KeyEvent;
 import org.fest.swing.fixture.JListFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.awt.event.KeyEvent;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class NlPaletteTest {

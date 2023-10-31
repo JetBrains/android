@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.Column
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -23,24 +24,31 @@ import com.intellij.openapi.actionSystem.ToggleAction
 
 internal class GroupingAction(
   private val table: CategoryTable<DeviceRowData>,
-  private val column: Column<DeviceRowData, *, *>,
-) : ToggleAction(column.name) {
+  private val attribute: Attribute<DeviceRowData, *>,
+  name: String,
+) : ToggleAction(name) {
+  constructor(
+    table: CategoryTable<DeviceRowData>,
+    column: Column<DeviceRowData, *, *>
+  ) : this(table, column.attribute, column.name)
+
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return table.groupByAttributes.contains(column.attribute)
+    return table.groupByAttributes.contains(attribute)
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (state) {
-      table.addGrouping(column.attribute)
+      table.groupByAttributes.forEach { table.removeGrouping(it) }
+      table.addGrouping(attribute)
     } else {
-      table.removeGrouping(column.attribute)
+      table.removeGrouping(attribute)
     }
   }
 }
 
-internal class GroupByNoneAction(private val table: CategoryTable<DeviceRowData>) : ToggleAction("None") {
+internal class GroupByNoneAction(val table: CategoryTable<DeviceRowData>) : ToggleAction("None") {
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun isSelected(e: AnActionEvent) = table.groupByAttributes.isEmpty()

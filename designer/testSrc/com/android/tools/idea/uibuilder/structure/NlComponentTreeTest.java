@@ -95,7 +95,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import static com.intellij.testFramework.ServiceContainerUtil.registerServiceInstance;
 
 public class NlComponentTreeTest extends LayoutTestCase {
 

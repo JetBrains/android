@@ -26,7 +26,7 @@ namespace screensharing {
 
 using namespace std;
 
-static constexpr char TAG[] = "ScreenSharing";
+static constexpr char TAG[] = "studio.screen.sharing";
 
 Log::Level Log::level_ = Log::Level::INFO;
 
@@ -82,7 +82,19 @@ void Log::Fatal(const char* message, ...) {
   vfprintf(stderr, message, args);
   va_end(args);
   Agent::RestoreEnvironment();
-  exit(1);
+  exit(EXIT_FAILURE);
+}
+
+void Log::Fatal(ExitCode exit_code, const char* message, ...) {
+  va_list args;
+  va_start(args, message);
+  __android_log_vprint(ANDROID_LOG_ERROR, TAG, message, args);
+  va_end(args);
+  va_start(args, message);
+  vfprintf(stderr, message, args);
+  va_end(args);
+  Agent::RestoreEnvironment();
+  exit(exit_code);
 }
 
 }  // namespace screensharing

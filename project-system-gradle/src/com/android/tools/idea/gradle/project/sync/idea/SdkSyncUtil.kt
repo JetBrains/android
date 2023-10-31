@@ -44,14 +44,14 @@ private val LOG = Logger.getInstance(SdkSync::class.java)
  * This method ensures that the SDK location is set in local.properties so that the
  * Android Gradle plugin can find it. It may create or adjust this file as needed.
  */
-fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String, project: Project?) {
+fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
   val projectDir = File(projectPath)
   if (!projectDir.isDirectory) {
     throw IllegalStateException("The project directory does not exist!")
   }
 
   val localProperties = LocalProperties(projectDir)
-  syncIdeAndProjectAndroidSdks(localProperties, project)
+  syncIdeAndProjectAndroidSdks(localProperties)
 }
 
 /**

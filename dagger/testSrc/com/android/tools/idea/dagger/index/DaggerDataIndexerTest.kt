@@ -54,7 +54,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       """
           .trimIndent()
       )
@@ -62,6 +62,12 @@ class DaggerDataIndexerTest {
     val indexer =
       DaggerDataIndexer(
         DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
           fieldIndexers =
             listOf(
               DaggerConceptIndexer { _, indexEntries ->
@@ -87,7 +93,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {}
       """
           .trimIndent()
@@ -116,7 +122,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {
         constructor(arg1: Int) {}
       }
@@ -151,7 +157,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {
         fun foo() {}
       }
@@ -182,7 +188,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
 
       fun foo() {}
       """
@@ -212,7 +218,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {
         val foo: Int = 0
       }
@@ -243,7 +249,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker {
         class CoffeeFilter
       }
@@ -279,7 +285,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       interface CoffeeMaker {
         interface CoffeeFilter
       }
@@ -315,7 +321,7 @@ class DaggerDataIndexerTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+      package com.example // comment with 'dagger' to ensure indexer runs
       object CoffeeMaker {
         object CoffeeFilter
       }
@@ -345,13 +351,36 @@ class DaggerDataIndexerTest {
   }
 
   @Test
-  fun javaNoContent() {
-    val fileContent =
+  fun kotlinDaggerHeuristic() {
+    val fileContentWithDagger =
       createFileContent(
-        JavaFileType.INSTANCE,
-        // language=java
+        KotlinFileType.INSTANCE,
+        // language=kotlin
         """
-      package com.example;
+      package com.example // dagger
+      class Foo
+      """
+          .trimIndent()
+      )
+
+    val fileContentWithInject =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example // inject
+      class Foo
+      """
+          .trimIndent()
+      )
+
+    val fileContentWithNoKnownToken =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+      class Foo
       """
           .trimIndent()
       )
@@ -359,6 +388,41 @@ class DaggerDataIndexerTest {
     val indexer =
       DaggerDataIndexer(
         DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            )
+        )
+      )
+
+    assertThat(indexer.map(fileContentWithDagger)).containsExactly("found", setOf(fakeIndexValue))
+    assertThat(indexer.map(fileContentWithInject)).containsExactly("found", setOf(fakeIndexValue))
+    assertThat(indexer.map(fileContentWithNoKnownToken)).isEmpty()
+  }
+
+  @Test
+  fun javaNoContent() {
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example; // comment with 'dagger' to ensure indexer runs
+      """
+          .trimIndent()
+      )
+
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
           fieldIndexers =
             listOf(
               DaggerConceptIndexer { _, indexEntries ->
@@ -384,7 +448,7 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+      package com.example; // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker {
         public CoffeeMaker() {}
       }
@@ -415,7 +479,7 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+      package com.example; // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {
         public void foo() {}
       }
@@ -446,7 +510,7 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+      package com.example; // comment with 'dagger' to ensure indexer runs
       class CoffeeMaker() {
         public int foo;
       }
@@ -477,7 +541,7 @@ class DaggerDataIndexerTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+      package com.example; // comment with 'dagger' to ensure indexer runs
       public class CoffeeMaker {
         public void foo() {}
 
@@ -508,11 +572,64 @@ class DaggerDataIndexerTest {
     assertThat(indexer.map(fileContent)).containsKey("foundInnerClass")
   }
 
+  @Test
+  fun javaDaggerHeuristic() {
+    val fileContentWithDagger =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example; // dagger
+      class Foo {}
+      """
+          .trimIndent()
+      )
+
+    val fileContentWithInject =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example; // inject
+      class Foo {}
+      """
+          .trimIndent()
+      )
+
+    val fileContentWithNoKnownToken =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+      class Foo {}
+      """
+          .trimIndent()
+      )
+
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            )
+        )
+      )
+
+    assertThat(indexer.map(fileContentWithDagger)).containsExactly("found", setOf(fakeIndexValue))
+    assertThat(indexer.map(fileContentWithInject)).containsExactly("found", setOf(fakeIndexValue))
+    assertThat(indexer.map(fileContentWithNoKnownToken)).isEmpty()
+  }
+
   private fun createFileContent(fileType: FileType, text: String): FileContent {
     val psiFile = myFixture.configureByText(fileType, text)
 
     return mock<FileContent>().apply {
       whenever(this.fileType).thenReturn(fileType)
+      whenever(this.contentAsText).thenReturn(text)
       whenever(this.psiFile).thenReturn(psiFile)
     }
   }

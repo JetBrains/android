@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 config_setting(
     name = "windows",
@@ -61,6 +62,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 
@@ -103,7 +105,6 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/.idea/libraries:transport-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
@@ -131,6 +132,9 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
 
@@ -203,17 +207,7 @@ iml_module(
     ],
 )
 
-layout_inspector_view_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+layout_inspector_view_data = [
     ":view_project_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:emulator",
@@ -236,16 +230,35 @@ maven_repository(
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "LayoutInspectorViewIntegrationTest",
     timeout = "long",
     data = layout_inspector_view_data,
     module = ":intellij.android.layout-inspector.integration",
-    tags = ["manual"],  # Flaky due to b/264261900
     tags_linux = ["block-network"],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
     ],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorViewIntegrationTest",
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.layout-inspector.gradle",
+    srcs = ["gradle/src"],
+    iml_files = ["gradle/intellij.android.layout-inspector.gradle.iml"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
+        "//tools/adt/idea/app-inspection/inspector/api:app-inspection.inspector.api[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module]",
+        "//tools/adt/idea/app-inspection/api:app-inspection.api[module]",
+        "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
+        "//tools/base/sdk-common/gradle:studio.android.sdktools.sdk-common.gradle[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+    ],
 )

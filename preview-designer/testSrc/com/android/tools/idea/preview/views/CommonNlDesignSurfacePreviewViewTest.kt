@@ -21,23 +21,13 @@ import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.editor.ActionManager
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -45,6 +35,11 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 private fun InstructionsPanel.toDisplayText(): String =
   (0 until componentCount)
@@ -62,8 +57,7 @@ private fun InstructionsPanel.toDisplayText(): String =
 private fun JComponent?.isVisible() = this?.isShowing == true
 
 class CommonNlDesignSurfacePreviewViewTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val project: Project
     get() = projectRule.project
@@ -80,7 +74,8 @@ class CommonNlDesignSurfacePreviewViewTest {
     runBlocking(uiThread) {
       val surfaceBuilder = NlDesignSurface.builder(project, fixture.testRootDisposable)
 
-      previewView = CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
+      previewView =
+        CommonNlDesignSurfacePreviewView(project, surfaceBuilder, fixture.testRootDisposable)
 
       fakeUi =
         FakeUi(

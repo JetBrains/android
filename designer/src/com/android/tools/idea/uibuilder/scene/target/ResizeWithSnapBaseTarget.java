@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.android.tools.idea.uibuilder.scene.draw.DrawVerticalLine;
 import java.awt.Dimension;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -207,7 +208,7 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
     if (wrapSize != null && width == wrapSize.width) {
       return VALUE_WRAP_CONTENT;
     }
-    return String.format(VALUE_N_DP, width);
+    return String.format(Locale.US, VALUE_N_DP, width);
   }
 
   protected String getNewHeight(@AndroidDpCoordinate int y) {
@@ -221,7 +222,7 @@ public abstract class ResizeWithSnapBaseTarget extends ResizeBaseTarget {
     if (wrapSize != null && height == wrapSize.height) {
       return VALUE_WRAP_CONTENT;
     }
-    return String.format(VALUE_N_DP, height);
+    return String.format(Locale.US, VALUE_N_DP, height);
   }
 
   @AndroidDpCoordinate

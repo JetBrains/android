@@ -16,10 +16,10 @@
 package com.android.tools.idea.nav.safeargs.tracker
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
 import com.intellij.openapi.application.ApplicationManager

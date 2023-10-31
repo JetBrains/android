@@ -31,17 +31,19 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * An actions queue that will execute them once they get out of the LRU [maxLruPlaces] or after the given [delay].
+ * An actions queue that will execute them once they get out of the LRU [maxLruPlaces] or after the
+ * given [delay].
  */
-class DelayedLruActionQueue(private val maxLruPlaces: Int,
-                            private val delay: Duration,
-                            private val scheduledExecutorService: ScheduledExecutorService = AppExecutorUtil.createBoundedScheduledExecutorService(
-                              "DelayedLruActionQueue", 1)) {
+class DelayedLruActionQueue(
+  private val maxLruPlaces: Int,
+  private val delay: Duration,
+  private val scheduledExecutorService: ScheduledExecutorService =
+    AppExecutorUtil.createBoundedScheduledExecutorService("DelayedLruActionQueue", 1)
+) {
   private val queueLock = ReentrantLock()
   private val lruQueue = ArrayDeque<() -> Unit>(maxLruPlaces)
   private val actionToDisposable = WeakHashMap<() -> Unit, Disposable>()
   private val actionToScheduledFuture = WeakHashMap<() -> Unit, ScheduledFuture<*>>()
-
 
   @TestOnly
   fun queueSize(): Int {
@@ -54,7 +56,11 @@ class DelayedLruActionQueue(private val maxLruPlaces: Int,
     }
   }
 
-  private fun addActionToQueue(action: () -> Unit, actionDisposable: Disposable, scheduledFuture: ScheduledFuture<*>) {
+  private fun addActionToQueue(
+    action: () -> Unit,
+    actionDisposable: Disposable,
+    scheduledFuture: ScheduledFuture<*>
+  ) {
     queueLock.withLock {
       if (actionToDisposable.contains(action)) {
         // Do not schedule the same action twice, just put at the back of the queue.
@@ -82,17 +88,15 @@ class DelayedLruActionQueue(private val maxLruPlaces: Int,
     queueLock.withLock {
       val actionWasStillInTheQueue = lruQueue.remove(action)
       actionToScheduledFuture.remove(action)?.cancel(false)
-      actionToDisposable.remove(action)?.let {
-        Disposer.dispose(it)
-      }
+      actionToDisposable.remove(action)?.let { Disposer.dispose(it) }
       return actionWasStillInTheQueue
     }
   }
 
   /**
-   * Adds the given [action] to the queue. It will execute automatically after [delay] has passed or if the number of actions in the
-   * queue exceeds [maxLruPlaces].
-   * The action will be executed out of the UI thread.
+   * Adds the given [action] to the queue. It will execute automatically after [delay] has passed or
+   * if the number of actions in the queue exceeds [maxLruPlaces]. The action will be executed out
+   * of the UI thread.
    *
    * This method returns a [Cancelable]. If cancelled, the action will not be executed.
    */
@@ -105,12 +109,17 @@ class DelayedLruActionQueue(private val maxLruPlaces: Int,
     }
 
     Disposer.register(parentDisposable, disposable)
-    val scheduledFuture = scheduledExecutorService.schedule({
-                                                              val actionToRemove = weakActionRef.get() ?: return@schedule
-                                                              if (removeActionFromQueue(actionToRemove)) {
-                                                                actionToRemove()
-                                                              }
-                                                            }, delay.toMillis(), TimeUnit.MILLISECONDS)
+    val scheduledFuture =
+      scheduledExecutorService.schedule(
+        {
+          val actionToRemove = weakActionRef.get() ?: return@schedule
+          if (removeActionFromQueue(actionToRemove)) {
+            actionToRemove()
+          }
+        },
+        delay.toMillis(),
+        TimeUnit.MILLISECONDS
+      )
     addActionToQueue(action, disposable, scheduledFuture)
   }
 }

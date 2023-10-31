@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueUsageReporter.Companion.getInstance
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.runReadAction
@@ -62,16 +60,6 @@ class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle S
       override val description = descriptionBuilder.toString()
       override val quickFixes = issueQuickFixes
       override fun getNavigatable(project: Project) = null
-    }
-  }
-}
-
-//TODO(karimai): This is a workaround until I refactor the services related to reporting sync Metrics to use Gradle project paths.
-fun updateUsageTracker(projectPath: String, gradleSyncFailure: GradleSyncFailure) {
-  for (project in ProjectManager.getInstance().openProjects) {
-    if (project.basePath == projectPath) {
-      getInstance(project).collect(gradleSyncFailure)
-      break
     }
   }
 }

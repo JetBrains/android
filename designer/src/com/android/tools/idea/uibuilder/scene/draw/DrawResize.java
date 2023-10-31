@@ -22,7 +22,6 @@ import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.Graphics2D;
 

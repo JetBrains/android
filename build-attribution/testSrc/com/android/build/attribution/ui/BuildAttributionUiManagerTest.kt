@@ -38,13 +38,12 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.text.DateFormatUtil
@@ -83,7 +82,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     buildSessionId = UUID.randomUUID().toString()
 
-    project.registerComponentInstance(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
+    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, project.coroutineScope), testRootDisposable)
   }
 
   override fun tearDown() {
@@ -125,7 +124,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     buildAttributionUiManager.showBuildAnalysisReportById(buildSessionId)
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val selectedEditor = FileEditorManagerEx.getInstanceEx(project).selectedEditor!!
+    val selectedEditor = FileEditorManager.getInstance(project).selectedEditor!!
     val vf = selectedEditor.file
     Truth.assertThat(vf.name).isEqualTo("Build report: ${DateFormatUtil.formatDateTime(buildFinishedTimestamp)}")
   }

@@ -51,6 +51,7 @@ import com.android.tools.sdk.Annotations;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
@@ -510,8 +511,11 @@ public class AndroidSdks {
     if (file == null) {
       return false;
     }
+    return isInAndroidSdk(element.getProject(), file);
+  }
 
-    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(element.getProject()).getFileIndex();
+  public boolean isInAndroidSdk(@NonNull Project project, @NonNull VirtualFile file) {
+    ProjectFileIndex projectFileIndex = ProjectRootManager.getInstance(project).getFileIndex();
     List<OrderEntry> entries = projectFileIndex.getOrderEntriesForFile(file);
     for (OrderEntry entry : entries) {
       if (entry instanceof JdkOrderEntry) {

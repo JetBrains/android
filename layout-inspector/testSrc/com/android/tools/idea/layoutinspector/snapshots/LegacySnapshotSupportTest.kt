@@ -17,32 +17,22 @@ package com.android.tools.idea.layoutinspector.snapshots
 
 import com.android.ddmlib.Client
 import com.android.ddmlib.DebugViewDumpHandler
-import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
-import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
-import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyDeviceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.SNAPSHOT_CLIENT
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -55,18 +45,13 @@ import kotlin.io.path.readBytes
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class LegacySnapshotSupportTest {
-  @get:Rule
-  val projectRule = ProjectRule()
 
-  @get:Rule
-  val adb = FakeAdbRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val legacyRule = LegacyDeviceRule()
 
   private val savePath = createInMemoryFileSystemAndFolder("snapshot").resolve("snapshot.li")
 
-  private val treeSample = """
+  private val treeSample =
+    """
 com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
  android.widget.LinearLayout@8dc1681 mID=5,NO_ID layout:getHeight()=4,1794 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
   androidx.appcompat.widget.FitWindowsLinearLayout@d0e237b mID=18,id/action_bar_root layout:getHeight()=4,1794 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
@@ -81,12 +66,13 @@ com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1
    com.google.android.material.floatingactionbutton.FloatingActionButton@fcfd901 mID=6,id/fab layout:getHeight()=3,147 layout:getLocationOnScreen_x()=4,1856 layout:getLocationOnScreen_y()=4,1388 layout:getWidth()=3,147
  android.view.View@3d2ff9c mID=22,id/statusBarBackground layout:getHeight()=2,63 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
 DONE.
-""".trim()
+"""
+      .trim()
 
   @Test
   fun saveAndLoadSnapshot() {
     val imageFile = TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/image1.png")
-    val legacyClient = setUpLegacyClient()
+    val legacyClient = legacyRule.client
 
     val windowName = "window1"
     setUpDdmClient(treeSample, windowName, imageFile, legacyClient)
@@ -95,9 +81,10 @@ DONE.
     waitForCondition(5, TimeUnit.SECONDS) { !legacyClient.model.isEmpty }
     legacyClient.saveSnapshot(savePath)
     val snapshotLoader = SnapshotLoader.createSnapshotLoader(savePath)!!
-    val newModel = InspectorModel(projectRule.project)
+    val newModel = InspectorModel(legacyRule.project)
+    val newNotificationModel = NotificationModel(legacyRule.project)
     val stats = SessionStatisticsImpl(SNAPSHOT_CLIENT)
-    snapshotLoader.loadFile(savePath, newModel, stats)
+    snapshotLoader.loadFile(savePath, newModel, newNotificationModel, stats)
 
     val window = newModel.windows[windowName]!!
     window.refreshImages(1.0)
@@ -108,7 +95,9 @@ DONE.
     assertThat(root.layoutBounds.width).isEqualTo(1080)
     assertThat(root.layoutBounds.height).isEqualTo(1920)
     assertThat(root.viewId).isNull()
-    assertThat(printTree(root).trim()).isEqualTo("""
+    assertThat(printTree(root).trim())
+      .isEqualTo(
+        """
           0x41673e3
            0x8dc1681
             0xd0e237b
@@ -122,40 +111,28 @@ DONE.
               0xb3f07c
              0xfcfd901
            0x3d2ff9c
-           """.trimIndent())
+           """
+          .trimIndent()
+      )
     val actionMenuView = newModel[0x29668e4]!!
     assertThat(actionMenuView.drawId).isEqualTo(0x29668e4)
     assertThat(actionMenuView.layoutBounds.x).isEqualTo(932)
     assertThat(actionMenuView.layoutBounds.y).isEqualTo(63)
     assertThat(actionMenuView.layoutBounds.width).isEqualTo(148)
     assertThat(actionMenuView.layoutBounds.height).isEqualTo(147)
-    assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
-    val actualImage = ViewNode.readAccess { window.root.drawChildren.filterIsInstance<DrawViewImage>().first().image }
+    assertThat(actionMenuView.viewId.toString())
+      .isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
+    val actualImage =
+      ViewNode.readAccess {
+        window.root.drawChildren.filterIsInstance<DrawViewImage>().first().image
+      }
     ImageDiffUtil.assertImageSimilar(imageFile, actualImage as BufferedImage, 0.0)
-    assertThat(newModel.resourceLookup.dpi).isEqualTo(560)
-    assertThat(newModel.resourceLookup.fontScale).isNull()
+    assertThat(newModel.resourceLookup.hasResolver).isTrue()
+    assertThat(newModel.resourceLookup.defaultTheme?.resourceUrl?.toString())
+      .isEqualTo("@style/Login.Dark.Theme")
+    assertThat(newModel.resourceLookup.dpi).isEqualTo(420)
+    assertThat(newModel.resourceLookup.fontScale).isEqualTo(1f)
     assertThat(newModel.resourceLookup.screenDimension).isNull()
-  }
-
-  private fun setUpLegacyClient(): LegacyClient {
-    val model = model(project = projectRule.project) {}
-    val process = LEGACY_DEVICE.createProcess()
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
-    val legacyClient = LegacyClient(
-      process,
-      isInstantlyAutoConnected = true,
-      model,
-      LayoutInspectorSessionMetrics(projectRule.project, process),
-      coroutineScope,
-      disposableRule.disposable
-    ).apply {
-      launchMonitor = mock()
-    }
-    // This causes the current client to register its listeners
-    val treeSettings = FakeTreeSettings()
-    LayoutInspector(coroutineScope, InspectorClientSettings(projectRule.project), legacyClient, model, treeSettings)
-    legacyClient.state = InspectorClient.State.CONNECTED
-    return legacyClient
   }
 
   @Suppress("SameParameterValue")
@@ -167,37 +144,58 @@ DONE.
   ) {
     val client = mock<Client>()
     whenever(client.device).thenReturn(mock())
-    whenever(client.dumpViewHierarchy(ArgumentMatchers.eq(windowName), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
-                                            ArgumentMatchers.anyBoolean(),
-                                            ArgumentMatchers.any(DebugViewDumpHandler::class.java))).thenAnswer { invocation ->
-      invocation
-        .getArgument<DebugViewDumpHandler>(4)
-        .handleChunkData(ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)))
-    }
-    whenever(client.listViewRoots(any())).thenAnswer { invocation ->
-      val bytes = ByteBuffer.allocate(windowName.length * 2 + Int.SIZE_BYTES * 2).apply {
-        putInt(1)
-        putInt(windowName.length)
-        put(windowName.toByteArray(Charsets.UTF_16BE))
-        rewind()
+    whenever(
+        client.dumpViewHierarchy(
+          ArgumentMatchers.eq(windowName),
+          ArgumentMatchers.anyBoolean(),
+          ArgumentMatchers.anyBoolean(),
+          ArgumentMatchers.anyBoolean(),
+          ArgumentMatchers.any(DebugViewDumpHandler::class.java)
+        )
+      )
+      .thenAnswer { invocation ->
+        invocation
+          .getArgument<DebugViewDumpHandler>(4)
+          .handleChunkData(ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)))
       }
+    whenever(client.listViewRoots(any())).thenAnswer { invocation ->
+      val bytes =
+        ByteBuffer.allocate(windowName.length * 2 + Int.SIZE_BYTES * 2).apply {
+          putInt(1)
+          putInt(windowName.length)
+          put(windowName.toByteArray(Charsets.UTF_16BE))
+          rewind()
+        }
       invocation
         .getArgument(0, DebugViewDumpHandler::class.java)
         .handleChunk(client, DebugViewDumpHandler.CHUNK_VULW, bytes, true, 1)
     }
 
     whenever(
-      client.captureView(ArgumentMatchers.eq(windowName), ArgumentMatchers.any(), ArgumentMatchers.any())).thenAnswer { invocation ->
-      invocation
-        .getArgument<DebugViewDumpHandler>(2)
-        .handleChunk(client, DebugViewDumpHandler.CHUNK_VUOP, ByteBuffer.wrap(imageFile.readBytes()), true, 1234)
-    }
+        client.captureView(
+          ArgumentMatchers.eq(windowName),
+          ArgumentMatchers.any(),
+          ArgumentMatchers.any()
+        )
+      )
+      .thenAnswer { invocation ->
+        invocation
+          .getArgument<DebugViewDumpHandler>(2)
+          .handleChunk(
+            client,
+            DebugViewDumpHandler.CHUNK_VUOP,
+            ByteBuffer.wrap(imageFile.readBytes()),
+            true,
+            1234
+          )
+      }
     whenever(client.device.density).thenReturn(560)
     legacyClient.treeLoader.ddmClientOverride = client
   }
 
   private fun printTree(node: ViewNode, indent: Int = 0): String {
     val children = ViewNode.readAccess { node.children }
-    return " ".repeat(indent) + "0x${node.drawId.toString(16)}\n${children.joinToString("") { printTree(it, indent + 1) }}"
+    return " ".repeat(indent) +
+      "0x${node.drawId.toString(16)}\n${children.joinToString("") { printTree(it, indent + 1) }}"
   }
 }

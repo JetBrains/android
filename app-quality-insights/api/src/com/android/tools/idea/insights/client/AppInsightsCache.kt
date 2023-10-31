@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.insights.client
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Event
@@ -33,6 +32,21 @@ import java.util.TreeSet
 
 /** Cache for App Insights data. */
 interface AppInsightsCache {
+  /**
+   * Returns the most recently obtained connections.
+   *
+   * Used for Vitals only.
+   */
+  fun getRecentConnections(): List<Connection>
+
+  /**
+   * Sets the most recently obtained connections. Calling this has the side effect of evicting
+   * values associated with connections not in [connections].
+   *
+   * Used for Vitals only.
+   */
+  fun populateConnections(connections: List<Connection>)
+
   /**
    * Returns the top reported [Issue]s stored in the cache. Returns null if no issues are cached for
    * this [FirebaseConnection].
@@ -84,9 +98,15 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   private val compositeIssuesCache: Cache<Connection, Cache<IssueId, CacheValue>> =
     createNew(MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE)
 
+  override fun getRecentConnections() = compositeIssuesCache.asMap().keys.toList()
+
+  override fun populateConnections(connections: List<Connection>) {
+    compositeIssuesCache.asMap().keys.retainAll(connections.toSet())
+    connections.forEach { getOrCreateIssuesCache(it) }
+  }
+
   // TODO(b/249297282): Fetch top issues for "default" filter in the background
   override fun getTopIssues(request: IssueRequest): List<AppInsightsIssue>? {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return null
     val allIssues =
       compositeIssuesCache.getIfPresent(request.connection)?.asMap()?.values ?: return null
     return allIssues
@@ -132,7 +152,6 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   }
 
   override fun populateIssues(connection: Connection, issues: List<AppInsightsIssue>) {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
     issues.forEach { newIssue ->
       issuesCache.compute(newIssue.issueDetails.id) { _, oldValue ->
@@ -142,7 +161,6 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
   }
 
   override fun getEvent(issueRequest: IssueRequest, issueId: IssueId): Event? {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return null
     val cachedEvents =
       compositeIssuesCache
         .getIfPresent(issueRequest.connection)
@@ -150,16 +168,18 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
         ?.issueDetails
         ?.sampleEvents
         ?: return null
-    return cachedEvents.firstOrNull { it.matchInterval(issueRequest.filters.interval) }
+    return cachedEvents.firstOrNull {
+      it.matchInterval(issueRequest.filters.interval) &&
+        it.eventData.device in issueRequest.filters.devices &&
+        it.eventData.operatingSystemInfo in issueRequest.filters.operatingSystems
+    }
   }
 
   override fun getNotes(connection: Connection, issueId: IssueId): List<Note>? {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return null
     return compositeIssuesCache.getIfPresent(connection)?.getIfPresent(issueId)?.notes
   }
 
   override fun populateNotes(connection: Connection, issueId: IssueId, notes: List<Note>) {
-    if (!StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) return
     val issuesCache = getOrCreateIssuesCache(connection).asMap()
 
     issuesCache.compute(issueId) { _, oldValue ->

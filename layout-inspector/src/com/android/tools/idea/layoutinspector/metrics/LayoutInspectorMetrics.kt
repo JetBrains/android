@@ -24,27 +24,34 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorTransportErro
 
 object LayoutInspectorMetrics {
   fun logEvent(eventType: DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType) {
-    val builder = AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-      dynamicLayoutInspectorEventBuilder.apply {
-        type = eventType
+    val builder =
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+        dynamicLayoutInspectorEventBuilder.apply { type = eventType }
       }
-    }
 
     UsageTracker.log(builder)
   }
 
-  fun logTransportError(transportErrorType: DynamicLayoutInspectorTransportError.Type, deviceDescriptor: DeviceDescriptor) {
-    val transportErrorInfo = DynamicLayoutInspectorTransportError.newBuilder().setType(transportErrorType).build()
+  fun logTransportError(
+    transportErrorType: DynamicLayoutInspectorTransportError.Type,
+    deviceDescriptor: DeviceDescriptor
+  ) {
+    val transportErrorInfo =
+      DynamicLayoutInspectorTransportError.newBuilder().setType(transportErrorType).build()
 
-    val androidStudioEvent = AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
-      dynamicLayoutInspectorEvent = DynamicLayoutInspectorEvent.newBuilder().apply {
-        type = DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.TRANSPORT_ERROR
-        transportError = transportErrorInfo
-      }.build()
-      deviceInfo = deviceDescriptor.toDeviceInfo()
-    }
+    val androidStudioEvent =
+      AndroidStudioEvent.newBuilder().apply {
+        kind = AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+        dynamicLayoutInspectorEvent =
+          DynamicLayoutInspectorEvent.newBuilder()
+            .apply {
+              type = DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.TRANSPORT_ERROR
+              transportError = transportErrorInfo
+            }
+            .build()
+        deviceInfo = deviceDescriptor.toDeviceInfo()
+      }
 
     UsageTracker.log(androidStudioEvent)
   }

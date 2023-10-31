@@ -1,0 +1,13 @@
+[versions]
+literalVersion = "1.5.0"
+literalVersion2 = "[1.0.0,2.1.0]!!2.0.1"
+literalVersion3 = "1.0.0!!"
+
+mapVersion = { strictly = "[1.0.0,2.1.0]", prefer = "2.0.1" }
+mapVersion2 = { require = "2.0.1" }
+mapVersion3 = { prefer = "2.0.1" }
+
+
+illegalVersion = "!!"
+illegalVersion2 = { bad = "[1.0.0,2.1.0]" }
+illegalVersion3 = { }

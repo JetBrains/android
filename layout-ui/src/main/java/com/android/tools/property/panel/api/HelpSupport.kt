@@ -21,8 +21,8 @@ import com.intellij.openapi.actionSystem.DataKey
 /**
  * Support for Help binding.
  *
- * A [PropertyItem] may optionally implement this interface and supply
- * actions that can be used to provide help for a property.
+ * A [PropertyItem] may optionally implement this interface and supply actions that can be used to
+ * provide help for a property.
  */
 interface HelpSupport {
   /**
@@ -54,9 +54,7 @@ interface HelpSupport {
     val PROPERTY_ITEM = DataKey.create<PropertyItem>("propertyItem")
   }
 
-  /**
-   * Default [HelpSupport] with noop for all methods.
-   */
+  /** Default [HelpSupport] with noop for all methods. */
   private class DefaultHelpSupport : HelpSupport {
     override fun browse() {}
   }

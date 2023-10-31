@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -29,7 +30,6 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.stats.AnonymizerUtil
-import com.android.tools.idea.stats.withProjectId
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleAndroidModule
@@ -41,6 +41,7 @@ import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBui
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
@@ -58,6 +59,10 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     trackProjectStructure()
   }
 
+  override fun syncSkipped(project: Project) {
+    trackProjectStructure()
+  }
+
   private fun trackProjectStructure() {
     if (ApplicationManager.getApplication().isUnitTestMode) {
       // Run synchronously in unit tests as it is difficult to wait for a pooled thread in unit tests.
@@ -67,6 +72,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     ApplicationManager.getApplication().executeOnPooledThread {
       try {
         doTrackProjectStructure()
+      } catch(e: ProcessCanceledException) {
+        throw e;
       } catch (e: Throwable) {
         // Any errors in project tracking should not be displayed to the user.
         LOG.warn("Failed to track project structure", e)
@@ -129,6 +136,7 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
           IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_TEST -> Unit
+          IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> Unit
         }
       }
     }
@@ -140,7 +148,7 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     val gradleNativeAndroidModules: MutableList<GradleNativeAndroidModule> = ArrayList()
     val appId = AnonymizerUtil.anonymizeUtf8(model.applicationId)
     val androidProject = model.androidProject
-    var gradleVersionString = GradleVersions.getInstance().getGradleVersion(myProject)!!.version
+    var gradleVersionString = GradleVersions.getInstance().getGradleVersion(myProject)?.version
     if (gradleVersionString == null) {
       gradleVersionString = "0.0.0"
     }
@@ -217,6 +225,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
           || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
       }
+    } catch (e : ProcessCanceledException) {
+      throw e
     } catch (e: Throwable) {
       LOG.warn("Manifest Index could not be queried", e)
     }

@@ -141,7 +141,7 @@ public final class ConnectedDevicesTask implements AsyncSupplier<Collection<Conn
       return new SerialNumber(serialNumber);
     }
 
-    var path = device.getPath();
+    var path = device.getNioPath();
 
     if (path != null) {
       return new VirtualDevicePath(path);

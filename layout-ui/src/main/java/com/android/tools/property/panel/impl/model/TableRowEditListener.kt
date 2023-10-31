@@ -18,7 +18,13 @@ package com.android.tools.property.panel.impl.model
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.ptable.PTableItem
 
-enum class TableEditingRequest{ NONE, STOP_EDITING, BEST_MATCH, SPECIFIED_ITEM, SELECT }
+enum class TableEditingRequest {
+  NONE,
+  STOP_EDITING,
+  BEST_MATCH,
+  SPECIFIED_ITEM,
+  SELECT
+}
 
 interface TableRowEditListener : ValueChangedListener {
   fun editRequest(type: TableEditingRequest, item: PTableItem?)

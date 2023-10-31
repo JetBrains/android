@@ -34,7 +34,7 @@ class PowerRailTrackRenderer : TrackRenderer<PowerRailTrackModel> {
       val lineChartModel = trackModel.dataModel
       val lineChart = LineChart(lineChartModel).apply {
         val backgroundColor = DataVisualizationColors.paletteManager.getBackgroundColor(trackModel.title.hashCode())
-        configure(lineChartModel.powerRailCounterSeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
+        configure(lineChartModel.primaryPowerRailCounterSeries, LineConfig(backgroundColor).setFilled(true).setStepped(true))
         setFillEndGap(true)
       }
       add(lineChart)

@@ -16,14 +16,21 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.AssetRepository
-import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestException
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.AssetRepositoryImpl
-import com.android.tools.idea.res.ResourceIdManager
+import com.android.tools.idea.res.StudioAssetFileOpener
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.module.AndroidModuleInfo
+import com.android.tools.module.ModuleDependencies
+import com.android.tools.module.ModuleKey
+import com.android.tools.module.ModuleKeyManager
+import com.android.tools.rendering.api.EnvironmentContext
+import com.android.tools.rendering.api.RenderModelManifest
+import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.res.AssetRepositoryBase
+import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -48,7 +55,8 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   }
 
   override fun getIdeaModule(): Module = facet.module
-  override var assetRepository: AssetRepository? = AssetRepositoryImpl(facet)
+  override var assetRepository: AssetRepository? = AssetRepositoryBase(
+    StudioAssetFileOpener(facet))
     private set
   override val manifest: RenderModelManifest?
     get() {
@@ -79,11 +87,11 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = getInstance(facet.module)
   override val resourceIdManager: ResourceIdManager
     get() = ResourceIdManager.get(facet.module)
-  override val moduleKey: Any
-    get() = facet.module
+  override val moduleKey: ModuleKey
+    get() = ModuleKeyManager.getKey(facet.module)
   override val resourcePackage: String?
     get() = facet.module.getModuleSystem().getPackageName()
-  override val dependencies: RenderModuleDependencies = StudioRenderModuleDependencies(facet.module)
+  override val dependencies: ModuleDependencies = StudioModuleDependencies(facet.module)
   override val project: Project
     get() = facet.module.project
   override val isDisposed: Boolean
@@ -96,5 +104,5 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
 
   override val name: String
     get() = facet.module.name
-  override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module.project)
+  override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module)
 }

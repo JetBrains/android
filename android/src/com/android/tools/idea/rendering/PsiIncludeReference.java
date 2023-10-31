@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -23,6 +27,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.rendering.api.IncludeReference;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.utils.SdkUtils;
@@ -34,12 +39,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A studio-specific PSI and VFS backed implementation of {@link IncludeReference}.

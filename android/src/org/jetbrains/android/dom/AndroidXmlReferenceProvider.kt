@@ -183,7 +183,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
  *
  * Makes possible to do completions like "TvV" to "android.media.tv.TvView".
  * Adds [XmlTagInnerClassInsertHandler] for inner classes.
- * Adds low priority for deprecated classes and high priority for androidx and support library alternative.
+ * Adds low priority for deprecated classes and high priority for framework classes compared to androidx and support library alternative.
  */
 fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
 
@@ -197,8 +197,8 @@ fun createClassAsTagXmlElement(name: String, clazz: PsiClass): LookupElement {
 
   val priority = when {
     clazz.isDeprecated -> -1
-    clazz.name == name -> 1
-    qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) || qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 2
+    clazz.name == name -> 2
+    qualifiedName.startsWith(SdkConstants.ANDROID_SUPPORT_PKG_PREFIX) || qualifiedName.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> 1
     else -> 0
   }
 

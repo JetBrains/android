@@ -22,11 +22,12 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectS
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationListener;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
 import com.google.common.collect.ImmutableSet;
@@ -166,7 +167,7 @@ public class ResourceNotificationManager {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
         return new ResourceVersion(repository.getModificationCount(), fileStamp, configuration.getModificationCount(),
-                                   configuration.getConfigurationManager().getStateVersion(), myModificationCount);
+                                   configuration.getSettings().getStateVersion(), myModificationCount);
 
       }
       else {

@@ -67,9 +67,10 @@ class CpuThreadSummaryDetailsView(parentView: StudioProfilersView,
   }
 
   private fun onSelectionRangeChanged() {
-    val range = tabModel.selectionRange
-    timeRangeLabel.text = formatTimeRangeAsString(range)
-    durationLabel.text = TimeFormatter.getSingleUnitDurationString(range.length.toLong())
+    val selectionRange = tabModel.selectionRange
+    val captureRange = tabModel.captureRange
+    timeRangeLabel.text = formatTimeRangeAsString(selectionRange = selectionRange, relativeZeroPoint = captureRange.min.toLong())
+    durationLabel.text = TimeFormatter.getSingleUnitDurationString(selectionRange.length.toLong())
     populateNodesTable()
   }
 

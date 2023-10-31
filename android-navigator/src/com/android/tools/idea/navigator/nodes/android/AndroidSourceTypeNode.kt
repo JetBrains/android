@@ -41,13 +41,18 @@ import java.util.Objects
  * [AndroidSourceTypeNode] is a virtual node in the package view of an Android module under which all sources
  * corresponding to a particular [AndroidSourceType] are grouped together.
  */
-open class AndroidSourceTypeNode internal constructor(
+open class AndroidSourceTypeNode(
   project: Project,
   androidFacet: AndroidFacet,
   settings: ViewSettings,
   private val sourceType: AndroidSourceType,
-  private val sourceRoots: Set<VirtualFile>
+  sourceRoots: Set<VirtualFile>
 ) : ProjectViewNode<AndroidFacet?>(project, androidFacet, settings), FolderGroupNode {
+  private val sortedSourceRoots: List<VirtualFile> = sourceRoots.sortedBy {
+    val (name) = findSourceProvider(it)
+    AndroidPsiDirectoryNode.getSourceProviderSortKeyPart(name)
+  }
+
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
     val projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject)
     return sourceFolders.flatMap { directory ->
@@ -90,7 +95,7 @@ open class AndroidSourceTypeNode internal constructor(
   protected val sourceFolders: List<PsiDirectory>
     get() {
       val psiManager = PsiManager.getInstance(myProject)
-      return sourceRoots.asSequence().filter { it.isValid }.mapNotNull { psiManager.findDirectory(it) }.toList()
+      return sortedSourceRoots.asSequence().filter { it.isValid }.mapNotNull { psiManager.findDirectory(it) }.toList()
     }
 
   override fun update(presentation: PresentationData) {
@@ -111,7 +116,7 @@ open class AndroidSourceTypeNode internal constructor(
 
   override fun contains(file: VirtualFile): Boolean {
     //TODO: first check if the file is of my source type
-    return sourceRoots.any {root -> VfsUtilCore.isAncestor(root, file, false)}
+    return sortedSourceRoots.any {root -> VfsUtilCore.isAncestor(root, file, false)}
   }
 
   override fun canRepresent(element: Any): Boolean {
@@ -133,11 +138,11 @@ open class AndroidSourceTypeNode internal constructor(
       return false
     }
     val that = other as AndroidSourceTypeNode
-    return (sourceType === that.sourceType) && (sourceRoots == that.sourceRoots)
+    return (sourceType === that.sourceType) && (sortedSourceRoots == that.sortedSourceRoots)
   }
 
   override fun hashCode(): Int {
-    return Objects.hash(super.hashCode(), sourceType, sourceRoots)
+    return Objects.hash(super.hashCode(), sourceType, sortedSourceRoots)
   }
 
   override val folders: List<PsiDirectory>

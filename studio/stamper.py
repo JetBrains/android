@@ -1,12 +1,13 @@
 """A utility to stamp files with build numbers."""
 import argparse
 import datetime
-import fnmatch
 import json
-import io
+import os
 import re
+import shutil
+import stat
 import sys
-import zipfile
+from tools.adt.idea.studio import utils
 
 
 def _read_status_file(info_file):
@@ -29,7 +30,11 @@ def _format_build_date(build_version):
   return time.strftime("%Y%m%d%H%M")
 
 
-def _stamp_app_info(build_date, build, micro, patch, full, eap, content):
+def _stamp_app_info(version_file, build_txt, micro, patch, full, eap, content):
+  build_version = _read_status_file(version_file)
+  build = utils.read_file(build_txt)
+  build_date = _format_build_date(build_version)
+
   content = content.replace("__BUILD__", build[3:]) # Without the product code, e.g. 'AI-'
   content = content.replace("__BUILD_DATE__", build_date)
   content = content.replace("__BUILD_NUMBER__", build)
@@ -44,17 +49,24 @@ def _stamp_app_info(build_date, build, micro, patch, full, eap, content):
   return content
 
 
-def _stamp_product_info_json(build, version, content):
+def _stamp_product_info(info_file, build_txt, content):
+  build_info = _read_status_file(info_file)
+  build_number = utils.read_file(build_txt)
+  bid = _get_build_id(build_info)
+
   json_data = json.loads(content)
-  json_data["buildNumber"] = json_data["buildNumber"].replace("__BUILD_NUMBER__", build)
-  json_data["version"] = version
+  json_data["buildNumber"] = json_data["buildNumber"].replace("__BUILD_NUMBER__", bid)
+  json_data["version"] = build_number
   return json.dumps(json_data, sort_keys=True, indent=2)
 
-def _stamp_plugin_file(build, content):
+
+def _overwrite_plugin_version(build_txt, content):
   """Stamps a plugin.xml with the build ids."""
 
-  # TODO: Start with the IJ way of doing this, but move to a more robust/strict later.
-  content = re.sub("<version>[\\d.]*</version>", "<version>%s</version>" % build, content, 1)
+  build_number = utils.read_file(build_txt)
+  build = build_number[3:] # removes the AI- prefix
+
+  content = re.sub("<version>.*</version>", "<version>%s</version>" % build, content, 1)
   content = re.sub("<idea-version\\s+since-build=\"\\d+\\.\\d+\"\\s+until-build=\"\\d+\\.\\d+\"",
                    "<idea-version since-build=\"%s\" until-build=\"%s\"" % (build, build),
                    content, 1)
@@ -71,267 +83,118 @@ def _stamp_plugin_file(build, content):
   return content
 
 
-# Finds a file in a zip of zips. The file to look for is called
-# <sub_entry> and it is looked for in all the entries of
-# <zip_path> that match the glob regex <entry>. It returns
-# a pair with the entry where it was found, and its content.
-def _find_file(zip_path, entry, sub_entry):
-  entry_name = content = None
-  with zipfile.ZipFile(zip_path) as zip:
-    for name in zip.namelist():
-      if fnmatch.fnmatch(name, entry):
-        data = zip.read(name)
-        with zipfile.ZipFile(io.BytesIO(data)) as sub:
-          if sub_entry in sub.namelist():
-            if entry_name:
-              print("Multiple " + sub_entry + " found in " + zip_path + "!" + entry)
-              sys.exit(1)
-            entry_name = name
-            content = sub.read(sub_entry)
-    if not entry_name:
-      print(sub_entry + " not found in " + zip_path)
-      sys.exit(1)
-  return entry_name, content.decode("utf-8")
-
-
-def _read_file(zip_path, entry, sub_entry=None):
-  with zipfile.ZipFile(zip_path) as zip:
-    data = zip.read(entry)
-    if sub_entry:
-      with zipfile.ZipFile(io.BytesIO(data)) as sub:
-        data = sub.read(sub_entry)
-  return data.decode("utf-8")
-
-
-def _write_file(zip_path, mode, data, entry, sub_entry=None):
-  if sub_entry:
-    buffer = io.BytesIO()
-    with zipfile.ZipFile(buffer, "w") as sub:
-      sub.writestr(sub_entry, data)
-    data = buffer.getvalue()
-  with zipfile.ZipFile(zip_path, mode) as zip:
-    info = zipfile.ZipInfo(entry)
-    info.external_attr = 0o100664 << 16
-    zip.writestr(info, data)
-
-
-RES_PATH = {
-  "linux": "",
-  "win": "",
-  "mac": "Contents/Resources/",
-  "mac_arm": "Contents/Resources/",
-}
-
-
-BASE_PATH = {
-  "linux": "",
-  "win": "",
-  "mac": "Contents/",
-  "mac_arm": "Contents/",
-}
-
-
-# Stamps a plugin's plugin.xml file. if <overwrite_plugin_version> is true it
-# performs a full stamping and tag fixing (such as adding missing tags, fixing
-# from and to versions etc). Otherwise it simple replaces the build
-# number.
-def _stamp_plugin(platform, os, build_info, overwrite_plugin_version, src, dst):
-  resource_path = RES_PATH[os]
-  jar_name, content = _find_file(src, "**/*.jar", "META-INF/plugin.xml")
+def _replace_build_number(content, info_file):
+  build_info = _read_status_file(info_file)
   bid = _get_build_id(build_info)
+  return content.replace("__BUILD_NUMBER__", bid)
+  
 
-  if overwrite_plugin_version:
-    build_txt = _read_file(platform, resource_path + "build.txt")
-    content = _stamp_plugin_file(build_txt[3:], content)
+def _read_file(file, entry = None, optional_entry = False):
+  if entry:
+    return utils.read_zip_entry(file, entry, optional_entry)
+  else:
+    return utils.read_file(file)
 
-  content = content.replace("__BUILD_NUMBER__", bid)
-
-  _write_file(dst, "w", content, jar_name, "META-INF/plugin.xml")
-
-
-def _produce_manifest(platform, os, build_info, build_version, channel,
-                      code_name, eap, micro, patch, full, out):
-  """Produces a manifest with build information.
-
-  The manifest follows the proto defined at
-  wireless/android/devtools/infra/release/studio/proto/build_metadata.proto.
-
-  The build manifest should be platform-independent, but much of the
-  information in the manifest has to come from platform files.
-  """
-  resource_path = RES_PATH[os]
-  base_path = BASE_PATH[os]
-  bid = _get_build_id(build_info)
-
-  build_txt = _read_file(platform, resource_path + "build.txt")
-  app_info = _read_file(platform, base_path + "lib/resources.jar",
-                        "idea/AndroidStudioApplicationInfo.xml")
-
-  build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
-  build_date = _format_build_date(build_version)
-
-  # Remove the product code (e.g. "AI-")
-  build_number = build_txt[3:]
-
-  channel = "CHANNEL_" + channel.upper()
-
-  m = re.search(r'version.*major="(\d+)"', app_info)
-  major = m.group(1)
-
-  m = re.search(r'version.*minor="(\d+)"', app_info)
-  minor = m.group(1)
-
-  # full may contain "{0} {1} {2}" as placeholders for version components
-  full = full.format(major, minor, micro)
-
-  contents = ('major: {major}\n'
-             'minor: {minor}\n'
-             'micro: {micro}\n'
-             'patch: {patch}\n'
-             'build_number: "{build_number}"\n'
-             'code_name: "{code_name}"\n'
-             'full_name: "{full_name}"\n'
-             'channel: {channel}\n'
-  ).format(major=major, minor=minor, micro=micro, patch=patch,
-           build_number=build_number, code_name=code_name,
-           full_name=full, channel=channel)
-
-  with open(out, "a") as f:
-    f.write(contents)
-
-
-def _stamp_platform(platform, os, build_info, build_version, eap, micro, patch, full, out):
-  resource_path = RES_PATH[os]
-  base_path = BASE_PATH[os]
-  bid = _get_build_id(build_info)
-
-  build_txt = _read_file(platform, resource_path + "build.txt")
-  app_info = _read_file(platform, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
-
-  build_txt = build_txt.replace("__BUILD_NUMBER__", bid)
-  build_date = _format_build_date(build_version)
-  app_info = _stamp_app_info(build_date, build_txt, micro, patch, full, eap, app_info)
-
-  _write_file(out, "w", build_txt, resource_path + "build.txt")
-  _write_file(out, "a", app_info, base_path + "lib/resources.jar", "idea/AndroidStudioApplicationInfo.xml")
-
-  if os == "linux" or os == "mac" or os == "mac_arm":
-    product_info_json = _read_file(platform, resource_path + "product-info.json")
-    product_info_json = _stamp_product_info_json(bid, build_txt, product_info_json)
-    _write_file(out, "a", product_info_json, resource_path + "product-info.json")
-
-  if os == "mac" or os == "mac_arm":
-    info_plist = _read_file(platform, base_path + "Info.plist")
-    info_plist = info_plist.replace("__BUILD_NUMBER__", bid)
-    _write_file(out, "a", info_plist, base_path + "Info.plist")
-
+def _write_file(src, dst, data, entry = None):
+  if entry:
+    if data is None:
+      shutil.copy(src, dst)
+    else:
+      utils.change_zip_entry(src, entry, data, dst)
+  else:
+    utils.write_file(dst, data)
 
 def main(argv):
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--stamp_plugin",
+      "--stamp",
       nargs=2,
       metavar=("src", "dst"),
-      dest="stamp_plugin",
-      help="Stamps plugin zip <in> and saves stampped files in an <out> zip.")
+      dest="stamp",
+      help="Stamps file <src> and saves it in <dst> performing the indicated actions.")
+  parser.add_argument(
+      "--entry",
+      dest="entry",
+      help="Whether to treat the input and output as zips and replace this entry in it.")
+  parser.add_argument(
+      "--optional_entry",
+      action="store_true",
+      help="Replaces json")
+  parser.add_argument(
+      "--replace_build_number",
+      action="store_true",
+      help="Replaces __BUILD_NUMBER__ on the given file using --info_file.")
+  parser.add_argument(
+      "--stamp_app_info",
+      action="store_true",
+      help="Replaces xml")
+  parser.add_argument(
+      "--stamp_product_info",
+      action="store_true",
+      help="Replaces json")
   parser.add_argument(
       "--overwrite_plugin_version",
       action="store_true",
       help="Whether to set the <version> and <idea-version> tags for this plugin.")
   parser.add_argument(
-      "--stamp_platform",
+      "--build_txt",
       default="",
-      dest="stamp_platform",
-      help="The path to the output zipfile with the stamped platform files.")
-  parser.add_argument(
-      "--os",
-      default="",
-      dest="os",
-      choices = ["linux", "mac", "mac_arm", "win"],
-      help="The operating system the platform belongs to")
+      required = "--stamp_app_info" in sys.argv or "--stamp_product_info" in sys.argv or "--overwrite_plugin_version" in sys.argv,
+      dest="build_txt",
+      help="The path to the build.txt file.")
   parser.add_argument(
       "--version_micro",
       default="",
       dest="version_micro",
+      required = "--stamp_app_info" in sys.argv,
       help="The 'micro' part of the version number: major.minor.micro.patch")
   parser.add_argument(
       "--version_patch",
       default="",
       dest="version_patch",
+      required = "--stamp_app_info" in sys.argv,
       help="The 'patch' part of the version number: major.minor.micro.patch")
   parser.add_argument(
       "--version_full",
       default="",
       dest="version_full",
+      required = "--stamp_app_info" in sys.argv,
       help="The descriptive form of the version. Can use {0} to refer to version components, like \"{0}.{1} Canary 2\"")
   parser.add_argument(
       "--eap",
       default="",
       dest="eap",
+      required = "--stamp_app_info" in sys.argv,
       help="Whether this build is a canary/eap build")
-  parser.add_argument(
-      "--platform",
-      default="",
-      required=True,
-      dest="platform",
-      help="Path to the unstamped platform zip file.")
   parser.add_argument(
       "--info_file",
       default="",
       dest="info_file",
-      required=True,
+      required = "--replace_build_number" in sys.argv or "--stamp_product_info" in sys.argv,
       help="Path to the bazel build info file (bazel-out/stable-status.txt).")
   parser.add_argument(
       "--version_file",
       default="",
       dest="version_file",
-      required=True,
+      required = "--stamp_app_info" in sys.argv,
       help="Path to the bazel version file (bazel-out/volatile-status.txt).")
-  parser.add_argument(
-      "--produce_manifest",
-      default="",
-      dest="produce_manifest",
-      help="Path at which this will produce a standalone manifest with build information.")
-  parser.add_argument(
-      "--channel",
-      default="",
-      dest="channel",
-      help="One of the release channels, e.g. Canary or Beta.")
-  parser.add_argument(
-      "--code_name",
-      default="",
-      dest="code_name",
-      help="The code name, e.g. Bumblebee or Dolphin.")
   args = parser.parse_args(argv)
-  build_info = _read_status_file(args.info_file)
-  build_version = _read_status_file(args.version_file)
+  content = _read_file(args.stamp[0], args.entry, args.optional_entry)
 
-  if args.stamp_platform:
-    _stamp_platform(
-        platform = args.platform,
-        os = args.os,
-        build_info = build_info,
-        build_version = build_version,
-        eap = args.eap,
-        micro = args.version_micro,
-        patch = args.version_patch,
-        full = args.version_full,
-        out = args.stamp_platform)
-  if args.stamp_plugin:
-    _stamp_plugin(args.platform, args.os, build_info, args.overwrite_plugin_version, args.stamp_plugin[0], args.stamp_plugin[1])
-  if args.produce_manifest:
-    _produce_manifest(
-        platform = args.platform,
-        os = args.os,
-        build_info = build_info,
-        build_version = build_version,
-        channel = args.channel,
-        code_name = args.code_name,
-        eap = args.eap,
-        micro = args.version_micro,
-        patch = args.version_patch,
-        full = args.version_full,
-        out = args.produce_manifest)
+  if content:
+    if args.replace_build_number:
+      content = _replace_build_number(content, args.info_file)
+
+    if args.stamp_app_info:
+      content = _stamp_app_info(args.version_file, args.build_txt, args.version_micro, args.version_patch, args.version_full, args.eap, content)
+
+    if args.overwrite_plugin_version:
+      content = _overwrite_plugin_version(args.build_txt, content)
+
+    if args.stamp_product_info:
+      content = _stamp_product_info(args.info_file, args.build_txt, content)
+
+  _write_file(args.stamp[0], args.stamp[1], content, args.entry)
 
 if __name__ == "__main__":
   main(sys.argv[1:])

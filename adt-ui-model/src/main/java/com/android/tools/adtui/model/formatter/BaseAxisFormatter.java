@@ -36,6 +36,8 @@ public abstract class BaseAxisFormatter {
 
   private final boolean mHasSeparator;
 
+  private final boolean mHasCommas;
+
   private final DoubleToIntFunction mMaxDecimals;
 
   /**
@@ -50,19 +52,31 @@ public abstract class BaseAxisFormatter {
    *                        the axis will return millisecond intervals up to 5000ms before
    *                        transitioning to second intervals.
    * @param hasSeparator    Whether there is a space separating the value and the unit (e.g. 10% vs 10 MB).
+   * @param hasCommas       Whether there are commas as thousands separators (e.g. 1000 vs 1,000). Defaults
+   *                        to false, but can be set via the respective constructor.
    * @param maxDecimals     Function computing max decimals to display for number
    */
-  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator,
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator, boolean hasCommas,
                               DoubleToIntFunction maxDecimals) {
     mMaxMinorTicks = Math.max(1, maxMinorTicks);
     mMaxMajorTicks = Math.max(1, maxMajorTicks);
     mSwitchThreshold = switchThreshold;
     mHasSeparator = hasSeparator;
+    mHasCommas = hasCommas;
     mMaxDecimals = maxDecimals;
   }
 
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator,
+                              DoubleToIntFunction maxDecimals) {
+    this(maxMinorTicks, maxMajorTicks, switchThreshold, hasSeparator, false, maxDecimals);
+  }
+
+  protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator, boolean hasCommas) {
+    this(maxMinorTicks, maxMajorTicks, switchThreshold, hasSeparator, hasCommas, n -> 1);
+  }
+
   protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold, boolean hasSeparator) {
-    this(maxMinorTicks, maxMajorTicks, switchThreshold, hasSeparator, n -> 1);
+    this(maxMinorTicks, maxMajorTicks, switchThreshold, hasSeparator, false);
   }
 
   protected BaseAxisFormatter(int maxMinorTicks, int maxMajorTicks, int switchThreshold) {
@@ -79,9 +93,12 @@ public abstract class BaseAxisFormatter {
   public String getFormattedString(double globalRange, double value, boolean includeUnit) {
     Multiplier multiplier = getMultiplier(globalRange, 1);
     double multipliedValue = value / multiplier.accumulation;
+    // If commas are included, the non-decimal portion of the value (whole number) uses commas to separate every
+    // thousand. If not, the raw whole number is used.
+    String wholeNumPattern = mHasCommas ? "#,###." : "#.";
     // If value is an integer number, don't include the floating point/decimal places in the formatted string.
     // Otherwise, add up to specified decimal places of value.
-    DecimalFormat decimalFormat = new DecimalFormat("#." + StringUtil.repeat("#", mMaxDecimals.applyAsInt(multipliedValue)));
+    DecimalFormat decimalFormat = new DecimalFormat(wholeNumPattern + StringUtil.repeat("#", mMaxDecimals.applyAsInt(multipliedValue)));
     String formattedValue = decimalFormat.format(multipliedValue);
     if (!includeUnit) {
       return formattedValue;

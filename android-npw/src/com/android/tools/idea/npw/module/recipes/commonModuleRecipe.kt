@@ -23,7 +23,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
-import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectBuildGradle
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
@@ -53,6 +52,7 @@ fun RecipeExecutor.generateCommonModule(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   bytecodeLevel: BytecodeLevel = BytecodeLevel.default,
+  noKtx: Boolean = false,
   useVersionCatalog: Boolean
   ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
@@ -91,11 +91,11 @@ fun RecipeExecutor.generateCommonModule(
 
   // Note: com.android.* needs to be applied before kotlin
   when {
-    isLibraryProject -> applyPlugin("com.android.library", projectData.gradlePluginVersion)
-    data.isDynamic -> applyPlugin("com.android.dynamic-feature", projectData.gradlePluginVersion)
-    else -> applyPlugin("com.android.application", projectData.gradlePluginVersion)
+    isLibraryProject -> applyPlugin("com.android.library", projectData.agpVersion)
+    data.isDynamic -> applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
+    else -> applyPlugin("com.android.application", projectData.agpVersion)
   }
-  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api)
+  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api, noKtx = noKtx)
   requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))

@@ -34,7 +34,6 @@ import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.Executor
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -44,6 +43,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
+import java.util.concurrent.Executor
 
 /** Classed used to access the database */
 interface DatabaseRepository {

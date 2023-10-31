@@ -25,7 +25,7 @@ import java.util.IdentityHashMap
  * the objects they contain as their children, despite not necessarily having direct references
  * to them).
  */
-class ElidingExpander(private val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
+class ElidingExpander(val baseTypeName: String, val childFinder: Any.() -> List<Any>): Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
   override fun canExpand(obj: Any) = obj.javaClass.name == baseTypeName
 
@@ -77,6 +77,7 @@ class ElidingExpander(private val baseTypeName: String, val childFinder: Any.() 
 
     private val childFinders = listOf<Pair<String, (Any) -> List<Any>>>(
       "java.util.HashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
+      "java.util.LinkedHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "value") },
       "java.util.concurrent.ConcurrentHashMap" to { hm -> listOf(hm).fields("table").expandArrays().recFields("next").fields("key", "val") },
       "java.util.TreeMap" to { tm -> listOf(tm).fields("root").recFields("left", "right").fields("key", "value") },
       "java.util.LinkedList" to { ll -> listOf(ll).fields("first").recFields("next").fields("item") }

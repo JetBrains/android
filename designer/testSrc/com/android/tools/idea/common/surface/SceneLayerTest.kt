@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.surface
 
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
@@ -33,7 +33,7 @@ class SceneLayerTest {
   @Before
   fun setUp() {
     Mockito.`when`(designSurfaceMock.getSceneViewAt(anyInt(), anyInt())).then {
-      when(it.arguments[0]) {
+      when (it.arguments[0]) {
         1 -> sceneViewMock
         2 -> otherSceneViewMock
         else -> null

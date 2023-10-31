@@ -33,7 +33,6 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.utils.ILogger;
 import com.android.utils.NullLogger;
 import com.android.utils.Pair;
-import com.android.utils.XmlUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.application.ApplicationManager;

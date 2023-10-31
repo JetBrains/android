@@ -69,7 +69,7 @@ public class CpuMonitor extends ProfilerMonitor {
 
   @Override
   public void expand() {
-    myProfilers.setStage(new CpuProfilerStage(myProfilers));
+    myProfilers.setStage(new CpuProfilerStage(myProfilers, CpuCaptureMetadata.CpuProfilerEntryPoint.CPU_MONITOR));
   }
 
   @NotNull

@@ -102,7 +102,9 @@ import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
@@ -116,10 +118,7 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
@@ -127,12 +126,14 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scout.Direction;
+import com.android.tools.module.AndroidModuleInfo;
 import com.android.utils.Pair;
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -712,7 +713,7 @@ public final class ConstraintComponentUtilities {
 
   public static void setDpAttribute(String uri, String attribute, NlAttributesHolder transaction, int value) {
     if (value > 0) {
-      String position = String.format(VALUE_N_DP, value);
+      String position = String.format(Locale.US, VALUE_N_DP, value);
       transaction.setAttribute(uri, attribute, position);
     }
   }
@@ -837,12 +838,12 @@ public final class ConstraintComponentUtilities {
 
   private static void clearAllAttributes(NlComponent component, NlAttributesHolder transaction) {
     if (isWidthConstrained(component) && isHorizontalResizable(component)) {
-      String fixedWidth = String.format(VALUE_N_DP, getDpWidth(component));
+      String fixedWidth = String.format(Locale.US, VALUE_N_DP, getDpWidth(component));
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, fixedWidth);
     }
 
     if (isHeightConstrained(component) && isVerticalResizable(component)) {
-      String fixedHeight = String.format(VALUE_N_DP, getDpHeight(component));
+      String fixedHeight = String.format(Locale.US, VALUE_N_DP, getDpHeight(component));
       transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, fixedHeight);
     }
     clearAttributes(SHERPA_URI, ourConstraintLayoutAttributesToClear, transaction);
@@ -904,7 +905,7 @@ public final class ConstraintComponentUtilities {
     }
     int dx = getXfromParent(component);
     if (dx > 0) {
-      String position = String.format(VALUE_N_DP, Coordinates.pxToDp(component.getModel(), dx));
+      String position = String.format(Locale.US, VALUE_N_DP, Coordinates.pxToDp(component.getModel(), dx));
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, position);
     }
   }
@@ -915,7 +916,7 @@ public final class ConstraintComponentUtilities {
     }
     int dy = getYfromParent(component);
     if (dy > 0) {
-      String position = String.format(VALUE_N_DP, Coordinates.pxToDp(component.getModel(), dy));
+      String position = String.format(Locale.US, VALUE_N_DP, Coordinates.pxToDp(component.getModel(), dy));
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, position);
     }
   }
@@ -1538,7 +1539,7 @@ public final class ConstraintComponentUtilities {
     if (dp <= 0) {
       return;
     }
-    String position = String.format(VALUE_N_DP, dp);
+    String position = String.format(Locale.US, VALUE_N_DP, dp);
     AttributesTransaction transaction = component.startAttributeTransaction();
     transaction.setAttribute(uri, attribute, position);
     if (apply) {

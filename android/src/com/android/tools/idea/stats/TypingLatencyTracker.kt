@@ -23,6 +23,7 @@ import com.android.tools.idea.stats.TypingLatencyTracker.reportTypingLatency
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
 import com.google.wireless.android.sdk.stats.TypingLatencyStats
+import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -77,11 +78,10 @@ object TypingLatencyTracker : LatencyListener {
       }
       allStats.addLatencyRecords(record.build())
     }
-
+    allStats.setEssentialHighlighting(EssentialHighlightingMode.isEnabled())
     if (allStats.latencyRecordsCount == 0) {
       return
     }
-
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.TYPING_LATENCY_STATS

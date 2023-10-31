@@ -27,7 +27,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Drawing;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.ActionGroup;

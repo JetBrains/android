@@ -21,8 +21,8 @@ import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.ComposePreviewManager
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionUpdateThread

@@ -36,7 +36,7 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
       """
     package androidx.compose.foundation.layout
 
-    import androidx.compose.Composable
+    import androidx.compose.runtime.Composable
 
     inline fun Row(content: @Composable () -> Unit) {}
     inline fun Column(content: @Composable () -> Unit) {}
@@ -52,7 +52,7 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
       import androidx.compose.foundation.layout.Column
 
       @Composable
@@ -78,7 +78,7 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
       """
       package com.example
 
-      import androidx.compose.Composable
+      import androidx.compose.runtime.Composable
       import androidx.compose.foundation.layout.Column
 
       @Composable

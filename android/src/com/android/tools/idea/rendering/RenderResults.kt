@@ -17,8 +17,10 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
-import com.android.tools.idea.rendering.imagepool.ImagePool
-import com.android.tools.idea.util.androidFacet
+import com.android.tools.rendering.RenderLogger
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderResultStats
+import com.android.tools.rendering.imagepool.ImagePool
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ReadAction
@@ -33,7 +35,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
   val module = ReadAction.compute<Module, Throwable> { ModuleUtilCore.findModuleForPsiElement(file) }
   assert(module != null)
   val result = RenderResult(
-    file,
+    { StudioEnvironmentContext(module).getOriginalFile(file) },
     module.project,
     { module },
     logger ?: RenderLogger(module.project),

@@ -15,26 +15,18 @@
  */
 package com.android.tools.componenttree.api
 
-/**
- * Interactions on a component tree after it is created.
- */
+/** Interactions on a component tree after it is created. */
 interface TableVisibility {
 
-  /**
-   * Control the visibility of the header in the component tree.
-   */
+  /** Control the visibility of the header in the component tree. */
   fun setHeaderVisibility(visible: Boolean)
 
-  /**
-   * Control the visibility of the columns in the component tree.
-   */
+  /** Control the visibility of the columns in the component tree. */
   fun setColumnVisibility(columnIndex: Int, visible: Boolean)
 }
 
-/**
- * A [TableVisibility] implementation that does nothing.
- */
-class NoOpTableVisibility: TableVisibility {
+/** A [TableVisibility] implementation that does nothing. */
+class NoOpTableVisibility : TableVisibility {
   override fun setHeaderVisibility(visible: Boolean) {}
   override fun setColumnVisibility(columnIndex: Int, visible: Boolean) {}
 }

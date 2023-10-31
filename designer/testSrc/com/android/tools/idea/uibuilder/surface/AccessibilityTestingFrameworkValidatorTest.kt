@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
+import com.android.tools.rendering.RenderResult
 import com.android.tools.res.FrameworkResourceRepositoryManager
 import com.google.common.util.concurrent.Futures
 import org.jetbrains.android.AndroidTestCase
@@ -31,10 +31,11 @@ import java.util.stream.Collectors
 class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 
   companion object {
-    private val TEST_POLICY = ValidatorData.Policy(
-      EnumSet.of(ValidatorData.Type.ACCESSIBILITY,
-                 ValidatorData.Type.RENDER),
-      EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING))
+    private val TEST_POLICY =
+      ValidatorData.Policy(
+        EnumSet.of(ValidatorData.Type.ACCESSIBILITY, ValidatorData.Type.RENDER),
+        EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING)
+      )
   }
 
   @Throws(Exception::class)
@@ -48,17 +49,14 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
     try {
       RenderTestUtil.afterRenderTestCase()
       LayoutValidator.updatePolicy(LayoutValidator.DEFAULT_POLICY)
-    }
-    finally {
+    } finally {
       FrameworkResourceRepositoryManager.getInstance().clearCache()
       super.tearDown()
     }
   }
 
   fun testRenderHasResult() {
-    renderAndValidate(DUP_BOUNDS_LAYOUT) { validatorResult ->
-      assertNotNull(validatorResult)
-    }
+    renderAndValidate(DUP_BOUNDS_LAYOUT) { validatorResult -> assertNotNull(validatorResult) }
   }
 
   fun testDupBounds() {
@@ -83,7 +81,8 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
   }
 
   private fun renderAndValidate(layout: String, validationChecks: (ValidatorResult) -> Unit) {
-    val layoutFile = myFixture.addFileToProject("res/layout/layoutvalidator.xml", layout).virtualFile
+    val layoutFile =
+      myFixture.addFileToProject("res/layout/layoutvalidator.xml", layout).virtualFile
     val layoutConfiguration = RenderTestUtil.getConfiguration(myModule, layoutFile)
     RenderTestUtil.withRenderTask(myFacet, layoutFile, layoutConfiguration, true) {
       val result = Futures.getUnchecked(it.render())
@@ -97,8 +96,12 @@ class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
   }
 
   private fun filter(
-    results: List<ValidatorData.Issue>, sourceClass: String): List<ValidatorData.Issue?> {
-    return results.stream().filter { issue: ValidatorData.Issue -> sourceClass == issue.mSourceClass }.collect(
-      Collectors.toList())
+    results: List<ValidatorData.Issue>,
+    sourceClass: String
+  ): List<ValidatorData.Issue?> {
+    return results
+      .stream()
+      .filter { issue: ValidatorData.Issue -> sourceClass == issue.mSourceClass }
+      .collect(Collectors.toList())
   }
 }

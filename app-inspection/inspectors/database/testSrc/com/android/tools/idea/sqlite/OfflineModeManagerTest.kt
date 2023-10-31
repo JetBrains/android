@@ -25,8 +25,6 @@ import com.android.tools.idea.testing.runDispatching
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +34,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 class OfflineModeManagerTest : LightPlatformTestCase() {
 

@@ -35,27 +35,27 @@ import org.junit.Rule
 import org.junit.Test
 
 class DimensionBuilderTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Before
   fun before() {
     val application = ApplicationManager.getApplication()
-    application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
+    application.registerServiceInstance(
+      PropertiesComponent::class.java,
+      PropertiesComponentMock(),
+      disposableRule.disposable
+    )
   }
 
   @Test
   fun testDimensionModel() {
-    val model = model {
-      view(ROOT, 10, 20, 30, 40,  qualifiedName = "rootType")
-    }
-    val properties = PropertiesTable.create(HashBasedTable.create<String, String, InspectorPropertyItem>())
+    val model = model { view(ROOT, 10, 20, 30, 40, qualifiedName = "rootType") }
+    val properties =
+      PropertiesTable.create(HashBasedTable.create<String, String, InspectorPropertyItem>())
     addInternalProperties(properties, model[1L]!!, "root", model)
     val inspector = FakeInspectorPanel()
     DimensionBuilder.attachToInspector(inspector, properties)

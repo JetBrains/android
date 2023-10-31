@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.annotator.registerLanguageExtensionPoint
-import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserDefinition
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.caret
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionContributorEP
-import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import kotlin.test.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,11 +39,6 @@ internal class DeviceSpecCompletionContributorTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-    fixture.registerLanguageExtensionPoint(
-      LanguageParserDefinitions.INSTANCE,
-      DeviceSpecParserDefinition(),
-      DeviceSpecLanguage
-    )
     val ep =
       ApplicationManager.getApplication()
         .extensionArea
@@ -72,20 +64,20 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Test
   fun providedDeviceInId() {
-    fixture.completeDeviceSpec("id:Nexus 7$caret")
+    fixture.completeDeviceSpec("id:pixel_7$caret")
 
     assertEquals(2, fixture.lookupElementStrings!!.size)
-    assertEquals("Nexus 7", fixture.lookupElementStrings!![0])
-    assertEquals("Nexus 7 2013", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_7", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_7_pro", fixture.lookupElementStrings!![1])
   }
 
   @Test
   fun providedDeviceInParent() {
-    fixture.completeDeviceSpec("spec:parent=Nexus 7$caret")
+    fixture.completeDeviceSpec("spec:parent=pixel_7$caret")
 
     assertEquals(2, fixture.lookupElementStrings!!.size)
-    assertEquals("Nexus 7", fixture.lookupElementStrings!![0])
-    assertEquals("Nexus 7 2013", fixture.lookupElementStrings!![1])
+    assertEquals("pixel_7", fixture.lookupElementStrings!![0])
+    assertEquals("pixel_7_pro", fixture.lookupElementStrings!![1])
   }
 
   @Test

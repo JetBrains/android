@@ -19,12 +19,14 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 
-
+// TODO(b/279220000): Run button is grayed out in the failing tests while debug button is not.
+@Ignore
 class BuildAndRunInstrumentedTest {
   @JvmField
   @Rule

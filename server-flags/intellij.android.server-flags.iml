@@ -12,23 +12,28 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="libserver-flag-test-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libserver-flag-test-proto:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libserver-flag-test-proto:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/223.0.1.0/libserver-flag-test-proto-223.0.1.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/231.0.1.4/libserver-flag-test-proto-231.0.1.4.jar">
               <sha256sum>f2aff0fdc4b9eeb19459b71b2d0258cfac15000a2d22bf37b6d2502f71d0782e</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/223.0.1.0/libserver-flag-test-proto-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/231.0.1.4/libserver-flag-test-proto-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/231.0.1.4/libserver-flag-test-proto-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.extensions" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
   </component>
 </module>

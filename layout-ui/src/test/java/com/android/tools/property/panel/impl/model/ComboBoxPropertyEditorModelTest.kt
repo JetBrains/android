@@ -48,26 +48,30 @@ import javax.swing.event.ListDataListener
 class ComboBoxPropertyEditorModelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
   private fun createEnumSupport(action: AnAction? = null, delayed: Boolean = false) =
     FakeEnumSupport("visible", "invisible", "gone", action = action, delayed = delayed)
 
-  private fun createModel(editable: Boolean = true): ComboBoxPropertyEditorModel = createModel(createEnumSupport(), editable)
+  private fun createModel(editable: Boolean = true): ComboBoxPropertyEditorModel =
+    createModel(createEnumSupport(), editable)
 
-  private fun createModel(enumSupport: EnumSupport, editable: Boolean = true): ComboBoxPropertyEditorModel {
-    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
+  private fun createModel(
+    enumSupport: EnumSupport,
+    editable: Boolean = true
+  ): ComboBoxPropertyEditorModel {
+    val property =
+      FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible", editingSupport = MyEditingSupport())
     property.defaultValue = "defaultNone"
     return ComboBoxPropertyEditorModel(property, enumSupport, editable)
   }
 
-  private fun createModelWithListener(enumSupport: EnumSupport): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
+  private fun createModelWithListener(
+    enumSupport: EnumSupport
+  ): Pair<ComboBoxPropertyEditorModel, ValueChangedListener> {
     val model = createModel(enumSupport)
     val listener = mock(ValueChangedListener::class.java)
     model.addListener(listener)
@@ -116,11 +120,13 @@ class ComboBoxPropertyEditorModelTest {
 
   @Test
   fun testDropDownIsDefaultValueWithNewEmptyValue() {
-    val model = ComboBoxPropertyEditorModel(
-      property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "").apply { defaultValue = "invisible" },
-      enumSupport = createEnumSupport(),
-      editable = false
-    )
+    val model =
+      ComboBoxPropertyEditorModel(
+        property =
+          FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "").apply { defaultValue = "invisible" },
+        enumSupport = createEnumSupport(),
+        editable = false
+      )
 
     assertThat(model.selectedItem).isEqualTo(EnumValue.item("invisible"))
     assertThat(model.getIndexOfCurrentValue()).isEqualTo(-1)
@@ -260,14 +266,13 @@ class ComboBoxPropertyEditorModelTest {
     enumSupport.releaseAll()
   }
 
-  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel) : ListDataListener {
+  private class RecursiveListDataListener(private val model: ComboBoxPropertyEditorModel) :
+    ListDataListener {
     var called = false
 
-    override fun intervalRemoved(event: ListDataEvent) {
-    }
+    override fun intervalRemoved(event: ListDataEvent) {}
 
-    override fun intervalAdded(event: ListDataEvent) {
-    }
+    override fun intervalAdded(event: ListDataEvent) {}
 
     override fun contentsChanged(event: ListDataEvent) {
       model.addListDataListener(RecursiveListDataListener(model))
@@ -283,10 +288,8 @@ private class MyEditingSupport : EditingSupport {
   override val validation: EditingValidation = { text ->
     if (text?.lowercase(Locale.US) == "error") {
       Pair(EditingErrorCategory.ERROR, "")
-    }
-    else {
+    } else {
       EDITOR_NO_ERROR
     }
   }
 }
-

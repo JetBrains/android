@@ -52,7 +52,7 @@ class SummaryScreenViewModel(private val designAssetImporter: DesignAssetImporte
                              private val facet: AndroidFacet,
                              val availableResDirs: Array<SourceSetResDir>) {
 
-  var selectedFile: File? by Delegates.observable(null, { _, old, new ->
+  var selectedFile: File? by Delegates.observable<File?>(null, { _, old, new ->
     if (!FileUtil.filesEqual(new, old)) {
       updateCallback()
     }

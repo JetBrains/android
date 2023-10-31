@@ -27,16 +27,22 @@ import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
 import com.google.common.collect.ImmutableList
 
-/**
- * Handler for the <merge> tag
- */
+/** Handler for the <merge> tag */
 class MergeHandler : FrameLayoutHandler() {
-  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler {
+  override fun createDragHandler(
+    editor: ViewEditor,
+    layout: SceneComponent,
+    components: List<NlComponent>,
+    type: DragType
+  ): DragHandler {
     return FrameDragHandler(editor, this, layout, components, type)
   }
 
   override fun getInspectorProperties(): List<String> {
-    return ImmutableList.of(TOOLS_NS_NAME_PREFIX + ATTR_SHOW_IN, TOOLS_NS_NAME_PREFIX + ATTR_PARENT_TAG)
+    return ImmutableList.of(
+      TOOLS_NS_NAME_PREFIX + ATTR_SHOW_IN,
+      TOOLS_NS_NAME_PREFIX + ATTR_PARENT_TAG
+    )
   }
 
   override fun getTitle(tagName: String): String {

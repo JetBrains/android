@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.upgrade;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.intellij.openapi.project.Project;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.gradle.util.GradleVersion;
 
 public interface AndroidPluginVersionUpdater {
   static AndroidPluginVersionUpdater getInstance(@NotNull Project project) {

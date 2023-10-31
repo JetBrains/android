@@ -300,7 +300,7 @@ object ExceptionRegistry {
             if (sb.last() != arrow) {
               sb.append(':')
             }
-            sb.append(lineNumber.toString())
+            sb.append(Integer.toString(lineNumber))
           }
 
           prevClass = className

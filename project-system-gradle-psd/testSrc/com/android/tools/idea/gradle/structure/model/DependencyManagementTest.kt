@@ -30,8 +30,10 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.util.toIoFile
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.nullize
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.notNullValue
@@ -580,6 +582,15 @@ class DependencyManagementTest {
       project.applyChanges()
       requestSyncAndWait()
       reparse()
+
+      // check if we have lib1 declared in catalog with version declared in versions section
+      val updatedCatalogModel = project.parsedModel.versionCatalogsModel.getVersionCatalogModel("libs")!!
+      val libsText = VfsUtil.loadText(updatedCatalogModel.virtualFile)
+      assertThat(libsText, containsString("{ group = \"com.example.libs\", name = \"lib1\", version.ref = \""))
+      val matcher = "\\{ group = \"com.example.libs\", name = \"lib1\", version.ref = \"(.*)\" }".toRegex().find(libsText)
+      assertThat(matcher, notNullValue())
+      assertThat(matcher!!.groupValues.size, equalTo(2))
+      assertThat(libsText, containsString("${matcher.groupValues[1]} = \"1.0\""))
 
       module = project.findModuleByName("moduleCatalog") as PsAndroidModule
       assertThat(module.dependencies.findLibraryDependency("com.example.libs:lib1:1.0"), notNullValue())

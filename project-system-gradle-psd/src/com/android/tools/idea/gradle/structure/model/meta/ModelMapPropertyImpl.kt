@@ -124,7 +124,7 @@ class ModelMapPropertyImpl<ModelT, ResolvedT, ParsedT, ValueT : Any>(
     }
   }
 
-  private fun modifier(model: ModelT): (() -> Unit) -> Unit = { block -> model.modify { block() } }
+  private fun modifier(model: ModelT): (() -> Unit) -> Unit = { block -> model.modify<Unit> { block() } }
 
   override fun bind(model: ModelT): ModelMapPropertyCore<ValueT> = object : ModelMapPropertyCore<ValueT> {
     override val description: String = this@ModelMapPropertyImpl.description

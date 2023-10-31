@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.performance;
 
-import com.android.tools.idea.bleak.UseBleak;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
@@ -50,7 +50,7 @@ public class AddResourceMemoryUseTest {
         .clickPath(MouseButton.RIGHT_BUTTON, "app")
         .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
         .setFilename("menu_g")
-        .setType("menu")
+        .setType("Menu")
         .clickOk()
         .getProjectView()
         .selectAndroidPane()
@@ -68,7 +68,7 @@ public class AddResourceMemoryUseTest {
         .clickPath(MouseButton.RIGHT_BUTTON, "app")
         .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
         .setFilename("layout_g")
-        .setType("layout")
+        .setType("Layout")
         .clickOk()
         .getProjectView()
         .selectAndroidPane()

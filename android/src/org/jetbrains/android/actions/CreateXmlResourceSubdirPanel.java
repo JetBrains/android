@@ -123,6 +123,9 @@ public class CreateXmlResourceSubdirPanel {
       if (CommonDataKeys.VIRTUAL_FILE_ARRAY.is(dataId)) {
         return new VirtualFile[]{selectedDir};
       }
+      else if (CommonDataKeys.PROJECT.is(dataId)) {
+        return myProject;
+      }
       else {
         return null;
       }

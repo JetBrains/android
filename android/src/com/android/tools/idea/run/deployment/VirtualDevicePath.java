@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,9 +24,10 @@ import org.jetbrains.annotations.Nullable;
  * should be used over virtual device names and serial numbers if possible.
  */
 public final class VirtualDevicePath extends Key {
-  private final @NotNull String myValue;
+  @NotNull
+  private final Object myValue;
 
-  public VirtualDevicePath(@NotNull String value) {
+  public VirtualDevicePath(@NotNull Path value) {
     myValue = value;
   }
 
@@ -41,6 +43,6 @@ public final class VirtualDevicePath extends Key {
 
   @Override
   public @NotNull String toString() {
-    return myValue;
+    return myValue.toString();
   }
 }

@@ -26,17 +26,18 @@ import com.intellij.ui.EditorNotifications
 import java.util.function.Function
 import javax.swing.JComponent
 
-/**
- * A [EditorNotificationProvider] for the [DesignSurface].
- */
+/** A [EditorNotificationProvider] for the [DesignSurface]. */
 class DesignSurfaceNotificationProvider : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
-    return Function { createNotificationPanel(file, it, project) }
-  }
 
-  private fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
-    val surface: DesignSurface<*> = (fileEditor as? NlEditor)?.component?.surface ?: return null
-    return if (!surface.isRefreshing && surface.sceneManagers.any { it.isOutOfDate }) {
+  override fun collectNotificationData(
+    project: Project,
+    file: VirtualFile
+  ): Function<in FileEditor, out JComponent?>? {
+    return Function { fileEditor: FileEditor ->
+      val surface: DesignSurface<*> =
+        (fileEditor as? NlEditor)?.component?.surface ?: return@Function null
+      if (surface.isRefreshing || !surface.sceneManagers.any { it.isOutOfDate })
+        return@Function null
       EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
         text = "The preview is out of date"
         createActionLabel("Refresh") {
@@ -44,6 +45,6 @@ class DesignSurfaceNotificationProvider : EditorNotificationProvider {
           EditorNotifications.getInstance(project).updateNotifications(file)
         }
       }
-    } else null
+    }
   }
 }

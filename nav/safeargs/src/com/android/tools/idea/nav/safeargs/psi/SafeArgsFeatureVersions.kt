@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi
 
 import com.android.ide.common.gradle.Version
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import org.jetbrains.android.facet.AndroidFacet
 

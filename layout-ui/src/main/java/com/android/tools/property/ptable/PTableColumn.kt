@@ -18,9 +18,7 @@ package com.android.tools.property.ptable
 import com.android.tools.property.ptable.PTableColumn.NAME
 import com.android.tools.property.ptable.PTableColumn.VALUE
 
-/**
- * Column enumeration specifying either the [NAME] or the [VALUE] column.
- */
+/** Column enumeration specifying either the [NAME] or the [VALUE] column. */
 enum class PTableColumn {
   NAME,
   VALUE;

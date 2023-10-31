@@ -17,6 +17,7 @@ package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.intellij.ui.AnimatedIcon
+import com.intellij.ui.ExperimentalUI.Companion.isNewUI
 import com.intellij.ui.components.JBLabel
 import java.awt.Color
 import javax.swing.Icon
@@ -34,17 +35,14 @@ interface IconTableComponent : TableComponent {
   var baseIcon: Icon?
   var iconColor: Color?
   fun setIcon(icon: Icon?)
+}
 
-  override fun updateTablePresentation(
-    manager: TablePresentationManager,
-    presentation: TablePresentation
-  ) {
-    iconColor =
-      when {
-        presentation.rowSelected -> presentation.foreground
-        else -> null
-      }
-  }
+fun IconTableComponent.updateIconColor(presentation: TablePresentation) {
+  iconColor =
+    when {
+      presentation.rowSelected && !isNewUI() -> presentation.foreground
+      else -> null
+    }
 }
 
 /** A property delegate that calls [IconTableComponent.updateIcon] when its value changes. */
@@ -79,16 +77,46 @@ class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableCom
     super.addNotify()
     updateIcon()
   }
+
+  override fun updateTablePresentation(
+    manager: TablePresentationManager,
+    presentation: TablePresentation
+  ) {
+    manager.defaultApplyPresentation(this, presentation)
+    updateIconColor(presentation)
+  }
 }
 
 /** A JButton that displays an Icon which changes color when it's in a selected row. */
 open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
   override var baseIcon by IconTableComponentProperty(initialBaseIcon)
   override var iconColor: Color? by IconTableComponentProperty(null)
+  private var rowSelected: Boolean = false
+    set(value) {
+      field = value
+      updateBorder()
+    }
+
+  init {
+    addFocusListener { updateBorder() }
+  }
 
   override fun addNotify() {
     super.addNotify()
     updateIcon()
+  }
+
+  override fun updateTablePresentation(
+    manager: TablePresentationManager,
+    presentation: TablePresentation
+  ) {
+    manager.defaultApplyPresentation(this, presentation)
+    updateIconColor(presentation)
+    rowSelected = presentation.rowSelected
+  }
+
+  fun updateBorder() {
+    border = tableCellBorder(rowSelected, isFocusOwner)
   }
 
   override fun updateUI() {

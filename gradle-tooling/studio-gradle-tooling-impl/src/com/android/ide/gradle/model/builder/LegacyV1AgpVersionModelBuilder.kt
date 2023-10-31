@@ -16,7 +16,7 @@
 package com.android.ide.gradle.model.builder
 
 import com.android.ide.gradle.model.LegacyV1AgpVersionModel
-import com.android.ide.gradle.model.builder.LegacyApplicationIdModelBuilder.Companion.invokeMethod
+import com.android.ide.gradle.model.builder.LegacyAndroidGradlePluginPropertiesModelBuilder.Companion.invokeMethod
 import com.android.ide.gradle.model.impl.LegacyV1AgpVersionModelImpl
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilder

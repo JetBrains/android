@@ -27,7 +27,7 @@ object EnterOfflineMode : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
-    state.connections.selected?.connection?.appId?.let { appId ->
+    state.connections.selected?.appId?.let { appId ->
       tracker.logOfflineTransitionAction(
         appId,
         state.mode,
@@ -53,7 +53,7 @@ object EnterOnlineMode : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
-    state.connections.selected?.connection?.appId?.let { appId ->
+    state.connections.selected?.appId?.let { appId ->
       tracker.logOfflineTransitionAction(
         appId,
         state.mode,

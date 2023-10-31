@@ -28,13 +28,13 @@ import javax.swing.KeyStroke
  * Shortcuts for the [EditorDesignSurface].
  *
  * @param keyCode the [KeyEvent] code for the shortcut.
- * @param keyChar KeyChar for the shortcut.
- * This is optional and used to register the
- * the shortcut when the key code does not correspond to the key char (for example,
- * the '+' in on the KeyCode of '='. This is necessary for the Intellij ActionButton which uses
- * the key code to display the character in the tooltip and not the key char.
+ * @param keyChar KeyChar for the shortcut. This is optional and used to register the the shortcut
+ *   when the key code does not correspond to the key char (for example, the '+' in on the KeyCode
+ *   of '='. This is necessary for the Intellij ActionButton which uses the key code to display the
+ *   character in the tooltip and not the key char.
  *
- * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then remove this class.
+ * TODO (b/149212539): Register these shortcuts to plugin xml file to support custom keymap. Then
+ * remove this class.
  *
  * @see KeyStroke
  * @See KeyEvent
@@ -53,32 +53,35 @@ enum class DesignSurfaceShortcut(val keyCode: Int, private val keyChar: Char? = 
   }
 
   /**
-   * Register the shortcut on the provided action within the provided [component] and return the action.
+   * Register the shortcut on the provided action within the provided [component] and return the
+   * action.
    */
-  fun registerForAction(shortcutAction: AnAction,
-                        component: JComponent,
-                        parentDisposable: Disposable
+  fun registerForAction(
+    shortcutAction: AnAction,
+    component: JComponent,
+    parentDisposable: Disposable
   ): AnAction {
     shortcutAction.registerCustomShortcutSet(shortcutSet, component, parentDisposable)
     return shortcutAction
   }
 
   /**
-   * Register this shortcut on [shortcutAction] within the provided [component]
-   * and display the shortcut hint in the description of [visibleAction].
-   * This is useful if the action for which the shortcut is registered is in a submenu.
+   * Register this shortcut on [shortcutAction] within the provided [component] and display the
+   * shortcut hint in the description of [visibleAction]. This is useful if the action for which the
+   * shortcut is registered is in a submenu.
    *
    * @return visibleAction.
    */
-  fun registerForHiddenAction(visibleAction: AnAction,
-                              shortcutAction: AnAction,
-                              component: JComponent,
-                              parentDisposable: Disposable)
-    : AnAction {
+  fun registerForHiddenAction(
+    visibleAction: AnAction,
+    shortcutAction: AnAction,
+    component: JComponent,
+    parentDisposable: Disposable
+  ): AnAction {
     shortcutAction.registerCustomShortcutSet(shortcutSet, component, parentDisposable)
     val presentation = visibleAction.templatePresentation
-    presentation.description = presentation.description +
-      " (" + KeymapUtil.getShortcutsText(shortcutSet.shortcuts) + ")"
+    presentation.description =
+      presentation.description + " (" + KeymapUtil.getShortcutsText(shortcutSet.shortcuts) + ")"
     return visibleAction
   }
 }

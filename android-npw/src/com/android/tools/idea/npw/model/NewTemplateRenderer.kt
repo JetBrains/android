@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.model
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext

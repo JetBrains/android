@@ -15,11 +15,20 @@
  */
 package com.android.tools.idea.adb;
 
+import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import static com.android.tools.idea.flags.StudioFlags.JDWP_SCACHE;
+import static com.google.common.util.concurrent.Futures.immediateFuture;
+
 import com.android.adblib.AdbSession;
 import com.android.adblib.CoroutineScopeCache;
 import com.android.adblib.ddmlibcompatibility.debugging.AdbLibClientManagerFactory;
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbInitOptions;
+import com.android.ddmlib.AdbVersion;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.DdmPreferences;
+import com.android.ddmlib.Log;
+import com.android.ddmlib.TimeoutRemainder;
 import com.android.ddmlib.clientmanager.ClientManager;
 import com.android.tools.idea.adblib.AdbLibApplicationService;
 import com.android.tools.idea.flags.StudioFlags;
@@ -49,13 +58,13 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MILLIS;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link AdbService} is the main entry point to initializing and obtaining the {@link AndroidDebugBridge}.
@@ -69,6 +78,9 @@ import static com.android.ddmlib.AndroidDebugBridge.DEFAULT_START_ADB_TIMEOUT_MI
  */
 @Service
 public final class AdbService implements Disposable, AdbOptionsService.AdbOptionsListener, AndroidDebugBridge.IDebugBridgeChangeListener {
+  @TestOnly
+  public static boolean disabled = false;
+
   private static final Logger LOG = Logger.getInstance(AdbService.class);
   /**
    * The default timeout used by many calls to ddmlib. This includes executing a command,
@@ -88,7 +100,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * or maybe expose 2 timeouts: one for short lived operations, and one for operations that
    * can take a long time.
    */
-  public static final int ADB_DEFAULT_TIMEOUT_MILLIS = (int)TimeUnit.MINUTES.toMillis(50);
+  private static final int ADB_DEFAULT_TIMEOUT_MILLIS = (int)TimeUnit.MINUTES.toMillis(50);
 
   /**
    * Default timeout to use when calling {@link #terminateDdmlib()}. This ensures
@@ -225,6 +237,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * @param adb The full path to the ADB command.
    */
   public @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull File adb) {
+    if (disabled) {
+      return immediateFuture(null);
+    }
     return mySequentialExecutor.submit(() -> myImplementation.getAndroidDebugBridge(adb));
   }
 
@@ -260,6 +275,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * @throws TimeoutException when termination did not complete in {@link #ADB_TERMINATE_TIMEOUT_MILLIS} milliseconds
    */
   public void terminateDdmlib() throws TimeoutException {
+    if (disabled) {
+      return;
+    }
     try {
       mySequentialExecutor.submit(myImplementation::terminate).get(ADB_TERMINATE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
     }
@@ -307,6 +325,9 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    */
   @Override
   public void optionsChanged() {
+    if (disabled) {
+      return;
+    }
     mySequentialExecutor.execute(myImplementation::optionsChanged);
   }
 
@@ -327,12 +348,22 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
-    StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), StudioFlags.JDWP_TRACER::get);
+    StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), () -> {
+      // The tracer is enabled in the Adblib factory only if SCache is *not* enabled.
+      // If SCache is enabled, the SCache wrapper takes care of tracing, because it is the only
+      // component that has access to the "journaling" (i.e. emulated) JDWP traffic.
+      return StudioFlags.JDWP_TRACER.get() && !JDWP_SCACHE.get();
+    });
+    AndroidDebugBridge.setJdwpProcessorFactory(() -> new StudioDDMLibSCache(JDWP_SCACHE.get(), new StudioSCacheLogger()));
+    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession(), JDWP_SCACHE::get);
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
       @Override
       public void projectClosed(@NotNull Project project) {
+        if (disabled) {
+          return;
+        }
         // Ideally, android projects counts should be used here.
         // However, such logic would introduce circular dependency(relying AndroidFacet.ID in intellij.android.core).
         // So, we only check if all projects are closed. If yes, terminate adb.
@@ -360,7 +391,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     options.useJdwpProxyService(StudioFlags.ENABLE_JDWP_PROXY_SERVICE.get());
     options.useDdmlibCommandService(StudioFlags.ENABLE_DDMLIB_COMMAND_SERVICE.get());
     options.withEnv("ADB_LIBUSB", AdbOptionsService.getInstance().shouldUseLibusb() ? "1" : "0");
-    if (StudioFlags.ADB_WIRELESS_PAIRING_ENABLED.get() && getInstance().myAllowMdnsOpenscreen) {
+    if (getInstance().myAllowMdnsOpenscreen) {
       // Enables Open Screen mDNS implementation in ADB host.
       // See https://android-review.googlesource.com/c/platform/packages/modules/adb/+/1549744
       options.withEnv("ADB_MDNS_OPENSCREEN", AdbOptionsService.getInstance().shouldUseMdnsOpenScreen() ? "1" : "0");
@@ -407,7 +438,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
      * @param adb file location of ADB
      */
     @WorkerThread
-    public @Nullable AndroidDebugBridge getAndroidDebugBridge(@NotNull File adb) {
+    private @Nullable AndroidDebugBridge getAndroidDebugBridge(@NotNull File adb) {
       AndroidDebugBridge bridge = AndroidDebugBridge.getBridge();
       if (bridge == null || !bridge.isConnected()) {
         try {
@@ -442,6 +473,17 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     @WorkerThread
     private @NotNull AndroidDebugBridge createBridge(@NotNull File adb) throws Exception {
       terminate();
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        // AndroidDebugBridge creates MonitorThreads which will be leaked in unit tests
+        // TODO (b/292518457): remove when MonitorThread is no longer created.
+        try {
+          Class<?> c = Class.forName("com.intellij.testFramework.common.ThreadLeakTracker");
+          Method method = c.getDeclaredMethod("longRunningThreadCreated", Disposable.class, String[].class);
+          method.invoke(null, ApplicationManager.getApplication(), new String[] { "Monitor" });
+        } catch (Exception exception) {
+          LOG.warn("Failed to register Monitor thread as long-running, leaks may be coming.", exception);
+        }
+      }
 
       TimeoutRemainder rem = new TimeoutRemainder(DEFAULT_START_ADB_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
       LOG.info("Initializing adb using: " + adb.getAbsolutePath());

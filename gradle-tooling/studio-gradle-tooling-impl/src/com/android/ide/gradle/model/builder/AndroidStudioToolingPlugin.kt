@@ -35,7 +35,7 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     // NOTE: The minimum supported AGP version is 3.2 and it requires Gradle 4.6.
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (GradleVersion.current() >= minGradleVersion) {
-      LegacyApplicationIdModelBuilder.maybeRegister(project, registry)
+      LegacyAndroidGradlePluginPropertiesModelBuilder.maybeRegister(project, registry)
       val isJetBrains = "JetBrains" == System.getProperty("idea.vendor.name")
       val isDownloadSources = System.getProperty("idea.gradle.download.sources", "true").toBoolean()
       if ((isJetBrains && isDownloadSources) || !isJetBrains) {

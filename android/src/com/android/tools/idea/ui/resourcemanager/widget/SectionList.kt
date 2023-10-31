@@ -57,7 +57,7 @@ private val EMPTY_SELECTION_ARRAY = IntArray(0)
  */
 class SectionList(private val model: SectionListModel) : JBScrollPane() {
 
-  private var sectionList: JBList<Section<*>> = JBList(model)
+  private var sectionList = JBList<Section<*>>(model)
   private val allInnerLists = mutableListOf<JList<*>>()
   private var listSelectionChanging = false
   private val innerListSelectionListener = createListSelectionListener()

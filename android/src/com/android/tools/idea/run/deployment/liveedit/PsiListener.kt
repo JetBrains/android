@@ -16,8 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
-import com.intellij.openapi.fileEditor.ClientFileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiTreeChangeEvent
@@ -76,6 +74,11 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
 
     val file: PsiFile = psiEvent.file!!
 
+    // Ignore file changes that are outside of the project
+    if (!file.manager.isInProject(file)) {
+      return
+    }
+
     // All sort of files might be modified and written during save actions. This is an issue for manual mode where some metadata json file
     // get updated on save. To avoid that, we only Live Edit files that are currently opened by the editor.
     if (!FileEditorManager.getInstance(file.project).isFileOpen(file.virtualFile)) {
@@ -110,23 +113,18 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
 
     // Add the special events. They will not trigger a compilation. Instead they will put Live Edit in various error states.
     if (isImportChanges(psiEvent.parent)) {
-      val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.IMPORT_DIRECTIVES)
-      event.unsupportedPsiEvents.add(UnsupportedPsiEvent.IMPORT_DIRECTIVES)
-      handleEvent(event)
+      if (psiEvent.parent is KtElement) { // If that's not the case, the parent is most likely a place holder syntax error node
+        val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.IMPORT_DIRECTIVES)
+        event.unsupportedPsiEvents.add(UnsupportedPsiEvent.IMPORT_DIRECTIVES)
+        handleEvent(event)
+      }
     }
 
     if (isClassFieldChanges(psiEvent.parent)) {
-      val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.FIELD_CHANGES)
-      handleEvent(event)
-    }
-
-    // This is a workaround to experiment with partial recomposition. Right now any simple edit would create multiple
-    // edit events and one of them is usually a spurious whole file event that will trigger an unnecessary whole recompose.
-    // For now we just ignore that event until Live Edit becomes better at diff'ing changes.
-    if (!LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
-      // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
-      val event = EditEvent(file, file)
-      handleEvent(event)
+      if (psiEvent.parent is KtElement) { // If that's not the case, the parent is most likely a place holder syntax error node
+        val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.FIELD_CHANGES)
+        handleEvent(event)
+      }
     }
   }
 

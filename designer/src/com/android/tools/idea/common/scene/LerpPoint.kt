@@ -21,7 +21,9 @@ class LerpPoint : LerpValue<Point> {
   constructor(start: Point, end: Point, duration: Int) : super(start, end, duration)
 
   override fun interpolate(fraction: Float): Point {
-    return Point(start.x + ((end.x - start.x) * fraction).toInt(),
-                 start.y + ((end.y - start.y) * fraction).toInt())
+    return Point(
+      start.x + ((end.x - start.x) * fraction).toInt(),
+      start.y + ((end.y - start.y) * fraction).toInt()
+    )
   }
 }

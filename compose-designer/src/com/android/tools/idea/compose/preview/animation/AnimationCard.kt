@@ -16,11 +16,9 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -31,15 +29,16 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
 class AnimationCard(
   previewState: AnimationPreviewState,
-  val surface: DesignSurface<*>,
+  val rootComponent: JComponent,
   override val state: ElementState,
   extraActions: List<AnAction> = emptyList(),
-  private val tracker: ComposeAnimationEventTracker
+  private val tracker: AnimationTracker
 ) : JPanel(TabularLayout("*", "30px,30px")), Card {
 
   // Collapsed view:
@@ -79,7 +78,7 @@ class AnimationCard(
   override fun getCurrentHeight() =
     if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private var durationLabel: Component? = null
+  var durationLabel: Component? = null
   override fun setDuration(durationMillis: Int?) {
     durationLabel?.let { firstRow.remove(it) }
     durationLabel =
@@ -93,13 +92,14 @@ class AnimationCard(
   }
 
   init {
-    val expandButton = SingleButtonToolbar(surface, "ExpandCollapseAnimationCard", ExpandAction())
+    val expandButton =
+      SingleButtonToolbar(rootComponent, "ExpandCollapseAnimationCard", ExpandAction())
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
     val secondRowToolbar =
       DefaultToolbarImpl(
-        surface,
+        rootComponent,
         "AnimationCard",
         listOf(FreezeAction(previewState, state, tracker)) + extraActions
       )
@@ -123,11 +123,9 @@ class AnimationCard(
     override fun actionPerformed(e: AnActionEvent) {
       state.expanded = !state.expanded
       if (state.expanded) {
-        tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
+        tracker.expandAnimationCard()
       } else {
-        tracker(
-          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD
-        )
+        tracker.collapseAnimationCard()
       }
     }
 

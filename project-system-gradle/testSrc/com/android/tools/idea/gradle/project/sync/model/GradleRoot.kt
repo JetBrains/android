@@ -16,17 +16,18 @@
 package com.android.tools.idea.gradle.project.sync.model
 
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+import org.jetbrains.annotations.SystemIndependent
 
 /**
  * Project gradle root representation model
  * @param name The gradle root name
  * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
- * @param localPropertiesJdkPath The jdk.dir property located on local.properties per gradle root
+ * @param gradleLocalJavaHome The java.home absolute path located on .gradle/config.properties
  * @param modulesPath A list containing the gradle root modules absolute path
  */
 data class GradleRoot(
   val name: String = "",
   val ideaGradleJdk: String? = null,
-  val localPropertiesJdkPath: String? = null,
+  val gradleLocalJavaHome: @SystemIndependent String? = null,
   val modulesPath: List<String> = listOf()
 )

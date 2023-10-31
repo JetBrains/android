@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickCancelButton;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
-import static com.google.common.truth.Truth.assertThat;
-
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMUtil;
-import java.awt.Container;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.ContainerFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
+import static com.google.common.truth.Truth.assertThat;
 
 public class MessagesFixture {
   @NotNull private final ContainerFixture<? extends Container> myDelegate;

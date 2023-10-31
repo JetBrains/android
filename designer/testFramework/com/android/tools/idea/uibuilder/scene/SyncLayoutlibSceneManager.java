@@ -24,9 +24,9 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
-import com.android.tools.idea.rendering.RenderModelModule;
-import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.rendering.RenderResult;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.api.RenderModelModule;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -130,11 +130,6 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
       return CompletableFuture.completedFuture(null);
     }
     return waitForFutureWithoutBlockingUiThread(super.updateModelAsync());
-  }
-
-  @Override
-  protected void requestModelUpdate() {
-    updateModelAsync();
   }
 
   @Override

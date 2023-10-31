@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_81
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_82
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.SnapshotContext
@@ -134,6 +135,11 @@ data class IdeModelSnapshotComparisonTestDefinition(
         TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE,
         skipV1toV2Comparison = true
       ),
+      IdeModelSnapshotComparisonTestDefinition(
+        TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION,
+        skipV1toV2Comparison = true
+      ),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.ANDROID_KOTLIN_MULTIPLATFORM, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR),
       IdeModelSnapshotComparisonTestDefinition(TestProject.MULTI_FLAVOR_WITH_FILTERING),
       // Skip V1 and V2 comparison for namespace project. The support for namespace in V2 is stricter since ag/16005984.
@@ -146,7 +152,9 @@ data class IdeModelSnapshotComparisonTestDefinition(
       ), // Skip __wrapped_aars__.
       IdeModelSnapshotComparisonTestDefinition(TestProject.BASIC),
       IdeModelSnapshotComparisonTestDefinition(TestProject.PRIVACY_SANDBOX_SDK, skipV1toV2Comparison = true),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, skipV1toV2Comparison = true)
+      IdeModelSnapshotComparisonTestDefinition(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
     )
   }
 
@@ -190,6 +198,7 @@ data class IdeModelSnapshotComparisonTestDefinition(
       AGP_74 -> Unit
       AGP_80 -> Unit
       AGP_81 -> Unit
+      AGP_82 -> Unit
     }
   }
 
@@ -254,6 +263,8 @@ private val PROPERTIES_TO_SKIP = setOf(
   "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId",
   "MODULE/IdeVariants/IdeVariant/MainArtifact/DesugaredMethodFiles",
   "MODULE/IdeVariants/IdeVariant/AndroidTestArtifact/DesugaredMethodFiles",
+  "MODULE/IdeVariants/IdeVariant/MainArtifact/TestOptions/InstrumentedTestTaskName",
+  "MODULE/IdeVariants/IdeVariant/AndroidTestArtifact/TestOptions/InstrumentedTestTaskName",
 )
 
 private val ENTITIES_TO_SKIP = setOf(

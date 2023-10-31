@@ -38,9 +38,9 @@ import com.intellij.openapi.editor.impl.ImaginaryEditor
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import java.io.File
 import org.jetbrains.android.intentions.AndroidExtractColorAction
 import org.jetbrains.android.intentions.AndroidExtractDimensionAction
+import java.io.File
 
 class PreviewFixTest : AbstractAndroidLintTest() {
 

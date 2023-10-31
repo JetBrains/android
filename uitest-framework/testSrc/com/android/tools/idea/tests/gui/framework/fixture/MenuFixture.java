@@ -17,6 +17,8 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.psi.impl.DebugUtil.sleep;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -27,6 +29,7 @@ import java.awt.Container;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import org.fest.swing.core.Robot;

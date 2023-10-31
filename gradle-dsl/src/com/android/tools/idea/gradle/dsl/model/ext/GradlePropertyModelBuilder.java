@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.java.LanguageLevelPropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.model.kotlin.JvmTargetPropertyModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.FakeElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslGlobalValue;
@@ -137,6 +138,25 @@ public class GradlePropertyModelBuilder {
   public GradlePropertyModelBuilder addTransform(@NotNull PropertyTransform transform) {
     myTransforms.add(0, transform);
     return this;
+  }
+
+  /**
+   * Adds transform  of a certain kind if element is from the same type of file - Toml, Kotlin, Groovy.
+   *
+   * @param kind of file
+   * @param transform to add
+   * @return this model builder
+   */
+  public GradlePropertyModelBuilder addLanguageTransform(@NotNull Kind kind,
+                                                         @NotNull PropertyTransform transform) {
+    if (isElementOfKind(myHolder, kind) || isElementOfKind(myElement, kind)) {
+      myTransforms.add(0, transform);
+    }
+    return this;
+  }
+
+  private boolean isElementOfKind(@Nullable GradleDslElement element, @NotNull Kind kind){
+    return element != null && kind.equals(element.getDslFile().getWriter().getKind());
   }
 
   @Nullable

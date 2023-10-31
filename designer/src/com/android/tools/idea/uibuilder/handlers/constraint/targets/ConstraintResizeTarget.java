@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 public class ConstraintResizeTarget extends ResizeBaseTarget {
@@ -62,7 +63,7 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
     if (w < 0) {
       w = 0;
     }
-    String position = String.format(SdkConstants.VALUE_N_DP, w);
+    String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, w);
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, position);
   }
 
@@ -70,17 +71,17 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
     if (h < 0) {
       h = 0;
     }
-    String position = String.format(SdkConstants.VALUE_N_DP, h);
+    String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, h);
     attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, position);
   }
 
   private static void updatePositionX(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x) {
-    String positionX = String.format(SdkConstants.VALUE_N_DP, x);
+    String positionX = String.format(Locale.US, SdkConstants.VALUE_N_DP, x);
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
   }
 
   private static void updatePositionY(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int y) {
-    String positionY = String.format(SdkConstants.VALUE_N_DP, y);
+    String positionY = String.format(Locale.US, SdkConstants.VALUE_N_DP, y);
     attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
   }
 

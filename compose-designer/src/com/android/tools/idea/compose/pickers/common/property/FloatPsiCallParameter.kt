@@ -19,9 +19,10 @@ import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
 import com.android.tools.idea.compose.pickers.base.property.PsiCallParameterPropertyItem
 import com.android.tools.idea.compose.pickers.common.editingsupport.FloatValidator
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
  * A [PsiCallParameterPropertyItem] for Float parameters.
@@ -31,19 +32,21 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 internal class FloatPsiCallParameter(
   project: Project,
   model: PsiCallPropertiesModel,
-  resolvedCall: ResolvedCall<*>,
-  descriptor: ValueParameterDescriptor,
+  addNewArgumentToResolvedCall: (KtValueArgument, KtPsiFactory) -> KtValueArgument?,
+  parameterName: Name,
+  parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  initialValue: String?
+  initialValue: String?,
 ) :
   PsiCallParameterPropertyItem(
     project,
     model,
-    resolvedCall,
-    descriptor,
+    addNewArgumentToResolvedCall,
+    parameterName,
+    parameterTypeNameIfStandard,
     argumentExpression,
     initialValue,
-    FloatValidator
+    FloatValidator,
   ) {
   override var value: String?
     get() = super.value

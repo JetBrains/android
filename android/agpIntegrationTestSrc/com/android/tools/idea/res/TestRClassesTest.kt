@@ -316,15 +316,15 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       public class RClassAndroidTest {
           void useResources() {
              int[] id = new int[] {
-              com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource,
+              com.example.projectwithappandlib.app.test.R.string.appTestResource,
               com.example.projectwithappandlib.app.test.R.string.libResource,
               com.example.projectwithappandlib.app.test.R.color.primary_material_dark,
 
               // Main resources are not in the test R class:
-              com.example.projectwithappandlib.app.test.R.string.${"app_name" highlightedAs ERROR},
+              com.example.projectwithappandlib.app.test.R.string.app_name,
 
               // Main resources from dependencies are not in R class:
-              com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs ERROR},
+              com.example.projectwithappandlib.app.test.R.string.libTestResource,
 
               R.string.app_name // Main R class is still accessible.
              };
@@ -342,7 +342,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
       public class RClassAndroidTest {
           void useResources() {
              int[] id = new int[] {
-              com.example.projectwithappandlib.lib.test.R.string.${caret}libTestResource,
+              com.example.projectwithappandlib.lib.test.R.string.libTestResource,
               com.example.projectwithappandlib.lib.test.R.color.primary_material_dark,
 
               // Main resources are in the test R class:
@@ -356,12 +356,16 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    val appTestScope = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)!!.useScope as GlobalSearchScope
+    val appTestRClass = myFixture.findClass("com.example.projectwithappandlib.app.test.R", appTest)
+    assertThat(appTestRClass).isNotNull()
+    val appTestScope = appTestRClass!!.useScope as GlobalSearchScope
     assertFalse(appTestScope.isSearchInLibraries)
     assertTrue(
       appTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.app.RClassAndroidTest").containingFile.virtualFile))
 
-    val libTestScope = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)!!.useScope as GlobalSearchScope
+    val libTestRClass = myFixture.findClass("com.example.projectwithappandlib.lib.test.R", libTest)
+    assertThat(libTestRClass).isNotNull()
+    val libTestScope = libTestRClass!!.useScope as GlobalSearchScope
     assertFalse(libTestScope.isSearchInLibraries)
     assertTrue(
       libTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").containingFile.virtualFile))

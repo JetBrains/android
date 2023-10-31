@@ -27,7 +27,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.streams.toList
 
 /**
  * Maps device serial numbers to IDevice.
@@ -53,7 +52,7 @@ class EmulatorLiveEditAdapter(val project: Project): DeviceGetter {
     if (!future.isCancelled) {
       if (future.isDone) {
         val device = future.get()
-        if (device != null) {
+        if (device != null && device.isOnline) {
           return device
         }
         // else we try to get the device again

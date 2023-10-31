@@ -22,10 +22,9 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
@@ -51,17 +50,18 @@ import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowMo
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.RunningUpgradeSync
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.UpgradeSyncFailed
 import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.UpgradeSyncSucceeded
+import com.android.tools.idea.gradle.project.upgrade.ui.UpgradeAssistantWindowModel.UIState.VersionSelectionInProgress
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IdeComponents
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.ui.ComboBox
@@ -74,7 +74,6 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBLabel
-import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.junit.Before
 import org.junit.Rule
@@ -83,8 +82,8 @@ import org.mockito.Mockito.mock
 
 @RunsInEdt
 class ContentManagerImplTest {
-  val currentAgpVersion by lazy { AgpVersion.parse("4.1.0") }
-  val latestAgpVersion by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
+  val currentAgpVersion = AgpVersion.parse("4.1.0")
+  val latestAgpVersion = AgpVersions.latestKnown
 
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk().onEdt()
@@ -299,14 +298,25 @@ class ContentManagerImplTest {
   }
 
   @Test
+  fun testVersionUpdatedFromComboBox() {
+    addMinimalBuildGradleToProject()
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }).listeningStatesChanges()
+    toolWindowModel.versionComboTextChanged()
+    toolWindowModel.newVersionCommit(latestAgpVersion.toString())
+    assertThat(uiStates).containsExactly(VersionSelectionInProgress, Loading, ReadyToRun).inOrder()
+  }
+
+  @Test
   fun testToolWindowModelUIStateOnFailedValidation() {
     val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }).listeningStatesChanges()
-    toolWindowModel.newVersionSet("")
+    toolWindowModel.versionComboTextChanged()
+    toolWindowModel.newVersionCommit("")
     // The following order might be not obvious but in fact it is correct:
     // Firstly version parser validates new version and sets the error,
     // Then UI is cleared showing Loading state,
     // Finally refresh logic results back in InvalidVersionError state.
     assertThat(uiStates).containsExactly(
+      VersionSelectionInProgress,
       InvalidVersionError(StatusMessage(Severity.ERROR, "Invalid AGP version format.")),
       Loading,
       InvalidVersionError(StatusMessage(Severity.ERROR, "Invalid AGP version format."))
@@ -453,6 +463,9 @@ class ContentManagerImplTest {
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion</b>")
     assertThat(detailsPanelContent.text).contains("This step is blocked")
+    val textNoNewLines = detailsPanelContent.text.replace("<br>", "\n").replace("\\s+".toRegex(), " ")
+    assertThat(textNoNewLines).contains("The upgrade assistant is unable to upgrade this project." +
+                                        " You can upgrade AGP by manually completing the list of required upgrade steps.")
     assertThat(detailsPanelContent.text).contains("https://developer.android.com/r/tools/upgrade-assistant/agp-version-not-found")
   }
 
@@ -786,12 +799,11 @@ class ContentManagerImplTest {
   fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { currentAgpVersion }) { setOf<AgpVersion>() }
+    val model = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = currentAgpVersion) { setOf() }
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     assertThat(view.versionTextField.model.selectedItem).isEqualTo(latestAgpVersion)
-    assertThat(view.versionTextField.model.size).isEqualTo(2)
-    assertThat(view.versionTextField.model.getElementAt(0)).isEqualTo(latestAgpVersion)
-    assertThat(view.versionTextField.model.getElementAt(1)).isEqualTo(currentAgpVersion)
+    assertThat(view.versionTextField.model.size).isEqualTo(1)
+    assertThat(view.versionTextField.model.getElementAt(0)).isEqualTo(currentAgpVersion)
   }
 
   @Test
@@ -838,7 +850,7 @@ class ContentManagerImplTest {
     var changingCurrentAgpVersion = currentAgpVersion
     val toolWindowModel = UpgradeAssistantWindowModel(project, { changingCurrentAgpVersion }).listeningStatesChanges()
 
-    runWriteAction { psiFile.virtualFile.isWritable = false }
+    ApplicationManager.getApplication().runWriteAction { psiFile.virtualFile.isWritable = false }
 
     toolWindowModel.runUpgrade(false)
     changingCurrentAgpVersion = latestAgpVersion
@@ -975,10 +987,10 @@ class ContentManagerImplTest {
 
   @Test
   fun testSuggestedVersions() {
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = currentAgpVersion)
     val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
-    assertThat(suggestedVersions).isEqualTo(listOf(latestAgpVersion, currentAgpVersion))
+    assertThat(suggestedVersions).isEqualTo(listOf(currentAgpVersion))
   }
 
   @Test
@@ -1015,11 +1027,52 @@ class ContentManagerImplTest {
 
   @Test
   fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = AgpVersion.parse("4.0.0"))
     val knownVersions = listOf("4.1.0", "4.2.0-dev", "4.2.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions)
-      .isEqualTo(setOf(latestAgpVersion, AgpVersion.parse("4.2.0"), currentAgpVersion).toList().sortedDescending())
+      .isEqualTo(setOf(currentAgpVersion, AgpVersion.parse("4.2.0")).toList().sortedDescending())
+  }
+
+  @Test
+  fun `test suggested versions does not include current alpha if not published`() {
+    val latestKnownNotPublished = AgpVersion.parse("8.2.0-alpha11")
+    val knownVersions = listOf(
+      "8.2.0-alpha10", "8.2.0-alpha09", "8.2.0-alpha08", "8.2.0-alpha07", "8.2.0-alpha06", "8.2.0-alpha05", "8.2.0-alpha04", "8.2.0-alpha03", "8.2.0-alpha02", "8.2.0-alpha01",
+      "8.1.0-rc01",
+      "8.1.0-beta05", "8.1.0-beta04", "8.1.0-beta03", "8.1.0-beta02", "8.1.0-beta01",
+      "8.1.0-alpha11", "8.1.0-alpha10", "8.1.0-alpha09", "8.1.0-alpha08", "8.1.0-alpha07", "8.1.0-alpha06", "8.1.0-alpha05", "8.1.0-alpha04", "8.1.0-alpha03", "8.1.0-alpha02", "8.1.0-alpha01",
+      "8.0.2",
+      "8.0.1",
+      "8.0.0",
+      "8.0.0-rc01",
+      "8.0.0-beta05", "8.0.0-beta04", "8.0.0-beta03", "8.0.0-beta02", "8.0.0-beta01",
+      "8.0.0-alpha11", "8.0.0-alpha10", "8.0.0-alpha09", "8.0.0-alpha08", "8.0.0-alpha07", "8.0.0-alpha06", "8.0.0-alpha05", "8.0.0-alpha04", "8.0.0-alpha03", "8.0.0-alpha02", "8.0.0-alpha01",
+      "7.4.2",
+      "7.4.1",
+      ).map { AgpVersion.parse(it) }.toSet()
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { AgpVersion.parse("7.4.2") }, null, latestKnownNotPublished, newProjectVersion = AgpVersion.parse("8.0.2")) { knownVersions }
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions.map { it.toString() })
+      .containsExactly("8.1.0-rc01", "8.0.2", "8.0.1", "8.0.0", "8.0.0-rc01", "7.4.2").inOrder()
+  }
+
+  @Test
+  fun `test suggested versions does include current alpha if that version will be used for new projects`() {
+    val latestKnownNotPublished = AgpVersion.parse("8.2.0-alpha11")
+    val knownVersions = listOf(
+      "8.2.0-alpha10", "8.2.0-alpha09", "8.2.0-alpha08", "8.2.0-alpha07", "8.2.0-alpha06", "8.2.0-alpha05", "8.2.0-alpha04", "8.2.0-alpha03", "8.2.0-alpha02", "8.2.0-alpha01",
+      "8.1.0-rc01",
+      "8.1.0-beta05", "8.1.0-beta04", "8.1.0-beta03", "8.1.0-beta02", "8.1.0-beta01",
+      "8.1.0-alpha11", "8.1.0-alpha10", "8.1.0-alpha09", "8.1.0-alpha08", "8.1.0-alpha07", "8.1.0-alpha06", "8.1.0-alpha05", "8.1.0-alpha04", "8.1.0-alpha03", "8.1.0-alpha02", "8.1.0-alpha01",
+      "8.0.2",
+      "8.0.1",
+      "8.0.0",
+    ).map { AgpVersion.parse(it) }.toSet()
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { AgpVersion.parse("8.0.1") }, null, latestKnownNotPublished, newProjectVersion = latestKnownNotPublished) { knownVersions }
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions.map { it.toString() })
+      .containsExactly("8.2.0-alpha11", "8.1.0-rc01", "8.0.2", "8.0.1").inOrder()
   }
 
   @Test
@@ -1107,6 +1160,7 @@ class ContentManagerImplTest {
       AllDone, Blocked,
       is CaughtException,
       is InvalidVersionError,
+      VersionSelectionInProgress,
       Loading, NoStepsSelected, ProjectFilesNotCleanWarning, ProjectUsesVersionCatalogs,
       ReadyToRun, RunningSync, RunningUpgrade, RunningUpgradeSync,
       is UpgradeSyncFailed,

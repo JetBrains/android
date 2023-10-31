@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -38,6 +39,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -50,10 +52,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JLabel
-import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -62,6 +60,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 private class TestPreviewElementDataContext(
   private val project: Project,
@@ -86,7 +88,9 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     showDecorations = displaySettings.showDecoration,
     isInteractive = false,
     requestPrivateClassLoader = false,
-    runAtfChecks = false
+    runAtfChecks = false,
+    runVisualLinting = false,
+    quality = 1f
   )
 
 /** Converts an [InstructionsPanel] into text that can be easily used in assertions. */
@@ -111,7 +115,7 @@ class ComposePreviewViewImplTest {
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val nopDataProvider = DataProvider {}
+  private val nopDataProvider = DataProvider { null }
 
   private val statusManager =
     object : ProjectBuildStatusManager {
@@ -181,7 +185,8 @@ class ComposePreviewViewImplTest {
         interactionHandler,
         nopDataProvider,
         fixture.testRootDisposable,
-        sceneComponentProvider
+        sceneComponentProvider,
+        ComposeScreenViewProvider(NopComposePreviewManager())
       )
     val composePreviewViewImpl =
       ComposePreviewViewImpl(
@@ -192,6 +197,9 @@ class ComposePreviewViewImplTest {
         mainSurfaceBuilder,
         fixture.testRootDisposable,
       )
+
+    // Create VisualLintService early to avoid it being created at the time of project disposal
+    VisualLintService.getInstance(project)
 
     previewView = composePreviewViewImpl
     fakeUi =
@@ -231,8 +239,9 @@ class ComposePreviewViewImplTest {
       }
     runBlocking(workerThread) {
       surface.updatePreviewsAndRefresh(
-        true,
-        previewProvider,
+        tryReusingModels = true,
+        reinflate = true,
+        previewProvider.previewElements().toList(),
         Logger.getInstance(ComposePreviewViewImplTest::class.java),
         mainFileSmartPointer.element!!,
         fixture.testRootDisposable,
@@ -316,7 +325,7 @@ class ComposePreviewViewImplTest {
       fakeUi.root.validate()
     }
 
-    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel> { it.isShowing }.size)
+    assertEquals(2, fakeUi.findAllComponents<SceneViewPeerPanel>() { it.isShowing }.size)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display1" }!!.isShowing)
     assertTrue(fakeUi.findComponent<JLabel> { it.text == "Display2" }!!.isShowing)
   }

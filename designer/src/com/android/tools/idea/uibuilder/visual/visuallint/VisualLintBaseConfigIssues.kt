@@ -17,21 +17,18 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.intellij.psi.xml.XmlTag
 
-/**
- * Meta data for base config issues.
- */
+/** Meta data for base config issues. */
 class VisualLintBaseConfigIssues {
 
-  /**
-   * List of issues that current component has in base configuration.
-   */
+  /** List of issues that current component has in base configuration. */
   data class BaseConfigComponentState(
     var hasI18NEllipsis: Boolean = false,
     var hasI18NTextTooBig: Boolean = false,
   )
 
   /**
-   * State of the component. Key is hashcode of the [XmlTag] and value shows what state configuration is in.
+   * State of the component. Key is hashcode of the [XmlTag] and value shows what state
+   * configuration is in.
    */
   val componentState: MutableMap<Int, BaseConfigComponentState> = HashMap()
 

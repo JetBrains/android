@@ -3,20 +3,25 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.plugin",
-    srcs = ["src"],
     iml_files = ["intellij.android.plugin.iml"],
     test_class = "org.jetbrains.android.AndroidPluginTestSuite",
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",  # b/174646037
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/explainer:intellij.android.explainer[module]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module]",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
@@ -61,5 +66,7 @@ iml_module(
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module]",
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
     ],
 )

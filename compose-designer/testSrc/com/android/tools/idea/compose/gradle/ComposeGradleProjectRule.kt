@@ -21,13 +21,14 @@ import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
+import com.android.tools.idea.testing.TestLoggerRule
 import com.android.tools.idea.testing.withKotlin
+import com.android.tools.rendering.RenderService
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -39,13 +40,14 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /** Default Kotlin version used for Compose projects using this rule. */
-const val DEFAULT_KOTLIN_VERSION = "1.7.20"
+internal const val DEFAULT_KOTLIN_VERSION = "1.7.20"
 
 /**
  * [TestRule] that implements the [before] and [after] setup specific for Compose rendering tests.
  */
 private class ComposeGradleProjectRuleImpl(
   private val projectPath: String,
+  private val testDataPath: String,
   private val kotlinVersion: String,
   private val projectRule: AndroidGradleProjectRule
 ) : NamedExternalResource() {
@@ -53,7 +55,7 @@ private class ComposeGradleProjectRuleImpl(
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
-    projectRule.fixture.testDataPath = resolveWorkspacePath(TEST_DATA_PATH).toString()
+    projectRule.fixture.testDataPath = resolveWorkspacePath(testDataPath).toString()
     projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion))
 
     projectRule.invokeTasks("compileDebugSources").apply {
@@ -74,8 +76,9 @@ private class ComposeGradleProjectRuleImpl(
  * A [TestRule] providing the same behaviour as [AndroidGradleProjectRule] but with the correct
  * setup for rendeering Compose elements.
  */
-class ComposeGradleProjectRule(
+open class ComposeGradleProjectRule(
   projectPath: String,
+  testDataPath: String = TEST_DATA_PATH,
   kotlinVersion: String = DEFAULT_KOTLIN_VERSION,
   private val projectRule: AndroidGradleProjectRule = AndroidGradleProjectRule()
 ) : TestRule {
@@ -85,9 +88,10 @@ class ComposeGradleProjectRule(
   val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private val delegate =
-    RuleChain.outerRule(projectRule)
-      .around(ComposeGradleProjectRuleImpl(projectPath, kotlinVersion, projectRule))
+  protected open val delegate: RuleChain =
+    RuleChain.outerRule(TestLoggerRule())
+      .around(projectRule)
+      .around(ComposeGradleProjectRuleImpl(projectPath, testDataPath, kotlinVersion, projectRule))
       .around(EdtRule())
       .around(FlagRule(StudioFlags.GRADLE_SAVE_LOG_TO_FILE, true))
 

@@ -29,6 +29,27 @@ iml_module(
 iml_module(
     name = "intellij.android.lang.tests",
     iml_files = ["intellij.android.lang.tests.iml"],
+    split_test_targets = {
+        "agsl": {
+            "test_filter": "com.android.tools.idea.lang.agsl",
+        },
+        "aidl": {
+            "test_filter": "com.android.tools.idea.lang.aidl",
+        },
+        "androidSql": {
+            "test_filter": "com.android.tools.idea.lang.androidSql",
+        },
+        "multiDexKeep": {
+            "test_filter": "com.android.tools.idea.lang.multiDexKeep",
+        },
+        "proguardR8": {
+            "test_filter": "com.android.tools.idea.lang.proguardR8",
+        },
+        "rs": {
+            "test_filter": "com.android.tools.idea.lang.rs",
+        },
+        "other": {},
+    },
     tags = [
         "no_test_windows",  # b/135665870
     ],
@@ -41,7 +62,6 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -55,6 +75,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module]",
     ],
 )

@@ -24,9 +24,9 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import kotlinx.coroutines.launch
 import java.awt.MouseInfo
 import javax.swing.SwingUtilities
-import kotlinx.coroutines.launch
 
 /**
  * [AnAction] that navigates to the deepest Composable that is part of the project, and that is
@@ -63,6 +63,8 @@ class JumpToDefinitionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    scope.launch { composePreviewNavigationHandler.handleNavigate(sceneView, x, y, true) }
+    scope.launch {
+      composePreviewNavigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true)
+    }
   }
 }

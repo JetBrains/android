@@ -15,36 +15,20 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import javax.swing.Icon
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.ApiStatus
 
-/** Class representing groups available for selection in the [ComposePreviewManager]. */
-@Suppress("DataClassPrivateConstructor")
-data class PreviewGroup
-private constructor(val displayName: String, val icon: Icon?, val name: String?) {
-  companion object {
-    fun namedGroup(
-      displayName: String,
-      icon: Icon? = null,
-      name: String = displayName
-    ): PreviewGroup = PreviewGroup(displayName, icon, name)
-
-    /** [PreviewGroup] to be used when no filtering is to be applied to the preview. */
-    val ALL_PREVIEW_GROUP =
-      PreviewGroup(displayName = message("group.switch.all"), icon = null, name = null)
-  }
-}
-
 /** Interface that provides access to the Compose Preview logic. */
-interface ComposePreviewManager : Disposable {
+interface ComposePreviewManager : Disposable, PreviewModeManager {
   /**
    * Enum that determines the current status of the interactive preview.
    *
-   * The transitions are are like: DISABLED -> STARTED -> READY -> STOPPING
+   * The transitions are like:
+   *
+   * DISABLED -> STARTED -> READY -> STOPPING
    *
    * ```
    *    ^                               +
@@ -61,8 +45,6 @@ interface ComposePreviewManager : Disposable {
     /** The interactive preview is stopping but it has not been fully disposed yet. */
     STOPPING;
 
-    fun isStartingOrReady() = this == STARTING || this == READY
-    fun isStoppingOrDisabled() = this == STOPPING || this == DISABLED
     fun isStartingOrStopping() = this == STARTING || this == STOPPING
   }
   /**
@@ -92,29 +74,22 @@ interface ComposePreviewManager : Disposable {
 
   fun status(): Status
 
-  /**
-   * List of available groups in this preview. The editor can contain multiple groups and only will
-   * be displayed at a given time.
-   */
-  val availableGroups: Collection<PreviewGroup>
+  /** Return to previously selected [PreviewMode]. */
+  fun back()
 
   /**
-   * Group name from [availableGroups] currently selected or null if we do not want to do group
-   * filtering.
+   * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
+   * and only one will be displayed at a given time.
+   */
+  val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>>
+
+  /** [StateFlow] of available elements in this preview with no filters applied. */
+  val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>>
+
+  /**
+   * Currently selected group from [availableGroupsFlow] or [PreviewGroup.All] if none is selected.
    */
   var groupFilter: PreviewGroup
-
-  /**
-   * Represents the [ComposePreviewElementInstance] open in the Interactive Preview. Null if no
-   * preview is in interactive mode.
-   */
-  val interactivePreviewElementInstance: ComposePreviewElementInstance?
-
-  /**
-   * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no
-   * preview is being inspected.
-   */
-  var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
 
   /**
    * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo
@@ -135,16 +110,23 @@ interface ComposePreviewManager : Disposable {
   var isFilterEnabled: Boolean
 
   /** Flag to indicate whether ATF checks should be run on the preview. */
-  var atfChecksEnabled: Boolean
+  val atfChecksEnabled: Boolean
+    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
+
+  /** Flag to indicate whether Visual Lint checks should be run on the preview. */
+  val visualLintingEnabled: Boolean
+    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
   /**
-   * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
-   * .
+   * Indicates whether the preview is in its default mode by opposition to one of the special modes
+   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
+   * normal modes.
    */
-  suspend fun startInteractivePreview(instance: ComposePreviewElementInstance)
+  val isInNormalMode: Boolean
+    get() = mode is PreviewMode.Default || mode is PreviewMode.Gallery
 
-  /** Stops the interactive preview. */
-  fun stopInteractivePreview()
+  val isUiCheckPreview: Boolean
+    get() = mode is PreviewMode.UiCheck
 
   /**
    * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
@@ -153,10 +135,35 @@ interface ComposePreviewManager : Disposable {
   fun invalidate()
 }
 
-val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean
-  get() =
-    animationInspectionPreviewElementInstance == null &&
-      status().interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED
+class NopComposePreviewManager : ComposePreviewManager {
+  override fun status() =
+    ComposePreviewManager.Status(
+      hasRuntimeErrors = false,
+      hasSyntaxErrors = false,
+      isOutOfDate = false,
+      areResourcesOutOfDate = false,
+      isRefreshing = false,
+      ComposePreviewManager.InteractiveMode.DISABLED
+    )
+
+  override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
+    MutableStateFlow(emptySet())
+  override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
+    MutableStateFlow(emptySet())
+  override var groupFilter: PreviewGroup = PreviewGroup.All
+  override val hasDesignInfoProviders: Boolean = false
+  override val previewedFile: PsiFile? = null
+  override var isInspectionTooltipEnabled: Boolean = false
+  override var isFilterEnabled: Boolean = false
+  override var mode: PreviewMode = PreviewMode.Default
+  override fun setMode(newMode: PreviewMode.Settable) {
+    mode = newMode
+  }
+
+  override fun invalidate() {}
+  override fun back() {}
+  override fun dispose() {}
+}
 
 /**
  * Interface that provides access to the Compose Preview logic that is not stable or meant for

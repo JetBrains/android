@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.devicemanager;
 
-import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.DumbAware;
@@ -55,7 +55,7 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return AndroidEnvironmentUtils.isAndroidEnvironment(project);
+    return (StudioFlags.DUAL_DEVICE_MANAGER_ENABLED.get() || !StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get());
   }
 
   @Override

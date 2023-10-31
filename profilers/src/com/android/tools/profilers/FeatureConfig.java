@@ -29,8 +29,9 @@ public interface FeatureConfig {
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isProfileableBuildsEnabled();
-  boolean isVerboseLoggingEnabled();
+  boolean isTestingModeEnabled();
   boolean isTaskBasedUxEnabled();
+  boolean isTraceboxEnabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list

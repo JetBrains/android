@@ -57,6 +57,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.res.ResourceNamespacing;

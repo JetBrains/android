@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidProject
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
@@ -81,15 +82,16 @@ class GradleModuleSystemTest : AndroidTestCase() {
 
   fun testRegisterDependency() {
     val coordinate = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+")
+    val dependency = GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getDependency("+")
     assertThat(gradleModuleSystem.canRegisterDependency(DependencyType.IMPLEMENTATION).isSupported()).isTrue()
     gradleModuleSystem.registerDependency(coordinate)
     Mockito.verify(gradleDependencyManager, times(1))
-      .addDependenciesWithoutSync(myModule, listOf(coordinate))
+      .addDependenciesWithoutSync(myModule, listOf(dependency))
   }
 
-  fun testNoAndroidModuleModel() {
-    // The AndroidModuleModel shouldn't be created when running from an IdeaTestCase.
-    assertThat(AndroidModuleModel.get(myModule)).isNull()
+  fun testNoGradleAndroidModel() {
+    // The GradleAndroidModel shouldn't be created when running from an IdeaTestCase.
+    assertThat(GradleAndroidModel.get(myModule)).isNull()
     assertThat(gradleModuleSystem.getResolvedDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNull()
   }
 

@@ -20,6 +20,7 @@
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
     <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
+    <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"/>
@@ -30,9 +31,19 @@
       order="after PlatformProjectConfigurator"/>
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
+    <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
+    <registryKey key="unknown.sdk"  defaultValue="false" description="Check for unknown SDKs and provide automatic fixes or smart suggestions"/>
+    <registryKey key="unknown.sdk.auto" defaultValue="false" description="Checks and resolves unknown SDKs automatically on start"/>
+    <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started"/>
+    <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
   </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmFromMacrosSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateJdkConfigToGradleJavaHomeListener"
               topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
   </projectListeners>
   <actions>
@@ -42,11 +53,24 @@
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>
     <action id="InferNullity" text="Infer Nullity..." class="com.android.tools.idea.actions.AndroidInferNullityAnnotationAction" overrides="true"/>
+    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty">
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+      <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
+    </action>
     <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
+      <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
     </action>
     <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
+    <group id="AndroidToolbarMakeGroup">
+      <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
+      <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
+    </group>
+    <reference id="Android.SyncProject">
+      <add-to-group group-id="Android.NavBarToolBar" anchor="first"/>
+      <add-to-group group-id="Android.MainToolbarRight" anchor="last"/>
+    </reference>
   </actions>
 </idea-plugin>

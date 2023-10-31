@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
+import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.IdeUnresolvedJavaLibrary
 import java.io.File
 import java.io.Serializable
@@ -24,15 +25,18 @@ import java.io.Serializable
  **/
 data class IdeJavaLibraryImpl(
   override val artifactAddress: String,
+  override val component: Component?,
   override val name: String,
   override val artifact: File,
   override val srcJar: File?, // AGP 8.1.0-alpha08 or later only
   override val docJar: File?, // AGP 8.1.0-alpha08 or later only
   override val samplesJar: File? // AGP 8.1.0-alpha08 or later only
 ) : IdeUnresolvedJavaLibrary, Serializable {
+
   // Used for serialization by the IDE.
   internal constructor() : this(
     artifactAddress = "",
+    component = null,
     name = "",
     artifact = File(""),
     srcJar = null,

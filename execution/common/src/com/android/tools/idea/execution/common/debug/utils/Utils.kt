@@ -32,6 +32,8 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.function.Function
 
+const val SECONDS_BETWEEN_LOGGING_WAIT_STATUS: Long = 1
+
 /**
  * Returns client with appId in [appIds] and [ClientData.DebuggerStatus.WAITING], otherwise throws [ExecutionException].
  */
@@ -42,7 +44,9 @@ internal fun waitForClientReadyForDebug(device: IDevice,
                                         pollTimeoutSeconds: Long = 15,
                                         indicator: ProgressIndicator): Client {
   indicator.text = "Waiting for processes ${appIds.joinToString()}"
-  Logger.getInstance("waitForClientReadyForDebug").info("Waiting for clients $appIds for $pollTimeoutSeconds seconds")
+  val lastLogTimes: MutableMap<String, Long> = mutableMapOf()
+  val logger = Logger.getInstance("waitForClientReadyForDebug")
+  logger.info("Waiting for clients $appIds for $pollTimeoutSeconds seconds")
 
   val startTimeMillis = System.currentTimeMillis()
   while ((System.currentTimeMillis() - startTimeMillis) <= TimeUnit.SECONDS.toMillis(pollTimeoutSeconds)) {
@@ -53,8 +57,9 @@ internal fun waitForClientReadyForDebug(device: IDevice,
     // Multiple ids can be in the case of instrumented test with orchestrator.
     // [TODO] pass only one appId.
     for (appId in appIds) {
-      val client = getClientWithAppId(device, appId)
+      val client = getClientWithAppId(device, appId, lastLogTimes)
       if (client != null) {
+        logger.info("$appId is now debuggable.")
         return client
       }
     }
@@ -63,12 +68,21 @@ internal fun waitForClientReadyForDebug(device: IDevice,
   throw ExecutionException("Processes ${appIds.joinToString()} are not found. Aborting session.")
 }
 
-private fun getClientWithAppId(device: IDevice, appId: String): Client? {
+private fun getClientWithAppId(device: IDevice, appId: String, lastLogTimes: MutableMap<String, Long>): Client? {
   val clients = DeploymentApplicationService.instance.findClient(device, appId)
   if (clients.isNotEmpty()) {
-    Logger.getInstance("waitForClientReadyForDebug").info("Found process $appId")
-    if (clients.size > 1) {
-      Logger.getInstance("waitForClientReadyForDebug").info("Multiple clients with same application ID: $appId")
+    val logger = Logger.getInstance("waitForClientReadyForDebug")
+    val lastLogTime = lastLogTimes[appId]
+    if (lastLogTime == null) {
+      logger.info("Found process $appId. Waiting for it to be debuggable.")
+      if (clients.size > 1) {
+        logger.info("Multiple clients with same application ID: $appId")
+      }
+      lastLogTimes[appId] = System.currentTimeMillis()
+    } else if ((System.currentTimeMillis() - lastLogTime) >= TimeUnit.SECONDS.toMillis(SECONDS_BETWEEN_LOGGING_WAIT_STATUS)) {
+      logger.info("Still waiting for process $appId to be debuggable.")
+
+      lastLogTimes[appId] = System.currentTimeMillis()
     }
     // Even though multiple processes may be related to a particular application ID, we'll only connect to the first one
     // in the list since the debugger is set up to only connect to at most one process.
@@ -91,7 +105,7 @@ private fun getClientWithAppId(device: IDevice, appId: String): Client? {
         throw ExecutionException("A debugger is already attached")
       }
 
-      ClientData.DebuggerStatus.DEFAULT -> {
+      ClientData.DebuggerStatus.DEFAULT, null -> {
         return null
       }
     }

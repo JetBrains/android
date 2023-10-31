@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -352,7 +351,6 @@ class AssistedInjectConstructorDaggerConceptTest {
     }
   }
 
-  @Ignore // TODO(b/265846405): Start running test when index is enabled
   @Test
   fun assistedInjectConstructorDaggerElement_getRelatedDaggerElements() {
     addDaggerAndHiltClasses(myFixture)

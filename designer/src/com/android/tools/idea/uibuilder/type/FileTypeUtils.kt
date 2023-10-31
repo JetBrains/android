@@ -25,10 +25,10 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.vfs.VirtualFile
 import kotlin.math.sqrt
@@ -40,25 +40,28 @@ private val PREVIEW_CONFIG_DENSITY = Density.XXXHIGH
 private var deviceAndStateCached: Pair<Device, State>? = null
 
 /**
- * A helper function to provide the [Configuration] for a [VirtualFile]. For example, a drawable file may want to use a custom
- * [Configuration]; a layout file may just use the [Configuration] provided by [ConfigurationManager.getConfiguration].
+ * A helper function to provide the [Configuration] for a [VirtualFile]. For example, a drawable
+ * file may want to use a custom [Configuration]; a layout file may just use the [Configuration]
+ * provided by [ConfigurationManager.getConfiguration].
  */
 fun VirtualFile.getConfiguration(configurationManager: ConfigurationManager): Configuration {
   val psiFile = AndroidPsiUtils.getPsiFileSafely(configurationManager.project, this)
   return when (psiFile?.typeOf()) {
-    is AdaptiveIconFileType, is DrawableFileType -> configurationManager.getPreviewConfig()
+    is AdaptiveIconFileType,
+    is DrawableFileType -> configurationManager.getPreviewConfig()
     else -> configurationManager.getConfiguration(this)
   }
 }
 
 /**
- * Create specific configuration and device for preview resources (e.g. drawable and vector)
- * The dimension of device is [PREVIEW_CONFIG_X_DIMENSION] x [PREVIEW_CONFIG_Y_DIMENSION].
- * The density is [PREVIEW_CONFIG_DENSITY] if it is compatible with the project api level, otherwise [Density.DPI_560] is used.
+ * Create specific configuration and device for preview resources (e.g. drawable and vector) The
+ * dimension of device is [PREVIEW_CONFIG_X_DIMENSION] x [PREVIEW_CONFIG_Y_DIMENSION]. The density
+ * is [PREVIEW_CONFIG_DENSITY] if it is compatible with the project api level, otherwise
+ * [Density.DPI_560] is used.
  */
 fun ConfigurationManager.getPreviewConfig(): Configuration {
   val configurationManager = this
-  val config = Configuration.create(configurationManager, null, FolderConfiguration())
+  val config = Configuration.create(configurationManager, FolderConfiguration())
 
   val cached = deviceAndStateCached
   if (cached != null) {
@@ -67,39 +70,49 @@ fun ConfigurationManager.getPreviewConfig(): Configuration {
   }
 
   val targetApiLevel = configurationManager.target?.version?.apiLevel ?: 1
-  val targetDensity = if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY else Density.DPI_560
+  val targetDensity =
+    if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY
+    else Density.DPI_560
 
-  val device = Device.Builder().apply {
-    setTagId("")
-    setName("Custom")
-    setId(Configuration.CUSTOM_DEVICE_ID)
-    setManufacturer("")
-    addSoftware(Software())
-    addState(State().apply {
-      isDefaultState = true
-      hardware = Hardware()
-    })
-  }.build()
+  val device =
+    Device.Builder()
+      .apply {
+        setTagId("")
+        setName("Custom")
+        setId(Configuration.CUSTOM_DEVICE_ID)
+        setManufacturer("")
+        addSoftware(Software())
+        addState(
+          State().apply {
+            isDefaultState = true
+            hardware = Hardware()
+          }
+        )
+      }
+      .build()
 
   val state = device.defaultState
   state.apply {
     orientation = ScreenOrientation.SQUARE
-    hardware = Hardware().apply {
-      screen = Screen().apply {
-        xDimension = PREVIEW_CONFIG_X_DIMENSION
-        yDimension = PREVIEW_CONFIG_Y_DIMENSION
-        pixelDensity = targetDensity
+    hardware =
+      Hardware().apply {
+        screen =
+          Screen().apply {
+            xDimension = PREVIEW_CONFIG_X_DIMENSION
+            yDimension = PREVIEW_CONFIG_Y_DIMENSION
+            pixelDensity = targetDensity
 
-        val dpi = pixelDensity.dpiValue.toDouble()
-        val width = PREVIEW_CONFIG_X_DIMENSION / dpi
-        val height = PREVIEW_CONFIG_Y_DIMENSION / dpi
-        diagonalLength = sqrt(width * width + height * height)
-        size = ScreenSize.getScreenSize(diagonalLength)
-        ratio = AvdScreenData.getScreenRatio(PREVIEW_CONFIG_X_DIMENSION, PREVIEW_CONFIG_Y_DIMENSION)
-        screenRound = ScreenRound.NOTROUND
-        chin = 0
+            val dpi = pixelDensity.dpiValue.toDouble()
+            val width = PREVIEW_CONFIG_X_DIMENSION / dpi
+            val height = PREVIEW_CONFIG_Y_DIMENSION / dpi
+            diagonalLength = sqrt(width * width + height * height)
+            size = ScreenSize.getScreenSize(diagonalLength)
+            ratio =
+              AvdScreenData.getScreenRatio(PREVIEW_CONFIG_X_DIMENSION, PREVIEW_CONFIG_Y_DIMENSION)
+            screenRound = ScreenRound.NOTROUND
+            chin = 0
+          }
       }
-    }
   }
 
   deviceAndStateCached = device to state

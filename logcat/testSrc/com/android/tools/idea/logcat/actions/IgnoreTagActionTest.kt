@@ -30,7 +30,7 @@ import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.DisposableRule
@@ -120,9 +120,9 @@ class IgnoreTagActionTest {
   }
 }
 
-private fun testActionEvent(editor: EditorEx): TestActionEvent {
-  return TestActionEvent(MapDataContext().apply {
-    put(CommonDataKeys.EDITOR, editor)
+private fun testActionEvent(editor: EditorEx): AnActionEvent {
+  return TestActionEvent.createTestEvent(MapDataContext().apply {
+    put(LogcatPresenter.EDITOR, editor)
     put(LOGCAT_PRESENTER_ACTION, FakeLogcatPresenter())
   })
 }

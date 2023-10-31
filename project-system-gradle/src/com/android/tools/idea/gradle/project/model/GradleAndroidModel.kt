@@ -42,11 +42,13 @@ import com.android.tools.idea.model.TestExecutionOption
 import com.android.tools.idea.model.TestOptions
 import com.android.tools.lint.client.api.LintClient.Companion.getGradleDesugaring
 import com.android.tools.lint.detector.api.Desugaring
+import com.android.utils.usLocaleCapitalize
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.jetbrains.rd.util.getOrCreate
+import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.util.EnumSet
 
@@ -57,9 +59,7 @@ class GradleAndroidModel(
   private val data: GradleAndroidModelData,
   val project: Project,
   private val ideLibraryModelResolver: IdeLibraryModelResolver
-) : AndroidModuleModel {
-
-  private val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
+) : AndroidModel {
 
   private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> =
     androidProject.multiVariantData?.buildTypes.orEmpty().associateBy {it.buildType.name }
@@ -71,8 +71,8 @@ class GradleAndroidModel(
   private val myCachedResolvedVariantsByName: Map<String, IdeVariant> =
     myCachedVariantsByName.mapValues { (_, value) -> IdeVariantImpl(value, ideLibraryModelResolver) }
 
+  val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
   val features: AndroidModelFeatures = AndroidModelFeatures(agpVersion)
-
   val moduleName: String get() = data.moduleName
   val rootDirPath: File get() = data.rootDirPath
   val androidProject: IdeAndroidProject get() = data.androidProject
@@ -111,6 +111,11 @@ class GradleAndroidModel(
     }
   }
 
+  fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
+    return selectedVariantCore.androidTestArtifact?.testOptions?.instrumentedTestTaskName
+           ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
+  }
+
   val selectedMainCompileDependencies: IdeDependencies get() = this.mainArtifact.compileClasspath
   val selectedMainRuntimeDependencies: IdeDependencies get() = this.mainArtifact.runtimeClasspath
   val selectedAndroidTestCompileDependencies: IdeDependencies? get() = selectedVariant.androidTestArtifact?.compileClasspath
@@ -127,8 +132,6 @@ class GradleAndroidModel(
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
-  override fun getAgpVersion(): AgpVersion = agpVersion
-
   /**
    * Returns the current application ID.
    *
@@ -140,10 +143,20 @@ class GradleAndroidModel(
   }
 
   override fun getAllApplicationIds(): Set<String> {
-    return androidProject.basicVariants.mapNotNull { variant -> variant.applicationId }.toSet()
+    return buildSet {
+      androidProject.basicVariants.forEach { variant ->
+        variant.applicationId?.let { add(it) }
+        variant.testApplicationId?.let { add(it) }
+      }
+    }
   }
 
   override fun isDebuggable(): Boolean {
+    // TODO(b/288091803): Figure out if kotlin multiplatform android modules should be marked debuggable
+    if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
+      return true
+    }
+
     val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
       ?: error("Build type ${selectedVariant.buildType} not found")
     return buildTypeContainer.buildType.isDebuggable
@@ -229,8 +242,7 @@ class GradleAndroidModel(
   }
 
   override fun getResValues(): Map<String, DynamicResourceValue> {
-    @Suppress("DEPRECATION")
-    return classFieldsToDynamicResourceValues(selectedVariant.mainArtifact.resValues)
+    return classFieldsToDynamicResourceValues(selectedVariant.resValues)
   }
 
   override fun getTestOptions(): TestOptions {

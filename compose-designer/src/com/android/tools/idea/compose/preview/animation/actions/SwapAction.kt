@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.compose.preview.animation.actions
 
-import com.android.tools.idea.compose.preview.animation.ComposeAnimationEventTracker
+import com.android.tools.idea.compose.preview.animation.AnimationTracker
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
 /** A button to swap current animation states. */
-class SwapAction(val logger: ComposeAnimationEventTracker, val swapStates: () -> Unit) :
+class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
   AnActionButton(
     message("animation.inspector.action.swap.states"),
     StudioIcons.LayoutEditor.Motion.PLAY_YOYO
@@ -35,7 +34,7 @@ class SwapAction(val logger: ComposeAnimationEventTracker, val swapStates: () ->
     isSwappingStates = true
     swapStates()
     isSwappingStates = false
-    logger(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.TRIGGER_SWAP_STATES_ACTION)
+    tracker.triggerSwapStatesAction()
   }
 
   override fun updateButton(e: AnActionEvent) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
@@ -24,7 +25,9 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
@@ -50,43 +53,42 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 
 class LayoutInspectorTest {
 
-  private val device1 = Common.Device.newBuilder()
-    .setDeviceId(1)
-    .setManufacturer("man1")
-    .setModel("mod1")
-    .setSerial("serial1")
-    .setIsEmulator(false)
-    .setApiLevel(1)
-    .setVersion("version1")
-    .setCodename("codename1")
-    .setState(Common.Device.State.ONLINE)
-    .build()
+  private val device1 =
+    Common.Device.newBuilder()
+      .setDeviceId(1)
+      .setManufacturer("man1")
+      .setModel("mod1")
+      .setSerial("serial1")
+      .setIsEmulator(false)
+      .setApiLevel(1)
+      .setVersion("version1")
+      .setCodename("codename1")
+      .setState(Common.Device.State.ONLINE)
+      .build()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val projectRule = ProjectRule()
 
   private val adbRule = FakeAdbRule()
-  private val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
-    adbRule.withDeviceCommandHandler(this)
-  }
+  private val adbProperties: AdbDebugViewProperties =
+    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+  val grpcServerRule =
+    FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
-  private val deviceToStreamMap = mapOf(
-    device1 to createFakeStream(1, device1),
-  )
+  private val deviceToStreamMap =
+    mapOf(
+      device1 to createFakeStream(1, device1),
+    )
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule)
-    .around(adbRule)
-    .around(adbService)
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)
 
   private lateinit var layoutInspector: LayoutInspector
   private lateinit var deviceModel: DeviceModel
@@ -108,17 +110,19 @@ class LayoutInspectorTest {
     mockRenderModel = mock()
 
     val mockTreeSettings = mock<TreeSettings>()
-    layoutInspector = LayoutInspector(
-      scope,
-      processModel,
-      deviceModel,
-      mockForegroundProcessDetection,
-      mockClientSettings,
-      mockLauncher,
-      inspectorModel,
-      mockTreeSettings,
-      renderModel = mockRenderModel
-    )
+    layoutInspector =
+      LayoutInspector(
+        scope,
+        processModel,
+        deviceModel,
+        mockForegroundProcessDetection,
+        mockClientSettings,
+        mockLauncher,
+        inspectorModel,
+        NotificationModel(projectRule.project),
+        mockTreeSettings,
+        renderModel = mockRenderModel
+      )
   }
 
   @Test
@@ -159,57 +163,61 @@ class LayoutInspectorTest {
   }
 
   @Test
-  fun testStopInspectorResetsDebugViewAttributes() = runBlockingWithFlagState(true) {
-    val scope = AndroidCoroutineScope(disposableRule.disposable)
-    val (deviceModel, processModel) = createDeviceModel(device1)
-    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-    val mockClientSettings = mock<InspectorClientSettings>()
-    val mockLauncher = mock<InspectorClientLauncher>()
-    val inspectorModel = InspectorModel(projectRule.project)
-    val mockTreeSettings = mock<TreeSettings>()
-    val layoutInspector = LayoutInspector(
-      scope,
-      processModel,
-      deviceModel,
-      mockForegroundProcessDetection,
-      mockClientSettings,
-      mockLauncher,
-      inspectorModel,
-      mockTreeSettings
-    )
+  fun testStopInspectorResetsDebugViewAttributes() =
+    runBlockingWithFlagState(true) {
+      val scope = AndroidCoroutineScope(disposableRule.disposable)
+      val (deviceModel, processModel) = createDeviceModel(device1)
+      val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
+      val mockClientSettings = mock<InspectorClientSettings>()
+      val mockLauncher = mock<InspectorClientLauncher>()
+      whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
+      val inspectorModel = InspectorModel(projectRule.project)
+      val mockTreeSettings = mock<TreeSettings>()
+      val layoutInspector =
+        LayoutInspector(
+          scope,
+          processModel,
+          deviceModel,
+          mockForegroundProcessDetection,
+          mockClientSettings,
+          mockLauncher,
+          inspectorModel,
+          NotificationModel(projectRule.project),
+          mockTreeSettings
+        )
 
-    val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
+      val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
 
-    connectDevice(device1)
+      connectDevice(device1)
 
-    val debugViewAttributes = DebugViewAttributes.getInstance()
-    val changed = debugViewAttributes.set(projectRule.project, fakeProcess)
-    assertThat(changed).isTrue()
+      val debugViewAttributes = DebugViewAttributes.getInstance()
+      val changed = debugViewAttributes.set(projectRule.project, fakeProcess)
+      assertThat(changed).isTrue()
 
-    // test has device, no process
-    deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
-    processModel.selectedProcess = null
+      // test has device, no process
+      deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
+      processModel.selectedProcess = null
 
-    layoutInspector.stopInspector()
+      layoutInspector.stopInspector()
 
-    verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
-    assertThat(processModel.selectedProcess).isNull()
+      verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
+      assertThat(processModel.selectedProcess).isNull()
 
-    assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-    assertThat(adbProperties.debugViewAttributes).isNull()
+      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
+      assertThat(adbProperties.debugViewAttributes).isNull()
 
-    // test no device, has process
-    deviceModel.setSelectedDevice(null)
-    processModel.selectedProcess = fakeProcess
+      // test no device, has process
+      deviceModel.setSelectedDevice(null)
+      processModel.selectedProcess = fakeProcess
 
-    layoutInspector.stopInspector()
+      layoutInspector.stopInspector()
 
-    verifyNoMoreInteractions(mockForegroundProcessDetection)
-    assertThat(processModel.selectedProcess).isNull()
-    // the device is still connected, so the global flag should not be reset
-    assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-    assertThat(adbProperties.debugViewAttributes).isNull()
-  }
+      verifyNoMoreInteractions(mockForegroundProcessDetection)
+      assertThat(processModel.selectedProcess).isNull()
+      // the device is still connected, so the global flag should not be reset
+      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
+      assertThat(adbProperties.debugViewAttributes).isNull()
+    }
 
   @Test
   fun updateRenderOnModelChanges() {
@@ -222,21 +230,24 @@ class LayoutInspectorTest {
     verify(mockRenderModel).refresh()
   }
 
-  /**
-   * Connect a device to the transport and to adb.
-   */
+  /** Connect a device to the transport and to adb. */
   private fun connectDevice(device: Common.Device, timestamp: Long? = null) {
     val transportDevice = deviceToStreamMap[device]!!.device
 
     if (timestamp != null) {
       transportService.addDevice(transportDevice, timestamp)
-    }
-    else {
+    } else {
       transportService.addDevice(transportDevice)
     }
 
     if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+      adbRule.attachDevice(
+        device.serial,
+        device.manufacturer,
+        device.model,
+        device.version,
+        device.apiLevel.toString()
+      )
     }
   }
 
@@ -248,21 +259,19 @@ class LayoutInspectorTest {
   }
 
   private fun createFakeStream(streamId: Long, device: Common.Device): Common.Stream {
-    return Common.Stream.newBuilder()
-      .setStreamId(streamId)
-      .setDevice(device)
-      .build()
+    return Common.Stream.newBuilder().setStreamId(streamId).setDevice(device).build()
   }
 
   @Suppress("SameParameterValue")
-  private fun runBlockingWithFlagState(desiredFlagState: Boolean, task: suspend () -> Unit): Unit = runBlocking {
-    val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-    val flagPreviousState = flag.get()
-    flag.override(desiredFlagState)
+  private fun runBlockingWithFlagState(desiredFlagState: Boolean, task: suspend () -> Unit): Unit =
+    runBlocking {
+      val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+      val flagPreviousState = flag.get()
+      flag.override(desiredFlagState)
 
-    task()
+      task()
 
-    // restore flag state
-    flag.override(flagPreviousState)
-  }
+      // restore flag state
+      flag.override(flagPreviousState)
+    }
 }

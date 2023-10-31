@@ -26,19 +26,19 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
-import java.awt.BorderLayout
-import java.awt.Container
-import java.awt.Dimension
-import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.awt.BorderLayout
+import java.awt.Container
+import java.awt.Dimension
+import javax.swing.JPanel
 
 @RunWith(Parameterized::class)
 class BottomPanelTest(
@@ -53,14 +53,14 @@ class BottomPanelTest(
   companion object {
     @JvmStatic
     @Parameterized.Parameters(
-      name = "Coordination drag is enabled: {0}, coordination panel opened: {1}"
+      name = "Coordination drag is enabled: {0}, coordination panel opened: {1}",
     )
     fun parameters() =
       listOf(
         arrayOf<Any>(true, true),
         arrayOf<Any>(true, false),
         arrayOf<Any>(false, true),
-        arrayOf<Any>(false, false)
+        arrayOf<Any>(false, false),
       )
   }
 
@@ -71,7 +71,7 @@ class BottomPanelTest(
           projectRule,
           "layout",
           "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER),
         )
         .build()
     }
@@ -186,8 +186,9 @@ class BottomPanelTest(
           override fun isCoordinationAvailable() = withCoordination
           override fun isCoordinationPanelOpened() = isCoordinationPanelOpened
         },
-        surface
-      ) {}
+        surface,
+        NoopAnimationTracker,
+      )
     JPanel(BorderLayout()).apply {
       setSize(300, 500)
       add(panel, BorderLayout.SOUTH)

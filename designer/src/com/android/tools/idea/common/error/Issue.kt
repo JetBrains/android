@@ -32,12 +32,13 @@ import javax.swing.event.HyperlinkListener
 class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributesHolder {
   private val componentRef = WeakReference(component)
 
-  @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
+  @Suppress(
+    "RedundantNullableReturnType"
+  ) // May be null when using mocked NlModel in the test environment.
   override val file: VirtualFile? = component.model.virtualFile
-  override val displayText: String = listOfNotNull(
-    component.model.modelDisplayName,
-    component.id,
-    "<${component.tagName}>").joinToString(" ")
+  override val displayText: String =
+    listOfNotNull(component.model.modelDisplayName, component.id, "<${component.tagName}>")
+      .joinToString(" ")
 
   val component: NlComponent?
     get() = componentRef.get()
@@ -62,62 +63,52 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
     val otherComponent = other.componentRef.get() ?: return false
     if (component != otherComponent) return false
     if (file != other.file) return false
-    if (displayText != other.displayText) return false
-
-    return true
+    return displayText == other.displayText
   }
 
-  override fun hashCode(): Int =
-    Objects.hash(
-      component,
-      file,
-      displayText
-    )
+  override fun hashCode(): Int = Objects.hash(component, file, displayText)
 }
 
-/**
- * Interface that represents the source for a given [Issue].
- */
+/** Interface that represents the source for a given [Issue]. */
 interface IssueSource {
   val file: VirtualFile?
+
   /** The display text to show in the issue panel. */
   val displayText: String
 
   companion object {
     @JvmField
-    val NONE = object : IssueSource {
-      override val file: VirtualFile? = null
-      override val displayText: String = ""
+    val NONE =
+      object : IssueSource {
+        override val file: VirtualFile? = null
+        override val displayText: String = ""
 
-      override fun equals(other: Any?): Boolean = other === this
-    }
+        override fun equals(other: Any?): Boolean = other === this
+      }
 
     @JvmStatic
     fun fromNlComponent(component: NlComponent): IssueSource = NlComponentIssueSource(component)
 
     @JvmStatic
-    fun fromNlModel(model: NlModel): IssueSource = object: IssueSource {
-      @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
-      override val file: VirtualFile? = model.virtualFile
-      override val displayText: String = model.modelDisplayName.orEmpty()
+    fun fromNlModel(model: NlModel): IssueSource =
+      object : IssueSource {
+        @Suppress(
+          "RedundantNullableReturnType"
+        ) // May be null when using mocked NlModel in the test environment.
+        override val file: VirtualFile? = model.virtualFile
+        override val displayText: String = model.modelDisplayName.orEmpty()
 
-      override fun equals(other: Any?): Boolean =
-        other is IssueSource &&
-        Objects.equals(file, other.file) &&
-        Objects.equals(displayText, other.displayText)
+        override fun equals(other: Any?): Boolean =
+          other is IssueSource &&
+            Objects.equals(file, other.file) &&
+            Objects.equals(displayText, other.displayText)
 
-      override fun hashCode(): Int =
-        Objects.hash(
-          file,
-          displayText
-        )
-    }
+        override fun hashCode(): Int = Objects.hash(file, displayText)
+      }
   }
 }
 
-/**
- * Represent an Error that can be displayed in the [IssuePanel].
- */
+/** Represent an Error that can be displayed in the [IssuePanel]. */
 abstract class Issue {
   /** A short summary of the error description */
   abstract val summary: String
@@ -137,8 +128,8 @@ abstract class Issue {
   open val hyperlinkListener: HyperlinkListener? = createDefaultHyperLinkListener()
 
   /**
-   * Returns a Steam of pair containing the description of the fix as the first element
-   * and a [Runnable] to execute the fix
+   * Returns a Steam of pair containing the description of the fix as the first element and a
+   * [Runnable] to execute the fix
    */
   open val fixes: Stream<Fix>
     get() = Stream.empty()
@@ -149,11 +140,11 @@ abstract class Issue {
   override fun equals(other: Any?): Boolean {
     if (other === this) return true
     if (other !is Issue) return false
-    return other.severity == severity
-           && other.summary == summary
-           && other.description == description
-           && other.category == category
-           && other.source == source
+    return other.severity == severity &&
+      other.summary == summary &&
+      other.description == description &&
+      other.category == category &&
+      other.source == source
   }
 
   override fun hashCode(): Int {
@@ -166,9 +157,7 @@ abstract class Issue {
     return result
   }
 
-  /**
-   * Representation of the quick fix action (includes both fix and suppress) for the issues.
-   */
+  /** Representation of the quick fix action (includes both fix and suppress) for the issues. */
   interface QuickFixable {
     val icon: Icon?
     val buttonText: String
@@ -176,17 +165,21 @@ abstract class Issue {
     val action: Runnable
   }
 
-  /**
-   * Representation of a fix action for the issue.
-   */
-  data class Fix(override val buttonText: String = "Fix", override val description: String, override val action: Runnable) : QuickFixable {
+  /** Representation of a fix action for the issue. */
+  data class Fix(
+    override val buttonText: String = "Fix",
+    override val description: String,
+    override val action: Runnable
+  ) : QuickFixable {
     override val icon = AllIcons.Actions.RealIntentionBulb
   }
 
-  /**
-   * Representation of a suppress action for the issue.
-   */
-  data class Suppress(override val buttonText: String, override val description: String, override val action: Runnable) : QuickFixable {
+  /** Representation of a suppress action for the issue. */
+  data class Suppress(
+    override val buttonText: String,
+    override val description: String,
+    override val action: Runnable
+  ) : QuickFixable {
     override val icon = AllIcons.Actions.Cancel
   }
 

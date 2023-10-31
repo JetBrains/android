@@ -18,4 +18,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.insights.ui">
     <appInsightsTabProvider implementation="com.android.tools.idea.vitals.ui.VitalsTabProvider" />
   </extensions>
+
+  <projectListeners>
+    <listener class="com.android.tools.idea.vitals.VitalsSyncResultListener"
+              topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
+  </projectListeners>
 </idea-plugin>

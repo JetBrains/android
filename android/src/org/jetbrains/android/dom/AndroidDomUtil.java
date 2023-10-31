@@ -76,12 +76,15 @@ import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
@@ -102,12 +105,9 @@ import com.intellij.util.xml.XmlName;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import com.android.tools.dom.attrs.AttributeDefinition;
-import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.ToolsAttributeDefinitionsImpl;
 import org.jetbrains.android.dom.converters.AndroidConstraintIdsConverter;
 import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
@@ -190,14 +190,6 @@ public class AndroidDomUtil {
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
   private static final AutoFillHintsConverter AUTOFILL_HINTS_CONVERTER = new AutoFillHintsConverter();
-
-  // List of available font families extracted from framework's fonts.xml
-  // Used to provide completion for values of android:fontFamily attribute
-  // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
-  public static final List<String> AVAILABLE_FAMILIES = ImmutableList
-      .of("sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
-          "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
-          "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For

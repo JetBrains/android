@@ -17,7 +17,6 @@ package com.android.tools.idea.run.deployment;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,13 +34,8 @@ final class Devices {
       .anyMatch(name::equals);
   }
 
-  static @NotNull Optional<String> getBootOption(@NotNull Device device,
-                                                          @NotNull Target target,
-                                                          @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
-    if (!selectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean()) {
-      return Optional.empty();
-    }
-
+  @NotNull
+  static Optional<String> getBootOption(@NotNull Device device, @NotNull Target target) {
     if (device.isConnected()) {
       return Optional.empty();
     }

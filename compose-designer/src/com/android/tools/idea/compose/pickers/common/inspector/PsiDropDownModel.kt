@@ -24,6 +24,7 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.util.concurrent.Futures
+import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.Future
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
@@ -33,9 +34,16 @@ import javax.swing.event.ListDataListener
  *
  * Manages how values are loaded and selected into the dropdown popup menu.
  */
-internal class PsiDropDownModel(property: PsiPropertyItem, private val enumSupport: EnumSupport) :
-  BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
+internal class PsiDropDownModel
+@TestOnly
+constructor(
+  property: PsiPropertyItem,
+  private val enumSupport: EnumSupport,
+  private val setSelectedValueCallback: () -> Unit
+) : BasePropertyEditorModel(property), CommonComboBoxModel<EnumValue> {
   private val syncNewValues = Object()
+
+  constructor(property: PsiPropertyItem, enumSupport: EnumSupport) : this(property, enumSupport, {})
 
   /**
    * Provisional list used before values are loaded from [enumSupport]. Used to have a Loading
@@ -51,6 +59,10 @@ internal class PsiDropDownModel(property: PsiPropertyItem, private val enumSuppo
    */
   @GuardedBy("syncNewValues") private var newValues: List<EnumValue> = loading
   private var selectedValue: EnumValue? = null
+    set(value) {
+      field = value
+      setSelectedValueCallback()
+    }
   private val listListeners = mutableListOf<ListDataListener>()
 
   override val editable: Boolean = false
@@ -207,8 +219,14 @@ internal class PsiDropDownModel(property: PsiPropertyItem, private val enumSuppo
       return
     }
     val newValue = item as? EnumValue
-    if (selectedValue?.value != newValue?.value) {
-      selectedValue = newValue
+    // selectedValue is first selected by setInitialDropDownValue and might be created as a generic
+    // EnumValue. This can cause trouble down the line because other places will compare this
+    // generic EnumValue with a PsiEnumValue, and think that we're setting a new value. We avoid
+    // that by updating selectedValue to the value selected in the dropdown, which should be a
+    // PsiEnumValue. We still only want to notify listeners if the data has actually changed.
+    val valueHasChanged = selectedValue?.value != newValue?.value
+    selectedValue = newValue
+    if (valueHasChanged) {
       fireListDataChanged()
     }
   }

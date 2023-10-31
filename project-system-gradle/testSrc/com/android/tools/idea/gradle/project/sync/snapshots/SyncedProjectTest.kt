@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.project.sync.CapturePlatformModelsProjectResolverExtension
-import com.android.tools.idea.gradle.project.sync.GradleModuleSystemIntegrationTest
+import com.android.tools.idea.gradle.project.sync.GradleProjectSystemIntegrationTest
 import com.android.tools.idea.gradle.project.sync.HighlightProjectTestDef
 import com.android.tools.idea.navigator.AndroidProjectViewSnapshotComparisonTestDef
 import com.android.tools.idea.navigator.SourceProvidersTestDef
@@ -53,16 +53,19 @@ abstract class SyncedProjectTest(
   companion object {
     val tests = (
       IdeModelSnapshotComparisonTestDefinition.tests() +
-        SourceProvidersTestDef.tests +
-        ProjectStructureSnapshotTestDef.tests +
-        AndroidProjectViewSnapshotComparisonTestDef.tests +
-        GradleSyncLoggedEventsTestDef.tests +
-        GradleModuleHierarchyProviderTest.tests +
-        GradleModuleSystemIntegrationTest.tests +
-        HighlightProjectTestDef.tests +
-        selfChecks()
+      SourceProvidersTestDef.tests +
+      ProjectStructureSnapshotTestDef.tests +
+      AndroidProjectViewSnapshotComparisonTestDef.tests +
+      GradleSyncLoggedEventsTestDef.tests +
+      GradleModuleHierarchyProviderTest.tests +
+      GradleProjectSystemIntegrationTest.tests +
+      HighlightProjectTestDef.tests +
+      selfChecks()
       ).groupBy { it.testProject }
   }
+
+  @Test
+  fun testAndroidKotlinMultiplatform() = testProject(TestProject.ANDROID_KOTLIN_MULTIPLATFORM)
 
   @Test
   fun testSimpleApplication() = testProject(TestProject.SIMPLE_APPLICATION)
@@ -77,13 +80,20 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication_appViaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK)
 
   @Test
+  fun testCustomNamespace() = testProject(TestProject.CUSTOM_NAMESPACE)
+
+  @Test
   fun testAppWithMlModels() = testProject(TestProject.APP_WITH_ML_MODELS)
 
   @Test
   fun testAppWithBuildSrc() = testProject(TestProject.APP_WITH_BUILDSRC)
 
   @Test
-  fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
+  fun testAppWithBuildSrcAndSettingsPlugin() = testProject(TestProject.APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN)
+
+  // TODO(b/279759255)
+  // @Test
+  // fun testCompatibilityAs36() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36)
 
   @Test
   fun testCompatibilityAs36NoIml() = testProject(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML)
@@ -168,6 +178,10 @@ abstract class SyncedProjectTest(
     testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE)
 
   @Test
+  fun testKotlinMultiplatform_multiple_source_set_per_android_compilation() =
+    testProject(TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION)
+
+  @Test
   fun testMultiFlavor() = testProject(TestProject.MULTI_FLAVOR)
 
   @Test
@@ -236,11 +250,12 @@ abstract class SyncedProjectTest(
   @Test
   fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
 
+  /** Some snapshots have incorrect data, see IDEA-322947. */
   @Test
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
   @Test
-  @Ignore("Privacy sandbox SDK support is planned in AGP 8.2.0")
+  @Ignore("Privacy sandbox SDK support is planned in AGP 8.3.0")
   fun testPrivacySandboxSdkProject() = testProject(TestProject.PRIVACY_SANDBOX_SDK)
 
   @Test
@@ -253,7 +268,13 @@ abstract class SyncedProjectTest(
   fun testNonTransitiveRClassSymbolTrue() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE)
 
   @Test
-  fun testDependentModulesOnlyAppRuntime() = testProject(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME);
+  fun testDependentModulesOnlyAppRuntime() = testProject(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME)
+
+  @Test
+  fun testIndependentLibraryOnlyRuntime() = testProject(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME)
+
+  @Test
+  fun testBuildConfigAsBytecodeEnabled() = testProject(TestProject.BUILD_CONFIG_AS_BYTECODE_ENABLED)
 
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()

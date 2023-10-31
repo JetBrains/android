@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_TITLE;
+import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.PreferenceAttributes.ATTR_KEY;
 
 import com.android.tools.idea.common.api.InsertType;
@@ -82,6 +83,7 @@ public abstract class PreferenceHandler extends ViewHandler {
   @NotNull
   @Override
   public String getTitle(@NotNull NlComponent component) {
-    return Strings.nullToEmpty(component.getAndroidAttribute(ATTR_TITLE));
+    String title = component.getAttribute(AUTO_URI, ATTR_TITLE);
+    return title != null ? title : Strings.nullToEmpty(component.getAndroidAttribute(ATTR_TITLE));
   }
 }

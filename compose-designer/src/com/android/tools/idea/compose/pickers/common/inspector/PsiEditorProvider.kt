@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.pickers.common.inspector
 
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -38,18 +39,18 @@ internal class PsiEditorProvider(
     property: PsiPropertyItem,
     editable: Boolean,
     enumSupport: EnumSupport,
-    asTableCellEditor: Boolean
+    context: EditorContext
   ): Pair<PropertyEditorModel, JComponent> {
     return if (editable) {
       // Use existing components for ComboBox
       val model = ComboBoxPropertyEditorModel(property, enumSupport, editable = true)
-      val comboBox = PropertyComboBox(model, asTableCellEditor)
+      val comboBox = PropertyComboBox(model, context)
       comboBox.renderer = enumSupport.renderer
       Pair(model, addActionButtonBinding(model, comboBox))
     } else {
       // Use a specific component for DropDown
       val model = PsiDropDownModel(property, enumSupport)
-      val comboBox = PsiPropertyDropDown(model, asTableCellEditor, enumSupport.renderer)
+      val comboBox = PsiPropertyDropDown(model, context, enumSupport.renderer)
       Pair(model, addActionButtonBinding(model, comboBox))
     }
   }

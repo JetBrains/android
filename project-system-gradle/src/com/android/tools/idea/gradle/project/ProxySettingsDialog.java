@@ -65,7 +65,7 @@ public class ProxySettingsDialog extends DialogWrapper {
   private JPanel myHttpsProxyPanel;
   private JTextPane myMessageTextLabel;
 
-  public ProxySettingsDialog(@NotNull Project project, @NotNull ProxySettings httpProxySettings) {
+  public ProxySettingsDialog(@NotNull Project project, @NotNull ProxySettings httpProxySettings, boolean ideProxyUsed) {
     super(project);
     setTitle(AndroidBundle.message("android.proxy.settings.dialog.title"));
     setOKButtonText("Yes");
@@ -80,8 +80,7 @@ public class ProxySettingsDialog extends DialogWrapper {
 
     setUpAsHtmlLabel(myMessageTextLabel);
     myMessageTextLabel.addHyperlinkListener(BrowserHyperlinkListener.INSTANCE);
-    String text = AndroidBundle.message("android.proxy.settings.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName());
-    myMessageTextLabel.setText(text);
+    myMessageTextLabel.setText(generateDialogText(ideProxyUsed));
 
     myHttpProxyHostTextField.setText(httpProxySettings.getHost());
     myHttpProxyPortTextField.setNumber(httpProxySettings.getPort());
@@ -142,8 +141,8 @@ public class ProxySettingsDialog extends DialogWrapper {
   }
 
   /**
-   * Apply proxy settings to properties and return whether or not passwords are needed.
-   * @param properties
+   * Apply proxy settings to properties and return whether passwords are needed.
+   * @param properties where the settings will be applied to.
    * @return {@code true} if authentication is needed but no passwords are defined.
    */
   public boolean applyProxySettings(@NotNull Properties properties) {
@@ -272,5 +271,11 @@ public class ProxySettingsDialog extends DialogWrapper {
   @VisibleForTesting
   void setHttpsProxyLogin(@NotNull String value) {
     myHttpsProxyLoginTextField.setText(value);
+  }
+
+  @VisibleForTesting
+  static String generateDialogText(boolean ideProxyUsed) {
+    String dialogTemplate = ideProxyUsed ? "android.proxy.settings.dialog.message" : "android.proxy.settings.dialog.no.ide.message";
+    return AndroidBundle.message(dialogTemplate, ApplicationNamesInfo.getInstance().getProductName());
   }
 }

@@ -25,13 +25,14 @@ import com.intellij.psi.codeStyle.NameUtil
  * A model for a property inspector.
  *
  * Contains implementations for search/filtering of properties in the inspector.
+ *
  * @property lines All line models displayed in the inspector.
- * @property filter The search term or an empty string. The panel will hide all lines where the label text doesn't match.
+ * @property filter The search term or an empty string. The panel will hide all lines where the
+ *   label text doesn't match.
  */
 class InspectorPanelModel {
   private var listeners = mutableListOf<ValueChangedListener>()
-  @VisibleForTesting
-  val lines = mutableListOf<InspectorLineModel>()
+  @VisibleForTesting val lines = mutableListOf<InspectorLineModel>()
 
   var filter: String = ""
     set(value) {
@@ -56,7 +57,8 @@ class InspectorPanelModel {
   }
 
   /**
-   * Search for the closest line after [lineIndex] that can take focus. Wrap to the first line if we get to the end.
+   * Search for the closest line after [lineIndex] that can take focus. Wrap to the first line if we
+   * get to the end.
    */
   private fun findClosestNextLine(lineIndex: Int): InspectorLineModel? {
     var index = (lineIndex + 1) % lines.size
@@ -90,7 +92,8 @@ class InspectorPanelModel {
     if (filter.isEmpty()) {
       return false
     }
-    val visibleLabels = lines.filter{ it.visible && (it is CollapsibleLabelModel || it is TableLineModel) }
+    val visibleLabels =
+      lines.filter { it.visible && (it is CollapsibleLabelModel || it is TableLineModel) }
     if (visibleLabels.count() != 1) {
       return false
     }
@@ -99,8 +102,7 @@ class InspectorPanelModel {
       val editor = label.editorModel ?: return false
       editor.requestFocus()
       return true
-    }
-    else if (label is TableLineModel) {
+    } else if (label is TableLineModel) {
       label.requestFocusInBestMatch()
       return true
     }
@@ -110,15 +112,15 @@ class InspectorPanelModel {
   private fun updateFiltering() {
     if (filter.isNotEmpty()) {
       applyFilter()
-    }
-    else {
+    } else {
       restoreGroups()
     }
     fireValueChanged()
   }
 
   private fun applyFilter() {
-    // Place a "*" in front of the filter to allow the typed filter to match other places than just the beginning of a string.
+    // Place a "*" in front of the filter to allow the typed filter to match other places than just
+    // the beginning of a string.
     val matcher = NameUtil.buildMatcher("*$filter").build()
     lines.forEach { line ->
       when {

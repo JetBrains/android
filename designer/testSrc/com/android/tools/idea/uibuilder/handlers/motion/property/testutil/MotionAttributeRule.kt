@@ -77,7 +77,13 @@ class MotionAttributeRule(
     select(selectionFactory!!.createTransition(start, end))
   }
 
-  fun selectKeyFrame(start: String, end: String, keyType: String, framePosition: Int, target: String) {
+  fun selectKeyFrame(
+    start: String,
+    end: String,
+    keyType: String,
+    framePosition: Int,
+    target: String
+  ) {
     select(selectionFactory!!.createKeyFrame(start, end, keyType, framePosition, target))
   }
 
@@ -100,7 +106,12 @@ class MotionAttributeRule(
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    whenever(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
+    whenever(
+        fileManager!!.openEditor(
+          ArgumentMatchers.any(OpenFileDescriptor::class.java),
+          ArgumentMatchers.anyBoolean()
+        )
+      )
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
@@ -112,7 +123,8 @@ class MotionAttributeRule(
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.verify(fileManager!!, times(++matchCount)).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    Mockito.verify(fileManager!!, times(++matchCount))
+      .openEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
     Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
@@ -142,11 +154,16 @@ class MotionAttributeRule(
     val facet = projectRule.module.androidFacet!!
     projectRule.fixture.copyFileToProject("attrs.xml", "res/values/attrs.xml")
     projectRule.fixture.copyFileToProject("MotionLayout.kt", "src/MotionLayout.kt")
-    val layout = projectRule.fixture.copyFileToProject(motionLayoutFilename, "res/layout/$motionLayoutFilename")
+    val layout =
+      projectRule.fixture.copyFileToProject(
+        motionLayoutFilename,
+        "res/layout/$motionLayoutFilename"
+      )
     val layoutFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, layout) as XmlFile
     val queue = MergingUpdateQueue("MQ", 100, true, null, projectRule.fixture.projectDisposable)
     queue.isPassThrough = true
-    val scene = projectRule.fixture.copyFileToProject(motionSceneFilename, "res/xml/$motionSceneFilename")
+    val scene =
+      projectRule.fixture.copyFileToProject(motionSceneFilename, "res/xml/$motionSceneFilename")
     sceneFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, scene) as XmlFile
     timeline = FakeMotionAccessoryPanel()
     runInEdtAndWait {
@@ -168,7 +185,15 @@ class MotionAttributeRule(
 
   private fun createNlModel(layout: XmlFile, timeline: AccessoryPanelInterface): SyncNlModel {
     val facet = projectRule.module.androidFacet!!
-    val model = NlModelBuilderUtil.model(facet, projectRule.fixture, "layout", "layout.xml", ComponentDescriptorUtil.component(layout)).build()
+    val model =
+      NlModelBuilderUtil.model(
+          facet,
+          projectRule.fixture,
+          "layout",
+          "layout.xml",
+          ComponentDescriptorUtil.component(layout)
+        )
+        .build()
     val surface = model.surface
     val panel = Mockito.mock(AccessoryPanel::class.java)
     whenever(surface.accessoryPanel).thenReturn(panel)

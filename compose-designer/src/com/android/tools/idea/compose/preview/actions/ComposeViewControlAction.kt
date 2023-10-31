@@ -21,13 +21,12 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
-import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
-import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
@@ -46,7 +45,8 @@ import com.intellij.ui.icons.copyIcon
 class ComposeViewControlAction(
   private val layoutManagerSwitcher: LayoutManagerSwitcher,
   private val layoutManagers: List<SurfaceLayoutManagerOption>,
-  private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true }
+  private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
+  private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit
 ) :
   DropDownAction(
     message("action.scene.view.control.title"),
@@ -57,12 +57,19 @@ class ComposeViewControlAction(
     super.update(e)
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
     e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
+    e.presentation.description =
+      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+        message("action.scene.view.control.essentials.mode.description")
+      else message("action.scene.view.control.description")
   }
 
   @VisibleForTesting
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    if (StudioFlags.COMPOSE_VIEW_FILTER.get()) {
+    if (
+      StudioFlags.COMPOSE_VIEW_FILTER.get() &&
+        !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    ) {
       DESIGN_SURFACE.getData(context)?.let { surface ->
         add(ComposeShowFilterAction(surface))
         addSeparator()
@@ -75,6 +82,7 @@ class ComposeViewControlAction(
           isSurfaceLayoutActionEnabled
         ) { selectedOption ->
           PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
+          onSurfaceLayoutSelected(selectedOption, context)
         }
         .apply {
           isPopup = false
@@ -99,7 +107,8 @@ class ComposeViewControlAction(
     return true
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  // Actions calling isAnyPreviewRefreshing in the update method, must run in BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /**
    * Zoom actions have the icons, which we don't want to display in [ComposeViewControlAction]. We

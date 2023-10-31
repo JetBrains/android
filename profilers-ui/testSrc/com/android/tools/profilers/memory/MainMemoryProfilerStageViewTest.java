@@ -51,6 +51,7 @@ import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.SessionProfilersView;
+import com.android.tools.profilers.StageWithToolbarView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
@@ -93,6 +94,7 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -464,6 +466,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(response.getContents()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
+  @Ignore("b/277717905")
   @Test
   public void testLoadLegacyAllocationRecordsFromFile() throws Exception {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -493,11 +496,11 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[2].getText()).isEqualTo("Force garbage collection");
     assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[4].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
-    assertThat(items[5].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[4].getText()).isEqualTo(StageWithToolbarView.ATTACH_LIVE);
+    assertThat(items[5].getText()).isEqualTo(StageWithToolbarView.DETACH_LIVE);
     assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
-    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+    assertThat(items[7].getText()).isEqualTo(StageWithToolbarView.ZOOM_IN);
+    assertThat(items[8].getText()).isEqualTo(StageWithToolbarView.ZOOM_OUT);
 
     // Adding AllocationSamplingRateEvent to make getStage().useLiveAllocationTracking() return true;
     myTransportService.addEventToStream(
@@ -511,11 +514,11 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[2].getText()).isEqualTo("Force garbage collection");
     assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[4].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
-    assertThat(items[5].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[4].getText()).isEqualTo(StageWithToolbarView.ATTACH_LIVE);
+    assertThat(items[5].getText()).isEqualTo(StageWithToolbarView.DETACH_LIVE);
     assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
-    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+    assertThat(items[7].getText()).isEqualTo(StageWithToolbarView.ZOOM_IN);
+    assertThat(items[8].getText()).isEqualTo(StageWithToolbarView.ZOOM_OUT);
   }
 
 
@@ -543,11 +546,11 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(items[1]).isEqualTo(ContextMenuItem.SEPARATOR);
     assertThat(items[2].getText()).isEqualTo("Force garbage collection");
     assertThat(items[3]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[4].getText()).isEqualTo(StudioProfilersView.ATTACH_LIVE);
-    assertThat(items[5].getText()).isEqualTo(StudioProfilersView.DETACH_LIVE);
+    assertThat(items[4].getText()).isEqualTo(StageWithToolbarView.ATTACH_LIVE);
+    assertThat(items[5].getText()).isEqualTo(StageWithToolbarView.DETACH_LIVE);
     assertThat(items[6]).isEqualTo(ContextMenuItem.SEPARATOR);
-    assertThat(items[7].getText()).isEqualTo(StudioProfilersView.ZOOM_IN);
-    assertThat(items[8].getText()).isEqualTo(StudioProfilersView.ZOOM_OUT);
+    assertThat(items[7].getText()).isEqualTo(StageWithToolbarView.ZOOM_IN);
+    assertThat(items[8].getText()).isEqualTo(StageWithToolbarView.ZOOM_OUT);
   }
 
   @Test

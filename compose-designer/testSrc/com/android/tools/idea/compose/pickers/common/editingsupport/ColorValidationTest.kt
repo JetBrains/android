@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.pickers.common.editingsupport
 
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.google.common.primitives.UnsignedInteger
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 internal class ColorValidationTest {

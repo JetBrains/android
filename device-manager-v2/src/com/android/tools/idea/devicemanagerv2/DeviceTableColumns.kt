@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
@@ -22,7 +23,8 @@ import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
-import com.android.tools.idea.wearpairing.WearPairingManager
+import com.android.tools.adtui.event.DelegateMouseEventHandler
+import com.google.common.collect.Ordering
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -33,57 +35,20 @@ internal object DeviceTableColumns {
 
   val nameAttribute = stringAttribute<DeviceRowData>(isGroupable = false) { it.name }
 
-  class Name(private val wearPairingManager: WearPairingManager) :
-    Column<DeviceRowData, String, DeviceNamePanel> {
+  object Name : Column<DeviceRowData, String, DeviceNamePanel> {
     override val name = DeviceManagerBundle.message("column.title.name")
     override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
     override val attribute = nameAttribute
-    override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel(wearPairingManager)
+    override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel()
 
     override fun updateValue(rowValue: DeviceRowData, component: DeviceNamePanel, value: String) =
       component.update(rowValue)
   }
 
-  object TypeAttribute : Attribute<DeviceRowData, DeviceType> {
+  object FormFactor : Attribute<DeviceRowData, DeviceType> {
     override val sorter: Comparator<DeviceType> = compareBy { it.name }
 
     override fun value(t: DeviceRowData): DeviceType = t.type
-
-    // TODO: CategoryRow uses DeviceType.toString() which renders the category
-    //  in uppercase; we need a way to make this titlecase.
-  }
-
-  /** Renders the type of device as an icon. */
-  object Type : Column<DeviceRowData, DeviceType, IconLabel> {
-    override val name = DeviceManagerBundle.message("column.title.formfactor")
-
-    override val attribute = TypeAttribute
-
-    override fun createUi(rowValue: DeviceRowData): IconLabel = IconLabel(null)
-
-    override fun updateValue(rowValue: DeviceRowData, component: IconLabel, value: DeviceType) {
-      // While we use isVirtual to tweak the icon, this column groups based on device type only.
-      component.baseIcon =
-        if (rowValue.isVirtual) {
-          when (value) {
-            DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
-            DeviceType.WEAR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
-            DeviceType.TV -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
-            DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
-          }
-        } else {
-          when (value) {
-            DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-            DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
-            DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
-            DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
-          }
-        }
-    }
-
-    // All icons should be the same size
-    override val widthConstraint =
-      Column.SizeConstraint.exactly(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE.iconWidth + 5)
   }
 
   object Api :
@@ -93,22 +58,21 @@ internal object DeviceTableColumns {
       stringAttribute { it.androidVersion?.apiStringWithExtension ?: "" }
     )
 
-  object IsVirtual :
+  object HandleType :
     LabelColumn<DeviceRowData>(
-      DeviceManagerBundle.message("column.title.isvirtual"),
+      DeviceManagerBundle.message("column.title.handletype"),
       Column.SizeConstraint(min = 20, max = 80),
-      stringAttribute {
-        DeviceManagerBundle.message(
-          if (it.isVirtual) "column.value.virtual" else "column.value.physical"
-        )
-      }
+      stringAttribute { it.handleType.toString() }
     )
 
   object Status : Column<DeviceRowData, DeviceRowData.Status, IconLabel> {
     override val name = "Status"
+    override val columnHeaderName = "" // no room for a name
+    override val visibleWhenGrouped = true
     override val attribute =
       object : Attribute<DeviceRowData, DeviceRowData.Status> {
-        override val sorter: Comparator<DeviceRowData.Status> = naturalOrder()
+        override val sorter: Comparator<DeviceRowData.Status> =
+          Ordering.explicit(DeviceRowData.Status.ONLINE, DeviceRowData.Status.OFFLINE)
 
         override fun value(t: DeviceRowData) = t.status
       }
@@ -123,6 +87,12 @@ internal object DeviceTableColumns {
       component.baseIcon =
         when {
           rowValue.handle?.state?.isTransitioning == true -> ColorableAnimatedSpinnerIcon()
+          rowValue.error != null ->
+            when (rowValue.error.severity) {
+              DeviceError.Severity.INFO -> StudioIcons.Common.INFO
+              DeviceError.Severity.WARNING -> StudioIcons.Common.WARNING
+              DeviceError.Severity.ERROR -> StudioIcons.Common.ERROR
+            }
           else ->
             when (value) {
               DeviceRowData.Status.OFFLINE -> null
@@ -135,9 +105,10 @@ internal object DeviceTableColumns {
       IconLabel(null).apply { size = JBDimension(24, 24) }
   }
 
-  class Actions(private val project: Project, private val coroutineScope: CoroutineScope) :
+  class Actions(private val project: Project?, val coroutineScope: CoroutineScope) :
     Column<DeviceRowData, Unit, ActionButtonsPanel> {
     override val name = DeviceManagerBundle.message("column.title.actions")
+    override val columnHeaderName = "" // no room for a name
     override val attribute = Attribute.Unit
 
     override fun updateValue(rowValue: DeviceRowData, component: ActionButtonsPanel, value: Unit) {
@@ -151,19 +122,20 @@ internal object DeviceTableColumns {
       }
     }
 
+    override fun installMouseDelegate(
+      component: ActionButtonsPanel,
+      mouseDelegate: DelegateMouseEventHandler
+    ) {
+      // Install the mouse handler on each child of the panel
+      component.components.forEach { mouseDelegate.installListenerOn(it) }
+    }
+
     // TODO: Precomputing this is a hack... can we base it on the panel after it has been
     // constructed?
     override val widthConstraint =
-      Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 3)
+      Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 2)
   }
 
-  fun columns(project: Project, coroutineScope: CoroutineScope) =
-    listOf(
-      Status,
-      Type,
-      Name(WearPairingManager.getInstance()),
-      Api,
-      IsVirtual,
-      Actions(project, coroutineScope)
-    )
+  fun columns(project: Project?, coroutineScope: CoroutineScope) =
+    listOf(Status, Name, Api, HandleType, Actions(project, coroutineScope))
 }

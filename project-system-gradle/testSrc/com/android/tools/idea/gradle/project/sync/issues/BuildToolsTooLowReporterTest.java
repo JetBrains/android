@@ -67,7 +67,7 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     BuildToolsTooLowReporter spiedReporter = spy(myIssueReporter);
 
-    when(spiedReporter.getQuickFixHyperlinks(minVersion, ImmutableList.of(module), ImmutableMap.of()))
+    when(spiedReporter.getQuickFixHyperlinks(getProject(), minVersion, ImmutableList.of(module), ImmutableMap.of()))
       .thenReturn(quickFixes);
 
 

@@ -22,16 +22,16 @@ import com.android.tools.adtui.categorytable.constrainSize
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBDimension
-import javax.swing.BoxLayout
 import kotlinx.coroutines.CoroutineScope
+import javax.swing.BoxLayout
 
 internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
-  protected fun setUp(vararg buttons: IconButton) {
+  protected fun setUp(vararg buttons: IconButton?) {
     layout = BoxLayout(this, BoxLayout.X_AXIS)
     isOpaque = false
 
     val size = JBDimension(22, 22)
-    for (button in buttons) {
+    for (button in buttons.filterNotNull()) {
       button.constrainSize(size)
       add(button)
     }
@@ -40,19 +40,24 @@ internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
   open fun updateState(state: DeviceRowData) {}
 }
 
-internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHandle) :
+internal class DeviceHandleButtonsPanel(val project: Project?, handle: DeviceHandle) :
   ActionButtonsPanel() {
 
-  private val startStopButton = StartStopButton(handle)
-  private val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
   private val overflowButton = OverflowButton()
 
   init {
-    setUp(startStopButton, openDeviceExplorer, overflowButton)
-  }
-
-  override fun updateState(state: DeviceRowData) {
-    openDeviceExplorer.updateState(state)
+    val activationAction = handle.activationAction
+    val deactivationAction = handle.deactivationAction
+    when {
+      activationAction != null && deactivationAction != null -> {
+        setUp(
+          StartStopButton(handle, activationAction, deactivationAction, handle.repairDeviceAction),
+          overflowButton
+        )
+      }
+      project == null -> setUp(overflowButton)
+      else -> setUp(StartStopMirroringButton(handle, project), overflowButton)
+    }
   }
 }
 
@@ -60,9 +65,8 @@ internal class DeviceTemplateButtonsPanel(
   coroutineScope: CoroutineScope,
   deviceTemplate: DeviceTemplate
 ) : ActionButtonsPanel() {
-  private val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
 
   init {
-    setUp(activateTemplateButton)
+    setUp(ActivateTemplateButton(coroutineScope, deviceTemplate), OverflowButton())
   }
 }

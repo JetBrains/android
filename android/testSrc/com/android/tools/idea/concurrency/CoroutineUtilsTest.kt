@@ -25,7 +25,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.project.DumbService
@@ -36,7 +35,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName

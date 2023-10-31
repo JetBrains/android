@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.gitignore
@@ -29,8 +30,18 @@ import java.util.Locale
  */
 object BaselineProfilesMacrobenchmarkCommon {
   const val FILTER_INSTR_ARG = "android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules"
-  const val FILTER_ARG_BASELINE_PROFILE = "BaselineProfile"
-  const val FILTER_ARG_MACROBENCHMARK = "Macrobenchmark"
+  const val FILTER_ARG_BASELINE_PROFILE = "baselineprofile"
+  const val FILTER_ARG_MACROBENCHMARK = "macrobenchmark"
+
+  /**
+   * Baseline profiles Gradle plugin is only available from this version of AGP.
+   */
+  val BP_PLUGIN_MIN_SUPPORTED = AgpVersion(8, 0, 0)
+
+  /**
+   * Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP.
+   */
+  val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion.parse("8.2.0-alpha03")
 
   /**
    * Creates a new Gradle module for Macrobenchmark / Baseline Profiles module.
@@ -51,7 +62,7 @@ object BaselineProfilesMacrobenchmarkCommon {
     save(buildGradleContent, newModule.rootDir.resolve(buildFile))
 
     // Apply all required dependencies
-    applyPlugin("com.android.test", newModule.projectTemplateData.gradlePluginVersion)
+    applyPlugin("com.android.test", newModule.projectTemplateData.agpVersion)
 
     addDependency("androidx.test.ext:junit:+", "implementation")
     addDependency("androidx.test.espresso:espresso-core:+", "implementation")
@@ -141,7 +152,7 @@ object BaselineProfilesMacrobenchmarkCommon {
     )
 }
 
-data class GmdSpec(val deviceName: String, val apiLevel: Int) {
+data class GmdSpec(val deviceName: String, val apiLevel: Int, val systemImageSource: String) {
 
   val identifier: String = buildString {
     // Pixel 6 -> pixel6

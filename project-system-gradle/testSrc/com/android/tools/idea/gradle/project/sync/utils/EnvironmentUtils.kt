@@ -15,14 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.utils
 
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.utils.environment.TestSystemEnvironment
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
 import com.intellij.openapi.externalSystem.util.environment.Environment
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
+import org.mockito.Mockito
 
 object EnvironmentUtils {
 
@@ -35,6 +38,11 @@ object EnvironmentUtils {
   }
 
   private fun handleSpecialCasesEnvironmentVariables(environmentVariablesMap: Map<String, String?>, disposable: Disposable) {
+    if (environmentVariablesMap.containsKey(JAVA_HOME)) {
+      val mockIdeSdks = Mockito.spy(IdeSdks.getInstance())
+      whenever(mockIdeSdks.jdkFromJavaHome).thenReturn(environmentVariablesMap[JAVA_HOME])
+      ApplicationManager.getApplication().replaceService(IdeSdks::class.java, mockIdeSdks, disposable)
+    }
     if (environmentVariablesMap.containsKey(JDK_LOCATION_ENV_VARIABLE_NAME)) {
       IdeSdks.getInstance().overrideJdkEnvVariable(environmentVariablesMap[JDK_LOCATION_ENV_VARIABLE_NAME])
       Disposer.register(disposable) {

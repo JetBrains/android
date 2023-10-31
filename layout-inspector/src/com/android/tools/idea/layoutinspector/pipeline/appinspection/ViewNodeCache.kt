@@ -30,15 +30,13 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @param D The type of cached data.
  */
-abstract class ViewNodeCache<D>(
-  protected val model: InspectorModel
-) {
+abstract class ViewNodeCache<D>(protected val model: InspectorModel) {
 
   /**
    * If true, allow fetching data from the device if we don't have it in our local cache.
    *
-   * We provide this lever because sometimes the inspector is in snapshot mode, and we don't want
-   * to pull data from the device that might be newer than what we see in our snapshot.
+   * We provide this lever because sometimes the inspector is in snapshot mode, and we don't want to
+   * pull data from the device that might be newer than what we see in our snapshot.
    */
   var allowFetching = false
 
@@ -46,9 +44,7 @@ abstract class ViewNodeCache<D>(
   // Occasionally, roots are discarded, so we can drop whole branches of cached data in that case.
   private val cache: MutableMap<Long, ConcurrentHashMap<Long, D>> = ConcurrentHashMap()
 
-  /**
-   * Remove all nested data for views that are children to [rootId].
-   */
+  /** Remove all nested data for views that are children to [rootId]. */
   fun clearFor(rootId: Long) {
     cache.remove(rootId)
   }
@@ -90,8 +86,7 @@ abstract class ViewNodeCache<D>(
     }
   }
 
-  fun getCachedDataFor(rootId: Long, composeId: Long): D? =
-    cache[rootId]?.get(composeId)
+  fun getCachedDataFor(rootId: Long, composeId: Long): D? = cache[rootId]?.get(composeId)
 
   protected abstract suspend fun fetchDataFor(root: ViewNode, node: ViewNode): D?
 

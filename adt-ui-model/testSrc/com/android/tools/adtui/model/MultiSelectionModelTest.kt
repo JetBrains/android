@@ -21,7 +21,7 @@ import org.junit.Test
 
 class MultiSelectionModelTest {
   @Test
-  fun `selections indexed by multiple keys have stable order`() = testWithObserver { model, selections ->
+  fun `selections indexed by multiple keys have stable order`() = testWithObserver<Int> { model, selections ->
     model.setSelection("Key1", setOf(1, 2, 3))
     model.setSelection("Key2", setOf(2, 3, 4, 5))
     model.setSelection("Key3", setOf(0))
@@ -43,7 +43,7 @@ class MultiSelectionModelTest {
   }
 
   @Test
-  fun `most recently modified selection is active`() = testWithObserver { model, selections ->
+  fun `most recently modified selection is active`() = testWithObserver<Int> { model, selections ->
     assertThat(model.activeSelectionKey).isNull()
 
     model.setSelection("Key1", setOf(1, 2, 3))
@@ -60,7 +60,7 @@ class MultiSelectionModelTest {
   }
 
   @Test
-  fun `no item for selection is the same as deselection`() = testWithObserver { model, selections ->
+  fun `no item for selection is the same as deselection`() = testWithObserver<Int> { model, selections ->
     model.setSelection("Key1", setOf(1, 2, 3))
     model.setSelection("Key2", setOf(2, 3, 4, 5))
     model.setSelection("Key1", setOf())
@@ -82,7 +82,7 @@ class MultiSelectionModelTest {
     }
 
   @Test
-  fun `deselection leaves all selections as-is`() = testWithObserver { model, selections ->
+  fun `deselection leaves all selections as-is`() = testWithObserver<Int> { model, selections ->
     model.setSelection("Key1", setOf(1, 2, 3))
     model.setSelection("Key2", setOf(2, 3, 4, 5))
     assertThat(selections()).hasSize(2)

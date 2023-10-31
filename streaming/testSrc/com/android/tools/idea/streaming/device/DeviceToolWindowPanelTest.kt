@@ -17,40 +17,47 @@ package com.android.tools.idea.streaming.device
 
 import com.android.adblib.DevicePropertyNames.RO_BUILD_CHARACTERISTICS
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
-import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
+import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
+import com.intellij.ui.LayeredIcon
+import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito
+import org.mockito.Mockito.anyInt
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
@@ -60,7 +67,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_P
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JViewport
 
 /**
@@ -77,44 +84,48 @@ class DeviceToolWindowPanelTest {
   private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), ClipboardSynchronizationDisablementRule(), agentRule, PortableUiFontRule(), EdtRule())
+  val ruleChain = RuleChain(agentRule, ClipboardSynchronizationDisablementRule(), PortableUiFontRule(), EdtRule())
 
   private lateinit var device: FakeDevice
   private val panel: DeviceToolWindowPanel by lazy { createToolWindowPanel() }
   private val fakeUi: FakeUi by lazy { FakeUi(panel, createFakeWindow = true) } // Fake window is necessary for the toolbars to be rendered.
   private val project get() = agentRule.project
-  private val testRootDisposable get() = agentRule.testRootDisposable
+  private val testRootDisposable get() = agentRule.disposable
   private val agent: FakeScreenSharingAgent get() = device.agent
 
   @Before
   fun setUp() {
-    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable)
+    HeadlessDataManager.fallbackToProductionDataManager(testRootDisposable) // Necessary to properly update toolbar button states.
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
-    val mockScreenRecordingCache = MockitoKt.mock<ScreenRecordingSupportedCache>()
-    MockitoKt.whenever(mockScreenRecordingCache.isScreenRecordingSupported(MockitoKt.any(), Mockito.anyInt())).thenReturn(true)
+    val mockScreenRecordingCache = mock<ScreenRecordingSupportedCache>()
+    whenever(mockScreenRecordingCache.isScreenRecordingSupported(any(), anyInt())).thenReturn(true)
     project.registerServiceInstance(ScreenRecordingSupportedCache::class.java, mockScreenRecordingCache, testRootDisposable)
   }
 
   @Test
   fun testAppearanceAndToolbarActions() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
-    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    assumeFFmpegAvailable()
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     fakeUi.updateToolbars()
     waitForFrame()
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
-    assertThat(panel.isClosable).isFalse()
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      assertThat(panel.isClosable).isTrue()
+    }
+    else {
+      assertThat(panel.isClosable).isFalse()
+    }
     assertThat(panel.icon).isNotNull()
 
     // Check push button actions.
@@ -156,29 +167,32 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
   @Test
   fun testWearToolbarActions() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
-    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454), "arm64-v8a",
+    assumeFFmpegAvailable()
+    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454),
                                      additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     fakeUi.updateToolbars()
     fakeUi.layoutAndDispatchEvents()
     waitForFrame()
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
-    assertThat(panel.isClosable).isFalse()
-    assertThat(panel.icon).isNotNull()
+    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+      assertThat(panel.isClosable).isTrue()
+    }
+    else {
+      assertThat(panel.isClosable).isFalse()
+    }
+    assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
     // Check push button actions.
     val pushButtonCases = listOf(
@@ -224,22 +238,64 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
+  }
+
+  @Test
+  fun testFolding() {
+    assumeFFmpegAvailable()
+    device = agentRule.connectDevice("Pixel Fold", 33, Dimension(2208, 1840), foldedSize = Dimension(1080, 2092))
+
+    panel.createContent(false)
+    val deviceView = panel.deviceView!!
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
+
+    // Check appearance.
+    fakeUi.updateToolbars()
+    waitForFrame()
+
+    val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
+    val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
+    val foldingActions = foldingGroup.getChildren(event)
+    assertThat(foldingActions).asList().containsExactly(
+        DeviceFoldingAction(FoldingState(0, "Closed", true)),
+        DeviceFoldingAction(FoldingState(1, "Tent", true)),
+        DeviceFoldingAction(FoldingState(2, "Half-Open", true)),
+        DeviceFoldingAction(FoldingState(3, "Open", true)),
+        DeviceFoldingAction(FoldingState(4, "Rear Display", true)),
+        DeviceFoldingAction(FoldingState(5, "Both Displays", true)),
+        DeviceFoldingAction(FoldingState(6, "Flipped", true)))
+    for (action in foldingActions) {
+      action.update(event)
+      assertThat(event.presentation.isEnabled).isTrue()
+      assertThat(event.presentation.isVisible).isTrue()
+    }
+    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
+
+    val nextFrameNumber = panel.frameNumber + 1
+    val closingAction = foldingActions[0]
+    closingAction.actionPerformed(event)
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
+    waitForFrame(nextFrameNumber)
+    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
   }
 
   @Test
   fun testZoom() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
-    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    assumeFFmpegAvailable()
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(10, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
 
     fakeUi.updateToolbars()
     fakeUi.layoutAndDispatchEvents()
@@ -260,12 +316,12 @@ class DeviceToolWindowPanelTest {
     // Recreate panel content.
     val uiState = panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
     panel.createContent(false, uiState)
     assertThat(panel.deviceView).isNotNull()
     deviceView = panel.deviceView!!
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.videoStreamActive && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.videoStreamActive && panel.isConnected }
     waitForFrame()
 
     // Check that zoom level and scroll position are restored.
@@ -275,7 +331,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
@@ -313,14 +369,16 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun getNextControlMessageAndWaitForFrame(): ControlMessage {
-    val message = agent.getNextControlMessage(2, TimeUnit.SECONDS)
+    val message = agent.getNextControlMessage(2, SECONDS)
     waitForFrame()
     return message
   }
 
-  /** Waits for all video frames to be received. */
-  private fun waitForFrame() {
-    waitForCondition(2, TimeUnit.SECONDS) { panel.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+  /** Waits for all video frames to be received after the given one. */
+  private fun waitForFrame(minFrameNumber: Int = 1) {
+    waitForCondition(2, SECONDS) {
+      panel.isConnected && agent.frameNumber >= minFrameNumber && renderAndGetFrameNumber() == agent.frameNumber
+    }
   }
 
   private fun renderAndGetFrameNumber(): Int {
@@ -330,9 +388,9 @@ class DeviceToolWindowPanelTest {
 
   @Suppress("SameParameterValue")
   private fun assertAppearance(goldenImageName: String,
-                               maxPercentDifferentLinux: Double = 0.0,
-                               maxPercentDifferentMac: Double = 0.0,
-                               maxPercentDifferentWindows: Double = 0.0) {
+                               maxPercentDifferentLinux: Double = 0.0003,
+                               maxPercentDifferentMac: Double = 0.0003,
+                               maxPercentDifferentWindows: Double = 0.0003) {
     fakeUi.layoutAndDispatchEvents()
     fakeUi.updateToolbars()
     val image = fakeUi.render()

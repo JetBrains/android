@@ -16,11 +16,11 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorNoBindContext
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
@@ -32,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
@@ -55,18 +56,18 @@ import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.Optional
-import java.util.stream.Collectors
 
-class LiveEditCompiler(val project: Project) {
+class LiveEditCompiler(val project: Project, private val irClassCache: IrClassCache? = null) {
 
   private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
   var inlineCandidateCache = SourceInlineCandidateCache()
+
+  // Not the same information as the IR cache; the IR cache may be populated with classes that have not been sent to device, due to the need
+  // to precompile files before Live Editing them.
+  private val classesSentToDevice = mutableSetOf<String>()
 
   private var desugarer = LiveEditDesugar()
 
@@ -99,15 +100,27 @@ class LiveEditCompiler(val project: Project) {
     val compileCmd = {
       var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
-        // Compiler pass
-        compileKtFile(file, input, outputBuilder)
-        val outputs = outputBuilder.build()
-        logger.dumpCompilerOutputs(outputs.classes)
+        try {
+          // Compiler pass
+          compileKtFile(file, input, outputBuilder)
+          val outputs = outputBuilder.build()
+          logger.dumpCompilerOutputs(outputs.classes)
 
-        // Desugaring pass
-        val request = LiveEditDesugarRequest(outputs, apiVersions)
-        desugaredOutputs = desugarer.desugar(request)
-        logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
+          // Desugaring pass
+          val request = LiveEditDesugarRequest(outputs, apiVersions)
+          desugaredOutputs = desugarer.desugar(request)
+          logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
+
+        } catch (e: ProcessCanceledException) {
+          throw e
+        } catch (e: LiveEditUpdateException) {
+          throw e
+        } catch (e : Exception) {
+          throw internalError("Unexpected error during compilation command", file, e)
+          // Unlike the other exception where it is temporary errors or setup failures. These type of internal error should be
+          // rare and probably worth logging for bug reports.
+          logger.log(e.stackTraceToString())
+        }
       }
     }
 
@@ -123,10 +136,18 @@ class LiveEditCompiler(val project: Project) {
     if (giveWritePriority) {
       success = progressManager.runInReadActionWithWriteActionPriority(compileCmd, progressManager.progressIndicator)
     } else {
-      ApplicationManager.getApplication().runReadAction(compileCmd)
+      ApplicationManager.getApplication().runReadAction(toComputable(compileCmd))?.let { throw it }
     }
-
     return if (success) Optional.of(desugaredOutputs!!) else Optional.empty()
+  }
+
+  private fun toComputable(cmd : () -> Unit) = Computable<Exception?> {
+    try {
+      cmd()
+    } catch (e : Exception) {
+      return@Computable e
+    }
+    return@Computable null
   }
 
   private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
@@ -140,27 +161,24 @@ class LiveEditCompiler(val project: Project) {
       // 1) Compute binding context based on any previous cached analysis results.
       //    On small edits of previous analyzed project, this operation should be below 30ms or so.
       ProgressManager.checkCanceled()
-      val resolution = tracker.record({ fetchResolution(project, inputFiles) }, "resolution_fetch")
+      val resolution = tracker.record("resolution_fetch") { fetchResolution(project, inputFiles) }
 
       ProgressManager.checkCanceled()
-      val analysisResult = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
+      val analysisResult = tracker.record("analysis") { analyze(inputFiles, resolution) }
       val inlineCandidates = analyzeSingleDepthInlinedFunctions(file, analysisResult.bindingContext, inlineCandidateCache)
 
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.
       //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
       //    the complexity of the input .kt file.
       ProgressManager.checkCanceled()
-      var generationState : GenerationState? = null
-      try {
-        generationState = tracker.record(
-          {
-            backendCodeGen(project,
-                           analysisResult,
-                           inputFiles,
-                           inputFiles.first().module!!,
-                           inlineCandidates)
-          },
-          "codegen")
+      val generationState = try {
+        tracker.record("codegen") {
+          backendCodeGen(project,
+                         analysisResult,
+                         inputFiles,
+                         inputFiles.first().module!!,
+                         inlineCandidates)
+        }
       } catch (e : LiveEditUpdateException) {
         if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
           throw e
@@ -168,25 +186,18 @@ class LiveEditCompiler(val project: Project) {
 
         // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
         //      from another source file then perform a compilation again.
-        if (LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis) {
-          inputFiles = performInlineSourceDependencyAnalysis(resolution, file, analysisResult.bindingContext)
+        inputFiles = performInlineSourceDependencyAnalysis(resolution, file, analysisResult.bindingContext)
 
-          // We need to perform the analysis once more with the new set of input files.
-          val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
+        // We need to perform the analysis once more with the new set of input files.
+        val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
 
-          // We will need to start using the new analysis for code gen.
-          generationState = tracker.record(
-            {
-              backendCodeGen(project,
-                             newAnalysisResult,
-                             inputFiles,
-                             inputFiles.first().module!!,
-                             inlineCandidates)
-            },
-            "codegen_inline")
-        }
-        else {
-          throw e
+        // We will need to start using the new analysis for code gen.
+        tracker.record("codegen_inline") {
+          backendCodeGen(project,
+                         newAnalysisResult,
+                         inputFiles,
+                         inputFiles.first().module!!,
+                         inlineCandidates)
         }
       } catch (p : ProcessCanceledException) {
         throw p
@@ -194,10 +205,17 @@ class LiveEditCompiler(val project: Project) {
         throw internalError("Internal Error During Code Gen", t)
       }
 
+      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
+        LiveEditOutputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache!!, inlineCandidateCache,
+                                               classesSentToDevice, output)
+        output.classes.forEach { classesSentToDevice.add(it.name) }
+        return@runWithCompileLock
+      }
+
       // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
       //    decide which classes we want to send to the device along with what extra meta-information the
       //    agent need.
-      return@runWithCompileLock getGeneratedCode(inputs, generationState!!, output)
+      return@runWithCompileLock getGeneratedCode(inputs, generationState, output)
     }
   }
 
@@ -213,45 +231,63 @@ class LiveEditCompiler(val project: Project) {
       throw internalError("No compiler output.")
     }
 
+    val selectedClasses = mutableMapOf<String, KtFile>()
     for (input in inputs) {
-      // The function we are looking at no longer belongs to file. This is mostly an IDE refactor. Make it a recoverable error
-      // to see if the next step of the refactor can fix it. This should be solved nicely with a ClassDiffer.
-      input.element.containingFile?: throw compilationError("Invalid AST. Function no longer belong to any files.")
+      // The function we are looking at no longer belongs to file. This is mostly an IDE refactor / copy-and-paste action.
+      // This should be solved nicely with a ClassDiffer.
+      if (input.element.containingFile == null) {
+        continue
+      }
 
+      var internalClassName: String
+      var containingFile: KtFile
       when(val element = input.element) {
         // When the edit event was contained in a function
         is KtFunction -> {
-          // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
-          val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
-          val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
-            getGroupKey(compilerOutput, element, parentGroup) else null
-          group?.let { output.addGroupId(group) }
-          getGeneratedMethodCode(compilerOutput, element, generationState, output)
+          val desc = generationState.bindingContext[BindingContext.FUNCTION, element]
+                     ?: throw internalErrorNoBindContext("No binding context for ${element.javaClass.name}")
+          if (desc.hasComposableAnnotation()) {
+            // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
+            val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
+            val group = getGroupKey(compilerOutput, element, parentGroup)
+            group?.let { output.addGroupId(group) }
+          } else {
+            output.resetState = true
+          }
+          val (name, file) = getClassForMethod(element, desc)
+          internalClassName = name
+          containingFile = file
         }
 
         // When the edit event was at class level
         is KtClass -> {
           val desc = bindingContext[BindingContext.CLASS, element]!!
-          val internalClassName = getInternalClassName(desc.containingPackage(), element.fqName.toString(), input.file)
-          getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput, output)
+          internalClassName = getInternalClassName(desc.containingPackage(), element.fqName.toString(), input.file)
+          containingFile = input.file as KtFile
         }
 
         // When the edit was at top level
         is KtFile -> {
-          val internalClassName = getInternalClassName(element.packageFqName, element.javaFileFacadeFqName.toString(), element)
-          getCompiledClasses(internalClassName, element, compilerOutput, output)
+          internalClassName = getInternalClassName(element.packageFqName, element.javaFileFacadeFqName.toString(), element)
+          containingFile = element
         }
 
         else -> throw compilationError("Event was generated for unsupported kotlin element")
       }
+
+      if (internalClassName !in selectedClasses) {
+        selectedClasses[internalClassName] = containingFile
+      } else if (selectedClasses[internalClassName] !== containingFile) {
+        throw compilationError("Multiple KtFiles for class $internalClassName")
+      }
+    }
+
+    for ((internalClassName, inputFile) in selectedClasses) {
+      getCompiledClasses(internalClassName, inputFile, compilerOutput, output)
     }
   }
 
-  private fun getGeneratedMethodCode(compilerOutput: List<OutputFile>, targetFunction: KtFunction,
-                                     generationState: GenerationState, builder : LiveEditCompilerOutput.Builder) {
-    val desc = generationState.bindingContext[BindingContext.FUNCTION, targetFunction]!!
-    val isCompose = desc.hasComposableAnnotation()
-
+  private fun getClassForMethod(targetFunction: KtFunction, desc: SimpleFunctionDescriptor): Pair<String, KtFile> {
     var elem: PsiElement = targetFunction
     while (elem.getKotlinFqName() == null || elem !is KtNamedFunction) {
       if (elem.parent == null) {
@@ -274,13 +310,10 @@ class LiveEditCompiler(val project: Project) {
       className = grandParent.javaFileFacadeFqName.toString()
     }
 
-    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
-    getCompiledClasses(internalClassName, elem.containingFile as KtFile, compilerOutput, builder)
-
-    if (!isCompose) {
-      builder.resetState = true
-    }
     checkNonPrivateInline(desc, function.containingFile)
+
+    val internalClassName = getInternalClassName(desc.containingPackage(), className, function.containingFile)
+    return internalClassName to elem.containingFile as KtFile
   }
 
   private inline fun checkNonPrivateInline(desc: SimpleFunctionDescriptor, file: PsiFile) {
@@ -396,6 +429,7 @@ class LiveEditCompiler(val project: Project) {
 
   fun resetState() {
     inlineCandidateCache.clear()
+    classesSentToDevice.clear()
 
     try {
       // Desugarer caches jar indexes and entries. It MUST be closed and recreated.

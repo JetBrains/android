@@ -22,7 +22,6 @@ import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext.EMPTY_CONTEXT
 import com.intellij.openapi.actionSystem.Presentation
@@ -75,8 +74,8 @@ class LogcatFormatActionTest {
 
     action.actionPerformed(anActionEvent(component))
 
-    val popup = popupRule.fakePopupFactory.getPopup<AnAction>(0)
-    assertThat(popup.items.map { it::class })
+    val popup = popupRule.fakePopupFactory.getPopup<Any>(0)
+    assertThat(popup.actions.map { it::class })
       .containsExactly(
         LogcatFormatPresetAction.Standard::class,
         LogcatFormatPresetAction.Compact::class,
@@ -85,7 +84,7 @@ class LogcatFormatActionTest {
       ).inOrder()
     assertThat(popup.showStyle).isEqualTo(SHOW_UNDERNEATH_OF)
     assertThat(popup.showArgs).containsExactly(component)
-    popup.items.forEach {
+    popup.actions.forEach {
       assertThat(it).isInstanceOf(DumbAware::class.java)
     }
   }

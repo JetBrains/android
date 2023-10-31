@@ -48,7 +48,7 @@ class AndroidSqlIdIndexer : ScanningIdIndexer() {
   override fun getVersion(): Int = 0
 }
 
-private val SQL_USAGE_TYPE = UsageType("Referenced in SQL query")
+private val SQL_USAGE_TYPE = UsageType { "Referenced in SQL query" }
 
 /**
  * [UsageTypeProvider] that labels references from SQL with the right description.

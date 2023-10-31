@@ -27,7 +27,7 @@
       <profile name="AutoValue" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value/1.6.2/auto-value-1.6.2.jar" />
+          <entry name="$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/auto/value/auto-value/1.10.1/auto-value-1.10.1.jar" />
         </processorPath>
         <module name="aswb.third_party.intellij.bazel.plugin.aswb" />
         <module name="aswb.third_party.intellij.bazel.plugin.common" />
@@ -36,6 +36,7 @@
         <module name="aswb.third_party.intellij.bazel.plugin.kotlin" />
         <module name="aswb.jcgdi.blaze.plugin.java" />
         <module name="aswb.third_party.intellij.bazel.plugin.base" />
+        <module name="aswb.jcgdi.blaze.plugin.aswb" />
         <module name="aswb.jcgdi.blaze.plugin.base" />
       </profile>
     </annotationProcessing>
@@ -49,6 +50,8 @@
       <module name="intellij.android.adt.swingp" options="--add-exports java.desktop/sun.java2d=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED" />
       <module name="intellij.android.adt.ui" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/java.awt.peer=ALL-UNNAMED --add-exports java.desktop/sun.awt=ALL-UNNAMED --add-exports java.desktop/sun.java2d.pipe=ALL-UNNAMED" />
       <module name="intellij.android.core" options="--add-exports java.desktop/sun.swing=ALL-UNNAMED --add-exports java.desktop/sun.awt.image=ALL-UNNAMED --add-exports jdk.attach/sun.tools.attach=ALL-UNNAMED" />
+      <module name="intellij.android.core.jetbrains" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
+      <module name="intellij.android.core.rendering" options="--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED" />
     </option>
   </component>
 </project>

@@ -27,7 +27,7 @@ interface AppInsightsTracker {
   )
   fun logCrashListDetailView(event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails)
   fun logStacktraceClicked(
-    mode: ConnectionMode,
+    mode: ConnectionMode?,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
   )
   fun logConsoleLinkClicked(
@@ -54,4 +54,15 @@ interface AppInsightsTracker {
     mode: ConnectionMode,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsModeTransitionDetails
   )
+
+  enum class ProductType {
+    CRASHLYTICS,
+    PLAY_VITALS;
+
+    fun toProtoProductType(): AppQualityInsightsUsageEvent.AppQualityInsightsProductType =
+      when (this) {
+        CRASHLYTICS -> AppQualityInsightsUsageEvent.AppQualityInsightsProductType.CRASHLYTICS
+        PLAY_VITALS -> AppQualityInsightsUsageEvent.AppQualityInsightsProductType.PLAY_VITALS
+      }
+  }
 }

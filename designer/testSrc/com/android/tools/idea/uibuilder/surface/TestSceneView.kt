@@ -24,8 +24,12 @@ import com.google.common.collect.ImmutableList
 import org.mockito.Mockito
 import java.awt.Dimension
 
-class TestSceneView(private val width: Int, private val height: Int)
-  : SceneView(Mockito.mock(DesignSurface::class.java), Mockito.mock(SceneManager::class.java), SQUARE_SHAPE_POLICY) {
+class TestSceneView(private val width: Int, private val height: Int) :
+  SceneView(
+    Mockito.mock(DesignSurface::class.java),
+    Mockito.mock(SceneManager::class.java),
+    SQUARE_SHAPE_POLICY
+  ) {
 
   override fun createLayers(): ImmutableList<Layer> = ImmutableList.of()
 

@@ -22,14 +22,14 @@
     <orderEntry type="module" module-name="intellij.android.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
-    <orderEntry type="module-library" scope="TEST">
-      <library name="compiler-hosted">
+    <orderEntry type="module-library" scope="TEST" >
+      <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.5.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.5.1-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

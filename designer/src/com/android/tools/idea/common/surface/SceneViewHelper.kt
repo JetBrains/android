@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("SceneViewHelper")
+
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.SwingCoordinate
@@ -23,25 +24,24 @@ import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
 import org.intellij.lang.annotations.JdkConstants
 
-
 /**
- * Selects the component under the given x,y coordinate, optionally
- * toggling or replacing the selection.
+ * Selects the component under the given x,y coordinate, optionally toggling or replacing the
+ * selection.
  *
- * @param x                       The mouse click x coordinate, in Swing coordinates.
- * @param y                       The mouse click y coordinate, in Swing coordinates.
- * @param allowToggle             If true, clicking an unselected component adds it to the selection,
- * and clicking a selected component removes it from the selection. If not,
- * the selection is replaced.
+ * @param x The mouse click x coordinate, in Swing coordinates.
+ * @param y The mouse click y coordinate, in Swing coordinates.
+ * @param allowToggle If true, clicking an unselected component adds it to the selection, and
+ *   clicking a selected component removes it from the selection. If not, the selection is replaced.
  * @param ignoreIfAlreadySelected If true, and the clicked component is already selected, leave the
- * selection (including possibly other selected components) alone
+ *   selection (including possibly other selected components) alone
  */
-fun SceneView.selectComponentAt(@SwingCoordinate x: Int,
-                                @SwingCoordinate y: Int,
-                                @JdkConstants.InputEventMask modifiersEx: Int,
-                                allowToggle: Boolean,
-                                ignoreIfAlreadySelected: Boolean)
-  : NlComponent? {
+fun SceneView.selectComponentAt(
+  @SwingCoordinate x: Int,
+  @SwingCoordinate y: Int,
+  @JdkConstants.InputEventMask modifiersEx: Int,
+  allowToggle: Boolean,
+  ignoreIfAlreadySelected: Boolean
+): NlComponent? {
 
   val xDip = Coordinates.getAndroidXDip(this, x)
   val yDip = Coordinates.getAndroidYDip(this, y)
@@ -49,8 +49,7 @@ fun SceneView.selectComponentAt(@SwingCoordinate x: Int,
   val clicked: SceneComponent?
   if (clickedTarget != null) {
     clicked = clickedTarget.component
-  }
-  else {
+  } else {
     clicked = scene.findComponent(context, xDip, yDip)
   }
   var component: NlComponent? = null
@@ -67,27 +66,26 @@ fun SceneView.selectComponentAt(@SwingCoordinate x: Int,
 
   if (!allowToggle && useSecondarySelector) {
     selectionModel.setSecondarySelection(component, secondarySelector!!.constraint)
-  }
-  else {
+  } else {
     selectComponent(component, allowToggle, ignoreIfAlreadySelected)
   }
 
   return component
 }
 
-fun SceneView.selectComponent(component: NlComponent?,
-                              allowToggle: Boolean,
-                              ignoreIfAlreadySelected: Boolean) {
+fun SceneView.selectComponent(
+  component: NlComponent?,
+  allowToggle: Boolean,
+  ignoreIfAlreadySelected: Boolean
+) {
   if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
     return
   }
   if (component == null) {
     selectionModel.clear()
-  }
-  else if (allowToggle) {
+  } else if (allowToggle) {
     selectionModel.toggle(component)
-  }
-  else {
+  } else {
     selectionModel.setSelection(listOf(component))
   }
 }

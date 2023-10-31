@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -46,31 +47,40 @@ object NotSuppressedFilter : DesignerCommonIssueProvider.Filter {
 
 class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filter {
   private val editorManager: FileEditorManager = FileEditorManager.getInstance(project)
+
+  @Suppress("UnstableApiUsage")
   override fun invoke(issue: Issue): Boolean {
     return if (issue is VisualLintRenderIssue) {
-      val files = issue.source.models.map { it.virtualFile.name }.distinct()
+      val files =
+        issue.source.models
+          .map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile).name }
+          .distinct()
       editorManager.selectedEditor?.file?.let { files.contains(it.name) } ?: false
-    }
-    else {
-      @Suppress("UnstableApiUsage")
+    } else {
       val issuedFile = issue.source.file?.let { BackedVirtualFile.getOriginFileIfBacked(it) }
       editorManager.selectedEditor?.file?.let { it == issuedFile } ?: false
     }
   }
 }
 
-operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssueProvider.Filter) : DesignerCommonIssueProvider.Filter {
-  return DesignerCommonIssueProvider.Filter { issue -> this@plus.invoke(issue) && filter.invoke(issue) }
+operator fun DesignerCommonIssueProvider.Filter.plus(
+  filter: DesignerCommonIssueProvider.Filter
+): DesignerCommonIssueProvider.Filter {
+  return DesignerCommonIssueProvider.Filter { issue ->
+    this@plus.invoke(issue) && filter.invoke(issue)
+  }
 }
 
-/**
- * [issueFilter] is the filter that always applies for when calling [getFilteredIssues].
- */
-class DesignToolsIssueProvider(parentDisposable: Disposable, project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
-  : DesignerCommonIssueProvider<Any> {
+/** [issueFilter] is the filter that always applies for when calling [getFilteredIssues]. */
+class DesignToolsIssueProvider(
+  parentDisposable: Disposable,
+  project: Project,
+  private val issueFilter: DesignerCommonIssueProvider.Filter,
+  val instanceId: String?
+) : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
-  @GuardedBy("mapLock")
-  private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
+
+  @GuardedBy("mapLock") private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 
   private val listeners = mutableListOf<Runnable>()
   private val messageBusConnection = project.messageBus.connect(parentDisposable)
@@ -85,29 +95,45 @@ class DesignToolsIssueProvider(parentDisposable: Disposable, project: Project, p
 
   init {
     Disposer.register(parentDisposable, this)
-    messageBusConnection.subscribe(IssueProviderListener.TOPIC, IssueProviderListener { source, issues ->
-      synchronized(mapLock) {
-        if (issues.isEmpty()) {
-          sourceToIssueMap.remove(source)
+    val topic =
+      if (instanceId != null) IssueProviderListener.UI_CHECK else IssueProviderListener.TOPIC
+    messageBusConnection.subscribe(
+      topic,
+      IssueProviderListener { source, issues ->
+        // If in UI Check, only update if issues come from the preview that this provider is
+        // associated with
+        if (
+          instanceId != null &&
+            (source !is VisualLintIssueModel || source.uiCheckInstanceId != instanceId)
+        )
+          return@IssueProviderListener
+        synchronized(mapLock) {
+          if (issues.isEmpty()) {
+            sourceToIssueMap.remove(source)
+          } else {
+            sourceToIssueMap[source] = issues
+          }
         }
-        else {
-          sourceToIssueMap[source] = issues
-        }
-      }
-      listeners.forEach { it.run() }
-    })
-
-    // This is a workaround to make issue panel update the tree, because the displaying issues need to be updated after switching the file.
-    // TODO(b/222110455): Make [DesignSurface] deactivate the IssueModel when it is no longer visible.
-    messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
         listeners.forEach { it.run() }
       }
+    )
 
-      override fun selectionChanged(event: FileEditorManagerEvent) {
-        listeners.forEach { it.run() }
+    // This is a workaround to make issue panel update the tree, because the displaying issues need
+    // to be updated after switching the file.
+    // TODO(b/222110455): Make [DesignSurface] deactivate the IssueModel when it is no longer
+    // visible.
+    messageBusConnection.subscribe(
+      FileEditorManagerListener.FILE_EDITOR_MANAGER,
+      object : FileEditorManagerListener {
+        override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+          listeners.forEach { it.run() }
+        }
+
+        override fun selectionChanged(event: FileEditorManagerEvent) {
+          listeners.forEach { it.run() }
+        }
       }
-    })
+    )
   }
 
   override fun getFilteredIssues(): List<Issue> {

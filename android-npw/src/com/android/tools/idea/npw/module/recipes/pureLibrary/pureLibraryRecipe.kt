@@ -31,7 +31,7 @@ fun RecipeExecutor.generatePureLibrary(
   moduleData: ModuleTemplateData,
   className: String,
   useGradleKts: Boolean,
-  useVersionCatalog: Boolean = false
+  useVersionCatalog: Boolean = true,
 ) {
   val (projectData, srcOut) = moduleData
   val moduleOut = moduleData.rootDir

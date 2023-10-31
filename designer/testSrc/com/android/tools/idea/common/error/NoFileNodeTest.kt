@@ -26,11 +26,11 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithoutIssue() {
     // no issue case
-    val node = NoFileNode(null)
+    val node = LayoutValidationNoFileNode(null)
     node.update()
 
     val expected = PresentationData()
-    expected.addText(NO_FILE_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.addText(LAYOUT_VALIDATION_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  There is no problem", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.FileTypes.Xml)
 
@@ -40,12 +40,15 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithSingleIssue() {
     // single issue case
-    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue())))
-    val node = NoFileNode(root)
+    val root =
+      DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue()))) {
+        LayoutValidationNodeFactory
+      }
+    val node = LayoutValidationNoFileNode(root)
     node.update()
 
     val expected = PresentationData()
-    expected.addText(NO_FILE_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.addText(LAYOUT_VALIDATION_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  1 problem", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.FileTypes.Xml)
 
@@ -55,12 +58,18 @@ class NoFileNodeTest {
   @Test
   fun testPresentationWithMultipleIssues() {
     // multiple issues case
-    val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b"))))
-    val node = NoFileNode(root)
+    val root =
+      DesignerCommonIssueRoot(
+        null,
+        DesignerCommonIssueTestProvider(listOf(TestIssue("a"), TestIssue("b")))
+      ) {
+        LayoutValidationNodeFactory
+      }
+    val node = LayoutValidationNoFileNode(root)
     node.update()
 
     val expected = PresentationData()
-    expected.addText(NO_FILE_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+    expected.addText(LAYOUT_VALIDATION_NODE_NAME, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     expected.addText("  2 problems", SimpleTextAttributes.GRAYED_ATTRIBUTES)
     expected.setIcon(AllIcons.FileTypes.Xml)
 
@@ -70,15 +79,18 @@ class NoFileNodeTest {
   @Test
   fun testSameNode() {
     run {
-      val node1 = NoFileNode(null)
-      val node2 = NoFileNode(null)
+      val node1 = LayoutValidationNoFileNode(null)
+      val node2 = LayoutValidationNoFileNode(null)
       Assert.assertEquals(node1, node2)
     }
 
     run {
-      val root = DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(emptyList()))
-      val node1 = NoFileNode(root)
-      val node2 = NoFileNode(root)
+      val root =
+        DesignerCommonIssueRoot(null, DesignerCommonIssueTestProvider(emptyList())) {
+          LayoutValidationNodeFactory
+        }
+      val node1 = LayoutValidationNoFileNode(root)
+      val node2 = LayoutValidationNoFileNode(root)
       Assert.assertEquals(node1, node2)
     }
   }

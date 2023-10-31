@@ -15,34 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.TOOLS_PREFIX;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentUtil;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
-import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.psi.xml.XmlTag;
 import java.awt.Point;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
@@ -165,7 +155,7 @@ public class NlDropListener extends DropTargetAdapter {
       return InsertType.MOVE;
     }
     DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-    return model.determineInsertType(dragType, myTransferItem, isPreview);
+    return model.determineInsertType(dragType, myTransferItem, isPreview, true /* generateIds */);
   }
 
   private void clearDraggedComponents() {
@@ -205,10 +195,9 @@ public class NlDropListener extends DropTargetAdapter {
     }
     else {
       // Not a viewgroup, but let's give a chance to the handler to do something with the drop event
-      ViewHandler handler = NlComponentHelperKt.getViewHandler(myDragReceiver);
-      if (handler instanceof ViewGroupHandler) {
-        ViewGroupHandler groupHandler = (ViewGroupHandler)handler;
-        groupHandler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);
+      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(myDragReceiver, () -> {});
+      if (handler != null) {
+        handler.performDrop(model, event, myDragReceiver, myDragged, myNextDragSibling, insertType);
       }
     }
   }

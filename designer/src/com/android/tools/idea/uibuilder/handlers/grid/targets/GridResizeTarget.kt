@@ -27,9 +27,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_TOP
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.TOP
 
-/**
- * Target to handle the resizing of GridLayout's children
- */
+/** Target to handle the resizing of GridLayout's children */
 class GridResizeTarget(type: ResizeBaseTarget.Type) : AbsoluteResizeTarget(type) {
 
   override fun updateAttributes(attributes: NlAttributesHolder, x: Int, y: Int) {

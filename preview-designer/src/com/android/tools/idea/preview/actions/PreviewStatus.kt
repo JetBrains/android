@@ -31,9 +31,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotifications
 import javax.swing.Icon
 
-/**
- * Represents the Preview status to be notified to the user.
- */
+/** Represents the Preview status to be notified to the user. */
 sealed class PreviewStatus(
   override val icon: Icon?,
   override val title: String,
@@ -42,95 +40,93 @@ sealed class PreviewStatus(
   /** When true, the refresh icon will be displayed next to the notification chip. */
   val hasRefreshIcon: Boolean = false
 ) : ComposeStatus {
-  /**
-   * The Preview found a syntax error and paused the updates.
-   */
-  object SyntaxError : PreviewStatus(
-    AllIcons.General.InspectionsPause,
-    message("notification.syntax.errors.title"),
-    message("notification.syntax.errors.description"),
-    null,
-    false)
+  /** The Preview found a syntax error and paused the updates. */
+  object SyntaxError :
+    PreviewStatus(
+      AllIcons.General.InspectionsPause,
+      message("notification.syntax.errors.title"),
+      message("notification.syntax.errors.description"),
+      null,
+      false
+    )
 
-  /**
-   * The Preview found a compilation error and paused the updates.
-   */
-  object NeedsBuild : PreviewStatus(
-    AllIcons.General.Error,
-    message("notification.needs.build.broken.title"),
-    message("notification.needs.build.broken.description"),
-    ComposeStatus.Presentation.Error,
-    true)
+  /** The Preview found a compilation error and paused the updates. */
+  object NeedsBuild :
+    PreviewStatus(
+      AllIcons.General.Error,
+      message("notification.needs.build.broken.title"),
+      message("notification.needs.build.broken.description"),
+      ComposeStatus.Presentation.Error,
+      true
+    )
 
-  /**
-   * The Preview is refreshing.
-   */
-  class Refreshing(detailsMessage: String = message("notification.preview.refreshing.description"))
-    : PreviewStatus(
-    AnimatedIcon.Default(),
-    message("notification.preview.refreshing.title"),
-    detailsMessage)
+  /** The Preview is refreshing. */
+  class Refreshing(
+    detailsMessage: String = message("notification.preview.refreshing.description")
+  ) :
+    PreviewStatus(
+      AnimatedIcon.Default(),
+      message("notification.preview.refreshing.title"),
+      detailsMessage
+    )
 
-  /**
-   * The Preview is out of date. This state will not happen if Fast Preview is enabled.
-   */
-  object OutOfDate : PreviewStatus(
-    AllIcons.General.Warning,
-    message("notification.preview.out.of.date.title"),
-    message("notification.preview.out.of.date.description"),
-    ComposeStatus.Presentation.Warning,
-    true)
+  /** The Preview is out of date. This state will not happen if Fast Preview is enabled. */
+  object OutOfDate :
+    PreviewStatus(
+      AllIcons.General.Warning,
+      message("notification.preview.out.of.date.title"),
+      message("notification.preview.out.of.date.description"),
+      ComposeStatus.Presentation.Warning,
+      true
+    )
 
-  /**
-   * The Preview is compiling.
-   */
-  object FastPreviewCompiling : PreviewStatus(
-    AnimatedIcon.Default(),
-    message("notification.preview.fast.compile.title"),
-    message("notification.preview.fast.compile.description"))
+  /** The Preview is compiling. */
+  object FastPreviewCompiling :
+    PreviewStatus(
+      AnimatedIcon.Default(),
+      message("notification.preview.fast.compile.title"),
+      message("notification.preview.fast.compile.description")
+    )
 
-  /**
-   * An issue was found while rendering the Preview.
-   */
-  object RenderIssues : PreviewStatus(
-    AllIcons.General.Warning,
-    message("notification.preview.render.issues.title"),
-    message("notification.preview.render.issues.description"),
-    ComposeStatus.Presentation.Warning,
-    true)
+  /** An issue was found while rendering the Preview. */
+  object RenderIssues :
+    PreviewStatus(
+      AllIcons.General.Warning,
+      message("notification.preview.render.issues.title"),
+      message("notification.preview.render.issues.description"),
+      ComposeStatus.Presentation.Warning,
+      true
+    )
 
-  /**
-   * The Preview has failed to compile a fast change.
-   */
-  object FastPreviewFailed : PreviewStatus(
-    AllIcons.General.InspectionsPause,
-    message("notification.preview.fast.disabled.reason.compiler.error.title"),
-    message("notification.preview.fast.disabled.reason.compiler.error.description"),
-    ComposeStatus.Presentation.Error,
-    true)
+  /** The Preview has failed to compile a fast change. */
+  object FastPreviewFailed :
+    PreviewStatus(
+      AllIcons.General.InspectionsPause,
+      message("notification.preview.fast.disabled.reason.compiler.error.title"),
+      message("notification.preview.fast.disabled.reason.compiler.error.description"),
+      ComposeStatus.Presentation.Error,
+      true
+    )
 
-  /**
-   * The Preview is fully up to date.
-   */
-  object UpToDate : PreviewStatus(
-    AllIcons.General.InspectionsOK,
-    message("notification.preview.up.to.date.title"),
-    message("notification.preview.up.to.date.description"))
+  /** The Preview is fully up to date. */
+  object UpToDate :
+    PreviewStatus(
+      AllIcons.General.InspectionsOK,
+      message("notification.preview.up.to.date.title"),
+      message("notification.preview.up.to.date.description")
+    )
 }
 
-/**
- * [AnAction] that will show the Event Log.
- */
+/** [AnAction] that will show the Event Log. */
 class ShowEventLogAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    EventLog.getEventLog(project)?.activate(null) ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
+    EventLog.getEventLog(project)?.activate(null)
+      ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
   }
 }
 
-/**
- * [AnAction] that re-enable the Fast Preview if disabled.
- */
+/** [AnAction] that re-enable the Fast Preview if disabled. */
 class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
@@ -144,9 +140,7 @@ class ReEnableFastPreview(private val allowAutoDisable: Boolean = true) : AnActi
   }
 }
 
-/**
- * [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies.
- */
+/** [AnAction] that requests a build of the file returned by [fileProvider] and its dependencies. */
 class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val file = fileProvider() ?: return
@@ -155,13 +149,14 @@ class BuildAndRefresh(private val fileProvider: () -> PsiFile?) : AnAction() {
 }
 
 /**
- * [AnAction] that shows the "Problems" panel with the "Design Tools" tab selected. The name "Design Tools" is different depends on
- * different tools. e.g. it shows "Compose" when using Compose Preview, shows "Layout and Qualifiers" when using Layout Editor.
- *
+ * [AnAction] that shows the "Problems" panel with the "Design Tools" tab selected. The name "Design
+ * Tools" is different depends on different tools. e.g. it shows "Compose" when using Compose
+ * Preview, shows "Layout and Qualifiers" when using Layout Editor.
  */
 class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    IssuePanelService.getInstance(project).setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
+    IssuePanelService.getInstance(project)
+      .setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
   }
 }

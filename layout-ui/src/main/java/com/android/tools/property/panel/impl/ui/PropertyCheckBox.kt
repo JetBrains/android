@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -24,17 +25,18 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.util.ui.UIUtil
 import javax.swing.JCheckBox
 
-/**
- * A standard control for editing a boolean property.
- */
-class PropertyCheckBox(model: BooleanPropertyEditorModel) : PropertyTextFieldWithLeftButton(model, CustomCheckBox(model)) {
+/** A standard control for editing a boolean property. */
+class PropertyCheckBox(model: BooleanPropertyEditorModel, context: EditorContext) :
+  PropertyTextFieldWithLeftButton(model, context, CustomCheckBox(model)) {
 
   private val checkBox = leftComponent as CustomCheckBox
 
   @VisibleForTesting
   var state: Boolean
     get() = checkBox.state
-    set(value) { checkBox.state = value }
+    set(value) {
+      checkBox.state = value
+    }
 
   override fun updateFromModel() {
     super.updateFromModel()
@@ -42,13 +44,16 @@ class PropertyCheckBox(model: BooleanPropertyEditorModel) : PropertyTextFieldWit
   }
 }
 
-private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) : JCheckBox(), DataProvider {
+private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorModel) :
+  JCheckBox(), DataProvider {
   private var stateChangeFromModel = false
 
   @VisibleForTesting
   var state: Boolean
     get() = model.isSelected
-    set(value) { model.isSelected = value }
+    set(value) {
+      model.isSelected = value
+    }
 
   init {
     isOpaque = false // This avoids obscuring the text field border
@@ -71,8 +76,7 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     try {
       state = toStateValue(propertyModel.value)
       isFocusable = !propertyModel.readOnly
-    }
-    finally {
+    } finally {
       stateChangeFromModel = false
     }
   }
@@ -85,7 +89,9 @@ private class CustomCheckBox(private val propertyModel: BooleanPropertyEditorMod
     return propertyModel.getData(dataId)
   }
 
-  private fun toStateValue(value: String?) = value?.compareTo(SdkConstants.VALUE_TRUE, ignoreCase = true) == 0
+  private fun toStateValue(value: String?) =
+    value?.compareTo(SdkConstants.VALUE_TRUE, ignoreCase = true) == 0
 
-  private fun fromStateValue(selected: Boolean) = if (selected) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
+  private fun fromStateValue(selected: Boolean) =
+    if (selected) SdkConstants.VALUE_TRUE else SdkConstants.VALUE_FALSE
 }

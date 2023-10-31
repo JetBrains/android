@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.DEBUGGABLE;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.DEFAULT;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.EMBED_MICRO_APP;
+import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.INIT_WITH;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.JNI_DEBUGGABLE;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.MINIFY_ENABLED;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.PSEUDO_LOCALES_ENABLED;
@@ -28,7 +29,6 @@ import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.TEST_COVERAGE_ENABLED;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.USE_PROGUARD;
 import static com.android.tools.idea.gradle.dsl.model.android.BuildTypeModelImpl.ZIP_ALIGN_ENABLED;
-import static com.android.tools.idea.gradle.dsl.model.android.FlavorTypeModelImpl.INIT_WITH;
 import static com.android.tools.idea.gradle.dsl.parser.crashlytics.FirebaseCrashlyticsDslElement.FIREBASE_CRASHLYTICS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -54,7 +55,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<BuildTypeDslElement> BUILD_TYPE =
-    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new);
+    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new, BuildTypeDslElementSchema::new);
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isCrunchPngs", property, CRUNCH_PNGS, VAR},
@@ -122,15 +123,19 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     if (element.getFullName().equals("initWith") && element instanceof GradleDslLiteral) {
       GradleReferenceInjection referenceTo = ((GradleDslLiteral)element).getReferenceInjection();
       if (referenceTo != null && referenceTo.getToBeInjected() != null) {
-        // Merge properties with the target
-        mergePropertiesFrom((GradlePropertiesDslElement)referenceTo.getToBeInjected());
+        GradleDslElement toBeInjected = referenceTo.getToBeInjected();
+
+        if (toBeInjected instanceof GradlePropertiesDslElement) {
+          // Merge properties with the target
+          mergePropertiesFrom((GradlePropertiesDslElement)referenceTo.getToBeInjected());
+        }
       }
     }
 
     super.addParsedElement(element);
   }
 
-  private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
+  static private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
     {"firebaseCrashlytics", FIREBASE_CRASHLYTICS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
@@ -159,5 +164,19 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   @Override
   public String getMethodName() {
     return methodName;
+  }
+
+  public static final class BuildTypeDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
   }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.editors.translations;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -25,13 +23,16 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorNotificationPane
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.translations.TranslationsEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class AddLocaleTest {

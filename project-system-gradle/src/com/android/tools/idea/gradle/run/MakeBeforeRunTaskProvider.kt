@@ -23,8 +23,10 @@ import com.android.builder.model.PROPERTY_BUILD_WITH_STABLE_IDS
 import com.android.builder.model.PROPERTY_DEPLOY_AS_INSTANT_APP
 import com.android.builder.model.PROPERTY_EXTRACT_INSTANT_APK
 import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
+import com.android.builder.model.PROPERTY_SUPPORTS_PRIVACY_SANDBOX
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.flags.StudioFlags.INJECT_DEVICE_SERIAL_ENABLED
@@ -55,7 +57,6 @@ import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.editor.ProfilerState
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
-import com.android.tools.idea.stats.RunStats
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.Joiner
@@ -78,7 +79,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
 import icons.StudioIcons
-import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import java.io.FileOutputStream
@@ -340,7 +340,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         return emptyList()
       }
       val properties = mutableListOf<String>()
-      if (useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.minVersion)) {
+      val viaBundle = useSelectApksFromBundleBuilder(modules, configuration, deviceSpec.minVersion)
+      if (viaBundle) {
         // For the bundle tool, we create a temporary json file with the device spec and
         // pass the file path to the gradle task.
         val collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.minVersion)
@@ -376,6 +377,9 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           val deviceSerials = deviceSpec.deviceSerials.joinToString(separator = ",")
           val injectedProperty = AndroidGradleSettings.createProjectProperty("internal.android.inject.device.serials", deviceSerials)
           properties.add(injectedProperty)
+        }
+        if (configuration.supportsPrivacySandbox) {
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, deviceSpec.supportsPrivacySandbox))
         }
       }
       return properties

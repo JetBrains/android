@@ -42,7 +42,7 @@ class LazyDataSeriesTest {
   @Test
   fun testCaptureDataRange() {
     val testSeriesData = buildSeriesData(1, 100, 10)
-    val series = LazyDataSeries { testSeriesData }
+    val series = LazyDataSeries<ThreadState> { testSeriesData }
     // Test get exact data.
     var seriesData: List<SeriesData<ThreadState>> =
       series.getDataForRange(
@@ -109,7 +109,7 @@ class LazyDataSeriesTest {
   @Test
   fun testEmptySeries() {
     val testSeriesData = buildSeriesData(1, 100, 0)
-    val series = LazyDataSeries { testSeriesData }
+    val series = LazyDataSeries<ThreadState> { testSeriesData }
     // Test getting data for an empty series doesn't cause issues and returns nothing.
     val seriesData: List<SeriesData<ThreadState>> =
       series.getDataForRange(

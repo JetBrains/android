@@ -20,10 +20,13 @@ import java.awt.Dimension
 import java.awt.Point
 
 /**
- * When the view size is changed, use the center of top bound as the anchor to keep the scrolling position after zooming.
+ * When the view size is changed, use the center of top bound as the anchor to keep the scrolling
+ * position after zooming.
  */
-class TopBoundCenterScroller(@SwingCoordinate private val oldViewSize: Dimension,
-                             @SwingCoordinate private val scrollPosition: Point) : DesignSurfaceViewportScroller {
+class TopBoundCenterScroller(
+  @SwingCoordinate private val oldViewSize: Dimension,
+  @SwingCoordinate private val scrollPosition: Point
+) : DesignSurfaceViewportScroller {
   override fun scroll(port: DesignSurfaceViewport) {
     // the preferred size would be the actual canvas size in viewport.
     val newViewSize = port.viewComponent.preferredSize
@@ -37,19 +40,23 @@ class TopBoundCenterScroller(@SwingCoordinate private val oldViewSize: Dimension
       return
     }
 
-    val newViewPositionX = if (portSize.width >= newViewSize.width) 0 else {
-      val halfPortWidth = portSize.width / 2
-      val oldXCenter = scrollPosition.x + halfPortWidth
-      val xWeight = oldXCenter.toDouble() / oldViewSize.width
-      maxOf(0, (xWeight * newViewSize.width).toInt() - halfPortWidth)
-    }
+    val newViewPositionX =
+      if (portSize.width >= newViewSize.width) 0
+      else {
+        val halfPortWidth = portSize.width / 2
+        val oldXCenter = scrollPosition.x + halfPortWidth
+        val xWeight = oldXCenter.toDouble() / oldViewSize.width
+        maxOf(0, (xWeight * newViewSize.width).toInt() - halfPortWidth)
+      }
 
-    val newViewPositionY = if (portSize.height >= newViewSize.height) 0 else {
-      val oldY = scrollPosition.y
-      val oldHeight = oldViewSize.height
-      val yWeight = oldY.toDouble() / oldHeight
-      (yWeight * newViewSize.height).toInt()
-    }
+    val newViewPositionY =
+      if (portSize.height >= newViewSize.height) 0
+      else {
+        val oldY = scrollPosition.y
+        val oldHeight = oldViewSize.height
+        val yWeight = oldY.toDouble() / oldHeight
+        (yWeight * newViewSize.height).toInt()
+      }
 
     port.viewPosition = Point(newViewPositionX, newViewPositionY)
   }

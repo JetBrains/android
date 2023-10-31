@@ -16,11 +16,11 @@
 package com.android.tools.property.panel.api
 
 /**
- * Defines a builder of a section in a [InspectorPanel]. Each section is usually
- * visually and functionally separate from other sections and may contain editors for
- * multiple properties and even custom forms and collapsible subsections.
+ * Defines a builder of a section in a [InspectorPanel]. Each section is usually visually and
+ * functionally separate from other sections and may contain editors for multiple properties and
+ * even custom forms and collapsible subsections.
  */
-interface InspectorBuilder<P: PropertyItem> {
+interface InspectorBuilder<P : PropertyItem> {
   /**
    * Add rows of controls to the inspector panel.
    *
@@ -29,8 +29,6 @@ interface InspectorBuilder<P: PropertyItem> {
    */
   fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<P>)
 
-  /**
-   * Reset any cached state.
-   */
+  /** Reset any cached state. */
   fun resetCache() {}
 }

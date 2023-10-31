@@ -44,7 +44,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import java.util.List;
 import java.util.Set;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,17 +105,13 @@ public class TextViewHandler extends ViewHandler {
     String text = component.getAttribute(ANDROID_URI, ATTR_TEXT);
 
     // Only display the assistant if:
-    //  - tools:text is a sample data value, empty or null
-    //  - AND android:text is null, empty or a default value
-    boolean shouldDisplay = Strings.isNullOrEmpty(toolsText) || toolsText.startsWith(TOOLS_SAMPLE_PREFIX);
-    shouldDisplay = shouldDisplay && (Strings.isNullOrEmpty(text) || TEXT_DEFAULT_VALUES.contains(text));
+    //  - tools:text is a tools sample data value
+    //  OR
+    //  - tools:text is null or empty AND android:text is null, empty or a default value
+    boolean shouldDisplay = Strings.nullToEmpty(toolsText).startsWith(TOOLS_SAMPLE_PREFIX)
+                            || (Strings.isNullOrEmpty(toolsText) && (Strings.isNullOrEmpty(text) || TEXT_DEFAULT_VALUES.contains(text)));
 
     if (!shouldDisplay) {
-      return null;
-    }
-
-    AndroidFacet facet = AndroidFacet.getInstance(component.getModel().getModule());
-    if (facet == null) {
       return null;
     }
 

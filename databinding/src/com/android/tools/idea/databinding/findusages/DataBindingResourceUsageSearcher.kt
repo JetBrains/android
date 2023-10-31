@@ -26,6 +26,8 @@ import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.searches.ReferencesSearch
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlTag
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -65,7 +67,19 @@ class DataBindingResourceUsageSearcher : CustomUsageSearcher() {
           // class.
           val lightClasses = groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
           val javaFieldName = convertAndroidIdToJavaFieldName(element.resourceReference.name)
-          val relevantFields = lightClasses.mapNotNull { bindingClass -> bindingClass.allFields.find { it.name == javaFieldName } }
+          val definingXmlTag = element.parentOfType<XmlTag>()
+          val relevantFields =
+            lightClasses
+              .mapNotNull { bindingClass -> bindingClass.allFields.find { it.name == javaFieldName } }
+              .filter {
+                // It's possible for the same ID to be used in two different views within the same group. Most of the time we want to
+                // include all references in find usages. But here when looking for view binding usages, we only want to return the light
+                // class corresponding to this specific view. Check that the defining XmlTag for this light class is the same as the
+                // containing tag for this ID.
+                // If we couldn't find the defining tag above, go ahead and include all results (err on the side of more info).
+                definingXmlTag == null || it.navigationElement as? XmlTag == definingXmlTag
+              }
+
           relevantFields.forEach {
             ReferencesSearch.search(it, options.searchScope).all { reference ->
               processor.process(UsageInfo2UsageAdapter(UsageInfo(reference)))

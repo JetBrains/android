@@ -16,49 +16,19 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import org.intellij.lang.annotations.Language
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPackage: String) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
+class InspectionsTest {
 
-  private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
-  private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
-
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val fixture
     get() = projectRule.fixture
-
-  @Before
-  fun setUp() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
-  }
 
   @Test
   fun testNeedsComposableInspection() {
@@ -87,7 +57,7 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
-      "9: Preview only works with Composable functions.",
+      "9: Preview only works with Composable functions",
       fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
     )
   }
@@ -174,10 +144,10 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter."""
+      """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
+        |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
+        |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
+        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter"""
         .trimMargin(),
       inspections
     )
@@ -230,8 +200,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """12: Multiple @PreviewParameter are not allowed.
-        |21: Multiple @PreviewParameter are not allowed.
+      """12: Multiple @PreviewParameter are not allowed
+        |21: Multiple @PreviewParameter are not allowed
       """
         .trimMargin(),
       inspections
@@ -390,8 +360,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
-        |15: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
+      """7: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
+        |15: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
       """
         .trimMargin(),
       inspections
@@ -441,8 +411,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
-        |15: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
+      """7: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
+        |15: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
       """
         .trimMargin(),
       inspections
@@ -530,8 +500,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview fontScale value must be greater than zero.
-        |21: Preview fontScale value must be greater than zero.
+      """7: Preview fontScale value must be greater than zero
+        |21: Preview fontScale value must be greater than zero
       """
         .trimMargin(),
       inspections
@@ -624,8 +594,49 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
-      "8: Preview only works with Composable functions.",
+      "8: Preview only works with Composable functions",
       fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
+    )
+  }
+
+  @Test
+  fun testPreviewCalledRecursively() {
+    fixture.enableInspections(PreviewShouldNotBeCalledRecursively() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContent =
+      """
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      @Composable
+      @$PREVIEW_TOOLING_PACKAGE.Preview
+      fun Preview1() {
+        ComposableWrapper {
+          Preview1()
+        }
+      }
+
+      // No preview annotation, i.e. regular composable
+      @Composable
+      fun Composable1() {
+        ComposableWrapper {
+          Composable1()
+        }
+      }
+
+      @Composable
+      fun ComposableWrapper(content: @Composable () -> Unit) {
+        content()
+      }
+    """
+        .trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(
+      "6: Preview functions usually don't call themselves recursively," +
+        " so please double-check you're calling the intended function",
+      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().descriptionWithLineNumber()
     )
   }
 }

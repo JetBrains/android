@@ -16,9 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.quickFixes.UpgradeGradleVersionsQuickFix
@@ -65,7 +64,7 @@ class UpgradeGradleVersionsQuickFixTest {
   private fun verifyUpdaterRun(success: Boolean) {
     val project = gradleProjectRule.project
     val latestGradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
-    val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestAgpVersion = AgpVersions.latestKnown
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     val ideComponents = IdeComponents(project)
     val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java);
@@ -94,7 +93,7 @@ class UpgradeGradleVersionsQuickFixTest {
     gradleProjectRule.loadProject(SIMPLE_APPLICATION)
     val project = gradleProjectRule.project
     val latestGradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
-    val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestAgpVersion = AgpVersions.latestKnown
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     quickFix.showDialogResult(success)
     val ideComponents = IdeComponents(project)

@@ -15,13 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAME_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
+import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.RELATIVE_LAYOUT;
+import static com.android.SdkConstants.TAG_INCLUDE;
+import static com.android.SdkConstants.TAG_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.truth.Truth.assertThat;
@@ -37,6 +41,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -98,6 +103,23 @@ public final class NlComponentTest extends LayoutTestCase {
                        .wrapContentHeight()
                        .wrapContentWidth()
                    )).build();
+  }
+
+  @NotNull
+  private NlModel createModelWithListView() {
+    return model("listview.xml",
+                 component(LINEAR_LAYOUT)
+                   .withBounds(0, 0, 1000, 1000)
+                   .id("@id/linear")
+                   .matchParentWidth()
+                   .matchParentHeight()
+                   .children(
+                     component(LIST_VIEW)
+                       .withBounds(0, 0, 1000, 1000)
+                       .matchParentHeight()
+                       .matchParentWidth()
+                   )
+                 ).build();
   }
 
   @NotNull
@@ -290,19 +312,33 @@ public final class NlComponentTest extends LayoutTestCase {
                                   .withAttribute(ANDROID_URI, "inputType", "textEmailAddress")
                                   .withAttribute(ANDROID_URI, "orientation", "vertical")
                                   .withAttribute(TOOLS_URI, "layout_editor_absoluteX", "32dp")
-                                  .withAttribute(TOOLS_URI, "layout_editor_absoluteY", "43dp"))).build();
+                                  .withAttribute(TOOLS_URI, "layout_editor_absoluteY", "43dp"),
+                                component(TAG_INCLUDE)
+                                  .withAttribute(TAG_LAYOUT, "@layout/test"))
+                    ).build();
 
-    NlComponent component = myModel.find("button");
-    NlWriteCommandActionUtil.run(component, "Remove obsolete attrs", component::removeObsoleteAttributes);
+    NlComponent button = myModel.find("button");
+    NlComponent include = myModel.find((component) -> component.getTagName().equals(TAG_INCLUDE));
+    assertNotNull(button);
+    assertNotNull(include);
+    NlWriteCommandActionUtil.run(button, "Remove obsolete attrs", button::removeObsoleteAttributes);
+    NlWriteCommandActionUtil.run(include, "Remove obsolete attrs", include::removeObsoleteAttributes);
 
-    @Language("XML")
-    String expected = "<Button\n" +
-                      "        android:id=\"@+id/button\"\n" +
-                      "        android:layout_width=\"wrap_content\"\n" +
-                      "        android:layout_height=\"wrap_content\"\n" +
-                      "        android:ems=\"10\"\n" +
-                      "        android:inputType=\"textEmailAddress\" />";
-    assertEquals(expected, component.getBackend().getTag().getText());
+    {
+      @Language("XML")
+      String expected = "<Button\n" +
+                        "        android:id=\"@+id/button\"\n" +
+                        "        android:layout_width=\"wrap_content\"\n" +
+                        "        android:layout_height=\"wrap_content\"\n" +
+                        "        android:ems=\"10\"\n" +
+                        "        android:inputType=\"textEmailAddress\" />";
+      assertEquals(expected, button.getBackend().getTag().getText());
+    }
+
+    {
+      String expected = "<include layout=\"@layout/test\" />";
+      assertEquals(expected, include.getBackend().getTag().getText());
+    }
   }
 
   public void testSetAppAttributeWithLayoutRoot() {
@@ -589,6 +625,14 @@ public final class NlComponentTest extends LayoutTestCase {
     textView.getParent().removeChild(textView);
     // Now textView is a root
     assertEquals(textView, textView.getRoot());
+  }
+
+  public void testSyntheticIdIsHidden() {
+    myModel = createModelWithListView();
+    NlComponent listView = myModel.find(component -> component.getTagName().equals(LIST_VIEW));
+    TagSnapshot snapshot = listView.getSnapshot();
+    snapshot.setAttribute(ATTR_ID, ANDROID_URI, ANDROID_NS_NAME, NlComponent.ID_DYNAMIC);
+    assertThat(listView.getAttribute(ANDROID_URI, ATTR_ID)).isNull();
   }
 
   /**

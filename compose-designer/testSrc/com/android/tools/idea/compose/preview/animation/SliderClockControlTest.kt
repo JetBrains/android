@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import javax.swing.JSlider
-import kotlin.test.assertTrue
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import javax.swing.JSlider
 
 class SliderClockControlTest {
 
@@ -32,13 +32,13 @@ class SliderClockControlTest {
   @Test
   fun `jump to start`() {
     clockControl.jumpToStart()
-    assertTrue { clockControl.isAtStart() }
+    assertTrue(clockControl.isAtStart())
   }
 
   @Test
   fun `jump to end`() {
     clockControl.jumpToEnd()
-    assertTrue { clockControl.isAtEnd() }
+    assertTrue(clockControl.isAtEnd())
   }
 
   @Test
@@ -46,9 +46,9 @@ class SliderClockControlTest {
     clockControl.updateMaxDuration(50)
     clockControl.jumpToStart()
     clockControl.incrementClockBy(40)
-    assertTrue { clockControl.isAtEnd() }
+    assertTrue(clockControl.isAtEnd())
     clockControl.incrementClockBy(-40)
-    assertTrue { clockControl.isAtStart() }
+    assertTrue(clockControl.isAtStart())
   }
 
   @Test
@@ -57,9 +57,9 @@ class SliderClockControlTest {
     clockControl.jumpToStart()
     // Increment by large value, but the actual value will not go above max e.g 100.
     clockControl.incrementClockBy(3456)
-    assertTrue { clockControl.isAtEnd() }
+    assertTrue(clockControl.isAtEnd())
     clockControl.incrementClockBy(-90)
-    assertTrue { clockControl.isAtStart() }
+    assertTrue(clockControl.isAtStart())
   }
 
   @Test
@@ -68,9 +68,9 @@ class SliderClockControlTest {
     clockControl.jumpToEnd()
     // Decrement by large value, but the actual value will not go below min e.g 10
     clockControl.incrementClockBy(-3456)
-    assertTrue { clockControl.isAtStart() }
+    assertTrue(clockControl.isAtStart())
     clockControl.incrementClockBy(90)
-    assertTrue { clockControl.isAtEnd() }
+    assertTrue(clockControl.isAtEnd())
   }
 
   @Test
@@ -78,7 +78,7 @@ class SliderClockControlTest {
     clockControl.jumpToStart()
     clockControl.speed = PlaybackControls.TimelineSpeed.X_2
     clockControl.incrementClockBy(50)
-    assertTrue { clockControl.isAtEnd() }
+    assertTrue(clockControl.isAtEnd())
   }
 
   @Test
@@ -86,7 +86,7 @@ class SliderClockControlTest {
     clockControl.jumpToStart()
     clockControl.speed = PlaybackControls.TimelineSpeed.X_0_1
     clockControl.incrementClockBy(1000)
-    assertTrue { clockControl.isAtEnd() }
+    assertTrue(clockControl.isAtEnd())
   }
 
   @Test
@@ -95,6 +95,6 @@ class SliderClockControlTest {
     clockControl.jumpToEnd() // Clock at 500
     clockControl.updateMaxDuration(100) // Clock at 100
     clockControl.incrementClockBy(-90) // Clock at 10 (minimum)
-    assertTrue { clockControl.isAtStart() }
+    assertTrue(clockControl.isAtStart())
   }
 }

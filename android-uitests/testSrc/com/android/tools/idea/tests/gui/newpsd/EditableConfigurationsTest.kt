@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.newpsd
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.StudioRobot
@@ -25,6 +26,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestio
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForDialogToClose
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

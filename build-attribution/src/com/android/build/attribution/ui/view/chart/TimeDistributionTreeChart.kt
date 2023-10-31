@@ -152,7 +152,7 @@ class TimeDistributionTreeChart(
           super.layoutContainer(parent)
           // Re-Arrange components horizontally. We don't expect and support any other order.
           viewport?.apply { setLocation(0, y) }
-          rowHead?.apply { setLocation(viewport.width - tree.insets.right, y) }
+          rowHead?.apply { setLocation(viewport.width, y) }
           horizontalScrollBar?.apply { setLocation(0, y) }
         }
       }
@@ -196,7 +196,7 @@ class TimeDistributionTreeChartCalculationModel(
   var stackLeftBorderScaledPx: Int = 0
   var stackWidthScaledPx: Int = 0
   var selectionRightPointScaledPx: Int = 0
-  private var stackBottomMarginScaledPx: Int = 0
+  var stackBottomMarginScaledPx: Int = 0
   var stackBarsSpacingScaledPx: Int = 0
   var minStackBarSizeScaledPx: Int = 0
 
@@ -308,14 +308,14 @@ class TimeDistributionTreeChartCalculationModel(
     val selected: Boolean
       get() = selectionArea.selectedChartRowItem == this
 
-    private val hovered: Boolean
+    val hovered: Boolean
       get() = hoveredItem == this
 
     var treeRowY: Int = 0
     var treeRowHeight: Int = 0
     var stackBarY: Int = 0
     var stackBarHeight: Int = 0
-    private var clickHandlingArea: Polygon? = null
+    var clickHandlingArea: Polygon? = null
 
     /**
      * [curY] start position on the stack chart for this element.

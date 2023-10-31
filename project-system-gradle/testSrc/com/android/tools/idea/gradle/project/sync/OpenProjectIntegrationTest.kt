@@ -41,11 +41,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.roots.ModuleRootManagerEx
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.closeProjectAsync
 import com.intellij.testFramework.runInEdtAndWait
 import org.gradle.util.GradleVersion
 import org.junit.After

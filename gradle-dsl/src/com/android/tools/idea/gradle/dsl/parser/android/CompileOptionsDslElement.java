@@ -27,8 +27,10 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.BaseCompileOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,5 +57,19 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
 
   public CompileOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class CompileOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return ImmutableMap.of();
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap);
+    }
   }
 }

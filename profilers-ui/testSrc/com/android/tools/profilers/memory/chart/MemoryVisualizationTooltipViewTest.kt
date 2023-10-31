@@ -72,7 +72,7 @@ class MemoryVisualizationTooltipViewTest {
     visualizationModel.axisFilter = MemoryVisualizationModel.XAxisFilter.TOTAL_COUNT
     simpleNode = ClassifierSetHNode(visualizationModel, heapSet, 0)
     val range = Range(0.0, simpleNode.end.toDouble())
-    val chart = HTreeChart.Builder(simpleNode, range, HeapSetNodeHRenderer())
+    val chart = HTreeChart.Builder<ClassifierSetHNode>(simpleNode, range, HeapSetNodeHRenderer())
       .setGlobalXRange(range)
       .setRootVisible(false)
       .build()

@@ -26,7 +26,6 @@ import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths

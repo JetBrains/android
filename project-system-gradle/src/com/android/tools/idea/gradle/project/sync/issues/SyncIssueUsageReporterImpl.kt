@@ -19,49 +19,25 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
 
-private val LOG = Logger.getInstance(SyncIssueUsageReporterImpl::class.java)
-
 class SyncIssueUsageReporterImpl(private val project: Project) : SyncIssueUsageReporter {
   private val collectedIssues = mutableListOf<GradleSyncIssue>()
-  private val collectedQuickFixes = mutableListOf<AndroidStudioEvent.GradleSyncQuickFix>()
-  private var collectedFailure: AndroidStudioEvent.GradleSyncFailure? = null
 
   override fun reportToUsageTracker(rootProjectPath: @SystemIndependent String) {
     if (collectedIssues.isNotEmpty()) {
       UsageTracker.log(
-          GradleSyncStateHolder
-              .getInstance(project)
-              .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES, rootProjectPath)
-              .addAllGradleSyncIssues(collectedIssues))
+        GradleSyncStateHolder
+          .getInstance(project)
+          .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES, rootProjectPath)
+          .addAllGradleSyncIssues(collectedIssues))
       collectedIssues.clear()
-    }
-
-    if (collectedQuickFixes.isNotEmpty() || collectedFailure != null) {
-      UsageTracker.log(
-          GradleSyncStateHolder
-              .getInstance(project)
-              .generateSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS, rootProjectPath)
-              .addAllOfferedQuickFixes(collectedQuickFixes)
-              .setGradleSyncFailure(collectedFailure ?: AndroidStudioEvent.GradleSyncFailure.UNKNOWN_GRADLE_FAILURE))
-
-      collectedFailure = null
-      collectedQuickFixes.clear()
     }
   }
 
   override fun collect(issue: GradleSyncIssue) {
     collectedIssues.add(issue)
-  }
-
-  override fun collect(failure: AndroidStudioEvent.GradleSyncFailure) {
-    if (collectedFailure != null) {
-      LOG.warn("Multiple sync failures reported. Discarding: $collectedFailure")
-    }
-    collectedFailure = failure
   }
 }
 

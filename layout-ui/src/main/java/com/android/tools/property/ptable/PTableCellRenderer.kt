@@ -25,39 +25,42 @@ interface PTableCellRenderer {
   /**
    * Returns component for rendering the [column] of the specified [item].
    *
-   * The [depth] indicates how deeply nested the [item] should be shown in the [table].
-   * If [isSelected] the item should be shown as selected.
-   * If [hasFocus] the item should be shown with focus colors.
-   * If [isExpanded] the item should be shown without ellipsis (the user is hovering over the item).
+   * The [depth] indicates how deeply nested the [item] should be shown in the [table]. If
+   * [isSelected] the item should be shown as selected. If [hasFocus] the item should be shown with
+   * focus colors. If [isExpanded] the item should be shown without ellipsis (the user is hovering
+   * over the item).
    *
    * A return value of null means the cell is empty.
    */
-  fun getEditorComponent(table: PTable,
-                         item: PTableItem,
-                         column: PTableColumn,
-                         depth: Int,
-                         isSelected: Boolean,
-                         hasFocus: Boolean,
-                         isExpanded: Boolean): JComponent?
+  fun getEditorComponent(
+    table: PTable,
+    item: PTableItem,
+    column: PTableColumn,
+    depth: Int,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    isExpanded: Boolean
+  ): JComponent?
 }
 
 class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
 
-  override fun getEditorComponent(table: PTable,
-                                  item: PTableItem,
-                                  column: PTableColumn,
-                                  depth: Int,
-                                  isSelected: Boolean,
-                                  hasFocus: Boolean,
-                                  isExpanded: Boolean): JComponent? {
+  override fun getEditorComponent(
+    table: PTable,
+    item: PTableItem,
+    column: PTableColumn,
+    depth: Int,
+    isSelected: Boolean,
+    hasFocus: Boolean,
+    isExpanded: Boolean
+  ): JComponent? {
     clear()
     setPaintFocusBorder(hasFocus)
     font = table.activeFont
     if (isSelected && hasFocus) {
-      foreground = UIUtil.getTreeForeground(true, true)
-      background = UIUtil.getTreeSelectionBackground(true)
-    }
-    else {
+      foreground = UIUtil.getTreeForeground(true, hasFocus)
+      background = UIUtil.getTreeSelectionBackground(hasFocus)
+    } else {
       foreground = table.foregroundColor
       background = table.backgroundColor
     }
@@ -65,8 +68,7 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
     if (column == PTableColumn.NAME) {
       append(item.name)
       border = if (depth > 0) JBUI.Borders.emptyLeft(4 * depth) else null
-    }
-    else {
+    } else {
       append(item.value.orEmpty())
       border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
     }
@@ -77,7 +79,11 @@ class DefaultPTableCellRenderer : SimpleColoredComponent(), PTableCellRenderer {
 class DefaultPTableCellRendererProvider : PTableCellRendererProvider {
   val renderer = DefaultPTableCellRenderer()
 
-  override fun invoke(table: PTable, property: PTableItem, column: PTableColumn): PTableCellRenderer {
+  override fun invoke(
+    table: PTable,
+    property: PTableItem,
+    column: PTableColumn
+  ): PTableCellRenderer {
     return renderer
   }
 }

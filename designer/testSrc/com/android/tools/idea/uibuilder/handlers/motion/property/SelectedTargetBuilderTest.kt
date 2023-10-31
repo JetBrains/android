@@ -30,14 +30,11 @@ import javax.swing.JLabel
 @RunsInEdt
 class SelectedTargetBuilderTest {
 
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @JvmField @Rule
-  val motionRule = MotionAttributeRule(projectRule)
+  @JvmField @Rule val motionRule = MotionAttributeRule(projectRule)
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testConstraintSet() {
@@ -65,7 +62,8 @@ class SelectedTargetBuilderTest {
     assertThat((first.getComponent(0) as JLabel).text).isEqualTo("start Constraint Set")
     assertThat(second).isInstanceOf(SelectedTagPanel::class.java)
     assertThat((second?.getComponent(0) as JLabel).text).isEqualTo("Constraint")
-    assertThat((second.getComponent(0) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
+    assertThat((second.getComponent(0) as JLabel).icon)
+      .isSameAs(StudioIcons.LayoutEditor.Palette.TEXT_VIEW)
     assertThat((second.getComponent(1) as JLabel).text).isEqualTo("widget")
   }
 
@@ -79,7 +77,8 @@ class SelectedTargetBuilderTest {
     val component = inspector.lines[0].component
     assertThat(component).isInstanceOf(TransitionPanel::class.java)
     assertThat((component?.getComponent(0) as JLabel).text).isEqualTo("start")
-    assertThat((component.getComponent(1) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Motion.TRANSITION)
+    assertThat((component.getComponent(1) as JLabel).icon)
+      .isSameAs(StudioIcons.LayoutEditor.Motion.TRANSITION)
     assertThat((component.getComponent(2) as JLabel).text).isEqualTo("end")
   }
 
@@ -94,11 +93,13 @@ class SelectedTargetBuilderTest {
     val second = inspector.lines[1].component
     assertThat(first).isInstanceOf(TransitionPanel::class.java)
     assertThat((first?.getComponent(0) as JLabel).text).isEqualTo("start")
-    assertThat((first.getComponent(1) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Motion.TRANSITION)
+    assertThat((first.getComponent(1) as JLabel).icon)
+      .isSameAs(StudioIcons.LayoutEditor.Motion.TRANSITION)
     assertThat((first.getComponent(2) as JLabel).text).isEqualTo("end")
     assertThat(second).isInstanceOf(SelectedTagPanel::class.java)
     assertThat((second?.getComponent(0) as JLabel).text).isEqualTo("KeyPosition")
-    assertThat((second.getComponent(0) as JLabel).icon).isSameAs(StudioIcons.LayoutEditor.Motion.KEYFRAME)
+    assertThat((second.getComponent(0) as JLabel).icon)
+      .isSameAs(StudioIcons.LayoutEditor.Motion.KEYFRAME)
     assertThat((second.getComponent(1) as JLabel).text).isEqualTo("")
   }
 }

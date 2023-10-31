@@ -218,4 +218,102 @@ public class DomPsiConverterTest extends UsefulTestCase {
     assertEquals(DomPsiConverter.getTextValueRange(psiElement), DomPsiConverter.getTextValueRange(domElement));
     assertEquals(DomPsiConverter.getTextValueRange(psiAttribute), DomPsiConverter.getTextValueRange(domAttribute));
   }
+
+  public void testGetTextContent() {
+    String xml = "<resources>\n" +
+                 "    <style name=\"MainActivityTheme.Launch\" parent=\"android:Theme.DeviceDefault\">\n" +
+                 "        <item name=\"android:windowSwipeToDismiss\">\n" +
+                 "            <!-- abc --> f<!-- abc -->a<![CDATA[lse]]>\n" +
+                 "        </item>\n" +
+                 "        <foo> just text </foo>\n" +
+                 "        <bar> abc\n" +
+                 "         c   <other> def</other> ghi\n" +
+                 "        </bar>\n" +
+                 "    </style>\n" +
+                 "</resources>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.configureByText("test.xml", xml);
+    VirtualFile file = xmlFile.getVirtualFile();
+    assertNotNull(file);
+    assertTrue(file.exists());
+    Project project = getProject();
+    assertNotNull(project);
+    final Document psiDocument = DomPsiConverter.convert(xmlFile);
+    assertNotNull(psiDocument);
+
+    Document document = XmlUtils.parseDocumentSilently(xmlFile.getText(), true);
+    assertNotNull(document);
+
+    // Check that getTextContent works the same vs. the plain DOM implementation.
+
+    // <item>
+    Element psiElement = (Element)psiDocument.getElementsByTagName("item").item(0);
+    Element element = (Element)document.getElementsByTagName("item").item(0);
+    assertFalse(element.getTextContent().isEmpty());
+    assertEquals(element.getTextContent(), psiElement.getTextContent());
+
+    // <foo>
+    psiElement = (Element)psiDocument.getElementsByTagName("foo").item(0);
+    element = (Element)document.getElementsByTagName("foo").item(0);
+    assertFalse(element.getTextContent().isEmpty());
+    assertEquals(element.getTextContent(), psiElement.getTextContent());
+
+    // <bar>
+    psiElement = (Element)psiDocument.getElementsByTagName("bar").item(0);
+    element = (Element)document.getElementsByTagName("bar").item(0);
+    assertFalse(element.getTextContent().isEmpty());
+    assertEquals(element.getTextContent(), psiElement.getTextContent());
+  }
+
+  public void testGetElementsByTagName() {
+    String xml = "<resource>\n" +
+                 "    <style name=\"a\">\n" +
+                 "        <style name=\"b\">\n" +
+                 "        </style>\n" +
+                 "        <style name=\"c\">\n" +
+                 "        </style>\n" +
+                 "    </style>\n" +
+                 "    <style name=\"d\">\n" +
+                 "        <other name=\"z\">\n" +
+                 "            <style name=\"e\">\n" +
+                 "                <style name=\"f\">\n" +
+                 "                </style>\n" +
+                 "            </style>\n" +
+                 "            <style name=\"g\"/>\n" +
+                 "        </other>\n" +
+                 "    </style>\n" +
+                 "    <style name=\"h\"/>\n" +
+                 "</resource>";
+
+    XmlFile xmlFile = (XmlFile)myFixture.configureByText("test.xml", xml);
+    VirtualFile file = xmlFile.getVirtualFile();
+    assertNotNull(file);
+    assertTrue(file.exists());
+    Project project = getProject();
+    assertNotNull(project);
+    final Document psiDocument = DomPsiConverter.convert(xmlFile);
+    assertNotNull(psiDocument);
+
+    Document document = XmlUtils.parseDocumentSilently(xmlFile.getText(), true);
+    assertNotNull(document);
+
+    assertEquals(
+      XmlPrettyPrinter.prettyPrint(document, true),
+      XmlPrettyPrinter.prettyPrint(psiDocument, true)
+    );
+
+    NodeList docList = document.getElementsByTagName("style");
+    StringBuilder docString = new StringBuilder();
+    for (int i = 0; i < docList.getLength(); ++i) {
+      docString.append(((Element)docList.item(i)).getAttribute("name"));
+    }
+
+    NodeList psiDocList = psiDocument.getElementsByTagName("style");
+    StringBuilder psiDocString = new StringBuilder();
+    for (int i = 0; i < psiDocList.getLength(); ++i) {
+      psiDocString.append(((Element)psiDocList.item(i)).getAttribute("name"));
+    }
+
+    assertEquals(docString.toString(), psiDocString.toString());
+  }
 }

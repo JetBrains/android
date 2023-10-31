@@ -25,9 +25,6 @@ import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
-import java.awt.image.BufferedImage
-import java.nio.file.Paths
-import java.util.concurrent.TimeUnit
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.After
@@ -35,6 +32,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.image.BufferedImage
+import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 
 class ComposeDocumentationProviderTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)

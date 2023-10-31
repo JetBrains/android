@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder
 
-import com.android.tools.idea.rendering.AllocationStackTrace
-import com.android.tools.idea.rendering.DisposeStackTrace
-import com.android.tools.idea.rendering.StackTraceCapture
-import com.android.tools.idea.rendering.clearTrackedAllocations
-import com.android.tools.idea.rendering.notDisposedRenderTasks
+import com.android.tools.rendering.tracking.AllocationStackTrace
+import com.android.tools.rendering.tracking.DisposeStackTrace
+import com.android.tools.rendering.tracking.StackTraceCapture
+import com.android.tools.rendering.tracking.clearTrackedAllocations
+import com.android.tools.rendering.tracking.notDisposedRenderTasks
 import com.intellij.openapi.diagnostic.Logger
 import org.junit.rules.TestRule
 import org.junit.runner.Description

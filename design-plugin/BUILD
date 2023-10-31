@@ -3,9 +3,13 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.design-plugin",
-    srcs = ["src"],
     iml_files = ["intellij.android.design-plugin.iml"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor.gradle",
+        "//tools/adt/idea/design-plugin/descriptor:intellij.android.design-plugin.descriptor",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/designer:intellij.android.designer[module]",

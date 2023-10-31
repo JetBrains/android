@@ -20,7 +20,6 @@ import com.android.builder.model.PROPERTY_INVOKED_FROM_IDE
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.BuildContext
 import com.android.tools.idea.gradle.project.build.BuildStatus
@@ -32,9 +31,11 @@ import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributio
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.addAndroidStudioPluginVersion
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.SelectSdkDialog
 import com.android.tools.idea.ui.GuiTestingService
@@ -52,6 +53,7 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -145,12 +147,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     @Volatile
     private var myProgressIndicator: ProgressIndicator = EmptyProgressIndicator()
-    override fun getNotificationInfo(): NotificationInfo? {
-      return NotificationInfo(
-        if (myErrorCount > 0) "Gradle Invocation (errors)" else "Gradle Invocation (success)",
-        "Gradle Invocation Finished", "$myErrorCount Errors", true
-      )
-    }
 
     override fun run(indicator: ProgressIndicator) {
       try {
@@ -220,7 +216,13 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     private fun invokeGradleTasks(buildAction: BuildAction<*>?): GradleInvocationResult {
       val project = myRequest.project
-      val executionSettings = GradleUtil.getOrCreateGradleExecutionSettings(project)
+      val executionSettings = myRequest.data.executionSettings ?:
+      GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
+          this.withVmOptions(myRequest.jvmArguments)
+            .withArguments(myRequest.commandLineArguments)
+            .withEnvironmentVariables(myRequest.env)
+            .passParentEnvs(myRequest.isPassParentEnvs)
+      }
       val model = AtomicReference<Any?>(null)
       val gradleRootProjectPath = myRequest.rootProjectPath.path
       val executeTasksFunction = Function { connection: ProjectConnection ->
@@ -249,6 +251,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             commandLineArguments.add(GradleBuilds.PARALLEL_BUILD_OPTION)
           }
           commandLineArguments.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true))
+          addAndroidStudioPluginVersion(commandLineArguments)
           if (enableBuildAttribution) {
             val attributionFileDir = getAgpAttributionFileDir(myRequest.data)
             commandLineArguments.add(
@@ -258,10 +261,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
               )
             )
           }
-          commandLineArguments.addAll(myRequest.commandLineArguments)
 
           // Inject embedded repository if it's enabled by user.
-          if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !GuiTestingService.isInTestingMode()) {
+          if (!GuiTestingService.isInTestingMode()) {
             GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments)
             GradleUtil.attemptToUseEmbeddedGradle(project)
           }
@@ -282,14 +284,12 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             logMessage = replaced.toString()
           }
           logger.info(logMessage)
-          val jvmArguments: List<String> = ArrayList(myRequest.jvmArguments)
+          val jvmArguments: List<String> = emptyList()
           // Add trace arguments to jvmArguments.
           Trace.addVmArgs(jvmArguments)
           executionSettings
             .withVmOptions(jvmArguments)
             .withArguments(commandLineArguments)
-            .withEnvironmentVariables(myRequest.env)
-            .passParentEnvs(myRequest.isPassParentEnvs)
           val operation: LongRunningOperation = if (isRunBuildAction) connection.action(buildAction) else connection.newBuild()
           val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
             override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) {
@@ -467,8 +467,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           if (selectSdkDialog.showAndGet()) {
             val jdkHome = selectSdkDialog.jdkHome
             UIUtil.invokeLaterIfNeeded {
-              ApplicationManager.getApplication()
-                .runWriteAction { AndroidStudioGradleInstallationManager.setJdkAsProjectJdk(myRequest.project, jdkHome) }
+              myRequest.project.basePath?.let { gradleRootPath ->
+                runWriteAction {
+                  JdkUtils.setProjectGradleJdk(myRequest.project, gradleRootPath, jdkHome)
+                }
+              }
             }
           }
         }
@@ -510,7 +513,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private inner class CloseListener : ContentManagerListener, VetoableProjectManagerListener {
       private var myIsApplicationExitingOrProjectClosing = false
       private var myUserAcceptedCancel = false
-      override fun projectOpened(project: Project) {}
       override fun canClose(project: Project): Boolean {
         if (project != myProject) {
           return true

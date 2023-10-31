@@ -17,15 +17,15 @@ package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
+import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.testutils.truth.PathSubject
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -55,11 +55,13 @@ class GradleModuleSystemIntegrationTest {
     preparedProject.open { project ->
       val moduleSystem = project.findAppModule().getModuleSystem()
       val dependencyManager = GradleDependencyManager.getInstance(project)
-      val dummyDependency = GradleCoordinate("a", "b", "+")
-      val anotherDummyDependency = GradleCoordinate("hello", "world", "1.2.3")
+      val dummyCoordinate = GradleCoordinate("a", "b", "+")
+      val dummyDependency = Dependency.parse(dummyCoordinate.toString())
+      val anotherDummyCoordinate = GradleCoordinate("hello", "world", "1.2.3")
+      val anotherDummyDependency = Dependency.parse(anotherDummyCoordinate.toString())
 
-      moduleSystem.registerDependency(dummyDependency)
-      moduleSystem.registerDependency(anotherDummyDependency)
+      moduleSystem.registerDependency(dummyCoordinate)
+      moduleSystem.registerDependency(anotherDummyCoordinate)
 
       assertThat(
         dependencyManager.findMissingDependencies(project.findAppModule(), listOf(dummyDependency, anotherDummyDependency))

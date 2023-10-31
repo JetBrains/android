@@ -23,20 +23,20 @@ import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
 
-/**
- * [ControlType] provider of a value editor for a [NlPropertyItem].
- */
-open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NlPropertyItem>) : ControlTypeProvider<NlPropertyItem> {
+/** [ControlType] provider of a value editor for a [NlPropertyItem]. */
+open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<NlPropertyItem>) :
+  ControlTypeProvider<NlPropertyItem> {
 
   override fun invoke(actual: NlPropertyItem): ControlType {
     val property = actual.delegate ?: actual
     return when {
-      // Note: For InputType properties do not use the standard flag editor. This property has too complex rules.
-      // Instead display an action on the left of a text editor just like we do for color properties.
+      // Note: For InputType properties do not use the standard flag editor. This property has too
+      // complex rules.
+      // Instead display an action on the left of a text editor just like we do for color
+      // properties.
       // The action has a custom implementation in InputTypePropertyItem.
       property is NlFlagsPropertyItem ->
         if (property.name == ATTR_INPUT_TYPE) ControlType.COLOR_EDITOR else ControlType.FLAG_EDITOR
-
       enumSupportProvider(property) != null ->
         when (property.type) {
           NlPropertyType.DESTINATION,
@@ -44,20 +44,12 @@ open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<Nl
           NlPropertyType.NAVIGATION -> ControlType.DROPDOWN
           else -> ControlType.COMBO_BOX
         }
-
-      property.type == NlPropertyType.THREE_STATE_BOOLEAN ->
-        ControlType.THREE_STATE_BOOLEAN
-
-      property.type == NlPropertyType.BOOLEAN ->
-        ControlType.BOOLEAN
-
+      property.type == NlPropertyType.THREE_STATE_BOOLEAN -> ControlType.THREE_STATE_BOOLEAN
+      property.type == NlPropertyType.BOOLEAN -> ControlType.BOOLEAN
       property.type == NlPropertyType.DRAWABLE ||
-      property.type == NlPropertyType.COLOR ||
-      property.type == NlPropertyType.COLOR_STATE_LIST ->
-        ControlType.COLOR_EDITOR
-
-      else ->
-        ControlType.TEXT_EDITOR
+        property.type == NlPropertyType.COLOR ||
+        property.type == NlPropertyType.COLOR_STATE_LIST -> ControlType.COLOR_EDITOR
+      else -> ControlType.TEXT_EDITOR
     }
   }
 }

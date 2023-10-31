@@ -24,9 +24,7 @@ import com.android.tools.idea.common.model.NlModel
  */
 data class SelectedComponent(val components: List<NlComponent>, val referenced: List<NlComponent>)
 
-/**
- * Returns the list of selected components from the tree.
- */
+/** Returns the list of selected components from the tree. */
 fun getSelectedComponents(tree: NlComponentTree, model: NlModel?): SelectedComponent {
   val selected = tree.selectionPaths
   val components = ArrayList<NlComponent>()
@@ -39,8 +37,7 @@ fun getSelectedComponents(tree: NlComponentTree, model: NlModel?): SelectedCompo
     val last = it.lastPathComponent
     if (last is NlComponent) {
       components.add(last)
-    }
-    else if (last is String) {
+    } else if (last is String) {
       val component = findComponent(last, model)
       if (component != null) {
         referenced.add(component)
@@ -51,11 +48,8 @@ fun getSelectedComponents(tree: NlComponentTree, model: NlModel?): SelectedCompo
   return SelectedComponent(components, referenced)
 }
 
-/**
- * Find the component with the matching id.
- */
+/** Find the component with the matching id. */
 fun findComponent(id: String, model: NlModel?): NlComponent? {
   val optional = model?.flattenComponents()?.filter { it.id == id }?.findFirst() ?: return null
   return if (optional.isPresent) optional.get() else null
 }
-

@@ -38,9 +38,9 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
+import kotlinx.coroutines.withContext
 import javax.swing.JComponent
 import javax.swing.event.HyperlinkEvent
-import kotlinx.coroutines.withContext
 
 class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Project) : Disposable {
   companion object {

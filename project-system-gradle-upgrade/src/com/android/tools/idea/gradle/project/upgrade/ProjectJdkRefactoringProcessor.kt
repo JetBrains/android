@@ -16,7 +16,8 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
+import com.android.tools.idea.gradle.project.AgpCompatibleJdkVersion
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdk
@@ -56,7 +57,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
       }
 
     val jdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance())
-    val newCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(new)
+    val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
     newJdkInfo = jdks
       .firstOrNull { JavaSdk.getInstance().getVersion(it)?.maxLanguageLevel == newCompatibleJdk.languageLevel }
       ?.let { NewJdkInfo(it, it.homePath, newCompatibleJdk.languageLevel.toJavaVersion()) }
@@ -70,13 +71,13 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   private val isCurrentJdkNewEnough: Boolean
     get() {
-      val newCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(new)
+      val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
       return currentJdkInfo?.let { it.javaVersion >= newCompatibleJdk.languageLevel.toJavaVersion() } ?: true
     }
 
   override fun blockProcessorReasons(): List<BlockReason> {
-    val currentCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(current)
-    val newCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(new)
+    val currentCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(current)
+    val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
 
     // If we don't need to do anything, don't block.
     if (currentCompatibleJdk == newCompatibleJdk) return listOf()
@@ -92,8 +93,8 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun findComponentUsages(): Array<out UsageInfo> {
     val usages = mutableListOf<UsageInfo>()
-    val currentCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(current)
-    val newCompatibleJdk = CompatibleJdkVersion.getCompatibleJdkVersion(new)
+    val currentCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(current)
+    val newCompatibleJdk = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new)
 
     if (currentCompatibleJdk == newCompatibleJdk) return usages.toTypedArray() // nothing to do by definition.
 
@@ -131,7 +132,7 @@ class ProjectJdkRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.projectJdkRefactoringProcessor.commandName")
 
-  override fun getShortDescription() = CompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.toJavaVersion().feature.let { v ->
+  override fun getShortDescription() = AgpCompatibleJdkVersion.getCompatibleJdkVersion(new).languageLevel.toJavaVersion().feature.let { v ->
     """
       The new version of the Android Gradle Plugin requires a newer version
       of the JDK to run (JDK version $v) than is currently configured for
@@ -168,7 +169,7 @@ class UpdateJdkUsageInfo(
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
     fun setJdkAsProjectJdk(path: String) {
       // we are within a write action both during refactoring and during Undo.
-      AndroidStudioGradleInstallationManager.setJdkAsProjectJdk(processor.project, path)
+      JdkUtils.setProjectGradleJdkWithSingleGradleRoot(processor.project, path)
     }
     setJdkAsProjectJdk(newJdkPath)
     UndoHook(
@@ -178,19 +179,4 @@ class UpdateJdkUsageInfo(
   }
 
   override fun isValid(): Boolean = true // to make sure this shows up in the refactoring preview.
-}
-
-enum class CompatibleJdkVersion(val languageLevel: LanguageLevel) {
-  JDK8(LanguageLevel.JDK_1_8),
-  JDK11(LanguageLevel.JDK_11),
-  JDK17(LanguageLevel.JDK_17),
-
-  ;
-  companion object {
-    fun getCompatibleJdkVersion(agpVersion: AgpVersion): CompatibleJdkVersion = when {
-      agpVersion < "7.0.0-alpha01" -> JDK8
-      agpVersion < "8.0.0-beta01" -> JDK11
-      else -> JDK17
-    }
-  }
 }

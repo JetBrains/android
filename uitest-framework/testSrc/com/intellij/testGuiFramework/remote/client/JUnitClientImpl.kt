@@ -1,22 +1,14 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.intellij.testGuiFramework.remote.client
 
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.impl.ApplicationImpl
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.testGuiFramework.remote.transport.JUnitFailureInfo
-import com.intellij.testGuiFramework.remote.transport.JUnitInfoMessage
-import com.intellij.testGuiFramework.remote.transport.KeepAliveMessage
-import com.intellij.testGuiFramework.remote.transport.MessageFromClient
-import com.intellij.testGuiFramework.remote.transport.MessageFromServer
+import com.intellij.testGuiFramework.remote.transport.*
 import org.junit.runner.notification.Failure
-import java.io.IOException
-import java.io.InvalidClassException
-import java.io.NotSerializableException
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
-import java.io.OutputStream
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.Socket
+import java.io.*
+import java.net.*
+import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue

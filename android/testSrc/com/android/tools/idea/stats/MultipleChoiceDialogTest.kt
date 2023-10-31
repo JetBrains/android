@@ -52,6 +52,24 @@ private val TEST_SURVEY: Survey = Survey.newBuilder().apply {
   name = TEST_SURVEY_NAME
 }.build()
 
+private val TEST_SURVEY_LAX: Survey = Survey.newBuilder().apply {
+  title = "Test Title"
+  question = "Test Question"
+  intervalDays = 365
+  answerCount = 2
+  addOptions(Option.newBuilder().apply {
+    label = "Option 0"
+  })
+  addOptions(Option.newBuilder().apply {
+    label = "Option 1"
+  })
+  addOptions(Option.newBuilder().apply {
+    label = "Option 2"
+  })
+  name = TEST_SURVEY_NAME
+  answerPolicy = Survey.AnswerPolicy.LAX
+}.build()
+
 private const val TEST_SURVEY_NAME = "Test Survey"
 
 class MultipleChoiceDialogTest {
@@ -73,7 +91,7 @@ class MultipleChoiceDialogTest {
     val result = Ref.create<MultipleChoiceDialog>()
     val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val dialog = createDialog(logger)
+      val dialog = createDialog(logger, TEST_SURVEY)
       result.set(dialog)
     }
     val dialog = result.get()
@@ -102,7 +120,7 @@ class MultipleChoiceDialogTest {
     val result = Ref.create<MultipleChoiceDialog>()
     val logger = Mockito.mock(ChoiceLogger::class.java)
     SwingUtilities.invokeAndWait {
-      val dialog = createDialog(logger)
+      val dialog = createDialog(logger, TEST_SURVEY)
       result.set(dialog)
     }
     val dialog = result.get()
@@ -122,6 +140,28 @@ class MultipleChoiceDialogTest {
     verify(logger).cancel(TEST_SURVEY_NAME)
   }
 
+  @Test
+  fun testLaxPolicy() {
+    val result = Ref.create<MultipleChoiceDialog>()
+    val logger = Mockito.mock(ChoiceLogger::class.java)
+    SwingUtilities.invokeAndWait {
+      val dialog = createDialog(logger, TEST_SURVEY_LAX)
+      result.set(dialog)
+    }
+    val dialog = result.get()
+    val content = getContent(dialog)
+    val checkBoxes = UIUtil.findComponentsOfType(content, JCheckBox::class.java)
+    assertFalse(dialog.isOKActionEnabled)
+    for (checkBox in checkBoxes) {
+      assertFalse(checkBox.isSelected)
+    }
+
+    val fakeUi = FakeUi(content)
+    clickCheckBox(fakeUi, checkBoxes[0])
+    assertTrue(checkBoxes[0].isSelected)
+    assertTrue(dialog.isOKActionEnabled)
+  }
+
   private fun getContent(dialog: MultipleChoiceDialog): JComponent {
     val content = dialog.content
     content.isVisible = true
@@ -130,8 +170,8 @@ class MultipleChoiceDialogTest {
     return content
   }
 
-  private fun createDialog(logger: ChoiceLogger): MultipleChoiceDialog {
-    val dialog = createDialog(TEST_SURVEY, logger, false) as? MultipleChoiceDialog
+  private fun createDialog(logger: ChoiceLogger, survey: Survey): MultipleChoiceDialog {
+    val dialog = createDialog(survey, logger, false) as? MultipleChoiceDialog
     assertNotNull(dialog)
     Disposer.register(disposable, dialog.disposable)
     return dialog

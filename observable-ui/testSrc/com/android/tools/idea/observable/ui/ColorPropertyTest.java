@@ -24,7 +24,7 @@ import org.junit.Test;
 
 public class ColorPropertyTest {
   @Test
-  public void testColorProperty() throws Exception {
+  public void testColorProperty() {
     ColorPanel colorPanel = new ColorPanel();
     ColorProperty color = new ColorProperty(colorPanel);
     CountListener listener = new CountListener();

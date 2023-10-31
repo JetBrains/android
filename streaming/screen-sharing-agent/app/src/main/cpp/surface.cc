@@ -28,7 +28,7 @@ JObject SurfaceToJava(Jni jni, ANativeWindow* surface) {
   }
   JObject java_surface(jni, ANativeWindow_toSurface(jni, surface));
   if (java_surface.IsNull()) {
-    Log::Fatal("Unable to create an android.view.Surface");
+    Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "Unable to create an android.view.Surface");
   }
   return java_surface;
 }

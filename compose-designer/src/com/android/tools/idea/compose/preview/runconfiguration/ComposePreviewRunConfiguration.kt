@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.hasPreviewElements
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ValidationError
-import com.android.tools.idea.stats.RunStats
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeDeployEvent
 import com.intellij.execution.Executor

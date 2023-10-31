@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
@@ -50,6 +51,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintDisableBaselineAlignme
 import com.android.tools.idea.lint.inspections.AndroidLintDuplicateIdsInspection
 import com.android.tools.idea.lint.inspections.AndroidLintEnforceUTF8Inspection
 import com.android.tools.idea.lint.inspections.AndroidLintExifInterfaceInspection
+import com.android.tools.idea.lint.inspections.AndroidLintExpiredTargetSdkVersionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedContentProviderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedReceiverInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedServiceInspection
@@ -85,7 +87,6 @@ import com.android.tools.idea.lint.inspections.AndroidLintNonResizeableActivityI
 import com.android.tools.idea.lint.inspections.AndroidLintNotificationPermissionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteLayoutParamInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteSdkIntInspection
-import com.android.tools.idea.lint.inspections.AndroidLintOldTargetApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelClassLoaderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection
@@ -131,7 +132,6 @@ import com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspectio
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
@@ -169,12 +169,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import java.nio.charset.StandardCharsets
-import java.util.Locale
-import java.util.stream.Collectors
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.util.AndroidBundle
+import java.nio.charset.StandardCharsets
+import java.util.Locale
+import java.util.stream.Collectors
 
 class AndroidLintTest : AbstractAndroidLintTest() {
   override fun configureAdditionalModules(
@@ -1237,7 +1237,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testOldTargetApi() {
     deleteManifest()
-    doTestHighlighting(AndroidLintOldTargetApiInspection(), "AndroidManifest.xml", "xml")
+    doTestHighlighting(AndroidLintExpiredTargetSdkVersionInspection(), "AndroidManifest.xml", "xml")
   }
 
   fun testReferenceTypes() {

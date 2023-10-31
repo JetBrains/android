@@ -21,6 +21,8 @@ import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.LocalResourceRepository
+import com.android.tools.res.MultiResourceRepository
 import com.google.common.collect.ImmutableList
 import org.jetbrains.android.facet.AndroidFacet
 

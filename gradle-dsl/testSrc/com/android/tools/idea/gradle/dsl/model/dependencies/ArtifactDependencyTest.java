@@ -38,7 +38,6 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDepen
 import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
-
 import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
@@ -2242,6 +2241,31 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testInsertionOrderWithExcludes() throws IOException {
+    writeToBuildFile(TestFile.INSERTION_ORDER_WITH_EXCLUDES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+
+    ArtifactDependencySpec excludesSpecApi = ArtifactDependencySpec.create("a:b");
+    buildModel.dependencies().addArtifact("api",
+                                          "com.example.libs1:lib1:1.0",
+                                          ImmutableList.of(excludesSpecApi));
+
+    ArtifactDependencySpec excludesSpecFeature = ArtifactDependencySpec.create("com.example.libs2:lib2");
+    buildModel.dependencies().addArtifact("feature",
+                                          "com.example.libs3:lib3:3.0",
+                                          ImmutableList.of(excludesSpecFeature));
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.INSERTION_ORDER_WITH_EXCLUDES_EXPECTED);
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("feature");
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("implementation");
+  }
+
+  @Test
   public void testAddDependencyReference() throws IOException {
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE);
 
@@ -2257,6 +2281,33 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyPropertyModel(artifact.version(), STRING_TYPE, "1.2.3", STRING, FAKE, 0);
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_REFERENCE_EXPECTED);
+  }
+
+  @Test
+  public void testAddDependencyReferenceWithExclusions() throws IOException {
+    writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_WITH_EXCLUDES);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    GradlePropertyModel foo = buildModel.ext().findProperty("dep");
+    DependenciesModel dependencies = buildModel.dependencies();
+
+    dependencies.addArtifact("api",
+                             new ReferenceTo(foo, dependencies),
+                             ImmutableList.of(ArtifactDependencySpec.create("a:b")));
+
+    assertTrue(buildModel.isModified());
+    ArtifactDependencyModel artifact = buildModel.dependencies().artifacts().get(0);
+    assertThat(artifact.configurationName()).isEqualTo("api");
+    verifyPropertyModel(artifact.group(), STRING_TYPE, "com.example", STRING, FAKE, 0);
+    verifyPropertyModel(artifact.name(), STRING_TYPE, "foo", STRING, FAKE, 0);
+    verifyPropertyModel(artifact.version(), STRING_TYPE, "1.2.3", STRING, FAKE, 0);
+
+    assertThat(artifact.configuration().excludes()).hasSize(1);
+    ExcludedDependencyModel excluded = artifact.configuration().excludes().get(0);
+    verifyPropertyModel(excluded.group(),STRING_TYPE, "a", STRING, DERIVED, 0);
+    verifyPropertyModel(excluded.module(),STRING_TYPE, "b", STRING, DERIVED, 0);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_DEPENDENCY_REFERENCE_WITH_EXCLUDES_EXPECTED);
   }
 
   @Test
@@ -2446,6 +2497,9 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE_EXPECTED("addDependencyWithConfigurationClosureExpected"),
     ADD_DEPENDENCY_REFERENCE("addDependencyReference"),
     ADD_DEPENDENCY_REFERENCE_EXPECTED("addDependencyReferenceExpected"),
+    ADD_DEPENDENCY_REFERENCE_WITH_EXCLUDES("addDependencyReferenceWithExcludes"),
+    ADD_DEPENDENCY_REFERENCE_WITH_EXCLUDES_EXPECTED("addDependencyReferenceWithExcludesExpected"),
+
     ADD_PLATFORM_DEPENDENCY_REFERENCE_EXPECTED("addPlatformDependencyReferenceExpected"),
     SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION("setVersionOnDependencyWithCompactNotation"),
     SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED("setVersionOnDependencyWithCompactNotationExpected"),
@@ -2560,6 +2614,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ARTIFACT_NOTATION_EDGE_CASES("artifactNotationEdgeCases"),
     INSERTION_ORDER("insertionOrder"),
     INSERTION_ORDER_EXPECTED("insertionOrderExpected"),
+    INSERTION_ORDER_WITH_EXCLUDES("insertionOrder"),
+    INSERTION_ORDER_WITH_EXCLUDES_EXPECTED("insertionOrderWithExcludesExpected"),
     SET_FULL_REFERENCE_MAP_EXPECTED("setFullReferenceMapExpected"),
     PARSE_PLATFORM_DEPENDENCIES("parsePlatformDependencies"),
     SET_PLATFORM_DEPENDENCY_VERSIONS_EXPECTED("setPlatformDependencyVersionsExpected"),

@@ -30,7 +30,7 @@ import kotlin.reflect.KMutableProperty1
 open class CaptureNode(val data: CaptureNodeModel, var clockType: ClockType) : HNode<CaptureNode> {
 
   @VisibleForTesting
-  constructor(data: CaptureNodeModel) : this(data, ClockType.GLOBAL)
+  constructor(data: CaptureNodeModel) : this(data, ClockType.GLOBAL) {}
 
   /**
    * Start time with GLOBAL clock.

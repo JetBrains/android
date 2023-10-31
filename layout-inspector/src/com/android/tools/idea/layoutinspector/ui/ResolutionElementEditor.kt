@@ -47,13 +47,11 @@ private const val LINK_BORDER = 2
 /**
  * An editor that is able to show a link below the actual editor.
  *
- * The link provides navigation back to source code where the value
- * of the property was specified.
+ * The link provides navigation back to source code where the value of the property was specified.
  */
 class ResolutionElementEditor(
   private val model: ResolutionStackModel,
-  @get:VisibleForTesting
-  val editorModel: PropertyEditorModel,
+  @get:VisibleForTesting val editorModel: PropertyEditorModel,
   editor: JComponent
 ) : JPanel(BorderLayout()) {
 
@@ -69,14 +67,16 @@ class ResolutionElementEditor(
     linkPanel.isOpaque = false
     linkPanel.background = UIUtil.TRANSPARENT_COLOR
     editorModel.addListener { updateFromModel() }
-    editor.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(event: MouseEvent) {
-        if (!event.isConsumed && event.clickCount > 1) {
-          editorModel.tableSupport?.toggleGroup()
-          event.consume()
+    editor.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(event: MouseEvent) {
+          if (!event.isConsumed && event.clickCount > 1) {
+            editorModel.tableSupport?.toggleGroup()
+            event.consume()
+          }
         }
       }
-    })
+    )
     updateFromModel()
   }
 
@@ -87,7 +87,9 @@ class ResolutionElementEditor(
     val resourceLookup = property.lookup.resourceLookup
     val locations = view?.let { resourceLookup.findFileLocations(property, it) } ?: listOf()
     val classLocation = (property as? InspectorGroupPropertyItem)?.classLocation
-    val hideLinkPanel = (locations.isEmpty() && classLocation == null) || (property is PTableGroupItem && !editorModel.isExpandedTableItem)
+    val hideLinkPanel =
+      (locations.isEmpty() && classLocation == null) ||
+        (property is PTableGroupItem && !editorModel.isExpandedTableItem)
     val isSelected = editorModel.isUsedInRendererWithSelection
     linkPanel.isVisible = !hideLinkPanel
     editorModel.isCustomHeight = !hideLinkPanel
@@ -100,14 +102,15 @@ class ResolutionElementEditor(
       when (locations.size) {
         0 -> {}
         1 -> linkPanel.add(SourceLocationLink(locations.first(), isSelected, isOverridden))
-        else -> linkPanel.add(ExpansionPanel(model, editorModel, property, locations, isSelected, isOverridden))
+        else ->
+          linkPanel.add(
+            ExpansionPanel(model, editorModel, property, locations, isSelected, isOverridden)
+          )
       }
     }
   }
 
-  /**
-   * A panel with a expandable list of detail locations.
-   */
+  /** A panel with a expandable list of detail locations. */
   private class ExpansionPanel(
     private val model: ResolutionStackModel,
     private val editorModel: PropertyEditorModel,
@@ -118,14 +121,15 @@ class ResolutionElementEditor(
   ) : JPanel(BorderLayout()) {
 
     private val extraPanel = JPanel()
-    private val expandLabel = object : JBLabel() {
-      override fun paintComponent(g: Graphics) {
-        super.paintComponent(g)
-        if (hasFocus() && g is Graphics2D) {
-          DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
+    private val expandLabel =
+      object : JBLabel() {
+        override fun paintComponent(g: Graphics) {
+          super.paintComponent(g)
+          if (hasFocus() && g is Graphics2D) {
+            DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
+          }
         }
       }
-    }
 
     init {
       val mainPanel = JPanel()
@@ -148,11 +152,13 @@ class ResolutionElementEditor(
       expandLabel.registerActionKey({ close() }, KeyStrokes.NUM_LEFT, "close")
       expandLabel.border = JBUI.Borders.empty(LINK_BORDER)
       expandLabel.isFocusable = true
-      expandLabel.addMouseListener(object : MouseAdapter() {
-        override fun mousePressed(event: MouseEvent) {
-          toggle()
+      expandLabel.addMouseListener(
+        object : MouseAdapter() {
+          override fun mousePressed(event: MouseEvent) {
+            toggle()
+          }
         }
-      })
+      )
       val mainLocation = locations.first()
       mainPanel.add(expandLabel)
       mainPanel.add(SourceLocationLink(mainLocation, isSelected, isOverridden))
@@ -207,19 +213,25 @@ class ResolutionElementEditor(
   /**
    * Allow the link to be clickable in the table even though the editor is only used for rendering.
    *
-   * @param [location] the source location. If [SourceLocation.navigatable] is missing then show the link as normal text.
+   * @param [location] the source location. If [SourceLocation.navigatable] is missing then show the
+   *   link as normal text.
    * @param [isSelected] then the font color will use the table foreground for selected and focused.
    * @param [isOverridden] then the font will use strikeout to indicate the value is overridden.
    */
-  private class SourceLocationLink(private val location: SourceLocation, isSelected: Boolean, isOverridden: Boolean): JBLabel() {
+  private class SourceLocationLink(
+    private val location: SourceLocation,
+    isSelected: Boolean,
+    isOverridden: Boolean
+  ) : JBLabel() {
 
     init {
       val showAsLink = location.navigatable != null
-      val normalForegroundColor = when {
-        isSelected -> UIUtil.getTableForeground(true, true)
-        showAsLink -> JBUI.CurrentTheme.Link.Foreground.ENABLED
-        else -> UIUtil.getTableForeground(false, false)
-      }
+      val normalForegroundColor =
+        when {
+          isSelected -> UIUtil.getTableForeground(true, true)
+          showAsLink -> JBUI.CurrentTheme.Link.Foreground.ENABLED
+          else -> UIUtil.getTableForeground(false, false)
+        }
       text = location.source
       font = getSmallFont(showAsLink, isOverridden)
       foreground = normalForegroundColor
@@ -230,11 +242,13 @@ class ResolutionElementEditor(
       registerActionKey({ activateLink() }, KeyStrokes.SPACE, "space")
       registerActionKey({ activateLink() }, KeyStrokes.ENTER, "enter")
 
-      addMouseListener(object : MouseAdapter() {
-        override fun mousePressed(event: MouseEvent) {
-          activateLink()
+      addMouseListener(
+        object : MouseAdapter() {
+          override fun mousePressed(event: MouseEvent) {
+            activateLink()
+          }
         }
-      })
+      )
     }
 
     private fun activateLink() {

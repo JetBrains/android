@@ -16,17 +16,16 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.rendering.RenderResult
 
 /**
- * Controller for layout scanner that checks the layout and produces lint checks.
- * It controls when to run/pause/resume Accessibility Testing Framework.
- * By default scanner is enabled/resumed.
+ * Controller for layout scanner that checks the layout and produces lint checks. It controls when
+ * to run/pause/resume Accessibility Testing Framework. By default scanner is enabled/resumed.
  */
 interface LayoutScannerControl {
 
-  /**  Returns the list of accessibility issues created by ATF. */
+  /** Returns the list of accessibility issues created by ATF. */
   val issues: Set<Issue>
 
   /** Pause the scanner until it is resumed by [resume] */
@@ -36,7 +35,7 @@ interface LayoutScannerControl {
   fun resume()
 
   /** Validate the layout and update the lint accordingly. */
-  fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel)
+  fun validateAndUpdateLint(results: Map<LayoutlibSceneManager, RenderResult>)
 }
 
 /** Configuration for layout scanner */
@@ -46,8 +45,9 @@ interface LayoutScannerConfiguration {
   var isLayoutScannerEnabled: Boolean
 
   /**
-   * Determines default behaviour on whether the scanner result should be integrated with issue panel.
-   * If true, it'll be integrated automatically. If false, results will not be used for anything.
+   * Determines default behaviour on whether the scanner result should be integrated with issue
+   * panel. If true, it'll be integrated automatically. If false, results will not be used for
+   * anything.
    */
   var isIntegrateWithDefaultIssuePanel: Boolean
 
@@ -55,15 +55,16 @@ interface LayoutScannerConfiguration {
 
     /** Configuration for when layout scanner is not applicable. */
     @JvmStatic
-    val DISABLED = object: LayoutScannerConfiguration {
-      override var isLayoutScannerEnabled: Boolean
-        get() = false
-        set(value) { }
+    val DISABLED =
+      object : LayoutScannerConfiguration {
+        override var isLayoutScannerEnabled: Boolean
+          get() = false
+          set(value) {}
 
-      override var isIntegrateWithDefaultIssuePanel: Boolean
-        get() = false
-        set(value) {}
-    }
+        override var isIntegrateWithDefaultIssuePanel: Boolean
+          get() = false
+          set(value) {}
+      }
   }
 }
 

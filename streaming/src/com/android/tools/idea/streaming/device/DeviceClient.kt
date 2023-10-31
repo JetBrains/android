@@ -48,10 +48,12 @@ import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.download.AndroidProfilerDownloader
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
@@ -66,15 +68,38 @@ import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+
+// Predefined agent's exit codes. Other exit codes are possible.
+internal const val AGENT_GENERIC_FAILURE = 1
+internal const val AGENT_INVALID_COMMAND_LINE = 2
+internal const val AGENT_WEAK_VIDEO_ENCODER = 3
+internal const val AGENT_REPEATED_VIDEO_ENCODER_ERRORS = 4
+internal const val VIDEO_ENCODER_NOT_FOUND = 10
+internal const val VIDEO_ENCODER_INITIALIZATION_ERROR = 11
+internal const val VIDEO_ENCODER_CONFIGURATION_ERROR = 12
+internal const val VIRTUAL_DISPLAY_CREATION_ERROR = 13
+internal const val INPUT_SURFACE_CREATION_ERROR = 14
+internal const val SERVICE_NOT_FOUND = 15
+internal const val SOCKET_CONNECTIVITY_ERROR = 20
+internal const val SOCKET_IO_ERROR = 21
+internal const val NULL_POINTER = 30
+internal const val CLASS_NOT_FOUND = 31
+internal const val METHOD_NOT_FOUND = 32
+internal const val CONSTRUCTOR_NOT_FOUND = 33
+internal const val FIELD_NOT_FOUND = 34
+internal const val JAVA_EXCEPTION = 35
+internal const val AGENT_SIGABORT = 134
+internal const val AGENT_SIGKILL = 137
+internal const val AGENT_SIGSEGV = 139
 
 internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/screen-sharing-agent"
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
 private const val MAX_BIT_RATE_EMULATOR = 2000000
-private const val DEFAULT_AGENT_LOG_LEVEL = "info"
 private const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
 private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
@@ -234,11 +259,11 @@ internal class DeviceClient(
   }
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel) {
-    val channel1 = serverSocketChannel.acceptAndEnsureClosing(this)
-    val channel2 = serverSocketChannel.acceptAndEnsureClosing(this)
-    // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
-    // Read the markers to assign the channels appropriately.
-    coroutineScope {
+    withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
+      val channel1 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
+      val channel2 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
+      // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
+      // Read the markers to assign the channels appropriately.
       val marker1 = async { readChannelMarker(channel1) }
       val marker2 = async { readChannelMarker(channel2) }
       val m1 = marker1.await()
@@ -254,9 +279,24 @@ internal class DeviceClient(
       else {
         throw RuntimeException("Unexpected channel markers: $m1, $m2")
       }
+      channelConnectedTime = System.currentTimeMillis()
+      controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
     }
-    channelConnectedTime = System.currentTimeMillis()
-    controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
+  }
+
+  private fun getConnectionTimeout(): Long {
+    val timeout = StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.get().toLong()
+    return if (timeout > 0) timeout else Long.MAX_VALUE
+  }
+
+  /** Similar to [withTimeout] but throws [TimeoutException] with the given message. */
+  private suspend fun <T> withVerboseTimeout(timeMillis: Long, timeoutMessage: String, block: suspend CoroutineScope.() -> T): T {
+    return try {
+      withTimeout(timeMillis, block)
+    }
+    catch (e: TimeoutCancellationException) {
+      throw TimeoutException(timeoutMessage)
+    }
   }
 
   private suspend fun readChannelMarker(channel: SuspendingSocketChannel): Byte {
@@ -335,25 +375,19 @@ internal class DeviceClient(
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRateArg = when {
-      deviceSerialNumber.startsWith("emulator-") -> " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
+      deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true ->
+          " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
       StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get() > 0 -> " --max_bit_rate=${StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()}"
       else -> ""
     }
-    val logLevelArg = if (StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get() == DEFAULT_AGENT_LOG_LEVEL) ""
-                      else " --log=${StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()}"
+    val logLevel = StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()
+    val logLevelArg = if (logLevel.isNotBlank()) " --log=$logLevel" else ""
+    val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()
+    val codecArg = if (codecName.isNotBlank()) " --codec=$codecName" else ""
     val command = "CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process $DEVICE_PATH_BASE" +
-                  " com.android.tools.screensharing.Main" +
-                  " --socket=$socketName" +
-                  maxSizeArg +
-                  orientationArg +
-                  flagsArg +
-                  maxBitRateArg +
-                  logLevelArg +
-                  " --codec=${StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()}"
-    // Use a coroutine scope that not linked to the lifecycle of the client to make sure that
-    // the agent has a chance to terminate gracefully when the client is disposed rather than
-    // be killed by adb.
-    CoroutineScope(Dispatchers.Unconfined).launch {
+                  " com.android.tools.screensharing.Main --socket=$socketName" +
+                  "$maxSizeArg$orientationArg$flagsArg$maxBitRateArg$logLevelArg$codecArg"
+    clientScope.launch {
       val log = Logger.getInstance("ScreenSharingAgent $deviceName")
       val agentStartTime = System.currentTimeMillis()
       val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
@@ -508,3 +542,5 @@ internal class DeviceClient(
     private data class Message(val timestamp: Long, val text: String)
   }
 }
+
+internal class AgentTerminatedException(val exitCode: Int) : RuntimeException()

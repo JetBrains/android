@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.model
 
 import com.android.SdkConstants
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.ui.PropertyThreeStateCheckBox
 import com.google.common.truth.Truth.assertThat
@@ -29,13 +30,12 @@ import org.junit.Test
 class ThreeStateBooleanPropertyEditorModelTest {
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   private fun createModel(): ThreeStateBooleanPropertyEditorModel {
-    val property = FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")
+    val property =
+      FakePropertyItem(SdkConstants.ANDROID_URI, SdkConstants.ATTR_INDETERMINATE, "@bool/boolValue")
     property.resolvedValue = "true"
     return ThreeStateBooleanPropertyEditorModel(property)
   }
@@ -43,7 +43,7 @@ class ThreeStateBooleanPropertyEditorModelTest {
   @Test
   fun testStateChangedShouldUpdatePropertyValue() {
     val model = createModel()
-    val editor = PropertyThreeStateCheckBox(model)
+    val editor = PropertyThreeStateCheckBox(model, EditorContext.STAND_ALONE_EDITOR)
     editor.state = DONT_CARE
     assertThat(model.property.value).isNull()
     editor.state = NOT_SELECTED
@@ -55,7 +55,7 @@ class ThreeStateBooleanPropertyEditorModelTest {
   @Test
   fun testValueChangedNotificationShouldNotUpdatePropertyValue() {
     val model = createModel()
-    PropertyThreeStateCheckBox(model)
+    PropertyThreeStateCheckBox(model, EditorContext.STAND_ALONE_EDITOR)
     model.refresh()
     assertThat(model.property.value).isEqualTo("@bool/boolValue")
   }

@@ -3,13 +3,11 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.guiTestFramework",
-    srcs = ["src"],
     data = [
         "//tools/adt/idea/studio:default_user_jvm_args",
         "//tools/adt/idea/studio:required_jvm_args",
     ],
     iml_files = ["intellij.android.guiTestFramework.iml"],
-    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.tests.gui.framework.GuiTestFrameworkTestSuite",
     test_data = [
@@ -24,7 +22,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/swing-testing/fest-swing[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
@@ -44,6 +41,7 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator[module]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/bleak:intellij.android.bleak[module, test]",
+        "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module, test]",
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
@@ -56,5 +54,7 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )

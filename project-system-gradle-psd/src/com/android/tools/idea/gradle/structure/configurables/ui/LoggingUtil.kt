@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.project.Project

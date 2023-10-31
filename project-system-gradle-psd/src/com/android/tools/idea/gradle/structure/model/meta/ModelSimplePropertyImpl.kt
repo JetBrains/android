@@ -46,7 +46,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   ParsedT,
   PropertyT : Any> T.property(
   @Nls description: String,
-  @NlsSafe preferredVariableName: ModelT.() -> String = { "var" },
+  @NlsSafe preferredVariableName: ModelT.() -> String = { "myValue" },
   canExtractVariable: ModelT.() -> Boolean = { true },
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   variableScope: (ModelT.() -> PsVariablesScope)? = null,

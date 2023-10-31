@@ -39,7 +39,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidT
 import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
-import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Joiner
 import com.intellij.build.BuildContentManager
 import com.intellij.execution.ExecutionListener
@@ -99,7 +98,7 @@ class GradleConnectedAndroidTestInvoker(
     devices: List<IDevice>,
     taskId: String,
     androidTestSuiteView: AndroidTestSuiteView,
-    androidModuleModel: GradleAndroidModel,
+    gradleAndroidModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
@@ -113,12 +112,12 @@ class GradleConnectedAndroidTestInvoker(
     val listeners = mutableListOf<AndroidTestResultListener>(androidTestSuiteView)
     TEST_LISTENER_KEY[executionEnvironment]?.let { listeners.addAll(it) }
     val adapters = devices.associate { device ->
-      val adapterList = listeners.map { gradleTestResultAdapterFactory(device, taskId, androidModuleModel.getArtifactForAndroidTest(), it) }
+      val adapterList = listeners.map { gradleTestResultAdapterFactory(device, taskId, gradleAndroidModel.getArtifactForAndroidTest(), it) }
       adapterList.first().device.id to adapterList
     }
 
     val path: File = Projects.getBaseDirPath(project)
-    val taskNames: List<String> = getTaskNames(androidModuleModel)
+    val taskNames: List<String> = getTaskNames(gradleAndroidModel)
     val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID,
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
@@ -194,7 +193,7 @@ class GradleConnectedAndroidTestInvoker(
             rerunDevices.map { it.iDevice }.toList(),
             taskId,
             androidTestSuiteView,
-            androidModuleModel,
+            gradleAndroidModel,
             waitForDebugger,
             testPackageName,
             testClassName,
@@ -354,9 +353,9 @@ class GradleConnectedAndroidTestInvoker(
     }
   }
 
-  private fun getTaskNames(androidModuleModel: GradleAndroidModel): List<String> {
+  private fun getTaskNames(gradleAndroidModel: GradleAndroidModel): List<String> {
     return listOf(
-      "${moduleData.gradleIdentityPath.trimEnd(':')}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
+      moduleData.gradleIdentityPath.trimEnd(':') + ":" + gradleAndroidModel.getGradleConnectedTestTaskNameForSelectedVariant()
     )
   }
 

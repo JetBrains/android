@@ -27,6 +27,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.TestProjectToSnapshotPaths
+import com.android.tools.idea.testing.resolve
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -56,8 +57,27 @@ enum class TestProject(
 ) : TemplateBasedTestProject {
   APP_WITH_ML_MODELS(TestProjectToSnapshotPaths.APP_WITH_ML_MODELS),
   APP_WITH_BUILDSRC(TestProjectToSnapshotPaths.APP_WITH_BUILDSRC),
-  COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
+  APP_WITH_BUILDSRC_AND_SETTINGS_PLUGIN(
+    TestProjectToSnapshotPaths.APP_WITH_BUILDSRC,
+    testName = "buildSrcWithSettingsPlugin",
+    patch = {
+      it.resolve("settings.gradle").replaceContent { original ->
+        original.replace("plugins {", """
+          plugins {
+            id("com.android.settings") version "${this.resolve().agpVersion}"
+        """.trimIndent()
+        )
+      }
+    },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
+  ),
+  // TODO(b/279759255): disabled while https://youtrack.jetbrains.com/issue/IDEA-310919 is active
+  // COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
+  ANDROID_KOTLIN_MULTIPLATFORM(
+    TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+  ),
   SIMPLE_APPLICATION(TestProjectToSnapshotPaths.SIMPLE_APPLICATION),
   SIMPLE_APPLICATION_NO_PARALLEL_SYNC(
     TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
@@ -157,6 +177,7 @@ enum class TestProject(
       root.resolve("build.gradle").writeText("*** this is an error ***")
     }
   ),
+  CUSTOM_NAMESPACE(TestProjectToSnapshotPaths.CUSTOM_NAMESPACE),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),
@@ -259,6 +280,26 @@ enum class TestProject(
       )
     }
   ),
+  KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION(
+    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
+    testName = "multiple_source_set_per_android_compilation",
+    isCompatibleWith = { it == AGP_CURRENT },
+    patch = { projectRoot ->
+      patchMppProject(projectRoot, enableHierarchicalSupport = false, convertAppToKmp = true)
+      projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
+        "android()",
+        """
+          android()
+            sourceSets {
+              androidTest
+              androidAndroidTest {
+                dependsOn(androidTest)
+              }
+            }
+        """.trimIndent()
+      )
+    }
+  ),
   MULTI_FLAVOR(TestProjectToSnapshotPaths.MULTI_FLAVOR),
   MULTI_FLAVOR_SWITCH_VARIANT(
     TestProjectToSnapshotPaths.MULTI_FLAVOR,
@@ -343,13 +384,49 @@ enum class TestProject(
     setup =
     fun(): () -> Unit {
       StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
+      val old = GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES
+      GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
 
       return fun() {
         StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.clearOverride()
+        GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = old
       }
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     ),
+  INDEPENDENT_MODULES_ONLY_RUNTIME(
+    TestProjectToSnapshotPaths.DEPENDENT_MODULES,
+    testName = "noLibraryRuntimeIndependentModules",
+    setup =
+    fun(): () -> Unit {
+      StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
+      val old = GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES
+      GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
+
+      return fun() {
+        StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.clearOverride()
+        GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = old
+      }
+    },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { projectRoot: File ->
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent {
+        it.replace("api project(\":lib\")", "")
+      }
+    }
+  ),
+  BUILD_CONFIG_AS_BYTECODE_ENABLED(
+    TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
+    testName = "buildConfigAsBytecodeEnabled",
+    patch = { projectRoot ->
+      projectRoot.resolve("gradle.properties").appendText("android.enableBuildConfigAsBytecode=true")
+      projectRoot.resolve("app/build.gradle").appendText(
+        """
+          android.buildFeatures.buildConfig true
+        """.trimIndent()
+      )
+    }
+  )
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

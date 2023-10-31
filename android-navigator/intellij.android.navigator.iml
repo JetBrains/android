@@ -18,8 +18,9 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
-    <orderEntry type="library" name="protobuf" level="project" />
+    <orderEntry type="module" module-name="intellij.android.analytics" />
     <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
@@ -35,9 +36,8 @@
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.editor" />
-    <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.java.psi" />
-    <orderEntry type="module" module-name="intellij.java.debugger.impl" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
@@ -48,5 +48,7 @@
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.platform.jps.model" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
+    <orderEntry type="module" module-name="intellij.android.smali" />
+    <orderEntry type="module" module-name="intellij.java.debugger.impl" />
   </component>
 </module>

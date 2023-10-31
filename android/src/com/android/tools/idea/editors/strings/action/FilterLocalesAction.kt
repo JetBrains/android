@@ -20,17 +20,19 @@ import com.android.tools.idea.editors.strings.StringResourceEditor
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.editors.strings.table.filter.LocaleColumnFilter
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter
-import com.android.tools.idea.rendering.FlagManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
-import javax.swing.Icon
 import javax.swing.JComponent
 
 /** Action to allow the user to filter [Locale]s in the Translations Editor. */
 class FilterLocalesAction : ComboBoxAction() {
+
+  init {
+    templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
+  }
 
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
@@ -60,17 +62,16 @@ class FilterLocalesAction : ComboBoxAction() {
     /** Returns a [PanelAction] that sets the column filter to filter for the given [locale]. */
     private fun newShowLocaleAction(locale: Locale): PanelAction {
       val text = "Show ${Locale.getLocaleLabel(locale, /* brief= */ false)}"
-      return columnFilterUpdatingAction(text, icon = FlagManager.getFlagImage(locale)) { LocaleColumnFilter(locale) }
+      return columnFilterUpdatingAction(text) { LocaleColumnFilter(locale) }
     }
 
     /** Returns a [PanelAction] that updates the column filter on the table using the result of the [columnFilterSupplier]. */
     private fun columnFilterUpdatingAction(
       text: String,
       description: String? = null,
-      icon: Icon? = null,
       columnFilterSupplier: () -> StringResourceTableColumnFilter?
     ) =
-      object : PanelAction(text, description, icon) {
+      object : PanelAction(text, description) {
         override fun doUpdate(event: AnActionEvent): Boolean = true
         override fun actionPerformed(event: AnActionEvent) {
           event.panel.table.columnFilter = columnFilterSupplier.invoke()

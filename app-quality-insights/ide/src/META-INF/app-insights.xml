@@ -16,24 +16,22 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
     <android.toolWindow id="App Quality Insights"
-                        anchor="bottom"
-                        icon="StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS"
-                        factoryClass="com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory"
-                        doNotActivateOnStart="false"/>
-    <projectService
-        serviceInterface="com.android.tools.idea.insights.analytics.AppInsightsTracker"
-        serviceImplementation="com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl" />
-    <applicationService
-        serviceInterface="com.android.tools.idea.insights.AppInsightsService"
-        serviceImplementation="com.android.tools.idea.insights.AppInsightsServiceImpl" />
+                anchor="bottom"
+                icon="StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS"
+                factoryClass="com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory"
+                doNotActivateOnStart="false"/>
+    <externalAnnotator language="JAVA" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator"/>
+    <externalAnnotator language="kotlin" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator"/>
+    <codeInsight.lineMarkerProvider language="" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator$LineMarkerProvider"/>
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"
                     interface="com.android.tools.idea.insights.ui.AppInsightsTabProvider"/>
   </extensionPoints>
   <actions>
-    <action internal="true" id="Android.EnterOfflineModeInternalAction" class="com.android.tools.idea.insights.events.EnterOfflineModeInternalAction">
+    <action internal="true" id="Android.EnterOfflineModeInternalAction" class="com.android.tools.idea.insights.EnterOfflineModeInternalAction">
       <add-to-group group-id="Internal.Android"/>
     </action>
   </actions>

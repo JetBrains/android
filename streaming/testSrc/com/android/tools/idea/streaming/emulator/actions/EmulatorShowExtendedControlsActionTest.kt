@@ -29,7 +29,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.UIManager
 
 /**
@@ -45,16 +45,16 @@ class EmulatorShowExtendedControlsActionTest {
   fun testShowExtendedControls() {
     val mockLafManager = mock<LafManager>()
     whenever(mockLafManager.currentLookAndFeel).thenReturn(UIManager.LookAndFeelInfo("High contrast", "Ignored className"))
-    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.testRootDisposable)
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, emulatorViewRule.disposable)
 
     val view = emulatorViewRule.newEmulatorView()
     emulatorViewRule.executeAction("android.emulator.extended.controls", view)
 
     val emulator = emulatorViewRule.getFakeEmulator(view)
-    var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    var call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/setUiTheme")
     assertThat(call.request).isEqualTo(ThemingStyle.newBuilder().setStyle(ThemingStyle.Style.CONTRAST).build())
-    call = emulator.getNextGrpcCall(1, TimeUnit.SECONDS)
+    call = emulator.getNextGrpcCall(1, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/showExtendedControls")
   }
 }

@@ -16,14 +16,18 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.JavaModuleType;
+import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleType;
@@ -31,9 +35,12 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 public class SupportedModuleChecker {
+
   @NotNull
   public static SupportedModuleChecker getInstance() {
     return ApplicationManager.getApplication().getService(SupportedModuleChecker.class);
@@ -69,9 +76,42 @@ public class SupportedModuleChecker {
     if (!androidGradleSeen || unsupportedModules.isEmpty()) {
       return;
     }
+    displayUnsupportedModulesNotification(project, unsupportedModules);
+  }
+
+  private void displayUnsupportedModulesNotification(Project project, List<Module> unsupportedModules) {
     String moduleNames = join(unsupportedModules, Module::getName, ", ");
-    String text = "Compilation is not supported for following modules: " + moduleNames +
-                  ". Unfortunately you can't have non-Gradle Java modules and Android-Gradle modules in one project.";
-    AndroidNotification.getInstance(project).showBalloon("Unsupported Modules Detected", text, ERROR);
+    String notificationTitle = AndroidBundle.message("project.sync.unsupported.modules.detected.title");
+    String notificationMessage = AndroidBundle.message("project.sync.unsupported.modules.detected.message", moduleNames);
+    String notificationButton = AndroidBundle.message("project.sync.unsupported.modules.detected.button");
+    UnsupportedModulesQuickFix unsupportedModulesQuickFix = new UnsupportedModulesQuickFix(notificationButton, unsupportedModules);
+    AndroidNotification.getInstance(project).showBalloon(notificationTitle, notificationMessage, ERROR, unsupportedModulesQuickFix);
+  }
+
+  private static class UnsupportedModulesQuickFix extends NotificationHyperlink {
+
+    private final List<Module> unsupportedModules;
+
+    protected UnsupportedModulesQuickFix(String text, List<Module> unsupportedModules) {
+      super("unsupported.modules.quick.fix", text);
+      this.unsupportedModules = unsupportedModules;
+    }
+
+    @Override
+    public boolean executeIfClicked(@NotNull Project project, @NotNull HyperlinkEvent event) {
+      execute(project);
+      return false;
+    }
+
+    @Override
+    protected void execute(@NotNull Project project) {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        ModuleManager moduleManager = ModuleManager.getInstance(project);
+        ModifiableModuleModel modifiableModule = moduleManager.getModifiableModel();
+        unsupportedModules.forEach(modifiableModule::disposeModule);
+        modifiableModule.commit();
+      });
+      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED), null);
+    }
   }
 }

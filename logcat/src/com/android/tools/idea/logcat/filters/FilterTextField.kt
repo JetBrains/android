@@ -26,6 +26,7 @@ import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterStatusChanged
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -36,7 +37,9 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.ex.ActionButtonLook
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -56,15 +59,15 @@ import com.intellij.ui.GotItTooltip
 import com.intellij.ui.GotItTooltip.Companion.BOTTOM_LEFT
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.intellij.util.messages.Topic
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
-import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
 import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE
-import icons.StudioIcons.Logcat.Input.FAVORITE_OUTLINE_HOVER
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY
 import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import kotlinx.coroutines.launch
@@ -73,6 +76,7 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Component
 import java.awt.Font
+import java.awt.Graphics
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.FocusAdapter
@@ -84,6 +88,9 @@ import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
+import java.awt.event.MouseEvent.MOUSE_CLICKED
+import java.awt.event.MouseEvent.MOUSE_ENTERED
+import java.awt.event.MouseEvent.MOUSE_EXITED
 import java.net.URL
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
@@ -143,18 +150,20 @@ internal class FilterTextField(
   private val logcatPresenter: LogcatPresenter,
   private val filterParser: LogcatFilterParser,
   initialText: String,
+  var matchCase: Boolean,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
 ) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
 
   @TestOnly
   internal val notifyFilterChangedTask = ReschedulableTask(AndroidCoroutineScope(logcatPresenter, uiThread))
-  private val documentChangedListeners = mutableListOf<DocumentListener>()
+  private val filterChangedListeners = mutableListOf<FilterChangedListener>()
   private val textField = FilterEditorTextField(project, logcatPresenter, androidProjectDetector)
   private val historyButton = InlineButton(FILTER_HISTORY)
-  private val clearButton = JLabel(AllIcons.Actions.Close)
-  private val favoriteButton = JLabel(FAVORITE_OUTLINE)
-  private var filter: LogcatFilter? = filterParser.parse(initialText)
+  private val clearButton = ClearButton()
+  private val favoriteButton = FavoriteButton()
+  private val matchCaseButton = MatchCaseButton()
+  private var filter: LogcatFilter? = filterParser.parse(initialText, matchCase)
 
   private var isFavorite: Boolean = false
     set(value) {
@@ -174,7 +183,7 @@ internal class FilterTextField(
 
     addToLeft(historyButton)
     addToCenter(textField)
-    val buttonPanel = InlinePanel(clearButton, JSeparator(VERTICAL), favoriteButton)
+    val buttonPanel = InlinePanel(clearButton, matchCaseButton, JSeparator(VERTICAL), favoriteButton)
     addToRight(buttonPanel)
 
     if (initialText.isEmpty()) {
@@ -199,12 +208,12 @@ internal class FilterTextField(
     textField.apply {
       addDocumentListener(object : DocumentListener {
         override fun documentChanged(event: DocumentEvent) {
-          filter = filterParser.parse(text)
+          filter = filterParser.parse(text, matchCase)
           isFavorite = filterHistory.favorites.contains(text)
           filterHistory.mostRecentlyUsed = textField.text
           notifyFilterChangedTask.reschedule(APPLY_FILTER_DELAY_MS) {
-            for (listener in documentChangedListeners) {
-              listener.documentChanged(event)
+            for (listener in filterChangedListeners) {
+              listener.onFilterChanged(text, matchCase)
             }
           }
           buttonPanel.isVisible = textField.text.isNotEmpty()
@@ -235,48 +244,17 @@ internal class FilterTextField(
         })
     }
 
-    clearButton.apply {
-      toolTipText = LogcatBundle.message("logcat.filter.clear.tooltip")
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseEntered(e: MouseEvent) {
-          clearButton.icon = AllIcons.Actions.CloseHovered
-        }
-
-        override fun mouseExited(e: MouseEvent) {
-          clearButton.icon = AllIcons.Actions.Close
-        }
-
-        override fun mouseClicked(e: MouseEvent) {
-          textField.text = ""
+    ApplicationManager.getApplication().messageBus.connect(logcatPresenter)
+      .subscribe(FilterStatusChanged.TOPIC, FilterStatusChanged { filter, isFavorite ->
+        if (text == filter) {
+          this.isFavorite = isFavorite
         }
       })
-    }
-
-    favoriteButton.apply {
-      toolTipText = LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          isFavorite = !isFavorite
-          toolTipText = if (isFavorite) LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
-          else LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
-          addToHistory()
-          mouseEntered(e) // Setter for isFavorite will set the wrong icon (not hovered)
-        }
-
-        override fun mouseEntered(e: MouseEvent) {
-          icon = if (isFavorite) FAVORITE_FILLED_HOVER else FAVORITE_OUTLINE_HOVER
-        }
-
-        override fun mouseExited(e: MouseEvent) {
-          icon = if (isFavorite) FAVORITE_FILLED else FAVORITE_OUTLINE
-        }
-      })
-    }
   }
 
   @UiThread
-  fun addDocumentListener(listener: DocumentListener) {
-    documentChangedListeners.add(listener)
+  fun addFilterChangedListener(listener: FilterChangedListener) {
+    filterChangedListeners.add(listener)
   }
 
   @TestOnly
@@ -314,7 +292,7 @@ internal class FilterTextField(
     LogcatUsageTracker.log(
       LogcatUsageEvent.newBuilder()
         .setType(FILTER_ADDED_TO_HISTORY)
-        .setLogcatFilter(filterParser.getUsageTrackingEvent(text)?.setIsFavorite(isFavorite)))
+        .setLogcatFilter(filterParser.getUsageTrackingEvent(text, matchCase)?.setIsFavorite(isFavorite)))
   }
 
   private inner class FilterTextFieldBorder : DarculaTextBorder() {
@@ -378,7 +356,10 @@ internal class FilterTextField(
       layout = BoxLayout(this, LINE_AXIS)
       isOpaque = true
       border = verticalSeparatorBorder
-      children.forEach { add(it) }
+      children.forEach {
+        it.border = JBUI.Borders.empty(0, 3)
+        add(it)
+      }
     }
 
     // On theme change, copy the background from textField.
@@ -412,7 +393,7 @@ internal class FilterTextField(
         addAll(filterHistory.nonFavorites.map { Item(filter = it, isFavorite = false, count = null, filterParser) })
       }
       // Parse all the filters here while we're still in the EDT
-      val filters = items.map { if (it is Item) filterParser.parse(it.filter) else null }
+      val filters = items.map { if (it is Item) filterParser.parse(it.filter, matchCase) else null }
       model = listModel
       listModel.addAll(0, items)
       addKeyListener(object : KeyAdapter() {
@@ -484,8 +465,7 @@ internal class FilterTextField(
         item.isFavorite = false
         filterHistory.favorites.remove(item.filter)
         filterHistory.nonFavorites.add(item.filter)
-      }
-      else {
+      } else {
         item.isFavorite = true
         filterHistory.favorites.add(item.filter)
         filterHistory.nonFavorites.remove(item.filter)
@@ -493,6 +473,8 @@ internal class FilterTextField(
       if (item.filter == text) {
         isFavorite = item.isFavorite
       }
+      ApplicationManager.getApplication().messageBus.syncPublisher(FilterStatusChanged.TOPIC)
+        .onFilterStatusChanged(item.filter, item.isFavorite)
       paintImmediately(bounds)
     }
 
@@ -637,11 +619,12 @@ internal class FilterTextField(
       }
 
       init {
-        val filterName = filterParser.parse(filter)?.filterName
+        val matchCase = true // Unused to just pass in `true`
+        val filterName = filterParser.parse(filter, matchCase)?.filterName
         if (filterName != null) {
           val history = AndroidLogcatFilterHistory.getInstance().items
           // If there is more than one Item with the same filterName, show the name and the filter.
-          val sameName = history.count { filterParser.parse(it)?.filterName == filterName }
+          val sameName = history.count { filterParser.parse(it, matchCase)?.filterName == filterName }
           filterLabel.append(filterName, namedFilterHistoryItemColor)
           val filterWithoutName = filterParser.removeFilterNames(filter)
           tooltip = if (sameName > 1) {
@@ -687,6 +670,7 @@ internal class FilterTextField(
         return component
       }
 
+      @Suppress("UnstableApiUsage") // isNewUI() is experimental
       private fun whiteIconForOldUI(icon: Icon): Icon {
         return if (ExperimentalUI.isNewUI()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
       }
@@ -725,6 +709,89 @@ internal class FilterTextField(
     }
 
     abstract fun getComponent(isSelected: Boolean, list: JList<out FilterHistoryItem>): JComponent
+  }
+
+  /**
+   * An icon button that reacts to being hovered by changing the icon.
+   *
+   * If a [hoverIcon] is provided, it uses it when the button is in the hovered state. In no hoverIcon is provided, the hover state is done
+   * by painting a background overlay.
+   *
+   * Based on [com.intellij.ui.components.IconLabelButton].
+   */
+  private abstract class HoverButton(icon: Icon, tooltip: String, private val hoverIcon: Icon? = null) : JBLabel(icon) {
+    private var hovered = false
+
+    init {
+      toolTipText = tooltip
+    }
+
+    override fun getIcon(): Icon = if (hovered) hoverIcon ?: super.getIcon() else super.getIcon()
+
+    override fun processMouseEvent(e: MouseEvent) {
+      super.processMouseEvent(e)
+      when (e.id) {
+        MOUSE_ENTERED -> mouseHover(true)
+        MOUSE_EXITED -> mouseHover(false)
+        MOUSE_CLICKED -> mouseClicked()
+      }
+    }
+
+    private fun mouseHover(hover: Boolean) {
+      hovered = hover
+      repaint()
+    }
+
+    protected abstract fun mouseClicked()
+
+    override fun paintComponent(graphics: Graphics) {
+      if (hovered && hoverIcon == null) {
+        ActionButtonLook.SYSTEM_LOOK.paintBackground(graphics, this, ActionButtonComponent.SELECTED)
+      }
+      super.paintComponent(graphics)
+    }
+  }
+
+  private inner class ClearButton :
+    HoverButton(AllIcons.Actions.Close, LogcatBundle.message("logcat.filter.clear.tooltip"), AllIcons.Actions.CloseHovered) {
+    override fun mouseClicked() {
+      this@FilterTextField.text = ""
+    }
+  }
+
+  private inner class FavoriteButton : HoverButton(FAVORITE_OUTLINE, LogcatBundle.message("logcat.filter.tag.favorite.tooltip")) {
+    override fun mouseClicked() {
+      isFavorite = !isFavorite
+      toolTipText = when {
+        isFavorite -> LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
+        else -> LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
+      }
+      ApplicationManager.getApplication().messageBus.syncPublisher(FilterStatusChanged.TOPIC)
+        .onFilterStatusChanged(textField.text, isFavorite)
+      addToHistory()
+    }
+  }
+
+  private inner class MatchCaseButton : HoverButton(AllIcons.Actions.MatchCase, LogcatBundle.message("logcat.filter.match.case.tooltip")) {
+    override fun mouseClicked() {
+      matchCase = !matchCase
+      icon = if (matchCase) AllIcons.Actions.MatchCaseSelected else AllIcons.Actions.MatchCase
+      for (listener in filterChangedListeners) {
+        listener.onFilterChanged(this@FilterTextField.text, matchCase)
+      }
+    }
+  }
+
+  interface FilterChangedListener {
+    fun onFilterChanged(filter: String, matchCase: Boolean)
+  }
+
+  private fun interface FilterStatusChanged {
+    fun onFilterStatusChanged(filter: String, isFavorite: Boolean)
+
+    companion object {
+      val TOPIC = Topic(FilterStatusChanged::class.java)
+    }
   }
 }
 

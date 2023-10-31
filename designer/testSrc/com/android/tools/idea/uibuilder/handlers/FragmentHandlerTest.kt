@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.ATTR_DEFAULT_NAV_HOST
-import com.android.SdkConstants.ATTR_NAV_GRAPH
-import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.*
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
@@ -29,30 +27,28 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Ignore
-import org.junit.Test
-import org.mockito.ArgumentMatchers.eq
-import java.util.EnumSet
+import org.mockito.Mockito.eq
+import java.util.*
 
 class FragmentHandlerTest : LayoutTestCase() {
   // http://b/242129835
   fun ignore_testActivateNavFragment() {
     myFixture.addFileToProject("res/navigation/nav.xml", "<navigation/>")
-    val model = model(
-      "model.xml",
-      component("LinearLayout")
-        .id("@+id/outer")
-        .withBounds(0, 0, 100, 100)
-        .children(
-          component("fragment")
-            .id("@+id/navhost")
-            .withAttribute(AUTO_URI, ATTR_NAV_GRAPH, "@navigation/nav")
-            .withBounds(0, 0, 100, 50),
-          component("fragment")
-            .id("@+id/regular")
-            .withBounds(0, 50, 100, 50)
+    val model =
+      model(
+          "model.xml",
+          component("LinearLayout")
+            .id("@+id/outer")
+            .withBounds(0, 0, 100, 100)
+            .children(
+              component("fragment")
+                .id("@+id/navhost")
+                .withAttribute(AUTO_URI, ATTR_NAV_GRAPH, "@navigation/nav")
+                .withBounds(0, 0, 100, 50),
+              component("fragment").id("@+id/regular").withBounds(0, 50, 100, 50)
+            )
         )
-    ).build()
+        .build()
 
     val surface = NlDesignSurface.build(project, project)
     surface.model = model
@@ -66,24 +62,35 @@ class FragmentHandlerTest : LayoutTestCase() {
   }
 
   fun testCreateNavHost() {
-    val model = model(
-        "model.xml",
-        component("LinearLayout")
-          .id("@+id/outer")
-          .withBounds(0, 0, 100, 100))
-      .build()
+    val model =
+      model("model.xml", component("LinearLayout").id("@+id/outer").withBounds(0, 0, 100, 100))
+        .build()
 
-    val tag = XmlElementFactory.getInstance(getProject()).createTagFromText(
-        "    <fragment\n" +
-        "        android:id=\"@+id/fragment\"\n" +
-        "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>")
+    val tag =
+      XmlElementFactory.getInstance(getProject())
+        .createTagFromText(
+          "    <fragment\n" +
+            "        android:id=\"@+id/fragment\"\n" +
+            "        android:name=\"androidx.navigation.fragment.NavHostFragment\"\n/>"
+        )
 
-    mockStatic<ViewEditor>(testRootDisposable).whenever<String> {
-      ViewEditor.displayResourceInput(eq(model), eq("Navigation Graphs"), eq(EnumSet.of(ResourceType.NAVIGATION)))
-    }.thenReturn("@navigation/testNav")
+    mockStatic<ViewEditor>(testRootDisposable)
+      .whenever<String> {
+        ViewEditor.displayResourceInput(
+          eq(model),
+          eq("Navigation Graphs"),
+          eq(EnumSet.of(ResourceType.NAVIGATION))
+        )
+      }
+      .thenReturn("@navigation/testNav")
 
-    WriteCommandAction.runWriteCommandAction(model.project, null, null,
-                                             { model.createComponent(tag, model.find("outer"), null, InsertType.CREATE) }, model.file)
+    WriteCommandAction.runWriteCommandAction(
+      model.project,
+      null,
+      null,
+      { model.createComponent(tag, model.find("outer"), null, InsertType.CREATE) },
+      model.file
+    )
     val newFragment = model.find("fragment")!!
     assertEquals("@navigation/testNav", newFragment.getAttribute(AUTO_URI, ATTR_NAV_GRAPH))
     assertEquals("true", newFragment.getAttribute(AUTO_URI, ATTR_DEFAULT_NAV_HOST))

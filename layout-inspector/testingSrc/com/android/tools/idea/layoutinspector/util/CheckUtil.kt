@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
-import com.android.SdkConstants
 import com.android.testutils.ImageDiffUtil
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
@@ -27,18 +26,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import java.awt.image.BufferedImage
-import java.nio.file.Path
 
-/**
- * Various checks for tests.
- */
+/** Various checks for tests. */
 object CheckUtil {
 
   const val ANY_DRAW_ID = Long.MIN_VALUE
 
-  /**
-   * Return the line at the [offset] of the specified [file] as a string.
-   */
+  /** Return the line at the [offset] of the specified [file] as a string. */
   fun findLineAtOffset(file: VirtualFile, offset: Int): String {
     val text = String(file.contentsToByteArray(), Charsets.UTF_8).replace("\r\n", "\n")
     val line = StringUtil.offsetToLineColumn(text, offset)
@@ -47,44 +41,45 @@ object CheckUtil {
   }
 
   /**
-   * Check whether the draw tree of [actual] is the same as that of [expected].
-   * Right now the check is pretty cursory, but it can be expanded as needed.
+   * Check whether the draw tree of [actual] is the same as that of [expected]. Right now the check
+   * is pretty cursory, but it can be expanded as needed.
    */
-  fun assertDrawTreesEqual(expected: ViewNode, actual: ViewNode, treeSettings: TreeSettings = FakeTreeSettings()) {
+  fun assertDrawTreesEqual(
+    expected: ViewNode,
+    actual: ViewNode,
+    treeSettings: TreeSettings = FakeTreeSettings()
+  ) {
     if (expected.drawId != ANY_DRAW_ID) {
       assertEquals(expected.drawId, actual.drawId)
     }
     ViewNode.readAccess {
-      assertEquals("for node ${expected.drawId}", expected.drawChildren.size, actual.drawChildren.size)
-      expected.drawChildren.zip(actual.drawChildren).forEach {
-        (expected, actual) -> checkTreesEqual(expected, actual, treeSettings)
+      assertEquals(
+        "for node ${expected.drawId}",
+        expected.drawChildren.size,
+        actual.drawChildren.size
+      )
+      expected.drawChildren.zip(actual.drawChildren).forEach { (expected, actual) ->
+        checkTreesEqual(expected, actual, treeSettings)
       }
     }
   }
 
-  private fun checkTreesEqual(expected: DrawViewNode, actual: DrawViewNode, treeSettings: TreeSettings) {
+  private fun checkTreesEqual(
+    expected: DrawViewNode,
+    actual: DrawViewNode,
+    treeSettings: TreeSettings
+  ) {
     if (expected is DrawViewChild && actual is DrawViewChild) {
       assertDrawTreesEqual(expected.unfilteredOwner, actual.unfilteredOwner, treeSettings)
-    }
-    else if (expected is DrawViewImage && actual is DrawViewImage) {
+    } else if (expected is DrawViewImage && actual is DrawViewImage) {
       if (expected.image !is BufferedImage) {
-        fail("expected image should be a BufferedImage for id ${expected.findFilteredOwner(treeSettings)!!.drawId}")
+        fail(
+          "expected image should be a BufferedImage for id ${expected.findFilteredOwner(treeSettings)!!.drawId}"
+        )
       }
       ImageDiffUtil.assertImageSimilar("image", expected.image as BufferedImage, actual.image, 0.0)
-    }
-    else {
+    } else {
       fail("$actual was expected to be a ${expected.javaClass.name}")
     }
   }
-
-  fun assertImageSimilarPerPlatform(testDataPath: Path, fileNameBase: String, actual: BufferedImage, maxPercentDifferent: Double) {
-    val os = when (SdkConstants.currentPlatform()) {
-      SdkConstants.PLATFORM_LINUX -> "linux"
-      SdkConstants.PLATFORM_DARWIN -> "mac"
-      SdkConstants.PLATFORM_WINDOWS -> "windows"
-      else -> throw IllegalArgumentException("unknown platform ${SdkConstants.currentPlatform()}")
-    }
-    ImageDiffUtil.assertImageSimilar(testDataPath.resolve("$fileNameBase-$os.png"), actual, maxPercentDifferent)
-  }
-
 }

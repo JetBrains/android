@@ -16,11 +16,11 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.AppInsightsPersistentStateComponent
 import com.android.tools.idea.insights.ConnectionMode
+import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.ui.popup.Balloon
@@ -73,8 +73,7 @@ class ActionToolbarListenerForOfflineBalloon(
             override fun hyperlinkActivated(e: HyperlinkEvent) {
               balloon.hide()
               if (e.description == DISMISS_OFFLINE_NOTIFICATION_KEY) {
-                AppInsightsPersistentStateComponent.getInstance(project)
-                  .isOfflineNotificationDismissed = true
+                project.service<AppInsightsSettings>().isOfflineNotificationDismissed = true
               }
             }
           }
@@ -98,17 +97,14 @@ class ActionToolbarListenerForOfflineBalloon(
     // we can act on it, such as hiding it from view.
     if (actionButton.action == offlineAction && initialized.compareAndSet(false, true)) {
       actionButton.isVisible = false
-      if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-        scope.launch(AndroidDispatchers.uiThread) {
-          offlineStateFlow.collect { mode ->
-            actionButton.isVisible = mode == ConnectionMode.OFFLINE
-            if (
-              mode == ConnectionMode.OFFLINE &&
-                !AppInsightsPersistentStateComponent.getInstance(project)
-                  .isOfflineNotificationDismissed
-            ) {
-              showOfflineNotificationBalloon(actionButton)
-            }
+      scope.launch(AndroidDispatchers.uiThread) {
+        offlineStateFlow.collect { mode ->
+          actionButton.isVisible = mode == ConnectionMode.OFFLINE
+          if (
+            mode == ConnectionMode.OFFLINE &&
+              !project.service<AppInsightsSettings>().isOfflineNotificationDismissed
+          ) {
+            showOfflineNotificationBalloon(actionButton)
           }
         }
       }

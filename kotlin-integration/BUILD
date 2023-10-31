@@ -92,7 +92,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",

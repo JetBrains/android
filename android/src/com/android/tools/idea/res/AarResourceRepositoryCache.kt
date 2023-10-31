@@ -42,7 +42,7 @@ import java.util.concurrent.Executor
  * Cache of AAR resource repositories.
  */
 @ThreadSafe
-class AarResourceRepositoryCache private constructor() {
+open class AarResourceRepositoryCache protected constructor() {
   private val myProtoRepositories = CacheBuilder.newBuilder().softValues().build<Path, AarProtoResourceRepository>()
   private val mySourceRepositories = CacheBuilder.newBuilder().softValues().build<ResourceFolder, AarSourceResourceRepository>()
 

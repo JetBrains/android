@@ -80,11 +80,6 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   }
 
   @Override
-  protected boolean shouldTaskLaunchApp() {
-    return false;
-  }
-
-  @Override
   protected Deployer.Result perform(IDevice device,
                                     Deployer deployer,
                                     @NotNull ApkInfo apkInfo,
@@ -100,12 +95,6 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
   @Override
   public String getDescription() {
     return "Apply Code Changes";
-  }
-
-  @NotNull
-  @Override
-  public String getFailureTitle() {
-    return "Changes were not applied.";
   }
 
   @NotNull

@@ -9,7 +9,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;

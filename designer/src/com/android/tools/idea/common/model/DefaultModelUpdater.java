@@ -21,7 +21,7 @@ import static com.android.SdkConstants.ATTR_ID;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
@@ -33,7 +33,6 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -326,24 +325,6 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
 
     XmlTag[] subTags = tag.getSubTags();
     if (subTags.length > 0) {
-      if (NlModel.CHECK_MODEL_INTEGRITY) {
-        Set<NlComponent> seen = new HashSet<>();
-        Set<XmlTag> seenTags = new HashSet<>();
-        for (XmlTag t : subTags) {
-          if (seenTags.contains(t)) {
-            assert false : t;
-          }
-          seenTags.add(t);
-          NlComponent registeredComponent = data.myTagToComponentMap.get(t);
-          if (registeredComponent != null) {
-            if (seen.contains(registeredComponent)) {
-              assert false : registeredComponent;
-            }
-            seen.add(registeredComponent);
-          }
-        }
-      }
-
       List<NlComponent> children = new ArrayList<>(subTags.length);
       for (XmlTag subtag : subTags) {
         NlComponent child = createTree(subtag, data);

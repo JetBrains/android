@@ -29,33 +29,38 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.android.tools.property.panel.api.PropertiesTable
 import com.intellij.openapi.diagnostic.Logger
 
-/**
- * MotionLayout model for the Spring widget.
- */
-class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) : BaseSpringWidgetModel() {
+/** MotionLayout model for the Spring widget. */
+class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) :
+  BaseSpringWidgetModel() {
   private val log = Logger.getInstance(MotionLayoutSpringModel::class.java)
   private val allProperties = propertiesModel.allProperties
 
   init {
-    propertiesModel.addListener(object : PropertiesModelListener<NlPropertyItem> {
-      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-        listeners.forEach(SpringModelChangeListener::onModelChanged)
+    propertiesModel.addListener(
+      object : PropertiesModelListener<NlPropertyItem> {
+        override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+          listeners.forEach(SpringModelChangeListener::onModelChanged)
+        }
       }
-    })
+    )
   }
 
   override val startingMode: SpringMode = SpringMode.NORMAL
 
-  override val supportedModes: Array<SpringMode> = kotlin.run {
-    val onSwipeProp = allProperties[MotionSceneAttrs.Tags.ON_SWIPE]!!
-    val supportsSpring = onSwipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING) != null
-    return@run if (supportsSpring) {
-      arrayOf(SpringMode.NORMAL, SpringMode.SPRING_WITH_DAMP_CONSTANT)
+  override val supportedModes: Array<SpringMode> =
+    kotlin.run {
+      val onSwipeProp = allProperties[MotionSceneAttrs.Tags.ON_SWIPE]!!
+      val supportsSpring =
+        onSwipeProp.getOrNull(
+          SdkConstants.AUTO_URI,
+          MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING
+        ) != null
+      return@run if (supportsSpring) {
+        arrayOf(SpringMode.NORMAL, SpringMode.SPRING_WITH_DAMP_CONSTANT)
+      } else {
+        arrayOf(SpringMode.NORMAL)
+      }
     }
-    else {
-      arrayOf(SpringMode.NORMAL)
-    }
-  }
 
   @UiThread
   override fun getValue(parameter: SpringParameter): String {
@@ -63,14 +68,20 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) : Ba
     val swipeProp = allProperties[MotionSceneAttrs.Tags.ON_SWIPE]!!
 
     return when (parameter) {
-      SpringParameter.MAX_ACC -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_MAX_ACCELERATION)
-      SpringParameter.MAX_VEL -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_MAX_VELOCITY)
-      SpringParameter.DAMPING -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING)
-      SpringParameter.THRESHOLD -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_STOP_THRESHOLD)
-      SpringParameter.STIFFNESS -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_STIFFNESS)
+      SpringParameter.MAX_ACC ->
+        swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_MAX_ACCELERATION)
+      SpringParameter.MAX_VEL ->
+        swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_MAX_VELOCITY)
+      SpringParameter.DAMPING ->
+        swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING)
+      SpringParameter.THRESHOLD ->
+        swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_STOP_THRESHOLD)
+      SpringParameter.STIFFNESS ->
+        swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_STIFFNESS)
       SpringParameter.DURATION -> {
         var duration = 400
-        val durationProp = transitionProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION)
+        val durationProp =
+          transitionProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION)
         if (durationProp != null) {
           val str = durationProp.resolvedValue
           if (str != null) {
@@ -79,7 +90,8 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) : Ba
         }
         return duration.toString()
       }
-      SpringParameter.BOUNDARY -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_BOUNDARY)
+      SpringParameter.BOUNDARY ->
+        swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_BOUNDARY)
       SpringParameter.MASS -> swipeProp.getStringValue(MotionSceneAttrs.OnSwipe.ATTR_SPRING_MASS)
       SpringParameter.DAMPING_RATIO -> ""
     }
@@ -95,26 +107,35 @@ class MotionLayoutSpringModel(propertiesModel: MotionLayoutAttributesModel) : Ba
       return
     }
 
-    val propertyItem: NlPropertyItem? = when (parameter) {
-      SpringParameter.MAX_ACC -> swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_MAX_ACCELERATION)
-      SpringParameter.MAX_VEL -> swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_MAX_VELOCITY)
-      SpringParameter.DAMPING -> swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING)
-      SpringParameter.THRESHOLD ->
-        swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_STOP_THRESHOLD)
-      SpringParameter.STIFFNESS -> swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_STIFFNESS)
-      SpringParameter.BOUNDARY -> swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_BOUNDARY)
-      SpringParameter.MASS -> swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_MASS)
-      SpringParameter.DURATION -> {
-        valueToWrite = value.toFloat().toInt().toString()
-        val transitionProp = allProperties[MotionSceneAttrs.Tags.TRANSITION]!!
-        transitionProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION)
+    val propertyItem: NlPropertyItem? =
+      when (parameter) {
+        SpringParameter.MAX_ACC ->
+          swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_MAX_ACCELERATION)
+        SpringParameter.MAX_VEL ->
+          swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_MAX_VELOCITY)
+        SpringParameter.DAMPING ->
+          swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING)
+        SpringParameter.THRESHOLD ->
+          swipeProp.getOrNull(
+            SdkConstants.AUTO_URI,
+            MotionSceneAttrs.OnSwipe.ATTR_SPRING_STOP_THRESHOLD
+          )
+        SpringParameter.STIFFNESS ->
+          swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_STIFFNESS)
+        SpringParameter.BOUNDARY ->
+          swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_BOUNDARY)
+        SpringParameter.MASS ->
+          swipeProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_MASS)
+        SpringParameter.DURATION -> {
+          valueToWrite = value.toFloat().toInt().toString()
+          val transitionProp = allProperties[MotionSceneAttrs.Tags.TRANSITION]!!
+          transitionProp.getOrNull(SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION)
+        }
+        SpringParameter.DAMPING_RATIO -> null
       }
-      SpringParameter.DAMPING_RATIO -> null
-    }
     if (propertyItem != null) {
       propertyItem.writeValue(valueToWrite)
-    }
-    else {
+    } else {
       log.warn("Property for Spring parameter: ${parameter.displayName} not found")
     }
   }

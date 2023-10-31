@@ -22,40 +22,60 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ALL_VALUE_RESOURCE_TYPES
 import com.android.tools.idea.res.getReferredResourceOrManifestField
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.openapi.module.ModuleUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactoryFromIntentionActions
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 
 class KotlinAndroidResourceQuickFixProvider : UnresolvedReferenceQuickFixProvider<KtSimpleNameReference>() {
 
     override fun registerFixes(ref: KtSimpleNameReference, registrar: QuickFixActionRegistrar) {
-        val expression = ref.expression
-        val contextModule = ModuleUtil.findModuleForPsiElement(expression) ?: return
-        val facet = AndroidFacet.getInstance(contextModule) ?: return
-        facet.getModuleSystem()?.getPackageName() ?: return
-        val contextFile = expression.containingFile ?: return
-
-        val info = getReferredResourceOrManifestField(facet, expression, null, true)
-        if (info == null || info.isFromManifest) {
-            return
-        }
-
-        val resourceType = ResourceType.fromClassName(info.className) ?: return
-
-        if (ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
-            registrar.register(CreateValueResourceQuickFix(facet, resourceType, info.fieldName, contextFile, true))
-        }
-
-        val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceType)
-        if (resourceFolderType != null) {
-            registrar.register(CreateFileResourceQuickFix(facet, resourceFolderType, info.fieldName, contextFile, true))
-        }
+        buildKotlinAndroidResourceQuickFixActions(ref.expression, registrar::register)
     }
 
     override fun getReferenceClass() = KtSimpleNameReference::class.java
 }
 
+class KotlinAndroidResourceQuickFixRegistrarK2 : KotlinQuickFixRegistrar() {
+    override val list: KotlinQuickFixesList = KtQuickFixesListBuilder.registerPsiQuickFix {
+        registerApplicator(kotlinAndroidResourceQuickFixFactory)
+    }
+}
+
+private val kotlinAndroidResourceQuickFixFactory = diagnosticFixFactoryFromIntentionActions(
+  KtFirDiagnostic.UnresolvedReference::class) { diagnostic ->
+    val ref = diagnostic.psi as? KtSimpleNameExpression ?: return@diagnosticFixFactoryFromIntentionActions emptyList<IntentionAction>()
+    buildList { buildKotlinAndroidResourceQuickFixActions(ref, ::add) }
+}
+
+private fun buildKotlinAndroidResourceQuickFixActions(expression: KtSimpleNameExpression,
+                                                      consumeCreatedQuickFix: (IntentionAction) -> Unit) {
+    val contextModule = ModuleUtil.findModuleForPsiElement(expression) ?: return
+    val facet = AndroidFacet.getInstance(contextModule) ?: return
+    facet.getModuleSystem().getPackageName() ?: return
+    val contextFile = expression.containingFile ?: return
+
+    val info = getReferredResourceOrManifestField(facet, expression, null, true)
+    if (info == null || info.isFromManifest) return
+
+    val resourceType = ResourceType.fromClassName(info.className) ?: return
+
+    if (ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
+        consumeCreatedQuickFix(CreateValueResourceQuickFix(facet, resourceType, info.fieldName, contextFile, true))
+    }
+
+    val resourceFolderType = FolderTypeRelationship.getNonValuesRelatedFolder(resourceType)
+    if (resourceFolderType != null) {
+        consumeCreatedQuickFix(CreateFileResourceQuickFix(facet, resourceFolderType, info.fieldName, contextFile, true))
+    }
+}

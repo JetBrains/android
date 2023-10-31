@@ -41,11 +41,11 @@ import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
@@ -236,11 +236,8 @@ class AppInspectorConnectionTest {
       try {
         connection.sendRawCommand("Test".toByteArray())
         fail()
-      } catch (e: AppInspectionConnectionException) {
-        assertThat(e.message)
-          .isEqualTo(
-            "Failed to send a command because the $INSPECTOR_ID connection is already closed."
-          )
+      } catch (e: CancellationException) {
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
       }
     }
 
@@ -266,9 +263,10 @@ class AppInspectorConnectionTest {
           // crash event occurs below, which should cause the exception to get thrown.
           client.sendRawCommand(ByteArray(0))
           fail()
-        } catch (e: AppInspectionConnectionException) {
-          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has been disposed.")
+        } catch (e: CancellationException) {
+          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
           disposedDeferred.complete(Unit)
+          throw e
         }
       }
 
@@ -332,11 +330,9 @@ class AppInspectorConnectionTest {
       try {
         client.sendRawCommand("Data".toByteArray())
         fail()
-      } catch (e: AppInspectionConnectionException) {
-        assertThat(e.message)
-          .isEqualTo(
-            "Failed to send a command because the $INSPECTOR_ID connection is already closed."
-          )
+      } catch (e: CancellationException) {
+        assertThat(e.cause!!.message)
+          .isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
       }
     }
 
@@ -479,14 +475,16 @@ class AppInspectorConnectionTest {
         }
       )
 
-      launch {
+      launch(start = CoroutineStart.UNDISPATCHED) {
         try {
           // This next line should get stuck (because of the disabled handler above) until the
           // `scope.cancel` call below, which should cause the exception to get thrown.
           client.sendRawCommand(byteArrayOf(0x12, 0x15))
           fail()
-        } catch (e: AppInspectionConnectionException) {
+        } catch (e: CancellationException) {
           assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
+        } catch (e: Exception) {
+          fail()
         }
       }
 
@@ -498,6 +496,16 @@ class AppInspectorConnectionTest {
       appInspectionRule.scope.cancel()
 
       client.awaitForDisposal()
+
+      // Trying to send command when the client is disposed results in CancellationException
+      try {
+        client.sendRawCommand(byteArrayOf(0x12, 0x15))
+        fail()
+      } catch (_: CancellationException) {
+        // Results in CancellationException
+      } catch (e: Exception) {
+        fail()
+      }
     }
 
   // Test the scenario where a cancellation command is sent during teardown of

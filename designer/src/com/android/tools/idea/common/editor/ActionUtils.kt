@@ -24,12 +24,14 @@ import java.awt.Component
 import java.awt.event.MouseEvent
 
 /**
- * Helper function to show the popup menu in [DesignSurface]. The popup menu will appear at the mouse position of [event]. If the source
- * of mouse event is not a [Component] then the popup appears at the given [DesignSurface].
- * If the given [group] is empty, then nothing happens.
- * The [place] describes the place of popup action, which is passed into [com.intellij.openapi.actionSystem.AnActionEvent] when
- * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See [ActionManager.createActionPopupMenu] and
- * [com.intellij.openapi.actionSystem.ActionPlaces] for more information.
+ * Helper function to show the popup menu in [DesignSurface]. The popup menu will appear at the
+ * mouse position of [event]. If the source of mouse event is not a [Component] then the popup
+ * appears at the given [DesignSurface]. If the given [group] is empty, then nothing happens. The
+ * [place] describes the place of popup action, which is passed into
+ * [com.intellij.openapi.actionSystem.AnActionEvent] when
+ * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
+ * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
+ * more information.
  */
 fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: String) {
   val invoker = if (event.source is Component) event.source as Component else this
@@ -37,11 +39,13 @@ fun DesignSurface<*>.showPopup(event: MouseEvent, group: ActionGroup, place: Str
 }
 
 /**
- * Show the popup for the [invoker]. The popup menu will appear at ([x], [y]) position in [invoker]'s coordinate system.
- * If the given [group] is empty, then nothing happens.
- * The [place] describes the place of popup action, which is passed into [com.intellij.openapi.actionSystem.AnActionEvent] when
+ * Show the popup for the [invoker]. The popup menu will appear at ([x], [y]) position in
+ * [invoker]'s coordinate system. If the given [group] is empty, then nothing happens. The [place]
+ * describes the place of popup action, which is passed into
+ * [com.intellij.openapi.actionSystem.AnActionEvent] when
  * [com.intellij.openapi.actionSystem.AnAction] is updated or performed. See
- * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for more information.
+ * [ActionManager.createActionPopupMenu] and [com.intellij.openapi.actionSystem.ActionPlaces] for
+ * more information.
  */
 fun showPopup(invoker: Component, x: Int, y: Int, group: ActionGroup, place: String) {
   if (group.getChildren(null).isEmpty()) {

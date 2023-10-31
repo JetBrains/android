@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
@@ -48,9 +49,10 @@ class StopInteractivePreviewAction :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach {
-      it.stopInteractivePreview()
-      it.animationInspectionPreviewElementInstance = null
-    }
+    navigateBack(e)
   }
+
+  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
+  // VirtualFile
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

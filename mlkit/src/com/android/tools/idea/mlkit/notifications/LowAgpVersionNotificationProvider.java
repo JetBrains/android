@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
+import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
+
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
@@ -26,7 +28,6 @@ import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
 import java.util.function.Function;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,35 +35,31 @@ import org.jetbrains.annotations.Nullable;
  * Notifies users that Android Gradle Plugin version is a bit low so feature may be not fully supported.
  */
 public class LowAgpVersionNotificationProvider implements EditorNotificationProvider {
+
   private static final Key<String> HIDDEN_KEY = Key.create("ml.low.ago.notification.panel.hidden");
   private static final String MIN_AGP_VERSION = "4.1.0-alpha10";
 
-  @Override
-  public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
-                                                                                                                 @NotNull VirtualFile file) {
-    return fileEditor -> createNotificationPanel(file, fileEditor, project);
-  }
-
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project) {
-    if (fileEditor.getUserData(HIDDEN_KEY) != null || !(fileEditor instanceof TfliteModelFileEditor)) {
-      return null;
-    }
-
+  @Override
+  public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!TFLITE_EXTENSION.equals(file.getExtension())) return null;
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
     AgpVersion agpVersion = androidPluginInfo != null ? androidPluginInfo.getPluginVersion() : null;
     if (agpVersion == null || agpVersion.compareTo(MIN_AGP_VERSION) >= 0) {
       return null;
     }
-
-    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
-    panel.setText("ML Model Binding is not fully supported in the current Android Gradle Plugin, so please update to the latest version.");
-    panel.createActionLabel("Hide notification", () -> {
-      fileEditor.putUserData(HIDDEN_KEY, "true");
-      EditorNotifications.getInstance(project).updateNotifications(file);
-    });
-    return panel;
+    return (fileEditor) -> {
+      if (fileEditor.getUserData(HIDDEN_KEY) != null || !(fileEditor instanceof TfliteModelFileEditor)) {
+        return null;
+      }
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
+      panel.setText(
+        "ML Model Binding is not fully supported in the current Android Gradle Plugin, so please update to the latest version.");
+      panel.createActionLabel("Hide notification", () -> {
+        fileEditor.putUserData(HIDDEN_KEY, "true");
+        EditorNotifications.getInstance(project).updateNotifications(file);
+      });
+      return panel;
+    };
   }
 }

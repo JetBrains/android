@@ -50,7 +50,7 @@ fun containedByNativeNodes(project: Project, ndkModuleModel: NdkModuleModel, fil
     // Skip directly if the file does not look like a header.
     return false
   }
-  val ndkFacet = NdkFacet.getInstance(module)!!
+  val ndkFacet = NdkFacet.getInstance(module) ?: return false
   val selectedVariantAbi = ndkFacet.selectedVariantAbi ?: return false
   val variant = selectedVariantAbi.variant
   val abi = selectedVariantAbi.abi

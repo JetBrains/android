@@ -27,21 +27,24 @@ DisplayInfo::DisplayInfo()
       logical_density_dpi(0),
       rotation(),
       layer_stack(),
-      flags() {
+      flags(),
+      state() {
 }
 
 DisplayInfo::DisplayInfo(
-    int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags)
+    int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags,
+    int32_t state)
     : logical_size { logical_width, logical_height },
       logical_density_dpi(logical_density_dpi),
       rotation(rotation),
       layer_stack(layer_stack),
-      flags(flags) {
+      flags(flags),
+      state(state) {
 }
 
 string DisplayInfo::ToDebugString() const {
-  return StringPrintf("logical_size:%dx%d display_rotation:%d dpi:%d layer_stack:%d flags:0x%x",
-                      logical_size.width, logical_size.height, logical_density_dpi, rotation, layer_stack, flags);
+  return StringPrintf("logical_size:%dx%d display_rotation:%d dpi:%d layer_stack:%d flags:0x%x state:%d",
+                      logical_size.width, logical_size.height, rotation, logical_density_dpi, layer_stack, flags, state);
 }
 
 }  // namespace screensharing

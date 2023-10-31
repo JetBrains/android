@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
+import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
@@ -49,6 +50,10 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
                      GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
   val parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get()
 
+  val multiVariantArtifactSupport =
+    GradleExperimentalSettings.getInstance().USE_MULTI_VARIANT_EXTRA_ARTIFACTS &&
+    StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get()
+
   // This will be true only in Android projects openned in IntelliJ IDEA,
   // because in Android Studio sync with future AGP versions is prohibited.
   val ideaFlagSupportFutureAgpVersions = AndroidGradleBuildConfiguration
@@ -60,14 +65,17 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
     studioFlagUseV2BuilderModels = StudioFlags.GRADLE_SYNC_USE_V2_MODEL.get(),
     studioFlagDisableForcedUpgrades = AndroidGradleProjectResolver.shouldDisableForceUpgrades(),
-    studioFlagOutputSyncStats = StudioFlags.GRADLE_SYNC_OUTPUT_SYNC_STATS.get(),
+    studioFlagSyncStatsOutputDirectory = StudioFlags.SYNC_STATS_OUTPUT_DIRECTORY.get(),
     studioHprofOutputDirectory = StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY.get(),
     studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
     studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),
-    studioFlagMultiVariantAdditionalArtifactSupport = StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get(),
+    studioFlagMultiVariantAdditionalArtifactSupport = multiVariantArtifactSupport,
     studioDebugMode =  studioProjectSyncDebugModeEnabled(),
-    studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get(),
+    studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get()
+                                                 && GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES,
     studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
+    studioFlagUseNewDependencyGraphModel = StudioFlags.USE_NEW_DEPENDENCY_GRAPH_MODEL.get(),
+    studioFlagFetchKotlinModelsInParallel = StudioFlags.GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL.get(),
     ideaFlagSupportFutureAgpVersions = ideaFlagSupportFutureAgpVersions,
   )
 
@@ -78,8 +86,13 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
 
   val syncOptions = when (projectResolutionMode) {
     SingleVariantSyncProjectMode -> {
-      val selectedVariants = SelectedVariantCollector(project).collectSelectedVariants()
       val request = project.getProjectSyncRequest(projectPath)
+      // If the variants should be set to defaults, don't select any variants and the project with re-import with the defaults.
+      val selectedVariants = if (request?.importDefaultVariants == true) {
+        SelectedVariants(emptyMap())
+      } else {
+        SelectedVariantCollector(project).collectSelectedVariants()
+      }
       SingleVariantSyncActionOptions(
         studioFlags,
         syncTestMode = request?.syncTestMode ?: SyncTestMode.PRODUCTION,

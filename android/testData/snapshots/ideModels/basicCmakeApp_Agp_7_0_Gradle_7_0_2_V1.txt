@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
@@ -10,11 +30,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -142,7 +166,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -187,6 +210,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
         testApplicationId             : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test

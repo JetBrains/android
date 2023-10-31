@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.files.adbimpl;
 
-import com.android.tools.idea.device.explorer.files.adbimpl.TestShellCommands;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("SpellCheckingInspection")
@@ -167,6 +166,9 @@ public enum TestDevices {
 
       addCommand(commands, "su 0 sh -c 'rm -r -f /sdcard/foo-dir'", "");
       addFailedCommand(commands, "su 0 sh -c 'rm -r -f /config'", "rm failed for /config, Read-only file system\n");
+
+      addCommand(commands, "stat -c \"%A %U %G %z %s %n\" /",
+                 "drwxr-xr-x root root 2021-08-02 09:20:53.000000000 -0700 4096 /");
     }
   },
 
@@ -543,6 +545,8 @@ public enum TestDevices {
       addCommand(commands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
       addCommand(commands, "ls /data/local/tmp/oyX2HCKL\\ acuauQGJ", "/data/local/tmp/oyX2HCKL acuauQGJ");
       addCommand(commands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+      addCommand(commands, "stat -c \"%A %U %G %z %s %n\" /",
+                 "drwxr-xr-x root root 2021-08-02 09:20:53.000000000 -0700 4096 /");
     }
   },
   EMULATOR_API25 {
@@ -644,6 +648,8 @@ public enum TestDevices {
       addCommand(shellCommands, "touch /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
       addCommand(shellCommands, "ls /data/local/tmp/oyX2HCKL\\ acuauQGJ", "/data/local/tmp/oyX2HCKL acuauQGJ");
       addCommand(shellCommands, "rm /data/local/tmp/oyX2HCKL\\ acuauQGJ", "");
+      addCommand(shellCommands, "su 0 sh -c 'stat -c \"%A %U %G %z %s %n\" /'",
+                 "drwxr-xr-x root root 2021-08-02 09:20:53.000000000 -0700 4096 /");
     }
   };
 

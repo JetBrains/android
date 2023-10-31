@@ -16,36 +16,17 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
-@RunWith(Parameterized::class)
-class PreviewEntryPointTest(
-  val previewAnnotationPackage: String,
-  val composableAnnotationPackage: String
-) {
-  companion object {
-    @Suppress("unused") // Used by JUnit via reflection
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}.Preview {1}.Composable")
-    val namespaces = namespaceVariations
-  }
+class PreviewEntryPointTest {
 
-  @get:Rule
-  val projectRule =
-    ComposeProjectRule(
-      previewAnnotationPackage = previewAnnotationPackage,
-      composableAnnotationPackage = composableAnnotationPackage
-    )
+  @get:Rule val projectRule = ComposeProjectRule()
   private val fixture
     get() = projectRule.fixture
 
@@ -54,18 +35,13 @@ class PreviewEntryPointTest(
     fixture.enableInspections(UnusedSymbolInspection() as InspectionProfileEntry)
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
-  }
-
   @Test
   fun testFindPreviewAnnotations() {
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationPackage.Composable
-      import $previewAnnotationPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Composable
       @Preview
@@ -98,12 +74,11 @@ class PreviewEntryPointTest(
 
   @Test
   fun testFindPreviewAnnotationsMultiPreview() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     @Language("kotlin")
     val fileContent =
       """
-      import $composableAnnotationPackage.Composable
-      import $previewAnnotationPackage.Preview
+      import $COMPOSABLE_ANNOTATION_FQN
+      import $PREVIEW_TOOLING_PACKAGE.Preview
 
       @Preview
       annotation class MyAnnotation

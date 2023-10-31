@@ -52,32 +52,35 @@ android_cc_binary(
 )
 
 aidl_library(
-    name = "aidl_lib1",
-    srcs = ["app/src/main/aidl/android/content/IOnPrimaryClipChangedListener.aidl"],
+    name = "aidl_lib",
+    srcs = glob(["app/src/main/aidl/**/*.aidl"]),
     tags = ["no_windows"],
     deps = [
-        "//prebuilts/studio/sdk:platforms/latest_jar",
-        "//tools/base/annotations",
-    ],
-)
-
-aidl_library(
-    name = "aidl_lib2",
-    srcs = ["app/src/main/aidl/android/view/IRotationWatcher.aidl"],
-    tags = ["no_windows"],
-    deps = [
+        ":android_extras_lib",
         "//prebuilts/studio/sdk:platforms/latest_jar",
         "//tools/base/annotations",
     ],
 )
 
 java_library(
-    name = "apk_lib",
-    srcs = glob(["app/src/main/java/**/*.java"]),
+    name = "android_extras_lib",
+    srcs = glob(["app/src/main/java/android/**/*.java"]),
     tags = ["no_windows"],
     deps = [
-        ":aidl_lib1",
-        ":aidl_lib2",
+        "//prebuilts/studio/sdk:platforms/latest_jar",
+    ],
+)
+
+java_library(
+    name = "apk_lib",
+    srcs = glob(
+        ["app/src/main/java/**/*.java"],
+        exclude = ["app/src/main/java/android/**/*.java"],
+    ),
+    tags = ["no_windows"],
+    deps = [
+        ":aidl_lib",
+        ":android_extras_lib",
         "//prebuilts/studio/sdk:platforms/latest_jar",
     ],
 )
@@ -97,18 +100,18 @@ studio_data(
     name = "bundle",
     files = select({
         "@platforms//os:linux": [
-            "screen-sharing-agent.jar",
             "native/arm64-v8a/libscreen-sharing-agent.so",
             "native/armeabi-v7a/libscreen-sharing-agent.so",
             "native/x86/libscreen-sharing-agent.so",
             "native/x86_64/libscreen-sharing-agent.so",
+            "screen-sharing-agent.jar",
         ],
         "@platforms//os:macos": [
-            "screen-sharing-agent.jar",
             "native/arm64-v8a/libscreen-sharing-agent.so",
             "native/armeabi-v7a/libscreen-sharing-agent.so",
             "native/x86/libscreen-sharing-agent.so",
             "native/x86_64/libscreen-sharing-agent.so",
+            "screen-sharing-agent.jar",
         ],
         "@platforms//os:windows": [],
     }),

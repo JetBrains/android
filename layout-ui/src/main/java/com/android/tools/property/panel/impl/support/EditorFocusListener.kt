@@ -23,8 +23,10 @@ import javax.swing.JComponent
 /**
  * [FocusListener] that can be used in controls using models derived from [BasePropertyEditorModel].
  */
-class EditorFocusListener(private val component: JComponent,
-                          private val model: BasePropertyEditorModel) : FocusListener {
+class EditorFocusListener(
+  private val component: JComponent,
+  private val model: BasePropertyEditorModel
+) : FocusListener {
 
   override fun focusGained(event: FocusEvent) {
     model.focusGained()

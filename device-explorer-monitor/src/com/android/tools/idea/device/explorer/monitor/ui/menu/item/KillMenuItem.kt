@@ -19,7 +19,7 @@ import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsLis
 import icons.StudioIcons
 import javax.swing.Icon
 
-class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
+class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : NonToggleMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
     val processStr = if (listener.numOfSelectedNodes > 1) "processes" else "process"
     return if (context == MenuContext.Toolbar) {

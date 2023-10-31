@@ -39,12 +39,12 @@ import javax.swing.JPanel
 /**
  * An [InspectorBuilder] for all procured layout attributes.
  *
- * Usually we want to show [ATTR_LAYOUT_WIDTH] and [ATTR_LAYOUT_HEIGHT] first,
- * then the custom panel if applicable, followed by the layout attributes
- * defined in the [ViewHandler] of the layout ViewGroup.
+ * Usually we want to show [ATTR_LAYOUT_WIDTH] and [ATTR_LAYOUT_HEIGHT] first, then the custom panel
+ * if applicable, followed by the layout attributes defined in the [ViewHandler] of the layout
+ * ViewGroup.
  */
-class LayoutInspectorBuilder(project: Project,
-                             val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
+class LayoutInspectorBuilder(project: Project, val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
   private val viewHandlerManager = ViewHandlerManager.get(project)
   private val cachedCustomPanels = mutableMapOf<String, CustomPanel>()
 
@@ -52,7 +52,10 @@ class LayoutInspectorBuilder(project: Project,
     cachedCustomPanels.clear()
   }
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     val attributes = getLayoutAttributes(properties)
     val custom = setupCustomPanel(properties)
     if (!isApplicable(attributes, custom, properties)) return
@@ -67,14 +70,19 @@ class LayoutInspectorBuilder(project: Project,
       // TODO: Handle other namespaces
       val attrName = StringUtil.trimStart(propertyName, TOOLS_NS_NAME_PREFIX)
       val property = properties.getOrNull(ANDROID_URI, attrName)
-      val propertyToAdd = if (propertyName.startsWith(TOOLS_NS_NAME_PREFIX)) property?.designProperty else property
+      val propertyToAdd =
+        if (propertyName.startsWith(TOOLS_NS_NAME_PREFIX)) property?.designProperty else property
       if (propertyToAdd != null) {
         inspector.addEditor(editorProvider.createEditor(propertyToAdd), titleModel)
       }
     }
   }
 
-  private fun isApplicable(attributes: List<String>, custom: JPanel?, properties: PropertiesTable<NlPropertyItem>): Boolean {
+  private fun isApplicable(
+    attributes: List<String>,
+    custom: JPanel?,
+    properties: PropertiesTable<NlPropertyItem>
+  ): Boolean {
     if (!InspectorSection.LAYOUT.visible) return false
     if (custom != null) return true
     return attributes.any { properties.getOrNull(ANDROID_URI, it) != null }
@@ -88,16 +96,20 @@ class LayoutInspectorBuilder(project: Project,
     return attributes
   }
 
-  private fun addAttributesFromViewHandler(properties: PropertiesTable<NlPropertyItem>, attributes: MutableList<String>) {
+  private fun addAttributesFromViewHandler(
+    properties: PropertiesTable<NlPropertyItem>,
+    attributes: MutableList<String>
+  ) {
     val parent = getParentComponent(properties) ?: return
-    val handler = viewHandlerManager.getHandler(parent) ?: return
+    val handler = viewHandlerManager.getHandler(parent) {} ?: return
     attributes.addAll(handler.layoutInspectorProperties)
   }
 
   private fun getParentComponent(properties: PropertiesTable<NlPropertyItem>): NlComponent? {
     val property = properties.first ?: return null
     val firstParent = property.components.firstOrNull()?.parent ?: return null
-    return if (property.components.all { it.parent?.tagName == firstParent.tagName }) firstParent else null
+    return if (property.components.all { it.parent?.tagName == firstParent.tagName }) firstParent
+    else null
   }
 
   private fun setupCustomPanel(properties: PropertiesTable<NlPropertyItem>): JPanel? {
@@ -114,11 +126,12 @@ class LayoutInspectorBuilder(project: Project,
 
   private fun getCustomPanelKey(parent: NlComponent): String {
     val tagName = parent.tagName
-    return if (tagName != VIEW_MERGE) tagName else parent.getAttribute(TOOLS_URI, ATTR_PARENT_TAG) ?: tagName
+    return if (tagName != VIEW_MERGE) tagName
+    else parent.getAttribute(TOOLS_URI, ATTR_PARENT_TAG) ?: tagName
   }
 
   private fun createCustomPanel(parent: NlComponent, customPanelKey: String): CustomPanel {
-    val handler = viewHandlerManager.getHandler(parent)
+    val handler = viewHandlerManager.getHandler(parent) {}
     val panel = handler?.layoutCustomPanel ?: SampleCustomPanel.INSTANCE
     cachedCustomPanels[customPanelKey] = panel
     return panel

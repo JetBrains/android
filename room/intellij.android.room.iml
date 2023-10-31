@@ -18,12 +18,13 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
     <orderEntry type="module" module-name="intellij.java.impl" />
     <orderEntry type="module" module-name="intellij.java.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi" />
     <orderEntry type="module" module-name="intellij.platform.editor" />
     <orderEntry type="module" module-name="intellij.java" />
     <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.util" />

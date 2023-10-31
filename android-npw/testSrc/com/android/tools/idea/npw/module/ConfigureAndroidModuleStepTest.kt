@@ -86,7 +86,7 @@ class ConfigureAndroidModuleStepTest {
     fun assertPackageNameIsCorrectAfterSettingModuleName(moduleName: String) {
       newModuleModel.moduleName.set(moduleName)
       myInvokeStrategy.updateAllSteps()
-      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.${moduleName.toLowerCase()}")
+      assertThat(newModuleModel.packageName.get()).isEqualTo("$basePackage.${moduleName.lowercase()}")
     }
 
     listOf("myLib1", "somewhatLongerLibName", "lib").forEach { assertPackageNameIsCorrectAfterSettingModuleName(it) }

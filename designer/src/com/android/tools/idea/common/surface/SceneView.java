@@ -20,6 +20,7 @@ import com.android.resources.ScreenRound;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -29,7 +30,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
-import com.android.tools.idea.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBInsets;
@@ -102,7 +102,6 @@ public abstract class SceneView {
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
-  private boolean myAnimated = false;
   private boolean myIsVisible = true;
   @NotNull private final ShapePolicy myShapePolicy;
 
@@ -287,7 +286,7 @@ public abstract class SceneView {
   /**
    * Called when a drag operation starts on the {@link DesignSurface}
    */
-  final void onDragStart() {
+  public final void onDragStart() {
     for (Layer layer : getLayers()) {
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
@@ -301,7 +300,7 @@ public abstract class SceneView {
   /**
    * Called when a drag operation ends on the {@link DesignSurface}
    */
-  final void onDragEnd() {
+  public final void onDragEnd() {
     for (Layer layer : getLayers()) {
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
@@ -427,21 +426,6 @@ public abstract class SceneView {
     public int getSwingDimension(@AndroidCoordinate int dim) {
       return Coordinates.getSwingDimension(SceneView.this, dim);
     }
-  }
-
-  /**
-   * Sets animated mode of the scene.
-   * @param animated true if the scene is animated, false otherwise.
-   */
-  public void setAnimated(boolean animated) {
-    myAnimated = animated;
-  }
-
-  /**
-   * Returns true if the scene is animated, false otherwise.
-   */
-  public boolean isAnimated() {
-    return myAnimated;
   }
 
   public void setVisible(boolean visibility) {

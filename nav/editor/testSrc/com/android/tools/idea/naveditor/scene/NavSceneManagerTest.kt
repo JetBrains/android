@@ -20,7 +20,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -198,7 +198,7 @@ class NavSceneManagerTest : NavTestCase() {
         fragment("fragment1")
       }.also { root = it }
     }
-    val model = modelBuilder.build()
+    val model = modelBuilder.build(false)
 
     val sceneManager = model.surface.sceneManager as NavSceneManager
     sceneManager.update()

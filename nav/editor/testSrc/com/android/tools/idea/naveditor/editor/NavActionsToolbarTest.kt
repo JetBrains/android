@@ -24,8 +24,7 @@ import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 import java.util.Collections
 
 class NavActionsToolbarTest : NavTestCase() {

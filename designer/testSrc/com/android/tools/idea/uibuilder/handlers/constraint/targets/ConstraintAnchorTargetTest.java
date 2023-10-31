@@ -32,6 +32,7 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.intellij.psi.PsiFile;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.util.Optional;
@@ -204,7 +205,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
   private AnchorTarget createEdgeAnchorTarget(@NotNull SceneComponent component, AnchorTarget.Type type) {
     ConstraintAnchorTarget target = new ConstraintAnchorTarget(type, true);
     target.setComponent(component);
-    target.layout(SceneContext.get(mySceneManager.getSceneView()),
+    target.layout(mySceneManager.getSceneView().getContext(),
                   component.getDrawX(),
                   component.getDrawY(),
                   component.getDrawX() + component.getDrawWidth(),
@@ -217,7 +218,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     ScenePicker.HitElementListener hitListener = Mockito.mock(ScenePicker.HitElementListener.class);
     picker.setSelectListener(hitListener);
 
-    anchorTarget.addHit(SceneContext.get(myScene.getSceneManager().getSceneView()), picker, 0);
+    anchorTarget.addHit(myScene.getSceneManager().getSceneView().getContext(), picker, 0);
 
     for (Point p : nonHitPoints) {
       picker.find(p.x, p.y);
@@ -243,11 +244,11 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on Anchor
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY(), 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY(), 0);
     assertTrue(leftAnchor.isMouseHovered());
 
     // Move mouse out to SceneView. Should not have any hovered Target.
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -2, -2, 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), -2, -2, 0);
     myScene.getSceneComponents().stream()
       .flatMap(component -> component.getTargets().stream())
       .forEach(target -> assertFalse(target.isMouseHovered()));
@@ -264,9 +265,9 @@ public class ConstraintAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on edge
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5, 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), inner.getDrawX(), inner.getDrawY() + 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5, 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
   }
 
@@ -355,7 +356,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
   }
 
   private void renderAnchorTargetsToDisplayList(@NotNull SceneComponent component, @NotNull DisplayList displayList) {
-    SceneContext context = SceneContext.get(mySceneManager.getSceneView());
+    SceneContext context = mySceneManager.getSceneView().getContext();
     component.getTargets()
       .stream()
       .filter(it -> it instanceof AnchorTarget)
@@ -421,6 +422,20 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
   }
 
+  public void testAttributesInStyle() {
+    PsiFile file = myFixture.addFileToProject("res/values/styles.xml", """
+        <resources>
+          <style name="CustomStyle">
+              <item name="layout_constraintBottom_toBottomOf">parent</item>
+          </style>
+        </resources>
+      """);
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    SceneComponent component = myScene.getSceneComponent("textview");
+    String attribute = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    assertEquals("parent", attribute);
+  }
+
   @Override
   public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())
@@ -454,6 +469,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                       .withBounds(300, 300, 100, 50)
                       .width("50dp")
                       .height("25dp")
+                      .withAttribute(SdkConstants.ATTR_STYLE, "@style/CustomStyle")
                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "50dp")
                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "50dp")
       ))

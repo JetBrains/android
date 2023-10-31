@@ -33,11 +33,10 @@ import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.EventDispatcher;
 import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.EventListener;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Changes the structure of the JDK node (under "External Libraries" in the Project View

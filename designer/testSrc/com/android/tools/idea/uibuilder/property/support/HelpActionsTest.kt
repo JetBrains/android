@@ -29,107 +29,127 @@ import com.android.SdkConstants.FQCN_IMAGE_VIEW
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.popup.FakeComponentPopup
+import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property.EXPECTED_TEXT_TOOLTIP
+import com.android.tools.idea.uibuilder.property.NlPropertyDocumentationTarget
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
-import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
-import com.android.tools.property.panel.api.HelpSupport
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.documentation.DocumentationManager
+import com.intellij.codeInsight.documentation.DocumentationEditorPane
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.openapi.util.Disposer
+import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
+import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers.eq
-import org.mockito.ArgumentMatchers.isNull
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import org.junit.rules.RuleChain
+import java.util.concurrent.TimeUnit
+
+internal const val EXPECTED_TEXT_DOCUMENTATION =
+  "<html><body><div class='content-only'><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
+
+internal const val EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION =
+  "<html><body><div class='content-only'><b>legend</b><br/><br/></div>"
 
 class HelpActionsTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val popupRule = JBPopupRule()
 
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(popupRule).around(EdtRule())!!
 
   @RunsInEdt
   @Test
-  fun testTooltipForTextProperty() {
-    val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
-    assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
-  }
-
-  @RunsInEdt
-  @Test
-  fun testTooltipForCustomPropertyWithoutDocumentation() {
-    val descriptor = ComponentDescriptor(TEXT_VIEW)
-          .withBounds(0, 0, 1000, 1000)
-          .wrapContentWidth()
-          .wrapContentHeight()
-          .withAttribute(AUTO_URI, "something", "1")
-    val util = SupportTestUtil(projectRule, descriptor)
-    util.setUpCustomView()
-    val property = util.makeProperty(AUTO_URI, "legend", NlPropertyType.BOOLEAN)
-    assertThat(property.tooltipForName).isEqualTo("<html><b>app:legend</b></html>")
+  fun testHelpForCustomPropertyWithoutDocumentation() {
+    val property =
+      NlPropertyItem(AUTO_URI, "legend", NlPropertyType.BOOLEAN, null, "", "", mock(), mock())
+    assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_CUSTOM_PROPERTY_DOCUMENTATION)
   }
 
   @RunsInEdt
   @Test
   fun testHelp() {
-    val manager = projectRule.mockProjectService(DocumentationManager::class.java)
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = FRAME_LAYOUT)
-    @Suppress("DEPRECATION")
-    val tag = util.components[0].tagDeprecated
     util.loadProperties()
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, util.properties[ANDROID_URI, ATTR_TEXT])
+    val property = util.properties[ANDROID_URI, ATTR_TEXT]
+    assertThat(helpTextInPopup(property)).isEqualTo(EXPECTED_TEXT_DOCUMENTATION)
+  }
+
+  private fun helpTextInPopup(property: NlPropertyItem): String {
+    val context =
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(
+          DOCUMENTATION_TARGETS,
+          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) })
+        )
+        .build()
     val event = AnActionEvent.createFromDataContext("", null, context)
     HelpActions.help.actionPerformed(event)
-    verify(manager).showJavaDocInfo(eq(tag), eq(tag), eq(true), isNull(), eq(EXPECTED_TEXT_TOOLTIP), eq(true))
+    waitForCondition(100, TimeUnit.MILLISECONDS) { popupRule.fakePopupFactory.popupCount > 0 }
+    val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
+    val doc =
+      UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
+        .singleOrNull()
+        ?: error("No doc?")
+    Disposer.dispose(popup)
+    return doc.text
   }
 
   @Test
   fun testFilterRawAttributeComment() {
-    val comment = "Here is a\n" +
-                  "        comment with an\n" +
-                  "        odd formatting."
-    assertThat(HelpActions.filterRawAttributeComment(comment)).isEqualTo("Here is a comment with an odd formatting.")
+    val comment = "Here is a\n" + "        comment with an\n" + "        odd formatting."
+    assertThat(HelpActions.filterRawAttributeComment(comment))
+      .isEqualTo("Here is a comment with an odd formatting.")
   }
 
   @Test
   fun testToHelpUrl() {
-    assertThat(toHelpUrl(FQCN_IMAGE_VIEW, ATTR_SRC)).isEqualTo(
-      "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/ImageView.html#attr_android:src")
+    assertThat(toHelpUrl(FQCN_IMAGE_VIEW, ATTR_SRC))
+      .isEqualTo(
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/ImageView.html#attr_android:src"
+      )
 
-    assertThat(toHelpUrl(FQCN_TEXT_VIEW, ATTR_FONT_FAMILY)).isEqualTo(
-      "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/TextView.html#attr_android:fontFamily")
+    assertThat(toHelpUrl(FQCN_TEXT_VIEW, ATTR_FONT_FAMILY))
+      .isEqualTo(
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/widget/TextView.html#attr_android:fontFamily"
+      )
 
-    assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_HEIGHT)).isEqualTo(
-      "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.LayoutParams.html#attr_android:layout_height")
+    assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_HEIGHT))
+      .isEqualTo(
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.LayoutParams.html#attr_android:layout_height"
+      )
 
-    assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_MARGIN_BOTTOM)).isEqualTo(
-      "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.MarginLayoutParams.html#attr_android:layout_marginBottom")
+    assertThat(toHelpUrl(CLASS_VIEWGROUP, ATTR_LAYOUT_MARGIN_BOTTOM))
+      .isEqualTo(
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/view/ViewGroup.MarginLayoutParams.html#attr_android:layout_marginBottom"
+      )
 
-    assertThat(toHelpUrl(CONSTRAINT_LAYOUT.oldName(), ATTR_LAYOUT_TO_END_OF)).isEqualTo(
-      "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/support/constraint/ConstraintLayout.LayoutParams.html")
+    assertThat(toHelpUrl(CONSTRAINT_LAYOUT.oldName(), ATTR_LAYOUT_TO_END_OF))
+      .isEqualTo(
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}android/support/constraint/ConstraintLayout.LayoutParams.html"
+      )
 
-    assertThat(toHelpUrl(CONSTRAINT_LAYOUT.newName(), ATTR_LAYOUT_TO_END_OF)).isEqualTo(
-      "${DEFAULT_ANDROID_REFERENCE_PREFIX}androidx/constraintlayout/widget/ConstraintLayout.LayoutParams.html")
+    assertThat(toHelpUrl(CONSTRAINT_LAYOUT.newName(), ATTR_LAYOUT_TO_END_OF))
+      .isEqualTo(
+        "${DEFAULT_ANDROID_REFERENCE_PREFIX}androidx/constraintlayout/widget/ConstraintLayout.LayoutParams.html"
+      )
 
     assertThat(toHelpUrl("com.company.MyView", "my_attribute")).isNull()
   }
 
   private fun toHelpUrl(componentName: String, propertyName: String): String? {
-    val property = mock(NlPropertyItem::class.java)
+    val property: NlPropertyItem = mock()
     whenever(property.name).thenReturn(propertyName)
     return HelpActions.toHelpUrl(componentName, property)
   }

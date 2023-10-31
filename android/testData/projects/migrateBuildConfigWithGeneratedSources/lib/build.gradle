@@ -1,0 +1,25 @@
+plugins {
+  id 'com.android.application'
+}
+
+android {
+  namespace 'com.example.migratebuildconfig.lib'
+  compileSdk = 33
+
+  defaultConfig {
+    minSdk = 24
+    targetSdk = 33
+    versionCode = 1
+    versionName = '1.0'
+    buildConfigField 'String', 'FOO', '"4.0"'
+  }
+
+  buildTypes {
+    debug {
+      buildConfigField 'String', 'BAR', '"5.0"'
+    }
+    release {
+      buildConfigField 'String', 'BAR', '"6.0"'
+    }
+  }
+}

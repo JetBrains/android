@@ -18,33 +18,24 @@ package com.android.tools.property.panel.api
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import javax.swing.Icon
 
-/**
- * A model for a SelectedComponentPanel
- */
+/** A model for a SelectedComponentPanel */
 interface SelectedComponentModel {
 
-  /**
-   * Returns the id of a component
-   */
+  /** Returns the id of a component */
   val id: String
 
-  /**
-   * Returns the icon of a component
-   */
+  /** Returns the icon of a component */
   val icon: Icon?
 
-  /**
-   * Returns the description of a component
-   */
+  /** Returns the description of a component */
   val description: String
 
   /**
-   * Register a [ValueChangedListener] to be notified whenever the component attributes above have changed.
+   * Register a [ValueChangedListener] to be notified whenever the component attributes above have
+   * changed.
    */
   fun addValueChangedListener(listener: ValueChangedListener) {}
 
-  /**
-   *  Remove a [ValueChangedListener] registered by [addValueChangedListener].
-   */
+  /** Remove a [ValueChangedListener] registered by [addValueChangedListener]. */
   fun removeValueChangedListener(listener: ValueChangedListener) {}
 }

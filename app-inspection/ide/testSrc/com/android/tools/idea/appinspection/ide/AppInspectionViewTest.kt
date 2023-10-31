@@ -57,10 +57,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.concurrent.ArrayBlockingQueue
-import javax.swing.JPanel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +74,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.ArrayBlockingQueue
+import javax.swing.JPanel
 
 class TestAppInspectorTabProvider1 :
   AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID)

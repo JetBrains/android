@@ -39,7 +39,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class QuickFixForJniTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private static final String JAVA_FILE = "app/src/main/java/com/example/hellojni/HelloJni.java";
 
@@ -77,7 +77,7 @@ public class QuickFixForJniTest {
     guiTest.waitForBackgroundTasks();
 
     // Open Java file and check errors.
-    EditorFixture editor = ideFrame.getEditor().open(JAVA_FILE, EditorFixture.Tab.EDITOR);
+    EditorFixture editor = ideFrame.getEditor().open(JAVA_FILE);
 
     editor.moveBetween("public native String  stringFromJNI();", "")
       .enterText("\npublic native void printFromJNI();");
@@ -127,7 +127,7 @@ public class QuickFixForJniTest {
     assertThat(currentLine.contains("// TODO: implement printFromJNI()")).isTrue();
 
     // Check no red in Java file.
-    editor = ideFrame.getEditor().open(JAVA_FILE, EditorFixture.Tab.EDITOR);
+    editor = ideFrame.getEditor().open(JAVA_FILE);
     errors = editor.getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);
   }

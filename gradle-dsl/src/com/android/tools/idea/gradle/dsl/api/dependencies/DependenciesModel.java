@@ -34,7 +34,15 @@ public interface DependenciesModel extends GradleBlockModel {
 
   void addArtifact(@NotNull String configurationName, @NotNull String compactNotation);
 
+  void addArtifact(@NotNull String configurationName,
+                   @NotNull String compactNotation,
+                   @NotNull List<ArtifactDependencySpec> excludes);
+
   boolean containsArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency);
+
+  void addArtifact(@NotNull String configurationName,
+                   @NotNull ReferenceTo reference,
+                   @NotNull List<ArtifactDependencySpec> excludes);
 
   void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference);
 

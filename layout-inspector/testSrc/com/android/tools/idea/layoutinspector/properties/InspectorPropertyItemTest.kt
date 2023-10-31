@@ -27,9 +27,9 @@ import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
@@ -40,7 +40,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.Rectangle
-import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
   protected val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
@@ -65,49 +64,127 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
 
   protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(ANDROID_URI, "x", PropertyType.DIMENSION_DP, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      "x",
+      PropertyType.DIMENSION_DP,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 
   protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(ANDROID_URI, "textSize", PropertyType.DIMENSION_SP, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      "textSize",
+      PropertyType.DIMENSION_SP,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 
   protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", PropertyType.DIMENSION_EM, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      "lineSpacing",
+      PropertyType.DIMENSION_EM,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 
   protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, PropertyType.DIMENSION, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      ATTR_PADDING_TOP,
+      PropertyType.DIMENSION,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 
   protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, PropertyType.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId,
-                                 model!!)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      ATTR_PADDING_TOP,
+      PropertyType.DIMENSION_FLOAT,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 
   protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, PropertyType.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(
+      ANDROID_URI,
+      ATTR_TEXT_SIZE,
+      PropertyType.DIMENSION_FLOAT,
+      value,
+      PropertySection.DECLARED,
+      null,
+      nodeId,
+      model!!
+    )
   }
 
   private val fakeComposeNode: ComposeViewNode =
-    ComposeViewNode(-2L, "Text", null, Rectangle(20, 20, 600, 200), null, "",
-                    0, 0, 0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17, 0, 0)
+    ComposeViewNode(
+      -2L,
+      "Text",
+      null,
+      Rectangle(20, 20, 600, 200),
+      null,
+      "",
+      0,
+      0,
+      0,
+      "Text.kt",
+      composePackageHash = 1777,
+      composeOffset = 420,
+      composeLineNumber = 17,
+      0,
+      0
+    )
 
   protected fun browseProperty(attrName: String, type: PropertyType, source: ResourceReference?) {
     val node = model!!["title"]!!
-    val property = InspectorPropertyItem(
-      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node.drawId, model!!)
+    val property =
+      InspectorPropertyItem(
+        ANDROID_URI,
+        attrName,
+        attrName,
+        type,
+        null,
+        PropertySection.DECLARED,
+        source ?: node.layout,
+        node.drawId,
+        model!!
+      )
     property.helpSupport.browse()
   }
 }
 
 @RunsInEdt
-class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRule.onDisk()) {
+class InspectorPropertyItemTest : InspectorPropertyItemTestBase(AndroidProjectRule.onDisk()) {
   @Test
   fun testFormatDimensionInPixels() {
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
@@ -310,16 +387,23 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
 }
 
 @RunsInEdt
-class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(
-  AndroidProjectRule.withAndroidModel(
-    createAndroidProjectBuilderForDefaultTestProjectStructure()
-      .copy(applicationIdFor = { variant -> "com.example" })
-  ).named(InspectorPropertyItemTestWithSdk::class.simpleName)
-) {
+class InspectorPropertyItemTestWithSdk :
+  InspectorPropertyItemTestBase(
+    AndroidProjectRule.withAndroidModel(
+        createAndroidProjectBuilderForDefaultTestProjectStructure()
+          .copy(applicationIdFor = { variant -> "com.example" })
+      )
+      .named(InspectorPropertyItemTestWithSdk::class.simpleName)
+  ) {
   @Test
   fun testBrowseTextSizeFromTextAppearance() {
-    val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
+    val textAppearance =
+      ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
     browseProperty(ATTR_TEXT_SIZE, PropertyType.INT32, textAppearance)
-    fileOpenCaptureRule.checkEditor("styles_material.xml", 228, "<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
+    fileOpenCaptureRule.checkEditor(
+      "styles_material.xml",
+      228,
+      "<item name=\"textSize\">@dimen/text_size_body_1_material</item>"
+    )
   }
 }

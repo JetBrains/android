@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.performance;
 
-import com.android.tools.idea.bleak.UseBleak;
-import com.android.tools.idea.gradle.adtimport.GradleImport;
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
@@ -44,8 +44,8 @@ public class GradleSyncMemoryUseTest {
   public void changeCompileSdkVersion() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      String currentVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION);
-      String previousVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION - 1);
+      String currentVersion = String.valueOf(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API);
+      String previousVersion = String.valueOf(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API - 1);
       ideFrameFixture
         .actAndWaitForGradleProjectSyncToFinish(
           it ->
@@ -74,7 +74,7 @@ public class GradleSyncMemoryUseTest {
   public void changeCompileSdkVersionFail() throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      String currentVersion = String.valueOf(GradleImport.CURRENT_COMPILE_VERSION);
+      String currentVersion = String.valueOf(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API);
       ideFrameFixture
         .actAndWaitForGradleProjectSyncToFinish(
           it ->
@@ -108,7 +108,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .open("app/build.gradle")
-              .select("implementation ('com.google.guava.guava:18.0')")
+              .select("implementation ('androidx.appcompat:appcompat:1.3.0')")
               .enterText("'com.android.support:design:28.0.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
@@ -118,7 +118,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("implementation ('com.android.support:design:28.0.0')")
-              .enterText("'com.google.guava:guava:18.0'")
+              .enterText("'androidx.appcompat:appcompat:1.3.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")
@@ -136,7 +136,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .open("app/build.gradle")
-              .select("implementation ('com.google.guava.guava:18.0')")
+              .select("implementation ('androidx.appcompat:appcompat:1.3.0')")
               .enterText("'com.android.support:design123'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
@@ -146,7 +146,7 @@ public class GradleSyncMemoryUseTest {
           it ->
             it.getEditor()
               .select("implementation ('com.android.support:design123')")
-              .enterText("'com.google.guava:guava:18.0'")
+              .enterText("'androidx.appcompat:appcompat:1.3.0'")
               .awaitNotification(
                 "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
               .performAction("Sync Now")

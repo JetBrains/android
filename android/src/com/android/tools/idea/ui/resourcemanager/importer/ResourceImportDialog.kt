@@ -57,6 +57,7 @@ import java.awt.FlowLayout
 import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
 import java.awt.event.ItemEvent
+import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.beans.PropertyChangeListener
@@ -357,6 +358,7 @@ class ResourceImportDialog(
     super.updateButtons(lastStep, canGoNext, firstStep)
     if (lastStep) {
       nextButton.text = "Import"
+      nextButton.mnemonic = KeyEvent.VK_I
     }
   }
 
@@ -423,7 +425,7 @@ private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepA
     val groupLayout = GroupLayout(this)
     layout = groupLayout
     val label = JBLabel("Source Set:")
-    val comboBox: ComboBox<SourceSetResDir> = ComboBox(viewModel.availableResDirs).apply {
+    val comboBox = ComboBox<SourceSetResDir>(viewModel.availableResDirs).apply {
       addItemListener { itemEvent ->
         if (itemEvent.stateChange == ItemEvent.SELECTED) {
           viewModel.selectedResDir = itemEvent.item as SourceSetResDir

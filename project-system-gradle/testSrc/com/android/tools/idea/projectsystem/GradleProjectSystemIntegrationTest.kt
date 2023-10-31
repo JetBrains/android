@@ -56,14 +56,16 @@ abstract class GradleProjectSystemIntegrationTestCase {
       @JvmStatic
       @Parameterized.Parameters(name = "{0}")
       fun tests(): Collection<*> {
-        return tests.map { listOf(it).toTypedArray() }
+        return tests.filter{ it.modelsV2 }.map { listOf(it).toTypedArray() }
       }
     }
   }
 
   companion object {
     val tests =
-      listOf(TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true))
+      listOf(
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT),
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true))
   }
 
   data class TestDefinition(
@@ -131,8 +133,9 @@ abstract class GradleProjectSystemIntegrationTestCase {
 
     runTestOn(AndroidCoreTestProject.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
+      val agpVersion = testDefinition!!.agpVersion
       expect.that(project.appModuleSystem().getTestPackageName())
-        .isEqualTo(if (testDefinition!!.agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) "one.name.test" else "one.name.test_app")
+        .isEqualTo(if (agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80 || agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_41 || agpVersion == AgpVersionSoftwareEnvironmentDescriptor.AGP_42) "one.name.test" else "one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 

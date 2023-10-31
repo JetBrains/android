@@ -16,6 +16,9 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_PURPLE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_DEFAULT_COLOR
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
@@ -32,13 +35,16 @@ class RenderSettingsTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule(), disposableRule)
+  @get:Rule val ruleChain = RuleChain(projectRule, DeviceViewSettingsRule(), disposableRule)
 
   @Before
   fun before() {
-    ApplicationManager.getApplication().replaceService(
-      PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
+    ApplicationManager.getApplication()
+      .replaceService(
+        PropertiesComponent::class.java,
+        PropertiesComponentMock(),
+        disposableRule.disposable
+      )
   }
 
   @Test

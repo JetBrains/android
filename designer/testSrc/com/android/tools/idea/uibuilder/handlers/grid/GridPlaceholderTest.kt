@@ -34,28 +34,29 @@ class GridPlaceholderTest : SceneTest() {
     val handler = GridLayoutHandler()
     val placeholders = handler.getPlaceholders(gridLayout, emptyList())
 
-    val expected = arrayOf(
-      // Row 0
-      Region(0, 0, 200, 200),
-      Region(0, 200, 200, 400),
-      Region(0, 400, 200, 900),
-      Region(0, 900, 200, 1000),
-      // Row 1
-      Region(200, 0, 400, 200),
-      Region(200, 200, 400, 400),
-      Region(200, 400, 400, 900),
-      Region(200, 900, 400, 1000),
-      // Row 2
-      Region(400, 0, 900, 200),
-      Region(400, 200, 900, 400),
-      Region(400, 400, 900, 900),
-      Region(400, 900, 900, 1000),
-      // Row 3
-      Region(900, 0, 1000, 200),
-      Region(900, 200, 1000, 400),
-      Region(900, 400, 1000, 900),
-      Region(900, 900, 1000, 1000)
-    )
+    val expected =
+      arrayOf(
+        // Row 0
+        Region(0, 0, 200, 200),
+        Region(0, 200, 200, 400),
+        Region(0, 400, 200, 900),
+        Region(0, 900, 200, 1000),
+        // Row 1
+        Region(200, 0, 400, 200),
+        Region(200, 200, 400, 400),
+        Region(200, 400, 400, 900),
+        Region(200, 900, 400, 1000),
+        // Row 2
+        Region(400, 0, 900, 200),
+        Region(400, 200, 900, 400),
+        Region(400, 400, 900, 900),
+        Region(400, 900, 900, 1000),
+        // Row 3
+        Region(900, 0, 1000, 200),
+        Region(900, 200, 1000, 400),
+        Region(900, 400, 1000, 900),
+        Region(900, 900, 1000, 1000)
+      )
 
     assertEquals(expected.size, placeholders.size)
 
@@ -100,30 +101,50 @@ class GridPlaceholderTest : SceneTest() {
 
     val button2 = myScene.getSceneComponent("button2")!!
 
-    assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
-    assertEquals("1", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
+    assertEquals(
+      "0",
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW)
+    )
+    assertEquals(
+      "1",
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN)
+    )
 
     val row1column0 = placeholders.single { it.region == Region(0, 200, 200, 400) }
     applyPlaceholderToSceneComponent(button2, row1column0)
     mySceneManager.update()
-    assertEquals("1", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
-    assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
+    assertEquals(
+      "1",
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW)
+    )
+    assertEquals(
+      "0",
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN)
+    )
 
     val row0column2 = placeholders.single { it.region == Region(400, 0, 900, 200) }
     applyPlaceholderToSceneComponent(button2, row0column2)
     mySceneManager.update()
-    assertEquals("0", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW))
-    assertEquals("2", button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN))
+    assertEquals(
+      "0",
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_ROW)
+    )
+    assertEquals(
+      "2",
+      button2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_LAYOUT_COLUMN)
+    )
   }
 
   fun testGapPlaceholder() {
-    // GridLayout has gap area if row and/or column indices are not continue. This test checks the Placeholder of gap area.
+    // GridLayout has gap area if row and/or column indices are not continue. This test checks the
+    // Placeholder of gap area.
     val gridLayout = myScene.getSceneComponent("grid")!!
 
     val handler = GridLayoutHandler()
     val placeholders = handler.getPlaceholders(gridLayout, emptyList())
 
-    val gapPlaceholders = placeholders.filter { it.region.left == 400 }.filter { it.region.top == 400 }
+    val gapPlaceholders =
+      placeholders.filter { it.region.left == 400 }.filter { it.region.top == 400 }
     assertEquals(1, gapPlaceholders.size)
 
     val attributeHolder = TestNlAttributeHolder()
@@ -132,47 +153,54 @@ class GridPlaceholderTest : SceneTest() {
     assertEquals(900, gapPlaceholder.region.right)
     assertEquals(900, gapPlaceholder.region.bottom)
     gapPlaceholder.updateAttribute(Mockito.mock(SceneComponent::class.java), attributeHolder)
-    assertEquals("2", attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW))
-    assertEquals("2", attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN))
+    assertEquals(
+      "2",
+      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW)
+    )
+    assertEquals(
+      "2",
+      attributeHolder.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN)
+    )
   }
 
   override fun createModel(): ModelBuilder {
-    return model("gridlayout.xml",
-                 component(SdkConstants.GRID_LAYOUT)
-                   .withBounds(0, 0, 2000, 2000)
-                   .id("@id/grid")
-                   .width("1000dp")
-                   .height("1000dp")
-                   .children(
-                     component(SdkConstants.BUTTON)
-                       .withBounds(0, 0, 400, 400)
-                       .id("@id/button1")
-                       .width("200dp")
-                       .height("200dp")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "0")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "0"),
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(400, 400, 400, 400)
-                       .id("@id/textView")
-                       .width("200dp")
-                       .height("200dp")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "1")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "1"),
-                     component(SdkConstants.BUTTON)
-                       .withBounds(400, 0, 400, 400)
-                       .id("@id/button2")
-                       .width("200dp")
-                       .height("200dp")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "0")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "1"),
-                     component(SdkConstants.BUTTON)
-                       .withBounds(1800, 1800, 200, 200)
-                       .id("@id/button3")
-                       .width("100dp")
-                       .height("100dp")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "3")
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "3")
-                   )
+    return model(
+      "gridlayout.xml",
+      component(SdkConstants.GRID_LAYOUT)
+        .withBounds(0, 0, 2000, 2000)
+        .id("@id/grid")
+        .width("1000dp")
+        .height("1000dp")
+        .children(
+          component(SdkConstants.BUTTON)
+            .withBounds(0, 0, 400, 400)
+            .id("@id/button1")
+            .width("200dp")
+            .height("200dp")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "0")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "0"),
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(400, 400, 400, 400)
+            .id("@id/textView")
+            .width("200dp")
+            .height("200dp")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "1")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "1"),
+          component(SdkConstants.BUTTON)
+            .withBounds(400, 0, 400, 400)
+            .id("@id/button2")
+            .width("200dp")
+            .height("200dp")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "0")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "1"),
+          component(SdkConstants.BUTTON)
+            .withBounds(1800, 1800, 200, 200)
+            .id("@id/button3")
+            .width("100dp")
+            .height("100dp")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_ROW, "3")
+            .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_COLUMN, "3")
+        )
     )
   }
 }

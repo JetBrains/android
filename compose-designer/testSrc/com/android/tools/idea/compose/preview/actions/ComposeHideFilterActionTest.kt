@@ -45,7 +45,7 @@ class ComposeHideFilterActionTest {
     manager.isFilterEnabled = true
 
     val action = ComposeHideFilterAction(surface)
-    action.actionPerformed(TestActionEvent(DataContext.EMPTY_CONTEXT))
+    action.actionPerformed(TestActionEvent.createTestEvent(DataContext.EMPTY_CONTEXT))
 
     assertFalse(manager.isFilterEnabled)
   }
@@ -62,22 +62,23 @@ class ComposeHideFilterActionTest {
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     manager.isFilterEnabled = true
 
+    val presentation = Presentation()
     val action = ComposeHideFilterAction(surface)
 
     whenever(sceneView1.isVisible).thenReturn(false)
     whenever(sceneView2.isVisible).thenReturn(false)
-    val eventOne = TestActionEvent.createTestEvent()
+    val eventOne = TestActionEvent.createTestToolbarEvent(presentation)
     action.update(eventOne)
     assertEquals("no result", eventOne.presentation.text)
 
     val eventTwo = TestActionEvent.createTestEvent()
     whenever(sceneView1.isVisible).thenReturn(true)
-    action.update(eventTwo)
+    action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertEquals("1 result", eventTwo.presentation.text)
 
     val eventThree = TestActionEvent.createTestEvent()
     whenever(sceneView2.isVisible).thenReturn(true)
-    action.update(eventThree)
+    action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertEquals("2 results", eventThree.presentation.text)
   }
 }

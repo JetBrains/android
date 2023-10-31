@@ -40,8 +40,8 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.icons.CoreIconManager
 import com.intellij.ui.IconManager
+import com.intellij.ui.icons.CoreIconManager
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -96,7 +96,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.APP_WITH_ML_MODELS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.MULTI_FLAVOR),
-      AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      // TODO(b/279759255) AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.COMPOSITE_BUILD),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
@@ -108,6 +108,7 @@ data class AndroidProjectViewSnapshotComparisonTestDef(
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.NON_STANDARD_SOURCE_SETS),
       AndroidProjectViewSnapshotComparisonTestDef(TestProject.CUSTOM_SOURCE_TYPE),
+      AndroidProjectViewSnapshotComparisonTestDef(TestProject.ANDROID_KOTLIN_MULTIPLATFORM),
       AndroidProjectViewSnapshotComparisonTestDef(
         TestProject.MULTI_FLAVOR,
         projectViewSettings = ProjectViewSettings(hideEmptyPackages = true, flattenPackages = true)

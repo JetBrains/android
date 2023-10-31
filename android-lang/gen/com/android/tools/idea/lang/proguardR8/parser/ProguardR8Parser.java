@@ -461,7 +461,7 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // "!"?(interface|class|enum)
+  // "!"?(interface|class|enum|AT_INTERFACE)
   public static boolean class_type(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_type")) return false;
     boolean result;
@@ -479,13 +479,14 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // interface|class|enum
+  // interface|class|enum|AT_INTERFACE
   private static boolean class_type_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "class_type_1")) return false;
     boolean result;
     result = consumeToken(builder, INTERFACE);
     if (!result) result = consumeToken(builder, CLASS);
     if (!result) result = consumeToken(builder, ENUM);
+    if (!result) result = consumeToken(builder, AT_INTERFACE);
     return result;
   }
 

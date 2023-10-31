@@ -18,8 +18,10 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )
 
@@ -52,5 +54,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )

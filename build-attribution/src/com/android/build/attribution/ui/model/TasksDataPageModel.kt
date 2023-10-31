@@ -36,7 +36,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
@@ -247,7 +246,7 @@ private class TasksTreeStructure(
     }
     treeStats.filtersAreApplied = (filter != TasksFilter.DEFAULT)
     treeStats.filteredTaskTimesDistribution.seal()
-    treeStats.totalTasksTimeMs = reportData.criticalPathTasks.tasks.sumByLong { it.executionTime.timeMs }
+    treeStats.totalTasksTimeMs = reportData.criticalPathTasks.tasks.sumOf { it.executionTime.timeMs }
   }
 
   private fun createUngroupedNodes(filter: TasksFilter, treeStats: TreeStats) {
@@ -371,8 +370,8 @@ class EntryDetailsNodeDescriptor(
   val filteredTaskNodes: List<TaskUiData>,
   timeDistributionBuilder: TimeDistributionBuilder
 ) : TasksTreePresentableNodeDescriptor() {
-  private val filteredWarningCount = filteredTaskNodes.count { it.hasWarning }
-  val filteredEntryTime = timeDistributionBuilder.registerTimeEntry(filteredTaskNodes.sumByLong { it.executionTime.timeMs })
+  val filteredWarningCount = filteredTaskNodes.count { it.hasWarning }
+  val filteredEntryTime = timeDistributionBuilder.registerTimeEntry(filteredTaskNodes.sumOf { it.executionTime.timeMs })
   override val pageId = when (entryData) {
     is CriticalPathPluginUiData -> TasksPageId.plugin(entryData)
     is CriticalPathTaskCategoryUiData -> TasksPageId.taskCategory(entryData.taskCategory)

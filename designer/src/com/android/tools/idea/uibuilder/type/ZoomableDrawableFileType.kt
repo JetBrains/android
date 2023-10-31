@@ -17,7 +17,21 @@ package com.android.tools.idea.uibuilder.type
 
 import com.android.SdkConstants
 
-object ZoomableDrawableFileType : DrawableFileType(
-  setOf(SdkConstants.TAG_BITMAP, SdkConstants.TAG_CLIP_PATH, SdkConstants.TAG_GRADIENT, SdkConstants.TAG_INSET, SdkConstants.TAG_LAYER_LIST,
-        SdkConstants.TAG_NINE_PATCH, SdkConstants.TAG_PATH, SdkConstants.TAG_RIPPLE, SdkConstants.TAG_ROTATE, SdkConstants.TAG_SHAPE,
-        SdkConstants.TAG_TRANSITION, SdkConstants.TAG_VECTOR))
+object ZoomableDrawableFileType :
+  DrawableFileType(
+    setOf(
+      SdkConstants.TAG_BITMAP,
+      SdkConstants.TAG_CLIP_PATH,
+      SdkConstants.TAG_DRAWABLE,
+      SdkConstants.TAG_GRADIENT,
+      SdkConstants.TAG_INSET,
+      SdkConstants.TAG_LAYER_LIST,
+      SdkConstants.TAG_NINE_PATCH,
+      SdkConstants.TAG_PATH,
+      SdkConstants.TAG_RIPPLE,
+      SdkConstants.TAG_ROTATE,
+      SdkConstants.TAG_SHAPE,
+      SdkConstants.TAG_TRANSITION,
+      SdkConstants.TAG_VECTOR
+    )
+  )

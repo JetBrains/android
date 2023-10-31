@@ -60,7 +60,6 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       if (model.installationType.get() != FirstRunModel.InstallationType.CUSTOM) {
         addStep(InstallationTypeWizardStep(model))
       }
-      addStep(SelectThemeStep())
       if (mode == FirstRunWizardMode.MISSING_SDK) {
         addStep(MissingSdkAlertStep())
       }

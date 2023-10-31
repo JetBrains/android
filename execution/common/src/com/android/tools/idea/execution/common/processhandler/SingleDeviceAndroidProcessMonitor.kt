@@ -120,6 +120,7 @@ class SingleDeviceAndroidProcessMonitor(
         // Stop polling once we reach at the terminal state.
         myStateUpdaterScheduledFuture?.cancel(false)
         myStateUpdaterScheduledFuture = null
+        myTimeoutScheduledFuture?.cancel(false)
         myTimeoutScheduledFuture = null
         return
       }
@@ -198,10 +199,8 @@ class SingleDeviceAndroidProcessMonitor(
   override fun close() {
 
     when (myState) {
-      WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
+      INIT, WAITING_FOR_PROCESS, PROCESS_IS_RUNNING -> {
         finishAndroidProcessCallback(targetDevice)
-        // For non-debuggable app we don't have a client, so we do our best shot - force stop.
-        targetDevice.forceStop(targetApplicationId)
         myState = PROCESS_FINISHED
       }
 

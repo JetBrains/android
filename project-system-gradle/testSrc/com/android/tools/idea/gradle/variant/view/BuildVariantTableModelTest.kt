@@ -76,6 +76,49 @@ class BuildVariantTableModelTest {
   }
 
   @Test
+  fun testDefaultVariantIndicator() {
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(
+        dependencyList = listOf(AndroidModuleDependency(":lib", "debug")),
+        defaultVariantName = "release"
+      ),
+      libModuleBuilder(defaultVariantName = "debug")
+    )
+    val model = BuildVariantTableModel.create(projectRule.project)
+    val appModule = projectRule.project.gradleModule(":app")!!
+    val libModule = projectRule.project.gradleModule(":lib")!!
+
+    expect.that(model.rows).hasSize(2)
+    expect.that(model.rows.getOrNull(0))
+      .isEqualTo(
+        BuildVariantTableRow(
+          module = appModule,
+          variant = "debug",
+          abi = null,
+          buildVariants =listOf(
+            BuildVariantItem("debug"),
+            BuildVariantItem("release", isDefault = true)
+          ),
+          abis = emptyList()
+        )
+      )
+    expect.that(model.rows.getOrNull(1))
+      .isEqualTo(
+        BuildVariantTableRow(
+          module = libModule,
+          variant = "debug",
+          abi = null,
+          buildVariants = listOf(
+            BuildVariantItem("debug", isDefault = true),
+            BuildVariantItem("release")
+          ),
+          abis = emptyList()
+        )
+      )
+  }
+
+  @Test
   fun withAbi() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
@@ -158,22 +201,24 @@ class BuildVariantTableModelTest {
 private fun appModuleBuilder(
   appPath: String = ":app",
   selectedVariant: String = "debug",
-  dependencyList: List<AndroidModuleDependency> = emptyList()
+  dependencyList: List<AndroidModuleDependency> = emptyList(),
+  defaultVariantName: String? = null
 ) =
   AndroidModuleModelBuilder(
     appPath,
     selectedVariant,
-    AndroidProjectBuilder(androidModuleDependencyList = { dependencyList })
+    AndroidProjectBuilder(androidModuleDependencyList = { dependencyList }, defaultVariantName = { defaultVariantName })
   )
 
 private fun libModuleBuilder(
   libPath: String = ":lib",
-  selectedVariant: String = "debug"
+  selectedVariant: String = "debug",
+  defaultVariantName: String? = null
 ) =
   AndroidModuleModelBuilder(
     libPath,
     selectedVariant,
-    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY })
+    AndroidProjectBuilder(projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, defaultVariantName = { defaultVariantName })
   )
 
 private fun ndkLibModuleBuilder(selectedVariant: String = "debug") =

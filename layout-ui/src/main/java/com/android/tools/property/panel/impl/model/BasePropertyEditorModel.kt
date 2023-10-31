@@ -21,6 +21,7 @@ import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.api.TableSupport
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.NewUiValue
@@ -34,15 +35,19 @@ import kotlin.properties.Delegates
  * A base implementation of a [PropertyEditorModel].
  *
  * Provides implementations of the following properties of an editor model.
+ *
  * @property property The property being edited
  * @property value The computed value of the property
  * @property visible Controls the visibility of the editor
- * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be requested to the editor.
+ * @property hasFocus Shows if an editor has focus. Setting this to true will cause focus to be
+ *   requested to the editor.
  */
-abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : PropertyEditorModel, DataProvider {
+abstract class BasePropertyEditorModel(initialProperty: PropertyItem) :
+  PropertyEditorModel, DataProvider {
   private val valueChangeListeners = mutableListOf<ValueChangedListener>()
 
-  override var property: PropertyItem by Delegates.observable(initialProperty) { _, _, _ -> fireValueChanged() }
+  override var property: PropertyItem by
+    Delegates.observable(initialProperty) { _, _, _ -> fireValueChanged() }
 
   override var value: String
     get() = property.value.orEmpty()
@@ -65,9 +70,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   /**
    * A focus request was made.
    *
-   * We cannot call a method in the UI to request focus.
-   * Instead [focusRequest] is temporarily set to true, and the Ui is
-   * requested to update itself. See the [requestFocus] function.
+   * We cannot call a method in the UI to request focus. Instead [focusRequest] is temporarily set
+   * to true, and the Ui is requested to update itself. See the [requestFocus] function.
    */
   var focusRequest = false
     private set
@@ -80,10 +84,12 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     }
   }
 
-  override var isUsedInRendererWithSelection: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+  override var isUsedInRendererWithSelection: Boolean by
+    Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   fun displayedIcon(icon: Icon?): Icon? =
-    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !NewUiValue.isEnabled()) ColoredIconGenerator.generateWhiteIcon(icon)
+    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !NewUiValue.isEnabled())
+      ColoredIconGenerator.generateWhiteIcon(icon)
     else icon
 
   fun displayedForeground(foreground: Color): Color =
@@ -92,7 +98,11 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   fun displayedBackground(background: Color): Color =
     if (isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else background
 
-  override var isExpandedTableItem: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+  override var isExpandedTableItem: Boolean by
+    Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+
+  override var tableExpansionState: TableExpansionState by
+    Delegates.observable(TableExpansionState.NORMAL) { _, _, _ -> fireValueChanged() }
 
   override var isCustomHeight = false
 
@@ -103,8 +113,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
    *
    * A noop for most editors. Boolean editors should override this method.
    */
-  override fun toggleValue() {
-  }
+  override fun toggleValue() {}
 
   val tooltip: String
     get() = property.tooltipForValue
@@ -124,16 +133,12 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   /**
    * The property value may have changed.
    *
-   * Implementations should override this method and update their
-   * internal state after the value of the property we are editing
-   * may have changed outside of the control of the editor.
+   * Implementations should override this method and update their internal state after the value of
+   * the property we are editing may have changed outside of the control of the editor.
    */
-  open fun updateValueFromProperty() {
-  }
+  open fun updateValueFromProperty() {}
 
-  /**
-   * UI components can delegate to this base model for help support.
-   */
+  /** UI components can delegate to this base model for help support. */
   override fun getData(dataId: String): Any? {
     if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) {
       return property

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import static com.android.tools.idea.concurrency.AsyncTestUtils.waitForCondition;
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT;
 
 import com.android.ide.common.resources.Locale;

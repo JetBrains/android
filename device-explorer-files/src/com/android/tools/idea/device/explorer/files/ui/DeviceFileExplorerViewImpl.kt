@@ -21,7 +21,6 @@ import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressLi
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.CopyPathMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.DeleteNodesMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.MenuContext
@@ -111,7 +110,7 @@ class DeviceFileExplorerViewImpl(
     setupPanel()
   }
 
-  override fun reportErrorRelatedToDevice(fileSystem: DeviceFileSystem, message: String, t: Throwable) {
+  override fun reportError(message: String, t: Throwable) {
     val messageToReport =  if (t.message != null) "$message: ${t.message}" else message
 
     // If there is an error related to a device, show the error "layer", hiding the other
@@ -121,10 +120,6 @@ class DeviceFileExplorerViewImpl(
 
   override fun reportErrorRelatedToNode(node: DeviceFileEntryNode, message: String, t: Throwable) {
     reportError(message, t, toolWindowID)
-  }
-
-  override fun reportMessageRelatedToDevice(fileSystem: DeviceFileSystem, message: String) {
-    panel.showMessageLayer(message)
   }
 
   override fun reportMessageRelatedToNode(node: DeviceFileEntryNode, message: String) {
@@ -159,16 +154,8 @@ class DeviceFileExplorerViewImpl(
     panel.progressPanel.setProgress(fraction)
   }
 
-  override fun setProgressOkColor() {
-    panel.progressPanel.setOkStatusColor()
-  }
-
   override fun setProgressWarningColor() {
     panel.progressPanel.setWarningStatusColor()
-  }
-
-  override fun setProgressErrorColor() {
-    panel.progressPanel.setErrorStatusColor()
   }
 
   override fun setProgressText(text: String) {
@@ -270,7 +257,7 @@ class DeviceFileExplorerViewImpl(
       val point = support.dropLocation.dropPoint
       val treePath = tree.getPathForLocation(point.getX().toInt(), point.getY().toInt()) ?: return false
       val node = DeviceFileEntryNode.fromNode(treePath.lastPathComponent)
-      return if (node != null && node.entry.isDirectory) {
+      return if (node != null && (node.entry.isDirectory || node.isSymbolicLinkToDirectory)) {
         listeners.forEach(Consumer { it.uploadFilesInvoked(node, files) })
         true
       }
@@ -358,12 +345,7 @@ class DeviceFileExplorerViewImpl(
         panel.showTree()
         val rootNode = DeviceFileEntryNode.fromNode(model.root)
         if (rootNode != null) {
-          tree.isRootVisible = false
           expandTreeNode(rootNode)
-        }
-        else {
-          // Show root, since it contains an error message (ErrorNode)
-          tree.isRootVisible = true
         }
       }
     }
@@ -406,8 +388,8 @@ class DeviceFileExplorerViewImpl(
       listeners.forEach(Consumer { it.deleteNodesInvoked(nodes) })
     }
 
-    override fun synchronizeNodes(nodes: List<DeviceFileEntryNode>) {
-      listeners.forEach(Consumer { it.synchronizeNodesInvoked(nodes) })
+    override fun synchronizeNodes() {
+      listeners.forEach(Consumer { it.synchronizeNodesInvoked() })
     }
 
     override fun newFile(node: DeviceFileEntryNode) {

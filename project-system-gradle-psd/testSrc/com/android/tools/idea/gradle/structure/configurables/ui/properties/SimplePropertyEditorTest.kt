@@ -336,7 +336,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   fun testUpdatesToNullValue() {
     val editor = SimplePropertyEditor(property.bind(model), property.bindContext(model), null, listOf())
     editor.commitTestText("")
-    assertThat(parsedModel.value, equalTo(ParsedValue.NotSet.annotated()))
+    assertThat<Annotated<ParsedValue<String>>>(parsedModel.value, equalTo(ParsedValue.NotSet.annotated()))
     // TODO(b/73811870): Assert the status message was updated correctly.
     assertThat(editor.testPlainTextStatus, equalTo("Resolved: value"))
     assertThat<Any?>(editor.selectedItem, equalTo(ParsedValue.NotSet.annotated()))
@@ -348,8 +348,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val referenceDslText = DslText.Reference("other.reference")
     translateDsl[referenceDslText] = ParsedValue.Set.Parsed(refValue, referenceDslText).annotated()
     editor.commitTestText("\$other.reference")
-    assertThat(parsedModel.value,
-               equalTo(ParsedValue.Set.Parsed(refValue, referenceDslText).annotated()))
+    assertThat<Annotated<ParsedValue<String>>>(parsedModel.value,
+                                               equalTo(ParsedValue.Set.Parsed(refValue, referenceDslText).annotated()))
     // TODO(b/73811870): Assert the status message was updated correctly.
     assertThat(editor.testPlainTextStatus, equalTo(""))
     assertThat<Any?>(editor.selectedItem,
@@ -363,8 +363,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
     val dslText = DslText.InterpolatedString("\$a and \$b")
     translateDsl[dslText] = ParsedValue.Set.Parsed(interpolatedValue, dslText).annotated()
     editor.commitTestText("\"\$a and \$b\"")
-    assertThat(parsedModel.value,
-               equalTo(
+    assertThat<Annotated<ParsedValue<String>>>(parsedModel.value,
+                                               equalTo(
                                                  ParsedValue.Set.Parsed(interpolatedValue,
                                                                         dslText).annotated()))
     // TODO(b/73811870): Assert the status message was updated correctly.
@@ -413,8 +413,8 @@ class SimplePropertyEditorTest : UsefulTestCase() {
   fun testHandlesInvalidInput() {
     val editor = SimplePropertyEditor(property.bind(model), property.bindContext(model), null, listOf())
     editor.commitTestText("invalid")  // "invalid" is recognised as an invalid input by the test parser.
-    assertThat(editor.getValue(), equalTo(invalidValueParsed))
-    assertThat(parsedModel.value, equalTo("value".asAnnotatedParsed()))
+    assertThat<Annotated<ParsedValue<String>>>(editor.getValue(), equalTo(invalidValueParsed))
+    assertThat<Annotated<ParsedValue<String>>>(parsedModel.value, equalTo("value".asAnnotatedParsed()))
   }
 
   fun testCreateNew() {

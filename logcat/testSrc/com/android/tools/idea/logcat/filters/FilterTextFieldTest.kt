@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.logcat.FakeLogcatPresenter
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
@@ -36,7 +35,6 @@ import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.Type.FILTER_ADDED_TO_HISTORY
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.asSequence
 import com.intellij.openapi.util.Disposer
@@ -81,7 +79,7 @@ class FilterTextFieldTest {
   private val project get() = projectRule.project
   private val filterHistory by lazy { AndroidLogcatFilterHistory.getInstance() }
   private val fakeLogcatPresenter by lazy { FakeLogcatPresenter().apply { Disposer.register(disposableRule.disposable, this) } }
-  private val logcatFilterParser by lazy { LogcatFilterParser(project, FakePackageNamesProvider()) }
+  private val logcatFilterParser by lazy { LogcatFilterParser(project, FakeProjectApplicationIdsProvider(project)) }
 
   @After
   fun tearDown() {
@@ -367,13 +365,13 @@ class FilterTextFieldTest {
   fun documentListenerIsCalled() = runBlocking {
     @Suppress("ConvertLambdaToReference") // More readable like this
     val filterTextField = runInEdtAndGet { filterTextField() }
-    val documentListener = mock<DocumentListener>()
+    val filterChangedListener = mock<FilterTextField.FilterChangedListener>()
 
-    filterTextField.addDocumentListener(documentListener)
+    filterTextField.addFilterChangedListener(filterChangedListener)
     runInEdtAndWait { filterTextField.text = "foo" }
 
     filterTextField.notifyFilterChangedTask.await()
-    verify(documentListener).documentChanged(any())
+    verify(filterChangedListener).onFilterChanged("foo", false)
   }
 
   @RunsInEdt
@@ -464,9 +462,10 @@ class FilterTextFieldTest {
     logcatPresenter: LogcatPresenter = fakeLogcatPresenter,
     filterParser: LogcatFilterParser = logcatFilterParser,
     initialText: String = "",
+    matchCase: Boolean = false,
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
   ) =
-    FilterTextField(project, logcatPresenter, filterParser, initialText, androidProjectDetector).apply {
+    FilterTextField(project, logcatPresenter, filterParser, initialText, matchCase, androidProjectDetector).apply {
       addNotify()  // Creates editor
       Disposer.register(disposableRule.disposable) {
         runInEdtAndWait {

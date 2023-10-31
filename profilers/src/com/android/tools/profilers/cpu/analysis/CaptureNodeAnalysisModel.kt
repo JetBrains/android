@@ -18,7 +18,6 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
-import kotlin.streams.toList
 
 data class CaptureNodeAnalysisModel(val node: CaptureNode,
                                     private val capture: CpuCapture,

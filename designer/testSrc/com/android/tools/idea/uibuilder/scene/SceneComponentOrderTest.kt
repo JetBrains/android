@@ -23,18 +23,22 @@ import com.android.tools.idea.common.model.createAndSelectComponents
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.PlatformTestUtil
 
-/**
- * Basic tests for creating and updating a Scene out of a NlModel
- */
+/** Basic tests for creating and updating a Scene out of a NlModel */
 class SceneComponentOrderTest : SceneTest() {
 
   fun testInsertComponentToHead() {
     val constraintLayout = myModel.find("root")!!
     val textView = myModel.find("textView")!!
 
-    val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
+    val editTextTag =
+      XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
     val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
-    myModel.createAndSelectComponents(listOf(editText), constraintLayout, textView, myModel.surface.selectionModel)
+    myModel.createAndSelectComponents(
+      listOf(editText),
+      constraintLayout,
+      textView,
+      myModel.surface.selectionModel
+    )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -49,7 +53,8 @@ class SceneComponentOrderTest : SceneTest() {
     val constraintLayout = myModel.find("root")!!
     val button = myModel.find("button")!!
 
-    val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
+    val editTextTag =
+      XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
     val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
     myModel.addComponents(listOf(editText), constraintLayout, button, InsertType.CREATE) {
       myModel.surface.selectionModel.setSelection(listOf(editText))
@@ -67,9 +72,15 @@ class SceneComponentOrderTest : SceneTest() {
   fun testAppendComponent() {
     val constraintLayout = myModel.find("root")!!
 
-    val editTextTag = XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
+    val editTextTag =
+      XmlElementFactory.getInstance(project).createTagFromText("<" + SdkConstants.EDIT_TEXT + "/>")
     val editText = myModel.createComponent(editTextTag, null, null, InsertType.CREATE)!!
-    myModel.createAndSelectComponents(listOf(editText), constraintLayout, null, myModel.surface.selectionModel)
+    myModel.createAndSelectComponents(
+      listOf(editText),
+      constraintLayout,
+      null,
+      myModel.surface.selectionModel
+    )
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     mySceneManager.update()
@@ -125,28 +136,29 @@ class SceneComponentOrderTest : SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("constraint.xml",
-                 component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
-                   .id("@+id/root")
-                   .withBounds(0, 0, 2000, 2000)
-                   .width("1000dp")
-                   .height("1000dp")
-                   .children(
-                     component(SdkConstants.TEXT_VIEW)
-                       .id("@+id/textView")
-                       .withBounds(200, 400, 200, 40)
-                       .width("100dp")
-                       .height("20dp")
-                       .withAttribute("tools:layout_editor_absoluteX", "100dp")
-                       .withAttribute("tools:layout_editor_absoluteY", "200dp"),
-                     component(SdkConstants.BUTTON)
-                       .id("@+id/button")
-                       .withBounds(400, 800, 200, 40)
-                       .width("100dp")
-                       .height("20dp")
-                       .withAttribute("tools:layout_editor_absoluteX", "200dp")
-                       .withAttribute("tools:layout_editor_absoluteY", "400dp")
-                   )
+    return model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
+        .id("@+id/root")
+        .withBounds(0, 0, 2000, 2000)
+        .width("1000dp")
+        .height("1000dp")
+        .children(
+          component(SdkConstants.TEXT_VIEW)
+            .id("@+id/textView")
+            .withBounds(200, 400, 200, 40)
+            .width("100dp")
+            .height("20dp")
+            .withAttribute("tools:layout_editor_absoluteX", "100dp")
+            .withAttribute("tools:layout_editor_absoluteY", "200dp"),
+          component(SdkConstants.BUTTON)
+            .id("@+id/button")
+            .withBounds(400, 800, 200, 40)
+            .width("100dp")
+            .height("20dp")
+            .withAttribute("tools:layout_editor_absoluteX", "200dp")
+            .withAttribute("tools:layout_editor_absoluteY", "400dp")
+        )
     )
   }
 }

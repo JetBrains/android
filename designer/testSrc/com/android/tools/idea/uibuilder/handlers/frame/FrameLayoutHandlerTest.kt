@@ -29,65 +29,77 @@ class FrameLayoutHandlerTest : SceneTest() {
   // needs to be rewritten for the Target architecture
   fun ignore_testDragNothing() {
     screen(myModel)
-        .get("@id/myText1")
-        .resize(TOP, RIGHT)
-        .drag(0, 0)
-        .release()
-        .expectWidth("100dp")
-        .expectHeight("100dp")
+      .get("@id/myText1")
+      .resize(TOP, RIGHT)
+      .drag(0, 0)
+      .release()
+      .expectWidth("100dp")
+      .expectHeight("100dp")
   }
 
   // needs to be rewritten for the Target architecture
   fun ignore_testCancel() {
     screen(myModel)
-        .get("@id/myText1")
-        .resize(TOP)
-        .drag(20, 30)
-        .cancel()
-        .expectWidth("100dp")
-        .expectHeight("100dp")
+      .get("@id/myText1")
+      .resize(TOP)
+      .drag(20, 30)
+      .cancel()
+      .expectWidth("100dp")
+      .expectHeight("100dp")
   }
 
   fun testResize() {
     myInteraction.select("myText1", true)
     myInteraction.mouseDown("myText1", ResizeBaseTarget.Type.RIGHT_BOTTOM)
     myInteraction.mouseRelease(220f, 230f)
-    myScreen.get("@id/myText1")
-        .expectXml("<TextView\n" +
-            "        android:id=\"@id/myText1\"\n" +
-            "        android:layout_width=\"170dp\"\n" +
-            "        android:layout_height=\"180dp\" />")
+    myScreen
+      .get("@id/myText1")
+      .expectXml(
+        "<TextView\n" +
+          "        android:id=\"@id/myText1\"\n" +
+          "        android:layout_width=\"170dp\"\n" +
+          "        android:layout_height=\"180dp\" />"
+      )
   }
 
   fun testDrag() {
     myInteraction.select("myText1", true)
     myInteraction.mouseDown("myText1")
     myInteraction.mouseRelease(-100f, -100f)
-    myScreen.get("@id/myText1")
-        .expectXml("<TextView\n" +
-            "        android:id=\"@id/myText1\"\n" +
-            "        android:layout_width=\"100dp\"\n" +
-            "        android:layout_height=\"100dp\" />")
+    myScreen
+      .get("@id/myText1")
+      .expectXml(
+        "<TextView\n" +
+          "        android:id=\"@id/myText1\"\n" +
+          "        android:layout_width=\"100dp\"\n" +
+          "        android:layout_height=\"100dp\" />"
+      )
   }
 
   override fun createModel(): ModelBuilder {
-    val builder = model("frame.xml",
+    val builder =
+      model(
+        "frame.xml",
         component(FRAME_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .matchParentWidth()
-            .matchParentHeight()
-            .children(
-                component(TEXT_VIEW)
-                    .withBounds(100, 100, 100, 100)
-                    .id("@id/myText1")
-                    .width("100dp")
-                    .height("100dp")
-            ))
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+          .children(
+            component(TEXT_VIEW)
+              .withBounds(100, 100, 100, 100)
+              .id("@id/myText1")
+              .width("100dp")
+              .height("100dp")
+          )
+      )
 
     val model = builder.build()
     assertEquals(1, model.components.size)
-    assertEquals("NlComponent{tag=<FrameLayout>, bounds=[0,0:1000x1000}\n" + "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
-        NlTreeDumper.dumpTree(model.components))
+    assertEquals(
+      "NlComponent{tag=<FrameLayout>, bounds=[0,0:1000x1000}\n" +
+        "    NlComponent{tag=<TextView>, bounds=[100,100:100x100}",
+      NlTreeDumper.dumpTree(model.components)
+    )
     format(model.file)
 
     return builder

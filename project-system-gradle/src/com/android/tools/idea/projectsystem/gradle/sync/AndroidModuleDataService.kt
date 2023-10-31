@@ -18,11 +18,13 @@ package com.android.tools.idea.projectsystem.gradle.sync
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.facet.AndroidArtifactFacet
+import com.android.tools.idea.flags.StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
+import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
@@ -46,9 +48,10 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
-import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.AndroidSdkSupportConfiguration
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
@@ -120,7 +123,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
         val androidFacet = modelsProvider.getModifiableFacetModel(module).getFacetByType(AndroidFacet.ID)
           ?: createAndroidFacet(module, facetModel)
-        // Configure that Android facet from the information in the AndroidModuleModel.
+        // Configure that Android facet from the information in the GradleAndroidModel.
         val gradleAndroidModel = modelFactory(androidModel)
         configureFacet(androidFacet, module, gradleAndroidModel)
 
@@ -227,9 +230,19 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 
     ProjectSetup(project).setUpProject(false /* sync successful */)
 
-    RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
-
     ProjectStructure.getInstance(project).analyzeProjectStructure()
+
+    if (ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
+      val serverFlag = ServerFlagService.instance.getProtoOrNull(
+        "feature/studio_api_level_support", AndroidSdkSupportConfiguration.getDefaultInstance()
+      )?.androidApiStudioVersionMappingMap
+
+      AndroidSdkCompatibilityChecker.getInstance().checkAndroidSdkVersion(
+        imported,
+        project,
+        serverFlag
+      )
+    }
   }
 
   override fun postProcess(
@@ -292,43 +305,44 @@ private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel)
 }
 
 /**
- * Configures the given [androidFacet] with the information that is present in the given [androidModuleModel].
+ * Configures the given [androidFacet] with the information that is present in the given [gradleAndroidModel].
  *
- * Note: we use the currently selected variant of the [androidModuleModel] to perform the configuration.
+ * Note: we use the currently selected variant of the [gradleAndroidModel] to perform the configuration.
  */
-private fun configureFacet(androidFacet: AndroidFacet, module: Module, androidModuleModel: GradleAndroidModel) {
+private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAndroidModel: GradleAndroidModel) {
   @Suppress("DEPRECATION") // One of the legitimate assignments to the property.
   androidFacet.properties.ALLOW_USER_CONFIGURATION = false
   @Suppress("DEPRECATION")
-  androidFacet.properties.PROJECT_TYPE = when (androidModuleModel.androidProject.projectType) {
+  androidFacet.properties.PROJECT_TYPE = when (gradleAndroidModel.androidProject.projectType) {
     IdeAndroidProjectType.PROJECT_TYPE_ATOM -> AndroidProjectTypes.PROJECT_TYPE_ATOM
     IdeAndroidProjectType.PROJECT_TYPE_APP -> AndroidProjectTypes.PROJECT_TYPE_APP
     IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE
     IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> AndroidProjectTypes.PROJECT_TYPE_FEATURE
     IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
     IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+    IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY
     IdeAndroidProjectType.PROJECT_TYPE_TEST -> AndroidProjectTypes.PROJECT_TYPE_TEST
   }
 
-  val modulePath = androidModuleModel.rootDirPath
-  val sourceProvider = androidModuleModel.defaultSourceProvider
+  val modulePath = gradleAndroidModel.rootDirPath
+  val sourceProvider = gradleAndroidModel.defaultSourceProvider
   androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider.manifestFile)
   androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.resDirectories.firstOrNull())
   androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.assetsDirectories.firstOrNull())
 
   androidFacet.properties.RES_FOLDERS_RELATIVE_PATH = when {
     module.isMainModule() ->
-      (androidModuleModel.activeSourceProviders.flatMap { provider ->
+      (gradleAndroidModel.activeSourceProviders.flatMap { provider ->
         provider.resDirectories
-      } + androidModuleModel.mainArtifact.generatedResourceFolders).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
+      } + gradleAndroidModel.mainArtifact.generatedResourceFolders).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
         VfsUtilCore.pathToUrl(file.absolutePath)
       }
     else -> ""
   }
 
-  val testGenResources = androidModuleModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
+  val testGenResources = gradleAndroidModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
   // Why don't we include the standard unit tests source providers here?
-  val testSourceProviders = androidModuleModel.androidTestSourceProviders
+  val testSourceProviders = gradleAndroidModel.androidTestSourceProviders
   androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = when {
     module.isAndroidTestModule() ->
       (testSourceProviders.flatMap { provider ->
@@ -339,8 +353,8 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, androidMo
     else -> ""
   }
 
-  AndroidModel.set(androidFacet, androidModuleModel)
-  syncSelectedVariant(androidFacet, androidModuleModel.selectedVariant)
+  AndroidModel.set(androidFacet, gradleAndroidModel)
+  syncSelectedVariant(androidFacet, gradleAndroidModel.selectedVariant)
 }
 
 // It is safe to use "/" instead of File.separator. JpsAndroidModule uses it.
@@ -361,6 +375,9 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
 
 internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
-    ?: error("IDE library table node not found")
-  return IdeLibraryModelResolverImpl.fromLibraryTable(libraryTable)
+  val kmpLibraries = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE)?.data
+  if (libraryTable == null && kmpLibraries == null) {
+    error("IDE library table node not found")
+  }
+  return IdeLibraryModelResolverImpl.fromLibraryTables(libraryTable, kmpLibraries)
 }

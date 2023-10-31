@@ -32,13 +32,13 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.awt.FlowLayout
 import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 /** Interface for converting some model input into a UI component. */
 interface ComponentProvider<T> {

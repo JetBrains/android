@@ -18,13 +18,9 @@ package com.android.tools.idea.structure.dialog;
 import static com.intellij.util.ui.UIUtil.getLabelFont;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.ui.components.BrowserLink;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Cursor;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import javax.swing.JLabel;
 
 public class VersionCatalogWarningHeader extends Header {
   public VersionCatalogWarningHeader() {

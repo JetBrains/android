@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.CacheStats
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit
  */
 class CachingLoader(
   private val delegate: DelegatingClassLoader.Loader,
-  private val cacheBuilder: CacheBuilder<String, ByteArray>) : DelegatingClassLoader.Loader {
+  val cacheBuilder: CacheBuilder<String, ByteArray>) : DelegatingClassLoader.Loader {
 
   constructor(delegate: DelegatingClassLoader.Loader,
               expireAfterWriteMs: Long = DEFAULT_EXPIRE_AFTER_WRITE_MS,

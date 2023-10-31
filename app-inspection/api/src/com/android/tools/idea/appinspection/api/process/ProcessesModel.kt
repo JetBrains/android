@@ -20,8 +20,8 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
-import java.util.concurrent.Executor
 import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.Executor
 
 /**
  * Model class that owns a list of active [ProcessDescriptor] targets with listeners that trigger
@@ -116,6 +116,10 @@ class ProcessesModel(
   /** Add a listener which will be triggered with the selected process when it changes. */
   fun addSelectedProcessListeners(executor: Executor, listener: () -> Unit) {
     synchronized(lock) { selectedProcessListeners[listener] = executor }
+  }
+
+  fun removeSelectedProcessListener(listener: () -> Unit) {
+    synchronized(lock) { selectedProcessListeners.remove(listener) }
   }
 
   @TestOnly

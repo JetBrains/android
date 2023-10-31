@@ -27,6 +27,7 @@ import com.android.utils.FileUtils;
 import com.android.utils.PathUtils;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.SystemProperties;
 import java.io.BufferedReader;
@@ -124,7 +125,7 @@ public class TestUtils {
       return homePath.resolve("plugins/Kotlin/kotlinc/build.txt");
     }
     else {
-      return resolveWorkspacePath(
+      return getWorkspaceFile(
         "prebuilts/tools/common/kotlin-plugin/Kotlin/kotlinc/build.txt");
     }
   }
@@ -189,9 +190,9 @@ public class TestUtils {
    * <p>From this path, you should be able to access any file in the workspace via its full path,
    * e.g.
    *
-   * <p>TestUtils.getWorkspaceRoot().resolve("tools/adt/idea/android/testSrc");
+   * <p>TestUtils.resolveWorkspacePath("tools/adt/idea/android/testSrc");
    *
-   * <p>TestUtils.getWorkspaceRoot().resolve("prebuilts/studio/jdk");
+   * <p>TestUtils.resolveWorkspacePath("prebuilts/studio/jdk");
    *
    * <p>If this method is called by code run via IntelliJ / Gradle, it will simply walk its
    * ancestor tree looking for the WORKSPACE file at its root; if called from Bazel, it will
@@ -239,40 +240,24 @@ public class TestUtils {
    * @throws IllegalArgumentException if the path results in a file that's not found.
    */
   @NonNull
-  public static Path resolveWorkspacePath(@NonNull String relativePath) {
-    String ijRelativeFile = mapRelativePath(relativePath);
-    if (!ijRelativeFile.equals(relativePath)) {
-      Path path = Paths.get(PathManager.getHomePath(), ijRelativeFile);
-      if (!Files.exists(path)) {
-        throw new IllegalArgumentException("File \"" + path + "\" not found");
-      }
-      return path;
-    }
-
-    return legacyWorkspaceFile(relativePath);
-  }
-
-  // returns path relative to PathManager.getHomePath(). TODO: in idea PathManager.getHomePath() should work as workspace root.
-  @NonNull
-  private static String mapRelativePath(@NonNull String relativePath) {
+  public static Path getWorkspaceFile(@NonNull String path) {
+    path = FileUtil.normalize(path);
     Map<String, String> pathMappings = new HashMap<>();
-    Path homePath = Paths.get(PathManager.getHomePath());
-    Path communityHomePath = Paths.get(PathManager.getCommunityHomePath());
-
-    pathMappings.put("tools/adt/idea", homePath.relativize(communityHomePath) + "/android");
-    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", "out/artifacts/KotlinPlugin");
+    pathMappings.put("tools/adt/idea", PathManager.getCommunityHomePath() + "/android");
+    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", PathManager.getHomePath() + "/out/artifacts/KotlinPlugin");
 
     for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
       String aospPathPrefix = entry.getKey();
       String ijPathPrefix = entry.getValue();
-      if (relativePath.startsWith(aospPathPrefix)){
-        String ijFile = ijPathPrefix + relativePath.substring(aospPathPrefix.length());
-        return ijFile;
+      if (path.startsWith(aospPathPrefix)) {
+        String ijFile = ijPathPrefix + path.substring(aospPathPrefix.length());
+        return Paths.get(ijFile);
       }
     }
 
-    return relativePath;
+    return legacyWorkspaceFile(path);
   }
+
 
   /**
    * Gets the path to a specific Bazel workspace.
@@ -281,27 +266,10 @@ public class TestUtils {
   public static Path getWorkspaceRoot(@NonNull String workspaceName) throws IOException {
     throw new UnsupportedOperationException("Multiple workspace roots are not supported");
   }
-
-  @NonNull
-  private static Path legacyWorkspaceFile(@NonNull String path) {
-    Path f = getWorkspaceRoot().resolve(path);
-
-    if (!Files.exists(f) && OsType.getHostOs() == OsType.WINDOWS) {
-      // This file may be a binary with a .exe extension
-      f = Paths.get(f.toAbsolutePath().toString() + ".exe");
-    }
-
-    if (!Files.exists(f)) {
-      throw new IllegalArgumentException("File \"" + path + "\" not found at \"" + getWorkspaceRoot() + "\"");
-    }
-
-    return f;
-  }
-
   /**
    * Given a relative path to a file or directory from the base of the current workspace, returns
    * the absolute path.
-   *
+   * <p>
    * This method don't check if the file actually exists
    */
   @NonNull
@@ -314,9 +282,21 @@ public class TestUtils {
     return getWorkspaceRoot().resolve(relativePath);
   }
 
-  /** Returns true if the file exists in the workspace. */
-  public static boolean workspaceFileExists(@NonNull String path) {
-    return Files.exists(resolveWorkspacePath(path));
+  /**
+   * Returns a file at {@code path} relative to the root for {@link #getLatestAndroidPlatform}.
+   *
+   * @throws IllegalStateException    if the current OS is not supported.
+   * @throws IllegalArgumentException if the path results in a file not found.
+   */
+  @NonNull
+  public static Path resolvePlatformPath(@NonNull String path, @NonNull TestType testType) {
+    String latestAndroidPlatform = getLatestAndroidPlatform();
+    Path file = getSdk().resolve(FD_PLATFORMS).resolve(latestAndroidPlatform).resolve(path);
+    if (Files.notExists(file)) {
+      throw new IllegalArgumentException(
+        "File \"" + path + "\" not found in platform " + latestAndroidPlatform);
+    }
+    return file;
   }
 
   public static enum TestType {
@@ -335,6 +315,82 @@ public class TestUtils {
       path = TestUtils.resolveWorkspacePathUnchecked("bazel-bin/" + bin);
     }
     return path;
+  }
+
+  /**
+   * Given a relative path to a file or directory from the base of the current workspace, returns
+   * the absolute path.
+   *
+   * <p>For example:
+   *
+   * <p>TestUtils.resolveWorkspacePath("tools/adt/idea/android/testSrc");
+   *
+   * <p>TestUtils.resolveWorkspacePath("prebuilts/studio/jdk");
+   *
+   * <p>This method guarantees the file or directory exists, throwing an exception if not found,
+   * so tests can safely use the file immediately after receiving it.
+   *
+   * <p>In order to have the same method call work on both Windows and non-Windows machines, if
+   * the current OS is Windows and the target path is found with a common windows extension on it,
+   * then it will automatically be returned, e.g. "/path/to/binary" -> "/path/to/binary.exe".
+   *
+   * @throws IllegalArgumentException if the path results in a file that's not found.
+   */
+  @NonNull
+  public static Path resolveWorkspacePath(@NonNull String relativePath) {
+    String ijRelativeFile = mapRelativePath(relativePath);
+    if (!ijRelativeFile.equals(relativePath)) {
+      Path path = Paths.get(PathManager.getHomePath(), ijRelativeFile);
+      if (!Files.exists(path)) {
+        throw new IllegalArgumentException("File \"" + path + "\" not found");
+      }
+      return path;
+    }
+
+    return legacyWorkspaceFile(relativePath);
+  }
+
+  // returns path relative to PathManager.getHomePath(). TODO: in idea PathManager.getHomePath() should work as workspace root.
+  @NonNull
+  private static String mapRelativePath(@NonNull String relativePathParam) {
+    String relativePath = FileUtils.toSystemIndependentPath(relativePathParam);
+    Map<String, String> pathMappings = new HashMap<>();
+    Path homePath = Paths.get(PathManager.getHomePath());
+    Path communityHomePath = Paths.get(PathManager.getCommunityHomePath());
+
+    pathMappings.put("tools/adt/idea", homePath.relativize(communityHomePath) + "/android");
+    pathMappings.put("prebuilts/tools/common/kotlin-plugin/Kotlin", "out/artifacts/KotlinPlugin");
+
+    for (Map.Entry<String, String> entry : pathMappings.entrySet()) {
+      String aospPathPrefix = entry.getKey();
+      String ijPathPrefix = entry.getValue();
+      if (relativePath.startsWith(aospPathPrefix)) {
+        return ijPathPrefix + relativePath.substring(aospPathPrefix.length());
+      }
+    }
+
+    return relativePath;
+  }
+
+  @NonNull
+  private static Path legacyWorkspaceFile(@NonNull String path) {
+    Path f = getWorkspaceRoot().resolve(path);
+
+    if (!Files.exists(f) && OsType.getHostOs() == OsType.WINDOWS) {
+      // This file may be a binary with a .exe extension
+      f = Paths.get(f.toAbsolutePath().toString() + ".exe");
+    }
+
+    if (!Files.exists(f)) {
+      throw new IllegalArgumentException("File \"" + path + "\" not found at \"" + getWorkspaceRoot() + "\"");
+    }
+
+    return f;
+  }
+
+  /** Returns true if the file exists in the workspace. */
+  public static boolean workspaceFileExists(@NonNull String path) {
+    return Files.exists(resolveWorkspacePath(path));
   }
 
   /**
@@ -518,7 +574,7 @@ public class TestUtils {
   @NonNull
   public static Path getLocalMavenRepoFile(@NonNull String path) {
     if (runningFromBazel()) {
-      return resolveWorkspacePath("../maven/repository/" + path);
+      return resolveWorkspacePath("../maven/repo/" + path);
     } else {
       return resolveWorkspacePath("prebuilts/tools/common/m2/repository/" + path);
     }
@@ -644,7 +700,7 @@ public class TestUtils {
 
   @NonNull
   public static String getLatestAndroidPlatform() {
-    return "android-" + ANDROID_PLATFORM_FOR_AGP_UNIT_TESTS;
+    return "android-33";
   }
 
   /**
@@ -895,6 +951,7 @@ public class TestUtils {
       && System.getenv("TEST_TMPDIR") != null);
   }
 
+
   private static void archiveFile(Path root, ArchiveOutputStream out, Path path)
     throws IOException {
     ZipArchiveEntry archiveEntry =
@@ -908,7 +965,8 @@ public class TestUtils {
           .relativize(Files.readSymbolicLink(path))
           .toString()
           .getBytes());
-    } else if (!Files.isDirectory(path)) {
+    }
+    else if (!Files.isDirectory(path)) {
       if (Files.isExecutable(path)) {
         archiveEntry.setUnixMode(archiveEntry.getUnixMode() | UNIX_EXECUTABLE_MODE);
       }
@@ -924,11 +982,13 @@ public class TestUtils {
           path -> {
             try {
               archiveFile(root, out, path);
-            } catch (IOException e) {
+            }
+            catch (IOException e) {
               throw new UncheckedIOException(e);
             }
           });
-    } catch (UncheckedIOException e) {
+    }
+    catch (UncheckedIOException e) {
       throw e.getCause();
     }
   }

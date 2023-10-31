@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -48,9 +48,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     if (!message.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
 
     val buildIssueComposer = BuildIssueComposer(message)
     val wrapperConfiguration = GradleUtil.getWrapperConfiguration(issueData.projectPath)
@@ -58,16 +56,22 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
 
       val pathAssembler = PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME, File(issueData.projectPath))
       val localDistribution = pathAssembler.getDistribution(wrapperConfiguration)
-      var zipFile = localDistribution.zipFile
-      if (zipFile.exists()) {
+      var stateFile = localDistribution.zipFile
+      if (!stateFile.exists()) {
+        stateFile = File(stateFile.parentFile, "${stateFile.name}.ok")
+      }
+      if (stateFile.exists()) {
         try {
-          zipFile = zipFile.canonicalFile
-        } catch (e : Exception) {}
+          stateFile = stateFile.canonicalFile
+        }
+        catch (e: Exception) {
+        }
 
-        buildIssueComposer.addDescription("The cached zip file ${zipFile} may be corrupted.")
+        buildIssueComposer.addDescription("The cached Gradle state file $stateFile may be corrupted.")
         buildIssueComposer.addQuickFix(
-          "Delete file and sync project", DeleteFileAndSyncQuickFix(zipFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
-         return buildIssueComposer.composeBuildIssue()
+          "Delete file and sync project",
+          DeleteFileAndSyncQuickFix(stateFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
+        return buildIssueComposer.composeBuildIssue()
       }
     }
     return null

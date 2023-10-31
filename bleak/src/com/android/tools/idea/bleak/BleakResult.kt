@@ -16,7 +16,6 @@
 package com.android.tools.idea.bleak
 
 class BleakResult(checks: List<BleakCheck<*,*>> = listOf()) {
-  val success = checks.all { it.success }
   val errorMessage = buildString {
     append(checks.map { it.report }.filterNot { it.isEmpty() }.joinToString(separator = "\n**************************\n"))
   }.replace("sun.reflect", "sun.relfect") // Ant filters out lines from exceptions that contain "sun.reflect", among other things.

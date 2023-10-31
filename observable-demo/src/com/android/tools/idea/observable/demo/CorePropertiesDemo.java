@@ -16,17 +16,7 @@
 package com.android.tools.idea.observable.demo;
 
 import com.android.tools.idea.observable.BindingsManager;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
-import com.android.tools.idea.observable.core.IntProperty;
-import com.android.tools.idea.observable.core.IntValueProperty;
-import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.observable.core.ObjectValueProperty;
-import com.android.tools.idea.observable.core.ObservableBool;
-import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.OptionalValueProperty;
-import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
+import com.android.tools.idea.observable.core.*;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.string.FormatExpression;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
@@ -37,16 +27,10 @@ import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.google.common.base.CaseFormat;
 import com.intellij.ui.components.JBLabel;
-import java.util.Optional;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.util.Optional;
 
 /**
  * Sample UI which allows modification of and bindings to a simple data model built with

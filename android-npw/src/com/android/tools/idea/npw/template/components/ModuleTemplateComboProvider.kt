@@ -33,6 +33,7 @@ class ModuleTemplateComboProvider(private val templates: List<NamedModuleTemplat
     val comboBoxModel = DefaultComboBoxModel(templates.toTypedArray())
 
     return ComboBox(comboBoxModel).apply {
+      name = "ModuleTemplateCombo"
       toolTipText = "<html>The source set within which to generate new project files.<br>" +
                     "If you specify a source set that does not yet exist on disk, a folder will be created for it.</html>"
       renderer = object : SimpleListCellRenderer<NamedModuleTemplate>() {

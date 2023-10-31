@@ -76,6 +76,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -360,6 +361,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return TraceProcessorServiceImpl.getInstance();
   }
 
+  @Override
+  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) {
+    ProfilerBuildAndLaunch.buildAndLaunchAction(profileableMode, component);
+  }
+
   /**
    * Implementation of {@link FeatureConfig} with values used in production.
    */
@@ -391,8 +397,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isVerboseLoggingEnabled() {
-      return StudioFlags.PROFILER_VERBOSE_LOGGING.get();
+    public boolean isTestingModeEnabled() {
+      return StudioFlags.PROFILER_TESTING_MODE.get();
     }
 
     @Override
@@ -413,6 +419,11 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     @Override
     public boolean isTaskBasedUxEnabled() {
       return StudioFlags.PROFILER_TASK_BASED_UX.get();
+    }
+
+    @Override
+    public boolean isTraceboxEnabled() {
+      return StudioFlags.PROFILER_TRACEBOX.get();
     }
   }
 }

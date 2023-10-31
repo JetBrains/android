@@ -24,6 +24,7 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.SignalType
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.selectionOf
 
@@ -36,19 +37,26 @@ internal val VitalsTimeIntervals =
     TimeIntervalFilter.SIXTY_DAYS
   )
 
-internal val VitalsFailureTypes =
-  listOf(FailureType.USER_PERCEIVED_ONLY, FailureType.BACKGROUND, FailureType.FOREGROUND)
-
 fun createVitalsFilters(
   /** Selection of [Version]s. */
   versions: MultiSelection<WithCount<Version>> = MultiSelection.emptySelection(),
   /** Selection of [TimeIntervalFilter]s. */
   timeInterval: Selection<TimeIntervalFilter> =
-    Selection(TimeIntervalFilter.TWENTY_EIGHT_DAYS, VitalsTimeIntervals),
+    Selection(TimeIntervalFilter.SEVEN_DAYS, VitalsTimeIntervals),
   failureTypeToggles: MultiSelection<FailureType> =
-    MultiSelection(VitalsFailureTypes.toSet(), VitalsFailureTypes),
+    MultiSelection(setOf(FailureType.FATAL), listOf(FailureType.FATAL, FailureType.ANR)),
   devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
   operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
     MultiSelection.emptySelection(),
-  signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
-) = Filters(versions, timeInterval, failureTypeToggles, devices, operatingSystems, signal)
+  signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED),
+  visibilityTypes: Selection<VisibilityType> = selectionOf(VisibilityType.ALL)
+) =
+  Filters(
+    versions,
+    timeInterval,
+    failureTypeToggles,
+    devices,
+    operatingSystems,
+    signal,
+    visibilityTypes
+  )

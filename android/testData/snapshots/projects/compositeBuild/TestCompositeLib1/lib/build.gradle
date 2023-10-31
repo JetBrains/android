@@ -25,7 +25,6 @@ android {
 }
 
 group = 'com.test.composite1'
-archivesBaseName = 'composite1'
 version = '1.0'
 
 dependencies {

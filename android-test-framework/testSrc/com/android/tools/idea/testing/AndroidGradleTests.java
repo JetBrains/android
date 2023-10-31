@@ -28,10 +28,8 @@ import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescri
 import static com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentUtil.resolveAgpVersionSoftwareEnvironment;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.application.ActionsKt.invokeAndWaitIfNeeded;
-import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
@@ -44,10 +42,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.repository.AgpVersion;
+import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -55,8 +56,11 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -68,9 +72,9 @@ import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderMa
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -87,6 +91,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -204,13 +209,19 @@ public class AndroidGradleTests {
 
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, TestUtils.getSdk().toFile());
-        updateGradleProperties(path);
+        try {
+          updateGradleProperties(path, AgpVersion.parse(pluginVersion), new AndroidVersion(compileSdkVersion));
+        }
+        catch (AndroidVersion.AndroidVersionException e) {
+          throw new IOException(e);
+        }
         // We need the wrapper for import to succeed
         createGradleWrapper(path, gradleVersion);
       }
       for (File child : notNullize(path.listFiles())) {
-        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, pluginVersion, kotlinVersion, compileSdkVersion, ndkVersion,
-                                              localRepos);
+        internalUpdateToolingVersionsAndPaths(
+          child, false, gradleVersion, pluginVersion, kotlinVersion, compileSdkVersion, ndkVersion, localRepos
+        );
       }
     }
     else if (fileAttributes.isRegularFile()) {
@@ -227,18 +238,6 @@ public class AndroidGradleTests {
 
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-api:(.+)['\"]", toolsBaseVersion);
         contents = replaceRegexGroup(contents, "om.android.tools.lint:lint-checks:(.+)['\"]", toolsBaseVersion);
-
-        // App compat version needs to match compile SDK
-        String appCompatMainVersion = compileSdkVersion;
-        // TODO(145548476): convert to androidx
-        try {
-          if (Integer.parseInt(appCompatMainVersion) < 29) {
-            contents = replaceRegexGroup(contents, "com.android.support:appcompat-v7:(\\+)", appCompatMainVersion + ".+");
-          }
-        }
-        catch (NumberFormatException e) {
-          // ignore
-        }
 
         contents = updateBuildToolsVersion(contents);
         contents = updateCompileSdkVersion(contents, compileSdkVersion);
@@ -363,11 +362,11 @@ public class AndroidGradleTests {
   public static void updateLocalProperties(@NotNull File projectRoot, @NotNull File sdkPath) throws IOException {
     LocalProperties localProperties = new LocalProperties(projectRoot);
     assertAbout(file()).that(sdkPath).named("Android SDK path").isDirectory();
-    localProperties.setAndroidSdkPath(sdkPath.getPath());
+    localProperties.setAndroidSdkPath(sdkPath);
     localProperties.save();
   }
 
-  public static void updateGradleProperties(@NotNull File projectRoot) throws IOException {
+  public static void updateGradleProperties(@NotNull File projectRoot, @NotNull AgpVersion agpVersion, @NotNull AndroidVersion androidVersion) throws IOException {
     GradleProperties gradleProperties = new GradleProperties(new File(projectRoot, FN_GRADLE_PROPERTIES));
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     String debugIntegrationTest = System.getenv("DEBUG_INNER_TEST");
@@ -391,6 +390,11 @@ public class AndroidGradleTests {
     gradleProperties.getProperties().setProperty("org.gradle.vfs.watch", "false");
     if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
       gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
+    }
+    if (agpVersion.compareTo(AgpVersions.getLatestKnown()) < 0) {
+      Set<String> current = new LinkedHashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(gradleProperties.getProperties().getProperty("android.suppressUnsupportedCompileSdk", "")));
+      current.add(androidVersion.getApiStringWithoutExtension());
+      gradleProperties.getProperties().setProperty("android.suppressUnsupportedCompileSdk", Joiner.on(",").join(current));
     }
 
     // IDEA does not use AndroidStudioGradleInstallationManager, Gradle JVM in this case is not deterministic, and often falls back
@@ -630,16 +634,26 @@ public class AndroidGradleTests {
 
     IdeSdks ideSdks = IdeSdks.getInstance();
     runWriteCommandAction(project, () -> {
-      if (IdeInfo.getInstance().isAndroidStudio()) {
-        if (!ideSdks.isUsingEnvVariableJdk()) {
-          ideSdks.setUseEmbeddedJdk();
-          applyJdkToProject(project, ideSdks.getJdk());
-        }
-        LOG.info("Set JDK to " + ideSdks.getJdkPath());
+      Sdk jdk = null;
+      if (!ideSdks.isUsingEnvVariableJdk()) {
+        Path jdkPath = IdeInfo.getInstance().isAndroidStudio()
+                       ? ideSdks.getEmbeddedJdkPath()
+                       : TestUtils.getEmbeddedJdk17Path();
+        jdk = ideSdks.setJdkPath(jdkPath);
       }
+      applyJdkToProject(project, ideSdks.getJdk());
+      LOG.info("Set JDK to " + ideSdks.getJdkPath());
 
       Sdks.allowAccessToSdk(projectDisposable);
+
+      final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
       ideSdks.setAndroidSdkPath(androidSdkPath);
+      Disposer.register(projectDisposable, () -> {
+        WriteAction.runAndWait(() -> {
+            AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.getAbsolutePath() : null);
+        });
+      });
+
       IdeSdks.removeJdksOn(projectDisposable);
 
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);
@@ -770,12 +784,7 @@ public class AndroidGradleTests {
 
   public static void addJdk8ToTableButUseCurrent() throws IOException {
     String jdk8Path = getEmbeddedJdk8Path();
-    Sdk jdk = Jdks.getInstance().createJdk(jdk8Path);
-    assertThat(jdk).isNotNull();
-    runWriteAction(() -> {
-      ProjectJdkTable.getInstance().addJdk(jdk);
-      return null;
-    });
+    Jdks.getInstance().createAndAddJdk(jdk8Path);
     overrideJdkToCurrentJdk();
   }
 

@@ -25,12 +25,12 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
 import com.intellij.util.indexing.FileContent
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtFile
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.psi.KtFile
 
 fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue =
   serializeAndDeserializeIndexValues(setOf(indexValue)).single()
@@ -59,6 +59,7 @@ private fun DaggerConceptIndexers.runIndexerOn(
 ): Map<String, Set<IndexValue>> {
   val fileContent: FileContent = mock()
   whenever(fileContent.psiFile).thenReturn(psiFile)
+  whenever(fileContent.contentAsText).thenReturn(psiFile.text)
   whenever(fileContent.fileType).thenReturn(fileType)
 
   return DaggerDataIndexer(this).map(fileContent)

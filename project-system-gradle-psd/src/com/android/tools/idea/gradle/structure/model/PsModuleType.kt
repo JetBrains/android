@@ -35,6 +35,7 @@ fun moduleTypeFromAndroidModuleType(androidModuleType: IdeAndroidProjectType?): 
   null -> PsModuleType.UNKNOWN
   IdeAndroidProjectType.PROJECT_TYPE_APP -> PsModuleType.ANDROID_APP
   IdeAndroidProjectType.PROJECT_TYPE_LIBRARY -> PsModuleType.ANDROID_LIBRARY
+  IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM -> PsModuleType.ANDROID_LIBRARY
   IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> PsModuleType.ANDROID_INSTANTAPP
   IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> PsModuleType.ANDROID_FEATURE
   IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE -> PsModuleType.ANDROID_DYNAMIC_FEATURE

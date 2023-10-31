@@ -21,25 +21,27 @@ import com.android.SdkConstants.PreferenceAttributes
 import com.android.SdkConstants.PreferenceClasses
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.resources.ResourceType
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.intellij.psi.PsiClass
 import org.jetbrains.android.dom.AndroidDomUtil
-import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
  * Temporary type resolver.
  *
- * Eventually we want the library and framework to specify the correct type for each attribute.
- * This is the fallback if this information is not available.
+ * Eventually we want the library and framework to specify the correct type for each attribute. This
+ * is the fallback if this information is not available.
  */
 object TypeResolver {
 
-  fun resolveType(name: String, attribute: AttributeDefinition?, componentClass: PsiClass?): NlPropertyType {
+  fun resolveType(
+    name: String,
+    attribute: AttributeDefinition?,
+    componentClass: PsiClass?
+  ): NlPropertyType {
     return lookupByName(name, componentClass)
-           ?: bySpecialType(name)
-           ?: fromAttributeDefinition(attribute)
-           ?: fallbackByName(name)
+      ?: bySpecialType(name) ?: fromAttributeDefinition(attribute) ?: fallbackByName(name)
   }
 
   private fun bySpecialType(name: String): NlPropertyType? {
@@ -47,7 +49,7 @@ object TypeResolver {
     for (type in types) {
       when (type) {
         ResourceType.ID -> return NlPropertyType.ID
-        //TODO: expand in a followup CL
+        // TODO: expand in a followup CL
         else -> {}
       }
     }
@@ -86,15 +88,11 @@ object TypeResolver {
       SdkConstants.ATTR_STYLE,
       "lineBreakStyle",
       "lineBreakWordStyle" -> NlPropertyType.STYLE
-
       SdkConstants.ATTR_CLASS -> NlPropertyType.FRAGMENT
-
       SdkConstants.ATTR_COMPLETION_HINT_VIEW,
       SdkConstants.ATTR_LAYOUT,
       SdkConstants.ATTR_SHOW_IN -> NlPropertyType.LAYOUT
-
       SdkConstants.ATTR_FONT_FAMILY -> NlPropertyType.FONT
-
       SdkConstants.ATTR_CONTENT,
       SdkConstants.ATTR_DROP_DOWN_ANCHOR,
       SdkConstants.ATTR_HANDLE,
@@ -111,9 +109,8 @@ object TypeResolver {
       SdkConstants.ATTR_NEXT_FOCUS_RIGHT,
       SdkConstants.ATTR_NEXT_FOCUS_UP,
       SdkConstants.ATTR_TOOLBAR_ID -> NlPropertyType.ID
-
-      SdkConstants.ATTR_EDITOR_EXTRAS -> NlPropertyType.ID // TODO: Support <input-extras> as resource type?
-
+      SdkConstants.ATTR_EDITOR_EXTRAS ->
+        NlPropertyType.ID // TODO: Support <input-extras> as resource type?
       SdkConstants.ATTR_BACKGROUND,
       SdkConstants.ATTR_BUTTON,
       SdkConstants.ATTR_CHECK_MARK,
@@ -167,21 +164,19 @@ object TypeResolver {
       SdkConstants.ATTR_SCROLLBAR_THUMB_VERTICAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_HORIZONTAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_VERTICAL,
-      SdkConstants.ATTR_STATUS_BAR_SCRIM -> NlPropertyType.DRAWABLE
-
+      SdkConstants.ATTR_STATUS_BAR_SCRIM,
+      "buttonCompat",
+      "trackDecoration" -> NlPropertyType.DRAWABLE
       SdkConstants.ATTR_IN_ANIMATION,
       SdkConstants.ATTR_OUT_ANIMATION,
       SdkConstants.ATTR_SHOW_MOTION_SPEC,
       SdkConstants.ATTR_HIDE_MOTION_SPEC,
-
       SdkConstants.ATTR_LAYOUT_ANIMATION,
       NavigationSchema.ATTR_ENTER_ANIM,
       NavigationSchema.ATTR_EXIT_ANIM,
       NavigationSchema.ATTR_POP_ENTER_ANIM,
       NavigationSchema.ATTR_POP_EXIT_ANIM -> NlPropertyType.ANIM
-
       SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NlPropertyType.ANIMATOR
-
       SdkConstants.ATTR_AM_PM_BACKGROUND_COLOR,
       SdkConstants.ATTR_AM_PM_TEXT_COLOR,
       SdkConstants.ATTR_BACKGROUND_TINT,
@@ -223,20 +218,25 @@ object TypeResolver {
       SdkConstants.ATTR_TINT,
       SdkConstants.ATTR_TRACK_TINT,
       "boxStrokeErrorColor",
+      "buttonIconTint",
       "checkedIconTint",
       "collapsedTitleTextColor",
       "dividerColor",
       "expandedTitleTextColor",
       "haloColor",
+      "liftOnScrollColor",
       "placeholderTextColor",
       "prefixTextColor",
+      "simpleItemSelectedRippleColor",
       "subheaderColor",
       "suffixTextColor",
       "thumbColor",
+      "thumbIconTint",
       "thumbStrokeColor",
       "tickColor",
       "tickColorActive",
       "tickColorInactive",
+      "trackDecorationTint",
       "dialTint",
       "hand_hourTint",
       "hand_minuteTint",
@@ -244,66 +244,49 @@ object TypeResolver {
       "trackColor",
       "trackColorActive",
       "trackColorInactive" -> NlPropertyType.COLOR_STATE_LIST
-
-      "values",  // actually an array of float for com.google.android.material.slider.RangeSlider
+      "values", // actually an array of float for com.google.android.material.slider.RangeSlider
       SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NlPropertyType.ARRAY
-
       "titlePositionInterpolator",
       SdkConstants.ATTR_INTERPOLATOR,
       SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NlPropertyType.INTERPOLATOR
-
       PreferenceAttributes.ATTR_ENTRY_VALUES,
-      PreferenceAttributes.ATTR_ENTRIES -> NlPropertyType.STRING_ARRAY
-
+      PreferenceAttributes.ATTR_ENTRIES,
+      "simpleItems" -> NlPropertyType.STRING_ARRAY
       SdkConstants.ATTR_IGNORE_GRAVITY -> NlPropertyType.THREE_STATE_BOOLEAN
-
       "value",
       "valueFrom",
       "valueTo" -> NlPropertyType.FLOAT
-
       SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
       SdkConstants.ATTR_LAYOUT_WIDTH_PERCENT,
       SdkConstants.ATTR_LAYOUT_HEIGHT_PERCENT,
       SdkConstants.ATTR_LAYOUT_HORIZONTAL_BIAS,
       SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS -> NlPropertyType.FRACTION
-
       "contentPadding",
       "contentPaddingBottom",
       "contentPaddingLeft",
       "contentPaddingRight",
       "contentPaddingTop",
       SdkConstants.ATTR_ELEVATION -> NlPropertyType.DIMENSION
-
       SdkConstants.ATTR_MENU -> NlPropertyType.MENU
-
       SdkConstants.ATTR_BACKGROUND_TINT_MODE -> NlPropertyType.ENUM
 
       // tools
       // TODO: Figure out a way to map this using ToolsAttributeUtil
       SdkConstants.ATTR_ITEM_COUNT -> NlPropertyType.INTEGER
       SdkConstants.ATTR_ACTION_BAR_NAV_MODE -> NlPropertyType.ENUM
-
       SdkConstants.ATTR_LISTFOOTER,
       SdkConstants.ATTR_LISTHEADER,
       SdkConstants.ATTR_LISTITEM -> NlPropertyType.LAYOUT
-
       SdkConstants.ATTR_GRAPH,
       SdkConstants.ATTR_NAV_GRAPH -> NlPropertyType.NAVIGATION
-
       NavigationSchema.ATTR_DESTINATION,
       SdkConstants.ATTR_START_DESTINATION,
       NavigationSchema.ATTR_POP_UP_TO -> NlPropertyType.DESTINATION
-
       SdkConstants.ATTR_NAME -> NlPropertyType.CLASS_NAME
-
       SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION -> NlPropertyType.XML
-
       SdkConstants.ATTR_MOTION_TARGET -> NlPropertyType.ID_OR_STRING
-
       SdkConstants.ATTR_MOTION_WAVE_OFFSET -> NlPropertyType.DIMENSION_UNIT_LESS
-
       PreferenceAttributes.ATTR_DEFAULT_VALUE -> defaultValueType(componentClass)
-
       else -> null
     }
 
@@ -311,40 +294,44 @@ object TypeResolver {
    * Find the type of the "defaultValue" attribute.
    *
    * The attribute "defaultValue" defined on the "Preference" tag is known to have multiple types.
-   * Classes derived from "android.preference.Preference" or "androidx.preference.Preference" override the method "onGetDefaultValue"
-   * to read the value expected for this attribute. It can be either a boolean, string, integer, or a string array depending on the
-   * [componentClass].
+   * Classes derived from "android.preference.Preference" or "androidx.preference.Preference"
+   * override the method "onGetDefaultValue" to read the value expected for this attribute. It can
+   * be either a boolean, string, integer, or a string array depending on the [componentClass].
    *
-   * Some derived classes do not read the value at all e.g. "PreferenceCategory".
-   * For these components we simply return [NlPropertyType.UNKNOWN] indicating that we should hide this attribute in the properties panel.
+   * Some derived classes do not read the value at all e.g. "PreferenceCategory". For these
+   * components we simply return [NlPropertyType.UNKNOWN] indicating that we should hide this
+   * attribute in the properties panel.
    */
-  private fun defaultValueType(componentClass: PsiClass?): NlPropertyType = when (componentClass?.qualifiedName) {
-    null -> NlPropertyType.UNKNOWN
-    PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE -> NlPropertyType.STRING
-    PreferenceClasses.CLASS_LIST_PREFERENCE -> NlPropertyType.STRING
-    PreferenceClasses.CLASS_MULTI_CHECK_PREFERENCE  -> NlPropertyType.STRING
-    PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE -> NlPropertyType.STRING_ARRAY
-    PreferenceClasses.CLASS_RINGTONE_PREFERENCE -> NlPropertyType.STRING
-    PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE -> NlPropertyType.INTEGER
-    PreferenceClasses.CLASS_TWO_STATE_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
-
-    PreferenceAndroidX.CLASS_EDIT_TEXT_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_EDIT_TEXT_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING_ARRAY
-    PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING_ARRAY
-    PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
-    PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.INTEGER
-    PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.INTEGER
-    PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.THREE_STATE_BOOLEAN
-    PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.THREE_STATE_BOOLEAN
-
-    else -> defaultValueType(componentClass.superClass)
-  }
+  private fun defaultValueType(componentClass: PsiClass?): NlPropertyType =
+    when (componentClass?.qualifiedName) {
+      null -> NlPropertyType.UNKNOWN
+      PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE -> NlPropertyType.STRING
+      PreferenceClasses.CLASS_LIST_PREFERENCE -> NlPropertyType.STRING
+      PreferenceClasses.CLASS_MULTI_CHECK_PREFERENCE -> NlPropertyType.STRING
+      PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE -> NlPropertyType.STRING_ARRAY
+      PreferenceClasses.CLASS_RINGTONE_PREFERENCE -> NlPropertyType.STRING
+      PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE -> NlPropertyType.INTEGER
+      PreferenceClasses.CLASS_TWO_STATE_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
+      PreferenceAndroidX.CLASS_EDIT_TEXT_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_EDIT_TEXT_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_LIST_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_MULTI_CHECK_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.oldName() ->
+        NlPropertyType.STRING_ARRAY
+      PreferenceAndroidX.CLASS_MULTI_SELECT_LIST_PREFERENCE_ANDROIDX.newName() ->
+        NlPropertyType.STRING_ARRAY
+      PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_RINGTONE_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.STRING
+      PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.oldName() -> NlPropertyType.INTEGER
+      PreferenceAndroidX.CLASS_SEEK_BAR_PREFERENCE_ANDROIDX.newName() -> NlPropertyType.INTEGER
+      PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.oldName() ->
+        NlPropertyType.THREE_STATE_BOOLEAN
+      PreferenceAndroidX.CLASS_TWO_STATE_PREFERENCE_ANDROIDX.newName() ->
+        NlPropertyType.THREE_STATE_BOOLEAN
+      else -> defaultValueType(componentClass.superClass)
+    }
 
   private fun fallbackByName(name: String): NlPropertyType {
     val parts = split(name)
@@ -355,23 +342,19 @@ object TypeResolver {
     when (last) {
       "drawable",
       "icon",
-      "indicator" ->
-        return NlPropertyType.DRAWABLE
+      "indicator" -> return NlPropertyType.DRAWABLE
       "color" ->
-        return if (secondLast == "text") return NlPropertyType.COLOR_STATE_LIST else NlPropertyType.COLOR
-      "appearance" ->
-        if (secondLast == "text") return NlPropertyType.TEXT_APPEARANCE
-      "handle" ->
-        if (thirdLast == "text" && secondLast == "select") return NlPropertyType.DRAWABLE
-      "layout" ->
-        return NlPropertyType.LAYOUT
-      "spec" ->
-        if (secondLast == "motion") return NlPropertyType.ANIMATOR
-      "style" ->
-        return NlPropertyType.STYLE
+        return if (secondLast == "text") return NlPropertyType.COLOR_STATE_LIST
+        else NlPropertyType.COLOR
+      "appearance" -> if (secondLast == "text") return NlPropertyType.TEXT_APPEARANCE
+      "handle" -> if (thirdLast == "text" && secondLast == "select") return NlPropertyType.DRAWABLE
+      "layout" -> return NlPropertyType.LAYOUT
+      "spec" -> if (secondLast == "motion") return NlPropertyType.ANIMATOR
+      "style" -> return NlPropertyType.STYLE
       else -> {
         if (thirdLast == "text" && secondLast == "appearance") return NlPropertyType.TEXT_APPEARANCE
-        if (forthLast == "text" && thirdLast == "select" && secondLast == "handle") return NlPropertyType.DRAWABLE
+        if (forthLast == "text" && thirdLast == "select" && secondLast == "handle")
+          return NlPropertyType.DRAWABLE
       }
     }
     return NlPropertyType.STRING
@@ -384,11 +367,11 @@ object TypeResolver {
       val index = part.indexOfFirst { it.isUpperCase() }
       if (index > 0) {
         parts.add(part.substring(0, index))
-      }
-      else if (index < 0) {
+      } else if (index < 0) {
         parts.add(part)
       }
-      part = if (index >= 0) part[index].toLowerCase().toString() + part.substring(index + 1) else ""
+      part =
+        if (index >= 0) part[index].toLowerCase().toString() + part.substring(index + 1) else ""
     }
     return parts
   }

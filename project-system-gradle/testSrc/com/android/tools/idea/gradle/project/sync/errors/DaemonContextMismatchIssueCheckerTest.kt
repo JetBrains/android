@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -41,7 +41,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains(expectedNotificationMessage)
     // Verify quickFix
     assertThat(buildIssue.quickFixes.size).isEqualTo(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenProjectStructureQuickfix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenGradleJdkSettingsQuickfix::class.java)
   }
 
   fun testCheckIssueWithErrorFromGradleForum() {
@@ -61,7 +61,7 @@ class DaemonContextMismatchIssueCheckerTest : AndroidGradleTestCase() {
     assertThat(buildIssue!!.description).contains(expectedNotificationMessage)
     // Verify quickFix
     assertThat(buildIssue.quickFixes.size).isEqualTo(1)
-    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenProjectStructureQuickfix::class.java)
+    assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenGradleJdkSettingsQuickfix::class.java)
   }
 
   fun testCheckIssueHandled() {

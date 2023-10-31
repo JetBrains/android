@@ -42,23 +42,17 @@ import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.openapi.application.runReadAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
 import javax.swing.JTable
 import javax.swing.TransferHandler
 
-@RunsInEdt
 class FavoritesInspectorBuilderTest {
-  private val projectRule = AndroidProjectRule.withSdk()
-
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
@@ -67,11 +61,12 @@ class FavoritesInspectorBuilderTest {
     InspectorSection.FAVORITES.visible = true
   }
 
-  private val enumSupportProvider = object : EnumSupportProvider<NlPropertyItem> {
-    override fun invoke(property: NlPropertyItem): EnumSupport? {
-      return null
+  private val enumSupportProvider =
+    object : EnumSupportProvider<NlPropertyItem> {
+      override fun invoke(property: NlPropertyItem): EnumSupport? {
+        return null
+      }
     }
-  }
 
   @Test
   fun testEmptyFavorites() {
@@ -82,20 +77,24 @@ class FavoritesInspectorBuilderTest {
 
   @Test
   fun testFavoritesParser() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;app:layout_constraintTag", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;app:layout_constraintTag", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
-    assertThat(builder.loadFavoritePropertiesIfNeeded()).containsExactly(
-      ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ALPHA),
-      ResourceReference.attr(ResourceNamespace.TOOLS, ATTR_GRAVITY),
-      ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_VISIBILITY),
-      ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_CONSTRAINT_TAG),
-    ).inOrder()
+    assertThat(builder.loadFavoritePropertiesIfNeeded())
+      .containsExactly(
+        ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ALPHA),
+        ResourceReference.attr(ResourceNamespace.TOOLS, ATTR_GRAVITY),
+        ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_VISIBILITY),
+        ResourceReference.attr(ResourceNamespace.RES_AUTO, ATTR_LAYOUT_CONSTRAINT_TAG),
+      )
+      .inOrder()
   }
 
   @Test
   fun testTextView() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;:non_exist;", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;:non_exist;", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
@@ -109,7 +108,8 @@ class FavoritesInspectorBuilderTest {
 
   @Test
   fun testAddFavorite() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;:non_exist;", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;:non_exist;", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
@@ -120,13 +120,14 @@ class FavoritesInspectorBuilderTest {
     val lineModel = util.checkTable(1)
     lineModel.checkItem(0, ANDROID_URI, ATTR_ALPHA)
     lineModel.checkItem(1, ANDROID_URI, ATTR_VISIBILITY)
-    lineModel.checkItem(2, "", "")  // placeholder
+    lineModel.checkItem(2, "", "") // placeholder
     lineModel.checkItemCount(3)
   }
 
   @Test
   fun testAddFavoriteAndSelectProperty() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
@@ -140,14 +141,16 @@ class FavoritesInspectorBuilderTest {
     lineModel.checkItem(0, ANDROID_URI, ATTR_ALPHA)
     lineModel.checkItem(1, ANDROID_URI, ATTR_TEXT)
     lineModel.checkItem(2, ANDROID_URI, ATTR_VISIBILITY)
-    lineModel.checkItem(3, "", "")  // placeholder
+    lineModel.checkItem(3, "", "") // placeholder
     lineModel.checkItemCount(4)
-    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo(":alpha;tools:gravity;:visibility;:text;")
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
+      .isEqualTo(":alpha;tools:gravity;:visibility;:text;")
   }
 
   @Test
   fun testAddFavoriteAndSelectApplicationProperty() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.newName())
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
@@ -163,7 +166,7 @@ class FavoritesInspectorBuilderTest {
     lineModel.checkItem(0, AUTO_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
     lineModel.checkItem(1, ANDROID_URI, ATTR_ALPHA)
     lineModel.checkItem(2, ANDROID_URI, ATTR_VISIBILITY)
-    lineModel.checkItem(3, "", "")  // placeholder
+    lineModel.checkItem(3, "", "") // placeholder
     lineModel.checkItemCount(4)
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
       .isEqualTo(":alpha;tools:gravity;:visibility;app:layout_constraintBottom_toTopOf;")
@@ -171,7 +174,8 @@ class FavoritesInspectorBuilderTest {
 
   @Test
   fun testRemoveFavorite() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
@@ -181,7 +185,8 @@ class FavoritesInspectorBuilderTest {
     util.performAction(0, 1, AllIcons.General.Remove)
     lineModel.checkItem(0, ANDROID_URI, ATTR_VISIBILITY)
     lineModel.checkItemCount(1)
-    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;")
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
+      .isEqualTo("tools:gravity;:visibility;")
   }
 
   @Test
@@ -194,13 +199,15 @@ class FavoritesInspectorBuilderTest {
     val lineModel = util.checkTable(1)
     val table = PTable.create(lineModel.tableModel).component
     val transferHandler = table.transferHandler
-    transferHandler.importData(table, StringSelection("backgroundTint\t#22FF22"))
-    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;:backgroundTint;")
+    runReadAction { transferHandler.importData(table, StringSelection("backgroundTint\t#22FF22")) }
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
+      .isEqualTo("tools:gravity;:visibility;:backgroundTint;")
   }
 
   @Test
   fun testCutFavoriteViaClipboard() {
-    PropertiesComponent.getInstance().setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
+    PropertiesComponent.getInstance()
+      .setValue(FAVORITES_PROPERTY, ":alpha;tools:gravity;:visibility;", "")
     val util = InspectorTestUtil(projectRule, TEXT_VIEW)
     val builder = FavoritesInspectorBuilder(util.model, enumSupportProvider)
     util.loadProperties()
@@ -209,9 +216,10 @@ class FavoritesInspectorBuilderTest {
     val table = PTable.create(lineModel.tableModel).component as JTable
     val transferHandler = table.transferHandler
     assertThat(transferHandler.getSourceActions(table)).isEqualTo(TransferHandler.COPY_OR_MOVE)
-    table.setRowSelectionInterval(0, 0)
+    runReadAction { table.setRowSelectionInterval(0, 0) }
     val clipboard: Clipboard = mock()
-    transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
-    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY)).isEqualTo("tools:gravity;:visibility;")
+    runReadAction { transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE) }
+    assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
+      .isEqualTo("tools:gravity;:visibility;")
   }
 }

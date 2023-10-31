@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ModalityUiUtil;
+import com.intellij.util.messages.Topic;
 import icons.StudioIcons;
 import java.util.Collections;
 import java.util.HashSet;
@@ -55,7 +56,7 @@ public class IssueModel implements Disposable {
   protected int myWarningCount;
   protected int myErrorCount;
   @VisibleForTesting
-  public final Runnable myUpdateCallback = () -> updateErrorsList();
+  public final Runnable myUpdateCallback = this::updateErrorsList;
 
   private final Set<IssueProvider> myIssueProviders = new HashSet<>();
 
@@ -64,11 +65,15 @@ public class IssueModel implements Disposable {
 
   /**
    * IssueModel constructor.
+   *
    * @param listenerExecutor {@link Executor} to run the listeners execution.
    * @param issueNumberLimit maximum number of issues to be handled by this model. If the number of issues exceeds this number, it will be
    *                         truncated to <code>issueNumberLimit</code> and a new {@link TooManyIssuesIssue} added.
    */
-  private IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project, @NotNull Executor listenerExecutor, int issueNumberLimit) {
+  private IssueModel(@NotNull Disposable parentDisposable,
+                     @NotNull Project project,
+                     @NotNull Executor listenerExecutor,
+                     int issueNumberLimit) {
     Disposer.register(parentDisposable, this);
     myProject = project;
     myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
@@ -76,7 +81,8 @@ public class IssueModel implements Disposable {
   }
 
   public IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project) {
-    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command), MAX_ISSUE_NUMBER_LIMIT);
+    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command),
+         MAX_ISSUE_NUMBER_LIMIT);
   }
 
   @TestOnly
@@ -132,6 +138,10 @@ public class IssueModel implements Disposable {
   }
 
   public void updateErrorsList() {
+    updateErrorsList(IssueProviderListener.TOPIC);
+  }
+
+  public void updateErrorsList(Topic<IssueProviderListener> topic) {
     myWarningCount = 0;
     myErrorCount = 0;
     ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
@@ -156,7 +166,7 @@ public class IssueModel implements Disposable {
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
     if (myIsActivated.get()) {
-      myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, newIssueList);
+      myProject.getMessageBus().syncPublisher(topic).issueUpdated(this, newIssueList);
     }
   }
 
@@ -170,22 +180,30 @@ public class IssueModel implements Disposable {
   }
 
   /**
-   * Add issue provider
+   * Add issue provider.
+   *
    * @param update true if issueModel should be updated to display newest information. False otherwise.
+   * @return true if issueProvider was not already an {@link IssueProvider} associated with this {@link IssueModel}, otherwise false
    */
-  public void addIssueProvider(@NotNull IssueProvider issueProvider, boolean update) {
+  public boolean addIssueProvider(@NotNull IssueProvider issueProvider, boolean update) {
+    boolean wasAdded;
     synchronized (myIssueProviders) {
-      myIssueProviders.add(issueProvider);
+      wasAdded = myIssueProviders.add(issueProvider);
     }
     issueProvider.addListener(myUpdateCallback);
     if (update) {
       updateErrorsList();
     }
+    return wasAdded;
   }
 
-  /** Add issue provider, and update the error list. */
-  public void addIssueProvider(@NotNull IssueProvider issueProvider) {
-    addIssueProvider(issueProvider, true);
+  /**
+   * Add issue provider, and update the error list.
+   *
+   * @return true if issueProvider was not already an {@link IssueProvider} associated with this {@link IssueModel}, otherwise false
+   */
+  public boolean addIssueProvider(@NotNull IssueProvider issueProvider) {
+    return addIssueProvider(issueProvider, true);
   }
 
   public void removeIssueProvider(@NotNull IssueProvider issueProvider) {

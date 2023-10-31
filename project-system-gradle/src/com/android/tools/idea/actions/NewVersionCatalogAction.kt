@@ -131,7 +131,7 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
     builder
       .setTitle("New Version Catalog")
       .setDefaultText(defaultText)
-      .addKind("Version Catalog file", icons.GradleIcons.GradleFile, "Version Catalog File")
+      .addKind("Version Catalog file", icons.GradleIcons.GradleFile, VERSION_CATALOG_TEMPLATE)
       .setValidator(object : InputValidatorEx {
         override fun getErrorText(inputString: String?) = "Name must match the regex $REGEX_STRING"
         override fun checkInput(inputString: String?) = inputString?.matches(REGEX) ?: false
@@ -170,5 +170,7 @@ class NewVersionCatalogAction : CreateFileFromTemplateAction("Version Catalog", 
   companion object {
     const val REGEX_STRING = "[a-z]([a-zA-Z0-9])+"
     val REGEX = REGEX_STRING.toRegex()
+
+    const val VERSION_CATALOG_TEMPLATE = "Version_Catalog_File"
   }
 }

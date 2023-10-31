@@ -20,6 +20,7 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.getTypedArgument
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.waitForCondition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatform4TestCase
 import kotlinx.coroutines.runBlocking
@@ -57,7 +58,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
   @Test
   fun afterClose_receiverIsCancelled() {
     NonInteractivePairing.startPairing(testRootDisposable, device, "", "", "").use {
-      com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
+      waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
       assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
 
       sendLogCat(LOGCAT_FORMAT.format(NonInteractivePairing.PairingState.STARTED))
@@ -70,7 +71,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
   @Test
   fun onMultipleLogEntries_stateRepresentsTheMostRecentOne() {
     NonInteractivePairing.startPairing(testRootDisposable, device, "", "", "").use {
-      com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
+      waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
       assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
 
       sendLogCat(LOGCAT_FORMAT.format(NonInteractivePairing.PairingState.STARTED))
@@ -86,7 +87,7 @@ class NonInteractivePairingTest : LightPlatform4TestCase() {
   @Test
   fun onUnknownStatusLog_stateIsSetToUnknown() {
     NonInteractivePairing.startPairing(testRootDisposable, device, "", "", "").use {
-      com.android.tools.idea.concurrency.waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
+      waitForCondition(10, TimeUnit.SECONDS) { outputReceiver != null }
       assertThat(it.pairingState.value).isEqualTo(NonInteractivePairing.PairingState.UNKNOWN)
 
       sendLogCat(LOGCAT_FORMAT.format(NonInteractivePairing.PairingState.STARTED))

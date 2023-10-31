@@ -36,7 +36,6 @@ import java.util.Arrays;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -45,7 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.LayoutFocusTraversalPolicy;
-import javax.swing.Popup;
 import javax.swing.SwingUtilities;
 
 /**

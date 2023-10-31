@@ -17,6 +17,8 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
@@ -52,6 +54,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )

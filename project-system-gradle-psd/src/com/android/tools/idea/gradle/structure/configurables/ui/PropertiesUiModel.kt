@@ -16,14 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.gradle.structure.configurables.PsContext
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.StringPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.EditorExtensionAction
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ListPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.MapPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
-import com.android.tools.idea.gradle.structure.configurables.ui.properties.stringVariablePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.StringPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.simplePropertyEditor
+import com.android.tools.idea.gradle.structure.configurables.ui.properties.stringVariablePropertyEditor
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsProject
 import com.android.tools.idea.gradle.structure.model.PsVariablesScope
@@ -68,8 +68,9 @@ interface PropertyUiModel<in ModelT, out PropertyT : Any> {
     project: PsProject,
     module: PsModule?,
     model: ModelT,
-    cellEditor: TableCellEditor? = null
-  ): ModelPropertyEditor<PropertyT>
+    cellEditor: TableCellEditor? = null,
+    validator: PropertyEditorValidator? = null,
+    ): ModelPropertyEditor<PropertyT>
 }
 
 typealias
@@ -80,6 +81,7 @@ typealias
    ModelPropertyT,
    PsVariablesScope?,
    cellEditor: TableCellEditor?,
+   validator: PropertyEditorValidator?,
    logValueEdited: () -> Unit
   ) ->
   ModelPropertyEditor<PropertyT>
@@ -117,9 +119,10 @@ class PropertyUiModelImpl<
     project: PsProject,
     module: PsModule?,
     model: ModelT,
-    cellEditor: TableCellEditor?
-  ): ModelPropertyEditor<PropertyT> {
-    return editorFactory(project, module, model, property, module?.variables ?: project.variables, cellEditor) {
+    cellEditor: TableCellEditor?,
+    validator: PropertyEditorValidator?,
+    ): ModelPropertyEditor<PropertyT> {
+    return editorFactory(project, module, model, property, module?.variables ?: project.variables, cellEditor, validator) {
       psdUsageLogFieldId?.let { context.logFieldEdited(it) }
     }
   }
@@ -130,9 +133,9 @@ fun <T : Any, PropertyCoreT : ModelPropertyCore<T>>
   project: PsProject,
   module: PsModule?
 ): List<EditorExtensionAction<T, PropertyCoreT>> =
-  listOfNotNull(
+  listOfNotNull<EditorExtensionAction<T, PropertyCoreT>>(
     ExtractNewVariableExtension(project, module),
-    if (this is FileTypePropertyContext<T>) BrowseFilesExtension(project, this) else null
+    if (this is FileTypePropertyContext<T>) BrowseFilesExtension<T, PropertyCoreT>(project, this) else null
   )
 
 fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT, ModelPropertyCore<ValueT>>>
@@ -143,6 +146,7 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
+  unusedValidator: PropertyEditorValidator?,
   logValueEdited: () -> Unit
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
@@ -165,6 +169,7 @@ fun <ModelT, ModelPropertyT : ModelProperty<ModelT, String, String, ModelPropert
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
+  validator: PropertyEditorValidator?,
   logValueEdited: () -> Unit
 ): StringPropertyEditor<ModelPropertyCore<String>> {
   val boundProperty = property.bind(model)
@@ -179,6 +184,7 @@ fun <ModelT, ModelPropertyT : ModelProperty<ModelT, String, String, ModelPropert
     property.bindContext(model).createDefaultEditorExtensions(project, module),
     isPropertyContext = true,
     cellEditor = cellEditor,
+    validator,
     logValueEdited = logValueEdited)
 }
 
@@ -213,6 +219,7 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   cellEditor: TableCellEditor?,
+  unusedValidator: PropertyEditorValidator?,
   logValueEdited: () -> Unit
 ): SimplePropertyEditor<ValueT, ModelPropertyCore<ValueT>>  {
   val boundProperty = property.bind(model)
@@ -240,11 +247,12 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelListProperty<ModelT, ValueT>> l
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   unusedCellEditor: TableCellEditor?,
+  unusedValidator: PropertyEditorValidator?,
   logValueEdited: () -> Unit
 ): ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)
   val boundContext = property.bindContext(model)
-  return ListPropertyEditor(
+  return ListPropertyEditor<ValueT, ModelListPropertyCore<ValueT>>(
       boundProperty, boundContext,
       { propertyCore, _, variables, cellEditor: TableCellEditor? ->
         simplePropertyEditor(
@@ -268,6 +276,7 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelMapProperty<ModelT, ValueT>> ma
   property: ModelPropertyT,
   variablesScope: PsVariablesScope? = null,
   unusedCellEditor: TableCellEditor?,
+  unusedValidator: PropertyEditorValidator?,
   logValueEdited: () -> Unit
 ): MapPropertyEditor<ValueT, ModelMapPropertyCore<ValueT>> {
   val boundProperty = property.bind(model)

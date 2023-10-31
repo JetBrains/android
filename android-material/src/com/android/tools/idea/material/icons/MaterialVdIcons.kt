@@ -28,11 +28,11 @@ class MaterialVdIcons(
   val styles: Array<String> = styleCategoryToSortedIcons.keys.sorted().toTypedArray()
 
   fun getCategories(style: String): Array<String> {
-    return styleCategoryToSortedIcons[style]?.keys?.sorted()?.toTypedArray() ?: arrayOf()
+    return styleCategoryToSortedIcons[style]?.keys?.sorted()?.toTypedArray() ?: arrayOf<String>()
   }
 
   fun getIcons(style: String, category: String): Array<VdIcon> {
-    return styleCategoryToSortedIcons[style]?.get(category) ?: arrayOf()
+    return styleCategoryToSortedIcons[style]?.get(category) ?: arrayOf<VdIcon>()
   }
 
   fun getAllIcons(style: String): Array<VdIcon> {

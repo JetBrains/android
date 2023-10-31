@@ -22,36 +22,37 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
 import java.util.function.Function
-import javax.swing.JComponent
 
-/**
- * Interface to implement by [SplitEditor] previews that wish to handle their own notifications.
- */
+/** Interface to implement by [SplitEditor] previews that wish to handle their own notifications. */
 interface SplitEditorPreviewNotificationHandler {
-  /**
-   * Called when the notifications need to be updated.
-   */
+  /** Called when the notifications need to be updated. */
   fun updateNotifications()
 }
 
 /**
- * [EditorNotificationProvider] that simply listens for notification update calls and forwards it to the [SplitEditorPreviewNotificationHandler].
- * This allows the [SplitEditor] preview panels to **optionally** its own notification system that displays notifications that only cover
- * the preview side and not the whole editor.
+ * [EditorNotificationProvider] that simply listens for notification update calls and forwards it to
+ * the [SplitEditorPreviewNotificationHandler]. This allows the [SplitEditor] preview panels to
+ * **optionally** its own notification system that displays notifications that only cover the
+ * preview side and not the whole editor.
  *
- * This also allows for split editor preview notifications to use exactly the same interface as [EditorNotifications] so they can
- * easily be refactored.
+ * This also allows for split editor preview notifications to use exactly the same interface as
+ * [EditorNotifications] so they can easily be refactored.
  */
 class SplitEditorPreviewNotificationForwarder : EditorNotificationProvider {
-  override fun collectNotificationData(project: Project, file: VirtualFile): Function<in FileEditor, out JComponent?>? {
-    return Function { createNotificationPanel(it) }
-  }
-  private fun createNotificationPanel(fileEditor: FileEditor): EditorNotificationPanel? {
-    // If the given FileEditor is DesignerEditor, forward the update to the MultiRepresentationPreview so it can
-    // pass the notification handling to the corresponding representations.
-    ((fileEditor as? SplitEditor<*>)?.preview as? SplitEditorPreviewNotificationHandler)?.updateNotifications()
 
-    // We never create EditorNotificationPanel so return null. The DesignFilesPreviewEditor will handle the notifications.
-    return null
+  override fun collectNotificationData(
+    project: Project,
+    file: VirtualFile
+  ): Function<FileEditor, EditorNotificationPanel?> {
+    return Function { fileEditor ->
+      // If the given FileEditor is DesignerEditor, forward the update to the
+      // MultiRepresentationPreview so it can
+      // pass the notification handling to the corresponding representations.
+      ((fileEditor as? SplitEditor<*>)?.preview as? SplitEditorPreviewNotificationHandler)
+        ?.updateNotifications()
+      // We never create EditorNotificationPanel so return null. The DesignFilesPreviewEditor will
+      // handle the notifications.
+      null
+    }
   }
 }

@@ -22,7 +22,7 @@ import java.awt.image.BufferedImage
 class ScreenshotImage(
   val image: BufferedImage,
   val screenshotRotationQuadrants: Int,
-  private val deviceType: DeviceType,
+  val deviceType: DeviceType,
   private val displayInfo: String = "",
 ) {
 

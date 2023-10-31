@@ -161,9 +161,9 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
     assertThat(prop25.testValue(), equalTo(25))
 
     propTrue.testSetReference("2 + 2")
-    assertThat(
+    assertThat<Annotated<ParsedValue<Boolean>>>(
       propTrue.bind(Model).getParsedValue(),
-      equalTo(ParsedValue.Set.Parsed<Boolean>(null, DslText.OtherUnparsedDslText("2 + 2")).annotated()))
+      equalTo<Annotated<ParsedValue<Boolean>>>(ParsedValue.Set.Parsed<Boolean>(null, DslText.OtherUnparsedDslText("2 + 2")).annotated()))
   }
 
   @Test
@@ -181,9 +181,9 @@ class ModelSimplePropertyImplTest : PsdGradleFileModelTestCase() {
     val reboundProp =
       (prop25 as GradleModelCoreProperty<Int, ModelPropertyCore<Int>>)
         .rebind(newResolvedProperty) { localModifying = true; it(); localModified = true }
-    assertThat(reboundProp.getParsedValue(), equalTo(ParsedValue.NotSet.annotated()))
+    assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(ParsedValue.NotSet.annotated()))
     reboundProp.setParsedValue(1.asParsed())
-    assertThat(reboundProp.getParsedValue(), equalTo(1.asParsed().annotated()))
+    assertThat(reboundProp.getParsedValue(), equalTo<Annotated<ParsedValue<Int>>>(1.asParsed().annotated()))
     assertThat(localModified, equalTo(true))
     assertThat(localModifying, equalTo(true))
     assertThat(newResolvedProperty.isModified, equalTo(true))

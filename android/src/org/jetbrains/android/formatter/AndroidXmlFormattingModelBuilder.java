@@ -24,7 +24,6 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription;
 import org.jetbrains.android.dom.drawable.fileDescriptions.DrawableStateListDomFileDescription;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings.MySettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,10 +33,9 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Override
   public boolean isEngagedToFormat(@NotNull PsiElement context) {
-    PsiFile psiFile = context.getContainingFile();
+    Object psiFile = context.getContainingFile();
 
-    if (!(psiFile instanceof XmlFile) ||
-        AndroidFacet.getInstance(psiFile) == null) {
+    if (!(psiFile instanceof XmlFile)) {
       return false;
     }
 
@@ -96,10 +94,9 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
 
   @Nullable
   private static MySettings getContextSpecificSettings(@NotNull PsiElement context, @NotNull AndroidXmlCodeStyleSettings settings) {
-    PsiFile psiFile = context.getContainingFile();
+    Object psiFile = context.getContainingFile();
 
-    if (!(psiFile instanceof XmlFile) ||
-        AndroidFacet.getInstance(psiFile) == null) {
+    if (!(psiFile instanceof XmlFile)) {
       return null;
     }
 

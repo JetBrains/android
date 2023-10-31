@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
+<issues format="5" by="lint 8.2.0-dev">
 
     <issue
         id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="323"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
-        <location
-            file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="323"/>
+            line="329"/>
     </issue>
 
     <issue
@@ -22,7 +14,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="79"/>
+            line="83"/>
     </issue>
 
     <issue
@@ -62,15 +54,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="75"/>
-    </issue>
-
-    <issue
-        id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
-        <location
-            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="78"/>
+            line="77"/>
     </issue>
 
     <issue
@@ -86,7 +70,7 @@
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="83"/>
+            line="82"/>
     </issue>
 
     <issue
@@ -95,6 +79,14 @@
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
             line="85"/>
+    </issue>
+
+    <issue
+        id="JbUiStored"
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        <location
+            file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
+            line="87"/>
     </issue>
 
     <issue
@@ -942,7 +934,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="81"/>
+            line="83"/>
     </issue>
 
     <issue
@@ -950,7 +942,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="84"/>
+            line="86"/>
     </issue>
 
     <issue
@@ -958,7 +950,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="87"/>
+            line="89"/>
     </issue>
 
     <issue
@@ -966,15 +958,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="90"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="95"/>
+            line="92"/>
     </issue>
 
     <issue
@@ -990,7 +974,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="102"/>
+            line="99"/>
     </issue>
 
     <issue
@@ -1006,7 +990,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="110"/>
+            line="106"/>
     </issue>
 
     <issue
@@ -1022,7 +1006,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="139"/>
+            line="114"/>
     </issue>
 
     <issue
@@ -1038,7 +1022,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="154"/>
+            line="143"/>
     </issue>
 
     <issue
@@ -1054,7 +1038,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="165"/>
+            line="158"/>
     </issue>
 
     <issue
@@ -1062,7 +1046,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="176"/>
+            line="167"/>
     </issue>
 
     <issue
@@ -1070,7 +1054,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="190"/>
+            line="178"/>
     </issue>
 
     <issue
@@ -1078,7 +1062,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="200"/>
+            line="192"/>
     </issue>
 
     <issue
@@ -1086,7 +1070,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="200"/>
+            line="202"/>
     </issue>
 
     <issue
@@ -1094,7 +1078,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="205"/>
+            line="202"/>
     </issue>
 
     <issue
@@ -1102,7 +1086,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="211"/>
+            line="207"/>
     </issue>
 
     <issue
@@ -1110,7 +1094,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="217"/>
+            line="213"/>
     </issue>
 
     <issue
@@ -1118,7 +1102,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="222"/>
+            line="219"/>
     </issue>
 
     <issue
@@ -1126,7 +1110,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="230"/>
+            line="224"/>
     </issue>
 
     <issue
@@ -1134,7 +1118,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="234"/>
+            line="232"/>
     </issue>
 
     <issue
@@ -1142,7 +1126,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="254"/>
+            line="236"/>
     </issue>
 
     <issue
@@ -1150,7 +1134,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="267"/>
+            line="255"/>
     </issue>
 
     <issue
@@ -1166,7 +1150,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="270"/>
+            line="269"/>
     </issue>
 
     <issue
@@ -1174,7 +1158,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="273"/>
+            line="271"/>
     </issue>
 
     <issue
@@ -1190,7 +1174,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="276"/>
+            line="275"/>
     </issue>
 
     <issue
@@ -1198,7 +1182,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="281"/>
+            line="277"/>
     </issue>
 
     <issue
@@ -1206,7 +1190,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="281"/>
+            line="282"/>
     </issue>
 
     <issue
@@ -1214,7 +1198,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="285"/>
+            line="282"/>
     </issue>
 
     <issue
@@ -1222,7 +1206,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="285"/>
+            line="286"/>
     </issue>
 
     <issue
@@ -1230,7 +1214,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="296"/>
+            line="286"/>
     </issue>
 
     <issue
@@ -1238,7 +1222,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="296"/>
+            line="297"/>
     </issue>
 
     <issue
@@ -1246,15 +1230,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="302"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="303"/>
+            line="297"/>
     </issue>
 
     <issue
@@ -1270,7 +1246,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="306"/>
+            line="304"/>
     </issue>
 
     <issue
@@ -1278,7 +1254,15 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="310"/>
+            line="304"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
+            line="307"/>
     </issue>
 
     <issue
@@ -1294,7 +1278,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="321"/>
+            line="312"/>
     </issue>
 
     <issue
@@ -1302,7 +1286,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="328"/>
+            line="322"/>
     </issue>
 
     <issue
@@ -1310,7 +1294,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="332"/>
+            line="329"/>
     </issue>
 
     <issue
@@ -1318,7 +1302,15 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="393"/>
+            line="333"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
+            line="394"/>
     </issue>
 
     <issue
@@ -1326,7 +1318,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/scene/targets/EmptyDesignerTarget.kt"
-            line="79"/>
+            line="82"/>
     </issue>
 
     <issue
@@ -1334,7 +1326,7 @@
         message="This method should only be accessed from tests or within private scope">
         <location
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="79"/>
+            line="83"/>
     </issue>
 
     <issue

@@ -152,7 +152,7 @@ class NavStatusCache<TStatus : Any>(
    *
    * If [NavInfoFetcher.getCurrentNavInfo] returns `null`, returns a previously-cached result if available.
    */
-  private val currentStatus: TStatus?
+  val currentStatus: TStatus?
     get() = synchronized(lock) {
       // Don't return cached data if this entire service is no longer enabled (mode change).
       if (!fetcher.isEnabled) return null

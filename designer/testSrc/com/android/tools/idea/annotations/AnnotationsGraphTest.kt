@@ -24,11 +24,11 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 
 private class DfsSubtreeEdges {
   var treeEdgesCount = 0
@@ -37,8 +37,10 @@ private class DfsSubtreeEdges {
   var crossEdgesCount = 0
 }
 
-private class TestNodeInfo(override val parent: NodeInfo<DfsSubtreeEdges>?,
-                           override val element: UElement) : NodeInfo<DfsSubtreeEdges> {
+private class TestNodeInfo(
+  override val parent: NodeInfo<DfsSubtreeEdges>?,
+  override val element: UElement
+) : NodeInfo<DfsSubtreeEdges> {
   override val subtreeInfo: DfsSubtreeEdges = DfsSubtreeEdges()
   // Timers or step counters needed to differentiate cross edges from forward edges
   // (more info https://www.cs.yale.edu/homes/aspnes/pinewiki/DepthFirstSearch.html)
@@ -73,50 +75,58 @@ private class TestNodeInfo(override val parent: NodeInfo<DfsSubtreeEdges>?,
 }
 
 private object TestNodeInfoFactory : NodeInfoFactory<DfsSubtreeEdges> {
-  override fun create(parent: NodeInfo<DfsSubtreeEdges>?, curElement: UElement): NodeInfo<DfsSubtreeEdges> {
+  override fun create(
+    parent: NodeInfo<DfsSubtreeEdges>?,
+    curElement: UElement
+  ): NodeInfo<DfsSubtreeEdges> {
     return TestNodeInfo(parent, curElement)
   }
 }
 
 /**
- * A result factory that for each visited annotation, it returns a string with its name after removing
- * the prefix "node" from it. And also, for the root method, it returns its subtreeInfo.
+ * A result factory that for each visited annotation, it returns a string with its name after
+ * removing the prefix "node" from it. And also, for the root method, it returns its subtreeInfo.
  */
 private object TestResultFactory : ResultFactory<DfsSubtreeEdges, Any> {
   override fun create(node: NodeInfo<DfsSubtreeEdges>): Sequence<Any> =
-    if (node.element is UAnnotation) sequenceOf(node.element.name) else sequenceOf(node.subtreeInfo!!)
+    if (node.element is UAnnotation) sequenceOf(node.element.name)
+    else sequenceOf(node.subtreeInfo!!)
 
   private val UElement.name: String
-    get() = runReadAction { if (this is UMethod) this.name else (this.tryResolve() as PsiClass).name!!.removePrefix("node") }
+    get() = runReadAction {
+      if (this is UMethod) this.name
+      else (this.tryResolve() as PsiClass).name!!.removePrefix("node")
+    }
 }
 
 /**
  * The [AnnotationsGraph] could be used in different ways, and different information could be
- * extracted from it depending on the use case. Which information is extracted, strictly depends
- * on the implementation of the different factories involved.
- * For the tests in this file, the factories are defined so that the result is formed by two
- * different things:
+ * extracted from it depending on the use case. Which information is extracted, strictly depends on
+ * the implementation of the different factories involved. For the tests in this file, the factories
+ * are defined so that the result is formed by two different things:
  *
- * 1- The number of tree, back, cross and forward edges found during the DFS traversal (this type
- *  of edges are simple concepts associated with a DFS on a directed graph, more information here:
- *  https://en.wikipedia.org/wiki/Depth-first_search). This information is directly related to DFS,
- *  and as a consequence, it allows us to test the DFS ([AnnotationsGraph.traverse]) implementation.
+ * 1- The number of tree, back, cross and forward edges found during the DFS traversal (this type of
+ * edges are simple concepts associated with a DFS on a directed graph, more information here:
+ * https://en.wikipedia.org/wiki/Depth-first_search). This information is directly related to DFS,
+ * and as a consequence, it allows us to test the DFS ([AnnotationsGraph.traverse]) implementation.
  *
  * 2- The name of each visited annotation. This allows us to test that the annotations graph can be
- *  used to correctly find all the corresponding direct and indirect annotations of a given UElement.
+ * used to correctly find all the corresponding direct and indirect annotations of a given UElement.
  */
 class AnnotationsGraphTest {
-  @get:Rule
-  val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
 
-  private val project get() = projectRule.project
-  private val fixture get() = projectRule.fixture
+  private val project
+    get() = projectRule.project
+  private val fixture
+    get() = projectRule.fixture
 
   private val annotationsGraph = AnnotationsGraph(TestNodeInfoFactory, TestResultFactory)
 
   @Test
   fun testTraverse_backEdge() {
-    val fileContent = """
+    val fileContent =
+      """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      ^-----------'
@@ -135,17 +145,19 @@ class AnnotationsGraphTest {
 
       @node0
       fun rootMethod(){}
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single()
+        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
-    assertEquals(listOf("3","2","1","0"), traverseResult.filterIsInstance<String>())
+    assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
     val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
     assertEquals(4, edgesResult.treeEdgesCount)
     assertEquals(1, edgesResult.backEdgesCount)
@@ -155,7 +167,8 @@ class AnnotationsGraphTest {
 
   @Test
   fun testTraverse_forwardEdge() {
-    val fileContent = """
+    val fileContent =
+      """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      '-----------^
@@ -174,17 +187,19 @@ class AnnotationsGraphTest {
 
       @node0
       fun rootMethod(){}
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single()
+        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
-    assertEquals(listOf("3","2","1","0"), traverseResult.filterIsInstance<String>())
+    assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
     val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
     assertEquals(4, edgesResult.treeEdgesCount)
     assertEquals(0, edgesResult.backEdgesCount)
@@ -194,7 +209,8 @@ class AnnotationsGraphTest {
 
   @Test
   fun testTraverse_crossEdge() {
-    val fileContent = """
+    val fileContent =
+      """
       // Graph illustration:
       // rootMethod --> 0 --> 1 --> 2 --> 3
       //                      '---> 4 ----^
@@ -216,17 +232,19 @@ class AnnotationsGraphTest {
 
       @node0
       fun rootMethod(){}
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val psiFile = fixture.configureByText(KotlinFileType.INSTANCE, fileContent)
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single()
+        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
-    assertEquals(listOf("3","2","4","1","0"), traverseResult.filterIsInstance<String>())
+    assertEquals(listOf("3", "2", "4", "1", "0"), traverseResult.filterIsInstance<String>())
     val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
     assertEquals(5, edgesResult.treeEdgesCount)
     assertEquals(0, edgesResult.backEdgesCount)
@@ -234,7 +252,8 @@ class AnnotationsGraphTest {
     assertEquals(1, edgesResult.crossEdgesCount)
   }
 
-  private val fileContentWithAllEdgeTypes = """
+  private val fileContentWithAllEdgeTypes =
+    """
       // This graph is the result of merging together the graphs in
       // testTraverse_backEdge, testTraverse_forwardEdge and testTraverse_crossEdge.
       @node2
@@ -256,7 +275,8 @@ class AnnotationsGraphTest {
 
       @node0
       fun rootMethod(){}
-    """.trimIndent()
+    """
+      .trimIndent()
 
   @Test
   fun testTraverse_allEdges() {
@@ -264,11 +284,12 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single()
+        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
     val traverseResult = annotationsGraph.traverse(listOf(rootMethod)).toList()
     // Results are computed in post-order
-    assertEquals(listOf("3","2","4","1","0"), traverseResult.filterIsInstance<String>())
+    assertEquals(listOf("3", "2", "4", "1", "0"), traverseResult.filterIsInstance<String>())
     val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
     assertEquals(5, edgesResult.treeEdgesCount)
     assertEquals(1, edgesResult.backEdgesCount)
@@ -282,16 +303,26 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single()
+        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
-    val traverseResult = annotationsGraph
-      .traverse(listOf(rootMethod), isLeafAnnotation = { annotation ->
-        runReadAction { annotation.qualifiedName!!.contains("node3") } })
-      .toList()
+    val traverseResult =
+      annotationsGraph
+        .traverse(
+          listOf(rootMethod),
+          isLeafAnnotation = { annotation ->
+            runReadAction { annotation.qualifiedName!!.contains("node3") }
+          }
+        )
+        .toList()
     // Results are computed in post-order, and 3 is a "leaf", so its visited many times
-    assertEquals(listOf("3","2","3","4","3","1","0"), traverseResult.filterIsInstance<String>())
+    assertEquals(
+      listOf("3", "2", "3", "4", "3", "1", "0"),
+      traverseResult.filterIsInstance<String>()
+    )
     // As node3 is a leaf annotation, then:
-    // 1- All its incoming edges should be tree edges (the forward and cross edges become tree edges),
+    // 1- All its incoming edges should be tree edges (the forward and cross edges become tree
+    // edges),
     // 2- All its outgoing edges should be ignored (the back edge is ignored)
     val edgesResult = traverseResult.filterIsInstance<DfsSubtreeEdges>().single()
     assertEquals(7, edgesResult.treeEdgesCount)
@@ -306,14 +337,20 @@ class AnnotationsGraphTest {
     val rootMethod = runReadAction {
       findAnnotations(project, psiFile.virtualFile, "node0")
         .mapNotNull { it.psiOrParent.toUElementOfType<UAnnotation>() }
-        .single().let { it.getContainingUMethodAnnotatedWith(setOf(it.qualifiedName!!)) }!!
+        .single()
+        .let { it.getContainingUMethodAnnotatedWith(it.qualifiedName!!) }!!
     }
-    val traverseResult = annotationsGraph
-      .traverse(listOf(rootMethod), annotationFilter = { _, annotation ->
-        runReadAction { !annotation.qualifiedName!!.contains("node4") } })
-      .toList()
+    val traverseResult =
+      annotationsGraph
+        .traverse(
+          listOf(rootMethod),
+          annotationFilter = { _, annotation ->
+            runReadAction { !annotation.qualifiedName!!.contains("node4") }
+          }
+        )
+        .toList()
     // Results are computed in post-order, and node4 is filtered out due to the annotationFilter
-    assertEquals(listOf("3","2","1","0"), traverseResult.filterIsInstance<String>())
+    assertEquals(listOf("3", "2", "1", "0"), traverseResult.filterIsInstance<String>())
     // As node4 is filtered out, then:
     // 1- All its incoming edges should be ignored (a tree edge is ignored),
     // 2- All its outgoing edges should be ignored (the cross edge is ignored)

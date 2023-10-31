@@ -43,6 +43,21 @@ iml_module(
 iml_module(
     name = "intellij.android.streaming.tests",
     iml_files = ["intellij.android.streaming.tests.iml"],
+    split_test_targets = {
+        "benchmark": {
+            "test_filter": "com.android.tools.idea.streaming.benchmark",
+        },
+        "core": {
+            "test_filter": "com.android.tools.idea.streaming.core",
+        },
+        "device": {
+            "test_filter": "com.android.tools.idea.streaming.device",
+        },
+        "emulator": {
+            "test_filter": "com.android.tools.idea.streaming.emulator",
+        },
+        "other": {},
+    },
     test_class = "com.android.tools.idea.streaming.StreamingTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
@@ -71,7 +86,6 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -113,6 +127,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )
 
@@ -156,7 +171,9 @@ iml_module(
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb.testUtil[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
@@ -169,5 +186,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )

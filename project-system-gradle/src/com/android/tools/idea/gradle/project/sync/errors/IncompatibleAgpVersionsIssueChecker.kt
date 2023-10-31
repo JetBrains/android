@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch.Companion.INCOMPATIBLE_AGP_VERSIONS
+import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch.Companion.MULTIPLE_AGP_VERSIONS
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.build.FilePosition
+import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
+import java.util.function.Consumer
 
 class IncompatibleAgpVersionsIssueChecker: GradleIssueChecker {
 
@@ -32,16 +34,28 @@ class IncompatibleAgpVersionsIssueChecker: GradleIssueChecker {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     if (rootCause !is AndroidSyncException) return null
     val message = rootCause.message ?: return null
-    val matcher = INCOMPATIBLE_AGP_VERSIONS.matcher(message)
+    val matcher = MULTIPLE_AGP_VERSIONS.matcher(message)
     if (!matcher.find()) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS)
     val messageLines = message.lines()
     if (messageLines.isEmpty()) return null
     return BuildIssueComposer("${messageLines[0]}\n${messageLines[1]}").composeBuildIssue()
   }
 
+  /**
+   * This error is not thrown from the build but is passed back as model [com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError]
+   * recreated and rethrown in [com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver.populateProjectExtraModels].
+   *
+   * Because of this there is no actual error in build output, so we don't need to parse anything in this function.
+   */
+  override fun consumeBuildOutputFailureMessage(message: String,
+                                                failureCause: String,
+                                                stacktrace: String?,
+                                                location: FilePosition?,
+                                                parentEventId: Any,
+                                                messageConsumer: Consumer<in BuildEvent>): Boolean {
+    return false
+  }
 }

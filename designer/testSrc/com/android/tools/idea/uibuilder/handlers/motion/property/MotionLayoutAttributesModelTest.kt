@@ -55,20 +55,13 @@ private const val SCENE_FILE = "scene.xml"
 
 @RunsInEdt
 class MotionLayoutAttributesModelTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
-  val motionRule = MotionAttributeRule(projectRule)
+  @JvmField @Rule val motionRule = MotionAttributeRule(projectRule)
 
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
-  @Mock
-  private lateinit var listener: PropertiesModelListener<NlPropertyItem>
+  @Mock private lateinit var listener: PropertiesModelListener<NlPropertyItem>
 
   @Before
   fun setUp() {
@@ -97,7 +90,8 @@ class MotionLayoutAttributesModelTest {
     verify(listener, times(1)).propertyValuesChanged(model)
     reset(listener)
 
-    // Verify that if the same motion tag is selected again after the model is deactivated, we get a generated event:
+    // Verify that if the same motion tag is selected again after the model is deactivated, we get a
+    // generated event:
     motionRule.attributesModel.deactivate()
     motionRule.selectConstraint("start", "widget")
     UIUtil.dispatchAllInvocationEvents()
@@ -155,10 +149,14 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[CONSTRAINTSET]!![AUTO_URI, DERIVE_CONSTRAINTS_FROM]!!
     property.value = "@id/end"
-    assertThat(motionRule.sceneFileLines(5..7)).isEqualTo("<ConstraintSet\n" +
-                                                          "     android:id=\"@+id/start\"\n" +
-                                                          "     motion:deriveConstraintsFrom=\"@id/end\">")
-    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set ConstraintSet.deriveConstraintsFrom to @id/end")
+    assertThat(motionRule.sceneFileLines(5..7))
+      .isEqualTo(
+        "<ConstraintSet\n" +
+          "     android:id=\"@+id/start\"\n" +
+          "     motion:deriveConstraintsFrom=\"@id/end\">"
+      )
+    assertThat(motionRule.lastUndoDescription)
+      .isEqualTo("Undo Set ConstraintSet.deriveConstraintsFrom to @id/end")
   }
 
   @Test
@@ -167,9 +165,12 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[CUSTOM_ATTRIBUTE]!!["", ATTR_TEXT_SIZE]!!
     property.value = "7sp"
-    assertThat(motionRule.sceneFileLines(27..29)).isEqualTo("<CustomAttribute\n" +
-                                                            "     motion:attributeName=\"textSize\"\n" +
-                                                            "     motion:customPixelDimension=\"7sp\"/>")
+    assertThat(motionRule.sceneFileLines(27..29))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"textSize\"\n" +
+          "     motion:customPixelDimension=\"7sp\"/>"
+      )
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 7sp")
   }
 
@@ -179,9 +180,12 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[LAYOUT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
     property.value = "10dp"
-    assertThat(motionRule.sceneFileLines(33..35)).isEqualTo("<Layout\n" +
-                                                            "     android:layout_width=\"1dp\"\n" +
-                                                            "     android:layout_height=\"10dp\"/>")
+    assertThat(motionRule.sceneFileLines(33..35))
+      .isEqualTo(
+        "<Layout\n" +
+          "     android:layout_width=\"1dp\"\n" +
+          "     android:layout_height=\"10dp\"/>"
+      )
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set Layout.layout_height to 10dp")
   }
 
@@ -191,15 +195,18 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[LAYOUT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
     property.value = "30dp"
-    assertThat(motionRule.sceneFileLines(96..104)).isEqualTo("<Layout\n" +
-                                                             "     android:layout_width=\"32dp\"\n" +
-                                                             "     android:layout_height=\"30dp\"\n" +
-                                                             "     motion:layout_constraintTop_toTopOf=\"@id/image\"\n" +
-                                                             "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
-                                                             "     motion:layout_editor_absoluteY=\"30dp\"\n" +
-                                                             "     motion:layout_editor_absoluteX=\"10dp\"\n" +
-                                                             "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
-                                                             "     motion:layout_constraintHorizontal_bias=\"0.5\" />")
+    assertThat(motionRule.sceneFileLines(96..104))
+      .isEqualTo(
+        "<Layout\n" +
+          "     android:layout_width=\"32dp\"\n" +
+          "     android:layout_height=\"30dp\"\n" +
+          "     motion:layout_constraintTop_toTopOf=\"@id/image\"\n" +
+          "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+          "     motion:layout_editor_absoluteY=\"30dp\"\n" +
+          "     motion:layout_editor_absoluteX=\"10dp\"\n" +
+          "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+          "     motion:layout_constraintHorizontal_bias=\"0.5\" />"
+      )
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set Layout.layout_height to 30dp")
   }
 
@@ -209,17 +216,21 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[CONSTRAINT]!![ANDROID_URI, ATTR_LAYOUT_HEIGHT]!!
     property.value = "30dp"
-    assertThat(motionRule.sceneFileLines(37..46)).isEqualTo("<Constraint\n" +
-                                                            "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
-                                                            "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
-                                                            "     android:layout_width=\"32dp\"\n" +
-                                                            "     android:layout_height=\"30dp\"\n" +
-                                                            "     motion:layout_constraintTag=\"BigButtonWindow\"\n" +
-                                                            "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
-                                                            "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
-                                                            "     motion:layout_editor_absoluteY=\"40dp\"\n" +
-                                                            "     motion:layout_editor_absoluteX=\"10dp\" />")
-    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set Constraint.layout_height to 30dp")
+    assertThat(motionRule.sceneFileLines(37..46))
+      .isEqualTo(
+        "<Constraint\n" +
+          "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
+          "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+          "     android:layout_width=\"32dp\"\n" +
+          "     android:layout_height=\"30dp\"\n" +
+          "     motion:layout_constraintTag=\"BigButtonWindow\"\n" +
+          "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
+          "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+          "     motion:layout_editor_absoluteY=\"40dp\"\n" +
+          "     motion:layout_editor_absoluteX=\"10dp\" />"
+      )
+    assertThat(motionRule.lastUndoDescription)
+      .isEqualTo("Undo Set Constraint.layout_height to 30dp")
   }
 
   @Test
@@ -228,7 +239,8 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     val property = model.allProperties[ON_CLICK]!![AUTO_URI, ATTR_TARGET_ID]!!
     property.value = "@+id/widget"
-    assertThat(motionRule.sceneFileLines(106..106)).isEqualTo("<OnClick motion:targetId=\"@+id/widget\"/>")
+    assertThat(motionRule.sceneFileLines(106..106))
+      .isEqualTo("<OnClick motion:targetId=\"@+id/widget\"/>")
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set OnClick.targetId to @+id/widget")
   }
 
@@ -248,12 +260,18 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
     model.createCustomXmlTag(motionRule.selection, ATTR_TEXT, "Hello", CUSTOM_STRING) { tag = it }
-    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
-                                            "            motion:attributeName=\"text\"\n" +
-                                            "            motion:customStringValue=\"Hello\" />")
-    assertThat(motionRule.sceneFileLines(30..32)).isEqualTo("<CustomAttribute\n" +
-                                                            "     motion:attributeName=\"text\"\n" +
-                                                            "     motion:customStringValue=\"Hello\" />")
+    assertThat(tag!!.xmlTag.text)
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "            motion:attributeName=\"text\"\n" +
+          "            motion:customStringValue=\"Hello\" />"
+      )
+    assertThat(motionRule.sceneFileLines(30..32))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"text\"\n" +
+          "     motion:customStringValue=\"Hello\" />"
+      )
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
   }
 
@@ -263,23 +281,29 @@ class MotionLayoutAttributesModelTest {
     val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
     model.createCustomXmlTag(motionRule.selection, ATTR_TEXT, "Hello", CUSTOM_STRING) { tag = it }
-    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
-                                            "              motion:attributeName=\"text\"\n" +
-                                            "              motion:customStringValue=\"Hello\" />")
-    assertThat(motionRule.sceneFileLines(37..51)).isEqualTo("<Constraint\n" +
-                                                            "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
-                                                            "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
-                                                            "     android:layout_width=\"32dp\"\n" +
-                                                            "     android:layout_height=\"10dp\"\n" +
-                                                            "     motion:layout_constraintTag=\"BigButtonWindow\"\n" +
-                                                            "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
-                                                            "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
-                                                            "     motion:layout_editor_absoluteY=\"40dp\"\n" +
-                                                            "     motion:layout_editor_absoluteX=\"10dp\">\n" +
-                                                            "     <CustomAttribute\n" +
-                                                            "         motion:attributeName=\"text\"\n" +
-                                                            "         motion:customStringValue=\"Hello\" />\n" +
-                                                            " </Constraint>")
+    assertThat(tag!!.xmlTag.text)
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "              motion:attributeName=\"text\"\n" +
+          "              motion:customStringValue=\"Hello\" />"
+      )
+    assertThat(motionRule.sceneFileLines(37..51))
+      .isEqualTo(
+        "<Constraint\n" +
+          "     android:id=\"@+id/buttonEmptyConstraint\"\n" +
+          "     motion:layout_constraintEnd_toStartOf=\"parent\"\n" +
+          "     android:layout_width=\"32dp\"\n" +
+          "     android:layout_height=\"10dp\"\n" +
+          "     motion:layout_constraintTag=\"BigButtonWindow\"\n" +
+          "     motion:layout_constraintTop_toTopOf=\"@id/button\"\n" +
+          "     motion:layout_constraintStart_toStartOf=\"parent\"\n" +
+          "     motion:layout_editor_absoluteY=\"40dp\"\n" +
+          "     motion:layout_editor_absoluteX=\"10dp\">\n" +
+          "     <CustomAttribute\n" +
+          "         motion:attributeName=\"text\"\n" +
+          "         motion:customStringValue=\"Hello\" />\n" +
+          " </Constraint>"
+      )
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
   }
 
@@ -288,14 +312,23 @@ class MotionLayoutAttributesModelTest {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_ATTRIBUTE, 60, "widget")
     val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
-    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) { tag = it }
-    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
-                                            "              motion:attributeName=\"textSize\"\n" +
-                                            "              motion:customStringValue=\"50sp\" />")
-    assertThat(motionRule.sceneFileLines(150..152)).isEqualTo("<CustomAttribute\n" +
-                                                            "     motion:attributeName=\"textSize\"\n" +
-                                                            "     motion:customStringValue=\"50sp\" />")
-    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) {
+      tag = it
+    }
+    assertThat(tag!!.xmlTag.text)
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "              motion:attributeName=\"textSize\"\n" +
+          "              motion:customStringValue=\"50sp\" />"
+      )
+    assertThat(motionRule.sceneFileLines(150..152))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"textSize\"\n" +
+          "     motion:customStringValue=\"50sp\" />"
+      )
+    assertThat(motionRule.lastUndoDescription)
+      .isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
   }
 
   @Test
@@ -303,14 +336,23 @@ class MotionLayoutAttributesModelTest {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_CYCLE, 15, "widget")
     val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
-    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) { tag = it }
-    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
-                                            "              motion:attributeName=\"textSize\"\n" +
-                                            "              motion:customStringValue=\"50sp\" />")
-    assertThat(motionRule.sceneFileLines(165..167)).isEqualTo("<CustomAttribute\n" +
-                                                              "     motion:attributeName=\"textSize\"\n" +
-                                                              "     motion:customStringValue=\"50sp\" />")
-    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) {
+      tag = it
+    }
+    assertThat(tag!!.xmlTag.text)
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "              motion:attributeName=\"textSize\"\n" +
+          "              motion:customStringValue=\"50sp\" />"
+      )
+    assertThat(motionRule.sceneFileLines(165..167))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"textSize\"\n" +
+          "     motion:customStringValue=\"50sp\" />"
+      )
+    assertThat(motionRule.lastUndoDescription)
+      .isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
   }
 
   @Test
@@ -318,14 +360,23 @@ class MotionLayoutAttributesModelTest {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_TIME_CYCLE, 25, "widget")
     val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
-    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) { tag = it }
-    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
-                                            "              motion:attributeName=\"textSize\"\n" +
-                                            "              motion:customStringValue=\"50sp\" />")
-    assertThat(motionRule.sceneFileLines(173..175)).isEqualTo("<CustomAttribute\n" +
-                                                              "     motion:attributeName=\"textSize\"\n" +
-                                                              "     motion:customStringValue=\"50sp\" />")
-    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "50sp", CUSTOM_STRING) {
+      tag = it
+    }
+    assertThat(tag!!.xmlTag.text)
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "              motion:attributeName=\"textSize\"\n" +
+          "              motion:customStringValue=\"50sp\" />"
+      )
+    assertThat(motionRule.sceneFileLines(173..175))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"textSize\"\n" +
+          "     motion:customStringValue=\"50sp\" />"
+      )
+    assertThat(motionRule.lastUndoDescription)
+      .isEqualTo("Undo Set CustomAttribute.textSize to 50sp")
   }
 
   @Test
@@ -333,13 +384,22 @@ class MotionLayoutAttributesModelTest {
     motionRule.selectConstraint("start", "widget")
     val model = motionRule.attributesModel
     var tag: MotionSceneTag? = null
-    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "20sp", CUSTOM_STRING) { tag = it }
-    assertThat(tag!!.xmlTag.text).isEqualTo("<CustomAttribute\n" +
-                                            "          motion:attributeName=\"textSize\"\n" +
-                                            "          motion:customStringValue=\"20sp\" />")
-    assertThat(motionRule.sceneFileLines(27..29)).isEqualTo("<CustomAttribute\n" +
-                                                            "     motion:attributeName=\"textSize\"\n" +
-                                                            "     motion:customStringValue=\"20sp\" />")
-    assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.textSize to 20sp")
+    model.createCustomXmlTag(motionRule.selection, ATTR_TEXT_SIZE, "20sp", CUSTOM_STRING) {
+      tag = it
+    }
+    assertThat(tag!!.xmlTag.text)
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "          motion:attributeName=\"textSize\"\n" +
+          "          motion:customStringValue=\"20sp\" />"
+      )
+    assertThat(motionRule.sceneFileLines(27..29))
+      .isEqualTo(
+        "<CustomAttribute\n" +
+          "     motion:attributeName=\"textSize\"\n" +
+          "     motion:customStringValue=\"20sp\" />"
+      )
+    assertThat(motionRule.lastUndoDescription)
+      .isEqualTo("Undo Set CustomAttribute.textSize to 20sp")
   }
 }

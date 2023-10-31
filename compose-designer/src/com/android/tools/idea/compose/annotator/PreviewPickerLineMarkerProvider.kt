@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.annotator
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.pickers.PsiPickerManager
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.tracking.PreviewPickerTracker
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
+import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -38,7 +38,6 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
-import javax.swing.Icon
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
@@ -46,6 +45,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
+import javax.swing.Icon
 
 /**
  * LineMarkerProvider for the @Preview annotation for Compose.

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debuggers.coroutine
 
-import com.android.tools.idea.run.deployable.SwappableProcessHandler
+import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.xdebugger.XDebugProcess
@@ -58,7 +58,7 @@ private class CoroutineDebuggerListener(private val project: Project) : XDebugge
     }
     // we check the process handler to differentiate between regular JVM processes and Android processes.
     // we don't want to create the panel if the process is regular JVM.
-    if (debugProcess.processHandler !is SwappableProcessHandler) {
+    if (debugProcess.processHandler.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) == null) {
       return
     }
 

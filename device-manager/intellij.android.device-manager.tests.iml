@@ -8,7 +8,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
@@ -26,10 +25,9 @@
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />

@@ -24,7 +24,6 @@ import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
-import java.util.Comparator
 import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.SwingConstants

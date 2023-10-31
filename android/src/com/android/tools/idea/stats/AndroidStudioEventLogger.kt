@@ -16,21 +16,31 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEBUGGER_EVENT
+import com.google.wireless.android.sdk.stats.DebuggerEvent
+import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated
+import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.FileTypeInfo
+import com.google.wireless.android.sdk.stats.DebuggerEvent.Type.FRAMES_VIEW_UPDATED
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
+import com.google.wireless.android.sdk.stats.IntelliJNewUISwitch
 import com.google.wireless.android.sdk.stats.KotlinGradlePerformance
 import com.google.wireless.android.sdk.stats.KotlinGradlePerformance.FirUsage
 import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
 import com.google.wireless.android.sdk.stats.RunFinishData
 import com.google.wireless.android.sdk.stats.RunStartData
 import com.google.wireless.android.sdk.stats.VfsRefresh
+import com.intellij.ide.ui.experimental.ExperimentalUiCollector
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
 import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
+import com.intellij.internal.statistic.eventLog.events.EventFields
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
+import com.intellij.xdebugger.impl.XDebuggerActionsCollector
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.util.Locale
@@ -43,12 +53,15 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     when (group.id) {
+      "debugger.breakpoints.usage" -> logDebuggerBreakpointsUsage(eventId, data)
+      "experimental.ui.interactions" -> logNewUIStateChange(eventId, data)
       "file.types" -> logFileType(eventId, data)
       "file.types.usage" -> logFileTypeUsage(eventId, data)
       "kotlin.gradle.performance" -> logKotlinGradlePerformance(eventId, data)
       "kotlin.project.configuration" -> logKotlinProjectConfiguration(eventId, data)
       "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
+      "xdebugger.actions" -> logDebuggerEvent(eventId, data)
     }
     return CompletableFuture.completedFuture(null)
   }
@@ -65,6 +78,38 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   }
 
   override fun rollOver() {}
+
+  private fun logNewUIStateChange(eventId: String, data: Map<String, Any>) {
+    if (eventId != "switch.ui") {
+      return
+    }
+
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.INTELLIJ_NEW_UI_SWITCH
+      intellijNewUiSwitch = IntelliJNewUISwitch.newBuilder().apply {
+        switchSource = getSwitchSource(data)
+        (data["exp_ui"] as? Boolean)?.let { newUi = it }
+      }.build()
+    })
+  }
+
+  private fun getSwitchSource(data: Map<String, Any>): IntelliJNewUISwitch.SwitchSource {
+    val s = data["switch_source"] as? String ?: return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+    val source = try {
+      ExperimentalUiCollector.SwitchSource.valueOf(s)
+    }
+    catch (_: IllegalArgumentException) {
+      return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+    }
+
+    return when (source) {
+      ExperimentalUiCollector.SwitchSource.ENABLE_NEW_UI_ACTION -> IntelliJNewUISwitch.SwitchSource.ENABLE_NEW_UI_ACTION
+      ExperimentalUiCollector.SwitchSource.DISABLE_NEW_UI_ACTION -> IntelliJNewUISwitch.SwitchSource.DISABLE_NEW_UI_ACTION
+      ExperimentalUiCollector.SwitchSource.WELCOME_PROMO -> IntelliJNewUISwitch.SwitchSource.WELCOME_PROMO
+      ExperimentalUiCollector.SwitchSource.WHATS_NEW_PAGE -> IntelliJNewUISwitch.SwitchSource.WHATS_NEW_PAGE
+      else -> IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+    }
+  }
 
   private fun logFileType(eventId: String, data: Map<String, Any>) {
     // filter out events that Jetbrains does not require
@@ -212,6 +257,69 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                          .setKind(AndroidStudioEvent.EventKind.VFS_REFRESH)
                          .setVfsRefresh(VfsRefresh.newBuilder().setDurationMs(durationMs)))
     }
+  }
+
+  private fun logDebuggerBreakpointsUsage(eventId: String, data: Map<String, Any>) {
+    when (eventId) {
+      "breakpoint.added" -> {
+        val type = data["type"] as? String ?: return
+        val pluginType = data["plugin_type"] as? String ?: return
+        val withinSession = data["within_session"] as? Boolean ?: return
+
+        val studioEvent = AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.DEBUGGER_EVENT)
+          .setDebuggerEvent(
+            DebuggerEvent.newBuilder()
+              .setType(DebuggerEvent.Type.BREAKPOINT_ADDED_EVENT)
+              .setBreakpointAdded(
+                DebuggerEvent.BreakpointAdded.newBuilder()
+                  .setType(type)
+                  .setPluginType(pluginType)
+                  .setInSession(withinSession)
+              )
+          )
+
+        UsageTracker.log(studioEvent)
+      }
+    }
+  }
+
+
+  private fun logDebuggerEvent(eventId: String, data: Map<String, Any>) {
+    val event = when (eventId) {
+      XDebuggerActionsCollector.EVENT_FRAMES_UPDATED -> {
+        @Suppress("UnstableApiUsage")
+        val durationMs = data[EventFields.DurationMs.name] as? Long ?: return
+        val totalFrames = data[XDebuggerActionsCollector.TOTAL_FRAMES] as? Int ?: return
+
+        @Suppress("UNCHECKED_CAST")
+        val fileTypes = data[XDebuggerActionsCollector.FILE_TYPES] as? List<String> ?: return
+
+        @Suppress("UNCHECKED_CAST")
+        val framesPerFileType = data[XDebuggerActionsCollector.FRAMES_PER_TYPE] as? List<Int> ?: return
+
+        val fileTypeInfos = fileTypes.zip(framesPerFileType).map { (type, frames) ->
+          FileTypeInfo.newBuilder()
+            .setFileType(type)
+            .setNumFrames(frames)
+            .build()
+        }
+        DebuggerEvent.newBuilder()
+          .setType(FRAMES_VIEW_UPDATED)
+          .setFramesViewUpdated(
+            FramesViewUpdated.newBuilder()
+              .setDurationMs(durationMs)
+              .setTotalFrames(totalFrames)
+              .addAllFileTypeInfos(fileTypeInfos)
+          )
+      }
+
+      else -> return
+    }
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(DEBUGGER_EVENT)
+        .setDebuggerEvent(event))
   }
 
   /**

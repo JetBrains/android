@@ -33,13 +33,9 @@ import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.spy
 import java.io.File
 
-/**
- * Rule for making AdbUtils.getAdbFuture(Project) return AdbRule.bridge.
- */
-class AdbServiceRule(
-  private val projectSupplier: () -> Project,
-  private val adbRule: FakeAdbRule
-) : ExternalResource() {
+/** Rule for making AdbUtils.getAdbFuture(Project) return AdbRule.bridge. */
+class AdbServiceRule(private val projectSupplier: () -> Project, private val adbRule: FakeAdbRule) :
+  ExternalResource() {
   private var serverKilled = false
   private var serviceDisposable: Disposable? = null
 
@@ -52,15 +48,19 @@ class AdbServiceRule(
     val service: AdbService = mock()
     ApplicationManager.getApplication().replaceService(AdbService::class.java, service, disposable)
     doAnswer {
-      serverKilled = false
-      Futures.immediateFuture(bridge)
-    }.whenever(service).getDebugBridge(eq(adbFile))
-    doAnswer {
-      if (serverKilled) {
-        error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
+        serverKilled = false
+        Futures.immediateFuture(bridge)
       }
-      adbRule.bridge.devices
-    }.whenever(bridge).devices
+      .whenever(service)
+      .getDebugBridge(eq(adbFile))
+    doAnswer {
+        if (serverKilled) {
+          error("Server was killed. Do not keep instances of AndroidDebugBridge around.")
+        }
+        adbRule.bridge.devices
+      }
+      .whenever(bridge)
+      .devices
   }
 
   override fun after() {
@@ -70,7 +70,8 @@ class AdbServiceRule(
   /**
    * Imitate that the adb server was killed.
    *
-   * This can be used in tests to ensure that [AndroidDebugBridge.getDevices] are not called on a stale bridge instance.
+   * This can be used in tests to ensure that [AndroidDebugBridge.getDevices] are not called on a
+   * stale bridge instance.
    */
   fun killServer() {
     serverKilled = true

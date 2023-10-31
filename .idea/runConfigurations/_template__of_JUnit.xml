@@ -1,8 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="true" type="JUnit" factoryName="JUnit">
-    <log_file alias="idea.log" path="$PROJECT_DIR$/test-temp/system/testlog/idea.log" skipped="false" />
+    <log_file alias="idea.log" path="$PROJECT_DIR$/test-temp/system/testlog/idea.log" />
     <shortenClasspath name="MANIFEST" />
     <useClassPathOnly />
+    <extension name="coverage" track_test_folders="true" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="ALTERNATIVE_JRE_PATH" value="jbr-17" />
     <option name="MAIN_CLASS_NAME" value="" />

@@ -46,6 +46,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTasksAndOutputInformatio
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
@@ -70,7 +71,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -102,6 +103,7 @@ import com.android.tools.idea.gradle.project.sync.idea.setupAndroidContentEntrie
 import com.android.tools.idea.gradle.project.sync.idea.setupAndroidDependenciesForMpss
 import com.android.tools.idea.gradle.project.sync.idea.setupCompilerOutputPaths
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues.Companion.syncIssues
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.gradle.util.emulateStartupActivityForTest
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater
@@ -124,6 +126,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
@@ -153,7 +156,6 @@ import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -178,6 +180,7 @@ import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
@@ -364,6 +367,7 @@ interface AndroidProjectStubBuilder {
   val includeAidlSources: Boolean
   val includeBuildConfigSources: Boolean
   val internedModels: InternedModels
+  val defaultVariantName: String?
 }
 
 /**
@@ -428,6 +432,7 @@ data class AndroidProjectBuilder(
   val includeRenderScriptSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val includeAidlSources: AndroidProjectStubBuilder.() -> Boolean = { false },
   val includeBuildConfigSources: AndroidProjectStubBuilder.() -> Boolean = { false },
+  val defaultVariantName: AndroidProjectStubBuilder.() -> String? = { null },
 ) {
   fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
     copy(buildId = buildId)
@@ -517,6 +522,8 @@ data class AndroidProjectBuilder(
   fun withNdkModel(ndkModel: AndroidProjectStubBuilder.() -> V2NdkModel?) =
     copy(ndkModel = ndkModel)
 
+  fun withNamespace(namespace: String) = copy(namespace = {namespace})
+
 
   fun build(): AndroidProjectBuilderCore =
     fun(
@@ -581,6 +588,7 @@ data class AndroidProjectBuilder(
         override val includeAidlSources: Boolean get() = includeAidlSources()
         override val includeBuildConfigSources: Boolean get() = includeBuildConfigSources()
         override val internedModels: InternedModels get() = internedModels
+        override val defaultVariantName: String? get() = defaultVariantName()
       }
       return AndroidProjectModels(
         androidProject = builder.androidProject,
@@ -592,10 +600,12 @@ data class AndroidProjectBuilder(
 
 @JvmOverloads
 fun createAndroidProjectBuilderForDefaultTestProjectStructure(
-  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP
+  projectType: IdeAndroidProjectType = IdeAndroidProjectType.PROJECT_TYPE_APP,
+  namespace: String? = null,
 ): AndroidProjectBuilder =
   AndroidProjectBuilder(
     projectType = { projectType },
+    namespace = { namespace },
     minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
     targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
     mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
@@ -694,6 +704,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     mlModelBindingEnabled = mlModelBindingEnabled,
     unifiedTestPlatformEnabled = true,
     useAndroidX = false,
+    enableVcsInfo = false,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
@@ -841,7 +852,8 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     codeShrinker = null,
     modelSyncFiles = listOf(),
     privacySandboxSdkInfo = null,
-    desugaredMethodsFiles = emptyList()
+    desugaredMethodsFiles = emptyList(),
+    generatedClassPaths = emptyMap()
   )
 }
 
@@ -906,7 +918,8 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     codeShrinker = null,
     modelSyncFiles = listOf(),
     privacySandboxSdkInfo = null,
-    desugaredMethodsFiles = emptyList()
+    desugaredMethodsFiles = emptyList(),
+    generatedClassPaths = emptyMap()
   )
 }
 
@@ -946,7 +959,8 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     compileClasspathCore = dependencies,
     runtimeClasspathCore = dependencies,
     unresolvedDependencies = emptyList(),
-    mockablePlatformJar = mockablePlatformJar
+    mockablePlatformJar = mockablePlatformJar,
+    generatedClassPaths = emptyMap()
   )
 }
 
@@ -1017,7 +1031,8 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
     codeShrinker = null,
     modelSyncFiles = listOf(),
     privacySandboxSdkInfo = null,
-    desugaredMethodsFiles = emptyList()
+    desugaredMethodsFiles = emptyList(),
+    generatedClassPaths = emptyMap()
   )
 }
 
@@ -1102,7 +1117,7 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
 fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
   val debugBuildType = this.debugBuildType
   val releaseBuildType = this.releaseBuildType
-  val defaultVariant = debugBuildType ?: releaseBuildType
+  val defaultVariantName = this.defaultVariantName
   val buildTypes = listOfNotNull(debugBuildType, releaseBuildType)
   val projectType = projectType
   return IdeAndroidProjectImpl(
@@ -1110,7 +1125,6 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     projectPath = IdeProjectPathImpl(
       rootBuildId = File("/"),
       buildId = File("/"),
-      buildName = ":",
       projectPath = gradleProjectPath
     ),
     projectType = projectType,
@@ -1160,6 +1174,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     lintChecksJars = listOf(),
     isKaptEnabled = false,
     desugarLibraryConfigFiles = listOf(),
+    defaultVariantName = defaultVariantName
   )
 }
 
@@ -1197,7 +1212,7 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
   dependencies: List<IdeDependencyCoreImpl> = listOf()
-): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(dependencies)
+): IdeDependenciesCoreImpl = IdeDependenciesCoreDirect(dependencies)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
@@ -1223,11 +1238,10 @@ fun setupTestProjectFromAndroidModel(
       "Add `JavaModuleModelBuilder.rootModuleBuilder` to add a default one."
     )
   }
-  if (IdeSdks.getInstance().androidSdkPath === null) {
+  if (IdeSdks.getInstance().androidSdkPath != getSdk()) {
     AndroidGradleTests.setUpSdks(project, project, getSdk().toFile())
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
   }
-
   GradleProjectImporter.configureNewProject(project)
 
   val moduleManager = ModuleManager.getInstance(project)
@@ -1281,6 +1295,9 @@ fun setupTestProjectFromAndroidModel(
 
     override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): Collection<AndroidFacet> =
       gradleProjectSystem.getAndroidFacetsWithPackageName(project, packageName)
+
+    override fun isNamespaceOrParentPackage(packageName: String): Boolean =
+      gradleProjectSystem.isNamespaceOrParentPackage(packageName)
 
     override fun getBootClasspath(module: Module): Collection<String> {
       return emptyList()
@@ -1453,7 +1470,7 @@ private fun setupTestProjectFromAndroidModelCore(
           gradlePath,
           rootProjectBasePath,
           moduleBasePath,
-          moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get(),
+          moduleBuilder.agpVersion ?: AgpVersions.latestKnown.toString(),
           internedModels
         )
         featureToBase.putAll(androidProject.dynamicFeatures.map { it to gradlePath })
@@ -1510,13 +1527,14 @@ private fun setupTestProjectFromAndroidModelCore(
   val resolvedTable = ResolvedLibraryTableBuilder(
     getGradlePathBy = idToPath::get,
     getModuleDataNode = pathToNode::get,
-    resolveArtifact = { null }
+    resolveArtifact = { null },
+    resolveKmpAndroidMainSourceSet = { null }
   ).buildResolvedLibraryTable(unresolvedTable)
-  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTable(resolvedTable)
+  val libraryResolver = IdeLibraryModelResolverImpl.fromLibraryTables(resolvedTable, null)
   projectDataNode.createChild(
     AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP,
     IdeCompositeBuildMapImpl(
-      builds = listOf(IdeBuildImpl(buildName = ":", buildId = rootProjectBasePath)),
+      builds = listOf(IdeBuildImpl(buildPath = ":", buildId = rootProjectBasePath)),
       gradleSupportsDirectTaskInvocation = true
     )
   )
@@ -1981,14 +1999,13 @@ private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: Dat
 /**
  * Finds a module by the given [gradlePath].
  *
- * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
+ * Note: For composite build [gradlePath] can be in a form of `:includedProject:module:module` for modules from included projects.
  */
 @JvmOverloads
 fun Project.gradleModule(gradlePath: String, sourceSet: IdeModuleSourceSet? = null): Module? =
   ModuleManager.getInstance(this).modules
-    .firstOrNull {
-      it.getGradleProjectPath()?.path == gradlePath
-    }?.getHolderModule()
+    .firstOrNull { it.getGradleIdentityPath() == gradlePath }
+    ?.getHolderModule()
     ?.let {
       if (sourceSet == null) it
       else {
@@ -2117,8 +2134,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
-  val overrideProjectJdk: Sdk? = null,
-  val reportProjectSizeUsage: Boolean = false
+  val reportProjectSizeUsage: Boolean = false,
+  val overrideProjectGradleJdkPath: File? = null
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
@@ -2180,9 +2197,10 @@ private fun <T> openPreparedProject(
           }
           afterCreateCalled = true
 
-          options.overrideProjectJdk?.let { overrideProjectJdk ->
-            runWriteActionAndWait {
-              ProjectRootManager.getInstance(project).projectSdk = overrideProjectJdk
+          options.overrideProjectGradleJdkPath?.let { jdkPath ->
+            GradleConfigProperties(projectPath).apply {
+              javaHome = jdkPath
+              save()
             }
           }
 
@@ -2363,17 +2381,17 @@ fun Project.requestSyncAndWait(
 private fun setupDataNodesForSelectedVariant(
   project: Project,
   buildId: @SystemIndependent String,
-  androidModuleModels: List<GradleAndroidModelData>,
+  gradleAndroidModels: List<GradleAndroidModelData>,
   projectDataNode: DataNode<ProjectData>,
   libraryResolver: IdeLibraryModelResolver
 ) {
   val moduleNodes = ExternalSystemApiUtil.findAll(projectDataNode, ProjectKeys.MODULE)
   val moduleIdToDataMap = createGradleProjectPathToModuleDataMap(buildId, moduleNodes)
-  androidModuleModels.forEach { androidModuleModel ->
-    val newVariant = androidModuleModel.selectedVariant(libraryResolver)
+  gradleAndroidModels.forEach { gradleAndroidModel ->
+    val newVariant = gradleAndroidModel.selectedVariant(libraryResolver)
 
     val moduleNode = moduleNodes.firstOrNull { node ->
-      node.data.internalName == androidModuleModel.moduleName
+      node.data.internalName == gradleAndroidModel.moduleName
     } ?: return@forEach
 
     // Now we need to recreate these nodes using the information from the new variant.
@@ -2387,7 +2405,7 @@ private fun setupDataNodesForSelectedVariant(
         lib.samplesJar
       )
     }, newVariant)
-    moduleNode.setupAndroidContentEntriesPerSourceSet(androidModuleModel)
+    moduleNode.setupAndroidContentEntriesPerSourceSet(gradleAndroidModel)
   }
 }
 

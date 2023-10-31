@@ -23,6 +23,7 @@ categories: {
     package_names: "android"
     package_names: "androidx"
     package_names: "com.android.tools.idea.rendering"
+    package_names: "com.android.tools.rendering"
   }
   components: {
     label: "imagepool"
@@ -33,8 +34,11 @@ categories: {
     package_names: "com.android.tools.idea.common.surface"
     package_names: "com.android.tools.idea.common.scene"
     package_names: "com.android.tools.idea.common.editor"
+    package_names: "com.android.tools.idea.common.error"
     package_names: "com.android.tools.idea.uibuilder"
     package_names: "com.android.tools.idea.configurations"
+    package_names: "com.android.tools.idea.compose"
+    package_names: "com.android.tools.idea.preview"
   }
   components: {
     label: "layoutlib"
@@ -107,6 +111,10 @@ categories: {
   components: {
     label: "apkView"
     package_names: "com.android.tools.idea.apk.viewer"
+  }
+  components: {
+    label: "liveedit"
+    package_names: "com.android.tools.idea.run.deployment.liveedit"
   }
 }
 categories: {
@@ -218,6 +226,15 @@ categories: {
   components: {
     label: "messages"
     package_names: "com.intellij.util.messages"
+  }
+  components: {
+    label: "loaders"
+    class_names: "com.intellij.util.lang.FileLoader"
+    class_names: "com.intellij.util.lang.JarLoader"
+    class_names: "com.intellij.util.lang.UrlClassLoader"
+    class_names: "com.intellij.ide.plugins.cl.PluginClassLoader"
+    class_names: "com.intellij.util.lang.JdkZipResourceFile"
+    class_names: "com.intellij.util.lang.ZipResourceFile"
   }
 }
 shared_components_limit: 200

@@ -24,14 +24,13 @@ import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import org.junit.Test
 import org.mockito.Mockito
 
-class NlVisibilityModelTest: LayoutTestCase() {
+class NlVisibilityModelTest : LayoutTestCase() {
 
   private val listOfVisibility: List<String?> = listOf(null, "invisible", "gone")
 
   private fun generateModel(android: Visibility, tools: Visibility): NlVisibilityModel {
-    val component = component(SdkConstants.LINEAR_LAYOUT)
-      .withBounds(0, 0, 1000, 1000)
-      .id("@id/linear")
+    val component =
+      component(SdkConstants.LINEAR_LAYOUT).withBounds(0, 0, 1000, 1000).id("@id/linear")
 
     if (android != Visibility.NONE) {
       component.withAttribute(SdkConstants.ANDROID_URI, "visibility", Visibility.convert(android)!!)
@@ -135,12 +134,21 @@ class NlVisibilityModelTest: LayoutTestCase() {
 
     listOfVisibility.forEach { currVisibility ->
       listOfVisibility.forEach { parentVisibility ->
-        assertAgainstGrandParent(currVisibility, parentVisibility, grandparentVisibility, Visibility.GONE)
+        assertAgainstGrandParent(
+          currVisibility,
+          parentVisibility,
+          grandparentVisibility,
+          Visibility.GONE
+        )
       }
     }
   }
 
-  private fun assertAgainstParent(currentVisibility: String?, parentVisibility: String?, expected: Visibility) {
+  private fun assertAgainstParent(
+    currentVisibility: String?,
+    parentVisibility: String?,
+    expected: Visibility
+  ) {
     val component = mockComponent(currentVisibility)
     val parent = mockComponent(parentVisibility)
 
@@ -150,10 +158,11 @@ class NlVisibilityModelTest: LayoutTestCase() {
   }
 
   private fun assertAgainstGrandParent(
-      currentVisibility: String?,
-      parentVisibility: String?,
-      grandparentVisibility: String?,
-      expected: Visibility) {
+    currentVisibility: String?,
+    parentVisibility: String?,
+    grandparentVisibility: String?,
+    expected: Visibility
+  ) {
     val component = mockComponent(currentVisibility)
     val parent = mockComponent(parentVisibility)
     val grandParent = mockComponent(grandparentVisibility)
@@ -169,5 +178,4 @@ class NlVisibilityModelTest: LayoutTestCase() {
     whenever(component.getAttribute(SdkConstants.ANDROID_URI, "visibility")).thenReturn(visibility)
     return component
   }
-
 }

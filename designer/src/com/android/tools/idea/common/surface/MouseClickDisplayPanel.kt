@@ -35,18 +35,20 @@ private const val DEFAULT_START_RADIUS = 10
 private const val DEFAULT_END_RADIUS = DEFAULT_START_RADIUS + 10
 
 /**
- * A panel that displays the mouse clicks when contained in the coordinates of this panel. After creation, [enableMouseClickDisplay] needs
- * to be called to enable the bubble display.
- * By default, the component is disabled. Enable it by calling [setEnabled].
+ * A panel that displays the mouse clicks when contained in the coordinates of this panel. After
+ * creation, [enableMouseClickDisplay] needs to be called to enable the bubble display. By default,
+ * the component is disabled. Enable it by calling [setEnabled].
  *
- * @param parentDisposable Required [Disposable] to attach this [MouseClickDisplayPanel]. When the parent is disposed, the listeners used
- * by this panel will be removed.
+ * @param parentDisposable Required [Disposable] to attach this [MouseClickDisplayPanel]. When the
+ *   parent is disposed, the listeners used by this panel will be removed.
  * @param durationMs Duration of the ripple animation in seconds.
  * @param decorationColor Color of the ripple.
  * @param startRadius Start radius for the ripple.
  * @param endRadius End radius for the ripple.
  */
-class MouseClickDisplayPanel @JvmOverloads constructor(
+class MouseClickDisplayPanel
+@JvmOverloads
+constructor(
   parentDisposable: Disposable,
   private val durationMs: Long = DEFAULT_DURATION_MS,
   private val decorationColor: Color = DEFAULT_DECORATION_COLOR,
@@ -67,7 +69,8 @@ class MouseClickDisplayPanel @JvmOverloads constructor(
     if (it !is MouseEvent) return@AWTEventListener
 
     if (it.getID() == MouseEvent.MOUSE_CLICKED && it.clickCount == 1 && isEnabled && isVisible) {
-      // Convert the coordinates from the source component coordinates space to the MouseCLickDisplayPanel space.
+      // Convert the coordinates from the source component coordinates space to the
+      // MouseCLickDisplayPanel space.
       val clickPoint = SwingUtilities.convertPoint(it.component, it.point, this)
       if (contains(clickPoint)) {
         // The click is within our bounds (0, 0, width, height)
@@ -86,7 +89,6 @@ class MouseClickDisplayPanel @JvmOverloads constructor(
     isEnabled = false
   }
 
-
   /**
    * Starts the mouse click display. If there is a click within the bounds, the click will be drawn.
    */
@@ -99,9 +101,7 @@ class MouseClickDisplayPanel @JvmOverloads constructor(
     }
   }
 
-  /**
-   * Stops the mouse click display.
-   */
+  /** Stops the mouse click display. */
   private fun disableMouseClickDisplay() {
     Toolkit.getDefaultToolkit().removeAWTEventListener(clickListener)
     isMouseTrackingEnabled = false
@@ -110,10 +110,7 @@ class MouseClickDisplayPanel @JvmOverloads constructor(
   override fun setEnabled(enabled: Boolean) {
     super.setEnabled(enabled)
 
-    if (enabled)
-      enableMouseClickDisplay()
-    else
-      disableMouseClickDisplay()
+    if (enabled) enableMouseClickDisplay() else disableMouseClickDisplay()
   }
 
   override fun paintComponent(g: Graphics) {
@@ -132,8 +129,7 @@ class MouseClickDisplayPanel @JvmOverloads constructor(
         g2d.setColorAndAlpha(decorationColor)
         val radius = startRadius + (endRadius * animationPosition).toInt()
         g2d.fillOval(it.x - radius, it.y - radius, radius * 2, radius * 2)
-      }
-      finally {
+      } finally {
         g2d.dispose()
       }
       repaint()

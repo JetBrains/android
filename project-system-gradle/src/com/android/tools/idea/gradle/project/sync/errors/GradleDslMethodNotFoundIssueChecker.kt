@@ -16,10 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
@@ -52,15 +51,20 @@ import java.util.regex.Pattern
 class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
   private val GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found"
   private val MISSING_METHOD_PATTERN = Pattern.compile("Could not find method (.*?) .*")
+  private val expectedErrorTypes = listOf(
+    "org.gradle.api.internal.MissingMethodException",
+    "org.gradle.internal.metaobject.AbstractDynamicObject\$CustomMessageMissingMethodException",
+  )
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (!message.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) return null
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    // It returns PlaceholderException with the data instead of original one, check type using toString.
+    val rootCauseString = rootCause.toString()
+    if (expectedErrorTypes.none { rootCauseString.startsWith(it) }) return null
+    val message = rootCause.message ?: return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.DSL_METHOD_NOT_FOUND)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DSL_METHOD_NOT_FOUND)
 
     val matcher = MISSING_METHOD_PATTERN.matcher(message)
     val buildIssueComposer =
@@ -82,7 +86,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
     buildIssueComposer.addDescription("Your project may be using a version of the Android Gradle plug-in that does not contain the " +
                                "method (e.g. 'testCompile' was added in 1.1.0).")
 
-    val pluginVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val pluginVersion = AgpVersions.latestKnown
     buildIssueComposer.addQuickFix("Upgrade plugin to version ${pluginVersion} and sync project",
                             FixAndroidGradlePluginVersionQuickFix(pluginVersion, GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)))
     buildIssueComposer.addQuickFix("Open Gradle wrapper file", GetGradleSettingsQuickFix())
@@ -95,7 +99,9 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
                                                 location: FilePosition?,
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return failureCause.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)
+    return failureCause.startsWith("Could not find method ")
+           && stacktrace != null
+           && expectedErrorTypes.any { stacktrace.contains("Caused by: $it") }
   }
 }
 

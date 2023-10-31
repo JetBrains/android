@@ -27,13 +27,26 @@ class TableUIProviderImpl<P : PropertyItem, N : NewPropertyItem>(
   nameEditorProvider: EditorProvider<N>,
   valueType: Class<P>,
   valueControlTypeProvider: ControlTypeProvider<P>,
-  valueEditorProvider: EditorProvider<P>) : TableUIProvider {
+  valueEditorProvider: EditorProvider<P>
+) : TableUIProvider {
 
-  override val tableCellRendererProvider = PTableCellRendererProviderImpl(
-    nameType, nameControlTypeProvider, nameEditorProvider,
-    valueType, valueControlTypeProvider, valueEditorProvider)
+  override val tableCellRendererProvider =
+    PTableCellRendererProviderImpl(
+      nameType,
+      nameControlTypeProvider,
+      nameEditorProvider,
+      valueType,
+      valueControlTypeProvider,
+      valueEditorProvider
+    )
 
-  override val tableCellEditorProvider = PTableCellEditorProviderImpl(
-    nameType, nameControlTypeProvider, nameEditorProvider,
-    valueType, valueControlTypeProvider, valueEditorProvider)
+  override val tableCellEditorProvider =
+    PTableCellEditorProviderImpl(
+      nameType,
+      nameControlTypeProvider,
+      nameEditorProvider,
+      valueType,
+      valueControlTypeProvider,
+      valueEditorProvider
+    )
 }

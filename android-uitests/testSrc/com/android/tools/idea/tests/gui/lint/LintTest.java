@@ -68,7 +68,7 @@ public class LintTest {
   public void obsoleteSdkIntLintCheck() throws Exception {
     EditorFixture editor = ideFrame
       .getEditor()
-      .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java", EditorFixture.Tab.EDITOR)
+      .open("app/src/main/java/com/example/nishanthkumarg/myapplication/MainActivity.java")
       .waitUntilErrorAnalysisFinishes();
 
     Wait.seconds(5)

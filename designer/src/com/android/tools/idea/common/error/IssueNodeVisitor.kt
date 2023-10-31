@@ -19,12 +19,13 @@ import com.intellij.ui.tree.TreeVisitor
 import javax.swing.tree.TreePath
 
 /**
- * [TreeVisitor] to find the first issued node which has the given [Issue]
- * If there are multiple issues match, only the first one to appear is chosen.
+ * [TreeVisitor] to find the first issued node which has the given [Issue] If there are multiple
+ * issues match, only the first one to appear is chosen.
  */
 class IssueNodeVisitor(private val issue: Issue) : TreeVisitor {
   override fun visit(path: TreePath): TreeVisitor.Action {
     val node = path.lastPathComponent
-    return if ((node as? IssueNode)?.issue == issue) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
+    return if ((node as? IssueNode)?.issue == issue) TreeVisitor.Action.INTERRUPT
+    else TreeVisitor.Action.CONTINUE
   }
 }

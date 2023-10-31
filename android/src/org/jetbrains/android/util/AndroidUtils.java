@@ -22,11 +22,11 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.util.CommonAndroidUtil;
+import com.android.tools.rendering.AndroidXmlFiles;
 import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -168,6 +168,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     return hasAndroidFacets(project);
   }
 
+  // TODO(b/291955340): Should have @RequiresBackgroundThread
   @Nullable
   public static <T extends DomElement> T loadDomElement(@NotNull Module module,
                                                         @NotNull VirtualFile file,
@@ -175,6 +176,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     return loadDomElement(module.getProject(), file, aClass);
   }
 
+  // TODO(b/291955340): Should have @RequiresBackgroundThread
   @Nullable
   public static <T extends DomElement> T loadDomElement(@NotNull Project project,
                                                         @NotNull VirtualFile file,
@@ -191,6 +193,7 @@ public class AndroidUtils extends CommonAndroidUtil {
     });
   }
 
+  // TODO(b/291955340): Should have @RequiresBackgroundThread
   /** This method should be called under a read action. */
   @Nullable
   public static <T extends DomElement> T loadDomElementWithReadPermission(@NotNull Project project,

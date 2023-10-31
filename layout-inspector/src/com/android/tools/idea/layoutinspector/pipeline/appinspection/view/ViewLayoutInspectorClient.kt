@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
@@ -69,21 +70,22 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 const val VIEW_LAYOUT_INSPECTOR_ID = "layoutinspector.view.inspection"
-private val JAR = AppInspectorJar("layoutinspector-view-inspection.jar",
-                                  developmentDirectory = "bazel-bin/tools/base/dynamic-layout-inspector/agent/appinspection/",
-                                  releaseDirectory = "plugins/android/resources/app-inspection/")
+private val JAR =
+  AppInspectorJar(
+    "layoutinspector-view-inspection.jar",
+    developmentDirectory = "bazel-bin/tools/base/dynamic-layout-inspector/agent/appinspection/",
+    releaseDirectory = "plugins/android/resources/app-inspection/"
+  )
 
 /**
  * The client responsible for interacting with the view layout inspector running on the target
  * device.
  *
- * @param scope A coroutine scope used for asynchronously responding to events coming in from
- *     the inspector and other miscellaneous coroutine tasks.
- *
+ * @param scope A coroutine scope used for asynchronously responding to events coming in from the
+ *   inspector and other miscellaneous coroutine tasks.
  * @param messenger The messenger that lets us communicate with the view inspector.
- *
- * @param composeInspector An inspector which, if provided, lets us fetch additional data useful
- *     for compose related values contained within our view tree.
+ * @param composeInspector An inspector which, if provided, lets us fetch additional data useful for
+ *   compose related values contained within our view tree.
  */
 class ViewLayoutInspectorClient(
   private val model: InspectorModel,
@@ -92,7 +94,7 @@ class ViewLayoutInspectorClient(
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
-  private val fireError: (String?, Throwable?) -> Unit = { _, _ -> },
+  private val errorListener: InspectorClient.ErrorListener = InspectorClient.ErrorListener {},
   private val fireRootsEvent: (List<Long>) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
   private val launchMonitor: InspectorClientLaunchMonitor
@@ -117,7 +119,7 @@ class ViewLayoutInspectorClient(
      * with it.
      *
      * @param eventScope Scope which will be used for processing incoming inspector events. It's
-     *     expected that this will be a scope associated with a background dispatcher.
+     *   expected that this will be a scope associated with a background dispatcher.
      */
     suspend fun launch(
       apiServices: AppInspectionApiServices,
@@ -126,17 +128,30 @@ class ViewLayoutInspectorClient(
       stats: SessionStatistics,
       eventScope: CoroutineScope,
       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
-      fireError: (String?, Throwable?) -> Unit,
+      errorListener: InspectorClient.ErrorListener,
       fireRootsEvent: (List<Long>) -> Unit,
       fireTreeEvent: (Data) -> Unit,
       launchMonitor: InspectorClientLaunchMonitor
     ): ViewLayoutInspectorClient {
-      // Set force = true, to be more aggressive about connecting the layout inspector if an old version was
-      // left running for some reason. This is a better experience than silently falling back to a legacy client.
-      val params = LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
+      // Set force = true, to be more aggressive about connecting the layout inspector if an old
+      // version was
+      // left running for some reason. This is a better experience than silently falling back to a
+      // legacy client.
+      val params =
+        LaunchParameters(process, VIEW_LAYOUT_INSPECTOR_ID, JAR, model.project.name, force = true)
       val messenger = apiServices.launchInspector(params)
-      return ViewLayoutInspectorClient(model, stats, process, eventScope, messenger, composeLayoutInspectorClient, fireError,
-                                       fireRootsEvent, fireTreeEvent, launchMonitor)
+      return ViewLayoutInspectorClient(
+        model,
+        stats,
+        process,
+        eventScope,
+        messenger,
+        composeLayoutInspectorClient,
+        errorListener,
+        fireRootsEvent,
+        fireTreeEvent,
+        launchMonitor
+      )
     }
   }
 
@@ -145,8 +160,7 @@ class ViewLayoutInspectorClient(
   /**
    * Whether this client is continuously receiving layout events or not.
    *
-   * This will be true between calls to `startFetching(continuous = true)` and
-   * `stopFetching`.
+   * This will be true between calls to `startFetching(continuous = true)` and `stopFetching`.
    */
   private var isFetchingContinuously: Boolean = false
     set(value) {
@@ -164,12 +178,14 @@ class ViewLayoutInspectorClient(
   private var lastData = ConcurrentHashMap<Long, Data>()
   private var lastProperties = ConcurrentHashMap<Long, PropertiesEvent>()
   private var lastComposeParameters = ConcurrentHashMap<Long, GetAllParametersResponse>()
-  private val recentLayouts = ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
+  private val recentLayouts =
+    ConcurrentHashMap<Long, LayoutEvent>() // Map of root IDs to their layout
 
   init {
     scope.launch {
-      // Layout events are very expensive to process and we may get a bunch of intermediate layouts while still processing an older one.
-      // We skip over rendering these obsolete frames, which makes the UX feel much more responsive.
+      // Layout events are very expensive to process, so we may get a bunch of intermediate layouts
+      // while still processing an older one. We skip over rendering these obsolete frames,
+      // which makes the UX feel much more responsive.
       messenger.eventFlow
         .mapNotNull { eventBytes ->
           try {
@@ -184,13 +200,17 @@ class ViewLayoutInspectorClient(
           }
         }
         .onEach { event ->
+          // Keep track of the last LayoutEvent received.
           if (event.specializedCase == Event.SpecializedCase.LAYOUT_EVENT) {
             recentLayouts[event.layoutEvent.rootView.id] = event.layoutEvent
           }
         }
-        .buffer(capacity = UNLIMITED) // Buffering allows event collection to keep happening even as we're still processing older ones
+        // Buffering allows event collection to happen even while we're processing older events.
+        .buffer(capacity = UNLIMITED)
         .filter { event ->
-          event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT || event.layoutEvent === recentLayouts[event.layoutEvent.rootView.id]
+          // Filter out all LayoutEvents that are not the last one received.
+          event.specializedCase != Event.SpecializedCase.LAYOUT_EVENT ||
+            event.layoutEvent === recentLayouts[event.layoutEvent.rootView.id]
         }
         .collect { event ->
           when (event.specializedCase) {
@@ -216,21 +236,23 @@ class ViewLayoutInspectorClient(
   suspend fun startFetching(continuous: Boolean) {
     isFetchingContinuously = continuous
     launchMonitor.updateProgress(AttachErrorState.START_REQUEST_SENT)
-    val response = messenger.sendCommand {
-      startFetchCommand = StartFetchCommand.newBuilder().apply {
-        this.continuous = continuous
-      }.build()
-    }
+    val response =
+      messenger.sendCommand {
+        startFetchCommand =
+          StartFetchCommand.newBuilder().apply { this.continuous = continuous }.build()
+      }
     if (!response.startFetchResponse.error.isNullOrEmpty()) {
-      throw ConnectionFailedException(response.startFetchResponse.error, response.startFetchResponse.code.toAttachErrorCode())
+      throw ConnectionFailedException(
+        response.startFetchResponse.error,
+        response.startFetchResponse.code.toAttachErrorCode()
+      )
     }
   }
 
   suspend fun disableBitmapScreenshots(disable: Boolean) {
     messenger.sendCommand {
-      disableBitmapScreenshotCommand = DisableBitmapScreenshotCommand.newBuilder().apply {
-        this.disable = disable
-      }.build()
+      disableBitmapScreenshotCommand =
+        DisableBitmapScreenshotCommand.newBuilder().apply { this.disable = disable }.build()
     }
   }
 
@@ -249,18 +271,20 @@ class ViewLayoutInspectorClient(
 
   suspend fun stopFetching() {
     isFetchingContinuously = false
-    messenger.sendCommand {
-      stopFetchCommand = StopFetchCommand.getDefaultInstance()
-    }
+    messenger.sendCommand { stopFetchCommand = StopFetchCommand.getDefaultInstance() }
   }
 
   suspend fun getProperties(rootViewId: Long, viewId: Long): GetPropertiesResponse {
-    val response = messenger.sendCommand {
-      getPropertiesCommand = GetPropertiesCommand.newBuilder().apply {
-        this.rootViewId = rootViewId
-        this.viewId = viewId
-      }.build()
-    }
+    val response =
+      messenger.sendCommand {
+        getPropertiesCommand =
+          GetPropertiesCommand.newBuilder()
+            .apply {
+              this.rootViewId = rootViewId
+              this.viewId = viewId
+            }
+            .build()
+      }
     return response.getPropertiesResponse
   }
 
@@ -269,7 +293,7 @@ class ViewLayoutInspectorClient(
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
-    fireError(errorEvent.message, null)
+    errorListener.handleError(errorEvent.message)
   }
 
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {
@@ -293,14 +317,14 @@ class ViewLayoutInspectorClient(
     propertiesCache.clearFor(layoutEvent.rootView.id)
     composeInspector?.parametersCache?.clearFor(layoutEvent.rootView.id)
 
-    val composablesResult = composeInspector?.getComposeables(layoutEvent.rootView.id, generation, !isFetchingContinuously)
+    val composablesResult =
+      composeInspector?.getComposeables(
+        layoutEvent.rootView.id,
+        generation,
+        !isFetchingContinuously
+      )
 
-    val data = Data(
-      generation,
-      currRoots,
-      layoutEvent,
-      composablesResult
-    )
+    val data = Data(generation, currRoots, layoutEvent, composablesResult)
     if (!isFetchingContinuously) {
       lastData[layoutEvent.rootView.id] = data
     }
@@ -324,56 +348,70 @@ class ViewLayoutInspectorClient(
 
   @Slow
   fun saveSnapshot(path: Path): SnapshotMetadata {
-    val snapshotMetadata = SnapshotMetadata(
-      snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
-      apiLevel = processDescriptor.device.apiLevel,
-      processName = processDescriptor.name,
-      liveDuringCapture = isFetchingContinuously,
-      source = Metadata.Source.STUDIO,
-      sourceVersion = ApplicationInfo.getInstance().fullVersion,
-      dpi = model.resourceLookup.dpi,
-      fontScale = model.resourceLookup.fontScale,
-      screenDimension = model.resourceLookup.screenDimension
-    )
+    val snapshotMetadata =
+      SnapshotMetadata(
+        snapshotVersion = APP_INSPECTION_SNAPSHOT_VERSION,
+        apiLevel = processDescriptor.device.apiLevel,
+        processName = processDescriptor.name,
+        liveDuringCapture = isFetchingContinuously,
+        source = Metadata.Source.STUDIO,
+        sourceVersion = ApplicationInfo.getInstance().fullVersion,
+        dpi = model.resourceLookup.dpi,
+        fontScale = model.resourceLookup.fontScale,
+        screenDimension = model.resourceLookup.screenDimension
+      )
 
     if (isFetchingContinuously) {
       fetchAndSaveSnapshot(path, snapshotMetadata)
-    }
-    else {
+    } else {
       saveNonLiveSnapshot(path, snapshotMetadata)
     }
     return snapshotMetadata
   }
 
   private fun saveNonLiveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
-    // If we just switched to snapshot mode we may not have received data from the device yet. Wait until we have.
+    // If we just switched to snapshot mode we may not have received data from the device yet. Wait
+    // until we have.
     try {
       launchWithProgress {
-        while (lastData.isEmpty() || lastProperties.isEmpty() || (composeInspector != null && lastComposeParameters.isEmpty())) {
+        while (
+          lastData.isEmpty() ||
+            lastProperties.isEmpty() ||
+            (composeInspector != null && lastComposeParameters.isEmpty())
+        ) {
           delay(200)
         }
       }
-    }
-    catch (ignore: CancellationException) {
+    } catch (ignore: CancellationException) {
       return
     }
-    // There could be a synchronization issue here, if we get an update just as these maps are being copied. However, since we only get
+    // There could be a synchronization issue here, if we get an update just as these maps are being
+    // copied. However, since we only get
     // here in non-live mode, we shouldn't be getting any unexpected updates.
     val data = HashMap(lastData)
     val properties = HashMap(lastProperties)
     val composeParameters = HashMap(lastComposeParameters)
-    saveAppInspectorSnapshot(path, data, properties, composeParameters, snapshotMetadata, model.foldInfo)
+    saveAppInspectorSnapshot(
+      path,
+      data,
+      properties,
+      composeParameters,
+      snapshotMetadata,
+      model.foldInfo
+    )
   }
 
   private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
     val start = System.currentTimeMillis()
     try {
       launchWithProgress { fetchAndSaveSnapshotAsync(path, snapshotMetadata) }
-    }
-    catch (cancellationException: CancellationException) {
+    } catch (cancellationException: CancellationException) {
       snapshotMetadata.saveDuration = System.currentTimeMillis() - start
       LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
-        .logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED, stats)
+        .logEvent(
+          DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED,
+          stats
+        )
       // Delete the file in case we wrote out partial data
       Files.delete(path)
     }
@@ -399,30 +437,49 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun fetchAndSaveSnapshotAsync(path: Path, snapshotMetadata: SnapshotMetadata) {
-    messenger.sendCommand {
-      captureSnapshotCommand = CaptureSnapshotCommand.newBuilder().apply {
-        // TODO: support bitmap
-        screenshotType = Screenshot.Type.SKP
-      }.build()
-    }.captureSnapshotResponse?.let { snapshotResponse ->
-      val composeInfo = composeInspector?.let { composeInspector ->
-        generation++
-        snapshotResponse.windowRoots.idsList.associateWith { id ->
-          Pair(composeInspector.getComposeables(id, generation, forSnapshot = true),
-               composeInspector.getAllParameters(id))
-        }
-      } ?: mapOf()
+    messenger
+      .sendCommand {
+        captureSnapshotCommand =
+          CaptureSnapshotCommand.newBuilder()
+            .apply {
+              // TODO: support bitmap
+              screenshotType = Screenshot.Type.SKP
+            }
+            .build()
+      }
+      .captureSnapshotResponse
+      ?.let { snapshotResponse ->
+        val composeInfo =
+          composeInspector?.let { composeInspector ->
+            generation++
+            snapshotResponse.windowRoots.idsList.associateWith { id ->
+              Pair(
+                composeInspector.getComposeables(id, generation, forSnapshot = true),
+                composeInspector.getAllParameters(id)
+              )
+            }
+          }
+            ?: mapOf()
 
-      saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata, model.foldInfo)
-    } ?: throw Exception()
+        saveAppInspectorSnapshot(
+          path,
+          snapshotResponse,
+          composeInfo,
+          snapshotMetadata,
+          model.foldInfo
+        )
+      }
+      ?: throw Exception()
   }
 }
 
 /**
- * Convenience method for wrapping a specific view-inspector command inside a parent
- * app inspection command.
+ * Convenience method for wrapping a specific view-inspector command inside a parent app inspection
+ * command.
  */
-private suspend fun AppInspectorMessenger.sendCommand(initCommand: Command.Builder.() -> Unit): Response {
+private suspend fun AppInspectorMessenger.sendCommand(
+  initCommand: Command.Builder.() -> Unit
+): Response {
   val command = Command.newBuilder()
   command.initCommand()
   return Response.parseFrom(sendRawCommand(command.build().toByteArray()))

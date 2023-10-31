@@ -65,7 +65,7 @@ data class GradleSyncStudioFlags(
   val studioFlagParallelSyncPrefetchVariantsEnabled: Boolean,
   val studioFlagUseV2BuilderModels: Boolean,
   val studioFlagDisableForcedUpgrades: Boolean,
-  val studioFlagOutputSyncStats: Boolean,
+  val studioFlagSyncStatsOutputDirectory: String,
   val studioHprofOutputDirectory: String,
   val studioHeapAnalysisOutputDirectory: String,
   val studioHeapAnalysisLightweightMode: Boolean,
@@ -73,6 +73,8 @@ data class GradleSyncStudioFlags(
   val studioDebugMode: Boolean = false, // Emit extra logs or populate debug models during sync
   val studioFlagSkipRuntimeClasspathForLibraries: Boolean,
   val studioFlagSupportFutureAgpVersions: Boolean,
+  val studioFlagUseNewDependencyGraphModel: Boolean,
+  val studioFlagFetchKotlinModelsInParallel: Boolean,
   val ideaFlagSupportFutureAgpVersions: Boolean
 ) : Serializable
 

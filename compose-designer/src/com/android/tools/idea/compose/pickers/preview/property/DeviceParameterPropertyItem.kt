@@ -47,9 +47,10 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerActio
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.ThreadingAssertions
-import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.KtValueArgument
 
 /**
  * A [PsiCallParameterPropertyItem] for the Device parameter. Contains internal properties used to
@@ -58,18 +59,20 @@ import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 internal class DeviceParameterPropertyItem(
   project: Project,
   model: PsiCallPropertiesModel,
-  resolvedCall: ResolvedCall<*>,
-  descriptor: ValueParameterDescriptor,
+  addNewArgumentToResolvedCall: (KtValueArgument, KtPsiFactory) -> KtValueArgument?,
+  parameterName: Name,
+  parameterTypeNameIfStandard: Name?,
   argumentExpression: KtExpression?,
-  defaultValue: String?
+  defaultValue: String?,
 ) :
   PsiCallParameterPropertyItem(
     project,
     model,
-    resolvedCall,
-    descriptor,
+    addNewArgumentToResolvedCall,
+    parameterName,
+    parameterTypeNameIfStandard,
     argumentExpression,
-    defaultValue
+    defaultValue,
   ) {
   private val log = Logger.getInstance(this.javaClass)
 

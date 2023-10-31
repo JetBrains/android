@@ -149,8 +149,6 @@ public class GradleDslFileCache {
     return dslFile;
   }
 
-
-
   @NotNull
   public List<GradleDslFile> getAllFiles() {
     return myParsedDslFiles;

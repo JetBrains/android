@@ -25,7 +25,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import javax.swing.JPanel
 
-class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdits {
+class FakeMotionAccessoryPanel : AccessoryPanelInterface, MotionDesignSurfaceEdits {
   private val listeners = mutableListOf<AccessorySelectionListener>()
   private var lastSelection: MotionSelection? = null
 
@@ -37,7 +37,10 @@ class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdit
     throw Error("should not be called")
   }
 
-  override fun updateAccessoryPanelWithSelection(type: AccessoryPanel.Type, selection: MutableList<NlComponent>) {
+  override fun updateAccessoryPanelWithSelection(
+    type: AccessoryPanel.Type,
+    selection: MutableList<NlComponent>
+  ) {
     throw Error("should not be called")
   }
 
@@ -75,7 +78,9 @@ class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdit
 
   fun select(selection: MotionSelection) {
     lastSelection = selection
-    listeners.forEach { it.selectionChanged(this, selection.type, selection.tags, selection.components) }
+    listeners.forEach {
+      it.selectionChanged(this, selection.type, selection.tags, selection.components)
+    }
   }
 
   override fun requestSelection() {

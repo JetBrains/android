@@ -20,10 +20,13 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.RangedSeries
 import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 
 class PowerRailTooltip(val timeline: Timeline,
                        val counterName: String,
-                       private val powerRailValues: RangedSeries<Long>) : TooltipModel, AspectModel<PowerRailTooltip.Aspect>() {
+                       private val primaryPowerRailValues: RangedSeries<Long>,
+                       private val secondaryPowerRailValues: RangedSeries<Long>,
+                       val displayMode: PowerProfilerDisplayMode) : TooltipModel, AspectModel<PowerRailTooltip.Aspect>() {
   enum class Aspect {
     /**
      * The hovering power rail value changed.
@@ -31,8 +34,13 @@ class PowerRailTooltip(val timeline: Timeline,
     VALUE_CHANGED
   }
 
+  data class PowerCounterActiveValuesUws(
+    val primaryValue: Long,
+    val secondaryValue: Long
+  )
+
   // Unit of energy is microwatt-seconds (µWs)
-  var activeValueUws = 0L
+  var activeValueUws = PowerCounterActiveValuesUws(0L, 0L)
     private set
 
   override fun dispose() {
@@ -40,10 +48,12 @@ class PowerRailTooltip(val timeline: Timeline,
   }
 
   private fun updateValue() {
-    val series = powerRailValues.getSeriesForRange(timeline.tooltipRange)
-    val newValueUws = if (series.isEmpty()) 0L else series[0].value
-    if (newValueUws != activeValueUws) {
-      activeValueUws = newValueUws
+    val primarySeries = primaryPowerRailValues.getSeriesForRange(timeline.tooltipRange)
+    val secondarySeries = secondaryPowerRailValues.getSeriesForRange(timeline.tooltipRange)
+    val newPrimaryValueUws = if (primarySeries.isEmpty()) 0L else primarySeries[0].value
+    val newSecondaryValueUws = if (secondarySeries.isEmpty()) 0L else secondarySeries[0].value
+    if (newPrimaryValueUws != activeValueUws.primaryValue || newSecondaryValueUws != activeValueUws.secondaryValue) {
+      activeValueUws = PowerCounterActiveValuesUws(newPrimaryValueUws, newSecondaryValueUws)
       changed(Aspect.VALUE_CHANGED)
     }
   }

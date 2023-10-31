@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.templates.recipe
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -50,7 +50,7 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
   @Before
   fun init() {
     MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
-    MockitoKt.whenever(mockProjectTemplateData.gradlePluginVersion).thenReturn("8.0.0")
+    MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(AgpVersion.parse("8.0.0"))
   }
 
   @Test
@@ -299,7 +299,7 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
   }
 
   @Test
-  fun testApplyPluginWithVersionCatalog() {
+  fun testApplyKotlinPluginWithVersionCatalog() {
     writeToSettingsFile("""
 pluginManagement {
   plugins {
@@ -313,13 +313,70 @@ pluginManagement {
 
     verifyFileContents(myVersionCatalogFile, """
 [versions]
-org-jetbrains-kotlin-android = "1.7.20"
+kotlin = "1.7.20"
 [libraries]
 [plugins]
-org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
     """)
-    verifyFileContents(mySettingsFile, TestFile.APPLY_PLUGIN_SETTING_FILE)
-    verifyFileContents(myBuildFile, TestFile.APPLY_PLUGIN_BUILD_FILE)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
+  }
+
+  @Test
+  fun testApplyKotlinPluginWithVersionCatalog_sameVersionNameExists() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+    writeToVersionCatalogFile("""
+[versions]
+kotlin = "100"
+[libraries]
+[plugins]
+fakePlugin = { id = "fake.plugin", version.ref = "kotlin" }
+    """)
+
+    recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+kotlin = "100"
+kotlin1720 = "1.7.20"
+[libraries]
+[plugins]
+fakePlugin = { id = "fake.plugin", version.ref = "kotlin" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin1720" }
+    """)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_KOTLIN_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
+  }
+
+  @Test
+  fun testApplyNonCommonPlugin() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+
+    recipeExecutor.applyPlugin("not.common.plugin", "1.0.2")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+not-common-plugin = "1.0.2"
+[libraries]
+[plugins]
+not-common-plugin = { id = "not.common.plugin", version.ref = "not-common-plugin" }
+    """)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_NOT_COMMON_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_NOT_COMMON_PLUGIN_BUILD_FILE)
   }
 
   @Test
@@ -346,8 +403,44 @@ pluginManagement {
 agp = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
     """)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_BUILD_FILE)
+  }
+
+  @Test
+  fun testAddAgpPlugin_samePluginNameExists() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+"""
+    )
+    writeToVersionCatalogFile("""
+[versions]
+fake = "100"
+[libraries]
+[plugins]
+androidApplication = { id = "fake.plugin", version.ref = "fake" }
+    """)
+
+    recipeExecutor.applyPlugin("com.android.application", "8.0.0")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+fake = "100"
+agp = "8.0.0"
+[libraries]
+[plugins]
+androidApplication = { id = "fake.plugin", version.ref = "fake" }
+androidApplication800 = { id = "com.android.application", version.ref = "agp" }
+    """)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_AGP_PLUGIN_WITH_REVISION_BUILD_FILE)
   }
 
   @Test
@@ -363,7 +456,7 @@ pluginManagement {
 agp = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
     """)
 
     recipeExecutor.applyPlugin("com.android.library", "8.0.0")
@@ -375,8 +468,8 @@ com-android-application = { id = "com.android.application", version.ref = "agp" 
 agp = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp" }
-com-android-library = { id = "com.android.library", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
     """)
   }
 
@@ -393,7 +486,7 @@ pluginManagement {
 agp = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
     """)
 
     // Apply a plugin with the different version from the existing agp version in the catalog
@@ -407,8 +500,8 @@ com-android-application = { id = "com.android.application", version.ref = "agp" 
 agp = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp" }
-com-android-library = { id = "com.android.library", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
     """)
   }
 
@@ -426,7 +519,7 @@ pluginManagement {
 agp-version = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp-version" }
+androidApplication = { id = "com.android.application", version.ref = "agp-version" }
     """)
 
     recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
@@ -439,8 +532,8 @@ com-android-application = { id = "com.android.application", version.ref = "agp-v
 agp-version = "8.0.0"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version.ref = "agp-version" }
-com-android-library = { id = "com.android.library", version.ref = "agp-version" }
+androidApplication = { id = "com.android.application", version.ref = "agp-version" }
+androidLibrary = { id = "com.android.library", version.ref = "agp-version" }
     """)
   }
 
@@ -457,7 +550,7 @@ pluginManagement {
 [versions]
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version = "8.0.0" }
+androidApplication = { id = "com.android.application", version = "8.0.0" }
     """)
 
     recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
@@ -470,8 +563,8 @@ com-android-application = { id = "com.android.application", version = "8.0.0" }
 agp = "8.0.0-beta04"
 [libraries]
 [plugins]
-com-android-application = { id = "com.android.application", version = "8.0.0" }
-com-android-library = { id = "com.android.library", version.ref = "agp" }
+androidApplication = { id = "com.android.application", version = "8.0.0" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
     """)
   }
 
@@ -504,7 +597,7 @@ agp2 = "8.0.0"
 [libraries]
 [plugins]
 fake-plugin = { id = "fake.plugin", version.ref = "agp" }
-com-android-library = { id = "com.android.library", version.ref = "agp2" }
+androidLibrary = { id = "com.android.library", version.ref = "agp2" }
     """)
   }
 
@@ -516,8 +609,14 @@ com-android-library = { id = "com.android.library", version.ref = "agp2" }
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     GET_EXT_VAR_INITIAL("getExtVarInitial"),
-    APPLY_PLUGIN_BUILD_FILE("versionCatalogApplyPlugin"),
-    APPLY_PLUGIN_SETTING_FILE("versionCatalogApplyPlugin.settings"),
+    APPLY_KOTLIN_PLUGIN_BUILD_FILE("versionCatalogApplyKotlinPlugin"),
+    APPLY_KOTLIN_PLUGIN_SETTING_FILE("versionCatalogApplyKotlinPlugin.settings"),
+    APPLY_NOT_COMMON_PLUGIN_BUILD_FILE("versionCatalogApplyNotCommonPlugin"),
+    APPLY_NOT_COMMON_PLUGIN_SETTING_FILE("versionCatalogApplyNotCommonPlugin.settings"),
+    APPLY_AGP_PLUGIN_BUILD_FILE("versionCatalogApplyAgpPlugin"),
+    APPLY_AGP_PLUGIN_SETTING_FILE("versionCatalogApplyAgpPlugin.settings"),
+    APPLY_AGP_PLUGIN_WITH_REVISION_BUILD_FILE("versionCatalogApplyAgpPluginWithRevision"),
+    APPLY_AGP_PLUGIN_WITH_REVISION_SETTING_FILE("versionCatalogApplyAgpPluginWithRevision.settings"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

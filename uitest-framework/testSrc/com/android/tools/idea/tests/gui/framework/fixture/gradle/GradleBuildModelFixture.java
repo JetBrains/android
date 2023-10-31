@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
-import static junit.framework.Assert.fail;
-
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
@@ -25,6 +23,8 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ExpectedModuleDepend
 import java.util.List;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
+
+import static junit.framework.Assert.fail;
 
 public class GradleBuildModelFixture {
   @NotNull private final GradleBuildModel myTarget;

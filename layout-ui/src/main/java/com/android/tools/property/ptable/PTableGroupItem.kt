@@ -19,8 +19,8 @@ interface PTableGroupItem : PTableItem {
   val children: List<PTableItem>
 
   /**
-   * Called before expansion of a [PTableGroupItem].
-   * Specify `restructured=true` if children of [PTableGroupItem] were changed.
+   * Called before expansion of a [PTableGroupItem]. Specify `restructured=true` if children of
+   * [PTableGroupItem] were changed.
    */
   fun expandWhenPossible(expandNow: (restructured: Boolean) -> Unit) {
     expandNow(false)

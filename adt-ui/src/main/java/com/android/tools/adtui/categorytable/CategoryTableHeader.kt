@@ -41,7 +41,7 @@ class CategoryTableHeader(
       columnModel.addColumn(
         TableColumn(i).also {
           it.identifier = model[i].attribute
-          it.headerValue = model[i].name
+          it.headerValue = model[i].columnHeaderName
         }
       )
     }

@@ -16,59 +16,84 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.annotations.concurrency.Slow
-import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runReadAction
 import com.intellij.pom.Navigatable
+import com.intellij.ui.EditorNotificationPanel.Status
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-private const val VIEW_NOT_FOUND = "view.not.found"
+private const val VIEW_NOT_FOUND_KEY = "view.not.found"
 
-/**
- * Action for navigating to the currently selected node in the layout inspector.
- */
+/** Action for navigating to the currently selected node in the layout inspector. */
 object GotoDeclarationAction : AnAction("Go To Declaration") {
-  @get:VisibleForTesting
-  var lastAction: ListenableFuture<Unit>? = null
+  @get:VisibleForTesting var lastAction: Job? = null
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
-    lastAction = executeOnPooledThread {
-      runReadAction {
-        inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
-        val navigatable = findNavigatable(event) ?: return@runReadAction
-        invokeLater { navigatable.navigate(true) }
-        lastAction = null
-      }
-    }
+    inspector.currentClient.stats.gotoSourceFromTreeActionMenu(event)
+    navigateToSelectedView(
+      inspector.coroutineScope,
+      inspector.inspectorModel,
+      inspector.notificationModel
+    )
   }
 
-  private fun findNavigatable(event: AnActionEvent): Navigatable? =
-    LayoutInspector.get(event)?.inspectorModel?.let { findNavigatable(it) }
+  override fun update(event: AnActionEvent) {
+    val inspector = LayoutInspector.get(event)
+    // Finding the navigatable is expensive. Only perform a cheap check on update:
+    event.presentation.isEnabled = inspector?.inspectorModel?.resourceLookup?.hasResolver == true
+  }
+
+  fun navigateToSelectedView(
+    coroutineScope: CoroutineScope,
+    inspectorModel: InspectorModel,
+    notificationModel: NotificationModel
+  ) {
+    lastAction =
+      coroutineScope.launch {
+        val navigatable = findNavigatable(inspectorModel, notificationModel) ?: return@launch
+        withContext(AndroidDispatchers.uiThread) { navigatable.navigate(true) }
+      }
+  }
 
   @Slow
-  fun findNavigatable(model: InspectorModel): Navigatable? {
-    val resourceLookup = model.resourceLookup
-    val node = model.selection ?: return null
-    return if (node is ComposeViewNode) {
-      resourceLookup.findComposableNavigatable(node)
-    }
-    else {
-      val navigatable = resourceLookup.findFileLocation(node)?.navigatable
-      val layout = node.layout?.name
-      if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
-        val banner = InspectorBannerService.getInstance(model.project)
-        banner?.addNotification(LayoutInspectorBundle.message(VIEW_NOT_FOUND, node.unqualifiedName, layout))
+  private suspend fun findNavigatable(
+    model: InspectorModel,
+    notificationModel: NotificationModel
+  ): Navigatable? =
+    withContext(AndroidDispatchers.workerThread) {
+      val resourceLookup = model.resourceLookup
+      val node = model.selection ?: return@withContext null
+      if (node is ComposeViewNode) {
+        runReadAction { resourceLookup.findComposableNavigatable(node) }
+      } else {
+        val navigatable =
+          withContext(AndroidDispatchers.uiThread) {
+            resourceLookup.findFileLocation(node)?.navigatable
+          }
+        val layout = node.layout?.name
+        if (navigatable == null && node.viewId == null && layout != null && !node.isSystemNode) {
+          notificationModel.addNotification(
+            VIEW_NOT_FOUND_KEY,
+            LayoutInspectorBundle.message(VIEW_NOT_FOUND_KEY, node.unqualifiedName, layout),
+            Status.Warning
+          )
+        }
+        navigatable
       }
-      navigatable
     }
-  }
 }

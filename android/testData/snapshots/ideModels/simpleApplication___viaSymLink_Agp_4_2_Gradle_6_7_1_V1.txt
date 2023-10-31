@@ -1,13 +1,38 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT>_sm_src (IdeBuildImpl)
-        buildName                     : :
+MODULE                        : project_sm_src
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project_sm_src
+    LinkedProjectPath             : <ROOT>_sm_src
+    RootProjectPath               : <ROOT>_sm_src
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project_sm_src [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project_sm_src [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project_sm_src.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>_sm_src
+        EXCLUDE_FOLDER                : file://<ROOT>_sm_src/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>_sm_src/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 MODULE                        : project_sm_src
     externalProject               : project_sm_src (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project_sm_src
         qName                         : project_sm_src
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project_sm_src
@@ -166,7 +191,6 @@ MODULE                        : project_sm_src.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>_sm_src
     BuildId                       : <ROOT>_sm_src
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -175,6 +199,8 @@ MODULE                        : project_sm_src.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : project_sm_src
+    Namespace                     : google.simpleapplication
+    TestNamespace                 : google.simpleapplication.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -209,6 +235,7 @@ MODULE                        : project_sm_src.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test

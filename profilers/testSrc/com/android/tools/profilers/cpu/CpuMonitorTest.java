@@ -15,9 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
@@ -49,6 +47,7 @@ public class CpuMonitorTest {
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     monitor.expand();
-    assertThat(profilers.getStage(), instanceOf(CpuProfilerStage.class));
+    assertEquals(profilers.getStage().getClass(), CpuProfilerStage.class);
+    assertEquals(((CpuProfilerStage)(profilers.getStage())).getEntryPoint(), CpuCaptureMetadata.CpuProfilerEntryPoint.CPU_MONITOR);
   }
 }

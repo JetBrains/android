@@ -20,6 +20,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 import static org.jetbrains.kotlin.idea.util.application.ApplicationUtilsKt.isUnitTestMode;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -27,12 +28,11 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -45,7 +45,6 @@ import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
 import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
-import com.intellij.openapi.application.AppUIExecutor;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
@@ -228,9 +227,9 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
           GoogleMavenArtifactId annotation = MigrateToAndroidxUtil.isAndroidx(project) ?
                                              GoogleMavenArtifactId.ANDROIDX_SUPPORT_ANNOTATIONS :
                                              GoogleMavenArtifactId.SUPPORT_ANNOTATIONS;
-          String annotationsLibraryCoordinate = manager.getArtifactStringCoordinate(annotation, true);
+          String annotationsComponentIdentifier = manager.getArtifactComponentIdentifier(annotation, true);
           for (Module module : modulesWithoutAnnotations) {
-            addDependency(module, annotationsLibraryCoordinate);
+            addDependency(module, annotationsComponentIdentifier);
           }
 
           syncAndRestartAnalysis(project, scope);

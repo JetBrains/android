@@ -17,7 +17,7 @@ package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
-import com.android.tools.idea.annotations.hasAnnotations
+import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction
@@ -110,7 +110,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
     findAnnotatedMethodsValues(
       project,
       vFile,
-      setOf(GLANCE_PREVIEW_ANNOTATION_FQN),
+      GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
       glanceSurfaceUAnnotationFilter,
       methodsToElements
@@ -124,10 +124,10 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       } == false
     )
       return false
-    return hasAnnotations(
+    return hasAnnotation(
       project,
       vFile,
-      setOf(GLANCE_PREVIEW_ANNOTATION_FQN),
+      GLANCE_PREVIEW_ANNOTATION_FQN,
       GLANCE_PREVIEW_ANNOTATION_NAME,
       glanceSurfaceKtAnnotationFilter
     )

@@ -50,28 +50,28 @@ import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.aar.AarResourceRepository;
-import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
-import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
-import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.ResourceFiles;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
@@ -111,7 +111,6 @@ import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import com.android.tools.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -654,7 +653,7 @@ public class AndroidJavaDocRenderer {
               builder.newline();
             }
           } else if (value.endsWith(DOT_PNG)) {
-            if (ResourceFilesUtil.isFileResource(value)) {
+            if (ResourceFiles.isResourceFile(value)) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
@@ -786,9 +785,9 @@ public class AndroidJavaDocRenderer {
                   builder.add(" => ");
 
                   // AAR Library? Strip off prefix
-                  int index = value.indexOf(FilenameConstants.EXPLODED_AAR);
+                  int index = value.indexOf(SdkConstants.EXPLODED_AAR);
                   if (index != -1) {
-                    value = value.substring(index + FilenameConstants.EXPLODED_AAR.length() + 1);
+                    value = value.substring(index + SdkConstants.EXPLODED_AAR.length() + 1);
                   }
 
                   builder.add(value);
@@ -993,7 +992,7 @@ public class AndroidJavaDocRenderer {
 
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      if (ResourceFilesUtil.isFileResource(result)) {
+      if (ResourceFiles.isResourceFile(result)) {
         VirtualFile file = toVirtualFile(ResourcesUtil.toFileResourcePathString(result));
         if (file == null) {
           renderError(builder, result);

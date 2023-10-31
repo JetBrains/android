@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory as ArtifactResolverFactoryBase
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.io.IdeFileService
 import com.google.common.annotations.VisibleForTesting
@@ -27,6 +26,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
 import java.nio.file.Path
+import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory as ArtifactResolverFactoryBase
 
 /**
  * An application service that exposes functionality to find, retrieve and manipulate inspector

@@ -32,45 +32,37 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 
-/**
- * The content which is added into ToolWindow of Visualization.
- */
+/** The content which is added into ToolWindow of Visualization. */
 interface VisualizationContent : Disposable {
 
   companion object {
     @JvmField
-    val VISUALIZATION_CONTENT = DataKey.create<VisualizationContent>(VisualizationContent::class.java.name)
+    val VISUALIZATION_CONTENT =
+      DataKey.create<VisualizationContent>(VisualizationContent::class.java.name)
   }
 
   /**
-   * Specifies the next editor the preview should be shown for.
-   * The update of the preview may be delayed.
-   * Return True on success, or False if the preview update is not possible (e.g. the file for the editor cannot be found).
+   * Specifies the next editor the preview should be shown for. The update of the preview may be
+   * delayed. Return True on success, or False if the preview update is not possible (e.g. the file
+   * for the editor cannot be found).
    */
   fun setNextEditor(editor: FileEditor): Boolean
 
-  /**
-   * Called when a file editor was closed.
-   */
+  /** Called when a file editor was closed. */
   fun fileClosed(editorManager: FileEditorManager, file: VirtualFile)
 
-  /**
-   * Get the current selected [ConfigurationSet]
-   */
+  /** Get the current selected [ConfigurationSet] */
   fun getConfigurationSet(): ConfigurationSet
 
-  /**
-   * Change the displayed [ConfigurationSet]
-   */
+  /** Change the displayed [ConfigurationSet] */
   fun setConfigurationSet(configurationSet: ConfigurationSet)
 
-  /**
-   * Enables updates for this content.
-   */
+  /** Enables updates for this content. */
   fun activate()
 
   /**
-   * Disables the updates for this content. Any changes to resources or the layout won't update this content until [activate] is called.
+   * Disables the updates for this content. Any changes to resources or the layout won't update this
+   * content until [activate] is called.
    */
   fun deactivate()
 }
@@ -80,15 +72,24 @@ interface VisualizationContentProvider {
 }
 
 object VisualizationFormProvider : VisualizationContentProvider {
-  override fun createVisualizationForm(project: Project, toolWindow: ToolWindow): VisualizationForm {
-    val visualizationForm = VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
+  override fun createVisualizationForm(
+    project: Project,
+    toolWindow: ToolWindow
+  ): VisualizationForm {
+    val visualizationForm =
+      VisualizationForm(project, toolWindow.disposable, AsyncContentInitializer)
     val contentPanel = visualizationForm.component
     val contentManager = toolWindow.contentManager
     contentManager.addDataProvider { dataId: String? ->
-      if (PlatformCoreDataKeys.MODULE.`is`(dataId) || LangDataKeys.IDE_VIEW.`is`(dataId) || CommonDataKeys.VIRTUAL_FILE.`is`(dataId)) {
+      if (
+        PlatformCoreDataKeys.MODULE.`is`(dataId) ||
+          LangDataKeys.IDE_VIEW.`is`(dataId) ||
+          CommonDataKeys.VIRTUAL_FILE.`is`(dataId)
+      ) {
         val fileEditor = visualizationForm.editor
         if (fileEditor != null) {
-          return@addDataProvider DataManager.getDataProvider(fileEditor.component)?.getData(dataId!!)
+          return@addDataProvider DataManager.getDataProvider(fileEditor.component)
+            ?.getData(dataId!!)
         }
       }
       if (DESIGN_SURFACE.`is`(dataId)) {
@@ -112,7 +113,7 @@ object VisualizationFormProvider : VisualizationContentProvider {
   }
 }
 
-private object AsyncContentInitializer: VisualizationForm.ContentInitializer {
+private object AsyncContentInitializer : VisualizationForm.ContentInitializer {
 
   override fun initContent(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
     val task = Runnable {
@@ -123,21 +124,30 @@ private object AsyncContentInitializer: VisualizationForm.ContentInitializer {
     ClearResourceCacheAfterFirstBuild.getInstance(project).runWhenResourceCacheClean(task, onError)
   }
 
-  private fun initPreviewFormAfterInitialBuild(project: Project, form: VisualizationForm, onComplete: () -> Unit) {
-    project.runWhenSmartAndSyncedOnEdt(form, { result: ProjectSystemSyncManager.SyncResult ->
-      if (result.isSuccessful) {
-        form.createContentPanel()
-        onComplete()
+  private fun initPreviewFormAfterInitialBuild(
+    project: Project,
+    form: VisualizationForm,
+    onComplete: () -> Unit
+  ) {
+    project.runWhenSmartAndSyncedOnEdt(
+      form,
+      { result: ProjectSystemSyncManager.SyncResult ->
+        if (result.isSuccessful) {
+          form.createContentPanel()
+          onComplete()
+        } else {
+          form.showErrorMessage()
+          project.listenUntilNextSync(
+            form,
+            object : ProjectSystemSyncManager.SyncResultListener {
+              override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+                form.createContentPanel()
+                onComplete()
+              }
+            }
+          )
+        }
       }
-      else {
-        form.showErrorMessage()
-        project.listenUntilNextSync(form, object : ProjectSystemSyncManager.SyncResultListener {
-          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-            form.createContentPanel()
-            onComplete()
-          }
-        })
-      }
-    })
+    )
   }
 }

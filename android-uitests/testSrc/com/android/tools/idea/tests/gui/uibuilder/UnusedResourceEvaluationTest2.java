@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.RefactorToolWindowFixt
 import com.android.tools.idea.tests.gui.framework.fixture.RefactoringDialogFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;

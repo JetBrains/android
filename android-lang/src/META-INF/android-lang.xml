@@ -190,6 +190,14 @@
                      level="ERROR"
                      implementationClass="com.android.tools.idea.lang.androidSql.room.RoomBindParameterSyntaxInspection"
                      displayName="'?' used as parameter in a Room query."/>
+    <localInspection groupPath="Android"
+                     groupName="Room"
+                     language="RoomSql"
+                     shortName="AndroidRoomSqlBooleanLiteral"
+                     enabledByDefault="true"
+                     level="WARNING"
+                     implementationClass="com.android.tools.idea.lang.androidSql.room.RoomSqlBooleanLiteralInspection"
+                     displayName="Boolean literal used in a Room query"/>
 
     <!-- Multidex keep files support -->
     <fileType name="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileType"

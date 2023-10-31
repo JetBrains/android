@@ -24,10 +24,10 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.Respons
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateSettingsResponse
 import kotlin.test.fail
 
-// Note: The ComposeInspector doesn't have any events yet, but if they are added in the future, change the
+// Note: The ComposeInspector doesn't have any events yet, but if they are added in the future,
+// change the
 // `Nothing` generic argument here to ComposeProtocol.Event
-class FakeComposeLayoutInspector
-  : FakeInspector<Command, Response, Nothing>(DisabledConnection()) {
+class FakeComposeLayoutInspector : FakeInspector<Command, Response, Nothing>(DisabledConnection()) {
 
   private class DisabledConnection : Connection<Nothing>() {
     override fun sendEvent(event: Nothing) = throw NotImplementedError()
@@ -36,15 +36,25 @@ class FakeComposeLayoutInspector
   override fun handleCommandImpl(command: Command): Response {
     return when (command.specializedCase) {
       Command.SpecializedCase.GET_COMPOSABLES_COMMAND ->
-        Response.newBuilder().setGetComposablesResponse(GetComposablesResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setGetComposablesResponse(GetComposablesResponse.getDefaultInstance())
+          .build()
       Command.SpecializedCase.GET_PARAMETERS_COMMAND ->
-        Response.newBuilder().setGetParametersResponse(GetParametersResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setGetParametersResponse(GetParametersResponse.getDefaultInstance())
+          .build()
       Command.SpecializedCase.GET_ALL_PARAMETERS_COMMAND ->
-        Response.newBuilder().setGetAllParametersResponse(GetAllParametersResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setGetAllParametersResponse(GetAllParametersResponse.getDefaultInstance())
+          .build()
       Command.SpecializedCase.UPDATE_SETTINGS_COMMAND ->
-        Response.newBuilder().setUpdateSettingsResponse(UpdateSettingsResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setUpdateSettingsResponse(UpdateSettingsResponse.getDefaultInstance())
+          .build()
       Command.SpecializedCase.GET_PARAMETER_DETAILS_COMMAND ->
-        Response.newBuilder().setGetParameterDetailsResponse(GetParameterDetailsResponse.getDefaultInstance()).build()
+        Response.newBuilder()
+          .setGetParameterDetailsResponse(GetParameterDetailsResponse.getDefaultInstance())
+          .build()
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }

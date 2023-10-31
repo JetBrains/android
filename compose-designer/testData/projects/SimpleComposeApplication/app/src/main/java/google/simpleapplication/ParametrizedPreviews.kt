@@ -38,6 +38,12 @@ class FailingProvider : PreviewParameterProvider<String> {
   override val values: Sequence<String> = sequenceOf("hey")
 }
 
+/** Provider that throws an exception because of an empty sequence */
+class EmptyProvider : PreviewParameterProvider<String> {
+
+  override val values: Sequence<String> = emptySequence()
+}
+
 /** Provider with 11 values */
 class LargeProvider : PreviewParameterProvider<String> {
   override val values: Sequence<String> =
@@ -62,3 +68,7 @@ fun TestFailingProvider(@PreviewParameter(provider = FailingProvider::class) nam
 @Preview
 @Composable
 fun TestLargeProvider(@PreviewParameter(provider = LargeProvider::class) name: String) {}
+
+@Preview
+@Composable
+fun TestEmptyProvider(@PreviewParameter(provider = EmptyProvider::class) name: String) {}

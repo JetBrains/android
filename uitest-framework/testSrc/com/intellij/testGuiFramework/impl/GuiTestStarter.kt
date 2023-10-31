@@ -41,9 +41,9 @@ class GuiTestStarter : IdeStarter() {
   }
 
   private fun processArgs(args: List<String>) {
-    val hostArg: String? = args.find { arg -> arg.toLowerCase().startsWith("host") }?.substringAfter("host=") ?: HOST_LOCALHOST
+    val hostArg: String? = args.find { arg -> arg.lowercase().startsWith("host") }?.substringAfter("host=") ?: HOST_LOCALHOST
     System.setProperty(GUI_TEST_HOST, hostArg!!.removeSurrounding("\""))
-    val portArg: String? = args.find { arg -> arg.toLowerCase().startsWith("port") }?.substringAfter("port=")
+    val portArg: String? = args.find { arg -> arg.lowercase().startsWith("port") }?.substringAfter("port=")
     if (portArg != null)
       System.setProperty(GUI_TEST_PORT, portArg.removeSurrounding("\""))
 

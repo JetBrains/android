@@ -12,7 +12,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.repositorySearch" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
@@ -25,10 +24,27 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" scope="TEST" />
+    <orderEntry type="module-library" scope="TEST">
+      <library name="liblint-checks-proto.lib" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:liblint-checks-proto.lib:231.0.1.4">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/231.0.1.4/liblint-checks-proto.lib-231.0.1.4.jar">
+              <sha256sum>e116cc979f3d94a029dea8a60a79acbb799130992ef9d771a6f2320c1d3af3b1</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/liblint-checks-proto.lib/231.0.1.4/liblint-checks-proto.lib-231.0.1.4.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
@@ -37,19 +53,21 @@
     <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.gradle.toolingExtension" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.externalSystem.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="hamcrest" level="project" />
+    <orderEntry type="module" module-name="intellij.gradle.toolingExtension" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.externalSystem.rt" scope="TEST" />
   </component>
 </module>

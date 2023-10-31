@@ -26,16 +26,31 @@ import com.android.tools.manifest.parser.XmlNode
 import com.android.utils.forEach
 import com.android.zipflinger.ZipRepo
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationEx
 import org.jetbrains.android.util.AndroidBundle
 
 /**
  * Return raw complications types from Manifest for given [complicationName] or null if [MergedManifestSnapshot] is not ready.
+ *
+ * If this method is called while the read lock is being held the method might return null if the Merged Manifest is not ready yet.
+ * This is to avoid dead-locks and it's the callers responsibility to retry the call later.
  */
 @WorkerThread
-internal fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module, complicationName: String): List<String> =
-  extractSupportedComplicationTypes(
-    MergedManifestManager.getMergedManifestSupplier(module).get().get(),
+fun getComplicationTypesFromManifest(module: com.intellij.openapi.module.Module, complicationName: String): List<String>? {
+  val snapshotFuture = MergedManifestManager.getMergedManifestSupplier(module).get()
+  val holdsReadLock = (ApplicationManager.getApplication() as? ApplicationEx)?.holdsReadLock() ?: false
+  if (holdsReadLock && !snapshotFuture.isDone) {
+    // We can not wait for the future to be done since we are holding the read lock.
+    // In this case, we can not calculate the result at the moment and will need to be
+    // done in a future call.
+    return null
+  }
+
+  return extractSupportedComplicationTypes(
+    snapshotFuture.get(),
     complicationName)
+}
 
 internal fun parseRawComplicationTypes(supportedTypesStr: List<String>): List<Complication.ComplicationType> {
   return supportedTypesStr.mapNotNull {

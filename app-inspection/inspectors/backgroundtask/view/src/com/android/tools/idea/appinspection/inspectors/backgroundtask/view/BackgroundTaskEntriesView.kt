@@ -38,6 +38,10 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
@@ -46,10 +50,6 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 
 const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 private const val MINIMUM_ENTRIES_VIEW_WIDTH = 400

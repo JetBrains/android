@@ -15,56 +15,16 @@
  */
 package com.android.tools.idea.log;
 
-import com.android.tools.idea.rendering.RenderModelModule;
-import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.module.Module;
-import org.junit.Test;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.rendering.api.RenderModelModule;
+import com.android.tools.rendering.log.LogAnonymizerUtil;
+import org.junit.Test;
+
 public class LogAnonymizerUtilTest {
-  @Test
-  public void testIsGoogleClass() {
-    List<String> nonGoogleClasses = ImmutableList.of(
-      "com.google",
-      "com.googletest.Class",
-      "android2",
-      "android2.test.Class",
-      "android2.test.Class$Inner"
-    );
-
-    List<String> googleClasses = ImmutableList.of(
-      "com.google.Class",
-      "android.test",
-      "android.google.test.Class",
-      "android.google.test.Class$Inner"
-    );
-
-    for (String c : nonGoogleClasses) {
-      assertFalse(LogAnonymizerUtil.isPublicClass(c));
-      assertFalse(LogAnonymizerUtil.isPublicClass(c.replace(".", "/")));
-    }
-
-    for (String c : googleClasses) {
-      assertTrue(LogAnonymizerUtil.isPublicClass(c));
-      assertTrue(LogAnonymizerUtil.isPublicClass(c.replace(".", "/")));
-    }
-  }
-
-  @Test
-  public void testAnonymizeClassName() {
-    assertEquals("com.google.Class", LogAnonymizerUtil.anonymizeClassName("com.google.Class"));
-
-    String hashedClassName = LogAnonymizerUtil.anonymizeClassName("com.myapp.Class");
-    assertNotEquals("com.myapp.Class", hashedClassName);
-    assertEquals(hashedClassName, LogAnonymizerUtil.anonymizeClassName("com.myapp.Class"));
-    assertEquals(hashedClassName, LogAnonymizerUtil.anonymizeClassName("com.myapp.Class"));
-  }
-
   @Test
   public void testAnonymizeModuleName() {
     RenderModelModule module = mock(RenderModelModule.class);

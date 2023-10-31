@@ -16,15 +16,13 @@
 package com.android.tools.idea.device.explorer.files.mocks;
 
 import com.android.tools.idea.FutureValuesTracker;
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerModelListener;
-import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewListener;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerViewProgressListener;
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel;
+import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemRenderer;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystemService;
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerViewImpl;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.project.Project;
@@ -32,7 +30,6 @@ import java.awt.Dimension;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.event.TreeModelEvent;
@@ -56,7 +53,7 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySaveNodesAsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myCopyNodePathsTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> myDeleteNodesTracker = new FutureValuesTracker<>();
-  @NotNull private final FutureValuesTracker<List<DeviceFileEntryNode>> mySynchronizeNodesTracker = new FutureValuesTracker<>();
+  @NotNull private final FutureValuesTracker<Unit> mySynchronizeNodesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myUploadFilesTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewDirectoryTracker = new FutureValuesTracker<>();
   @NotNull private final FutureValuesTracker<DeviceFileEntryNode> myNewFileTracker = new FutureValuesTracker<>();
@@ -147,20 +144,15 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @Override
-  public void reportErrorRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message, @NotNull Throwable t) {
+  public void reportError(@NotNull String message, @NotNull Throwable t) {
     myReportErrorRelatedToDeviceTracker.produce(message + getThrowableMessage(t));
-    myViewImpl.reportErrorRelatedToDevice(fileSystem, message, t);
+    myViewImpl.reportError(message, t);
   }
 
   @Override
   public void reportErrorRelatedToNode(@NotNull DeviceFileEntryNode node, @NotNull String message, @NotNull Throwable t) {
     myReportErrorRelatedToNodeTracker.produce(message + getThrowableMessage(t));
     myViewImpl.reportErrorRelatedToNode(node, message, t);
-  }
-
-  @Override
-  public void reportMessageRelatedToDevice(@NotNull DeviceFileSystem fileSystem, @NotNull String message) {
-    myViewImpl.reportMessageRelatedToDevice(fileSystem, message);
   }
 
   @Override
@@ -214,18 +206,8 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @Override
-  public void setProgressOkColor() {
-    myViewImpl.setProgressOkColor();
-  }
-
-  @Override
   public void setProgressWarningColor() {
     myViewImpl.setProgressWarningColor();
-  }
-
-  @Override
-  public void setProgressErrorColor() {
-    myViewImpl.setProgressErrorColor();
   }
 
   @Override
@@ -355,7 +337,7 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
   }
 
   @NotNull
-  public FutureValuesTracker<List<DeviceFileEntryNode>> getSynchronizeNodesTracker() {
+  public FutureValuesTracker<Unit> getSynchronizeNodesTracker() {
     return mySynchronizeNodesTracker;
   }
 
@@ -416,9 +398,9 @@ public class MockDeviceExplorerView implements DeviceFileExplorerView {
     }
 
     @Override
-    public void synchronizeNodesInvoked(@NotNull List<DeviceFileEntryNode> treeNodes) {
-      mySynchronizeNodesTracker.produce(treeNodes);
-      myListeners.forEach(l -> l.synchronizeNodesInvoked(treeNodes));
+    public void synchronizeNodesInvoked() {
+      mySynchronizeNodesTracker.produce(null);
+      myListeners.forEach(l -> l.synchronizeNodesInvoked());
     }
   }
 

@@ -41,11 +41,9 @@ import org.junit.Test
 
 @RunsInEdt
 class NlIdRenamingTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   private var componentStack: ComponentStack? = null
 
@@ -62,23 +60,32 @@ class NlIdRenamingTest {
 
   @Test
   fun testSetValueChangeReferences() {
-    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
+    val util =
+      SupportTestUtil(projectRule, createTestLayout()).selectById("textView").clearSnapshots()
     val property = util.makeIdProperty()
 
     // Perform renaming
     property.value = "label"
 
     // Verify renaming results
-    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW)).isEqualTo("@id/label")
-    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label")
-    assertThat(util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)).isEqualTo("@id/label")
+    assertThat(util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW))
+      .isEqualTo("@id/label")
+    assertThat(
+        util.findSiblingById("checkBox1")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)
+      )
+      .isEqualTo("@id/label")
+    assertThat(
+        util.findSiblingById("checkBox2")!!.getAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF)
+      )
+      .isEqualTo("@id/label")
   }
 
   @Test
   fun testSetResourceLightFields() {
     addManifest(projectRule.fixture)
     val activityFile = projectRule.fixture.addFileToProject("src/MainActivity.java", testActivity)
-    val util = SupportTestUtil(projectRule, createTestLayout()).selectById("checkBox1").clearSnapshots()
+    val util =
+      SupportTestUtil(projectRule, createTestLayout()).selectById("checkBox1").clearSnapshots()
     val property = util.makeIdProperty()
 
     // Perform renaming
@@ -114,10 +121,12 @@ class NlIdRenamingTest {
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "100dp")
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "100dp")
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_BELOW, "@id/button1")
-          .withAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF, "@id/textView"))
+          .withAttribute(ANDROID_URI, ATTR_LAYOUT_TO_RIGHT_OF, "@id/textView")
+      )
 
   @Language("JAVA")
-  private val testActivity = """
+  private val testActivity =
+    """
     package com.example;
 
     import android.app.Activity;
@@ -133,5 +142,6 @@ class NlIdRenamingTest {
             CheckBox toolbar = findViewById(R.id.checkBox1);
         }
     }
-    """.trimIndent()
+    """
+      .trimIndent()
 }

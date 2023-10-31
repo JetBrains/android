@@ -16,6 +16,7 @@
 package com.android.tools.datastore.poller;
 
 import com.android.tools.datastore.database.EventsTable;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EventProfiler.ActivityData;
 import com.android.tools.profiler.proto.EventProfiler.ActivityDataResponse;
@@ -24,7 +25,6 @@ import com.android.tools.profiler.proto.EventProfiler.EventDataRequest;
 import com.android.tools.profiler.proto.EventProfiler.SystemData;
 import com.android.tools.profiler.proto.EventProfiler.SystemDataResponse;
 import com.android.tools.profiler.proto.EventServiceGrpc;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import org.jetbrains.annotations.NotNull;
 
 /**

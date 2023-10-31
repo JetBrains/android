@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.project.Project;
@@ -26,7 +25,6 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import javax.swing.Action;
 import javax.swing.GroupLayout;
@@ -52,22 +50,18 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   private SelectMultipleDevicesDialogTable myTable;
 
   SelectMultipleDevicesDialog(@NotNull Project project, @NotNull List<Device> devices) {
-    this(project,
-         devices,
-         StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get,
-         DevicesSelectedService::getInstance);
+    this(project, devices, DevicesSelectedService::getInstance);
   }
 
   @VisibleForTesting
   SelectMultipleDevicesDialog(@NotNull Project project,
                               @NotNull List<Device> devices,
-                              @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
                               @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;
     myDevices = devices;
-    myModel = new SelectMultipleDevicesDialogTableModel(devices, selectDeviceSnapshotComboBoxSnapshotsEnabledGet);
+    myModel = new SelectMultipleDevicesDialogTableModel(devices);
     myDevicesSelectedServiceGetInstance = devicesSelectedServiceGetInstance;
 
     initTable();

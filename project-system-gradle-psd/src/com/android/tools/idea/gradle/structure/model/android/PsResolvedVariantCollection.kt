@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.tools.idea.gradle.model.IdeVariant
-
 internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollectionBase<PsVariant, PsVariantKey, PsAndroidModule>(parent) {
   init {
     refresh()
@@ -32,7 +30,7 @@ internal class PsResolvedVariantCollection(parent: PsAndroidModule) : PsCollecti
       parent
         .resolvedModel
         ?.variants
-        ?.singleOrNull { it.buildType == key.buildType && it.productFlavors == key.productFlavors } as? IdeVariant
+        ?.singleOrNull { it.buildType == key.buildType && it.productFlavors == key.productFlavors && it.name == key.name }
                           ?: throw IllegalStateException("Cannot find a resolved variant named '$key'")
     model.init(resolvedVariant)
   }

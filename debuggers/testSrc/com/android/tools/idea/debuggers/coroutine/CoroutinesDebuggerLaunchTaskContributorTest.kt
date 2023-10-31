@@ -21,7 +21,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.LaunchOptions
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.testFramework.LightPlatformTestCase
@@ -35,13 +34,6 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
   override fun setUp() {
     super.setUp()
     whenever(configuration.project).thenReturn(project)
-  }
-
-  fun testContributorHasNoTask() {
-    val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val task = contributor.getTask( "com.test.application", configuration, device, DefaultRunExecutor.getRunExecutorInstance())
-    assertNull(task)
   }
 
   fun testNoAmOptionsIfFlagIsDisabled() {
@@ -68,7 +60,6 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
 
   fun testNoAmOptionsIfSettingsNotEnabled() {
     CoroutineDebuggerSettings.setCoroutineDebuggerEnabled(false)
-    val launchOptions = LaunchOptions.builder().setDebug(true).build()
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = spy(DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE))
 

@@ -31,10 +31,9 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
-import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.util.concurrent.Executor
 
 /**
  * Class used to receive asynchronous events from the on-device inspector.

@@ -26,25 +26,19 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class IssuePanelViewOptionActionGroupTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   lateinit var context: DataContext
 
@@ -53,8 +47,7 @@ class IssuePanelViewOptionActionGroupTest {
     context = DataContext { dataId ->
       if (PlatformDataKeys.PROJECT.`is`(dataId)) {
         rule.project
-      }
-      else null
+      } else null
     }
   }
 
@@ -75,9 +68,16 @@ class IssuePanelViewOptionActionGroupTest {
     val sortedBySeverityAction = options[7] as ToggleIssuePanelSortedBySeverityAction
     val sortedByNameAction = options[8] as ToggleIssuePanelSortedByNameAction
 
-    val severityIterator = SeverityRegistrar.getSeverityRegistrar(rule.project).allSeverities.reversed()
-      .filter { it != HighlightSeverity.INFO && it > HighlightSeverity.INFORMATION && it < HighlightSeverity.ERROR }
-      .iterator()
+    val severityIterator =
+      SeverityRegistrar.getSeverityRegistrar(rule.project)
+        .allSeverities
+        .reversed()
+        .filter {
+          it != HighlightSeverity.INFO &&
+            it > HighlightSeverity.INFORMATION &&
+            it < HighlightSeverity.ERROR
+        }
+        .iterator()
 
     showWarningAction.let {
       assertEquals(severityIterator.next().myVal, it.severity)
@@ -106,25 +106,17 @@ class IssuePanelViewOptionActionGroupTest {
 
     assertFalse(severityIterator.hasNext())
 
-    showVisualProblemAction.let {
-      assertEquals("Show Screen Size Problem", it.templateText)
-    }
+    showVisualProblemAction.let { assertEquals("Show Screen Size Problem", it.templateText) }
 
-    sortedBySeverityAction.let {
-      assertEquals("Sort By Severity", it.templateText)
-    }
+    sortedBySeverityAction.let { assertEquals("Sort By Severity", it.templateText) }
 
-    sortedByNameAction.let {
-      assertEquals("Sort By Name", it.templateText)
-    }
+    sortedByNameAction.let { assertEquals("Sort By Name", it.templateText) }
   }
 }
 
 class SeverityFilterActionTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testSelected() {
@@ -132,13 +124,13 @@ class SeverityFilterActionTest {
     val severity = 10
 
     val action = SeverityFilterAction(rule.project, "", severity)
-    assertTrue(action.isSelected(TestActionEvent()))
+    assertTrue(action.isSelected(TestActionEvent.createTestEvent()))
 
     ProblemsViewState.getInstance(rule.project).hideBySeverity.add(severity)
-    assertFalse(action.isSelected(TestActionEvent()))
+    assertFalse(action.isSelected(TestActionEvent.createTestEvent()))
 
     ProblemsViewState.getInstance(rule.project).hideBySeverity.remove(severity)
-    assertTrue(action.isSelected(TestActionEvent()))
+    assertTrue(action.isSelected(TestActionEvent.createTestEvent()))
   }
 
   @Test
@@ -148,30 +140,28 @@ class SeverityFilterActionTest {
 
     val action = SeverityFilterAction(rule.project, "", severity)
 
-    action.setSelected(TestActionEvent(), true)
+    action.setSelected(TestActionEvent.createTestEvent(), true)
     assertFalse(ProblemsViewState.getInstance(rule.project).hideBySeverity.contains(severity))
 
-    action.setSelected(TestActionEvent(), false)
+    action.setSelected(TestActionEvent.createTestEvent(), false)
     assertTrue(ProblemsViewState.getInstance(rule.project).hideBySeverity.contains(severity))
 
-    action.setSelected(TestActionEvent(), true)
+    action.setSelected(TestActionEvent.createTestEvent(), true)
     assertFalse(ProblemsViewState.getInstance(rule.project).hideBySeverity.contains(severity))
   }
 }
 
 class VisualLintFilterActionTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testSelected() {
     val action = VisualLintFilterAction(rule.project)
     VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected = true
-    assertTrue(action.isSelected(TestActionEvent()))
+    assertTrue(action.isSelected(TestActionEvent.createTestEvent()))
     VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected = false
-    assertFalse(action.isSelected(TestActionEvent()))
+    assertFalse(action.isSelected(TestActionEvent.createTestEvent()))
   }
 
   @Test
@@ -188,11 +178,11 @@ class VisualLintFilterActionTest {
     assertTrue(panel.issueProvider.viewOptionFilter(visualLintIssue))
     assertTrue(panel.issueProvider.viewOptionFilter(visualLintIssue))
 
-    action.setSelected(TestActionEvent(), false)
+    action.setSelected(TestActionEvent.createTestEvent(), false)
     assertFalse(VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected)
     assertFalse(panel.issueProvider.viewOptionFilter(visualLintIssue))
 
-    action.setSelected(TestActionEvent(), true)
+    action.setSelected(TestActionEvent.createTestEvent(), true)
     assertTrue(VisualLintSettings.getInstance(rule.project).isVisualLintFilterSelected)
     assertTrue(panel.issueProvider.viewOptionFilter(visualLintIssue))
   }
@@ -200,15 +190,15 @@ class VisualLintFilterActionTest {
 
 class ToggleIssuePanelSortedBySeverityActionTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testSelected() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedBySeverityAction()
-    val context = DataContext { key -> if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null }
+    val context = DataContext { key ->
+      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
+    }
 
     state.sortBySeverity = true
     assertTrue(action.isSelected(TestActionEvent(context)))
@@ -224,7 +214,9 @@ class ToggleIssuePanelSortedBySeverityActionTest {
   fun testPerform() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedBySeverityAction()
-    val context = DataContext { key -> if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null }
+    val context = DataContext { key ->
+      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
+    }
 
     action.setSelected(TestActionEvent(context), true)
     assertTrue(state.sortBySeverity)
@@ -239,15 +231,15 @@ class ToggleIssuePanelSortedBySeverityActionTest {
 
 class ToggleIssuePanelSortedByNameActionTest {
 
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testSelected() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedByNameAction()
-    val context = DataContext { key -> if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null }
+    val context = DataContext { key ->
+      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
+    }
 
     state.sortByName = true
     assertTrue(action.isSelected(TestActionEvent(context)))
@@ -263,7 +255,9 @@ class ToggleIssuePanelSortedByNameActionTest {
   fun testPerform() {
     val state = ProblemsViewState.getInstance(rule.project)
     val action = ToggleIssuePanelSortedByNameAction()
-    val context = DataContext { key -> if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null }
+    val context = DataContext { key ->
+      if (PlatformDataKeys.PROJECT.`is`(key)) rule.project else null
+    }
 
     action.setSelected(TestActionEvent(context), true)
     assertTrue(state.sortByName)

@@ -2,6 +2,10 @@
 
 package com.android.tools.sdk;
 
+import static com.intellij.openapi.util.io.FileUtil.pathHashCode;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
@@ -10,8 +14,8 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.projectRoots.Sdk;
-import java.lang.ref.SoftReference;
 import java.io.File;
+import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -19,8 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
-
-import static com.intellij.openapi.util.io.FileUtil.*;
 
 public class AndroidSdkData {
   private final DeviceManager myDeviceManager;

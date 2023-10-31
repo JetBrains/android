@@ -1,7 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT>/firstapp (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : My_First_App
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : My First App
+    LinkedProjectPath             : <ROOT>/firstapp
+    RootProjectPath               : <ROOT>/firstapp
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/firstapp/build/classes/production/My_First_App [-]
+        compilerTestOutputPath        : file://<ROOT>/firstapp/build/classes/test/My_First_App [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/firstapp/.idea/modules/My_First_App.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>/firstapp
+        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/firstapp/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.appcompat:appcompat:1.0.2@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/aidl [-]
@@ -9,6 +29,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.appcompat:appcompat:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jars/classes.jar
+        component                     : androidx.appcompat:appcompat:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2/jni [-]
@@ -27,6 +48,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.fragment:fragment:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jars/classes.jar
+        component                     : androidx.fragment:fragment:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0/jni [-]
@@ -45,6 +67,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jars/classes.jar
+        component                     : androidx.vectordrawable:vectordrawable-animated:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0/jni [-]
@@ -63,6 +86,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jars/classes.jar
+        component                     : androidx.legacy:legacy-support-core-ui:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0/jni [-]
@@ -81,6 +105,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jars/classes.jar
+        component                     : androidx.legacy:legacy-support-core-utils:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0/jni [-]
@@ -99,6 +124,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.vectordrawable:vectordrawable:1.0.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jars/classes.jar
+        component                     : androidx.vectordrawable:vectordrawable:1.0.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1/jni [-]
@@ -117,6 +143,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.loader:loader:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+        component                     : androidx.loader:loader:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jni [-]
@@ -135,6 +162,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+        component                     : androidx.viewpager:viewpager:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jni [-]
@@ -153,6 +181,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jars/classes.jar
+        component                     : androidx.coordinatorlayout:coordinatorlayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0/jni [-]
@@ -171,6 +200,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
+        component                     : androidx.drawerlayout:drawerlayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jni [-]
@@ -189,6 +219,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jars/classes.jar
+        component                     : androidx.slidingpanelayout:slidingpanelayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0/jni [-]
@@ -207,6 +238,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.customview:customview:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
+        component                     : androidx.customview:customview:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jni [-]
@@ -225,6 +257,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jars/classes.jar
+        component                     : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0/jni [-]
@@ -243,6 +276,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jars/classes.jar
+        component                     : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0/jni [-]
@@ -261,6 +295,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.core:core:1.0.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jars/classes.jar
+        component                     : androidx.core:core:1.0.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1/jni [-]
@@ -279,6 +314,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.versionedparcelable:versionedparcelable:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jars/classes.jar
+        component                     : androidx.versionedparcelable:versionedparcelable:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0/jni [-]
@@ -297,6 +333,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
+        component                     : androidx.cursoradapter:cursoradapter:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jni [-]
@@ -315,6 +352,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-runtime:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0/jni [-]
@@ -333,6 +371,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jars/classes.jar
+        component                     : androidx.documentfile:documentfile:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0/jni [-]
@@ -351,6 +390,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jars/classes.jar
+        component                     : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0/jni [-]
@@ -369,6 +409,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.print:print:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jars/classes.jar
+        component                     : androidx.print:print:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0/jni [-]
@@ -387,6 +428,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-viewmodel:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0/jni [-]
@@ -405,6 +447,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-livedata:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jni [-]
@@ -423,6 +466,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-livedata-core:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0/jni [-]
@@ -441,6 +485,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jni [-]
@@ -459,6 +504,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
+        component                     : androidx.interpolator:interpolator:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jni [-]
@@ -477,6 +523,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jars/classes.jar
+        component                     : androidx.constraintlayout:constraintlayout:1.1.3
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3/jni [-]
@@ -498,39 +545,51 @@ LIBRARY_TABLE
     - library                     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
     - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
+        component                     : org.jetbrains:annotations:13.0
     - library                     : androidx.collection:collection:1.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
         artifactAddress               : androidx.collection:collection:1.0.0@jar
+        component                     : androidx.collection:collection:1.0.0
     - library                     : androidx.lifecycle:lifecycle-common:2.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
         artifactAddress               : androidx.lifecycle:lifecycle-common:2.0.0@jar
+        component                     : androidx.lifecycle:lifecycle-common:2.0.0
     - library                     : androidx.arch.core:core-common:2.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
         artifactAddress               : androidx.arch.core:core-common:2.0.0@jar
+        component                     : androidx.arch.core:core-common:2.0.0
     - library                     : androidx.annotation:annotation:1.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
         artifactAddress               : androidx.annotation:annotation:1.0.0@jar
+        component                     : androidx.annotation:annotation:1.0.0
     - library                     : androidx.constraintlayout:constraintlayout-solver:1.1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
         artifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+        component                     : androidx.constraintlayout:constraintlayout-solver:1.1.3
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
+        component                     : junit:junit:4.12
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
     - library                     : <ROOT>/firstapp::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>/firstapp
         projectPath                   : :app
@@ -538,11 +597,15 @@ LIBRARY_TABLE
         variant                       : debug
 MODULE                        : My_First_App
     externalProject               : My First App (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : My First App
         qName                         : My First App
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : My First App
@@ -551,6 +614,8 @@ MODULE                        : My_First_App
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 childProjects
                     mysharedlibrary               : :app:mysharedlibrary (DefaultExternalProject)
+                        path                          : :app:mysharedlibrary [-]
+                        identityPath                  : :app:mysharedlibrary [-]
                         name                          : mysharedlibrary
                         qName                         : :app:mysharedlibrary
                         group                         : My First App.app
@@ -671,6 +736,7 @@ MODULE                        : My_First_App
                             implementation                : <empty>
                             implementationDependenciesMetadata      : <empty>
                             intransitiveDependenciesMetadata        : <empty>
+                            kotlinBuildToolsApiClasspath  : <empty>
                             kotlinCompilerClasspath       : <empty>
                             kotlinCompilerPluginClasspath : <empty>
                             kotlinCompilerPluginClasspathDebug      : <empty>
@@ -866,6 +932,7 @@ MODULE                        : My_First_App
                     implementation                : <empty>
                     implementationDependenciesMetadata      : <empty>
                     intransitiveDependenciesMetadata        : <empty>
+                    kotlinBuildToolsApiClasspath  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathDebug      : <empty>
@@ -974,7 +1041,6 @@ MODULE                        : My_First_App.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -1019,6 +1085,7 @@ MODULE                        : My_First_App.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.firstapp
         testApplicationId             : com.example.firstapp.test
@@ -1558,47 +1625,9 @@ MODULE                        : My_First_App.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
-                    - classpath                   : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 1.8
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -1607,7 +1636,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -1616,7 +1644,6 @@ MODULE                        : My_First_App.app
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
@@ -1625,50 +1652,9 @@ MODULE                        : My_First_App.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 1.8
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -1677,7 +1663,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -1686,7 +1671,6 @@ MODULE                        : My_First_App.app
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
@@ -1695,52 +1679,9 @@ MODULE                        : My_First_App.app
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-1.1.3-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/firstapp/app/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/firstapp/app/build/intermediates/app_classes/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 1.8
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -1749,7 +1690,6 @@ MODULE                        : My_First_App.app
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -1758,7 +1698,6 @@ MODULE                        : My_First_App.app
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
@@ -1804,7 +1743,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
-    BuildName                     : :
     ProjectPath                   : :app:mysharedlibrary
     ModelVersion                  : 7.0.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -1849,6 +1787,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.mysharedlibrary.test
     - basicVariant:               : release
@@ -2346,45 +2285,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -2393,7 +2296,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2402,7 +2304,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
@@ -2411,48 +2312,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugAndroidTest
-                    - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2461,7 +2323,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2470,7 +2331,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true
@@ -2479,50 +2339,9 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     allowNoSourceFiles            : true
                     assertionsMode                : legacy
                     backendThreads                : 1
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.0.2-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-4.12.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/hamcrest-core-1.3.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotations-13.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-ui-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/legacy-support-core-utils-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.0.1-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-1.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0-api.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0-api.jar
-                    - classpath                   : <M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar
-                    - classpath                   : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0-api.jar
-                    - classpath                   : <M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar
-                    - classpath                   : <ANDROID_SDK>/platforms/android-32/android.jar
-                    - classpath                   : <ANDROID_SDK>/build-tools/30.0.2/core-lambda-stubs.jar
                     destination                   : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debugUnitTest
-                    - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/tmp/kotlin-classes/debug [-]
-                    - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/javac/debug/classes [-]
-                    - friendPaths                 : <ROOT>/shared/mysharedlibrary/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 1.8
                     moduleName                    : mysharedlibrary_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2531,7 +2350,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
                     enableSignatureClashChecks    : true
-                    errors                        : ArgumentParseErrors
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -2540,7 +2358,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-reflect/<KOTLIN_VERSION>/kotlin-reflect-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-daemon-embeddable/<KOTLIN_VERSION>/kotlin-daemon-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/intellij/deps/trove4j/1.0.20200330/trove4j-1.0.20200330.jar
-                    - pluginClasspaths            : <M2>/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     useFirLT                      : true

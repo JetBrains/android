@@ -23,11 +23,11 @@ import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.android.isSubclassOf
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 
 
 class AddActivityToManifest : AbstractRegisterComponentAction("Add activity to manifest") {

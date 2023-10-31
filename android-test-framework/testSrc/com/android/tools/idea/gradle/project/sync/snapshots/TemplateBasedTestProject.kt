@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.testing.AgpIntegrationTestUtil.maybeCreateJdkOverride
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
+import com.android.tools.idea.testing.JdkUtils.getEmbeddedJdkPathWithVersion
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.ResolvedAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.openPreparedProject
@@ -28,10 +28,7 @@ import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.resolve
 import com.android.tools.idea.testing.switchVariant
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.ProjectJdkTable
-import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.annotations.SystemIndependent
@@ -44,8 +41,8 @@ import javax.xml.transform.Transformer
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
-import kotlin.streams.asSequence
 import kotlin.io.path.exists
+import kotlin.streams.asSequence
 
 /**
  * A test project definition using a Gradle test project stored in test data.
@@ -183,39 +180,25 @@ private class PreparedTemplateBasedTestProject(
   private fun <T> openProject(
     updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions,
     body: (project: Project, projectRoot: File) -> T
-  ) = maybeWithJdkOverride { jdkOverride ->
-    templateBasedTestProject.usingTestProjectSetup {
-      val options =
-        updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectJdk = jdkOverride))
-      integrationTestEnvironment.openPreparedProject(
-        name = "$name${templateBasedTestProject.pathToOpen}",
-        options = options
-      ) { project ->
+  ) = templateBasedTestProject.usingTestProjectSetup {
+    val embeddedJdkPath = getEmbeddedJdkPathWithVersion(resolvedAgpVersion.jdkVersion)
+    val options =
+      updateOptions(templateBasedTestProject.defaultOpenPreparedProjectOptions().copy(overrideProjectGradleJdkPath = embeddedJdkPath))
+    integrationTestEnvironment.openPreparedProject(
+      name = "$name${templateBasedTestProject.pathToOpen}",
+      options = options
+    ) { project ->
+      invokeAndWaitIfNeeded {
+        AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
+      }
+      templateBasedTestProject.switchVariant?.let { switchVariant ->
+        switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
         invokeAndWaitIfNeeded {
           AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
         }
-        templateBasedTestProject.switchVariant?.let { switchVariant ->
-          switchVariant(project, switchVariant.gradlePath, switchVariant.variant)
-          invokeAndWaitIfNeeded {
-            AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
-          }
-          templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
-        }
-        body(project, root)
+        templateBasedTestProject.verifyOpened?.invoke(project) // Second time.
       }
-    }
-  }
-
-  private inline fun <T> maybeWithJdkOverride(body: (Sdk?) -> T): T {
-    val jdkOverride = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
-    try {
-      return body(jdkOverride)
-    } finally {
-      jdkOverride?.let {
-        runWriteActionAndWait {
-          ProjectJdkTable.getInstance().removeJdk(it)
-        }
-      }
+      body(project, root)
     }
   }
 }
@@ -261,6 +244,7 @@ fun migratePackageAttribute(root: File) {
 
     when (manifestPath.parent.fileName.toString()) {
       "main" -> Unit
+      "androidMain" -> Unit
       "androidTest" -> return@forEach // It is ignored and does not play the role of `testNamespace`.
       else -> return@forEach
     }
@@ -309,7 +293,7 @@ private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> 
 
   val result = transform(doc) ?: return null
 
-  val transformerFactory = TransformerFactory.newInstance()
+  val transformerFactory = TransformerFactory.newDefaultInstance()
   val transformer: Transformer = transformerFactory.newTransformer()
   val source = DOMSource(doc)
   transformer.transform(source, StreamResult(manifestPath.toFile()))

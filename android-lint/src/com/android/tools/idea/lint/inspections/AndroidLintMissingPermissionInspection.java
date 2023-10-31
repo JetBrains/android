@@ -23,11 +23,11 @@ import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23;
 import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M;
 import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 
+import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionDetector;
 import com.android.tools.lint.checks.PermissionRequirement;
@@ -36,6 +36,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -92,11 +94,6 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         return super.getQuickFixes(startElement, endElement, message, quickfixData);
       }
 
-      AndroidFacet facet = AndroidFacet.getInstance(startElement);
-      if (facet == null) {
-        return super.getQuickFixes(startElement, endElement, message, quickfixData);
-      }
-
       int lastApplicableApi = map.getInt(PermissionDetector.KEY_LAST_API, -1);
 
       String requirementString = map.getString(PermissionDetector.KEY_REQUIREMENT, null);
@@ -106,7 +103,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         // Add quickfixes for the missing permissions
         List<LintIdeQuickFix> fixes = Lists.newArrayListWithExpectedSize(4);
         for (String name : names) {
-          fixes.add(new AddPermissionFix(facet, name, lastApplicableApi));
+          fixes.add(new AddPermissionFix(name, lastApplicableApi));
         }
         return fixes.toArray(LintIdeQuickFix.EMPTY_ARRAY);
       }
@@ -114,7 +111,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         // [revocable permissions: Set<String>, requirement: PermissionRequirement] :
         // Add quickfix for requesting permissions
         return new LintIdeQuickFix[]{
-          new AddCheckPermissionFix(facet, requirement, startElement, names)
+          new AddCheckPermissionFix(requirement, startElement, names)
         };
       }
     }
@@ -123,13 +120,11 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
   }
 
   static class AddPermissionFix extends DefaultLintQuickFix {
-    private final AndroidFacet myFacet;
     private final String myPermissionName;
     private final int myMaxVersion;
 
-    AddPermissionFix(@NotNull AndroidFacet facet, @NotNull String permissionName, int maxVersion) {
+    AddPermissionFix(@NotNull String permissionName, int maxVersion) {
       super(null);
-      myFacet = facet;
       myPermissionName = permissionName;
       myMaxVersion = maxVersion;
     }
@@ -143,12 +138,16 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
 
     @Override
     public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-      final VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(myFacet);
-      if (manifestFile == null || !ReadonlyStatusHandler.ensureFilesWritable(myFacet.getModule().getProject(), manifestFile)) {
+      AndroidFacet facet = AndroidFacet.getInstance(startElement);
+      if (facet == null) {
+        return;
+      }
+      final VirtualFile manifestFile = AndroidRootUtil.getPrimaryManifestFile(facet);
+      if (manifestFile == null || !ReadonlyStatusHandler.ensureFilesWritable(facet.getModule().getProject(), manifestFile)) {
         return;
       }
 
-      final Manifest manifest = Manifest.getMainManifest(myFacet);
+      final Manifest manifest = Manifest.getMainManifest(facet);
       if (manifest == null) {
         return;
       }
@@ -207,11 +206,11 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
         // case set a maxSdkVersion attribute on the uses-permission element.
         if (myMaxVersion != Integer.MAX_VALUE
-            && myMaxVersion >= StudioAndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel()) {
+            && myMaxVersion >= StudioAndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel()) {
           permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, Integer.toString(myMaxVersion));
         }
 
-        Project project = myFacet.getModule().getProject();
+        Project project = facet.getModule().getProject();
         CodeStyleManager.getInstance(project).reformat(permissionTag);
 
         FileDocumentManager.getInstance().saveAllDocuments();
@@ -226,15 +225,13 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
   }
 
   private static class AddCheckPermissionFix extends DefaultLintQuickFix {
-    private final AndroidFacet myFacet;
     private final PermissionRequirement myRequirement;
     private final Collection<String> myRevocablePermissions;
     private final SmartPsiElementPointer<PsiElement> myCall;
 
-    private AddCheckPermissionFix(@NotNull AndroidFacet facet, @NotNull PermissionRequirement requirement, @NotNull PsiElement call,
+    private AddCheckPermissionFix(@NotNull PermissionRequirement requirement, @NotNull PsiElement call,
                                   @NotNull Collection<String> revocablePermissions) {
       super("Add permission check");
-      myFacet = facet;
       myRequirement = requirement;
       myCall = SmartPointerManager.getInstance(call.getProject()).createSmartPsiElementPointer(call);
       myRevocablePermissions = revocablePermissions;
@@ -242,7 +239,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
 
     @Override
     public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
-      Project project = myFacet.getModule().getProject();
+      Project project = startElement.getProject();
       PsiElement call = myCall.getElement();
       if (call == null) {
         return;
@@ -274,7 +271,11 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       }
 
       JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-      GlobalSearchScope moduleScope = GlobalSearchScope.moduleWithLibrariesScope(myFacet.getModule());
+      Module module = ModuleUtilCore.findModuleForPsiElement(startElement);
+      if (module == null) {
+        return;
+      }
+      GlobalSearchScope moduleScope = GlobalSearchScope.moduleWithLibrariesScope(module);
       PsiClass manifest = facade.findClass("android.Manifest.permission", moduleScope);
       Map<String, PsiField> permissionNames;
 

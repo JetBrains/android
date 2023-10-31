@@ -25,7 +25,8 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testPanel() {
     IssueModel model = new IssueModel(myFixture.getTestRootDisposable(), myFixture.getProject());
-    IssuePanel panel = new IssuePanel(model, issue -> { });
+    IssuePanel panel = new IssuePanel(model, issue -> {
+    });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
@@ -44,7 +45,8 @@ public class IssuePanelTest extends AndroidTestCase {
 
   public void testRemoveOldError() {
     IssueModel model = new IssueModel(myFixture.getTestRootDisposable(), myFixture.getProject());
-    IssuePanel panel = new IssuePanel(model, issue -> { });
+    IssuePanel panel = new IssuePanel(model, issue -> {
+    });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     MockIssueFactory.addLintIssue(lintAnnotationsModel, HighlightDisplayLevel.ERROR);
@@ -64,16 +66,17 @@ public class IssuePanelTest extends AndroidTestCase {
   /**
    * Creates two similar issues where just the psi elements are different and check that the
    * issue panel is updated when the first issue is replace by the other one
-   *<p>
+   * <p>
    * The bug associated with this test was caused because when editing a part of a component's xml (thus the psi)
    * that was not affecting the issue details, the issueview was not updated and the fix action was still pointing to the old psi
    * which was not valid anymore and had no parent.
-   *
+   * <p>
    * b/68236469
    */
   public void testRemoveIfPsiChangedError() {
     IssueModel model = new IssueModel(myFixture.getTestRootDisposable(), myFixture.getProject());
-    IssuePanel panel = new IssuePanel(model, issue -> { });
+    IssuePanel panel = new IssuePanel(model, issue -> {
+    });
     assertEquals("No issues", panel.getTitleText());
     LintAnnotationsModel lintAnnotationsModel = new LintAnnotationsModel();
     NlComponent source = Mockito.mock(NlComponent.class);

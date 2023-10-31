@@ -21,7 +21,7 @@ import com.intellij.openapi.ui.ValidationInfo
 class DependencyScopePanel(module: PsModule, importantFor: PsModule.ImportantFor?) : AbstractDependencyScopesPanel() {
 
   val configurations = module.getConfigurations().toSet()
-  private val comboBox = createQuickSearchComboBox(module.parent.ideProject, module.getConfigurations(), module.getConfigurations(importantFor))
+  val comboBox = createQuickSearchComboBox(module.parent.ideProject, module.getConfigurations(), module.getConfigurations(importantFor))
     .apply { name = "configuration" }
 
   init {

@@ -15,15 +15,22 @@
  */
 package com.android.tools.idea.stats;
 
+import static org.junit.Assert.assertEquals;
+
+import com.android.testutils.TestUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
 import java.io.File;
 import java.net.URL;
-import org.jetbrains.android.AndroidTestCase;
+import java.nio.file.Path;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -31,21 +38,23 @@ import org.mockito.Mockito;
  * Tests for {@link DistributionService}
  */
 
-public class DistributionServiceTest extends AndroidTestCase {
-  private static final String DISTRIBUTION_PATH = "stats";
+public class DistributionServiceTest {
+  @Rule
+  public ApplicationRule myApplicationRule = new ApplicationRule();
+
+  private static final String DISTRIBUTION_PATH = "tools/adt/idea/android/testData/stats";
   private static final String DISTRIBUTION_FILE = new File(DISTRIBUTION_PATH, "testDistributions.json").getPath();
   private static final File CACHE_PATH = new File(PathManager.getTempPath(), "distributionServiceTest");
 
   private URL myDistributionFileUrl;
 
-  private File myDistributionFile;
+  private Path myDistributionFile;
   private DownloadableFileDescription myDescription;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-    myDistributionFile = new File(myFixture.getTestDataPath(), DISTRIBUTION_FILE);
-    myDistributionFileUrl = myDistributionFile.toURI().toURL();
+    myDistributionFile = TestUtils.resolveWorkspacePath(DISTRIBUTION_FILE);
+    myDistributionFileUrl = myDistributionFile.toUri().toURL();
     myDescription = new DownloadableFileDescriptionImpl(myDistributionFileUrl.toString(), DISTRIBUTION_FILE, "json");
 
     File[] files = CACHE_PATH.listFiles();
@@ -61,23 +70,23 @@ public class DistributionServiceTest extends AndroidTestCase {
   /**
    * Test that we get back the correct sum for an api level
    */
+  @Test
   public void testSimpleCase() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class)))
-      .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
+      .thenReturn(ImmutableList.of(Pair.create(myDistributionFile.toFile(), myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     assertEquals(0.7, service.getSupportedDistributionForApiLevel(16), 0.0001);
   }
 
   /**
    * Test that we don't download on every request
-   *
-   * @throws Exception
    */
+  @Test
   public void testCache() throws Exception {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class)))
-      .thenReturn(ImmutableList.of(Pair.create(myDistributionFile, myDescription)));
+      .thenReturn(ImmutableList.of(Pair.create(myDistributionFile.toFile(), myDescription)));
     DistributionService service = new DistributionService(downloader, CACHE_PATH, myDistributionFileUrl);
     service.getSupportedDistributionForApiLevel(19);
     service.getDistributionForApiLevel(21);

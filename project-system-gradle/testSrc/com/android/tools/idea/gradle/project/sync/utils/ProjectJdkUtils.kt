@@ -18,14 +18,15 @@ import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationMana
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElement
 import com.android.tools.idea.gradle.project.sync.extensions.getOptionElementName
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
+import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleProperties
-import com.android.tools.idea.gradle.util.LocalProperties
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.Project.DIRECTORY_STORE_FOLDER
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import org.jetbrains.jps.model.serialization.JpsLoaderBase
 import org.jetbrains.plugins.gradle.properties.GRADLE_JAVA_HOME_PROPERTY
@@ -40,16 +41,16 @@ private const val PROJECT_IDEA_MISC_XML_PATH = "$DIRECTORY_STORE_FOLDER/misc.xml
 
 object ProjectJdkUtils {
 
-  fun setProjectLocalPropertiesJdk(projectRoot: File, jdkPath: String) {
-    LocalProperties(projectRoot).run {
-      setGradleJdkPath(jdkPath)
+  fun setProjectGradleLocalJavaHome(projectRoot: File, javaHome: String) {
+    GradleConfigProperties(projectRoot).run {
+      this.javaHome = File(javaHome)
       save()
     }
   }
 
-  fun setProjectGradlePropertiesJdk(projectRoot: File, jdkPath: String) {
+  fun setProjectGradlePropertiesJavaHome(projectRoot: File, javaHome: String) {
     val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)
-    setGradlePropertiesJdk(gradlePropertiesFile, jdkPath)
+    setGradlePropertiesJdk(gradlePropertiesFile, javaHome)
   }
 
   fun setProjectIdeaGradleJdk(projectRoot: File, gradleRoots: List<GradleRoot>) = createProjectFile(
@@ -64,20 +65,20 @@ object ProjectJdkUtils {
     text = ProjectIdeaConfigFilesUtils.buildMiscXmlConfig(jdkName)
   )
 
-  fun getGradleRootJdkNameInMemory(project: Project, gradleRootPath: String): String? {
-    val linkedProjectPath = File(project.basePath.orEmpty()).resolve(gradleRootPath).absolutePath
+  fun getGradleRootJdkNameInMemory(project: Project, gradleRootName: String): String? {
+    val linkedProjectPath = File(project.basePath.orEmpty()).resolve(gradleRootName).absolutePath
     val settings = GradleSettings.getInstance(project).getLinkedProjectSettings(linkedProjectPath)
     return settings?.gradleJvm
   }
 
-  fun getGradleRootJdkNameFromIdeaGradleXmlFile(projectRoot: File, gradleRootPath: String): String? {
+  fun getGradleRootJdkNameFromIdeaGradleXmlFile(projectRoot: File, gradleRootName: String): String? {
     val gradleXml = projectRoot.resolve(PROJECT_IDEA_GRADLE_XML_PATH)
     val gradleXmlRootElement = JpsLoaderBase.tryLoadRootElement(gradleXml.toPath())
     val gradleSettings = JDomSerializationUtil.findComponent(gradleXmlRootElement, "GradleSettings")
     val linkedExternalProjectsSettings = gradleSettings?.getOptionElement("linkedExternalProjectsSettings")
     return linkedExternalProjectsSettings?.content?.firstOrNull { gradleProjectSettings ->
       val externalProjectPath = gradleProjectSettings?.getOptionElementName("externalProjectPath")?.getAttributeValue("value")
-      externalProjectPath == null || externalProjectPath == PROJECT_DIR || externalProjectPath == "$PROJECT_DIR/$gradleRootPath"
+      externalProjectPath == null || externalProjectPath == PROJECT_DIR || externalProjectPath == "$PROJECT_DIR/$gradleRootName"
     }?.getOptionElementName("gradleJvm")?.getAttributeValue("value")
   }
 
@@ -92,9 +93,9 @@ object ProjectJdkUtils {
     return projectRootManagerComponent?.getAttributeValue("project-jdk-name")
   }
 
-  fun getGradleDaemonExecutionJdkPath(project: Project): String? {
+  fun getGradleDaemonExecutionJdkPath(project: Project, gradleRootPath: @SystemIndependent String): String? {
     val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-    return gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty())
+    return gradleInstallation.getGradleJvmPath(project, gradleRootPath)
   }
 
   fun setUserHomeGradlePropertiesJdk(jdkPath: String, disposable: Disposable) {

@@ -19,13 +19,12 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
-import com.android.tools.idea.device.explorer.files.fs.DeviceState
 import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.ui.TreeUtil
@@ -62,7 +61,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
@@ -96,7 +94,7 @@ class DeviceFileExplorerControllerImpl(
   private val fileOpener: FileOpener
 ) : Disposable, DeviceFileExplorerController {
 
-  private val scope = project.coroutineScope + uiThread
+  private val scope = AndroidCoroutineScope(this, uiThread)
   var showLoadingNodeDelayMillis = 200
     @TestOnly set
   var transferringNodeRepaintMillis = 100
@@ -128,37 +126,24 @@ class DeviceFileExplorerControllerImpl(
 
   private fun setNoActiveDevice() {
     cancelOrMoveToBackgroundPendingOperations()
-    model.activeDevice = null
-    model.setActiveDeviceTreeModel(null, null, null)
+    model.setDevice(null, null, null)
     view.showNoDeviceScreen()
   }
 
   private suspend fun setActiveDevice(device: DeviceFileSystem) {
     cancelOrMoveToBackgroundPendingOperations()
-    model.activeDevice = device
-    updateActiveDeviceState(device, device.deviceState)
+    updateActiveDeviceState(device)
   }
 
   /** Updates the view and tree model to reflect the given device and state. */
-  private suspend fun updateActiveDeviceState(device: DeviceFileSystem, state: DeviceState) {
-    if (state != DeviceState.ONLINE) {
-      val message = when (state) {
-        DeviceState.UNAUTHORIZED, DeviceState.OFFLINE ->
-          "Device is pending authentication: please accept debugging session on the device"
-        else ->
-          String.format("Device is not online (%s)", state)
-      }
-      view.reportMessageRelatedToDevice(device, message)
-      model.setActiveDeviceTreeModel(device, null, null)
-      return
-    }
+  private suspend fun updateActiveDeviceState(device: DeviceFileSystem) {
     try {
       val root = device.rootDirectory()
       val model = DefaultTreeModel(DeviceFileEntryNode(root))
-      this.model.setActiveDeviceTreeModel(device, model, DefaultTreeSelectionModel())
+      this.model.setDevice(device, model, DefaultTreeSelectionModel())
     } catch (t: Throwable) {
-      model.setActiveDeviceTreeModel(device, null, null)
-      view.reportErrorRelatedToDevice(device, "Unable to access root directory of device", t)
+      model.setDevice(device, null, null)
+      view.reportError("Unable to access root directory of device", t)
     }
   }
 
@@ -566,45 +551,28 @@ class DeviceFileExplorerControllerImpl(
       }
     }
 
-    override fun synchronizeNodesInvoked(nodes: List<DeviceFileEntryNode>) {
-      if (nodes.isEmpty()) {
-        return
-      }
-
-      // Collect directories as well as parent directories of files
-      var directoryNodes = nodes
-        .mapNotNull {
-          when {
-            it.isSymbolicLinkToDirectory || it.entry.isDirectory -> it
-            else -> DeviceFileEntryNode.fromNode(it.parent)
-          }
-        }
-        .toSet()
-
-      // Add descendant directories that have been expanded/loaded
-      directoryNodes = directoryNodes.flatMap { node ->
-        val nodesToSynchronize: MutableList<DeviceFileEntryNode> = ArrayList()
-        val stack = Stack<DeviceFileEntryNode>() // iterative DFS traversal
-        stack.push(node)
-        while (!stack.isEmpty()) {
-          val currentNode = stack.pop()
-          nodesToSynchronize.add(currentNode)
-          for (child in currentNode.childEntryNodes) {
-            if (child.entry.isDirectory || child.isSymbolicLinkToDirectory) {
-              if (child.isLoaded) {
-                stack.push(child)
-              }
+    override fun synchronizeNodesInvoked() {
+      val rootNode = model.treeModel?.root as? DeviceFileEntryNode ?: return
+      val nodesToSynchronize: MutableList<DeviceFileEntryNode> = ArrayList()
+      val stack = Stack<DeviceFileEntryNode>() // iterative DFS traversal
+      stack.push(rootNode)
+      while (!stack.isEmpty()) {
+        val currentNode = stack.pop()
+        nodesToSynchronize.add(currentNode)
+        for (child in currentNode.childEntryNodes) {
+          if (child.entry.isDirectory || child.isSymbolicLinkToDirectory) {
+            if (child.isLoaded) {
+              stack.push(child)
             }
           }
         }
-        nodesToSynchronize
-      }.toSet()
+      }
 
       scope.launch {
         trackAction(DeviceExplorerEvent.Action.SYNC)
         view.startTreeBusyIndicator()
         try {
-          for (node in directoryNodes) {
+          for (node in nodesToSynchronize) {
             node.isLoaded = false
             try {
               loadNodeChildren(node)
@@ -1193,7 +1161,6 @@ class DeviceFileExplorerControllerImpl(
     }
 
     private suspend fun loadNodeChildren(node: DeviceFileEntryNode) {
-
       // Track a specific set of directories to analyze user behaviour
       if (node.entry.fullPath.matches(Regex("^/data/data/[^/]+$"))) {
         trackAction(DeviceExplorerEvent.Action.EXPAND_APP_DATA)
@@ -1259,7 +1226,6 @@ class DeviceFileExplorerControllerImpl(
         node.add(ErrorNode(message))
         node.allowsChildren = true
         treeModel.nodeStructureChanged(node)
-        throw t
       } finally {
         stopLoadChildren(node)
         loadingNodesAlarms.cancelRequest(showLoadingNode)

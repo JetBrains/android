@@ -6,7 +6,7 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/google/zxing/core/3.5.0/core-3.5.0-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/zxing/core/3.5.0/core-3.5.0-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

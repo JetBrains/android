@@ -36,6 +36,14 @@ class TreeCellRendererImpl(private val treeTable: TreeTableImpl) : TreeCellRende
     hasFocus: Boolean
   ): Component {
     val renderer = treeTable.tableModel.rendererOf(value)
-    return renderer.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, treeTable.hasFocus())
+    return renderer.getTreeCellRendererComponent(
+      tree,
+      value,
+      selected,
+      expanded,
+      leaf,
+      row,
+      treeTable.hasFocus()
+    )
   }
 }

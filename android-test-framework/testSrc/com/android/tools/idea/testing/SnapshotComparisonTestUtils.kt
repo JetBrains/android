@@ -18,7 +18,6 @@ package com.android.tools.idea.testing
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.google.common.truth.Truth
-import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil.sanitizeFileName
 import com.intellij.testFramework.UsefulTestCase
@@ -88,7 +87,7 @@ private fun SnapshotComparisonTest.assertInSnapshotTextContext() = Truth.assert_
   to the jvm options in the idea test configuration and re-run the test, or from bazel, run:
     bazel test ${System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() } ?: "<bazel test target for ${getName()}>"} \\
       --nocache_test_results \\
-      --sandbox_writable_path=${'$'}(bazel info workspace) \
+      --sandbox_writable_path=${'$'}(bazel info workspace) \\
       --strategy=TestRunner=standalone \\
       --jvmopt=\"-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)\" \\
       --test_timeout=6000 \\

@@ -30,37 +30,60 @@ import com.android.tools.idea.lint.inspections.AndroidLintGradleGetterInspection
 import com.android.tools.idea.lint.inspections.AndroidLintGradlePluginVersionInspection;
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection;
 import com.android.tools.lint.checks.GradleDetector;
+import com.intellij.codeInsight.daemon.ProblemHighlightFilter;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ExtensionTestUtil;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
+@RunWith(Parameterized.class)
 public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private static final String BASE_PATH = "gradle/";
+
+  @Parameterized.Parameter public String extension;
+  @Parameterized.Parameters
+  public static Collection getParameters() {
+    return Arrays.asList(new Object[][] {
+      {".gradle"},
+      {".gradle.kts"}
+    });
+  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
+    ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(), myFixture.getProjectDisposable());
   }
 
+  @Test
   public void testDependencies() throws Exception {
     AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDependenciesWithTask() throws Exception {
     AndroidLintGradleDependencyInspection inspection = new AndroidLintGradleDependencyInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testIncompatiblePlugin() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testPaths() throws Exception {
     if (SystemInfo.isWindows) {
       // This test doesn't work on Windows; the data file supplies what looks like an absolute elsewhere,
@@ -71,92 +94,114 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  @Test
   public void testSetter() throws Exception {
     AndroidLintGradleGetterInspection inspection = new AndroidLintGradleGetterInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testCompatibility() throws Exception {
     AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-    doTest(inspection, null);
+      doTest(inspection, null);
   }
 
+  @Test
   public void testPlus() throws Exception {
     GradleDetector.PLUS.setEnabledByDefault(true);
     AndroidLintGradleDynamicVersionInspection inspection = new AndroidLintGradleDynamicVersionInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testIdSuffix() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testPackage() throws Exception {
     AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testPackage2() throws Exception {
     AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testPackage3() throws Exception {
     AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testPackage4() throws Exception {
     AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testMinSdkAssignment() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testMinSdkAssignment2() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testMinSdkAssignment3() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testMinSdkAssignment4() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintGradleIdeErrorInspection inspection = new AndroidLintGradleIdeErrorInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testPathSuppress() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
     doTest(inspection, "Suppress GradlePath with a comment");
   }
 
+  @Test
   public void testPathSuppressJoin() throws Exception {
     AndroidLintGradlePathInspection inspection = new AndroidLintGradlePathInspection();
     doTest(inspection, "Suppress GradlePath with a comment");
   }
 
+  @Test
   public void testBadPlayServicesVersion() throws Exception {
     AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
     doTest(inspection, "Change to 12.0.1");
   }
 
+  @Test
   public void testStringInt() throws Exception {
     AndroidLintStringShouldBeIntInspection inspection = new AndroidLintStringShouldBeIntInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDeprecatedPluginId() throws Exception {
     AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testSuppressLine2() throws Exception {
     // Tests that issues on line 2, which are suppressed with a comment on line 1, are correctly
     // handled (until recently, the suppression comment on the first line did not work)
@@ -164,66 +209,89 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
     doTest(inspection, null);
   }
 
+  @Test
+  public void testSuppressWithAnnotation() throws Exception {
+    // Same as testSuppressLine2, except we suppress using an annotation in Kotlin Script.
+    if (!extension.equals(".gradle.kts")) return;
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
+  @Test
   public void testIgnoresGStringsInDependencies() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDataBindingWithoutKaptUsingApplyPlugin() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDataBindingWithKaptUsingApplyPlugin() throws Exception {
+    if (extension.equals(".gradle.kts")) return; // no need for this check in Kotlin Script
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDataBindingWithoutKaptUsingPluginsBlock() throws Exception {
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDataBindingWithKaptUsingPluginsBlock() throws Exception {
     AndroidLintDataBindingWithoutKaptInspection inspection = new AndroidLintDataBindingWithoutKaptInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testDeprecatedConfigurationUse() throws Exception {
     AndroidLintGradleDeprecatedConfigurationInspection inspection = new AndroidLintGradleDeprecatedConfigurationInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJavaNoLanguageLevel() throws Exception {
     AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJavaLanguageLevelBlock() throws Exception {
     AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJavaLanguageLevelReceiver() throws Exception {
     AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJavaLanguageLevelToplevel() throws Exception {
     AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJavaLanguageLevelToplevelMissing() throws Exception {
     AndroidLintJavaPluginLanguageLevelInspection inspection = new AndroidLintJavaPluginLanguageLevelInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJcenterCall() throws Exception {
     AndroidLintJcenterRepositoryObsoleteInspection inspection = new AndroidLintJcenterRepositoryObsoleteInspection();
     doTest(inspection, null);
   }
 
+  @Test
   public void testJcenterBlock() throws Exception {
     AndroidLintJcenterRepositoryObsoleteInspection inspection = new AndroidLintJcenterRepositoryObsoleteInspection();
     doTest(inspection, null);
@@ -232,7 +300,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   private void doTest(@NotNull final AndroidLintInspectionBase inspection, @Nullable String quickFixName) throws Exception {
     createManifest();
     myFixture.enableInspections(inspection);
-    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + ".gradle", "build.gradle");
+    VirtualFile file = myFixture.copyFileToProject(BASE_PATH + getTestName(false) + extension, "build" + extension);
     myFixture.configureFromExistingVirtualFile(file);
     myFixture.checkHighlighting(true, false, false);
 
@@ -240,7 +308,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
       final IntentionAction quickFix = myFixture.getAvailableIntention(quickFixName);
       assertNotNull(quickFix);
       myFixture.launchAction(quickFix);
-      myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after.gradle");
+      myFixture.checkResultByFile(BASE_PATH + getTestName(false) + "_after" + extension);
     }
   }
 }

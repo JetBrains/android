@@ -27,29 +27,39 @@ import com.android.tools.property.panel.api.InspectorBuilder
 import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 
-/**
- * Builder for a panel for transform properties in the layout editor
- */
+/** Builder for a panel for transform properties in the layout editor */
 class TransformsAttributesInspectorBuilder(
   private val model: NlPropertiesModel,
   enumSupportProvider: EnumSupportProvider<NlPropertyItem>
 ) : InspectorBuilder<NlPropertyItem> {
 
-  private val newPropertyInstance = NlNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
+  private val newPropertyInstance =
+    NlNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
   private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     if (properties.isEmpty || !InspectorSection.TRANSFORMS.visible) {
       return
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
 
-    val attributes = mutableListOf("rotation", "rotationX", "rotationY",
-                                   "scaleX", "scaleY",
-                                   "translationX", "translationY", "translationZ",
-                                   "alpha")
+    val attributes =
+      mutableListOf(
+        "rotation",
+        "rotationX",
+        "rotationY",
+        "scaleX",
+        "scaleY",
+        "translationX",
+        "translationY",
+        "translationZ",
+        "alpha"
+      )
 
     val titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.title)
 

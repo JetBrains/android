@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.configurations.ConfigurationListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
-import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
@@ -26,19 +26,24 @@ import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 
-private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
-  ConfigurationListener.CFG_DEVICE or
-  ConfigurationListener.CFG_DEVICE_STATE or
-  ConfigurationListener.CFG_UI_MODE or
-  ConfigurationListener.CFG_NIGHT_MODE or
-  ConfigurationListener.CFG_THEME or
-  ConfigurationListener.CFG_TARGET or
-  ConfigurationListener.CFG_LOCALE or
-  ConfigurationListener.CFG_FONT_SCALE
+private const val EFFECTIVE_FLAGS =
+  ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+    ConfigurationListener.CFG_DEVICE or
+    ConfigurationListener.CFG_DEVICE_STATE or
+    ConfigurationListener.CFG_UI_MODE or
+    ConfigurationListener.CFG_NIGHT_MODE or
+    ConfigurationListener.CFG_THEME or
+    ConfigurationListener.CFG_TARGET or
+    ConfigurationListener.CFG_LOCALE or
+    ConfigurationListener.CFG_FONT_SCALE
 
 object ColorBlindModeModelsProvider : VisualizationModelsProvider {
 
-  override fun createNlModels(parent: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel> {
+  override fun createNlModels(
+    parent: Disposable,
+    file: PsiFile,
+    facet: AndroidFacet
+  ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -52,11 +57,12 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     val models = mutableListOf<NlModel>()
     for (mode in ColorBlindMode.values()) {
       val config = defaultConfig.clone()
-      val model = NlModel.builder(facet, virtualFile, config)
-                   .withParentDisposable(parent)
-                   .withModelTooltip(defaultConfig.toHtmlTooltip())
-                   .withComponentRegistrar(NlComponentRegistrar)
-                   .build()
+      val model =
+        NlModel.builder(facet, virtualFile, config)
+          .withParentDisposable(parent)
+          .withModelTooltip(defaultConfig.toHtmlTooltip())
+          .withComponentRegistrar(NlComponentRegistrar)
+          .build()
       model.modelDisplayName = mode.displayName
       models.add(model)
 

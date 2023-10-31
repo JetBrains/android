@@ -39,7 +39,7 @@ fun addModelListener(model: PTableModelImpl): TableModelListener {
   return listener
 }
 
-open class Item(override val name: String, override val value: String? = null ) : PTableItem {
+open class Item(override val name: String, override val value: String? = null) : PTableItem {
   override fun hashCode(): Int {
     return name.hashCode()
   }

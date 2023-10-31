@@ -17,8 +17,8 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
-import com.android.tools.idea.gradle.project.sync.quickFixes.OpenProjectStructureQuickfix
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.sdk.IdeSdks
@@ -48,15 +48,15 @@ import java.util.regex.Pattern
 
 class ClassLoadingIssueChecker: GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
-  private val NO_SUCH_METHOD_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.NoSuchMethodError(.*)")
-  private val CLASS_NOT_FOUND_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.ClassNotFoundException(.*)")
+  private val NO_SUCH_METHOD_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.NoSuchMethodError:(.*)")
+  private val CLASS_NOT_FOUND_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.ClassNotFoundException:(.*)")
   private val CANNOT_BE_CAST_TO_EXCEPTION = "cannot be cast to"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: ""
 
-    var buildIssueComposer = BuildIssueComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
+    val buildIssueComposer = BuildIssueComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     val stopGradleDaemonQuickFix = StopGradleDaemonQuickFix()
@@ -80,7 +80,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
       buildIssueComposer.apply {
         addDescription("Possible causes for this unexpected error include:")
         addDescription(jdk7Hint)
-        addQuickFix("Open JDK Settings", OpenProjectStructureQuickfix())
+        addQuickFix("Open JDK Settings", OpenGradleJdkSettingsQuickfix())
       }
     }
     buildIssueComposer.apply {
@@ -106,8 +106,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
     if (stacktrace != null && NO_SUCH_METHOD_TRACE_PATTERN.matcher(stacktrace).find()) return true
-    if (stacktrace != null &&
-        CLASS_NOT_FOUND_TRACE_PATTERN.matcher(stacktrace).find() && CLASS_NOT_FOUND_PATTERN.matcher(failureCause).matches()) return true
+    if (stacktrace != null && CLASS_NOT_FOUND_TRACE_PATTERN.matcher(stacktrace).find()) return true
     if (failureCause.contains(CANNOT_BE_CAST_TO_EXCEPTION)) return true
     return false
   }
@@ -119,26 +118,20 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
         val matcher = CLASS_NOT_FOUND_PATTERN.matcher(className)
         if (matcher.matches()) {
           className = matcher.group(1)
-          // Log metrics.
-          invokeLater {
-            updateUsageTracker(projectPath, CLASS_NOT_FOUND)
-          }
-          return "Unable to load class '${className}'"
         }
+        // Log metrics.
+        SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CLASS_NOT_FOUND)
+        return "Unable to load class '${className}'"
       }
       is NoSuchMethodError -> {
         // Log metrics.
-        invokeLater {
-          updateUsageTracker(projectPath, METHOD_NOT_FOUND)
-        }
+        SyncFailureUsageReporter.getInstance().collectFailure(projectPath, METHOD_NOT_FOUND)
         return "Unable to find method '$message'"
       }
       else -> {
         if (message.contains(CANNOT_BE_CAST_TO_EXCEPTION)) {
           // Log metrics.
-          invokeLater {
-            updateUsageTracker(projectPath, CANNOT_BE_CAST_TO)
-          }
+          SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CANNOT_BE_CAST_TO)
           return message
         }
       }

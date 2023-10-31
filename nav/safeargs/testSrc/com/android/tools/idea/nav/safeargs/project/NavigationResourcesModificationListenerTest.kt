@@ -37,6 +37,12 @@ class NavigationResourcesModificationListenerTest {
   @Before
   fun setUp() {
     project = safeArgsRule.project
+
+    // Ensure that the resource repository is initialized before we start testing, since NavigationResourcesModificationListener will only
+    // used an already-cached version of the repository and won't trigger creation if it doesn't already exist.
+    safeArgsRule.fixture.addFileToProject("res/values/strings.xml", "")
+    safeArgsRule.waitForResourceRepositoryUpdates()
+
     NavigationResourcesModificationListener.ensureSubscribed(project)
     myModuleNavResourcesTracker = ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
     myProjectNavResourcesTracker = ProjectNavigationResourceModificationTracker.getInstance(project)

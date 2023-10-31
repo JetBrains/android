@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createAndAddSDK;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.IdeInfo;
@@ -26,12 +25,15 @@ import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
@@ -71,21 +73,23 @@ public class Jdks {
   }
 
   @Nullable
-  private static JavaSdkVersion getVersion(String jdkRoot) {
+  public JavaSdkVersion getVersion(String jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot);
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
 
-  @Nullable
-  public Sdk createJdk(@NotNull String jdkHomePath) {
-    Sdk jdk = ExternalSystemApiUtil.executeOnEdt(() -> {
-      return createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
-    });
-    if (jdk == null) {
-      String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
-      LOG.error(msg);
+  public @Nullable Sdk createAndAddJdk(@NotNull String jdkHomePath) {
+    VirtualFile sdkHome = LocalFileSystem.getInstance().refreshAndFindFileByPath(FileUtil.toSystemIndependentName(jdkHomePath));
+    if (sdkHome == null) {
+      LOG.error(String.format("Unable to create JDK from path '%1$s'", jdkHomePath));
+      return null;
     }
-    return jdk;
+    Sdk newSdk = SdkConfigurationUtil.setupSdk(
+      ProjectJdkTable.getInstance().getAllJdks(), sdkHome, JavaSdk.getInstance(), true, null, null);
+    if (newSdk != null) {
+      ApplicationManager.getApplication().invokeAndWait(() -> SdkConfigurationUtil.addSdk(newSdk));
+    }
+    return newSdk;
   }
 
   @Nullable
@@ -95,7 +99,7 @@ public class Jdks {
       if (path == null) {
         return null;
       }
-      Sdk jdk = createJdk(path.toString());
+      Sdk jdk = createAndAddJdk(path.toString());
       assert jdk != null;
       return jdk;
     }

@@ -19,9 +19,14 @@ import com.android.annotations.concurrency.UiThread
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
+import javax.swing.JComponent
 import javax.swing.SizeRequirements
 import javax.swing.SwingUtilities
+import javax.swing.UIManager
+import javax.swing.border.Border
 import javax.swing.table.TableColumn
 import javax.swing.table.TableColumnModel
 
@@ -62,11 +67,37 @@ internal fun Dimension.addInsets(container: Container) {
   height += insets.top + insets.bottom
 }
 
-/**
- * Sets minimum, maximum, and preferred sizes to the given value.
- */
+/** Sets minimum, maximum, and preferred sizes to the given value. */
 fun Component.constrainSize(size: Dimension) {
   maximumSize = size
   minimumSize = size
   preferredSize = size
 }
+
+/**
+ * Adds a focus listener using a single lambda, rather than the redundant two-method FocusListener
+ * interface. (Whether focus is gained or lost can be checked by comparing [FocusEvent.id] to
+ * [FocusEvent.FOCUS_GAINED], or by calling [Component.isFocusOwner].)
+ */
+internal fun JComponent.addFocusListener(listener: (FocusEvent) -> Unit) {
+  addFocusListener(
+    object : FocusListener {
+      override fun focusGained(e: FocusEvent) {
+        listener(e)
+      }
+      override fun focusLost(e: FocusEvent) {
+        listener(e)
+      }
+    }
+  )
+}
+
+/** Returns the appropriate Border for a table cell given its focus and row selection state. */
+internal fun tableCellBorder(selected: Boolean, focused: Boolean): Border? =
+  UIManager.getBorder(
+    when {
+      focused && selected -> "Table.focusSelectedCellHighlightBorder"
+      focused -> "Table.focusCellHighlightBorder"
+      else -> "Table.cellNoFocusBorder"
+    }
+  )

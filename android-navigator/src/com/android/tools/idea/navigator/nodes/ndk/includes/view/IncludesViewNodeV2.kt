@@ -16,6 +16,7 @@
 package com.android.tools.idea.navigator.nodes.ndk.includes.view
 
 import com.android.tools.analytics.UsageTracker.log
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
@@ -31,7 +32,6 @@ import com.android.tools.idea.ndk.ModuleVariantAbi
 import com.android.tools.idea.ndk.NativeHeaderDir
 import com.android.tools.idea.ndk.NativeWorkspaceService
 import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.util.toIoFile
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.CppHeadersViewEvent

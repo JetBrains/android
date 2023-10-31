@@ -18,61 +18,41 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_BLUE
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_GREEN
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_ORANGE
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_PURPLE
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_YELLOW
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_BLUE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_GREEN
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_PURPLE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_YELLOW
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 
-/**
- * Accumulator of live mode statistics for compose related events
- */
+/** Accumulator of live mode statistics for compose related events */
 class ComposeStatistics {
-  /**
-   * How many clicks on a ComposeNode from the image did the user perform
-   */
+  /** How many clicks on a ComposeNode from the image did the user perform */
   private var imageClicks = 0
 
-  /**
-   * How many clicks on a ComposeNode from the component tree did the user perform
-   */
+  /** How many clicks on a ComposeNode from the component tree did the user perform */
   private var componentTreeClicks = 0
 
-  /**
-   * How many clicks on a goto source link from a property value
-   */
+  /** How many clicks on a goto source link from a property value */
   private var goToSourceFromPropertyValueClicks = 0
 
-  /**
-   * The max recomposition numbers seen in the session.
-   */
+  /** The max recomposition numbers seen in the session. */
   private val maxRecompositions = RecompositionData(0, 0)
 
-  /**
-   * How many times were the recomposition counts explicitly reset.
-   */
+  /** How many times were the recomposition counts explicitly reset. */
   private var resetRecompositionCountsClicks = 0
 
-  /**
-   * The current state of Recomposition counts.
-   */
+  /** The current state of Recomposition counts. */
   var showRecompositions = false
 
-  /**
-   * The currently selected recomposition highlight color.
-   */
+  /** The currently selected recomposition highlight color. */
   var recompositionHighlightColor = HIGHLIGHT_COLOR_RED
 
-  /**
-   * Number of frames received with recomposition counts ON.
-   */
+  /** Number of frames received with recomposition counts ON. */
   private var framesWithRecompositionCountsOn = 0
 
-  /**
-   * Number of frames received with recomposition counts ON and specific color selected.
-   */
+  /** Number of frames received with recomposition counts ON and specific color selected. */
   private var framesWithRecompositionColorRed = 0
   private var framesWithRecompositionColorBlue = 0
   private var framesWithRecompositionColorGreen = 0
@@ -80,9 +60,7 @@ class ComposeStatistics {
   private var framesWithRecompositionColorPurple = 0
   private var framesWithRecompositionColorOrange = 0
 
-  /**
-   * Start a new session by resetting all counters.
-   */
+  /** Start a new session by resetting all counters. */
   fun start() {
     showRecompositions = false
     recompositionHighlightColor = HIGHLIGHT_COLOR_RED
@@ -98,12 +76,16 @@ class ComposeStatistics {
     framesWithRecompositionColorOrange = 0
   }
 
-  /**
-   * Save the session data recorded since [start].
-   */
+  /** Save the session data recorded since [start]. */
   fun save(dataSupplier: () -> DynamicLayoutInspectorCompose.Builder) {
-    if (imageClicks > 0 || componentTreeClicks > 0 || goToSourceFromPropertyValueClicks > 0 || !maxRecompositions.isEmpty ||
-        resetRecompositionCountsClicks > 0 || framesWithRecompositionCountsOn > 0) {
+    if (
+      imageClicks > 0 ||
+        componentTreeClicks > 0 ||
+        goToSourceFromPropertyValueClicks > 0 ||
+        !maxRecompositions.isEmpty ||
+        resetRecompositionCountsClicks > 0 ||
+        framesWithRecompositionCountsOn > 0
+    ) {
       dataSupplier().let {
         it.kotlinReflectionAvailable = true // unused
         it.imageClicks = imageClicks
@@ -124,44 +106,34 @@ class ComposeStatistics {
     }
   }
 
-  /**
-   * Log that a component was selected from the image.
-   */
+  /** Log that a component was selected from the image. */
   fun selectionMadeFromImage(view: ViewNode?) {
     if (view is ComposeViewNode) {
       imageClicks++
     }
   }
 
-  /**
-   * Log that a component was selected from the component tree.
-   */
+  /** Log that a component was selected from the component tree. */
   fun selectionMadeFromComponentTree(view: ViewNode?) {
     if (view is ComposeViewNode) {
       componentTreeClicks++
     }
   }
 
-  /**
-   * Log that a property value link was used to navigate to source for a compose node.
-   */
+  /** Log that a property value link was used to navigate to source for a compose node. */
   fun gotoSourceFromPropertyValue(view: ViewNode?) {
     if (view is ComposeViewNode) {
       goToSourceFromPropertyValueClicks++
     }
   }
 
-  /**
-   * Log the max recomposition counts seen in the session.
-   */
+  /** Log the max recomposition counts seen in the session. */
   fun updateRecompositionStats(recompositions: RecompositionData, maxHighlight: Float) {
     maxRecompositions.maxOf(recompositions)
     maxRecompositions.highlightCount = maxOf(maxRecompositions.highlightCount, maxHighlight)
   }
 
-  /**
-   * Log that the recomposition counts were explicitly reset.
-   */
+  /** Log that the recomposition counts were explicitly reset. */
   fun resetRecompositionCountsClick() {
     resetRecompositionCountsClicks++
   }

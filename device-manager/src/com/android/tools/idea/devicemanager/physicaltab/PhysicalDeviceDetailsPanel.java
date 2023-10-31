@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.adtui.device.ScreenDiagram;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
-import com.android.tools.idea.devicemanager.ScreenDiagram;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -89,9 +88,8 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
       myNewSummarySectionCallback = newSummarySectionCallback;
 
       Futures.addCallback(myFuture, newScreenDiagramCallback(), EdtExecutorService.getInstance());
-      InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
 
-      if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.getType().equals(DeviceType.PHONE)) {
+      if (device.getType().equals(DeviceType.PHONE)) {
         myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject(), manager);
       }
     }
@@ -126,7 +124,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
   private @NotNull FutureCallback<PhysicalDevice> newScreenDiagramCallback() {
     return new DeviceManagerFutureCallback<>(PhysicalDeviceDetailsPanel.class, device -> {
       if (device.getDp() != null) {
-        myScreenDiagram = new ScreenDiagram(device);
+        myScreenDiagram = new ScreenDiagram(device.getDp().getWidth(), device.getDp().getHeight());
         setInfoSectionPanelLayout();
       }
     });

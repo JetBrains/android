@@ -22,13 +22,14 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableCellRenderer
-import com.android.tools.idea.insights.ui.DetailsToolWindow
+import com.android.tools.idea.insights.ui.DistributionToolWindow
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
-import icons.StudioIcons
 import java.awt.CardLayout
 import java.awt.Graphics
 import javax.swing.JPanel
@@ -58,24 +59,18 @@ class VitalsContentContainerPanel(
           override fun isStatusVisible() = true
         }
         .apply {
-          // TODO(b/274775776): implement 0 state screen for vitals
-          // TODO(b/271918057): need actual icon
-          appendLine(
-            StudioIcons.AppQualityInsights.ANR,
-            "",
-            SimpleTextAttributes.REGULAR_ATTRIBUTES,
-            null
-          )
-          appendLine("Not connected", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, null)
+          appendLine("No apps available", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, null)
           appendLine("")
           appendLine(
-            "This module is not connected to a Firebase project.",
+            "You don't have permission to any Play Console apps.",
             SimpleTextAttributes.GRAYED_ATTRIBUTES,
             null
           )
           appendLine("To see data, ", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
           @Suppress("DialogTitleCapitalization")
-          appendText("get started with Firebase.", SimpleTextAttributes.LINK_ATTRIBUTES) {}
+          appendText("request Play Console permission.", SimpleTextAttributes.LINK_ATTRIBUTES) {
+            BrowserUtil.browse("https://play.google.com/console/about/teamandusermanagement/")
+          }
         }
     val selectProjectTextPanel =
       object : JPanel() {
@@ -95,12 +90,10 @@ class VitalsContentContainerPanel(
         projectController,
         project,
         this,
-        tracker,
         AppInsightsIssuesTableCellRenderer,
-        listOfNotNull(DetailsToolWindow.create(scope, projectController.state))
-      ) { _, _, _, _ ->
-        // TODO: construct actual link to play vitals console
-        "play.google.com"
+        listOfNotNull(DistributionToolWindow.create(scope, projectController.state))
+      ) {
+        VitalsIssueDetailsPanel(projectController, project, it, this, tracker)
       },
       MAIN_CARD
     )
@@ -110,8 +103,16 @@ class VitalsContentContainerPanel(
         .map { it.connections.selected }
         .distinctUntilChanged()
         .collect { selected ->
-          if (selected == null || !selected.isConfigured()) {
-            // TODO(b/275438349): track zero state metrics
+          if (selected == null || !selected.isConfigured) {
+            tracker.logZeroState(
+              AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
+                .apply {
+                  emptyState =
+                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
+                      .NO_ACCESS
+                }
+                .build()
+            )
             (layout as CardLayout).show(this@VitalsContentContainerPanel, GET_STARTED)
           } else {
             (layout as CardLayout).show(this@VitalsContentContainerPanel, MAIN_CARD)

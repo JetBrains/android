@@ -20,6 +20,9 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.ColumnFractionChangeHandler
+import com.android.tools.property.ptable.DefaultPTableCellEditorProvider
+import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableCellEditorProvider
 import com.android.tools.property.ptable.PTableCellRendererProvider
@@ -31,6 +34,7 @@ import com.android.tools.property.ptable.PTableModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.ClientProperty
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -39,13 +43,16 @@ import com.intellij.ui.TableActions
 import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
@@ -72,31 +79,36 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private const val EXPANSION_RIGHT_PADDING = 4
+const val EXPANSION_RIGHT_PADDING = 4
 private const val COLUMN_COUNT = 2
 
 /**
  * Implementation of a [PTable].
  *
- * The intention is to hide implementation details in this class, and only
- * expose a minimal API in [PTable].
+ * The intention is to hide implementation details in this class, and only expose a minimal API in
+ * [PTable]. This class is open for testing purposes only.
  */
-class PTableImpl(
+open class PTableImpl(
   override val tableModel: PTableModel,
-  override val context: Any?,
-  private val rendererProvider: PTableCellRendererProvider,
-  private val editorProvider: PTableCellEditorProvider,
+  override val context: Any? = null,
+  private val rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
+  private val editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
   private val customToolTipHook: (MouseEvent) -> String? = { null },
   private val updatingUI: () -> Unit = {},
   private val nameColumnFraction: ColumnFraction = ColumnFraction()
 ) : PFormTableImpl(PTableModelImpl(tableModel)), PTable {
-
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter(model)
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
-  private val expandableNameHandler = PTableExpandableItemsHandler(this)
-  private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { 0 }, { width }, ::onResizeModeChange)
+  private val resizeHandler =
+    ColumnFractionChangeHandler(
+      nameColumnFraction,
+      { 0 },
+      { width },
+      { columnModel.getColumn(0).minWidth },
+      ::onResizeModeChange
+    )
   private var lastLeftFractionValue = nameColumnFraction.value
   private var initialized = false
   override val backgroundColor: Color
@@ -115,7 +127,7 @@ class PTableImpl(
 
     setShowGrid(false)
     setShowHorizontalLines(true)
-    intercellSpacing = Dimension(0, JBUI.scale(1))
+    intercellSpacing = Dimension(0, JBUIScale.scale(1))
     setGridColor(JBColor(Gray._224, Gray._44))
 
     columnSelectionAllowed = false
@@ -127,7 +139,8 @@ class PTableImpl(
     addMouseListener(resizeHandler)
     addMouseMotionListener(resizeHandler)
 
-    // We want expansion for the property names but not of the editors. This disables expansion for both columns.
+    // We want expansion for the property names but not of the editors. This disables expansion for
+    // both columns.
     // TODO: Provide expansion of the left column only.
     setExpandableItemsEnabled(false)
 
@@ -141,12 +154,12 @@ class PTableImpl(
     initialized = true
   }
 
-  private fun onResizeModeChange(newResizeMode: Boolean) {
-  }
+  private fun onResizeModeChange(newResizeMode: Boolean) {}
 
   override fun isValid(): Boolean {
     // Make sure we cause a layout when the leftFraction has changed.
-    // This method is called during initialization where the leftFraction property is still null, so guard with "initialized".
+    // This method is called during initialization where the leftFraction property is still null, so
+    // guard with "initialized".
     return super.isValid() && (!initialized || lastLeftFractionValue == nameColumnFraction.value)
   }
 
@@ -164,7 +177,8 @@ class PTableImpl(
   override val itemCount: Int
     get() = rowCount
 
-  override var filter: String by Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
+  override var filter: String by
+    Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
 
   override fun item(row: Int): PTableItem {
     return super.getValueAt(row, 0) as PTableItem
@@ -174,8 +188,29 @@ class PTableImpl(
     return model.depth(item)
   }
 
+  /** Return true if the group is current open/expanded for showing child items. */
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  /**
+   * Return true if the [column] of [item] is currently expanded to show the full value that doesn't
+   * normally fit in the cell.
+   */
+  override fun isExpandedRendererItem(item: PTableItem, column: PTableColumn): Boolean {
+    val cell = expandableItemsHandler.expandedItems.singleOrNull() ?: return false
+    if (column.ordinal != cell.column) {
+      return false
+    }
+    val value = getValueAt(cell.row, cell.column)
+    return value === item
+  }
+
+  /**
+   * Return true if a popup is currently showing for a value that doesn't normally fit in the cell.
+   */
+  override fun isExpandedRendererPopupShowing(): Boolean {
+    return (expandableItemsHandler as? TableExpandableItemsHandler)?.isShowing ?: false
   }
 
   override fun toggle(item: PTableGroupItem) {
@@ -186,7 +221,12 @@ class PTableImpl(
     }
   }
 
-  override fun updateRowHeight(item: PTableItem, column: PTableColumn, height: Int, scrollIntoView: Boolean) {
+  override fun updateRowHeight(
+    item: PTableItem,
+    column: PTableColumn,
+    height: Int,
+    scrollIntoView: Boolean
+  ) {
     val index = model.indexOf(item)
     if (index >= 0) {
       val row = convertRowIndexToView(index)
@@ -199,19 +239,19 @@ class PTableImpl(
     }
   }
 
-  override fun getExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
-    return expandableNameHandler
+  override fun createExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
+    return PTableExpandableItemsHandler(this)
   }
 
   fun isExpandedItem(row: Int, column: Int): Boolean {
-    return expandableNameHandler.expandedItems.find { it.row == row && it.column == column } != null
+    return expandableItemsHandler.expandedItems.find { it.row == row && it.column == column } !=
+      null
   }
 
   override fun startEditing(row: Int) {
     if (row < 0) {
       removeEditor()
-    }
-    else if (!startEditing(row, 0) {}) {
+    } else if (!startEditing(row, 0) {}) {
       startEditing(row, 1) {}
     }
   }
@@ -225,7 +265,9 @@ class PTableImpl(
       removeEditor()
       exists = pos.next(true)
     }
-    while (exists && !tableModel.isCellEditable(item(pos.row), PTableColumn.fromColumn(pos.column))) {
+    while (
+      exists && !tableModel.isCellEditable(item(pos.row), PTableColumn.fromColumn(pos.column))
+    ) {
       exists = pos.next(true)
     }
     if (!exists) {
@@ -253,7 +295,7 @@ class PTableImpl(
   override fun updateUI() {
     super.updateUI()
     customizeKeyMaps()
-    if (initialized) {  // This method is called but JTable.init
+    if (initialized) { // This method is called but JTable.init
       updatingUI()
       rendererProvider.updateUI()
       editorProvider.updateUI()
@@ -263,8 +305,8 @@ class PTableImpl(
   /**
    * The [TableModel] notification to update the table content.
    *
-   * The editor must be removed before updating the content,
-   * otherwise the editor may show up at the wrong row after the update.
+   * The editor must be removed before updating the content, otherwise the editor may show up at the
+   * wrong row after the update.
    *
    * Also add logic to continue editing after the update.
    */
@@ -312,8 +354,7 @@ class PTableImpl(
       if (nextEditedRow >= 0 && model.rowCount > nextEditedRow) {
         newEditingRow = convertRowIndexToView(nextEditedRow)
         newEditingColumn = 0
-      }
-      else {
+      } else {
         newEditingRow = -1
         newEditingColumn = -1
       }
@@ -364,8 +405,7 @@ class PTableImpl(
     }
     if (newValue.isEmpty()) {
       rowSorter = null
-    }
-    else {
+    } else {
       nameRowFilter.pattern = newValue
       nameRowSorter.rowFilter = nameRowFilter
       nameRowSorter.model = model
@@ -388,13 +428,13 @@ class PTableImpl(
     actionMap.put(TableActions.PageDown.ID, MyKeyAction { nextPage(moveUp = false) })
     actionMap.put(TableActions.ShiftPageUp.ID, MyKeyAction { nextPage(moveUp = true) })
     actionMap.put(TableActions.ShiftPageDown.ID, MyKeyAction { nextPage(moveUp = false) })
-    actionMap.put(TableActions.CtrlHome.ID, MyKeyAction {  moveToFirstRow() })
-    actionMap.put(TableActions.CtrlEnd.ID, MyKeyAction {  moveToLastRow() })
-    actionMap.put(TableActions.CtrlShiftHome.ID, MyKeyAction {  moveToFirstRow() })
-    actionMap.put(TableActions.CtrlShiftEnd.ID, MyKeyAction {  moveToLastRow() })
+    actionMap.put(TableActions.CtrlHome.ID, MyKeyAction { moveToFirstRow() })
+    actionMap.put(TableActions.CtrlEnd.ID, MyKeyAction { moveToLastRow() })
+    actionMap.put(TableActions.CtrlShiftHome.ID, MyKeyAction { moveToFirstRow() })
+    actionMap.put(TableActions.CtrlShiftEnd.ID, MyKeyAction { moveToLastRow() })
 
     // Setup additional actions for the table
-                  registerKey(KeyStrokes.ENTER) { smartEnter(toggleOnly = false) }
+    registerKey(KeyStrokes.ENTER) { smartEnter(toggleOnly = false) }
     registerKey(KeyStrokes.SPACE) { smartEnter(toggleOnly = true) }
     registerKey(KeyStrokes.NUM_LEFT) { modifyGroup(expand = false) }
     registerKey(KeyStrokes.NUM_RIGHT) { modifyGroup(expand = true) }
@@ -531,7 +571,8 @@ class PTableImpl(
 
     val item = item(row)
     when {
-      model.isGroupItem(item) && !tableModel.isCellEditable(item(row), PTableColumn.NAME) -> toggleAndSelect(row)
+      model.isGroupItem(item) && !tableModel.isCellEditable(item(row), PTableColumn.NAME) ->
+        toggleAndSelect(row)
       toggleOnly -> quickEdit(row, 1)
       else -> {
         if (!startEditing(row, 0) {}) {
@@ -541,9 +582,7 @@ class PTableImpl(
     }
   }
 
-  /**
-   * Expand/Collapse items after right/left key press
-   */
+  /** Expand/Collapse items after right/left key press */
   private fun modifyGroup(expand: Boolean) {
     val row = selectedRow
     if (row == -1) {
@@ -553,16 +592,13 @@ class PTableImpl(
     val index = convertRowIndexToModel(row)
     if (expand) {
       model.expand(index)
-    }
-    else {
+    } else {
       model.collapse(index)
     }
     selectRow(row)
   }
 
-  /**
-   * Scroll the selected row up/down.
-   */
+  /** Scroll the selected row up/down. */
   private fun nextRow(moveUp: Boolean) {
     val selectedRow = selectedRow
     if (isEditing) {
@@ -571,8 +607,7 @@ class PTableImpl(
     }
     if (moveUp) {
       selectRow(max(0, selectedRow - 1))
-    }
-    else {
+    } else {
       selectRow(min(selectedRow + 1, rowCount - 1))
     }
     if (selectedColumn < 0) {
@@ -580,9 +615,7 @@ class PTableImpl(
     }
   }
 
-  /**
-   * Scroll the selected row up/down.
-   */
+  /** Scroll the selected row up/down. */
   private fun nextPage(moveUp: Boolean) {
     val selectedRow = selectedRow
     if (isEditing) {
@@ -590,7 +623,8 @@ class PTableImpl(
       requestFocus()
     }
 
-    // PTable may be in a scrollable component, so we need to use visible height instead of getHeight()
+    // PTable may be in a scrollable component, so we need to use visible height instead of
+    // getHeight()
     val visibleHeight = visibleRect.getHeight().toInt()
     val rowHeight = getRowHeight()
     if (visibleHeight <= 0 || rowHeight <= 0) {
@@ -599,8 +633,7 @@ class PTableImpl(
     val movement = visibleHeight / rowHeight
     if (moveUp) {
       selectRow(max(0, selectedRow - movement))
-    }
-    else {
+    } else {
       selectRow(min(selectedRow + movement, rowCount - 1))
     }
     if (selectedColumn < 0) {
@@ -628,31 +661,41 @@ class PTableImpl(
 
   // TODO: Change this from MouseMoveListener to TableHoverListener when the latter is a stable API
   private fun installHoverListener() {
-    addMouseMotionListener(object : MouseMotionAdapter() {
-      override fun mouseMoved(event: MouseEvent) {
-        val point = event.point
-        val row = rowAtPoint(point)
-        val column = PTableColumn.fromColumn(columnAtPoint(point))
-        val renderer = if (
-          !(row == editingRow && column.ordinal == editingColumn) && // this cell is not being edited
-          tableModel.hasCustomCursor(item(row), column)
-        ) getRenderer(row, column) else null
+    addMouseMotionListener(
+      object : MouseMotionAdapter() {
+        override fun mouseMoved(event: MouseEvent) {
+          val point = event.point
+          val row = rowAtPoint(point)
+          val column = PTableColumn.fromColumn(columnAtPoint(point))
+          val renderer =
+            if (
+              !(row == editingRow &&
+                column.ordinal == editingColumn) && // this cell is not being edited
+              tableModel.hasCustomCursor(item(row), column)
+            )
+              getRenderer(row, column)
+            else null
 
-        // Replace the cursor of the table to the cursor of the component in the renderer the mouse event points to.
-        cursor = if (resizeHandler.resizeMode) Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR) else renderer?.let {
-          val rect = getCellRect(row, column.ordinal, true)
-          val component = SwingUtilities.getDeepestComponentAt(renderer, event.x - rect.x, event.y - rect.y)
-          // The property panel is using text editors to display text.
-          // Ignore the I-beam from those components.
-          if (component is JTextComponent) null else component?.cursor
-        } ?: Cursor.getDefaultCursor()
+          // Replace the cursor of the table to the cursor of the component in the renderer the
+          // mouse event points to.
+          cursor =
+            if (resizeHandler.resizeMode) Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR)
+            else
+              renderer?.let {
+                val rect = getCellRect(row, column.ordinal, true)
+                val component =
+                  SwingUtilities.getDeepestComponentAt(renderer, event.x - rect.x, event.y - rect.y)
+                // The property panel is using text editors to display text.
+                // Ignore the I-beam from those components.
+                if (component is JTextComponent) null else component?.cursor
+              }
+                ?: Cursor.getDefaultCursor()
+        }
       }
-    })
+    )
   }
 
-  /**
-   * Lookup the renderer for the given [row] and [column].
-   */
+  /** Lookup the renderer for the given [row] and [column]. */
   private fun getRenderer(row: Int, column: PTableColumn): Component =
     prepareRenderer(getCellRenderer(row, column.ordinal), row, column.ordinal).also { renderer ->
       if (renderer.preferredSize.height > rowHeight) {
@@ -663,14 +706,10 @@ class PTableImpl(
 
   // ========== Group Expansion on Mouse Click =================================
 
-  /**
-   * MouseListener
-   */
+  /** MouseListener */
   private inner class MouseTableListener : MouseAdapter() {
 
-    /**
-     * Handle expansion/collapse after clicking on the expand icon in the name column.
-     */
+    /** Handle expansion/collapse after clicking on the expand icon in the name column. */
     override fun mousePressed(event: MouseEvent) {
       val row = rowAtPoint(event.point)
       if (row == -1) {
@@ -700,15 +739,19 @@ class PTableImpl(
 
   // ========== KeyListener ====================================================
 
-  /**
-   * PTableKeyListener is our own implementation of "JTable.autoStartsEdit"
-   */
+  /** PTableKeyListener is our own implementation of "JTable.autoStartsEdit" */
   private inner class PTableKeyListener : KeyAdapter() {
 
     override fun keyTyped(event: KeyEvent) {
       val row = selectedRow
       val type = Character.getType(event.keyChar).toByte()
-      if (isEditing || row == -1 || type == Character.CONTROL || type == Character.OTHER_SYMBOL || type == Character.SPACE_SEPARATOR) {
+      if (
+        isEditing ||
+          row == -1 ||
+          type == Character.CONTROL ||
+          type == Character.OTHER_SYMBOL ||
+          type == Character.SPACE_SEPARATOR
+      ) {
         return
       }
       autoStartEditingAndForwardKeyEventToEditor(row, event)
@@ -728,7 +771,15 @@ class PTableImpl(
           IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown {
             val textEditor = IdeFocusManager.findInstance().focusOwner
             if (textEditor is JTextComponent) {
-              val keyEvent = KeyEvent(textEditor, event.id, event.`when`, event.modifiers, event.keyCode, event.keyChar)
+              val keyEvent =
+                KeyEvent(
+                  textEditor,
+                  event.id,
+                  event.`when`,
+                  event.modifiers,
+                  event.keyCode,
+                  event.keyChar
+                )
               textEditor.dispatchEvent(keyEvent)
             }
           }
@@ -774,13 +825,104 @@ private class NameRowFilter(private val model: PTableModelImpl) : RowFilter<Tabl
   }
 }
 
-private class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHandler(table) {
-  override fun getCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
-    if (key.column != 0) {
-      return null
+/** A custom [TableExpandableItemsHandler] for a properties table. */
+@VisibleForTesting
+class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHandler(table) {
+  private var expandedCell: TableCell? = null
+
+  @TestOnly // Get access to a protected method:
+  fun computeCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
+    return getCellRendererAndBounds(key)
+  }
+
+  /**
+   * Return the currently expanded items.
+   *
+   * The super class will return nothing if the popup is not shown. Some controls may be rendered
+   * differently when "expanded" to see the entire value. Such an "expended" renderer may fit in the
+   * table cell i.e. no popup will be shown. We still need to know that the item is "expanded"
+   * versus showing in its normal form.
+   *
+   * Override this method to provide this functionality.
+   */
+  override fun getExpandedItems(): Collection<TableCell> {
+    return if (expandedCell == null) emptyList() else setOf(expandedCell!!)
+  }
+
+  /**
+   * Find the [TableCell] over the [point] for the parent [TableExpandableItemsHandler].
+   *
+   * The parent handler may decide not to display a popup for several reasons.
+   *
+   * We may be using a different renderer for the expanded value (to hide buttons that doesn't make
+   * sense). That could mean the expanded renderer fits in the table cell. Save the expandedCell in
+   * this class and let the parent handler handle the popup.
+   *
+   * When the expanded cell changes: invalidate the affected cells such that we can repaint them
+   * with the proper renderer.
+   */
+  override fun getCellKeyForPoint(point: Point): TableCell? {
+    val cell = computeRestrictedCellAtPoint(point)
+    if (expandedCell != cell) {
+      cell?.invalidate()
+      expandedCell?.invalidate()
     }
+    expandedCell = cell
+    return cell
+  }
+
+  private fun TableCell.invalidate() =
+    myComponent.repaint(myComponent.getCellRect(row, column, true))
+
+  /**
+   * Compute the [TableCell] at [point] that has a cell renderer where the value is restricted due
+   * to limited space in the cell. Find the component under the mouse and check if the component is
+   * visually restricted. In that way a ComboBox can reject expansions when hovering over the drop
+   * down button, but accept expansions when hovering over the text part of the ComboBox.
+   */
+  private fun computeRestrictedCellAtPoint(point: Point): TableCell? {
+    val cell = super.getCellKeyForPoint(point) ?: return null
+    val value = myComponent.getValueAt(cell.row, cell.column)
+    val renderer = myComponent.getCellRenderer(cell.row, cell.column)
+    val component =
+      renderer.getTableCellRendererComponent(
+        myComponent,
+        value,
+        false,
+        false,
+        cell.row,
+        cell.column
+      )
+    val bounds = myComponent.getCellRect(cell.row, cell.column, true)
+    val componentUnderMouse =
+      SwingUtilities.getDeepestComponentAt(component, point.x - bounds.x, point.y - bounds.y)
+        ?: return null
+    val isVisuallyRestricted = ClientProperty.get(componentUnderMouse, KEY_IS_VISUALLY_RESTRICTED)
+    if (cell == expandedCell && isVisuallyRestricted != null) {
+      // Since an expanded cell will return false to "isVisuallyRestricted", we will maintain
+      // expanded cells when the mouse is over a component that has a visually restricted callback.
+      // This will avoid flickering in the expanded cells: b/281650931
+      return expandedCell
+    }
+    return cell.takeIf { isVisuallyRestricted != null && isVisuallyRestricted() }
+  }
+
+  /**
+   * Return a little extra space on the right, such that expanded text has a little empty space on
+   * the right.
+   */
+  override fun getCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
     val rendererAndBounds = super.getCellRendererAndBounds(key) ?: return null
-    rendererAndBounds.second.width += JBUI.scale(EXPANSION_RIGHT_PADDING)
+    rendererAndBounds.second.width += JBUIScale.scale(EXPANSION_RIGHT_PADDING)
     return rendererAndBounds
+  }
+
+  /**
+   * Intellij has disabled [TableExpandableItemsHandler] is the table is not in a
+   * [javax.swing.JScrollPane]. Our property table has a scroll pane around the parent JPanel of the
+   * table, and we still want to support table expansion.
+   */
+  override fun isEnabled(): Boolean {
+    return true
   }
 }

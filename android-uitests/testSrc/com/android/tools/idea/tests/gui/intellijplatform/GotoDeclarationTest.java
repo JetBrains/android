@@ -162,12 +162,9 @@ public class GotoDeclarationTest {
 
   private void pressControlKeyAndClick(Point pointerLocation) {
     if (SystemInfo.isMac) {
-      ideFrame.robot().pressKey(KeyEvent.META_MASK);
-      ideFrame.robot().click(editorFixture.frame().target(),
-                             pointerLocation,
-                             MouseButton.LEFT_BUTTON,
-                             1);
-      ideFrame.robot().releaseKey(KeyEvent.META_MASK);
+      ideFrame.robot().pressKey(KeyEvent.VK_META);
+      ideFrame.robot().click(editorFixture.frame().target(), pointerLocation);
+      ideFrame.robot().releaseKey(KeyEvent.VK_META);
     }
     else {
       ideFrame.robot().pressKey(KeyEvent.VK_CONTROL);

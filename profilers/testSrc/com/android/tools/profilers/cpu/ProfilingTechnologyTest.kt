@@ -15,15 +15,16 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.TraceConfigOptionsUtils
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.android.tools.profilers.cpu.config.PerfettoConfiguration
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -100,8 +101,9 @@ class ProfilingTechnologyTest {
 
   @Test
   fun fromConfigPerfetto() {
-    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration")
+    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration", false)
     assertThat(ProfilingTechnology.fromConfig(perfettoConfiguration)).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
+    assertThat(perfettoConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
   }
 
   @Test(expected = IllegalStateException::class)

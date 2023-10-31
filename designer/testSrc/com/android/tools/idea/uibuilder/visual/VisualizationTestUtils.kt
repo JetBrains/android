@@ -26,18 +26,29 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlin.test.assertNotNull
 
-class VisualizationTestToolWindowManager(private val project: Project, private val disposableParent: Disposable)
-  : ToolWindowHeadlessManagerImpl(project) {
+class VisualizationTestToolWindowManager(
+  private val project: Project,
+  private val disposableParent: Disposable
+) : ToolWindowHeadlessManagerImpl(project) {
   private val idToToolWindow = mutableMapOf<String, ToolWindow>()
 
   init {
-    // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We register them programmatically here.
-    val ep = ToolWindowEP.EP_NAME.extensions.firstOrNull { ex -> ex.id == VisualizationToolWindowFactory.TOOL_WINDOW_ID }
-    assertNotNull(ep, "Layout validation tool window (id = ${VisualizationToolWindowFactory.TOOL_WINDOW_ID}) is not registered as plugin")
+    // In headless mode the toolWindow doesn't register the ToolWindow from extension point. We
+    // register them programmatically here.
+    val ep =
+      ToolWindowEP.EP_NAME.extensions.firstOrNull { ex ->
+        ex.id == VisualizationToolWindowFactory.TOOL_WINDOW_ID
+      }
+    assertNotNull(
+      ep,
+      "Layout validation tool window (id = ${VisualizationToolWindowFactory.TOOL_WINDOW_ID}) is not registered as plugin"
+    )
 
     val factory = ep.getToolWindowFactory(ep.pluginDescriptor)
     val anchor = ToolWindowAnchor.fromText(ep.anchor ?: ToolWindowAnchor.LEFT.toString())
-    registerToolWindow(RegisterToolWindowTask(id = ep.id, anchor = anchor, contentFactory = factory))
+    registerToolWindow(
+      RegisterToolWindowTask(id = ep.id, anchor = anchor, contentFactory = factory)
+    )
   }
 
   override fun registerToolWindow(task: RegisterToolWindowTask): ToolWindow {
@@ -58,10 +69,9 @@ class VisualizationTestToolWindowManager(private val project: Project, private v
   }
 }
 
-/**
- * This window is used to test the change of availability.
- */
-class VisualizationTestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+/** This window is used to test the change of availability. */
+class VisualizationTestToolWindow(project: Project) :
+  ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
   private var _isAvailable = false
 
   override fun setAvailable(available: Boolean, runnable: Runnable?) {

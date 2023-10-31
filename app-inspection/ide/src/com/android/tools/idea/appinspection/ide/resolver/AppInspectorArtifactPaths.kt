@@ -21,6 +21,7 @@ import com.android.tools.idea.io.FileService
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.kotlin.utils.ThreadSafe
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -28,7 +29,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.exists
-import org.jetbrains.kotlin.utils.ThreadSafe
 
 @VisibleForTesting const val INSPECTOR_JARS_DIR = "inspector-jars"
 

@@ -20,6 +20,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.dialogs.ManageSnapshotsDialog
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.Project
@@ -37,13 +38,13 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
     showManageSnapshotsDialog(emulatorView, getProject(event))
   }
 
-  protected fun getProject(event: AnActionEvent) = event.getRequiredData(CommonDataKeys.PROJECT)
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
 
 /**
  * Shows a "Manage Snapshots" dialog associated with [emulatorView].
  */
-fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): DialogWrapper {
+internal fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): DialogWrapper {
   var dialogWrapper = openDialogs[emulatorView]
   if (dialogWrapper == null) {
     val emulator = emulatorView.emulator
@@ -62,7 +63,7 @@ fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): Dia
  * Returns the "Manage Snapshots" dialog associated with [emulatorView], or null if no such dialog
  * is shown.
  */
-fun findManageSnapshotDialog(emulatorView: EmulatorView): DialogWrapper? {
+internal fun findManageSnapshotDialog(emulatorView: EmulatorView): DialogWrapper? {
   return openDialogs[emulatorView]
 }
 
@@ -84,6 +85,6 @@ private fun closeDuplicateDialogs(emulator: EmulatorController, project: Project
 }
 
 @VisibleForTesting
-fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
+internal fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
 
 private val openDialogs = mutableMapOf<EmulatorView, DialogWrapper>()

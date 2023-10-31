@@ -22,9 +22,9 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.TestActionEvent
-import junit.framework.Assert.assertTrue
-import kotlin.test.assertFalse
 import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,10 +51,10 @@ class ShowInspectionTooltipsActionTest {
     val action = ShowInspectionTooltipsAction(context)
     manager.isInspectionTooltipEnabled = false
 
-    action.setSelected(TestActionEvent.createTestEvent(), true)
+    action.setSelected(TestActionEvent.createTestToolbarEvent(Presentation()), true)
     assertTrue(manager.isInspectionTooltipEnabled)
 
-    action.setSelected(TestActionEvent.createTestEvent(), false)
+    action.setSelected(TestActionEvent.createTestToolbarEvent(Presentation()), false)
     assertFalse(manager.isInspectionTooltipEnabled)
   }
 }

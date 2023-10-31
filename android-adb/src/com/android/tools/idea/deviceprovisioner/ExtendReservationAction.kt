@@ -51,13 +51,15 @@ class ExtendReservationAction : DefaultActionGroup() {
           val reservation = handle.state.reservation
           val endTime = reservation?.endTime?.toEpochMilli()
           if (endTime == null) {
-            presentation.text = "Reservation remaining time not available."
+            presentation.text = "Reservation remaining time not available"
             return
           }
           val timeAccuracy = TimeUnit.MINUTES.toMillis(1)
-          val timeLeft =
-            StringUtil.formatDuration((endTime - Instant.now().toEpochMilli()) / timeAccuracy * timeAccuracy)
-          presentation.text = "Reservation: $timeLeft remaining."
+          val timeLeft = (endTime - Instant.now().toEpochMilli()) / timeAccuracy * timeAccuracy
+          val timeLeftText =
+            if (timeLeft < 1) "less than 1 min"
+            else StringUtil.formatDuration(timeLeft)
+          presentation.text = "Reservation: $timeLeftText remaining"
         }
 
         override fun actionPerformed(e: AnActionEvent) = Unit
@@ -82,7 +84,3 @@ class ExtendReservationAction : DefaultActionGroup() {
     }
   }
 }
-
-private fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
-
-private fun AnActionEvent.reservationAction() = deviceHandle()?.reservationAction

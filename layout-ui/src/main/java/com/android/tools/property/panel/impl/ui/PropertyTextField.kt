@@ -30,12 +30,9 @@ import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 
-/**
- * A standard control for editing a text property.
- */
-class PropertyTextField(
-  editorModel: TextFieldPropertyEditorModel
-) : CommonTextField<TextFieldPropertyEditorModel>(editorModel), DataProvider {
+/** A standard control for editing a text property. */
+class PropertyTextField(editorModel: TextFieldPropertyEditorModel) :
+  CommonTextField<TextFieldPropertyEditorModel>(editorModel), DataProvider {
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
@@ -70,8 +67,7 @@ class PropertyTextField(
   override fun requestFocusInWindow(): Boolean {
     if (isFocusable) {
       return super.requestFocusInWindow()
-    }
-    else {
+    } else {
       var parent = parent ?: return false
       while (!parent.isFocusable) {
         parent = parent.parent ?: return false
@@ -81,9 +77,16 @@ class PropertyTextField(
   }
 
   override fun getToolTipText(event: MouseEvent): String? {
-    // Trick: Use the component from the event.source for tooltip in tables. See TableEditor.getToolTip().
+    // Trick: Use the component from the event.source for tooltip in tables. See
+    // TableEditor.getToolTip().
     val component = event.source as? JComponent ?: this
-    return PropertyTooltip.setToolTip(component, event, editorModel.property, editorModel.editingValue, text = text.orEmpty())
+    PropertyTooltip.setToolTip(
+      component,
+      editorModel.property,
+      editorModel.editingValue,
+      text = text.orEmpty()
+    )
+    return null
   }
 
   override fun getData(dataId: String): Any? {
@@ -100,7 +103,8 @@ class PropertyTextField(
     if (commit()) {
       transferFocus()
     }
-    // TODO: b/121043039 Add some kind of notification that the commit failed e.g shake the edit control
+    // TODO: b/121043039 Add some kind of notification that the commit failed e.g shake the edit
+    // control
   }
 
   private fun backTab() {
@@ -108,7 +112,8 @@ class PropertyTextField(
     if (commit()) {
       transferFocusBackward()
     }
-    // TODO: b/121043039 Add some kind of notification that the commit failed e.g shake the edit control
+    // TODO: b/121043039 Add some kind of notification that the commit failed e.g shake the edit
+    // control
   }
 
   private fun commit(): Boolean {

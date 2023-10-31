@@ -188,7 +188,7 @@ public class PaletteTest extends AndroidTestCase {
 
   private void checkComponent(@NotNull NlComponent component, @NotNull String expectedTitle, @NotNull Icon expectedIcon) {
     ViewHandlerManager handlerManager = ViewHandlerManager.get(getProject());
-    ViewHandler handler = handlerManager.getHandlerOrDefault(component);
+    ViewHandler handler = handlerManager.getHandlerOrDefault(component, () -> {});
     String title = handler.getTitle(component);
     String attrs = handler.getTitleAttributes(component);
     if (!StringUtil.isEmpty(attrs)) {

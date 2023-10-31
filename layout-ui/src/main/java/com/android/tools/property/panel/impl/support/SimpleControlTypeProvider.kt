@@ -19,10 +19,9 @@ import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
 import com.android.tools.property.panel.api.PropertyItem
 
-/**
- * Simple [ControlTypeProvider] that provides only one [ControlType].
- */
-class SimpleControlTypeProvider<in P : PropertyItem>(private val defaultControlType: ControlType) : ControlTypeProvider<P> {
+/** Simple [ControlTypeProvider] that provides only one [ControlType]. */
+class SimpleControlTypeProvider<in P : PropertyItem>(private val defaultControlType: ControlType) :
+  ControlTypeProvider<P> {
 
   override fun invoke(property: P): ControlType {
     return defaultControlType

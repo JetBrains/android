@@ -1,6 +1,27 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
+MODULE                        : navgraph
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : navgraph
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/navgraph [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/navgraph [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/navgraph.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : androidx.navigation:navigation-ui:2.3.5@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-ui-2.3.5/aidl [-]
@@ -8,6 +29,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.navigation:navigation-ui:2.3.5@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-ui-2.3.5/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-ui-2.3.5/jars/classes.jar
+        component                     : androidx.navigation:navigation-ui:2.3.5
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-ui-2.3.5/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-ui-2.3.5
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-ui-2.3.5/jni [-]
@@ -26,6 +48,7 @@ LIBRARY_TABLE
         artifactAddress               : com.google.android.material:material:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/material-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/material-1.0.0/jars/classes.jar
+        component                     : com.google.android.material:material:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/material-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/material-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/material-1.0.0/jni [-]
@@ -44,6 +67,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.appcompat:appcompat:1.3.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/jars/classes.jar
+        component                     : androidx.appcompat:appcompat:1.3.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.3.0/jni [-]
@@ -62,6 +86,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.navigation:navigation-fragment:2.3.5@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-fragment-2.3.5/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-fragment-2.3.5/jars/classes.jar
+        component                     : androidx.navigation:navigation-fragment:2.3.5
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-fragment-2.3.5/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-fragment-2.3.5
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-fragment-2.3.5/jni [-]
@@ -80,6 +105,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.fragment:fragment:1.3.4@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.3.4/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.3.4/jars/classes.jar
+        component                     : androidx.fragment:fragment:1.3.4
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.3.4/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.3.4
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.3.4/jni [-]
@@ -98,6 +124,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.navigation:navigation-runtime:2.3.5@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-runtime-2.3.5/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-runtime-2.3.5/jars/classes.jar
+        component                     : androidx.navigation:navigation-runtime:2.3.5
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-runtime-2.3.5/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-runtime-2.3.5
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-runtime-2.3.5/jni [-]
@@ -116,6 +143,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.activity:activity:1.2.3@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.2.3/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.2.3/jars/classes.jar
+        component                     : androidx.activity:activity:1.2.3
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.2.3/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.2.3
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-activity-1.2.3/jni [-]
@@ -134,6 +162,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.appcompat:appcompat-resources:1.3.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.3.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.3.0/jars/classes.jar
+        component                     : androidx.appcompat:appcompat-resources:1.3.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.3.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.3.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-appcompat-resources-1.3.0/jni [-]
@@ -152,6 +181,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.recyclerview:recyclerview:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/recyclerview-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/recyclerview-1.0.0/jars/classes.jar
+        component                     : androidx.recyclerview:recyclerview:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/recyclerview-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/recyclerview-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/recyclerview-1.0.0/jni [-]
@@ -170,6 +200,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.legacy:legacy-support-core-ui:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/jars/classes.jar
+        component                     : androidx.legacy:legacy-support-core-ui:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/jni [-]
@@ -188,6 +219,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.drawerlayout:drawerlayout:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.1.1/jars/classes.jar
+        component                     : androidx.drawerlayout:drawerlayout:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.1.1/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.1.1/jni [-]
@@ -206,6 +238,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar
+        component                     : androidx.viewpager:viewpager:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jni [-]
@@ -224,6 +257,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar
+        component                     : androidx.coordinatorlayout:coordinatorlayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jni [-]
@@ -242,6 +276,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/jars/classes.jar
+        component                     : androidx.slidingpanelayout:slidingpanelayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/jni [-]
@@ -260,6 +295,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.customview:customview:1.1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.1.0/jars/classes.jar
+        component                     : androidx.customview:customview:1.1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.1.0/jni [-]
@@ -278,6 +314,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.legacy:legacy-support-core-utils:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar
+        component                     : androidx.legacy:legacy-support-core-utils:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jni [-]
@@ -296,6 +333,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.loader:loader:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jars/classes.jar
+        component                     : androidx.loader:loader:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jni [-]
@@ -314,6 +352,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0/jars/classes.jar
+        component                     : androidx.vectordrawable:vectordrawable-animated:1.1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.1.0/jni [-]
@@ -332,6 +371,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.vectordrawable:vectordrawable:1.1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0/jars/classes.jar
+        component                     : androidx.vectordrawable:vectordrawable:1.1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.1.0/jni [-]
@@ -350,6 +390,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.transition:transition:1.3.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.3.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.3.0/jars/classes.jar
+        component                     : androidx.transition:transition:1.3.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.3.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.3.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.3.0/jni [-]
@@ -368,6 +409,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar
+        component                     : androidx.swiperefreshlayout:swiperefreshlayout:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jni [-]
@@ -386,6 +428,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar
+        component                     : androidx.asynclayoutinflater:asynclayoutinflater:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jni [-]
@@ -404,6 +447,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.core:core:1.5.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.5.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.5.0/jars/classes.jar
+        component                     : androidx.core:core:1.5.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.5.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.5.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.5.0/jni [-]
@@ -422,6 +466,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jars/classes.jar
+        component                     : androidx.cursoradapter:cursoradapter:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jni [-]
@@ -440,6 +485,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-lifecycle-viewmodel-savedstate-2.3.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-lifecycle-viewmodel-savedstate-2.3.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-lifecycle-viewmodel-savedstate-2.3.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-lifecycle-viewmodel-savedstate-2.3.1/jni [-]
@@ -458,6 +504,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.savedstate:savedstate:1.1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.1.0/jars/classes.jar
+        component                     : androidx.savedstate:savedstate:1.1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-savedstate-1.1.0/jni [-]
@@ -476,6 +523,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.3.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-runtime:2.3.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.3.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.3.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.3.1/jni [-]
@@ -494,6 +542,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.1/jars/classes.jar
+        component                     : androidx.versionedparcelable:versionedparcelable:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.1.1/jni [-]
@@ -512,6 +561,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.3.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-viewmodel:2.3.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.3.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.3.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.3.1/jni [-]
@@ -530,6 +580,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.navigation:navigation-common:2.3.5@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-common-2.3.5/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-common-2.3.5/jars/classes.jar
+        component                     : androidx.navigation:navigation-common:2.3.5
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-common-2.3.5/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-common-2.3.5
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/navigation-common-2.3.5/jni [-]
@@ -548,6 +599,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.cardview:cardview:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0/jars/classes.jar
+        component                     : androidx.cardview:cardview:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cardview-1.0.0/jni [-]
@@ -566,6 +618,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-livedata:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jni [-]
@@ -584,6 +637,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.3.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-livedata-core:2.3.1
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.3.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.3.1
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.3.1/jni [-]
@@ -602,6 +656,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.arch.core:core-runtime:2.1.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.1.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.1.0/jni [-]
@@ -620,6 +675,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.interpolator:interpolator:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jars/classes.jar
+        component                     : androidx.interpolator:interpolator:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jni [-]
@@ -638,6 +694,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.documentfile:documentfile:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/jars/classes.jar
+        component                     : androidx.documentfile:documentfile:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/jni [-]
@@ -656,6 +713,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/jars/classes.jar
+        component                     : androidx.localbroadcastmanager:localbroadcastmanager:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/jni [-]
@@ -674,6 +732,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.print:print:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar
+        component                     : androidx.print:print:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jni [-]
@@ -692,6 +751,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.annotation:annotation-experimental:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-annotation-experimental-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-annotation-experimental-1.0.0/jars/classes.jar
+        component                     : androidx.annotation:annotation-experimental:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-annotation-experimental-1.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-annotation-experimental-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-annotation-experimental-1.0.0/jni [-]
@@ -710,6 +770,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.constraintlayout:constraintlayout:1.1.3@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar
+        component                     : androidx.constraintlayout:constraintlayout:1.1.3
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jni [-]
@@ -731,24 +792,31 @@ LIBRARY_TABLE
     - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
         artifactAddress               : androidx.collection:collection:1.1.0@jar
+        component                     : androidx.collection:collection:1.1.0
     - library                     : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
         artifactAddress               : androidx.lifecycle:lifecycle-common:2.3.1@jar
+        component                     : androidx.lifecycle:lifecycle-common:2.3.1
     - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
         artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
+        component                     : androidx.arch.core:core-common:2.1.0
     - library                     : androidx.annotation:annotation:1.2.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/annotation/annotation/1.2.0/annotation-1.2.0.jar
         artifactAddress               : androidx.annotation:annotation:1.2.0@jar
+        component                     : androidx.annotation:annotation:1.2.0
     - library                     : androidx.constraintlayout:constraintlayout-solver:1.1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar
         artifactAddress               : androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+        component                     : androidx.constraintlayout:constraintlayout-solver:1.1.3
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
+        component                     : junit:junit:4.12
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -760,6 +828,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.test.ext:junit:1.1.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.2/jars/classes.jar
+        component                     : androidx.test.ext:junit:1.1.2
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.2
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.2/jni [-]
@@ -778,6 +847,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.test.espresso:espresso-core:3.2.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar
+        component                     : androidx.test.espresso:espresso-core:3.2.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jni [-]
@@ -796,6 +866,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.test:runner:1.2.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar
+        component                     : androidx.test:runner:1.2.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jni [-]
@@ -814,6 +885,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.test:core:1.3.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.3.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.3.0/jars/classes.jar
+        component                     : androidx.test:core:1.3.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.3.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.3.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.3.0/jni [-]
@@ -832,6 +904,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.test:monitor:1.3.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.3.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.3.0/jars/classes.jar
+        component                     : androidx.test:monitor:1.3.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.3.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.3.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.3.0/jni [-]
@@ -850,6 +923,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.transition:transition:1.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.0.0/jars/classes.jar
+        component                     : androidx.transition:transition:1.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transition-1.0.0/jni [-]
@@ -868,6 +942,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jni [-]
@@ -886,6 +961,7 @@ LIBRARY_TABLE
         artifactAddress               : androidx.test.espresso:espresso-idling-resource:3.2.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jars/classes.jar
+        component                     : androidx.test.espresso:espresso-idling-resource:3.2.0
         externalAnnotations           : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0
         jniFolder                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jni [-]
@@ -907,21 +983,27 @@ LIBRARY_TABLE
     - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
+        component                     : org.hamcrest:hamcrest-integration:1.3
     - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+        component                     : org.hamcrest:hamcrest-library:1.3
     - library                     : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
         artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
+        component                     : net.sf.kxml:kxml2:2.3.0
     - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
         artifactAddress               : com.squareup:javawriter:2.1.1@jar
+        component                     : com.squareup:javawriter:2.1.1
     - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
         artifactAddress               : javax.inject:javax.inject:1@jar
+        component                     : javax.inject:javax.inject:1
     - library                     : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
         artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
+        component                     : com.google.code.findbugs:jsr305:2.0.1
     - library                     : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-tracing-1.0.0/jars/classes.jar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-tracing-1.0.0/aidl [-]
         artifactAddress               : __local_aars__:<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-tracing-1.0.0/jars/classes.jar:unspecified
@@ -939,11 +1021,15 @@ LIBRARY_TABLE
         symbolFile                    : <GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-tracing-1.0.0/R.txt
 MODULE                        : navgraph
     externalProject               : navgraph (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : navgraph
         qName                         : navgraph
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : navgraph
@@ -1077,6 +1163,8 @@ MODULE                        : navgraph
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             lib                           : :lib (DefaultExternalProject)
+                path                          : :lib [-]
+                identityPath                  : :lib [-]
                 name                          : lib
                 qName                         : :lib
                 group                         : navgraph
@@ -1235,7 +1323,6 @@ MODULE                        : navgraph.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -1244,6 +1331,8 @@ MODULE                        : navgraph.app
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : true
     GroupId                       : navgraph
+    Namespace                     : com.example.navgraph
+    TestNamespace                 : com.example.navgraph.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -1278,6 +1367,7 @@ MODULE                        : navgraph.app
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.navgraph
         testApplicationId             : com.example.navgraph.test
@@ -1891,7 +1981,6 @@ MODULE                        : navgraph.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -1900,6 +1989,8 @@ MODULE                        : navgraph.lib
     buildToolsVersion             : 30.0.2
     IsBaseSplit                   : false
     GroupId                       : navgraph
+    Namespace                     : com.example.lib
+    TestNamespace                 : com.example.lib.test
     AaptOptions
         NameSpacing                   : DISABLED
     LintOptions
@@ -1934,6 +2025,7 @@ MODULE                        : navgraph.lib
         UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         testApplicationId             : com.example.lib.test
     - basicVariant:               : release

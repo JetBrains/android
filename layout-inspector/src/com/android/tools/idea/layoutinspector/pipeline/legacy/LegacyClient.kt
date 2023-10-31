@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
@@ -31,26 +32,30 @@ import kotlinx.coroutines.CoroutineScope
 import java.nio.file.Path
 
 /**
- * [InspectorClient] that supports pre-api 29 devices.
- * Since it doesn't use `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually fired.
+ * [InspectorClient] that supports pre-api 29 devices. Since it doesn't use
+ * `com.android.tools.idea.transport.TransportService`, some relevant event listeners are manually
+ * fired.
  */
 class LegacyClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   val model: InspectorModel,
+  notificationModel: NotificationModel,
   private val metrics: LayoutInspectorSessionMetrics,
   coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   treeLoaderForTest: LegacyTreeLoader? = null
-) : AbstractInspectorClient(
-  LEGACY_CLIENT,
-  model.project,
-  process,
-  isInstantlyAutoConnected,
-  SessionStatisticsImpl(LEGACY_CLIENT),
-  coroutineScope,
-  parentDisposable
-) {
+) :
+  AbstractInspectorClient(
+    LEGACY_CLIENT,
+    model.project,
+    notificationModel,
+    process,
+    isInstantlyAutoConnected,
+    SessionStatisticsImpl(LEGACY_CLIENT),
+    coroutineScope,
+    parentDisposable
+  ) {
 
   private val lookup: ViewNodeAndResourceLookup = model
 
@@ -60,13 +65,12 @@ class LegacyClient(
 
   private var loggedInitialRender = false
 
-  private val composeWarning = ComposeWarning(model.project)
+  private val composeWarning = ComposeWarning(model.project, notificationModel)
 
   fun logEvent(type: DynamicLayoutInspectorEventType) {
     if (!isRenderEvent(type)) {
       metrics.logEvent(type, stats)
-    }
-    else if (!loggedInitialRender) {
+    } else if (!loggedInitialRender) {
       metrics.logEvent(type, stats)
       loggedInitialRender = true
     }
@@ -83,7 +87,8 @@ class LegacyClient(
 
   val latestScreenshots = mutableMapOf<String, ByteArray>()
   var latestData = mutableMapOf<String, ByteArray>()
-
+  var latestConfig = ""
+  var latestTheme = ""
 
   init {
     loggedInitialRender = false
@@ -119,10 +124,20 @@ class LegacyClient(
   @Slow
   override fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
-    val snapshotMetadata = saveLegacySnapshot(path, latestData, latestScreenshots, process, model)
+    val snapshotMetadata =
+      saveLegacySnapshot(
+        path,
+        latestData,
+        latestScreenshots,
+        latestConfig,
+        latestTheme,
+        process,
+        model
+      )
     snapshotMetadata.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
+    val saveMetrics =
+      LayoutInspectorSessionMetrics(model.project, process, snapshotMetadata = snapshotMetadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
@@ -150,11 +165,16 @@ class LegacyClient(
     latestScreenshots.clear()
   }
 
-  class LegacyFetchingUnsupportedOperationException : UnsupportedOperationException("Fetching is not supported by legacy clients")
+  class LegacyFetchingUnsupportedOperationException :
+    UnsupportedOperationException("Fetching is not supported by legacy clients")
 
   override suspend fun startFetching() = throw LegacyFetchingUnsupportedOperationException()
 
   override suspend fun stopFetching() = throw LegacyFetchingUnsupportedOperationException()
 }
 
-data class LegacyEvent(val windowId: String, val propertyUpdater: LegacyPropertiesProvider.Updater, val allWindows: List<String>)
+data class LegacyEvent(
+  val windowId: String,
+  val propertyUpdater: LegacyPropertiesProvider.Updater,
+  val allWindows: List<String>
+)

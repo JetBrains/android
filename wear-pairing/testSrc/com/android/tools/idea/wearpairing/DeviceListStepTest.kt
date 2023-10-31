@@ -16,14 +16,12 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
-import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
@@ -33,20 +31,17 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.WearPairingEvent
 import com.intellij.openapi.ui.Splitter
+import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.runBlocking
-import org.junit.Assume.assumeFalse
-import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
-import java.awt.Point
 import java.awt.event.MouseEvent
 import java.util.function.BooleanSupplier
 import javax.swing.JEditorPane
@@ -242,28 +237,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun rightClickOnPairedDeviceShouldOfferPopupToDisconnect() {
-    assumeFalse(StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get())
-
-    val fakeUi = createDeviceListStepUi()
-    val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false) }
-
-    model.phoneList.set(listOf(phoneDevice))
-    fakeUi.layoutAndDispatchEvents()
-
-    val phoneList = Mockito.spy(fakeUi.getPhoneList())
-    Mockito.doReturn(Point(0, 0)).whenever(phoneList).locationOnScreen // Work around for headless UI
-
-    val cellRect = phoneList.getCellBounds(0, 0)
-
-    val popupFactory = TestPopupFactory().install()
-    FakeUi(phoneList).mouse.rightClick(cellRect.width / 2, cellRect.height / 2)
-
-    assertThat(popupFactory.getMenuItemAndHide(0)).isEqualTo("Forget Round Watch connection")
-  }
-
-  @Test
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
@@ -304,9 +277,6 @@ class DeviceListStepTest : LightPlatform4TestCase() {
     }
 
     assertThat(getListItemTooltip(0)).isNull() // Non emulators are always OK
-    if (!StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
-      assertThat(getListItemTooltip(1)).contains("Paired with Round Watch")
-    }
     assertThat(getListItemTooltip(2)).contains("Wear pairing requires API level >= 30")
     assertThat(getListItemTooltip(3)).contains("Wear pairing requires Google Play")
     assertThat(getListItemTooltip(4)).contains("Wear pairing requires API level >= 28")

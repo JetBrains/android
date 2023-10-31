@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.google.common.util.concurrent.ListenableFuture;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -26,11 +25,49 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class ConnectedDevice extends Device {
+public final class ConnectedDevice implements Device {
+  @NotNull
+  private final Key myKey;
+
+  @NotNull
+  private final Type myType;
+
+  @NotNull
+  private final LaunchCompatibility myLaunchCompatibility;
+
+  @Nullable
+  private final Instant myConnectionTime;
+
+  @NotNull
+  private final String myName;
+
+  @NotNull
+  private final AndroidDevice myAndroidDevice;
+
+  private ConnectedDevice(@NotNull Builder builder) {
+    assert builder.myKey != null;
+    myKey = builder.myKey;
+
+    myType = builder.myType;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
+    myConnectionTime = builder.myConnectionTime;
+
+    assert builder.myName != null;
+    myName = builder.myName;
+
+    assert builder.myAndroidDevice != null;
+    myAndroidDevice = builder.myAndroidDevice;
+  }
   static final class Builder extends Device.Builder {
     @NotNull
-    Builder setName(@NotNull String name) {
-      myName = name;
+    Builder setKey(@NotNull Key key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    Builder setType(@NotNull Type type) {
+      myType = type;
       return this;
     }
 
@@ -42,8 +79,8 @@ public final class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setKey(@NotNull Key key) {
-      myKey = key;
+    Builder setName(@NotNull String name) {
+      myName = name;
       return this;
     }
 
@@ -54,88 +91,107 @@ public final class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setType(@NotNull Type type) {
-      myType = type;
-      return this;
-    }
-
-    @NotNull
     @Override
     ConnectedDevice build() {
       return new ConnectedDevice(this);
     }
   }
 
-  private ConnectedDevice(@NotNull Builder builder) {
-    super(builder);
-  }
-
   public boolean isVirtualDevice() {
-    return getAndroidDevice().isVirtual();
+    return myAndroidDevice.isVirtual();
   }
 
   public boolean isPhysicalDevice() {
-    return !getAndroidDevice().isVirtual();
+    return !myAndroidDevice.isVirtual();
   }
 
   @NotNull
   @Override
-  Icon getIcon() {
-    throw new UnsupportedOperationException();
+  public Key key() {
+    return myKey;
   }
 
+  @NotNull
   @Override
-  public boolean isConnected() {
+  public Icon icon() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  Collection<Snapshot> getSnapshots() {
+  public Type type() {
+    return myType;
+  }
+
+  @NotNull
+  @Override
+  public LaunchCompatibility launchCompatibility() {
+    return myLaunchCompatibility;
+  }
+
+  @Override
+  public boolean connected() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public Instant connectionTime() {
+    return myConnectionTime;
+  }
+
+  @NotNull
+  @Override
+  public String name() {
+    return myName;
+  }
+
+  @NotNull
+  @Override
+  public Collection<Snapshot> snapshots() {
     return Collections.emptyList();
   }
 
   @NotNull
   @Override
-  public Target getDefaultTarget() {
+  public Target defaultTarget() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  Collection<Target> getTargets() {
+  public Collection<Target> targets() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof ConnectedDevice)) {
-      return false;
-    }
-
-    Device device = (Device)object;
-
-    return getName().equals(device.getName()) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           getKey().equals(device.getKey()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getAndroidDevice().equals(device.getAndroidDevice());
+  public AndroidDevice androidDevice() {
+    return myAndroidDevice;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getName(),
-                        getType(),
-                        getLaunchCompatibility(),
-                        getKey(),
-                        getConnectionTime(),
-                        getAndroidDevice());
+    return Objects.hash(myKey, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof ConnectedDevice device)) {
+      return false;
+    }
+
+    return myKey.equals(device.myKey) &&
+           myType.equals(device.myType) &&
+           myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
+           Objects.equals(myConnectionTime, device.myConnectionTime) &&
+           myName.equals(device.myName) &&
+           myAndroidDevice.equals(device.myAndroidDevice);
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myName;
   }
 }

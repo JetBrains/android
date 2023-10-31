@@ -163,30 +163,50 @@ private val NO_PREVIEW_HANDLER = NoPreviewHandler()
 private object BasicViewHandlerProvider : ViewHandlerProvider {
   override fun findHandler(viewTag: String): ViewHandler? =
     when (viewTag) {
-      ABSOLUTE_LAYOUT, WEB_VIEW -> AbsoluteLayoutHandler()
-      ABS_LIST_VIEW, ADAPTER_VIEW_ANIMATOR, ADAPTER_VIEW_FLIPPER, GRID_VIEW, VIEW_GROUP -> ViewGroupHandler()
-      ADAPTER_VIEW, STACK_VIEW -> AdapterViewHandler()
+      ABSOLUTE_LAYOUT,
+      WEB_VIEW -> AbsoluteLayoutHandler()
+      ABS_LIST_VIEW,
+      ADAPTER_VIEW_ANIMATOR,
+      ADAPTER_VIEW_FLIPPER,
+      GRID_VIEW,
+      VIEW_GROUP -> ViewGroupHandler()
+      ADAPTER_VIEW,
+      STACK_VIEW -> AdapterViewHandler()
       AD_VIEW -> AdViewHandler()
       AUTO_COMPLETE_TEXT_VIEW -> AutoCompleteTextViewHandler()
       BOTTOM_APP_BAR -> BottomAppBarHandler()
-      BUTTON, MATERIAL_BUTTON -> ButtonHandler()
+      BUTTON,
+      MATERIAL_BUTTON -> ButtonHandler()
       CHECKED_TEXT_VIEW -> CheckedTextViewHandler()
-      CHECK_BOX, RADIO_BUTTON -> CheckBoxHandler()
+      CHECK_BOX,
+      RADIO_BUTTON -> CheckBoxHandler()
       CHIP -> ChipHandler()
       CHIP_GROUP -> ChipGroupHandler()
       CHRONOMETER -> ChronometerHandler()
-      DIALER_FILTER, FQCN_RELATIVE_LAYOUT, RELATIVE_LAYOUT -> RelativeLayoutHandler()
+      DIALER_FILTER,
+      FQCN_RELATIVE_LAYOUT,
+      RELATIVE_LAYOUT -> RelativeLayoutHandler()
       EDIT_TEXT -> EditTextHandler()
-      EXPANDABLE_LIST_VIEW -> ListViewHandler() // TODO: Find out why this fails to load by class name
-      FQCN_LINEAR_LAYOUT, LINEAR_LAYOUT, SEARCH_VIEW -> LinearLayoutHandler()
-      FRAME_LAYOUT, GESTURE_OVERLAY_VIEW, TEXT_SWITCHER, VIEW_ANIMATOR, VIEW_FLIPPER, VIEW_SWITCHER -> FrameLayoutHandler()
+      EXPANDABLE_LIST_VIEW ->
+        ListViewHandler() // TODO: Find out why this fails to load by class name
+      FQCN_LINEAR_LAYOUT,
+      LINEAR_LAYOUT,
+      SEARCH_VIEW -> LinearLayoutHandler()
+      FRAME_LAYOUT,
+      GESTURE_OVERLAY_VIEW,
+      TEXT_SWITCHER,
+      VIEW_ANIMATOR,
+      VIEW_FLIPPER,
+      VIEW_SWITCHER -> FrameLayoutHandler()
       GRID_LAYOUT -> GridLayoutHandler()
       HORIZONTAL_SCROLL_VIEW -> HorizontalScrollViewHandler()
       IMAGE_BUTTON -> ImageButtonHandler()
       IMAGE_SWITCHER -> ImageSwitcherHandler()
-      IMAGE_VIEW, QUICK_CONTACT_BADGE -> ImageViewHandler()
+      IMAGE_VIEW,
+      QUICK_CONTACT_BADGE -> ImageViewHandler()
       MAP_VIEW -> MapViewHandler()
-      MULTI_AUTO_COMPLETE_TEXT_VIEW, TEXT_VIEW -> TEXT_HANDLER
+      MULTI_AUTO_COMPLETE_TEXT_VIEW,
+      TEXT_VIEW -> TEXT_HANDLER
       PROGRESS_BAR -> ProgressBarHandler()
       RATING_BAR -> RatingBarHandler()
       REQUEST_FOCUS -> RequestFocusHandler()
@@ -194,7 +214,9 @@ private object BasicViewHandlerProvider : ViewHandlerProvider {
       SEEK_BAR -> SeekBarHandler()
       SPACE -> SpaceHandler()
       SPINNER -> SpinnerHandler()
-      SURFACE_VIEW, TEXTURE_VIEW, VIDEO_VIEW -> NO_PREVIEW_HANDLER
+      SURFACE_VIEW,
+      TEXTURE_VIEW,
+      VIDEO_VIEW -> NO_PREVIEW_HANDLER
       SWITCH -> SwitchHandler()
       TABLE_LAYOUT -> TableLayoutHandler()
       TABLE_ROW -> TableRowHandler()
@@ -217,18 +239,19 @@ private object BasicViewHandlerProvider : ViewHandlerProvider {
 }
 
 private object PreferencesViewHandlerProvider : ViewHandlerProvider {
-    override fun findHandler(viewTag: String): ViewHandler? =
-      when (viewTag) {
-          PreferenceTags.CHECK_BOX_PREFERENCE -> CheckBoxPreferenceHandler()
-          PreferenceTags.EDIT_TEXT_PREFERENCE -> EditTextPreferenceHandler()
-          PreferenceTags.LIST_PREFERENCE -> ListPreferenceHandler()
-          PreferenceTags.MULTI_SELECT_LIST_PREFERENCE -> MultiSelectListPreferenceHandler()
-          PreferenceTags.PREFERENCE_CATEGORY -> PreferenceCategoryHandler()
-          PreferenceTags.PREFERENCE_SCREEN -> PreferenceScreenHandler()
-          PreferenceTags.RINGTONE_PREFERENCE -> RingtonePreferenceHandler()
-          PreferenceTags.SWITCH_PREFERENCE -> SwitchPreferenceHandler()
-          else -> null
-      }
+  override fun findHandler(viewTag: String): ViewHandler? =
+    when (viewTag) {
+      PreferenceTags.CHECK_BOX_PREFERENCE -> CheckBoxPreferenceHandler()
+      PreferenceTags.EDIT_TEXT_PREFERENCE -> EditTextPreferenceHandler()
+      PreferenceTags.LIST_PREFERENCE -> ListPreferenceHandler()
+      PreferenceTags.MULTI_SELECT_LIST_PREFERENCE -> MultiSelectListPreferenceHandler()
+      PreferenceTags.PREFERENCE_CATEGORY -> PreferenceCategoryHandler()
+      PreferenceTags.PREFERENCE_SCREEN -> PreferenceScreenHandler()
+      PreferenceTags.RINGTONE_PREFERENCE -> RingtonePreferenceHandler()
+      PreferenceTags.SWITCH_PREFERENCE -> SwitchPreferenceHandler()
+      PreferenceTags.SWITCH_PREFERENCE_COMPAT -> SwitchPreferenceHandler()
+      else -> null
+    }
 }
 
 private object AndroidxViewHandlerProvider : ViewHandlerProvider {
@@ -265,7 +288,8 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
       TEXT_INPUT_LAYOUT.isEquals(viewTag) -> TextInputLayoutHandler()
       TOOLBAR_V7.isEquals(viewTag) -> ToolbarHandler()
       VIEW_PAGER.isEquals(viewTag) -> ViewPagerHandler()
-      // ViewPager2 only exists on the androidx namespace so it does not need isEquals to check both old and new names.
+      // ViewPager2 only exists on the androidx namespace so it does not need isEquals to check both
+      // old and new names.
       VIEW_PAGER2 == viewTag -> ViewPager2Handler()
       // FragmentContainerView only exists  on the androidx namespace
       FRAGMENT_CONTAINER_VIEW == viewTag -> FragmentContainerViewHandler()
@@ -273,25 +297,25 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
     }
 }
 
-private object FlexboxViewHandlerProvider: ViewHandlerProvider {
-    override fun findHandler(viewTag: String): ViewHandler? =
-      if (FLEXBOX_LAYOUT == viewTag) {
-        if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) FlexboxLayoutHandler() else ViewHandlerManager.NONE
-      } else {
-          null
-      }
+private object FlexboxViewHandlerProvider : ViewHandlerProvider {
+  override fun findHandler(viewTag: String): ViewHandler? =
+    if (FLEXBOX_LAYOUT == viewTag) {
+      if (FlexboxLayoutHandler.FLEXBOX_ENABLE_FLAG) FlexboxLayoutHandler()
+      else ViewHandlerManager.NONE
+    } else {
+      null
+    }
 }
 
+internal object BuiltinViewHandlerProvider : ViewHandlerProvider {
+  private val providers =
+    sequenceOf(
+      BasicViewHandlerProvider,
+      PreferencesViewHandlerProvider,
+      AndroidxViewHandlerProvider,
+      FlexboxViewHandlerProvider
+    )
 
-internal object BuiltinViewHandlerProvider: ViewHandlerProvider {
-    private val providers = sequenceOf(BasicViewHandlerProvider,
-                                       PreferencesViewHandlerProvider,
-                                       AndroidxViewHandlerProvider,
-                                       FlexboxViewHandlerProvider)
-
-    override fun findHandler(viewTag: String): ViewHandler? =
-      providers
-        .map { it.findHandler(viewTag) }
-        .filterNotNull()
-        .firstOrNull()
+  override fun findHandler(viewTag: String): ViewHandler? =
+    providers.map { it.findHandler(viewTag) }.filterNotNull().firstOrNull()
 }

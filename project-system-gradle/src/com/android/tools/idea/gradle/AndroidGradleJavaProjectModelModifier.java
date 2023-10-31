@@ -29,8 +29,9 @@ import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.splitPath;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
+import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
@@ -47,7 +48,6 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
@@ -79,7 +79,6 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import java.io.File;
-import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -241,7 +240,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    List<String> pluginNames = PluginModel.extractNames(buildModel.plugins());
+    List<String> pluginNames = PluginModel.extractNames(buildModel.appliedPlugins());
     List<String> androidPluginNames = new ArrayList<>(pluginNames);
     androidPluginNames.retainAll(ANDROID_PLUGIN_IDENTIFIERS);
     List<String> javaPluginNames = new ArrayList<>(pluginNames);
@@ -296,15 +295,12 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
         Predicate<Version> filter =
           descriptor.getMinVersion() == null ? null : (v -> v.toString().startsWith(descriptor.getMinVersion()));
 
-        String gc = RepositoryUrlManager.get().getArtifactStringCoordinate(library, filter,false);
-        if (gc == null) {
-          gc = RepositoryUrlManager.get().getLibraryRevision(libraryGroupId, libraryArtifactId,
-                                                             filter, false,
-                                                             FileSystems.getDefault());
-        }
-        GradleCoordinate coordinate;
-        if (gc != null && (coordinate = GradleCoordinate.parseCoordinateString(gc)) != null) {
-          version = coordinate.getRevision();
+        String componentIdentifier = RepositoryUrlManager.get().getArtifactComponentIdentifier(library, filter, false);
+        if (componentIdentifier != null) {
+          Component component = Component.Companion.tryParse(componentIdentifier);
+          if (component != null) {
+            version = component.getVersion().toString();
+          }
         }
       }
     }
@@ -445,7 +441,10 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       IdeJavaLibrary libraryTarget = gradleLibrary.getTarget();
       String libraryName = getNameWithoutExtension(libraryTarget.getArtifact());
       if (libraryName.equals(library.getName())) {
-        return ArtifactDependencySpec.create(libraryTarget.getArtifactAddress());
+        Component component = libraryTarget.getComponent();
+        if (component != null) {
+          return ArtifactDependencySpec.create(component.getName(), component.getGroup(), component.getVersion().toString());
+        }
       }
     }
     return null;

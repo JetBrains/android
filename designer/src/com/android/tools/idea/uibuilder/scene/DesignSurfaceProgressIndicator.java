@@ -30,10 +30,10 @@ import org.jetbrains.annotations.NotNull;
 public class DesignSurfaceProgressIndicator {
   @GuardedBy("this")
   private AndroidPreviewProgressIndicator myCurrentIndicator;
-  private final DesignSurface<?> myDesignSurface;
+  private final ProgressRegistration myProgressRegistration;
 
-  public DesignSurfaceProgressIndicator(@NotNull DesignSurface<?> designSurface) {
-    myDesignSurface = designSurface;
+  public DesignSurfaceProgressIndicator(@NotNull ProgressRegistration progressRegistration) {
+    myProgressRegistration = progressRegistration;
   }
 
   public synchronized void start() {
@@ -60,7 +60,7 @@ public class DesignSurfaceProgressIndicator {
         final Timer timer = TimerUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
           synchronized (myLock) {
             if (isRunning()) {
-              myDesignSurface.registerIndicator(this);
+              myProgressRegistration.registerIndicator(this);
             }
           }
         });
@@ -73,7 +73,7 @@ public class DesignSurfaceProgressIndicator {
     public void stop() {
       synchronized (myLock) {
         super.stop();
-        ApplicationManager.getApplication().invokeLater(() -> myDesignSurface.unregisterIndicator(this));
+        ApplicationManager.getApplication().invokeLater(() -> myProgressRegistration.unregisterIndicator(this));
       }
     }
   }

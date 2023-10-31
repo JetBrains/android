@@ -24,6 +24,7 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.sun.tools.attach.VirtualMachine
 import kotlinx.coroutines.CoroutineScope
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -76,7 +77,12 @@ internal class ThreadingChecker : ApplicationInitializedListener {
         thisLogger().warn("Couldn't locate threading_agent.jar.")
         return
       }
-      vm = VirtualMachine.attach(OSProcessUtil.getApplicationPid())
+      try {
+        vm = VirtualMachine.attach(OSProcessUtil.getApplicationPid())
+      } catch (e: IOException) {
+        thisLogger().info("Couldn't attach to current VM to load Threading Agent. Make sure 'jdk.attach.allowAttachSelf=true'", e)
+        return
+      }
       vm.loadAgent(threadingAgentJarPath.toString())
       ThreadingCheckerTrampoline.installHook(ThreadingCheckerHookImpl())
       thisLogger().debug("ThreadingChecker listener has been installed (after threading agent was dynamically loaded).")

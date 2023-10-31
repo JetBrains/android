@@ -22,10 +22,10 @@ import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 
-/**
- * Action to refresh the content of the inspector.
- */
-object RefreshAction : AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH), TooltipDescriptionProvider {
+/** Action to refresh the content of the inspector. */
+object RefreshAction :
+  AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.Toolbar.REFRESH),
+  TooltipDescriptionProvider {
   override fun actionPerformed(event: AnActionEvent) {
     val inspector = LayoutInspector.get(event) ?: return
     ApplicationManager.getApplication().executeOnPooledThread { inspector.currentClient.refresh() }
@@ -35,6 +35,7 @@ object RefreshAction : AnAction({ "Refresh Layout" }, StudioIcons.LayoutEditor.T
   override fun update(event: AnActionEvent) {
     val currentClient = LayoutInspector.get(event)?.currentClient
     event.presentation.isEnabled = currentClient?.isConnected == true && !currentClient.isCapturing
-    event.presentation.description = "When live updates are disabled, click to manually refresh the layout information and images."
+    event.presentation.description =
+      "When live updates are disabled, click to manually refresh the layout information and images."
   }
 }

@@ -20,14 +20,18 @@ import com.android.tools.deployer.Deployer
 import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkFileUnit
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.tasks.AbstractDeployTask
 import com.android.tools.idea.run.tasks.ApplyChangesTask
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask
 import com.android.tools.idea.run.tasks.DeployTask
+import com.google.wireless.android.sdk.stats.ArtifactDetail
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -35,12 +39,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 
 
-class ApplicationDeployerImpl(private val project: Project,
-                              val console: ConsoleView) : ApplicationDeployer {
+class ApplicationDeployerImpl(private val project: Project, private val stats: RunStats) : ApplicationDeployer {
   private val LOG = Logger.getInstance(this::class.java)
   private val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
 
   override fun fullDeploy(device: IDevice, app: ApkInfo, deployOptions: DeployOptions, indicator: ProgressIndicator): Deployer.Result {
+    LOG.info("Full deploy on $device")
     val installPathProvider = Computable { EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller() }
 
     // Add packages to the deployment,
@@ -52,14 +56,14 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm,
       installPathProvider)
 
-    // use single(), because we have 1 apkInfo as input.
-    return deployTask.run(device, indicator).single()
+    return runDeployTask(app, deployTask, device, indicator)
   }
 
   override fun applyChangesDeploy(device: IDevice,
                                   app: ApkInfo,
                                   deployOptions: DeployOptions,
                                   indicator: ProgressIndicator): Deployer.Result {
+    LOG.info("Apply Changes on $device")
     val deployTask = ApplyChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -67,15 +71,14 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm,
       installPathProvider)
 
-    // use single(), because we have 1 apkInfo as input.
-    return deployTask.run(device, indicator).single()
+    return runDeployTask(app, deployTask, device, indicator)
   }
 
   override fun applyCodeChangesDeploy(device: IDevice,
                                       app: ApkInfo,
                                       deployOptions: DeployOptions,
                                       indicator: ProgressIndicator): Deployer.Result {
-
+    LOG.info("Apply Code Changes on $device")
     val deployTask = ApplyCodeChangesTask(
       project,
       listOf(filterDisabledFeatures(app, deployOptions.disabledDynamicFeatures)),
@@ -83,8 +86,7 @@ class ApplicationDeployerImpl(private val project: Project,
       deployOptions.alwaysInstallWithPm,
       installPathProvider)
 
-    // use single(), because we have 1 apkInfo as input.
-    return deployTask.run(device, indicator).single()
+    return runDeployTask(app, deployTask, device, indicator)
   }
 
   private fun filterDisabledFeatures(apkInfo: ApkInfo, disabledFeatures: List<String>): ApkInfo {
@@ -95,6 +97,17 @@ class ApplicationDeployerImpl(private val project: Project,
     else {
       apkInfo
     }
+  }
+
+  private fun runDeployTask(app: ApkInfo, deployTask: AbstractDeployTask, device: IDevice, indicator: ProgressIndicator): Deployer.Result {
+    val result = stats.track(deployTask.id) {
+      for (unit in app.files) {
+        addArtifact(ArtifactDetail.newBuilder().setSize(unit.apkFile.length()))
+      }
+      deployTask.run(device, indicator).single() // use single(), because we have 1 apkInfo as input.
+    }
+    stats.addAllLaunchTaskDetail(deployTask.subTaskDetails)
+    return result
   }
 }
 

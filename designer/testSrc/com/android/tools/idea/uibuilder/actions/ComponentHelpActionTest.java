@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import static com.android.tools.idea.uibuilder.actions.ComponentHelpAction.ANDROIDX_CAST_ITEM;
+import static com.android.tools.idea.uibuilder.actions.ComponentHelpAction.ANDROID_CAST_ITEM;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.isNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -23,10 +31,6 @@ import com.intellij.openapi.actionSystem.DataContext;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {
   @Mock
@@ -112,5 +116,29 @@ public class ComponentHelpActionTest extends AndroidTestCase {
     myTagName = SdkConstants.AD_VIEW;
     myAction.actionPerformed(myEvent);
     verify(myBrowserLauncher).browse(eq("https://developers.google.com/android/reference/com/google/android/gms/ads/AdView"), isNull(), isNull());
+  }
+
+  public void testMenuItem() {
+    myTagName = SdkConstants.TAG_ITEM;
+    myAction.actionPerformed(myEvent);
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/MenuItem.html"), isNull(), isNull());
+  }
+
+  public void testGroup() {
+    myTagName = SdkConstants.TAG_GROUP;
+    myAction.actionPerformed(myEvent);
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/Menu.html"), isNull(), isNull());
+  }
+
+  public void testCastMenuItem() {
+    myTagName = ANDROID_CAST_ITEM;
+    myAction.actionPerformed(myEvent);
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/MenuItem.html"), isNull(), isNull());
+  }
+
+  public void testAndroidxCastMenuItem() {
+    myTagName = ANDROIDX_CAST_ITEM;
+    myAction.actionPerformed(myEvent);
+    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/android/view/MenuItem.html"), isNull(), isNull());
   }
 }

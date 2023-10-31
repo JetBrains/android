@@ -16,6 +16,7 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineDispatcher
@@ -35,6 +36,7 @@ import java.util.concurrent.Executor
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.InputMap
+import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.KeyStroke
 import javax.swing.Scrollable
@@ -63,11 +65,20 @@ import javax.swing.event.TableColumnModelListener
 @UiThread
 class CategoryTable<T : Any>(
   val columns: ColumnList<T>,
-  private val primaryKey: (T) -> Any = { it },
+  val primaryKey: (T) -> Any = { it },
   private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
   colors: Colors = defaultColors,
   private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
+  val emptyStatePanel: JComponent? = null,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
+
+  /** The listener called when a category row is clicked. */
+  var categoryRowMouseClickListener: CategoryRowMouseClickListener<T> =
+    DefaultCategoryRowMouseClickListener()
+
+  /** The listener called when a column header is clicked. */
+  var categoryTableHeaderClickListener: CategoryTableHeaderClickListener<T> =
+    DefaultCategoryTableHeaderClickListener()
 
   internal val header =
     CategoryTableHeader(columns, { columnSorters.firstOrNull() }, ::mouseClickedOnHeader).also {
@@ -79,7 +90,8 @@ class CategoryTable<T : Any>(
    * The values in the table, in display order (considering grouping and sorting). Maintained by
    * [groupAndSortValues].
    */
-  private var values: List<T> = emptyList()
+  var values: List<T> = emptyList()
+    private set
 
   /**
    * All [CategoryRowComponent] and [ValueRowComponent] components in the table, in display order.
@@ -96,7 +108,7 @@ class CategoryTable<T : Any>(
 
   private val hiddenRows = mutableSetOf<Any>()
 
-  /** The attributes we are grouping by, in order. */
+  /** The columns we are grouping by, in order. */
   var groupByAttributes: AttributeList<T> = emptyList()
     private set
 
@@ -109,7 +121,7 @@ class CategoryTable<T : Any>(
   val selection = CategoryTableSingleSelection(this)
 
   /** The number of pixels to indent the rows following each category header. */
-  private var categoryIndent = 24
+  var categoryIndent = 24
 
   private val scaledCategoryIndent
     get() = JBUI.scale(categoryIndent)
@@ -132,6 +144,8 @@ class CategoryTable<T : Any>(
     TablePresentation(colors.unselectedForeground, colors.unselectedBackground, false)
 
   init {
+    emptyStatePanel?.let { add(it) }
+
     unselectedPresentation.applyColors(this)
 
     header.columnModel.addColumnModelListener(
@@ -160,8 +174,8 @@ class CategoryTable<T : Any>(
 
     addMouseListener(
       object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          mouseClickedOnRow(e)
+        override fun mousePressed(e: MouseEvent) {
+          mousePressedOnRow(e)
         }
       }
     )
@@ -203,32 +217,27 @@ class CategoryTable<T : Any>(
   fun addToScrollPane(scrollPane: JScrollPane) {
     scrollPane.setColumnHeaderView(header)
     scrollPane.setViewportView(this)
+    // This is required for the JBScrollPane to allocate space for the vertical scrollbar.
+    // See "vsbRequiresSpace" in JBScrollPane.Layout.layoutContainer.
+    scrollPane.verticalScrollBar.isOpaque = true
   }
 
   private fun mouseClickedOnHeader(e: MouseEvent) {
-    if (SwingUtilities.isLeftMouseButton(e)) {
-      val columnIndex = header.columnAtPoint(e.point)
-      if (columnIndex != -1) {
-        val column = columns[header.viewIndexToModelIndex(columnIndex)]
-        if (e.clickCount == 1) {
-          toggleSortOrder(column.attribute)
-        } else if (e.clickCount == 2) {
-          if (column.attribute.isGroupable) {
-            addGrouping(column.attribute)
-          }
-        }
-      }
+    val columnIndex = header.columnAtPoint(e.point)
+    if (columnIndex != -1) {
+      val column = columns[header.viewIndexToModelIndex(columnIndex)]
+      categoryTableHeaderClickListener.columnHeaderClicked(e, this, column)
     }
   }
 
   internal fun indexOf(key: RowKey<T>): Int = rowComponents.indexOfFirst { it.rowKey == key }
 
-  private fun mouseClickedOnRow(e: MouseEvent) {
+  private fun mousePressedOnRow(e: MouseEvent) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       rowComponents
         .firstOrNull { it.isVisible && e.y < it.y + it.height }
         ?.let { clickedRow ->
-          requestFocusInWindow()
+          clickedRow.requestFocusInWindow()
           selection.selectRow(clickedRow.rowKey)
         }
     }
@@ -253,11 +262,22 @@ class CategoryTable<T : Any>(
     }
   }
 
+  fun <C> addGrouping(column: Column<T, C, *>) {
+    addGrouping(column.attribute)
+  }
+
   fun <C> addGrouping(attribute: Attribute<T, C>) {
-    header.removeColumn(attribute)
+    columns
+      .find { it.attribute == attribute && !it.visibleWhenGrouped }
+      ?.let { header.removeColumn(attribute) }
+
     groupByAttributes = groupByAttributes + attribute
     groupAndSortValues()
     updateComponents()
+  }
+
+  fun <C> removeGrouping(column: Column<T, C, *>) {
+    removeGrouping(column.attribute)
   }
 
   fun <C> removeGrouping(attribute: Attribute<T, C>) {
@@ -265,27 +285,63 @@ class CategoryTable<T : Any>(
     groupAndSortValues()
     updateComponents()
 
-    header.restoreColumn(attribute)
+    columns
+      .find { it.attribute == attribute && !it.visibleWhenGrouped }
+      ?.let { header.restoreColumn(attribute) }
   }
 
   /**
-   * Adds the given row to the table. If a row already exists with the same primary key, nothing is
-   * done.
+   * Adds the given row to the table. If a row already exists with the same primary key, it is
+   * updated to the new value. This may result in addition or deletion of category nodes.
+   *
+   * @param beforeKey adds the element before the element with this primary key; if null, adds to
+   *   the end. A stable sort is performed after the element is added. Thus, if the new element is
+   *   equal in sort order to the given key, it will remain in the same position after the sort.
+   * @return true if a new row was added
    */
-  fun addRow(rowValue: T) {
+  fun addOrUpdateRow(rowValue: T, beforeKey: Any? = null): Boolean {
     val key = primaryKey(rowValue)
-    if (!valueRows.contains(key)) {
+    val add = !valueRows.contains(key)
+    if (add) {
       valueRows[key] =
         ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also {
           addRowComponent(it)
         }
-      updateValues { it + rowValue }
-      updateComponents()
+      updateValues { it.withInsertedItemBefore(beforeKey, rowValue) }
+    } else {
+      updateValues { currentValues ->
+        // Replace the value with the same primary key with the given value.
+        currentValues.map {
+          when {
+            primaryKey(it) == key -> rowValue
+            else -> it
+          }
+        }
+      }
     }
+    updateComponents()
+    return add
+  }
+
+  private fun List<T>.withInsertedItemBefore(beforeKey: Any?, valueToInsert: T): List<T> {
+    val newValues = ArrayList<T>(size + 1)
+    for (v in this) {
+      if (primaryKey(v) == beforeKey) {
+        newValues.add(valueToInsert)
+      }
+      newValues.add(v)
+    }
+    if (newValues.size <= size) {
+      // Didn't find the key; add it to the end
+      newValues.add(valueToInsert)
+    }
+    return newValues
   }
 
   private fun addRowComponent(rowComponent: RowComponent<T>) {
     add(rowComponent)
+    // We need to receive mouse events on children to handle row selection.
+    DelegateMouseEventHandler.delegateTo(this).installListenerOn(rowComponent)
     tablePresentationManager.applyPresentation(rowComponent, unselectedPresentation)
   }
 
@@ -298,26 +354,6 @@ class CategoryTable<T : Any>(
   fun removeRowByKey(key: Any) {
     updateValues { it.filterNot { primaryKey(it) == key } }
     valueRows.remove(key)?.let { remove(it) }
-    updateComponents()
-  }
-
-  /**
-   * Notifies the table that the contents of the row have changed (i.e. the row having the same
-   * primary key as the given value), and that its sort, grouping, and rendering may need to be
-   * updated. This may result in addition or deletion of category nodes.
-   */
-  fun updateRow(rowValue: T) {
-    val key = primaryKey(rowValue)
-    checkNotNull(valueRows[key]) { "Value not present on table: $rowValue" }
-    updateValues { currentValues ->
-      // Replace the value with the same primary key with the given value.
-      currentValues.map {
-        when {
-          primaryKey(it) == key -> rowValue
-          else -> it
-        }
-      }
-    }
     updateComponents()
   }
 
@@ -389,6 +425,8 @@ class CategoryTable<T : Any>(
     categoryRows = newCategoryRows
     rowComponents = newRowComponents
 
+    emptyStatePanel?.isVisible = rowComponents.isEmpty()
+
     revalidate()
     repaint()
   }
@@ -399,15 +437,7 @@ class CategoryTable<T : Any>(
       it.addMouseListener(
         object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {
-            if (SwingUtilities.isLeftMouseButton(e)) {
-              when (e.clickCount) {
-                1 -> toggleCollapsed(categoryList)
-                2 -> removeGrouping(categoryList.last().attribute)
-                else -> {}
-              }
-            }
-            // Forward the event to the Table, whose mouse handler will select the row clicked.
-            e.forward(from = it, to = this@CategoryTable)
+            categoryRowMouseClickListener.categoryRowClicked(e, this@CategoryTable, categoryList)
           }
         }
       )
@@ -432,13 +462,14 @@ class CategoryTable<T : Any>(
     updateComponents()
   }
 
-  private fun CategoryList<T>.matches(value: T) =
-    all { it.matches(value) }
+  private fun CategoryList<T>.matches(value: T) = all { it.matches(value) }
 
   private fun invalidateRows() {
     rowComponents.forEach { it.invalidate() }
     revalidate()
   }
+
+  fun isRowVisibleByKey(key: Any) = valueRows[key]?.isVisible ?: false
 
   fun setRowVisibleByKey(key: Any, visible: Boolean) {
     when {
@@ -466,6 +497,7 @@ class CategoryTable<T : Any>(
    * JTable.
    */
   override fun doLayout() {
+    emptyStatePanel?.bounds = bounds
     updateHeaderColumnWidths()
     doTableLayout()
   }
@@ -534,7 +566,8 @@ class CategoryTable<T : Any>(
 
   override fun getScrollableTracksViewportWidth() = true
 
-  override fun getScrollableTracksViewportHeight() = false
+  // If we're showing the emptyStatePanel, make it fill the viewport.
+  override fun getScrollableTracksViewportHeight() = rowComponents.isEmpty()
 
   companion object {
     private val defaultCoroutineDispatcher =
@@ -589,6 +622,36 @@ class CategoryTable<T : Any>(
     val unselectedForeground: Color,
     val unselectedBackground: Color
   )
+}
+
+interface CategoryRowMouseClickListener<T : Any> {
+  fun categoryRowClicked(e: MouseEvent, table: CategoryTable<T>, path: CategoryList<T>)
+}
+
+/** Toggles expanding / collapsing the category when clicked. */
+open class DefaultCategoryRowMouseClickListener<T : Any> : CategoryRowMouseClickListener<T> {
+  override fun categoryRowClicked(e: MouseEvent, table: CategoryTable<T>, path: CategoryList<T>) {
+    if (SwingUtilities.isLeftMouseButton(e)) {
+      table.toggleCollapsed(path)
+    }
+  }
+}
+
+interface CategoryTableHeaderClickListener<T : Any> {
+  fun columnHeaderClicked(e: MouseEvent, table: CategoryTable<T>, column: Column<T, *, *>)
+}
+
+/** Sorts the column when clicked. */
+open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeaderClickListener<T> {
+  override fun columnHeaderClicked(
+    e: MouseEvent,
+    table: CategoryTable<T>,
+    column: Column<T, *, *>
+  ) {
+    if (SwingUtilities.isLeftMouseButton(e)) {
+      table.toggleSortOrder(column.attribute)
+    }
+  }
 }
 
 /**

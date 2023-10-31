@@ -31,22 +31,19 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.tests" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
-    <orderEntry type="library" scope="TEST" name="gson" level="project" />
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.usageView" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.usageView" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.frontback.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.analysis" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.java.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.refactoring" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
@@ -54,11 +51,12 @@
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.usageView.impl" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
+    <orderEntry type="library" scope="TEST" name="gson" level="project" />
   </component>
 </module>

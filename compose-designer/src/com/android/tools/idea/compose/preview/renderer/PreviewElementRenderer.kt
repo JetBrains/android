@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.compose.preview.renderer
 
+import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.applyTo
-import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.createRenderTaskFuture
+import com.android.tools.rendering.RenderResult
+import com.android.tools.rendering.RenderTask
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Returns a [CompletableFuture] that creates a [RenderTask] for a single
@@ -40,6 +41,7 @@ fun createRenderTaskFuture(
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
   classesToPreload: Collection<String> = emptyList(),
+  customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
 ) =
   createRenderTaskFuture(
     facet,
@@ -51,6 +53,7 @@ fun createRenderTaskFuture(
     },
     privateClassLoader,
     classesToPreload,
+    customViewInfoParser,
     previewElement::applyTo
   )
 
@@ -64,9 +67,17 @@ fun renderPreviewElementForResult(
   facet: AndroidFacet,
   previewElement: ComposePreviewElementInstance,
   privateClassLoader: Boolean = false,
+  customViewInfoParser: ((Any) -> List<ViewInfo>)? = null,
   executor: Executor = AppExecutorUtil.getAppExecutorService()
 ): CompletableFuture<RenderResult?> {
-  val renderTaskFuture = createRenderTaskFuture(facet, previewElement, privateClassLoader)
+  val renderTaskFuture =
+    createRenderTaskFuture(
+      facet,
+      previewElement,
+      privateClassLoader,
+      emptyList(),
+      customViewInfoParser
+    )
 
   val renderResultFuture =
     CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)

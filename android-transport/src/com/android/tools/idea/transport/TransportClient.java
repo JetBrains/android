@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.transport;
 
+import com.android.tools.idea.io.grpc.ManagedChannel;
+import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
 import com.android.tools.profiler.proto.Commands.Command;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
-import com.android.tools.idea.io.grpc.ManagedChannel;
-import com.android.tools.idea.io.grpc.inprocess.InProcessChannelBuilder;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;

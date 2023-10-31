@@ -18,6 +18,7 @@ package com.android.tools.idea.transport
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.messages.MessageBus
 import org.junit.Before
@@ -26,9 +27,12 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.rules.Timeout
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.eq
+import org.mockito.Mockito
 import org.mockito.Mockito.any
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.io.File
@@ -72,6 +76,7 @@ class TransportFileManagerTest {
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
+    verify(mockDevice, times(1)).executeShellCommand(eq("chmod 555 ${TransportFileManager.DEVICE_DIR}perfa.jar"), any())
 
     val expectedPaths = listOf(
       Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
@@ -241,5 +246,51 @@ class TransportFileManagerTest {
     expectedAbis.map {
       verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p -m 755 ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
     }
+  }
+
+  @Test
+  fun testTraceboxFlagWithDeviceBetweenLAndQInclusive() {
+    // Files expected to be copied for device L include TRANSPORT
+    testNumberOfFilesToCopy(true, 21, 1)
+    testNumberOfFilesToCopy(false, 21, 1)
+
+    // Files expected to be copied for device M include TRANSPORT, TRACEBOX
+    testNumberOfFilesToCopy(true, 23, 2)
+    // Files expected to be copied for device M include TRANSPORT
+    testNumberOfFilesToCopy(false, 23, 1)
+
+    // Files expected to be copied for device O include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
+    testNumberOfFilesToCopy(true, 26, 6)
+    // Files expected to be copied include for device O TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(false, 26, 5)
+
+    // Files expected to be copied for device P include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, TRACEBOX
+    testNumberOfFilesToCopy(true, 28, 6)
+    // Files expected to be copied for device P include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
+    // TRACED, TRACED_PROBE
+    testNumberOfFilesToCopy(false, 28, 9)
+
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF
+    testNumberOfFilesToCopy(true, 29, 5)
+    // Files expected to be copied for device Q include TRANSPORT, PERFA, PERFA_OKHTTP, JVMTI_AGENT, SIMPLEPERF, PERFETTO, PERFETTO_SO,
+    // TRACED, TRACED_PROBE
+    testNumberOfFilesToCopy(false, 29, 9)
+  }
+
+  private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {
+    StudioFlags.PROFILER_TRACEBOX.override(traceboxFlag)
+    val device = mock(IDevice::class.java, Mockito.RETURNS_DEEP_STUBS)
+    val mockMessageBus = mock(MessageBus::class.java, Mockito.RETURNS_DEEP_STUBS)
+    val transportDeviceManagerListener =
+      mock(TransportDeviceManager.TransportDeviceManagerListener::class.java, Mockito.RETURNS_DEEP_STUBS)
+
+    doReturn(transportDeviceManagerListener).whenever(mockMessageBus).syncPublisher(TransportDeviceManager.TOPIC)
+    val fileManagerSpy = spy(TransportFileManager(device, mockMessageBus))
+
+    doReturn(ArrayList<String>()).whenever(fileManagerSpy).copyFileToDevice(any(DeployableFile::class.java))
+    whenever(device.version.featureLevel).thenReturn(apiLevel)
+
+    fileManagerSpy.copyFilesToDevice();
+    verify(fileManagerSpy, times(expectedNumberOfFiles)).copyFileToDevice(any(DeployableFile::class.java))
   }
 }

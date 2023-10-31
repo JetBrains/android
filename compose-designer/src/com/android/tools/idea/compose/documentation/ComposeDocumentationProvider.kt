@@ -52,9 +52,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.popup.AbstractPopup
-import java.awt.Image
-import java.awt.image.BufferedImage
-import java.util.concurrent.CompletableFuture
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.Nls
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -64,9 +61,11 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import java.awt.Image
+import java.awt.image.BufferedImage
+import java.util.concurrent.CompletableFuture
 
 /** Adds rendered image of sample@ to Compose element's documentation. */
 class ComposeDocumentationProvider : DocumentationProviderEx() {
@@ -87,14 +86,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
     val isComposableFunction =
       ReadAction.compute<Boolean, Throwable> {
-        return@compute element != null &&
-          element.isValid &&
-          if (isK2Plugin()) {
-            val ktElement = element as? KtElement ?: return@compute false
-            analyze(ktElement) { isComposableFunction(ktElement) }
-          } else {
-            element.isComposableFunction()
-          }
+        return@compute element != null && element.isValid && element.isComposableFunction()
       }
     if (!isComposableFunction) return CompletableFuture.completedFuture(null)
 

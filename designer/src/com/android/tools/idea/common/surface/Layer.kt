@@ -21,9 +21,9 @@ import java.awt.Graphics2D
 import javax.swing.JComponent
 
 /**
- * A layer can be thought of as a very lightweight [JComponent] that is stacked on top of a [DesignSurface]. The critical difference
- * between using a [Layer] and a nested [JComponent] is that the layer does not have its own coordinate system and crucially, its own
- * clipping shape.
+ * A layer can be thought of as a very lightweight [JComponent] that is stacked on top of a
+ * [DesignSurface]. The critical difference between using a [Layer] and a nested [JComponent] is
+ * that the layer does not have its own coordinate system and crucially, its own clipping shape.
  */
 abstract class Layer : Disposable {
 

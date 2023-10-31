@@ -1,7 +1,6 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.adtui.workbench;
 
-import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
@@ -30,8 +29,8 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.NewUiValue;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
@@ -58,15 +57,18 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonModel;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.LayoutFocusTraversalPolicy;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.MouseInputAdapter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * AttachedToolWindow is a tool window that can be attached to a {@link WorkBench}.
@@ -87,7 +89,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private final PropertiesComponent myPropertiesComponent;
   private final SideModel<T> myModel;
   private final JPanel myPanel;
-  private final AbstractButton myMinimizedButton;
+  private final MinimizedButton<T> myMinimizedButton;
+  private final MinimizedButtonModel myMinimizedButtonModel;
   private MySearchField mySearchField;
   private ButtonDragListener<T> myDragListener;
   private ActionToolbar myActionToolbar;
@@ -110,9 +113,9 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myDragListener = dragListener;
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = model;
-    myPanel = new JPanel(new BorderLayout());
-    myPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
-    myMinimizedButton = new MinimizedButton<>(definition.getTitle(), definition.getIcon(), this);
+    myPanel = new AttachedToolWindowPanel(this);
+    myMinimizedButtonModel = new MinimizedButtonModel();
+    myMinimizedButton = new MinimizedButton<>(definition.getTitle(), definition.getIcon(), this, myMinimizedButtonModel);
     setDefaultProperty(PropertyType.LEFT, definition.getSide().isLeft());
     setDefaultProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
@@ -228,7 +231,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       setLayoutProperty(Layout.CURRENT, property, value);
     }
     if (myMinimizedButton != null) {
-      myMinimizedButton.setSelected(!isMinimized());
+      myMinimizedButtonModel.setMinimized(isMinimized());
     }
   }
 
@@ -422,9 +425,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     actionToolbar.setTargetComponent(myPanel);
     actionToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
     actionToolbar.setReservePlaceAutoPopupIcon(false);
-    Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
-    actionToolbar.getComponent().setBorder(JBUI.Borders.empty(border, 0));
     actionToolbar.updateActionsImmediately();
     return actionToolbar;
   }
@@ -523,14 +523,29 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myDragListener.buttonDropped(this, event);
   }
 
+  /**
+   * Set the active state of this tool window.<br/>
+   * Note: this method is only called if the new UI is active.
+   */
+  public void setActive(boolean isActive) {
+    myMinimizedButtonModel.setActive(isActive);
+    myMinimizedButton.setActive(isActive);
+  }
+
   private static class MinimizedButton<T> extends AnchoredButton {
     private final AttachedToolWindow<T> myToolWindow;
     private final Icon myIcon;
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow<T> toolWindow) {
+    private MinimizedButton(
+      @NotNull String title,
+      @NotNull Icon icon,
+      @NotNull AttachedToolWindow<T> toolWindow,
+      @NotNull ButtonModel model
+    ) {
       super(title, icon);
+      setModel(model);
       myToolWindow = toolWindow;
       myIcon = icon;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -566,11 +581,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       };
       addMouseListener(listener);
       addMouseMotionListener(listener);
-      //noinspection UnstableApiUsage
-      if (ExperimentalUI.isNewUI()) {
-        addChangeListener(event -> setIcon(isSelected() ? ColoredIconGenerator.generateWhiteIcon(myIcon) : myIcon));
-      }
       setSelected(!toolWindow.isMinimized());
+      setIcon(myIcon);
+    }
+
+    public void setActive(boolean isActive) {
+      setIcon(isActive ? ColoredIconGenerator.generateWhiteIcon(myIcon) : myIcon);
     }
 
     @Override
@@ -639,6 +655,55 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
       myDragImage = new JBLabel(new JBImageIcon(image));
       myStartDragPosition = event.getPoint();
+    }
+  }
+
+  /**
+   * A ButtonModel for a MinimizedButton.
+   */
+  private static class MinimizedButtonModel extends JToggleButton.ToggleButtonModel {
+    private boolean myIsActive;
+    private boolean myIsMinimized;
+
+    public void setActive(boolean isActive) {
+      if (isActive != myIsActive) {
+        myIsActive = isActive;
+        fireStateChanged();
+      }
+    }
+
+    public void setMinimized(boolean isMinimized) {
+      if (isMinimized != myIsMinimized) {
+        myIsMinimized = isMinimized;
+        fireStateChanged();
+      }
+    }
+
+    /**
+     * When setSelected is called we want to change the minimized state.
+     */
+    public void setSelected(boolean isSelected) {
+      setMinimized(!isSelected);
+    }
+
+    /**
+     * The selected property will cause:
+     * <ul>
+     *   <li>the NewUI to paint the background bright blue</li>
+     *   <li>the old UI to paint the background a darker color</li>
+     * </ul>
+     */
+    @Override
+    public boolean isSelected() {
+      return NewUiValue.isEnabled() ? myIsActive : !myIsMinimized;
+    }
+
+    /**
+     * Override the isRollover property for the NewUI to show a selected state when not minimized.
+     */
+    @Override
+    public boolean isRollover() {
+      return NewUiValue.isEnabled() ? !myIsMinimized : super.isRollover();
     }
   }
 
@@ -839,6 +904,34 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       showSearchField(true);
+    }
+  }
+
+  /**
+   * The main panel used in an AttachedToolWindow.<br/>
+   * This class is here to help find the currently focused tool window.
+   * @see WorkBenchManager#findActiveToolWindow
+   */
+  final static class AttachedToolWindowPanel extends JPanel {
+    private final AttachedToolWindow<?> myToolWindow;
+
+    @VisibleForTesting
+    AttachedToolWindowPanel(@NotNull AttachedToolWindow<?> toolWindow) {
+      super(new BorderLayout());
+      setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
+      myToolWindow = toolWindow;
+    }
+
+    @TestOnly
+    public AttachedToolWindow<?> getToolWindow() {
+      return myToolWindow;
+    }
+
+    /**
+     * Sets the current active state (focus) of the tool window.
+     */
+    public void setActive(boolean isActive) {
+      myToolWindow.setActive(isActive);
     }
   }
 }

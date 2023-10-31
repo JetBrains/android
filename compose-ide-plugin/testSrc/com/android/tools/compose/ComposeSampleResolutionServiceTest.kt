@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.testing.AndroidGradleTestCase

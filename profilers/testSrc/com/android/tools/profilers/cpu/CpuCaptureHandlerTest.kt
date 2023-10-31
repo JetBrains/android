@@ -40,7 +40,7 @@ class CpuCaptureHandlerTest {
 
   @Test
   fun parsingFailureShowsNotificationAndTracksExceptionType() {
-    val config = PerfettoConfiguration("Test")
+    val config = PerfettoConfiguration("Test", false)
     val services = FakeIdeProfilerServices()
     val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
     val model = CpuCaptureHandler(services, CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"), 123, config, null, 0)

@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.Bridge;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.workbench.ToolWindowDefinition;
 import com.android.tools.adtui.workbench.WorkBench;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.DesignerDataKeys;
@@ -31,7 +32,6 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.notifications.NotificationPanel;
 import com.android.tools.idea.flags.StudioFlags;
@@ -48,9 +48,11 @@ import com.intellij.CommonBundle;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.ModuleListener;
@@ -320,14 +322,15 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
           });
         }
         else {
-          Throwable cause = exception.getCause();
-          if (cause instanceof WaitingForGradleSyncException) {
-            // Expected exception. Just log the message and listen to the next Gradle sync.
-            Logger.getInstance(DesignerEditorPanel.class).info(cause.getMessage());
-            SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
-            myWorkBench.loadingStopped("Design editor is unavailable until next gradle sync.");
-            return;
-          }
+          ApplicationManager.getApplication().invokeLater(() -> {
+            Throwable cause = exception.getCause();
+            if (cause instanceof WaitingForGradleSyncException) {
+              // Expected exception. Just log the message and listen to the next Gradle sync.
+              Logger.getInstance(DesignerEditorPanel.class).info(cause.getMessage());
+              SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
+              myWorkBench.loadingStopped("Design editor is unavailable until next gradle sync.");
+              return;
+            }
 
           if (cause instanceof ProcessCanceledException){
             // e.g. when IDEA user clicks 'cancel' button while required resources are downloaded from the Internet .
@@ -336,8 +339,9 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
             return;
           }
 
-          myWorkBench.loadingStopped("Failed to initialize editor.");
-          Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
+            myWorkBench.loadingStopped("Failed to initialize editor.");
+            Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
+          });
         }
       });
   }
@@ -365,8 +369,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
       @Override
       public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
         if (module.equals(modelModule)) {
-          Disposer.dispose(mySurface);
-          myWorkBench.loadingStopped("This file does not belong to the project.");
+          FileEditorManager.getInstance(project).closeFile(myFile);
         }
       }
     });
@@ -453,6 +456,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   public void deactivate() {
     mySurface.deactivate();
+    mySurface.getConfigurations().forEach(Configuration::save);
   }
 
   @NotNull

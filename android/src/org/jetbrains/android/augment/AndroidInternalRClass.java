@@ -5,6 +5,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -19,8 +21,6 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiModifier;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

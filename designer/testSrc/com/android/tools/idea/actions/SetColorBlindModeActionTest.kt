@@ -30,10 +30,10 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 private class TestScreenViewProvider : ScreenViewProvider {
   override val displayName: String = "Test screen view"
@@ -41,7 +41,10 @@ private class TestScreenViewProvider : ScreenViewProvider {
   var primarySceneViewCreationCount: Int = 0
     private set
 
-  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
+  override fun createPrimarySceneView(
+    surface: NlDesignSurface,
+    manager: LayoutlibSceneManager
+  ): ScreenView {
     primarySceneViewCreationCount++
     return ScreenView.newBuilder(surface, manager).build()
   }
@@ -50,8 +53,7 @@ private class TestScreenViewProvider : ScreenViewProvider {
 }
 
 class SetColorBlindModeActionTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setup() {
@@ -68,12 +70,13 @@ class SetColorBlindModeActionTest {
   fun testColorBlindModeChange() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-        projectRule.module.androidFacet!!,
-        projectRule.fixture,
-        SdkConstants.FD_RES_LAYOUT,
-        "model.xml",
-        ComponentDescriptor("LinearLayout")
-      ).build()
+          projectRule.module.androidFacet!!,
+          projectRule.fixture,
+          SdkConstants.FD_RES_LAYOUT,
+          "model.xml",
+          ComponentDescriptor("LinearLayout")
+        )
+        .build()
     }
     val myScreenViewProvider = TestScreenViewProvider()
     val surface = NlDesignSurface.build(projectRule.project, projectRule.testRootDisposable)

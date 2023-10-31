@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.newpsd
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -27,8 +28,10 @@ import org.fest.swing.timing.Wait
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.CoreMatchers.hasItems
+import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

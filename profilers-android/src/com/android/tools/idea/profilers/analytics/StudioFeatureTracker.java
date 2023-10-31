@@ -25,10 +25,10 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.stats.AnonymizerUtil;
-import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profilers.analytics.FeatureTracker;
@@ -65,6 +65,7 @@ import com.google.wireless.android.sdk.stats.EnergyEventMetadata;
 import com.google.wireless.android.sdk.stats.EnergyRangeMetadata;
 import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
+import com.google.wireless.android.sdk.stats.PowerProfilerCaptureMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
@@ -175,6 +176,26 @@ public final class StudioFeatureTracker implements FeatureTracker {
            CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_PARSER_ERROR)
       .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN,
            CpuCaptureMetadata.CaptureStatus.PARSING_FAILED_CAUSE_UNKNOWN)
+      .build();
+
+  private final static ImmutableMap<com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint,
+    CpuCaptureMetadata.CpuProfilerEntryPoint> CPU_PROFILER_ENTRY_POINT_MAP =
+    ImmutableMap.<com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint,
+        CpuCaptureMetadata.CpuProfilerEntryPoint>builder()
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.CPU_MONITOR,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.CPU_MONITOR)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.STARTUP_PROFILING)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_DEPRECATION_LINK,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_DEPRECATION_LINK)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.ONGOING_SESSION_SELECTION,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.ONGOING_SESSION_SELECTION)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.CHILD_STAGE_BACK_BTN_OR_FAILURE)
+      .put(com.android.tools.profilers.cpu.CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_TASK,
+           CpuCaptureMetadata.CpuProfilerEntryPoint.ENERGY_TASK)
       .build();
 
   private final ImmutableMap<Class<? extends CaptureObjectInstanceFilter>, MemoryInstanceFilterMetadata.FilterType>
@@ -606,6 +627,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
     trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.COLLAPSE);
   }
 
+  @Override
+  public void trackMouseOverTrackGroup(@NotNull String title) {
+    trackTrackGroupAction(title, AdtUiTrackGroupMetadata.TrackGroupActionType.MOUSE_OVER);
+  }
+
   private void trackTrackGroupAction(@NotNull String title, @NotNull AdtUiTrackGroupMetadata.TrackGroupActionType actionType) {
     newTracker(AndroidProfilerEvent.Type.TRACK_GROUP_ACTION).setTrackGroupMetadata(
       AdtUiTrackGroupMetadata.newBuilder()
@@ -664,6 +690,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
     newTracker(AndroidProfilerEvent.Type.LOADING).setLoading(loading).track();
   }
 
+  @Override
+  public void trackPowerProfilerCapture(int powerRailCount, int batteryCounterCount) {
+    newTracker(AndroidProfilerEvent.Type.POWER_PROFILER_DATA_CAPTURED).setPowerProfilerCaptureMetadata(
+        PowerProfilerCaptureMetadata.newBuilder().setPowerRailCount(powerRailCount).setBatteryCounterCount(batteryCounterCount).build())
+      .track();
+  }
+
   /**
    * Convenience method for creating a new tracker with all the minimum data supplied.
    */
@@ -703,6 +736,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @Nullable private AdtUiBoxSelectionMetadata myBoxSelectionMetadata;
     private int myEventCount = 0;
     @Nullable private AndroidProfilerEvent.Loading myLoading;
+    @Nullable private PowerProfilerCaptureMetadata myPowerProfilerCaptureMetadata;
 
     @Nullable private RunWithProfilingMetadata myRunWithProfilingMetadata;
 
@@ -831,6 +865,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
     }
 
     @NotNull
+    private Tracker setPowerProfilerCaptureMetadata(PowerProfilerCaptureMetadata powerProfilerCaptureMetadata) {
+      myPowerProfilerCaptureMetadata = powerProfilerCaptureMetadata;
+      return this;
+    }
+
+    @NotNull
     private Tracker setRunWithProfilingMetadata(@NotNull RunWithProfilingMetadata metadata) {
       myRunWithProfilingMetadata = metadata;
       return this;
@@ -899,6 +939,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case RUN_WITH_PROFILING:
           profilerEvent.setRunWithProfilingMetadata(myRunWithProfilingMetadata);
+          break;
+        case POWER_PROFILER_DATA_CAPTURED:
+          profilerEvent.setPowerProfilerCaptureMetadata(myPowerProfilerCaptureMetadata);
           break;
         default:
           break;
@@ -1030,6 +1073,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setTraceFileSizeBytes(myCpuCaptureMetadata.getTraceFileSizeBytes())
           .setParsingTimeMs(myCpuCaptureMetadata.getParsingTimeMs())
           .setStoppingTimeMs(myCpuCaptureMetadata.getStoppingTimeMs())
+          .setCpuProfilerEntryPoint(CPU_PROFILER_ENTRY_POINT_MAP.getOrDefault(myCpuCaptureMetadata.getCpuProfilerEntryPoint(),
+                                                                              CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN))
           .setCaptureStatus(
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
@@ -26,12 +25,12 @@ import com.intellij.openapi.project.DumbAwareAction
 internal class ClearLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.clear.log.action.text"), null, AllIcons.Actions.GC) {
 
   override fun update(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null && !logcatPresenter.isLogcatEmpty()
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return
+    val logcatPresenter = e.getLogcatPresenter() ?: return
     logcatPresenter.clearMessageView()
   }
 

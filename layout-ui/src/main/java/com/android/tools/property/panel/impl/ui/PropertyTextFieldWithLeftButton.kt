@@ -16,16 +16,21 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.adtui.stdui.CommonTextBorder
+import com.android.tools.adtui.stdui.HIDE_RIGHT_BORDER
+import com.android.tools.property.panel.api.EditorContext
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.ui.ClientProperty
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.event.MouseListener
 import javax.swing.JComponent
+import javax.swing.plaf.UIResource
 
 private const val ICON_LEFT_BORDER = 2
 
@@ -36,19 +41,24 @@ private const val ICON_LEFT_BORDER = 2
  */
 open class PropertyTextFieldWithLeftButton(
   private val editorModel: TextFieldWithLeftButtonEditorModel,
+  context: EditorContext,
   component: JComponent? = null
 ) : AdtSecondaryPanel(BorderLayout()), DataProvider {
   protected open val buttonAction = editorModel.buttonAction
   protected val leftComponent = component ?: IconWithFocusBorder { buttonAction }
   protected val leftButton = leftComponent as? IconWithFocusBorder
-  private val textField = PropertyTextField(editorModel)
+
+  // For table cell renderers: use a JLabel based component instead of a JTextEdit based component,
+  // to avoid unwanted horizontal scrolling.
+  protected val textField: JComponent =
+    if (context != EditorContext.TABLE_RENDERER) PropertyTextField(editorModel)
+    else PropertyLabel(editorModel)
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
-    border = DarculaTextBorder()
     putClientProperty(DarculaUIUtil.COMPACT_PROPERTY, true)
-    leftButton?.border = JBUI.Borders.empty(0, ICON_LEFT_BORDER, 0, 0)
+    leftButton?.border = JBUI.Borders.emptyLeft(ICON_LEFT_BORDER)
     textField.border = JBUI.Borders.empty()
     textField.isOpaque = false
     super.add(leftComponent, BorderLayout.WEST)
@@ -59,6 +69,13 @@ open class PropertyTextFieldWithLeftButton(
 
     editorModel.addListener { updateFromModel() }
     setFromModel()
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (border == null || border is UIResource) {
+      border = CommonTextBorder()
+    }
   }
 
   override fun addMouseListener(listener: MouseListener) {
@@ -92,6 +109,13 @@ open class PropertyTextFieldWithLeftButton(
     background = editorModel.displayedBackground(UIUtil.TRANSPARENT_COLOR)
     isOpaque = editorModel.isUsedInRendererWithSelection
     toolTipText = editorModel.tooltip
+    // Avoid painting the right vertical edge of the cell border if this is the left part of the
+    // complete value:
+    ClientProperty.put(
+      this,
+      HIDE_RIGHT_BORDER,
+      editorModel.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP
+    )
   }
 
   override fun getData(dataId: String): Any? {

@@ -34,11 +34,11 @@ import javax.swing.table.TableCellRenderer
  * @param leftDivider show a divider line to the left of the column.
  * @param emptyIcon default icon to be used when no icon is available for the column.
  *
- * The [emptyIcon] is used to determine the width of the column and should be specified
- * if the icons from [getter] and [hoverIcon] are not of size 16*16.
+ * The [emptyIcon] is used to determine the width of the column and should be specified if the icons
+ * from [getter] and [hoverIcon] are not of size 16*16.
  *
- * Warning: Use this if the component tree only has data in this column from a single [NodeType].
- * If multiple [NodeType]s should show data in this column, then a custom implementation of [BadgeItem]
+ * Warning: Use this if the component tree only has data in this column from a single [NodeType]. If
+ * multiple [NodeType]s should show data in this column, then a custom implementation of [BadgeItem]
  * should be created possibly using [IconColumn].
  */
 inline fun <reified T> createIconColumn(
@@ -51,7 +51,19 @@ inline fun <reified T> createIconColumn(
   leftDivider: Boolean = false,
   emptyIcon: Icon = EmptyIcon.ICON_16,
   headerRenderer: TableCellRenderer? = null
-): BadgeItem = SingleTypeIconColumn(name, T::class.java, getter, hoverIcon, action, popup, tooltip, leftDivider, emptyIcon, headerRenderer)
+): BadgeItem =
+  SingleTypeIconColumn(
+    name,
+    T::class.java,
+    getter,
+    hoverIcon,
+    action,
+    popup,
+    tooltip,
+    leftDivider,
+    emptyIcon,
+    headerRenderer
+  )
 
 /**
  * A [BadgeItem] implementation.
@@ -71,11 +83,9 @@ class SingleTypeIconColumn<T>(
   override val headerRenderer: TableCellRenderer?
 ) : IconColumn(name, emptyIcon) {
 
-  override fun getIcon(item: Any): Icon? =
-    cast(item)?.let { getter(it) }
+  override fun getIcon(item: Any): Icon? = cast(item)?.let { getter(it) }
 
-  override fun getHoverIcon(item: Any): Icon? =
-    cast(item)?.let { hoverIcon(it) }
+  override fun getHoverIcon(item: Any): Icon? = cast(item)?.let { hoverIcon(it) }
 
   override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
     cast(item)?.let { action(it, component, bounds) }
@@ -85,18 +95,16 @@ class SingleTypeIconColumn<T>(
     cast(item)?.let { popup(it, component, x, y) }
   }
 
-  override fun getTooltipText(item: Any): String? =
-    cast(item)?.let { tooltip(it) }
+  override fun getTooltipText(item: Any): String? = cast(item)?.let { tooltip(it) }
 
-  private fun cast(item: Any): T? =
-    if (itemClass.isInstance(item)) itemClass.cast(item) else null
+  private fun cast(item: Any): T? = if (itemClass.isInstance(item)) itemClass.cast(item) else null
 }
 
 /**
  * A [ColumnInfo] that contains a single icon.
  *
- * The [emptyIcon] is used to determine the width of the column and should be specified
- * if the icons from [getIcon] and [getHoverIcon] are not of size 16*16.
+ * The [emptyIcon] is used to determine the width of the column and should be specified if the icons
+ * from [getIcon] and [getHoverIcon] are not of size 16*16.
  */
 abstract class IconColumn(
   override val name: String,

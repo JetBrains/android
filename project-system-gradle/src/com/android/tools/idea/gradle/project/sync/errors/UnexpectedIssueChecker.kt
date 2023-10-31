@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
@@ -43,9 +43,7 @@ class UnexpectedIssueChecker: GradleIssueChecker {
     if (message.isBlank() || !message.contains(UNEXPECTED_ERROR_FILE_BUG)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNEXPECTED_ERROR)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNEXPECTED_ERROR)
     val buildIssueComposer = BuildIssueComposer(message).apply {
       addQuickFix("File a bug", FileBugQuickFix())
       addQuickFix("Show log file", ShowLogQuickFix())

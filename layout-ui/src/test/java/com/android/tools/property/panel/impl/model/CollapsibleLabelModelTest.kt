@@ -41,7 +41,8 @@ class CollapsibleLabelModelTest {
 
   class Labels(val properties: PropertiesComponent = PropertiesComponentMock()) {
     private val colorProperty = FakePropertyItem(ANDROID_URI, ATTR_COLOR, "#00FF00")
-    private val backgroundTintProperty = FakePropertyItem(TOOLS_URI, ATTR_BACKGROUND_TINT, "#00FF00")
+    private val backgroundTintProperty =
+      FakePropertyItem(TOOLS_URI, ATTR_BACKGROUND_TINT, "#00FF00")
     private val textProperty = FakePropertyItem(AUTO_URI, ATTR_TEXT, "hello")
     private val someProperty = FakePropertyItem("SomeNamespace", "some", "world")
     private val styleProperty = FakePropertyItem("", ATTR_STYLE, null)
@@ -55,7 +56,8 @@ class CollapsibleLabelModelTest {
     val outerGroup = CollapsibleLabelModel(OUTER_GROUP_NAME, null, true, properties)
     val colorItem = CollapsibleLabelModel(ATTR_COLOR, colorEditor, true, properties)
     val innerGroup = CollapsibleLabelModel(INNER_GROUP_NAME, null, true, properties)
-    val backgroundTintItem = CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundTintEditor, true, properties)
+    val backgroundTintItem =
+      CollapsibleLabelModel(ATTR_BACKGROUND_TINT, backgroundTintEditor, true, properties)
     val textItem = CollapsibleLabelModel(ATTR_TEXT, textEditor, true, properties)
     val someItem = CollapsibleLabelModel("some", someEditor, true, properties)
     val styleItem = CollapsibleLabelModel(ATTR_STYLE, styleEditor, true, properties)
@@ -152,7 +154,8 @@ class CollapsibleLabelModelTest {
   @Test
   fun testIconOfToolsPropertyItem() {
     val test = Labels()
-    assertThat(test.backgroundTintItem.icon).isEqualTo(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
+    assertThat(test.backgroundTintItem.icon)
+      .isEqualTo(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE)
   }
 
   @Test
@@ -166,8 +169,14 @@ class CollapsibleLabelModelTest {
     val test = Labels()
     test.outerGroup.expanded = false
     test.innerGroup.expanded = false
-    assertThat(test.properties.getBoolean(KEY_PREFIX + test.outerGroup.name, OUTER_EXPANDED_BY_DEFAULT)).isFalse()
-    assertThat(test.properties.getBoolean(KEY_PREFIX + test.innerGroup.name, INNER_EXPANDED_BY_DEFAULT)).isFalse()
+    assertThat(
+        test.properties.getBoolean(KEY_PREFIX + test.outerGroup.name, OUTER_EXPANDED_BY_DEFAULT)
+      )
+      .isFalse()
+    assertThat(
+        test.properties.getBoolean(KEY_PREFIX + test.innerGroup.name, INNER_EXPANDED_BY_DEFAULT)
+      )
+      .isFalse()
   }
 
   @Test
@@ -175,8 +184,14 @@ class CollapsibleLabelModelTest {
     val test = Labels()
     test.outerGroup.expanded = true
     test.innerGroup.expanded = true
-    assertThat(test.properties.getBoolean(KEY_PREFIX + test.outerGroup.name, OUTER_EXPANDED_BY_DEFAULT)).isTrue()
-    assertThat(test.properties.getBoolean(KEY_PREFIX + test.innerGroup.name, INNER_EXPANDED_BY_DEFAULT)).isTrue()
+    assertThat(
+        test.properties.getBoolean(KEY_PREFIX + test.outerGroup.name, OUTER_EXPANDED_BY_DEFAULT)
+      )
+      .isTrue()
+    assertThat(
+        test.properties.getBoolean(KEY_PREFIX + test.innerGroup.name, INNER_EXPANDED_BY_DEFAULT)
+      )
+      .isTrue()
   }
 
   @Test

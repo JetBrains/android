@@ -21,7 +21,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.configurations.getDefaultTheme
@@ -472,7 +472,7 @@ private fun getResourceResolver(
   facet: AndroidFacet,
   configurationFuture: CompletableFuture<Configuration?>
 ): CompletableFuture<ResourceResolver> {
-  return configurationFuture.thenApplyAsync(Function { configuration ->
+  return configurationFuture.thenApplyAsync<ResourceResolver>(Function { configuration ->
     configuration?.let { return@Function it.resourceResolver }
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val theme = getApplicationTheme(facet)

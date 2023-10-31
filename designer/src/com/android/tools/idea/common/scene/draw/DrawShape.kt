@@ -24,11 +24,18 @@ import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Graphics2D
 
-class DrawShape(@VisibleForTesting val shape: AnimatedValue<SwingShape>,
-                @VisibleForTesting val color: Color,
-                @VisibleForTesting val stroke: SwingStroke,
-                level: Int = 0) : DrawCommandBase(level) {
-  constructor(shape: SwingShape, color: Color, stroke: SwingStroke, level: Int = 0) : this(ConstantValue<SwingShape>(shape), color, stroke, level)
+class DrawShape(
+  @VisibleForTesting val shape: AnimatedValue<SwingShape>,
+  @VisibleForTesting val color: Color,
+  @VisibleForTesting val stroke: SwingStroke,
+  level: Int = 0
+) : DrawCommandBase(level) {
+  constructor(
+    shape: SwingShape,
+    color: Color,
+    stroke: SwingStroke,
+    level: Int = 0
+  ) : this(ConstantValue<SwingShape>(shape), color, stroke, level)
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)

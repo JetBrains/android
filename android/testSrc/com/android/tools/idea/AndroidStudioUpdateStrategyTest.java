@@ -97,6 +97,28 @@ public final class AndroidStudioUpdateStrategyTest {
   }
 
   @Test
+  public void testUpdateStrategyDoesNotChooseMilestone() throws Exception {
+    @Language("XML") String updatesXml =
+      "<products>" +
+      "  <product name='Android Studio'>" +
+      "    <code>AI</code>" +
+      "    <channel id='AI-2-eap' status='eap'>" +
+      "      <build number='AI-100.200.30.40.5000000' version='Canary 1'/>" +
+      "    </channel>" +
+      "    <channel id='AI-2-milestone' status='milestone'>" +
+      "      <build number='AI-100.200.30.40.5000001' version='Nightly 20230412'/>" +
+      "    </channel>" +
+      "  </product>" +
+      "</products>";
+
+    UpdateSettings settings = mock(UpdateSettings.class);
+    when(settings.getSelectedChannelStatus()).thenReturn(ChannelStatus.EAP);
+
+    assertThat(createBuild("AI-100.200.30.40.4900000", updatesXml, settings).getNumber().asString())
+      .isEqualTo("AI-100.200.30.40.5000000");  // not AI-100.200.30.40.5000001 (Nightly)
+  }
+
+  @Test
   public void testUpdateStrategyUpdatesFromSameAndroidStudioVersionPreferred() throws Exception {
     @Language("XML") String updatesXml =
       "<products>" +

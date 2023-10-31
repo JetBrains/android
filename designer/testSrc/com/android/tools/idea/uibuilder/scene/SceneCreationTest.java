@@ -22,6 +22,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 
 import com.android.AndroidXConstants;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -33,7 +34,6 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -159,7 +159,7 @@ public class SceneCreationTest extends SceneTest {
     ModelBuilder builder = createModel();
     SyncNlModel model = builder.build();
     Configuration config = model.getConfiguration();
-    config.setDevice(config.getConfigurationManager().getDeviceById("Nexus 6P"), false);
+    config.setDevice(config.getSettings().getDeviceById("Nexus 6P"), false);
 
     SyncLayoutlibSceneManager manager = new SyncLayoutlibSceneManager((DesignSurface<LayoutlibSceneManager>)model.getSurface(), model);
     manager.setIgnoreRenderRequests(true);
@@ -174,7 +174,7 @@ public class SceneCreationTest extends SceneTest {
     assertEquals(pxToDp(200, dpiFactor), sceneTextView.getDrawWidth());
     assertEquals(pxToDp(40, dpiFactor), sceneTextView.getDrawHeight());
 
-    config.setDevice(config.getConfigurationManager().getDeviceById("Nexus S"), false);
+    config.setDevice(config.getSettings().getDeviceById("Nexus S"), false);
     dpiFactor = 240 / 160f;
 
     // Allow 1dp difference for rounding

@@ -30,8 +30,7 @@ import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
-import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
+import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
@@ -90,7 +89,12 @@ class ComposeViewControlActionTest {
       }
     }
 
-    val viewControlAction = ComposeViewControlAction(EmptyLayoutManagerSwitcher, options)
+    val viewControlAction =
+      ComposeViewControlAction(
+        EmptyLayoutManagerSwitcher,
+        options,
+        onSurfaceLayoutSelected = { _, _ -> }
+      )
     viewControlAction.updateActions(context)
 
     val expected =
@@ -109,6 +113,7 @@ class ComposeViewControlActionTest {
         Deuteranopes
         Deuteranomaly
         Tritanopes
+        Tritanomaly
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
@@ -137,7 +142,12 @@ class ComposeViewControlActionTest {
       }
     }
 
-    val viewControlAction = ComposeViewControlAction(EmptyLayoutManagerSwitcher, options)
+    val viewControlAction =
+      ComposeViewControlAction(
+        EmptyLayoutManagerSwitcher,
+        options,
+        onSurfaceLayoutSelected = { _, _ -> }
+      )
     viewControlAction.updateActions(context)
 
     val expected =
@@ -160,6 +170,7 @@ class ComposeViewControlActionTest {
         Deuteranopes
         Deuteranomaly
         Tritanopes
+        Tritanomaly
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
@@ -191,7 +202,12 @@ class ComposeViewControlActionTest {
       }
     }
 
-    val viewControlAction = ComposeViewControlAction(EmptyLayoutManagerSwitcher, options)
+    val viewControlAction =
+      ComposeViewControlAction(
+        EmptyLayoutManagerSwitcher,
+        options,
+        onSurfaceLayoutSelected = { _, _ -> }
+      )
     viewControlAction.updateActions(context)
 
     val expected =
@@ -214,6 +230,7 @@ class ComposeViewControlActionTest {
         Deuteranopes
         Deuteranomaly
         Tritanopes
+        Tritanomaly
 """
 
     val actionContent = prettyPrintActions(viewControlAction)
@@ -251,7 +268,8 @@ class ComposeViewControlActionTest {
     val viewControlAction =
       ComposeViewControlAction(
         EmptyLayoutManagerSwitcher,
-        listOf(createOption("Layout A", EmptySurfaceLayoutManager()))
+        listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
+        onSurfaceLayoutSelected = { _, _ -> }
       )
 
     manager.currentStatus = nonRefreshingStatus
@@ -282,13 +300,14 @@ class ComposeViewControlActionTest {
     val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
-    val action = ComposeViewControlAction(switcher, option) { enabled }
+    val action = ComposeViewControlAction(switcher, option, { enabled }) { _, _ -> }
+    val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.
-    action.update(TestActionEvent.createTestEvent())
+    action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(action))
     enabled = false
-    action.update(TestActionEvent.createTestEvent())
+    action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(action))
   }
 }

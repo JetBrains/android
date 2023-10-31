@@ -64,12 +64,13 @@ public interface PluginsModel {
    * TODO(xof): how should we handle the case where we already have a plugin declaration for this plugin?
    *
    * @param plugin the name of a plugin
-   * @param version the version specification for the given plugin
+   * @param version the version specification for the given plugin. Version is nullable as it can be defined in
+   *                root project build file already.
    * @param apply whether the plugin should be declared as applied in this model
    * @return the model for the given plugin
    */
   @NotNull
-  PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply);
+  PluginModel applyPlugin(@NotNull String plugin, @Nullable String version, @Nullable Boolean apply);
 
   /**
    * Modify the underlying object so that the given reference is used as an alias to apply a plugin with the specified

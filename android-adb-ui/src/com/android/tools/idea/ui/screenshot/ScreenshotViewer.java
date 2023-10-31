@@ -16,13 +16,16 @@
 package com.android.tools.idea.ui.screenshot;
 
 import static com.android.SdkConstants.EXT_PNG;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT;
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
 import com.android.utils.HashCodes;
 import com.google.common.base.Preconditions;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationGroup;
@@ -55,7 +58,6 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -105,19 +107,17 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private static final String HELP_PREFIX = "org.jetbrains.android.";
 
-  // The minimum size is for both the width and the height as the screenshot ratio needs to be 1:1
-  public static final int MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS = 384;
-
   private final @NotNull SimpleDateFormat myTimestampFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT);
 
   private final @NotNull Project myProject;
   private final @Nullable ScreenshotSupplier myScreenshotSupplier;
-  private final @Nullable ScreenshotPostprocessor myScreenshotPostprocessor;
+  private final @NotNull ScreenshotPostprocessor myScreenshotPostprocessor;
 
   private final @NotNull VirtualFile myBackingFile;
   private final @NotNull ImageFileEditor myImageFileEditor;
   private final @NotNull FileEditorProvider myEditorProvider;
   private final @NotNull PersistentState myPersistentStorage;
+  private final boolean myRotateOnRefresh;
 
   private @NotNull JPanel myPanel;
   private @NotNull JButton myRefreshButton;
@@ -214,12 +214,11 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
                           @NotNull ScreenshotImage screenshotImage,
                           @NotNull Path backingFile,
                           @Nullable ScreenshotSupplier screenshotSupplier,
-                          @Nullable ScreenshotPostprocessor screenshotPostprocessor,
+                          @NotNull ScreenshotPostprocessor screenshotPostprocessor,
                           @NotNull List<? extends FramingOption> framingOptions,
                           int defaultFramingOption,
                           @NotNull Set<Option> screenshotViewerOptions) {
     super(project, true);
-    Preconditions.checkArgument(framingOptions.isEmpty() || screenshotPostprocessor != null);
     Preconditions.checkArgument(framingOptions.isEmpty() || defaultFramingOption >= 0 && defaultFramingOption < framingOptions.size());
 
     setModal(false);
@@ -250,56 +249,58 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     myPersistentStorage = PersistentState.getInstance(myProject);
 
-    if (screenshotPostprocessor == null) {
-      hideComponent(myDecorationComboBox);
+    DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
+    decorationOptions.addElement(DecorationOption.RECTANGULAR);
+    // Clipping is available when the postprocessor supports it and for round devices.
+    boolean canClipDeviceMask = screenshotPostprocessor.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
+    if (canClipDeviceMask) {
+      decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
+    }
+    int width = screenshotImage.getWidth();
+    int height = screenshotImage.getHeight();
+    boolean isOneToOneRatio = width == height;
+    // DAC specifies a 384x384 minimum size requirement but that requirement is actually not enforced.
+    // The image ratio is enforced, however.
+    boolean isPlayCompatibleWearScreenshot = screenshotImage.isWear() && isOneToOneRatio;
+    if (isPlayCompatibleWearScreenshot) {
+      decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
+    }
+    int frameOptionStartIndex = decorationOptions.getSize();
+    for (FramingOption framingOption : framingOptions) {
+      decorationOptions.addElement(new DecorationOption(framingOption));
+    }
+    myDecorationComboBox.setModel(decorationOptions);
+
+    if (myPersistentStorage.frameScreenshot && myDecorationComboBox.getItemCount() > defaultFramingOption + frameOptionStartIndex) {
+      myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
     }
     else {
-      DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
-      decorationOptions.addElement(DecorationOption.RECTANGULAR);
-      // Clipping is available when the postprocessor supports it and for round devices.
-      boolean canClipDeviceMask = screenshotPostprocessor.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
       if (canClipDeviceMask) {
-        decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
+        myDecorationComboBox.setSelectedItem(DecorationOption.DISPLAY_SHAPE_CLIP);
+      } else if (isPlayCompatibleWearScreenshot) {
+        myDecorationComboBox.setSelectedItem(DecorationOption.PLAY_COMPATIBLE);
+      } else {
+        myDecorationComboBox.setSelectedItem(DecorationOption.RECTANGULAR);
       }
-      boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear();
-      if (isPlayCompatibleWearScreenshot) {
-        decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
-      }
-      int frameOptionStartIndex = decorationOptions.getSize();
-      for (FramingOption framingOption : framingOptions) {
-        decorationOptions.addElement(new DecorationOption(framingOption));
-      }
-      myDecorationComboBox.setModel(decorationOptions);
-
-      if (myPersistentStorage.frameScreenshot) {
-        myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
-      }
-      else {
-        if (canClipDeviceMask) {
-          myDecorationComboBox.setSelectedItem(DecorationOption.DISPLAY_SHAPE_CLIP);
-        } else if (isPlayCompatibleWearScreenshot) {
-          myDecorationComboBox.setSelectedItem(DecorationOption.PLAY_COMPATIBLE);
-        } else {
-          myDecorationComboBox.setSelectedItem(DecorationOption.RECTANGULAR);
-        }
-      }
-
-      ActionListener decorationListener = event -> {
-        myPersistentStorage.frameScreenshot = ((DecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
-        updateImageFrame();
-      };
-      myDecorationComboBox.addActionListener(decorationListener);
     }
+
+    ActionListener decorationListener = event -> {
+      myPersistentStorage.frameScreenshot = ((DecorationOption)decorationOptions.getSelectedItem()).getFramingOption() != null;
+      updateImageFrame();
+    };
+    myDecorationComboBox.addActionListener(decorationListener);
 
     myRefreshButton.addActionListener(event -> doRefreshScreenshot());
 
     if (screenshotViewerOptions.contains(Option.ALLOW_IMAGE_ROTATION)) {
       myRotateLeftButton.addActionListener(event -> updateImageRotation(1));
       myRotateRightButton.addActionListener(event -> updateImageRotation(3));
+      myRotateOnRefresh = true;
     }
     else {
       hideComponent(myRotateLeftButton);
       hideComponent(myRotateRightButton);
+      myRotateOnRefresh = false;
     }
 
     myCopyButton.addActionListener(event -> {
@@ -308,6 +309,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       NotificationGroup group = NotificationGroup.findRegisteredGroup("Screen Capture");
       assert group != null;
       Notifications.Bus.notify(group.createNotification(AndroidAdbUiBundle.message("screenshot.notification.copied.to.clipboard"), NotificationType.INFORMATION), project);
+      logScreenshotUsage();
     });
 
     updateEditorImage();
@@ -360,7 +362,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
         ScreenshotImage screenshotImage = getScreenshot();
         mySourceImageRef.set(screenshotImage);
-        processScreenshot(myRotationQuadrants);
+        processScreenshot(myRotateOnRefresh ? myRotationQuadrants : 0);
       }
     }.queue();
   }
@@ -396,10 +398,6 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private BufferedImage processImage(ScreenshotImage sourceImage) {
-    if (myScreenshotPostprocessor == null) {
-      return sourceImage.getImage();
-    }
-
     DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
     FramingOption framingOption = selectedDecoration.getFramingOption();
     Color backgroundColor = null;
@@ -408,19 +406,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
       backgroundColor = Color.BLACK;
     }
-
-    int width = sourceImage.getImage().getWidth();
-    int height = sourceImage.getImage().getHeight();
-    boolean isOneToOneRatio = width == height;
-    boolean isPlayCompatible = isOneToOneRatio && width >= MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS;
-    if (selectedDecoration.equals(DecorationOption.PLAY_COMPATIBLE) && !isPlayCompatible) {
-      // fix the dimensions to be compatible with the play store requirements
-      int outputSize = Math.max(Math.max(width, height), MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS);
-      return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor, new Dimension(outputSize, outputSize));
-    }
-    else {
-      return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor);
-    }
+    return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor);
   }
 
   @VisibleForTesting
@@ -490,6 +476,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myScreenshotFile = fileWrapper.getFile().toPath();
     try {
       writePng(myDisplayedImageRef.get(), myScreenshotFile);
+      logScreenshotUsage();
     }
     catch (IOException e) {
       Messages.showErrorDialog(myProject, AndroidAdbUiBundle.message("screenshot.dialog.error", e),
@@ -591,6 +578,39 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private static @NotNull Logger logger() {
     return Logger.getInstance(ScreenshotViewer.class);
+  }
+
+  private void logScreenshotUsage() {
+    var event = DeviceScreenshotEvent.newBuilder()
+      .setDeviceType(getUsageDeviceType())
+      .setDecorationOption(getUsageDecorationOption());
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(DEVICE_SCREENSHOT_EVENT)
+        .setDeviceScreenshotEvent(event));
+  }
+
+  private @NotNull DeviceScreenshotEvent.DeviceType getUsageDeviceType() {
+    return switch (mySourceImageRef.get().getDeviceType()) {
+      case WEAR -> DeviceScreenshotEvent.DeviceType.WEAR;
+      case PHONE -> DeviceScreenshotEvent.DeviceType.PHONE;
+      case TV -> DeviceScreenshotEvent.DeviceType.TV;
+    };
+  }
+
+  private @NotNull DeviceScreenshotEvent.DecorationOption getUsageDecorationOption() {
+    DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
+    if (DecorationOption.RECTANGULAR.equals(selectedDecoration)) {
+      return DeviceScreenshotEvent.DecorationOption.RECTANGULAR;
+    }
+    if (DecorationOption.DISPLAY_SHAPE_CLIP.equals(selectedDecoration)) {
+      return DeviceScreenshotEvent.DecorationOption.DISPLAY_SHAPE_CLIP;
+    }
+    if (DecorationOption.PLAY_COMPATIBLE.equals(selectedDecoration)) {
+      return DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE;
+    }
+    return DeviceScreenshotEvent.DecorationOption.FRAMED;
   }
 
   private static class BufferedImageTransferable implements Transferable {

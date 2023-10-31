@@ -19,10 +19,10 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_17_PATH
-import com.android.tools.idea.gradle.project.sync.constants.JDK_1_8_PATH
 import com.android.tools.idea.sdk.Jdks
+import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_17_PATH
+import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
@@ -45,7 +45,7 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   fun ensureJdk17InProjectTable() {
     // for whatever reason, without this the project is set up using prebuilts/studio/jdk/mock-jdk17, which despite its name is
     // treated as Java 1.5.
-    jdk17 = Jdks.getInstance().createJdk(JDK_17_PATH)
+    jdk17 = Jdks.getInstance().createAndAddJdk(JDK_17_PATH)
   }
 
   @After

@@ -19,10 +19,8 @@ import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,9 +68,7 @@ public final class StackTraceModel extends AspectModel<StackTraceModel.Aspect> {
   }
 
   public void setStackFrames(@NotNull String trace) {
-    updateStackFrames(
-      ThreadId.INVALID_THREAD_ID,
-      Arrays.stream(trace.split("\\n")).map(StackFrameParser::parseFrame).collect(Collectors.toList()));
+    updateStackFrames(ThreadId.INVALID_THREAD_ID, StackFrameParser.parseStack(trace));
   }
 
   public void clearStackFrames() {

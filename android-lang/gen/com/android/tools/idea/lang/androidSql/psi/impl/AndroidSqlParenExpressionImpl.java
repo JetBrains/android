@@ -45,9 +45,9 @@ public class AndroidSqlParenExpressionImpl extends AndroidSqlExpressionImpl impl
   }
 
   @Override
-  @Nullable
-  public AndroidSqlExpression getExpression() {
-    return findChildByClass(AndroidSqlExpression.class);
+  @NotNull
+  public List<AndroidSqlExpression> getExpressionList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, AndroidSqlExpression.class);
   }
 
 }

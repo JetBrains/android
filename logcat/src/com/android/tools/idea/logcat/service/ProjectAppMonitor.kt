@@ -19,9 +19,9 @@ import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.common.ProcessEvent.ProcessRemoved
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.idea.logcat.LogcatBundle
-import com.android.tools.idea.logcat.PackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transform
 
@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.transform
  */
 internal class ProjectAppMonitor(
   private val processNameMonitor: ProcessNameMonitor,
-  private val projectPackageNamesProvider: PackageNamesProvider
+  private val projectApplicationIdsProvider: ProjectApplicationIdsProvider
 ) {
 
   suspend fun monitorDevice(serialNumber: String): Flow<LogcatMessage> {
@@ -39,7 +39,7 @@ internal class ProjectAppMonitor(
       when (it) {
         is ProcessAdded -> {
           val applicationId = it.toProcessNames().applicationId
-          if (applicationId in projectPackageNamesProvider.getPackageNames() && !processes.containsKey(it.pid)) {
+          if (applicationId in projectApplicationIdsProvider.getPackageNames() && !processes.containsKey(it.pid)) {
             processes[it.pid] = applicationId
             emit(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.process.started", it.pid.toString(), applicationId)))
           }

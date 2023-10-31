@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceValue
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.uibuilder.property.NlNewPropertyItem
@@ -47,8 +47,7 @@ class ResourceActionsTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private var colorPicker: TestColorPicker? = null
 
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   @After
   fun cleanUp() {
@@ -59,13 +58,15 @@ class ResourceActionsTest {
   fun testOpenResourceActionWithInvalidXmlTag() {
     val action = OpenResourceManagerAction
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
+    val property =
+      util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
     val event = AnActionEvent.createFromDataContext("", null, context)
     deleteXmlTag(property)
 
     // Expect the dialog not to be displayed, because the tag is now gone.
-    // Displaying the resource picker would cause an exception since no UI is available in headless mode.
+    // Displaying the resource picker would cause an exception since no UI is available in headless
+    // mode.
     action.actionPerformed(event)
   }
 
@@ -73,7 +74,12 @@ class ResourceActionsTest {
   fun testUseColorPicker() {
     val action = TestableColorSelectionAction(::createColorPicker)
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val property = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NlPropertyType.COLOR)
+    val property =
+      util.makeProperty(
+        SdkConstants.ANDROID_URI,
+        SdkConstants.ATTR_TEXT_COLOR,
+        NlPropertyType.COLOR
+      )
 
     // Verify that the textColor is not set:
     assertThat(property.value).isNull()
@@ -84,7 +90,8 @@ class ResourceActionsTest {
     val picker = colorPicker ?: error("colorPicker expected")
 
     // The real color picker will set an initial color of WHITE if no initialColor was specified.
-    // We do not want that, so make sure there is an initial color even if the property is not set yet.
+    // We do not want that, so make sure there is an initial color even if the property is not set
+    // yet.
     assertThat(picker.initialColor).isEqualTo(Color.WHITE)
 
     // Now set a new color
@@ -96,7 +103,12 @@ class ResourceActionsTest {
   fun testUseColorPickerWithNewProperty() {
     val action = TestableColorSelectionAction(::createColorPicker)
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
-    val actualProperty = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT_COLOR, NlPropertyType.COLOR)
+    val actualProperty =
+      util.makeProperty(
+        SdkConstants.ANDROID_URI,
+        SdkConstants.ATTR_TEXT_COLOR,
+        NlPropertyType.COLOR
+      )
     val properties: PropertiesTable<NlPropertyItem> =
       PropertiesTableImpl<NlPropertyItem>(HashBasedTable.create()).also { it.put(actualProperty) }
     val property = NlNewPropertyItem(util.model, properties)
@@ -111,7 +123,8 @@ class ResourceActionsTest {
     val picker = colorPicker ?: error("colorPicker expected")
 
     // The real color picker will set an initial color of WHITE if no initialColor was specified.
-    // We do not want that, so make sure there is an initial color even if the property is not set yet.
+    // We do not want that, so make sure there is an initial color even if the property is not set
+    // yet.
     assertThat(picker.initialColor).isEqualTo(Color.WHITE)
 
     // Now set a new color
@@ -125,9 +138,7 @@ class ResourceActionsTest {
 
   private fun deleteXmlTag(property: NlPropertyItem) {
     val tag = property.components.first().backend.tag!!
-    WriteCommandAction.writeCommandAction(projectRule.project).run<Throwable> {
-      tag.delete()
-    }
+    WriteCommandAction.writeCommandAction(projectRule.project).run<Throwable> { tag.delete() }
   }
 
   private fun createColorPicker(
@@ -140,8 +151,17 @@ class ResourceActionsTest {
     colorPickedCallback: ((Color) -> Unit)?,
     colorResourcePickedCallback: ((String) -> Unit)?
   ) {
-    colorPicker = TestColorPicker(initialColor, initialColorResource, configuration, resourcePickerSources, restoreFocusComponent,
-                                  locationToShow, colorPickedCallback, colorResourcePickedCallback)
+    colorPicker =
+      TestColorPicker(
+        initialColor,
+        initialColorResource,
+        configuration,
+        resourcePickerSources,
+        restoreFocusComponent,
+        locationToShow,
+        colorPickedCallback,
+        colorResourcePickedCallback
+      )
   }
 
   @Suppress("unused")

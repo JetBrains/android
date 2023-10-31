@@ -17,11 +17,12 @@ package com.android.tools.idea.layoutinspector.ui.toolbar
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
-import com.android.tools.idea.layoutinspector.ui.ViewMenuAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
 import com.intellij.openapi.actionSystem.ActionManager
@@ -34,16 +35,17 @@ import javax.swing.JComponent
 
 const val LAYOUT_INSPECTOR_MAIN_TOOLBAR = "LayoutInspector.MainToolbar"
 
-/**
- * Creates the main toolbar used by Layout Inspector.
- */
+/** Creates the main toolbar used by Layout Inspector. */
 fun createLayoutInspectorMainToolbar(
   targetComponent: JComponent,
   layoutInspector: LayoutInspector,
-  selectProcessAction: AnAction?
+  selectProcessAction: AnAction?,
+  extraActions: List<AnAction> = emptyList()
 ): ActionToolbar {
-  val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction)
-  val actionToolbar = ActionManager.getInstance().createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
+  val actionGroup = LayoutInspectorActionGroup(layoutInspector, selectProcessAction, extraActions)
+  val actionToolbar =
+    ActionManager.getInstance()
+      .createActionToolbar(LAYOUT_INSPECTOR_MAIN_TOOLBAR, actionGroup, true)
   ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
   actionToolbar.component.name = LAYOUT_INSPECTOR_MAIN_TOOLBAR
   actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
@@ -52,27 +54,38 @@ fun createLayoutInspectorMainToolbar(
   return actionToolbar
 }
 
-/**
- * Action Group containing all the actions used in Layout Inspector's main toolbar.
- */
-private class LayoutInspectorActionGroup(layoutInspector: LayoutInspector, selectProcessAction: AnAction?) : DefaultActionGroup() {
+/** Action Group containing all the actions used in Layout Inspector's main toolbar. */
+private class LayoutInspectorActionGroup(
+  layoutInspector: LayoutInspector,
+  selectProcessAction: AnAction?,
+  extraActions: List<AnAction>
+) : DefaultActionGroup() {
   init {
     if (selectProcessAction != null) {
       add(selectProcessAction)
     }
     add(Separator.getInstance())
-    add(ViewMenuAction)
-    add(ToggleOverlayAction)
+    add(
+      RenderSettingsAction(
+        renderModelProvider = { layoutInspector.renderModel },
+        renderSettingsProvider = { layoutInspector.renderLogic.renderSettings }
+      )
+    )
+    add(ToggleOverlayAction { layoutInspector.renderModel })
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
     }
-    add(AlphaSliderAction)
-    if (!layoutInspector.isSnapshot) {
+    add(AlphaSliderAction { layoutInspector.renderModel })
+    if (
+      !layoutInspector.isSnapshot &&
+        !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    ) {
       add(Separator.getInstance())
       add(ToggleLiveUpdatesAction(layoutInspector))
       add(RefreshAction)
     }
     add(Separator.getInstance())
-    add(LayerSpacingSliderAction)
+    add(LayerSpacingSliderAction { layoutInspector.renderModel })
+    extraActions.forEach { add(it) }
   }
 }

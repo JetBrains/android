@@ -17,8 +17,8 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.res.LocalResourceRepository;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
@@ -36,7 +36,7 @@ final class ResourceLoadingTask extends Task.Backgroundable {
   private final Supplier<? extends LocalResourceRepository> myGetModuleResources;
 
   @Nullable
-  private StringResourceRepository myRepository;
+  private StringResourceTableModel myStringResourceTableModel;
 
   ResourceLoadingTask(@NotNull StringResourceViewPanel panel) {
     this(panel, () -> StudioResourceRepositoryManager.getModuleResources(panel.getFacet()));
@@ -54,7 +54,7 @@ final class ResourceLoadingTask extends Task.Backgroundable {
   public void run(@NotNull ProgressIndicator indicator) {
     indicator.setIndeterminate(true);
     LocalResourceRepository localResourceRepository = myGetModuleResources.get();
-    myRepository = StringResourceRepository.create(localResourceRepository);
+    StringResourceRepository repository = StringResourceRepository.create(localResourceRepository);
     // Creating the StringResourceRepository initiates changes to localResourceRepository that may still
     // be in-flight. Wait (as long as it takes) for them to finish before proceeding.
     CountDownLatch latch = new CountDownLatch(1);
@@ -65,12 +65,14 @@ final class ResourceLoadingTask extends Task.Backgroundable {
     catch (Throwable e) {
       onThrowable(e);
     }
+
+    myStringResourceTableModel = new StringResourceTableModel(repository, myPanel.getFacet().getModule().getProject());
   }
 
   @Override
   public void onSuccess() {
-    assert myRepository != null;
-    myPanel.getTable().setModel(new StringResourceTableModel(myRepository, myPanel.getFacet().getModule().getProject()));
+    assert myStringResourceTableModel != null;
+    myPanel.getTable().setModel(myStringResourceTableModel);
 
     myPanel.getLoadingPanel().stopLoading();
   }

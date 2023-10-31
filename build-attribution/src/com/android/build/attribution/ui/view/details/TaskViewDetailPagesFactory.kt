@@ -67,7 +67,7 @@ class TaskViewDetailPagesFactory(
     add(messageLabel, BorderLayout.CENTER)
   }
 
-  private fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
+  fun createDetailsPage(nodeDescriptor: TasksTreePresentableNodeDescriptor): JComponent = when (nodeDescriptor) {
     is TaskDetailsNodeDescriptor -> createTaskDetailsPage(nodeDescriptor)
     is EntryDetailsNodeDescriptor -> createEntryDetailsPage(nodeDescriptor)
   }.apply {

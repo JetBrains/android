@@ -25,6 +25,11 @@ import com.android.tools.idea.sqlite.cli.SqliteQueries.selectTableNames
 import com.android.tools.idea.sqlite.cli.SqliteQueries.selectViewNames
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.Strings
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import java.io.BufferedReader
 import java.io.BufferedWriter
 import java.io.File
@@ -37,11 +42,6 @@ import java.io.StringWriter
 import java.io.Writer
 import java.nio.file.Path
 import kotlin.text.Charsets.UTF_8
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.yield
 
 private const val sqliteCliOutputArgPrefix = ".output"
 

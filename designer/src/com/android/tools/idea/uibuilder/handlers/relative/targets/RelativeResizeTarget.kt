@@ -40,6 +40,7 @@ import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 /**
  * Target to handle the resizing of RelativeLayout's children
+ *
  * TODO: Handle the resizing in RTL mode
  */
 class RelativeResizeTarget(type: ResizeBaseTarget.Type) : ResizeWithSnapBaseTarget(type) {

@@ -35,35 +35,43 @@ class DesignerAnalyticsManagerTest : AndroidTestBase() {
 
   fun testBasicTracking() {
     myAnalyticsManager.trackUnknownEvent()
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE)
 
     myAnalyticsManager.trackShowIssuePanel()
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SHOW_LINT_MESSAGES)
   }
 
   fun testZoomTracking() {
     var type = ZoomType.ACTUAL
     myAnalyticsManager.trackZoom(type)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
 
     type = ZoomType.IN
     myAnalyticsManager.trackZoom(type)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
 
     type = ZoomType.OUT
     myAnalyticsManager.trackZoom(type)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
 
     type = ZoomType.FIT
     myAnalyticsManager.trackZoom(type)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
   }
 
   fun testIssuePanelTracking() {
     myAnalyticsManager.trackIssuePanel(true)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL)
 
     myAnalyticsManager.trackIssuePanel(false)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL)
   }
 }

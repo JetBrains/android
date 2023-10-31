@@ -19,6 +19,4 @@ import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith
 
-@RunWith(JarTestSuiteRunner::class)
-@JarTestSuiteRunner.ExcludeClasses(PreviewDesignerTestSuite::class)  // a suite must not contain itself
-class PreviewDesignerTestSuite : IdeaTestSuiteBase()
+@RunWith(JarTestSuiteRunner::class) class PreviewDesignerTestSuite : IdeaTestSuiteBase()

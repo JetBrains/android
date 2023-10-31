@@ -63,91 +63,94 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.fail
 
 class ForegroundProcessDetectionTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   private val projectRule = ProjectRule()
 
   private val adbRule = FakeAdbRule()
-  private val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
-    adbRule.withDeviceCommandHandler(this)
-  }
+  private val adbProperties: AdbDebugViewProperties =
+    FakeShellCommandHandler().apply { adbRule.withDeviceCommandHandler(this) }
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
 
   @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule)
-    .around(adbRule)
-    .around(adbService)
+  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
+  val grpcServerRule =
+    FakeGrpcServer.createFakeGrpcServer("ForegroundProcessDetectionTest", transportService)
 
   private val timestampGenerator = AtomicLong()
 
-  private val device1 = Common.Device.newBuilder()
-    .setDeviceId(1)
-    .setManufacturer("man1")
-    .setModel("mod1")
-    .setSerial("serial1")
-    .setIsEmulator(false)
-    .setApiLevel(1)
-    .setVersion("version1")
-    .setCodename("codename1")
-    .setState(Common.Device.State.ONLINE)
-    .build()
+  private val device1 =
+    Common.Device.newBuilder()
+      .setDeviceId(1)
+      .setManufacturer("man1")
+      .setModel("mod1")
+      .setSerial("serial1")
+      .setIsEmulator(false)
+      .setApiLevel(1)
+      .setVersion("version1")
+      .setCodename("codename1")
+      .setState(Common.Device.State.ONLINE)
+      .build()
 
-  private val device2 = Common.Device.newBuilder()
-    .setDeviceId(2)
-    .setManufacturer("man2")
-    .setModel("mod2")
-    .setSerial("serial2")
-    .setIsEmulator(false)
-    .setApiLevel(2)
-    .setVersion("version2")
-    .setCodename("codename2")
-    .setState(Common.Device.State.ONLINE)
-    .build()
+  private val device2 =
+    Common.Device.newBuilder()
+      .setDeviceId(2)
+      .setManufacturer("man2")
+      .setModel("mod2")
+      .setSerial("serial2")
+      .setIsEmulator(false)
+      .setApiLevel(2)
+      .setVersion("version2")
+      .setCodename("codename2")
+      .setState(Common.Device.State.ONLINE)
+      .build()
 
-  private val device3 = Common.Device.newBuilder()
-    .setDeviceId(3)
-    .setManufacturer("man3")
-    .setModel("mod3")
-    .setSerial("serial3")
-    .setIsEmulator(false)
-    .setApiLevel(3)
-    .setVersion("version3")
-    .setCodename("codename3")
-    .setState(Common.Device.State.ONLINE)
-    .build()
+  private val device3 =
+    Common.Device.newBuilder()
+      .setDeviceId(3)
+      .setManufacturer("man3")
+      .setModel("mod3")
+      .setSerial("serial3")
+      .setIsEmulator(false)
+      .setApiLevel(3)
+      .setVersion("version3")
+      .setCodename("codename3")
+      .setState(Common.Device.State.ONLINE)
+      .build()
 
-  private val device4 = Common.Device.newBuilder()
-    .setDeviceId(4)
-    .setManufacturer("man4")
-    .setModel("mod4")
-    .setSerial("serial4")
-    .setIsEmulator(false)
-    .setApiLevel(4)
-    .setVersion("version4")
-    .setCodename("codename4")
-    .setState(Common.Device.State.ONLINE)
-    .build()
+  private val device4 =
+    Common.Device.newBuilder()
+      .setDeviceId(4)
+      .setManufacturer("man4")
+      .setModel("mod4")
+      .setSerial("serial4")
+      .setIsEmulator(false)
+      .setApiLevel(4)
+      .setVersion("version4")
+      .setCodename("codename4")
+      .setState(Common.Device.State.ONLINE)
+      .build()
 
-  private val deviceToStreamMap = mapOf(
-    device1 to createFakeStream(1, device1),
-    device2 to createFakeStream(2, device2),
-    device3 to createFakeStream(3, device3),
-    device4 to createFakeStream(4, device4),
-  )
+  private val deviceToStreamMap =
+    mapOf(
+      device1 to createFakeStream(1, device1),
+      device2 to createFakeStream(2, device2),
+      device3 to createFakeStream(3, device3),
+      device4 to createFakeStream(4, device4),
+    )
 
-  private val deviceToHandshakeSupportTypeMap = mutableMapOf(
-    device1 to SupportType.SUPPORTED,
-    device2 to SupportType.SUPPORTED,
-    device3 to SupportType.NOT_SUPPORTED,
-    device4 to SupportType.UNKNOWN,
-  )
+  private val deviceToHandshakeSupportTypeMap =
+    mutableMapOf(
+      device1 to SupportType.SUPPORTED,
+      device2 to SupportType.SUPPORTED,
+      device3 to SupportType.NOT_SUPPORTED,
+      device4 to SupportType.UNKNOWN,
+    )
 
   private lateinit var transportClient: TransportClient
   private lateinit var workDispatcher: CoroutineDispatcher
@@ -171,7 +174,9 @@ class ForegroundProcessDetectionTest {
     coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
 
     // mock device response to handshake command
-    transportService.setCommandHandler(Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED) { command ->
+    transportService.setCommandHandler(
+      Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED
+    ) { command ->
       val stream = getStreamFromCommand(command)
       val device = getDeviceFromCommand(command)
       val supportType = deviceToHandshakeSupportTypeMap[device]!!
@@ -185,20 +190,20 @@ class ForegroundProcessDetectionTest {
     }
 
     // mock device response to start tracking command
-    transportService.setCommandHandler(Command.CommandType.START_TRACKING_FOREGROUND_PROCESS) { command ->
+    transportService.setCommandHandler(Command.CommandType.START_TRACKING_FOREGROUND_PROCESS) {
+      command ->
       val device = getDeviceFromCommand(command)
       coroutineScope.launch { startTrackingSyncChannel.send(device) }
     }
 
     // mock device response to stop tracking command
-    transportService.setCommandHandler(Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS) { command ->
+    transportService.setCommandHandler(Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS) {
+      command ->
       val device = getDeviceFromCommand(command)
       coroutineScope.launch { stopTrackingSyncChannel.send(device) }
     }
 
-    adbRule.bridge.devices.forEach {
-      adbRule.disconnectDevice(it.serialNumber)
-    }
+    adbRule.bridge.devices.forEach { adbRule.disconnectDevice(it.serialNumber) }
   }
 
   @After
@@ -214,23 +219,26 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testReceiveForegroundProcessesDevice(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     connectDevice(device1)
     val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
@@ -267,43 +275,48 @@ class ForegroundProcessDetectionTest {
     val coroutineScope2 = AndroidCoroutineScope(disposableRule.disposable)
 
     // studio1
-    val foregroundProcessDetection1 = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel1,
-      processModel1,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope1,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection1 =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel1,
+        processModel1,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope1,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     // studio2
-    val foregroundProcessDetection2 = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel2,
-      processModel2,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope2,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection2 =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel2,
+        processModel2,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope2,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection1.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection1.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     connectDevice(device1)
     val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
     val startTrackingDevice1 = startTrackingSyncChannel.receive()
 
-    // we expect both instances of Studio to receive the "device connected" event and to initiate the handshake
+    // we expect both instances of Studio to receive the "device connected" event and to initiate
+    // the handshake
     val (handshakeDevice2, supportType2) = handshakeSyncChannel.receive()
     val startTrackingDevice2 = startTrackingSyncChannel.receive()
 
@@ -338,23 +351,26 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testReceiveForegroundProcessesFromSelectedDevice(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     connectDevice(device1)
     handshakeSyncChannel.receive()
@@ -390,23 +406,26 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testHandshakeDeviceIsNotSupported(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device3)
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     connectDevice(device3)
     val (connectedDevice, supportType) = handshakeSyncChannel.receive()
@@ -420,7 +439,8 @@ class ForegroundProcessDetectionTest {
     assertThat(supportType).isEqualTo(SupportType.NOT_SUPPORTED)
 
     foregroundProcessDetection.stopPollingSelectedDevice()
-    // stop tracking should never be sent, becase device3 does not support foreground process tracking
+    // stop tracking should never be sent, becase device3 does not support foreground process
+    // tracking
     withTimeoutOrNull<Nothing>(500) {
       stopTrackingSyncChannel.receive()
       fail()
@@ -430,23 +450,26 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testStopPollingSelectedDevice() = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1, device2)
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     val selectedDeviceSyncChannel = Channel<DeviceDescriptor?>()
     deviceModel.newSelectedDeviceListeners.add { device ->
@@ -504,7 +527,7 @@ class ForegroundProcessDetectionTest {
     assertThat(startTrackingDevice2).isEqualTo(device1)
 
     foregroundProcessDetection.stopPollingSelectedDevice()
-   val stopTrackingDevice3 = stopTrackingSyncChannel.receive()
+    val stopTrackingDevice3 = stopTrackingSyncChannel.receive()
 
     assertThat(stopTrackingDevice3).isEqualTo(device1)
 
@@ -514,39 +537,42 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
-  fun testDeviceViewAttributeResetAfterDeviceDisconnect() = runBlockingWithFlagState(true) {
-    val onDeviceDisconnectedSyncChannel = Channel<DeviceDescriptor>()
-    val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {
-      coroutineScope.launch { onDeviceDisconnectedSyncChannel.send(it) }
+  fun testDeviceViewAttributeResetAfterDeviceDisconnect() =
+    runBlockingWithFlagState(true) {
+      val onDeviceDisconnectedSyncChannel = Channel<DeviceDescriptor>()
+      val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {
+        coroutineScope.launch { onDeviceDisconnectedSyncChannel.send(it) }
+      }
+
+      val (deviceModel, processModel) = createDeviceModel(device1)
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected,
+        pollingIntervalMs = 500L
+      )
+
+      connectDevice(device1)
+      handshakeSyncChannel.receive()
+      startTrackingSyncChannel.receive()
+
+      val changed =
+        DebugViewAttributes.getInstance()
+          .set(projectRule.project, device1.toDeviceDescriptor().createProcess("fakeprocess"))
+      assertThat(changed).isTrue()
+
+      disconnectDevice(device1)
+      onDeviceDisconnectedSyncChannel.receive()
+
+      assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
+      assertThat(adbProperties.debugViewAttributes).isNull()
     }
-
-    val (deviceModel, processModel) = createDeviceModel(device1)
-    ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected,
-      pollingIntervalMs = 500L
-    )
-
-    connectDevice(device1)
-    handshakeSyncChannel.receive()
-    startTrackingSyncChannel.receive()
-
-    val changed = DebugViewAttributes.getInstance().set(projectRule.project, device1.toDeviceDescriptor().createProcess("fakeprocess"))
-    assertThat(changed).isTrue()
-
-    disconnectDevice(device1)
-    onDeviceDisconnectedSyncChannel.receive()
-
-    assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-    assertThat(adbProperties.debugViewAttributes).isNull()
-  }
 
   @Test
   fun testStopPollingDeviceOnlyIfNotSelectedByOtherProjects(): Unit = runBlocking {
@@ -557,23 +583,26 @@ class ForegroundProcessDetectionTest {
 
     deviceModel2.setSelectedDevice(device1.toDeviceDescriptor())
 
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel1,
-      processModel1,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel1,
+        processModel1,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     connectDevice(device1)
     val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
@@ -593,9 +622,11 @@ class ForegroundProcessDetectionTest {
     val startTrackingDevice2 = startTrackingSyncChannel.receive()
     assertThat(startTrackingDevice2).isEqualTo(device2)
 
-    // normally `startPollingDevice` would start polling on the new device (`device2`) and stop polling on the previous one (`device1`).
+    // normally `startPollingDevice` would start polling on the new device (`device2`) and stop
+    // polling on the previous one (`device1`).
     // in this case it shouldn't, because `device1` is the selected device in `deviceModel2`.
-    // there is only one polling per device, so stopping the polling on `device1` would stop the polling for all connected projects.
+    // there is only one polling per device, so stopping the polling on `device1` would stop the
+    // polling for all connected projects.
     withTimeoutOrNull<Nothing>(500) {
       stopTrackingSyncChannel.receive()
       fail()
@@ -643,23 +674,26 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testSelectedProcessOnNotSupportedDeviceReInitiatesHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     val selectedDeviceSyncChannel = Channel<DeviceDescriptor?>()
     deviceModel.newSelectedDeviceListeners.add { device ->
@@ -684,7 +718,8 @@ class ForegroundProcessDetectionTest {
     // run this in a separate coroutine, to avoid risk of deadlock
     coroutineScope.launch {
       // this should trigger the initiation of a new handshake
-      processModel.selectedProcess = device3.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
+      processModel.selectedProcess =
+        device3.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
     }
 
     val (handshakeDevice2, supportType2) = handshakeSyncChannel.receive()
@@ -702,7 +737,8 @@ class ForegroundProcessDetectionTest {
     }
 
     // the process is from a device that is not running, handshake should not start
-    processModel.selectedProcess = device3.toDeviceDescriptor().createProcess("fake_process", isRunning = false)
+    processModel.selectedProcess =
+      device3.toDeviceDescriptor().createProcess("fake_process", isRunning = false)
 
     withTimeoutOrNull<Nothing>(500) {
       val unexpectedDevice = selectedDeviceSyncChannel.receive()
@@ -718,23 +754,26 @@ class ForegroundProcessDetectionTest {
   @Test
   fun testSelectedProcessOnSupportedDeviceDoesNotReInitiatesHandshake(): Unit = runBlocking {
     val (deviceModel, processModel) = createDeviceModel(device1)
-    val foregroundProcessDetection = ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
     val foregroundProcessSyncChannel = Channel<NewForegroundProcess>()
-    foregroundProcessDetection.foregroundProcessListeners.add(ForegroundProcessListener { device, foregroundProcess ->
-      coroutineScope.launch { foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess)) }
-    })
+    foregroundProcessDetection.addForegroundProcessListener { device, foregroundProcess, _ ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(NewForegroundProcess(device, foregroundProcess))
+      }
+    }
 
     connectDevice(device1)
     val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
@@ -745,7 +784,8 @@ class ForegroundProcessDetectionTest {
     assertThat(trackingDevice1).isEqualTo(device1)
 
     // this should not trigger the initiation of a new handshake
-    processModel.selectedProcess = device1.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
+    processModel.selectedProcess =
+      device1.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
     withTimeoutOrNull<Nothing>(500) {
       val (unexpectedDevice, _) = handshakeSyncChannel.receive()
       fail("Unexpected handshake with device \"${unexpectedDevice.deviceId}\"")
@@ -753,57 +793,59 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
-  fun testSelectedProcessOnUnknownSupportDeviceDoesNotCreateSimultaneousHandshake(): Unit = runBlocking {
-    val (deviceModel, processModel) = createDeviceModel(device4)
-    ForegroundProcessDetection(
-      projectRule.project,
-      deviceModel,
-      processModel,
-      transportClient,
-      mock(),
-      mock(),
-      coroutineScope,
-      workDispatcher,
-      onDeviceDisconnected = {},
-      pollingIntervalMs = 500L
-    )
+  fun testSelectedProcessOnUnknownSupportDeviceDoesNotCreateSimultaneousHandshake(): Unit =
+    runBlocking {
+      val (deviceModel, processModel) = createDeviceModel(device4)
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
 
-    connectDevice(device4)
-    val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
-    assertThat(handshakeDevice1).isEqualTo(device4)
-    assertThat(supportType1).isEqualTo(SupportType.UNKNOWN)
+      connectDevice(device4)
+      val (handshakeDevice1, supportType1) = handshakeSyncChannel.receive()
+      assertThat(handshakeDevice1).isEqualTo(device4)
+      assertThat(supportType1).isEqualTo(SupportType.UNKNOWN)
 
-    withTimeoutOrNull<Nothing>(500) {
-      val unexpectedDevice = startTrackingSyncChannel.receive()
-      fail("Unexpectedly started tracking device \"${unexpectedDevice.deviceId}\"")
+      withTimeoutOrNull<Nothing>(500) {
+        val unexpectedDevice = startTrackingSyncChannel.receive()
+        fail("Unexpectedly started tracking device \"${unexpectedDevice.deviceId}\"")
+      }
+
+      val (handshakeDevice2, supportType2) = handshakeSyncChannel.receive()
+      assertThat(handshakeDevice2).isEqualTo(device4)
+      assertThat(supportType2).isEqualTo(SupportType.UNKNOWN)
+
+      // this should not trigger the initiation of a new handshake
+      processModel.selectedProcess =
+        device4.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
+
+      val (handshakeDevice3, supportType3) = handshakeSyncChannel.receive()
+      assertThat(handshakeDevice3).isEqualTo(device4)
+      assertThat(supportType3).isEqualTo(SupportType.UNKNOWN)
+
+      // stop handshake
+      deviceToHandshakeSupportTypeMap[device4] = SupportType.NOT_SUPPORTED
+
+      val (handshakeDevice4, supportType4) = handshakeSyncChannel.receive()
+      assertThat(handshakeDevice4).isEqualTo(device4)
+      assertThat(supportType4).isEqualTo(SupportType.NOT_SUPPORTED)
+
+      withTimeoutOrNull<Nothing>(500) {
+        val (unexpectedDevice, _) = handshakeSyncChannel.receive()
+        fail("Unexpected handshake with device \"${unexpectedDevice.deviceId}\"")
+      }
+
+      // restore to UNKNOWN
+      deviceToHandshakeSupportTypeMap[device4] = SupportType.UNKNOWN
     }
-
-    val (handshakeDevice2, supportType2) = handshakeSyncChannel.receive()
-    assertThat(handshakeDevice2).isEqualTo(device4)
-    assertThat(supportType2).isEqualTo(SupportType.UNKNOWN)
-
-    // this should not trigger the initiation of a new handshake
-    processModel.selectedProcess = device4.toDeviceDescriptor().createProcess("fake_process", isRunning = true)
-
-    val (handshakeDevice3, supportType3) = handshakeSyncChannel.receive()
-    assertThat(handshakeDevice3).isEqualTo(device4)
-    assertThat(supportType3).isEqualTo(SupportType.UNKNOWN)
-
-    // stop handshake
-    deviceToHandshakeSupportTypeMap[device4] = SupportType.NOT_SUPPORTED
-
-    val (handshakeDevice4, supportType4) = handshakeSyncChannel.receive()
-    assertThat(handshakeDevice4).isEqualTo(device4)
-    assertThat(supportType4).isEqualTo(SupportType.NOT_SUPPORTED)
-
-    withTimeoutOrNull<Nothing>(500) {
-      val (unexpectedDevice, _) = handshakeSyncChannel.receive()
-      fail("Unexpected handshake with device \"${unexpectedDevice.deviceId}\"")
-    }
-
-    // restore to UNKNOWN
-    deviceToHandshakeSupportTypeMap[device4] = SupportType.UNKNOWN
-  }
 
   @Test
   // TODO(b/260847188) re-enable
@@ -818,7 +860,7 @@ class ForegroundProcessDetectionTest {
     val layoutInspectorMetrics = mock<LayoutInspectorMetrics>()
 
     val (deviceModel, processModel) = createDeviceModel(device1)
-    ForegroundProcessDetection(
+    ForegroundProcessDetectionImpl(
       projectRule.project,
       deviceModel,
       processModel,
@@ -840,10 +882,11 @@ class ForegroundProcessDetectionTest {
     connectDevice(device1, 1)
     val (handshakeDevice2, _) = handshakeSyncChannel.receive()
 
-    verify(layoutInspectorMetrics).logTransportError(
-      DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
-      device1.toDeviceDescriptor()
-    )
+    verify(layoutInspectorMetrics)
+      .logTransportError(
+        DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
+        device1.toDeviceDescriptor()
+      )
 
     disconnectDevice(device1)
     val disconnectedDevice2 = onDeviceDisconnectedSyncChannel.receive()
@@ -860,10 +903,11 @@ class ForegroundProcessDetectionTest {
     connectDevice(device2, 1)
     val (handshakeDevice5, _) = handshakeSyncChannel.receive()
 
-    verify(layoutInspectorMetrics).logTransportError(
-      DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
-      device2.toDeviceDescriptor()
-    )
+    verify(layoutInspectorMetrics)
+      .logTransportError(
+        DynamicLayoutInspectorTransportError.Type.TRANSPORT_OLD_TIMESTAMP_BIGGER_THAN_NEW_TIMESTAMP,
+        device2.toDeviceDescriptor()
+      )
 
     verifyNoMoreInteractions(layoutInspectorMetrics)
 
@@ -877,81 +921,199 @@ class ForegroundProcessDetectionTest {
     assertThat(disconnectedDevice3).isEqualTo(device2.toDeviceDescriptor())
   }
 
-  /**
-   * Assert that [newForegroundProcess] contains the expected [device] and [foregroundProcess].
-   */
-  private fun assertEqual(newForegroundProcess: NewForegroundProcess, device: Common.Device, foregroundProcess: ForegroundProcess) {
+  @Test
+  fun testStopPollingIsNotSentWhenPollingNewDevice(): Unit = runBlocking {
+    val (deviceModel, processModel) = createDeviceModel(device1, device2)
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
+
+    connectDevice(device1)
+    handshakeSyncChannel.receive()
+    startTrackingSyncChannel.receive()
+
+    connectDevice(device2)
+    handshakeSyncChannel.receive()
+    // we should not start polling this device
+    withTimeoutOrNull<Nothing>(500) {
+      startTrackingSyncChannel.receive()
+      fail()
+    }
+
+    // should not send stop polling event
+    foregroundProcessDetection.startPollingDevice(device2.toDeviceDescriptor(), false)
+    val device = startTrackingSyncChannel.receive()
+    assertThat(device).isEqualTo(device2)
+
+    // we should not stop polling this device
+    withTimeoutOrNull<Nothing>(500) {
+      val unexpectedDevice = stopTrackingSyncChannel.receive()
+      fail("Unexpectedly stopped polling device ${unexpectedDevice.deviceId}")
+    }
+
+    foregroundProcessDetection.stopPollingSelectedDevice()
+    stopTrackingSyncChannel.receive()
+  }
+
+  @Test
+  fun testNonDebuggableProcessIsMarkedAsNonDebuggable(): Unit = runBlocking {
+    val processDiscovery = TestProcessDiscovery()
+    val (deviceModel, processModel) = createDeviceModel(listOf(device1), processDiscovery)
+    val foregroundProcessDetection =
+      ForegroundProcessDetectionImpl(
+        projectRule.project,
+        deviceModel,
+        processModel,
+        transportClient,
+        mock(),
+        mock(),
+        coroutineScope,
+        workDispatcher,
+        onDeviceDisconnected = {},
+        pollingIntervalMs = 500L
+      )
+
+    val foregroundProcessSyncChannel = Channel<Pair<NewForegroundProcess, Boolean>>()
+    foregroundProcessDetection.addForegroundProcessListener {
+      device,
+      foregroundProcess,
+      isDebuggable ->
+      coroutineScope.launch {
+        foregroundProcessSyncChannel.send(
+          NewForegroundProcess(device, foregroundProcess) to isDebuggable
+        )
+      }
+    }
+
+    connectDevice(device1)
+    val (handshakeDevice, supportType) = handshakeSyncChannel.receive()
+    val startTrackingDevice = startTrackingSyncChannel.receive()
+
+    assertThat(handshakeDevice).isEqualTo(device1)
+    assertThat(supportType).isEqualTo(SupportType.SUPPORTED)
+
+    assertThat(startTrackingDevice).isEqualTo(device1)
+
+    // process1 is debuggable because it's in the process model
+    processDiscovery.fireConnected(device1.toDeviceDescriptor().createProcess("process1", 1))
+    sendForegroundProcessEvent(device1, ForegroundProcess(1, "process1"))
+    val received1 = foregroundProcessSyncChannel.receive()
+    assertEqual(received1.first, device1, ForegroundProcess(1, "process1"))
+    assertThat(received1.second).isTrue()
+
+    // process2 is not debuggable because it's not in the process model
+    sendForegroundProcessEvent(device1, ForegroundProcess(2, "process2"))
+    val received2 = foregroundProcessSyncChannel.receive()
+    assertEqual(received2.first, device1, ForegroundProcess(2, "process2"))
+    assertThat(received2.second).isFalse()
+
+    foregroundProcessDetection.stopPollingSelectedDevice()
+    val stopTrackingDevice = stopTrackingSyncChannel.receive()
+
+    assertThat(stopTrackingDevice).isEqualTo(device1)
+  }
+
+  /** Assert that [newForegroundProcess] contains the expected [device] and [foregroundProcess]. */
+  private fun assertEqual(
+    newForegroundProcess: NewForegroundProcess,
+    device: Common.Device,
+    foregroundProcess: ForegroundProcess
+  ) {
     assertThat(newForegroundProcess.device).isEqualTo(device.toDeviceDescriptor())
     assertThat(newForegroundProcess.foregroundProcess).isEqualTo(foregroundProcess)
   }
 
-  private fun sendForegroundProcessEvent(device: Common.Device, foregroundProcess: ForegroundProcess) {
+  private fun sendForegroundProcessEvent(
+    device: Common.Device,
+    foregroundProcess: ForegroundProcess
+  ) {
     val stream = deviceToStreamMap[device]!!
     val event = createForegroundProcessEvent(foregroundProcess, stream)
     sendEvent(stream, event)
   }
 
-  /**
-   * Connect a device to the transport and to adb.
-   */
+  /** Connect a device to the transport and to adb. */
   private fun connectDevice(device: Common.Device, timestamp: Long? = null) {
     val transportDevice = deviceToStreamMap[device]!!.device
 
     if (timestamp != null) {
       transportService.addDevice(transportDevice, timestamp)
-    }
-    else {
+    } else {
       transportService.addDevice(transportDevice)
     }
 
     if (adbRule.bridge.devices.none { it.serialNumber == device.serial }) {
-      adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+      adbRule.attachDevice(
+        device.serial,
+        device.manufacturer,
+        device.model,
+        device.version,
+        device.apiLevel.toString()
+      )
     }
   }
 
-  /**
-   * Disconnect a device from the transport and from adb.
-   */
+  /** Disconnect a device from the transport and from adb. */
   private fun disconnectDevice(device: Common.Device) {
-    val offlineDevice = device.toBuilder()
-      .setState(Common.Device.State.OFFLINE)
-      .build()
+    val offlineDevice = device.toBuilder().setState(Common.Device.State.OFFLINE).build()
 
     transportService.updateDevice(device, offlineDevice)
   }
 
   private fun createDeviceModel(vararg devices: Common.Device): Pair<DeviceModel, ProcessesModel> {
-    val testProcessDiscovery = TestProcessDiscovery()
+    return createDeviceModel(devices.toList())
+  }
+
+  private fun createDeviceModel(
+    devices: List<Common.Device>,
+    testProcessDiscovery: TestProcessDiscovery = TestProcessDiscovery()
+  ): Pair<DeviceModel, ProcessesModel> {
     devices.forEach { testProcessDiscovery.addDevice(it.toDeviceDescriptor()) }
     val processModel = ProcessesModel(testProcessDiscovery)
     return DeviceModel(disposableRule.disposable, processModel) to processModel
   }
 
-  private fun createForegroundProcessEvent(foregroundProcess: ForegroundProcess, stream: Common.Stream): Common.Event {
+  private fun createForegroundProcessEvent(
+    foregroundProcess: ForegroundProcess,
+    stream: Common.Stream
+  ): Common.Event {
     val eventBuilder = Common.Event.newBuilder()
     return eventBuilder
       .setKind(Common.Event.Kind.LAYOUT_INSPECTOR_FOREGROUND_PROCESS)
       .setGroupId(stream.streamId)
       .setStream(
         eventBuilder.streamBuilder.setStreamConnected(
-          eventBuilder.streamBuilder.streamConnectedBuilder
-            .setStream(stream)
+          eventBuilder.streamBuilder.streamConnectedBuilder.setStream(stream)
         )
-      ).setLayoutInspectorForegroundProcess(
+      )
+      .setLayoutInspectorForegroundProcess(
         eventBuilder.layoutInspectorForegroundProcessBuilder
           .setPid(foregroundProcess.pid.toString())
           .setProcessName(foregroundProcess.processName)
           .build()
-      ).build()
+      )
+      .build()
   }
 
   private fun buildForegroundProcessSupportedEvent(supportType: SupportType): Common.Event {
-    val foregroundProcessEventBuilder = Common.Event.newBuilder()
-      .layoutInspectorTrackingForegroundProcessSupportedBuilder
-      .setSupportType(supportType)
+    val foregroundProcessEventBuilder =
+      Common.Event.newBuilder()
+        .layoutInspectorTrackingForegroundProcessSupportedBuilder
+        .setSupportType(supportType)
 
     if (supportType == SupportType.NOT_SUPPORTED) {
-      foregroundProcessEventBuilder.reasonNotSupported = LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NOT_FOUND
+      foregroundProcessEventBuilder.reasonNotSupported =
+        LayoutInspector.TrackingForegroundProcessSupported.ReasonNotSupported.DUMPSYS_NOT_FOUND
     }
 
     return Common.Event.newBuilder()
@@ -961,27 +1123,29 @@ class ForegroundProcessDetectionTest {
   }
 
   private fun createFakeStream(streamId: Long, device: Common.Device): Common.Stream {
-    return Common.Stream.newBuilder()
-      .setStreamId(streamId)
-      .setDevice(device)
-      .build()
+    return Common.Stream.newBuilder().setStreamId(streamId).setDevice(device).build()
   }
 
   private fun sendEvent(stream: Common.Stream, event: Common.Event) {
     val streamId = stream.streamId
-    val eventWithTimestamp = event.toBuilder().apply {
-      timestamp = timestampGenerator.getAndIncrement()
-    }.build()
+    val eventWithTimestamp =
+      event.toBuilder().apply { timestamp = timestampGenerator.getAndIncrement() }.build()
 
     transportService.addEventToStream(streamId, eventWithTimestamp)
   }
 
-  private fun FakeTransportService.setCommandHandler(command: Command.CommandType, block: (Command) -> Unit) {
-    setCommandHandler(command, object : CommandHandler(timer) {
-      override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
-        block.invoke(command)
+  private fun FakeTransportService.setCommandHandler(
+    command: Command.CommandType,
+    block: (Command) -> Unit
+  ) {
+    setCommandHandler(
+      command,
+      object : CommandHandler(timer) {
+        override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
+          block.invoke(command)
+        }
       }
-    })
+    )
   }
 
   private fun getStreamFromCommand(command: Command): Common.Stream {
@@ -993,20 +1157,22 @@ class ForegroundProcessDetectionTest {
     return deviceToStreamMap.reverse()[stream]!!
   }
 
-  /**
-   * Class containing all the information provided when a new foreground process shows up.
-   */
-  private data class NewForegroundProcess(val device: DeviceDescriptor, val foregroundProcess: ForegroundProcess)
+  /** Class containing all the information provided when a new foreground process shows up. */
+  private data class NewForegroundProcess(
+    val device: DeviceDescriptor,
+    val foregroundProcess: ForegroundProcess
+  )
 
   @Suppress("SameParameterValue")
-  private fun runBlockingWithFlagState(desiredFlagState: Boolean, task: suspend () -> Unit): Unit = runBlocking {
-    val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
-    val flagPreviousState = flag.get()
-    flag.override(desiredFlagState)
+  private fun runBlockingWithFlagState(desiredFlagState: Boolean, task: suspend () -> Unit): Unit =
+    runBlocking {
+      val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+      val flagPreviousState = flag.get()
+      flag.override(desiredFlagState)
 
-    task()
+      task()
 
-    // restore flag state
-    flag.override(flagPreviousState)
-  }
+      // restore flag state
+      flag.override(flagPreviousState)
+    }
 }

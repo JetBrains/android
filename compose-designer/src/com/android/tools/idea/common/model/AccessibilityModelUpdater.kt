@@ -18,12 +18,11 @@ package com.android.tools.idea.common.model
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
-import com.android.tools.idea.compose.preview.navigation.remapInline
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
-import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.getAccessibilitySourceId
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlTag
@@ -63,10 +62,9 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
       val composeViewInfos =
         parseViewInfo(
           rootViewInfo = viewInfo,
-          lineNumberMapper = remapInline(model.module),
           logger = Logger.getInstance(AccessibilityModelUpdater::class.java)
         )
-      createTree(it, composeViewInfos, viewInfo.children, model)
+      createTree(it, composeViewInfos, viewInfo.children, model, 0, 0)
     }
   }
 
@@ -74,23 +72,27 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
     root: NlComponent,
     composeViewInfos: List<ComposeViewInfo>,
     viewInfos: List<ViewInfo>,
-    model: NlModel
+    model: NlModel,
+    rootGlobalX: Int,
+    rootGlobalY: Int
   ) {
     for (viewInfo in viewInfos) {
       val childComponent = NlComponent(model, viewInfo.getAccessibilitySourceId())
       NlComponentRegistrar.accept(childComponent)
       root.addChild(childComponent)
+      val globalLeft = rootGlobalX + viewInfo.left
+      val globalTop = rootGlobalY + viewInfo.top
       val navigatable =
         findNavigatableComponentHit(
           model.module,
           composeViewInfos,
-          (viewInfo.left + viewInfo.right) / 2,
-          (viewInfo.top + viewInfo.bottom) / 2
+          globalLeft + (viewInfo.right - viewInfo.left) / 2,
+          globalTop + (viewInfo.bottom - viewInfo.top) / 2
         )
       if (navigatable != null) {
         childComponent.setNavigatable(navigatable)
       }
-      createTree(childComponent, composeViewInfos, viewInfo.children, model)
+      createTree(childComponent, composeViewInfos, viewInfo.children, model, globalLeft, globalTop)
     }
   }
 }

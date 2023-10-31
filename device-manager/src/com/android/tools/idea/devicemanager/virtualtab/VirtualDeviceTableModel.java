@@ -340,7 +340,7 @@ final class VirtualDeviceTableModel extends AbstractTableModel {
 
     // noinspection UnstableApiUsage
     FluentFuture.from(getDefaultAvdManagerConnection())
-      .transformAsync(connection -> connection.startAvd(myProject, device.getAvdInfo(), RequestType.DIRECT), executor)
+      .transformAsync(connection -> connection.startAvd(myProject, device.getAvdInfo(), RequestType.DIRECT_DEVICE_MANAGER), executor)
       .addCallback(myNewSetAllOnline.apply(this), executor);
   }
 

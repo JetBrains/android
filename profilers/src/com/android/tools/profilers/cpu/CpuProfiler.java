@@ -69,7 +69,8 @@ public class CpuProfiler implements StudioProfiler {
 
   private void onImportSessionSelected() {
     profilers.getIdeServices().runAsync(
-      () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), profilers.getSession().getStartTimestamp()),
+      () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN,
+                                   profilers.getSession().getStartTimestamp()),
       captureStage -> {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));

@@ -8,32 +8,34 @@
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-build-analyzer-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.build-analyzer.common:223.0.1.0">
+      <library name="precompiled-build-analyzer.common" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.build-analyzer.common:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common/223.0.1.0/studio.android.build-analyzer.common-223.0.1.0.jar">
-              <sha256sum>3340296a57c0a6ad663e83cce8228551f431abc3523a1ad9b74706f388dc4495</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common/231.0.1.4/studio.android.build-analyzer.common-231.0.1.4.jar">
+              <sha256sum>13918960dc191e66316ebb56e006892561a93a9520b6798bc6276246ad5e04e2</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common/223.0.1.0/studio.android.build-analyzer.common-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common/231.0.1.4/studio.android.build-analyzer.common-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common/231.0.1.4/studio.android.build-analyzer.common-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="precompiled-build-analyzer-common-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.build-analyzer.common_test:223.0.1.0">
+      <library name="precompiled-build-analyzer.common-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.build-analyzer.common_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common_test/223.0.1.0/studio.android.build-analyzer.common_test-223.0.1.0.jar">
-              <sha256sum>4c5cd4e6cbde04e2f87389e21b0475e99ecb79a7a82c288db3d1f32a373d8951</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common_test/231.0.1.4/studio.android.build-analyzer.common_test-231.0.1.4.jar">
+              <sha256sum>6fb9682e15dd083603b648e08b217416f7be0ffab8d980aa3b056c5a9dea0816</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common_test/223.0.1.0/studio.android.build-analyzer.common_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.build-analyzer.common_test/231.0.1.4/studio.android.build-analyzer.common_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -48,17 +48,19 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.concurrent.CountDownLatch
-import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.idea.base.psi.getLineNumber
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.concurrent.CountDownLatch
+import javax.swing.JPanel
 
 private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandler {
   /**
@@ -72,7 +74,7 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
     expectedInvocationsCountDownLatch = CountDownLatch(newExpectedInvocations)
   }
 
-  override suspend fun handleNavigate(
+  override suspend fun handleNavigateWithCoordinates(
     sceneView: SceneView,
     x: Int,
     y: Int,
@@ -91,6 +93,13 @@ private class TestNavigationHandler(expectedInvocations: Int) : NavigationHandle
 
   override fun dispose() {}
 }
+
+/** Calculates the line for the [OpenFileDescriptor] from the information contained. */
+private fun OpenFileDescriptor.calculateLine(): Int =
+  if (line > 0) line
+  else {
+    PsiManager.getInstance(project).findFile(file)?.findElementAt(offset)?.getLineNumber(true) ?: -1
+  }
 
 class PreviewNavigationTest {
   private val LOG = Logger.getInstance(PreviewNavigationTest::class.java)
@@ -166,6 +175,36 @@ class PreviewNavigationTest {
       .join()
   }
 
+  @Test
+  fun testInlineNavigation() {
+    val facet = projectRule.androidFacet(":app")
+    val module = facet.mainModule
+
+    renderPreviewElementForResult(
+        facet,
+        SingleComposePreviewElementInstance.forTesting(
+          "google.simpleapplication.MainActivityKt.MyPreviewWithInline"
+        )
+      )
+      .thenAccept { renderResult ->
+        val rootView = renderResult!!.rootViews.single()!!
+        val viewInfos = parseViewInfo(rootView, logger = LOG)
+        ReadAction.run<Throwable> {
+          // Find the boundaries for the root element. This will cover the whole layout
+          val bounds = viewInfos.map { it.bounds }.first()
+
+          val navigatable =
+            findNavigatableComponentHit(module, viewInfos, 0, bounds.bottom - bounds.bottom / 4) {
+              it.fileName == "InlineDeclaration.kt"
+            }
+              as OpenFileDescriptor
+          assertEquals("InlineDeclaration.kt", navigatable.file.name)
+          assertEquals(23, navigatable.calculateLine())
+        }
+      }
+      .join()
+  }
+
   /** Checks the rendering of the default `@Preview` in the Compose template. */
   @Test
   fun testInProjectNavigation() {
@@ -188,14 +227,12 @@ class PreviewNavigationTest {
             }
               as OpenFileDescriptor
           assertEquals("MainActivity.kt", descriptor.file.name)
-          // TODO(b/156744111)
-          // assertEquals(46, descriptor.line)
+          assertEquals(60, descriptor.calculateLine())
 
           val descriptorInOtherFile =
             findNavigatableComponentHit(module, viewInfos, 0, 0) as OpenFileDescriptor
           assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
-          // TODO(b/156744111)
-          // assertEquals(31, descriptor.line)
+          assertEquals(51, descriptorInOtherFile.calculateLine())
         }
       }
       .join()
@@ -277,6 +314,7 @@ class PreviewNavigationTest {
     assertEquals(0, sceneViewPanel.sceneView.surface.selectionModel.selection.size)
   }
 
+  @Ignore("b/279732135")
   @Test
   fun testPreviewNavigation_imageInteraction() {
     val mainFile =

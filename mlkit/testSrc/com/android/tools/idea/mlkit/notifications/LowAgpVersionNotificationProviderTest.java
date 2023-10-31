@@ -17,6 +17,7 @@ package com.android.tools.idea.mlkit.notifications;
 
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
@@ -48,6 +49,7 @@ public class LowAgpVersionNotificationProviderTest {
   @Before
   public void setUp() {
     MockitoAnnotations.initMocks(this);
+    when(myMockVirtualFile.getExtension()).thenReturn("tflite");
 
     myNotificationProvider = new LowAgpVersionNotificationProvider();
   }
@@ -60,12 +62,14 @@ public class LowAgpVersionNotificationProviderTest {
   @Test
   public void lowAgpVersion_hasNotification() {
     setupProject("4.0.0");
-    assertThat(myNotificationProvider.createNotificationPanel(myMockVirtualFile, myMockEditor, myProject)).isNotNull();
+    var paneProvider = myNotificationProvider.collectNotificationData(myProject, myMockVirtualFile);
+    assertThat(paneProvider).isNotNull();
+    assertThat(paneProvider.apply(myMockEditor)).isNotNull();
   }
 
   @Test
   public void qualifiedAgpVersion_noNotification() {
     setupProject("4.2.0");
-    assertThat(myNotificationProvider.createNotificationPanel(myMockVirtualFile, myMockEditor, myProject)).isNull();
+    assertThat(myNotificationProvider.collectNotificationData(myProject, myMockVirtualFile)).isNull();
   }
 }

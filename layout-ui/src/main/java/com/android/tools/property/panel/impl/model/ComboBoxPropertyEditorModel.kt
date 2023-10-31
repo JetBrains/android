@@ -33,10 +33,12 @@ import kotlin.properties.Delegates
 /**
  * Model of a ComboBox control for editing a property.
  *
- * The ComboBox editor may be used as a DropDown control by specifying `editable=false`.
- * Values can still be changed using the popup, but there will be no text field for typing a new value.
+ * The ComboBox editor may be used as a DropDown control by specifying `editable=false`. Values can
+ * still be changed using the popup, but there will be no text field for typing a new value.
+ *
  * @property enumSupport The mechanism for controlling the items shown in the popup.
- * @property editable True if the value is editable with a text editor (ComboBox) or false (DropDown).
+ * @property editable True if the value is editable with a text editor (ComboBox) or false
+ *   (DropDown).
  * @property isPopupVisible Controls the visibility of the popup in the ComboBox / DropDown.
  */
 class ComboBoxPropertyEditorModel(
@@ -49,8 +51,7 @@ class ComboBoxPropertyEditorModel(
   private val loading = mutableListOf(EnumValue.LOADING)
   private var values: List<EnumValue> = loading
 
-  @GuardedBy("syncNewValues")
-  private var newValues: List<EnumValue> = loading
+  @GuardedBy("syncNewValues") private var newValues: List<EnumValue> = loading
   private var selectedValue: EnumValue? = null
   private val listListeners = mutableListOf<ListDataListener>()
 
@@ -65,9 +66,8 @@ class ComboBoxPropertyEditorModel(
   /**
    * A property change is pending.
    *
-   * Indicates if a change to the property value was initiated, but the value wasn't
-   * immediately registered by the property. Use this value to omit change requests
-   * generated from [focusLost].
+   * Indicates if a change to the property value was initiated, but the value wasn't immediately
+   * registered by the property. Use this value to omit change requests generated from [focusLost].
    */
   private var pendingValueChange = false
   private var pendingValue: String? = null
@@ -80,7 +80,8 @@ class ComboBoxPropertyEditorModel(
       updateValueFromProperty()
     }
 
-  override var text by Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
+  override var text by
+    Delegates.observable(property.value.orEmpty()) { _, _, _ -> resetPendingValue() }
 
   init {
     if (!editable) {
@@ -104,8 +105,7 @@ class ComboBoxPropertyEditorModel(
       val currentIndex = getIndexOfCurrentValue()
       if (currentIndex >= 0) {
         selectedItem = getElementAt(currentIndex)
-      }
-      else {
+      } else {
         setInitialDropDownValue()
       }
     }
@@ -148,9 +148,7 @@ class ComboBoxPropertyEditorModel(
   override val placeHolderValue: String
     get() = property.defaultValue ?: ""
 
-  /**
-   * Returns true if the ComboBox has an uncommitted change to the property.
-   */
+  /** Returns true if the ComboBox has an uncommitted change to the property. */
   fun hasPendingChange(): Boolean {
     if (pendingValueChange && text != pendingValue) {
       return true
@@ -169,8 +167,7 @@ class ComboBoxPropertyEditorModel(
     try {
       isPopupVisible = false
       commitChange()
-    }
-    finally {
+    } finally {
       blockUpdates = false
     }
   }
@@ -182,7 +179,8 @@ class ComboBoxPropertyEditorModel(
   /**
    * Indicates whether the current changed text should be committed.
    *
-   * Returns false if there are errors in the text, there's a pending update expected or the text is the same as the value.
+   * Returns false if there are errors in the text, there's a pending update expected or the text is
+   * the same as the value.
    */
   private fun canCommitChange(): Boolean {
     val (code, _) = editingSupport.validation(text)
@@ -198,9 +196,7 @@ class ComboBoxPropertyEditorModel(
     return true
   }
 
-  /**
-   * Commit the current changed text.
-   */
+  /** Commit the current changed text. */
   private fun commitChange() {
     resetPendingValue()
     value = text
@@ -221,36 +217,41 @@ class ComboBoxPropertyEditorModel(
     _popupVisible = true
     var result: Future<*> = Futures.immediateFuture(null)
     if (values === loading) {
-      result = editingSupport.execution(Runnable {
-        // The call to enumSupport.values may be slow.
-        // Call it from a non UI thread:
-        val newEnumValues = enumSupport.values
-        synchronized(syncNewValues) {
-          // The "newValues" property is accessed from multiple threads.
-          // Make the update inside a synchronized section.
-          newValues = newEnumValues
-
-          // Notify the UI thread that newValues has been updated.
-          syncNewValues.notify()
-        }
-        editingSupport.uiExecution(Runnable {
-          if (values === loading) {
-            // New values have been loaded but the list model has not been updated.
+      result =
+        editingSupport.execution(
+          Runnable {
+            // The call to enumSupport.values may be slow.
+            // Call it from a non UI thread:
+            val newEnumValues = enumSupport.values
             synchronized(syncNewValues) {
-              values = newValues
-              if (editable) {
-                // No need to set the item again for non-editable, see setInitialDropDownValue
-                selectedItem = value
-              }
-            }
-            // Update the data in the list of the popup.
-            fireListDataInserted()
+              // The "newValues" property is accessed from multiple threads.
+              // Make the update inside a synchronized section.
+              newValues = newEnumValues
 
-            // Notify the UI that there are new items in the list.
-            updatePopup()
+              // Notify the UI thread that newValues has been updated.
+              syncNewValues.notify()
+            }
+            editingSupport.uiExecution(
+              Runnable {
+                if (values === loading) {
+                  // New values have been loaded but the list model has not been updated.
+                  synchronized(syncNewValues) {
+                    values = newValues
+                    if (editable) {
+                      // No need to set the item again for non-editable, see setInitialDropDownValue
+                      selectedItem = value
+                    }
+                  }
+                  // Update the data in the list of the popup.
+                  fireListDataInserted()
+
+                  // Notify the UI that there are new items in the list.
+                  updatePopup()
+                }
+              }
+            )
           }
-        })
-      })
+        )
       if (values === loading) {
         synchronized(syncNewValues) {
           // To avoid flickering from quick enumSupport.values call:

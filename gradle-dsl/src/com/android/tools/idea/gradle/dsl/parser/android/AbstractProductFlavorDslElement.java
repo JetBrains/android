@@ -185,9 +185,35 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     {"wearAppUnbundled", exactly(1), WEAR_APP_UNBUNDLED, SET}
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
+  // TODO need API review
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"applicationId", property, APPLICATION_ID, VAR},
+    {"dimension", property, DIMENSION, VAR},
+    {"maxSdk", property, MAX_SDK_VERSION, VAR},
+    {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
+    {"minSdk", property, MIN_SDK_VERSION, VAR},
+    {"minSdkPreview", property, MIN_SDK_VERSION, VAR},
+    {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, AUGMENT_LIST},
+    {"renderscriptTargetApi", property, RENDER_SCRIPT_TARGET_API, VAR},
+    {"renderscriptSupportModeEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_ENABLED, VAR},
+    {"renderscriptSupportModeBlasEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, VAR},
+    {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
+    {"resConfigs", atLeast(0), RES_CONFIGS, AUGMENT_LIST},
+    {"targetSdk", property, TARGET_SDK_VERSION, VAR},
+    {"targetSdkPreview", property, TARGET_SDK_VERSION, VAR},
+    {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
+    {"testFunctionalTest", property, TEST_FUNCTIONAL_TEST, VAR},
+    {"testHandleProfiling", property, TEST_HANDLE_PROFILING, VAR},
+    {"testInstrumentationRunner", property, TEST_INSTRUMENTATION_RUNNER, VAR},
+    {"testInstrumentationRunnerArguments", property, TEST_INSTRUMENTATION_RUNNER_ARGUMENTS, VAR},
+    {"versionCode", property, VERSION_CODE, VAR},
+    {"versionName", property, VERSION_NAME, VAR},
+    {"wearAppUnbundled", property, WEAR_APP_UNBUNDLED, VAR}
+  }).collect(toModelMap(AbstractFlavorTypeDslElement.declarativeToModelNameMap));
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap,declarativeToModelNameMap);
   }
 
   AbstractProductFlavorDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

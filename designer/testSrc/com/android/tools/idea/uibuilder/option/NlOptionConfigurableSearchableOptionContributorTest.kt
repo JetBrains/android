@@ -22,41 +22,41 @@ import com.android.tools.idea.uibuilder.options.NlOptionConfigurableSearchableOp
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
+import com.jetbrains.rd.util.getOrCreate
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class NlOptionConfigurableSearchableOptionContributorTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testCanFindMagnifyOptionsOnMacWhenMouseGestureEnabled() {
-    val magnifySupported = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
+    val magnifySupported =
+      SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
     if (magnifySupported) {
       val contributor = NlOptionConfigurableSearchableOptionContributor()
       val processor = TestSearchableOptionProcessor()
       contributor.processOptions(processor)
 
-      assertTrue { processor.getHits("track").contains(LABEL_TRACK_PAD) }
-      assertTrue { processor.getHits("pAd").contains(LABEL_TRACK_PAD) }
-      assertFalse { processor.getHits("trackpad").contains(LABEL_TRACK_PAD) }
-      assertFalse { processor.getHits("ad").contains(LABEL_TRACK_PAD) }
-      assertFalse { processor.getHits(" ").contains(LABEL_TRACK_PAD) }
+      assertTrue(processor.getHits("track").contains(LABEL_TRACK_PAD))
+      assertTrue(processor.getHits("pAd").contains(LABEL_TRACK_PAD))
+      assertFalse(processor.getHits("trackpad").contains(LABEL_TRACK_PAD))
+      assertFalse(processor.getHits("ad").contains(LABEL_TRACK_PAD))
+      assertFalse(processor.getHits(" ").contains(LABEL_TRACK_PAD))
 
-      assertTrue { processor.getHits("magnify").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertTrue { processor.getHits("zoom").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertTrue { processor.getHits("Zooming").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertTrue { processor.getHits("pInCH").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertTrue { processor.getHits("sensi").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertTrue { processor.getHits("senSitivity").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertFalse { processor.getHits("gnify").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertFalse { processor.getHits("oom").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertFalse { processor.getHits("ensi").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
-      assertFalse { processor.getHits("sensitive").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) }
+      assertTrue(processor.getHits("magnify").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertTrue(processor.getHits("zoom").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertTrue(processor.getHits("Zooming").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertTrue(processor.getHits("pInCH").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertTrue(processor.getHits("sensi").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertTrue(processor.getHits("senSitivity").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertFalse(processor.getHits("gnify").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertFalse(processor.getHits("oom").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertFalse(processor.getHits("ensi").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
+      assertFalse(processor.getHits("sensitive").contains(LABEL_MAGNIFY_ZOOMING_SENSITIVITY))
     }
   }
 }
@@ -64,8 +64,14 @@ class NlOptionConfigurableSearchableOptionContributorTest {
 private class TestSearchableOptionProcessor : SearchableOptionProcessor() {
   private val hitMap = mutableMapOf<String, MutableSet<String>>()
 
-  override fun addOptions(text: String, path: String?, hit: String?, configurableId: String,
-                          configurableDisplayName: String?, applyStemming: Boolean) {
+  override fun addOptions(
+    text: String,
+    path: String?,
+    hit: String?,
+    configurableId: String,
+    configurableDisplayName: String?,
+    applyStemming: Boolean
+  ) {
     if (hit == null) {
       return
     }
@@ -75,5 +81,6 @@ private class TestSearchableOptionProcessor : SearchableOptionProcessor() {
     }
   }
 
-  fun getHits(text: String): Set<String> = hitMap.filterKeys { key -> key.startsWith(text, true) }.values.flatten().toSet()
+  fun getHits(text: String): Set<String> =
+    hitMap.filterKeys { key -> key.startsWith(text, true) }.values.flatten().toSet()
 }

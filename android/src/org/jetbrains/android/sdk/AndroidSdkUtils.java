@@ -19,28 +19,32 @@ package org.jetbrains.android.sdk;
 import static com.android.SdkConstants.FN_ADB;
 import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
 
+import com.android.SdkConstants;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -52,7 +56,8 @@ import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import com.intellij.util.concurrency.ThreadingAssertions;
@@ -61,11 +66,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,30 +82,34 @@ public final class AndroidSdkUtils {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.sdk.AndroidSdkUtils");
 
   public static final String ADB_PATH_PROPERTY = "android.adb.path";
-
+  // Paths relative to the IDE installation folder where the Android SDK may be present.
+  @NonNls
+  private static final String ANDROID_SDK_FOLDER_NAME = "sdk";
+  private static final String[] ANDROID_SDK_RELATIVE_PATHS = {
+    ANDROID_SDK_FOLDER_NAME,
+    File.separator + ".." + File.separator + ANDROID_SDK_FOLDER_NAME
+  };
+  // Default install location from users home dir.
+  @NonNls
+  private static String getAndroidSdkDefaultInstallDir() {
+    return SystemInfo.isWindows ? FileUtil.join(System.getenv("LOCALAPPDATA"), "Android", "Sdk")
+                                : SystemInfo.isMac ? FileUtil.join(SystemProperties.getUserHome(), "Library", "Android", "sdk")
+                                                   : FileUtil.join(SystemProperties.getUserHome(), "Android", "Sdk");
+  }
   private AndroidSdkUtils() {
   }
 
   /**
-   * Creates a new IDEA Android SDK. User is prompt for the paths of the Android SDK and JDK if necessary.
+   * Creates a new IDEA Android SDK.
    *
    * @param sdkPath the path of Android SDK.
-   * @return the created IDEA Android SDK, or {@null} if it was not possible to create it.
    */
-  @Nullable
-  public static Sdk createNewAndroidPlatform(@Nullable String sdkPath, boolean promptUser) {
-    if (sdkPath != null) {
-      sdkPath = toSystemIndependentName(sdkPath);
-      IAndroidTarget target = findBestTarget(sdkPath);
-      if (target != null) {
-        Sdk sdk =
-          AndroidSdks.getInstance().create(target, new File(sdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), true);
-        if (sdk != null) {
-          return sdk;
-        }
-      }
+  public static void createNewAndroidPlatform(@NotNull String sdkPath) {
+    sdkPath = toSystemIndependentName(sdkPath);
+    IAndroidTarget target = findBestTarget(sdkPath);
+    if (target != null) {
+      AndroidSdks.getInstance().create(target, new File(sdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), true);
     }
-    return promptUser ? promptUserForSdkCreation(null, sdkPath) : null;
   }
 
   @Nullable
@@ -146,43 +159,6 @@ public final class AndroidSdkUtils {
       AndroidSdks.getInstance().findAndSetPlatformSources(target, sdkModificator);
       sdkModificator.commitChanges();
     }
-  }
-
-  @Nullable
-  private static Sdk promptUserForSdkCreation(@Nullable IAndroidTarget target,
-                                              @Nullable String androidSdkPath) {
-    Ref<Sdk> sdkRef = new Ref<>();
-    Runnable task = () -> {
-      SelectSdkDialog dlg = new SelectSdkDialog(null, androidSdkPath);
-      dlg.setModal(true);
-      if (dlg.showAndGet()) {
-        Sdk sdk = createNewAndroidPlatform(target, dlg.getAndroidHome());
-        sdkRef.set(sdk);
-        if (sdk != null) {
-          IdeSdks.updateWelcomeRunAndroidSdkAction();
-        }
-      }
-    };
-    Application application = ApplicationManager.getApplication();
-    if (application.isDispatchThread()) {
-      task.run();
-      return sdkRef.get();
-    }
-    application.invokeAndWait(task, ModalityState.any());
-    return sdkRef.get();
-  }
-
-  @Nullable
-  private static Sdk createNewAndroidPlatform(@Nullable IAndroidTarget target, @NotNull String androidSdkPath) {
-    androidSdkPath = toSystemIndependentName(androidSdkPath);
-    if (target == null) {
-      target = findBestTarget(androidSdkPath);
-    }
-    if (target != null) {
-      return AndroidSdks.getInstance()
-        .create(target, new File(androidSdkPath), AndroidSdks.getInstance().chooseNameForNewLibrary(target), true);
-    }
-    return null;
   }
 
   public static void openModuleDependenciesConfigurable(@NotNull Module module) {
@@ -355,6 +331,90 @@ public final class AndroidSdkUtils {
   public static boolean isAndroidSdkManagerEnabled() {
     boolean sdkManagerDisabled = SystemProperties.getBooleanProperty("android.studio.sdk.manager.disabled", false);
     return !sdkManagerDisabled;
+  }
+
+  @Nullable
+  public static File findValidAndroidSdkPath() {
+    File candidate = getAndroidSdkPathOrDefault();
+    return AndroidSdkType.getInstance().isValidSdkHome(candidate.getPath()) ? candidate : null;
+  }
+
+  /**
+   * Tries to find a path to an Android SDK. Looks in:
+   * <p><ul>
+   * <li>ANDROID_HOME_ENV</li>
+   * <li>ANDROID_SDK_ROOT_ENV</li>
+   * <li>the platform-specific default path</li>
+   * </ul></p>
+   *
+   * @return The path to the SDK, or the default SDK path if none is found.
+   */
+  @NotNull
+  public static File getAndroidSdkPathOrDefault() {
+    String studioHome = PathManager.getHomePath();
+    if (isEmpty(studioHome)) {
+      LOG.info("Unable to find Studio home directory");
+    }
+    else {
+      LOG.info(String.format("Found Studio home directory at: '%1$s'", studioHome));
+      for (String path : ANDROID_SDK_RELATIVE_PATHS) {
+        File dir = new File(studioHome, path);
+        String absolutePath = toCanonicalPath(dir.getAbsolutePath());
+        LOG.info(String.format("Looking for Android SDK at '%1$s'", absolutePath));
+        if (AndroidSdkType.getInstance().isValidSdkHome(absolutePath)) {
+          LOG.info(String.format("Found Android SDK at '%1$s'", absolutePath));
+          return new File(absolutePath);
+        }
+      }
+    }
+    LOG.info("Unable to locate SDK within the Android studio installation.");
+    return getAndroidSdkOrDefault(System.getenv(), AndroidSdkType.getInstance());
+  }
+
+  @NotNull
+  private static File getAndroidSdkOrDefault(Map<String, String> env, AndroidSdkType instance) {
+    return getAndroidSdkOrDefault(env, instance, IdeInfo.getInstance());
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static File getAndroidSdkOrDefault(Map<String, String> env, AndroidSdkType instance, IdeInfo ideInfo) {
+    // The order of insertion matters as it defines SDK locations precedence.
+    Map<String, Callable<String>> sdkLocationCandidates = new LinkedHashMap<>();
+    sdkLocationCandidates.put(SdkConstants.ANDROID_HOME_ENV + " environment variable",
+                              () -> env.get(SdkConstants.ANDROID_HOME_ENV));
+    sdkLocationCandidates.put(SdkConstants.ANDROID_SDK_ROOT_ENV + " environment variable",
+                              () -> env.get(SdkConstants.ANDROID_SDK_ROOT_ENV));
+
+    String sdkPath;
+    for (Map.Entry<String, Callable<String>> locationCandidate : sdkLocationCandidates.entrySet()) {
+      try {
+        String pathDescription = locationCandidate.getKey();
+        sdkPath = locationCandidate.getValue().call();
+        String msg;
+        if (!isEmpty(sdkPath) && (instance.isValidSdkHome(sdkPath) || ideInfo.isGameTools())) {
+          // Game Tools doesn't need the path to contain a valid SDK; it also accepts
+          // non-existing/empty directories so that the user can set up SDK from scratch at
+          // a directory of their choice.
+          msg = String.format("%1$s: '%2$s'", pathDescription, sdkPath);
+        }
+        else {
+          msg = String.format("Examined and not found a valid Android SDK path: %1$s", pathDescription);
+          sdkPath = null;
+        }
+        LOG.info(msg);
+        if (sdkPath != null) {
+          return FilePaths.stringToFile(sdkPath);
+        }
+      }
+      catch (Exception e) {
+        LOG.info("Exception during SDK lookup", e);
+      }
+    }
+
+    String defaultDir = getAndroidSdkDefaultInstallDir();
+    LOG.info("Using default SDK path: " + defaultDir);
+    return FilePaths.stringToFile(defaultDir);
   }
 
   public static class AdbSearchResult {

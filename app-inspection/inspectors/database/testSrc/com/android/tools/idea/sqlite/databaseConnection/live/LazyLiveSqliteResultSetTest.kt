@@ -43,7 +43,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
   private val scope = CoroutineScope(edtExecutor.asCoroutineDispatcher() + SupervisorJob())
 
   fun testColumnsReturnCorrectListOfColumns() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val columnNames = listOf("col1", "col2")
 
@@ -75,7 +75,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testRowCountReturnsCorrectNumberOfRows() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val cellValue = SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(1).build()
 
@@ -131,7 +131,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testGetRowBatchReturnsCorrectListOfRows() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val cellValueString =
         SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
@@ -199,7 +199,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testGetRowBatchThrowsIfMinOffsetSmallerThanZero() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
@@ -225,7 +225,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testGetRowBatchThrowsIfMaxOffsetSmallerEqualZero() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
@@ -249,7 +249,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testThrowsRecoverableErrorOnErrorOccurredResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val errorOccurredEvent =
         SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
@@ -292,7 +292,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val errorOccurredEvent =
         SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
@@ -338,7 +338,7 @@ class LazyLiveSqliteResultSetTest : LightPlatformTestCase() {
     }
 
   fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() =
-    runBlocking {
+    runBlocking<Unit> {
       // Prepare
       val errorOccurredEvent =
         SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()

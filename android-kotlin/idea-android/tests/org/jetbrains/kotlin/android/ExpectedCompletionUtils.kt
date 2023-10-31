@@ -30,8 +30,8 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.completion.KOTLIN_CAST_REQUIRED_COLOR
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.platform.TargetPlatform
-import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.isJs
+import org.jetbrains.kotlin.platform.js.JsPlatforms
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.junit.Assert

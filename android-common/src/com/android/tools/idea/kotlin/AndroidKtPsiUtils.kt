@@ -25,16 +25,15 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.base.KtConstantValue.KtErrorConstantValue
+import org.jetbrains.kotlin.analysis.api.calls.KtAnnotationCall
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
-import org.jetbrains.kotlin.analysis.api.calls.KtAnnotationCall
-import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
-import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.getAccessorLightMethods
@@ -44,9 +43,7 @@ import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeFe10
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
@@ -71,6 +68,9 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
+import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeFe10
+import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 
 
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
@@ -78,7 +78,7 @@ fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?
 
 // TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
 @OptIn(KtAllowAnalysisOnEdt::class)
-private inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
+inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
   if (this != null) {
     block()
   } else {
@@ -155,22 +155,30 @@ fun KtAnnotationEntry.fqNameMatches(fqName: Set<String>, analysisSession: KtAnal
  * K2 version of [fqNameMatches]; determine if [ktAnnotationEntry] has one of a
  * set of fully qualified names [fqName].
  */
-fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: Set<String>): Boolean {
+fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
   val shortName = ktAnnotationEntry.shortName?.asString() ?: return false
-  val fqNameFiltered = fqName.filter { it.endsWith(shortName) }
-  if (fqNameFiltered.isEmpty()) return false
+  if (!fqName.endsWith(shortName)) return false
 
   // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
   // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
   // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
   val qualifiedName = getQualifiedName(ktAnnotationEntry)
-  return fqNameFiltered.any { it == qualifiedName }
+  return fqName == qualifiedName
 }
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
 fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
   return if (isK2Plugin()) {
-    error("K2 not supported in Android Studio Flamingo")
+    analysisSession.applyOrAnalyze(this) {
+      val symbol = getClassOrObjectSymbol()
+      val classId = symbol?.classIdIfNonLocal ?: return null
+
+      if (symbol.classKind != KtClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {
+        null
+      } else {
+        classId.asFqNameString()
+      }
+    }
   } else {
     val classDescriptor = analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
     if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) || classDescriptor.kind != ClassKind.CLASS) {
@@ -207,17 +215,17 @@ fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): K
 fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
   valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
-private fun KtExpression.tryEvaluateConstantAsAny(analysisSession: KtAnalysisSession?): Any? =
+inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysisSession? = null): T? =
   if (isK2Plugin()) {
     analysisSession.applyOrAnalyze(this) {
       evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
         ?.takeUnless { it is KtErrorConstantValue }
-        ?.value
+        ?.value as? T
     }
   } else {
     ConstantExpressionEvaluator.getConstant(this, analyzeFe10())
       ?.takeUnless { it.isError }
-      ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
+      ?.getValue(TypeUtils.NO_EXPECTED_TYPE) as? T
   }
 
 /**
@@ -226,18 +234,18 @@ private fun KtExpression.tryEvaluateConstantAsAny(analysisSession: KtAnalysisSes
  * Based on InterpolatedStringInjectorProcessor in the Kotlin plugin.
  */
 fun KtExpression.tryEvaluateConstant(analysisSession: KtAnalysisSession? = null): String? =
-  tryEvaluateConstantAsAny(analysisSession) as? String
+  evaluateConstant<String>(analysisSession)
 
 /**
- * Tries to evaluate this [KtExpression] and return it's value coerced as a string.
+ * Tries to evaluate this [KtExpression] and return its value coerced as a string.
  *
  * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be converted to string.
  */
 fun KtExpression.tryEvaluateConstantAsText(analysisSession: KtAnalysisSession? = null): String? =
-  tryEvaluateConstantAsAny(analysisSession)?.toString()
+  evaluateConstant<Any>(analysisSession)?.toString()
 
 /**
- * When given an element in a qualified chain expression (eg. `activity` in `R.layout.activity`), this finds the previous element in the
+ * When given an element in a qualified chain expression (e.g. `activity` in `R.layout.activity`), this finds the previous element in the
  * chain (in this case `layout`).
  */
 fun KtExpression.getPreviousInQualifiedChain(): KtExpression? {

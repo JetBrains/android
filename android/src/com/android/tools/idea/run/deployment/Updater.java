@@ -16,22 +16,17 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.run.AndroidRunConfiguration;
-import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
-import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.intellij.execution.RunnerAndConfigurationSettings;
-import com.intellij.execution.configurations.RunProfile;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.UserDataHolder;
 import icons.StudioIcons;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -56,8 +51,6 @@ final class Updater {
   @Nullable
   private final RunnerAndConfigurationSettings myConfigurationAndSettings;
 
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-
   static final class Builder {
     @Nullable
     private Project myProject;
@@ -76,8 +69,6 @@ final class Updater {
 
     @Nullable
     private RunnerAndConfigurationSettings myConfigurationAndSettings;
-
-    private @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = () -> false;
 
     @NotNull
     Builder setProject(@NotNull Project project) {
@@ -115,11 +106,6 @@ final class Updater {
       return this;
     }
 
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-      return this;
-    }
-
     @NotNull
     Updater build() {
       return new Updater(this);
@@ -140,7 +126,6 @@ final class Updater {
 
     myDevices = builder.myDevices;
     myConfigurationAndSettings = builder.myConfigurationAndSettings;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
   }
 
   void update() {
@@ -179,18 +164,9 @@ final class Updater {
       return;
     }
 
-    RunProfile configuration = myConfigurationAndSettings.getConfiguration();
+    var configuration = myConfigurationAndSettings.getConfiguration();
 
-        if (configuration instanceof AndroidRunConfiguration
-                || configuration instanceof AndroidTestRunConfiguration
-                || configuration instanceof AndroidWearConfiguration) {
-      myPresentation.setEnabled(true);
-      myPresentation.setDescription((String)null);
-
-      return;
-    }
-
-    if (configurationDeploysToLocalDevice()) {
+    if (DeployableToDevice.deploysToLocalDevice(configuration)) {
       myPresentation.setEnabled(true);
       myPresentation.setDescription((String)null);
 
@@ -204,18 +180,6 @@ final class Updater {
     else {
       myPresentation.setVisible(false);
     }
-  }
-
-  private boolean configurationDeploysToLocalDevice() {
-    assert myConfigurationAndSettings != null;
-    Object configuration = myConfigurationAndSettings.getConfiguration();
-
-    if (!(configuration instanceof UserDataHolder)) {
-      return false;
-    }
-
-    Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE);
-    return deploysToLocalDevice != null && deploysToLocalDevice;
   }
 
   private void updateInToolbarForMultipleDevices() {
@@ -241,6 +205,7 @@ final class Updater {
     }
 
     myPresentation.setIcon(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES);
+    myPresentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, null);
     myPresentation.setText("Multiple Devices (" + selectedTargets.size() + ")");
   }
 
@@ -261,6 +226,7 @@ final class Updater {
       .orElseThrow(AssertionError::new);
 
     myPresentation.setIcon(device.getIcon());
+    myPresentation.putClientProperty(DeviceAndSnapshotComboBoxAction.LAUNCH_COMPATIBILITY_KEY, device.launchCompatibility());
     myPresentation.setText(getText(device, target), false);
   }
 
@@ -276,7 +242,7 @@ final class Updater {
    */
   private @NotNull String getText(@NotNull Device device, @NotNull Target target) {
     Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    String bootOption = Devices.getBootOption(device, target, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet).orElse(null);
+    var bootOption = Devices.getBootOption(device, target).orElse(null);
 
     return Devices.getText(device, key, bootOption);
   }

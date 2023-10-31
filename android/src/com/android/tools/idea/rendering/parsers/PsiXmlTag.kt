@@ -4,7 +4,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.rendering.parsers.RenderXmlAttribute
 import com.android.tools.rendering.parsers.RenderXmlTag
-import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlTag
 
 /** Studio specific [XmlTag]-based implementation of [RenderXmlTag]. */
@@ -52,9 +51,6 @@ class PsiXmlTag(private val tag: XmlTag) : RenderXmlTag {
   override fun getNamespaceByPrefix(prefix: String): String = tag.getNamespaceByPrefix(prefix)
 
   override fun getPrefixByNamespace(namespace: String): String? = tag.getPrefixByNamespace(namespace)
-
-  override val project: Project
-    get() = tag.project
 
   override val containingFileNameWithoutExtension: String
     get() = tag.containingFile.virtualFile.nameWithoutExtension

@@ -26,7 +26,6 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.util.containers.isEmpty
 import java.awt.event.MouseEvent
 import javax.swing.JList
-import kotlin.streams.toList
 
 class ShowQuickFixesAction : AnAction() {
 
@@ -47,8 +46,7 @@ class ShowQuickFixesAction : AnAction() {
     if (fixes.isEmpty() && suppress.isEmpty()) {
       presentation.text = "No Quick Fix for This Issue"
       presentation.isEnabled = false
-    }
-    else {
+    } else {
       presentation.isEnabled = true
     }
   }
@@ -58,20 +56,29 @@ class ShowQuickFixesAction : AnAction() {
     val issue = node.issue
     val fixable = issue.fixes.toList() + issue.suppresses.toList()
 
-    val popup = JBPopupFactory.getInstance().createPopupChooserBuilder(fixable)
-      .setRenderer(QuickFixableCellRenderer())
-      .setItemChosenCallback { it.action.run() }
-      .createPopup()
+    val popup =
+      JBPopupFactory.getInstance()
+        .createPopupChooserBuilder(fixable)
+        .setRenderer(QuickFixableCellRenderer())
+        .setItemChosenCallback { it.action.run() }
+        .createPopup()
 
-    val mouse = event.inputEvent as? MouseEvent ?: return popup.showInBestPositionFor(event.dataContext)
-    val button = mouse.source as? ActionButton ?: return popup.showInBestPositionFor(event.dataContext)
+    val mouse =
+      event.inputEvent as? MouseEvent ?: return popup.showInBestPositionFor(event.dataContext)
+    val button =
+      mouse.source as? ActionButton ?: return popup.showInBestPositionFor(event.dataContext)
     popup.showUnderneathOf(button)
   }
 }
 
-private class QuickFixableCellRenderer: ColoredListCellRenderer<Issue.QuickFixable>() {
-  override fun customizeCellRenderer(list: JList<out Issue.QuickFixable>, element: Issue.QuickFixable, index: Int,
-                                     selected: Boolean, hasFocus: Boolean) {
+private class QuickFixableCellRenderer : ColoredListCellRenderer<Issue.QuickFixable>() {
+  override fun customizeCellRenderer(
+    list: JList<out Issue.QuickFixable>,
+    element: Issue.QuickFixable,
+    index: Int,
+    selected: Boolean,
+    hasFocus: Boolean
+  ) {
     icon = element.icon
     append(element.description)
   }

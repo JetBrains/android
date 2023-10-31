@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.api
 
-/**
- * Definition of a UI for selecting a value for a given attribute.
- */
+/** Definition of a UI for selecting a value for a given attribute. */
 interface AttributeBrowser {
   /**
    * Show a dialog where the user can select a value for a given attribute

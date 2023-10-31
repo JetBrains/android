@@ -20,10 +20,11 @@ import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.Anonymizer
 import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.lint.common.LintProblemData
-import com.android.tools.idea.stats.withProjectId
+import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Severity
@@ -34,15 +35,18 @@ import com.google.wireless.android.sdk.stats.LintIssueId
 import com.google.wireless.android.sdk.stats.LintIssueId.LintSeverity
 import com.google.wireless.android.sdk.stats.LintPerformance
 import com.google.wireless.android.sdk.stats.LintSession
+import com.google.wireless.android.sdk.stats.LintTooltipLinkEvent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
 
 /** Helper for submitting analytics for IDE usage of lint (for users who have opted in) */
-class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project) {
+class LintIdeAnalytics(private val project: Project) {
+
   /** Logs feedback from user on an individual issue */
   fun logFeedback(issue: String, feedback: LintAction.LintFeedback) {
     val event =
@@ -108,6 +112,53 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
         .withProjectId(project)
 
     UsageTracker.log(event)
+  }
+
+  /**
+   * Logs when a QuickFix was invoked by the user on an individual issue.
+   *
+   * This is only done when the user has opted into analytics and the issue's vendor is AOSP or
+   * Google.
+   */
+  fun logQuickFixInvocation(issue: Issue, fixDescription: String) {
+    if (project.isDisposed) return
+    if (!AnalyticsSettings.optedIn) return
+    if (!isAospOrGoogleLintIssue(issue)) return
+
+    val action =
+      LintAction.newBuilder()
+        .apply {
+          issueId = issue.id
+          fixId = fixDescription
+        }
+        .build()
+
+    val event =
+      AndroidStudioEvent.newBuilder()
+        .apply {
+          kind = AndroidStudioEvent.EventKind.LINT_ACTION
+          lintAction = action
+        }
+        .withProjectId(project)
+
+    UsageTracker.log(event)
+  }
+
+  /**
+   * Logs the click of a link within a Lint tooltip in the code editor. We only do this for issues
+   * where the vendor is AOSP or Google.
+   */
+  fun logTooltipLink(url: String, issue: Issue) {
+    if (project.isDisposed) return
+    if (!AnalyticsSettings.optedIn) return
+    if (!isAospOrGoogleLintIssue(issue)) return
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .withProjectId(project)
+        .setKind(AndroidStudioEvent.EventKind.LINT_TOOLTIP_LINK_EVENT)
+        .setLintTooltipLinkEvent(LintTooltipLinkEvent.newBuilder().setIssueId(issue.id).setUrl(url))
+    )
   }
 
   private fun computePerformance(driver: LintDriver, singleFileAnalysis: Boolean): LintPerformance =
@@ -261,5 +312,16 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     } catch (e: IOException) {
       "*ANONYMIZATION_ERROR*"
     }
+  }
+
+  /**
+   * Returns true if the issue appears to be from AOSP or Google, based on the vendor name. For
+   * certain analytics, we only target AOSP/Google issues.
+   */
+  private fun isAospOrGoogleLintIssue(issue: Issue): Boolean {
+    val vendorName = issue.vendor?.vendorName ?: issue.registry?.vendor?.vendorName ?: return false
+
+    return vendorName.startsWith(IssueRegistry.AOSP_VENDOR.vendorName!!) ||
+      vendorName.startsWith("Google")
   }
 }

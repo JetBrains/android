@@ -30,16 +30,16 @@
     <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.codenavigation" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="traceprocessor-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:223.0.1.0">
+      <library name="traceprocessor-protos" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/223.0.1.0/traceprocessor_protos-223.0.1.0.jar">
-              <sha256sum>5c2211d1d24ebc87df24fd0929c2b3f24e2ca54dadaeb347630be88036dbee97</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/231.0.1.4/traceprocessor_protos-231.0.1.4.jar">
+              <sha256sum>ea346913c5fe1109c66ba36b6025fd2d696541e0bb1f19d3eff5ae6fcfbffc6d</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/223.0.1.0/traceprocessor_protos-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/231.0.1.4/traceprocessor_protos-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -53,11 +53,12 @@
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
-    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
+    <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
+    <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="intellij.platform.editor" />
@@ -65,5 +66,6 @@
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
+    <orderEntry type="library" name="kotlinx-html-jvm" level="project" />
   </component>
 </module>

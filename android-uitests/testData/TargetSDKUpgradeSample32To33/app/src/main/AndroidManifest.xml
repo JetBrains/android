@@ -18,13 +18,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TargetSDKUpgradeSample32_33">
         <activity
+            android:name=".ziptraversal.ZipPathTraversal"
+            android:exported="false" />
+        <activity
             android:name=".webview.WebviewContentActivity"
-            android:exported="true" >
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".bodysensor.BodySensorsActivity"

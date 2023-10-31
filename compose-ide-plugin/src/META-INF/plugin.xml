@@ -16,18 +16,19 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>androidx.compose.plugins.idea</id>
   <name>Jetpack Compose</name>
-  <description><![CDATA[The Jetpack Compose IDE plugin.
-  <br><br>
-  Adds support for building native UI on Android via the Jetpack Compose toolkit.]]></description>
-  <vendor>JetBrains, Google</vendor>
+  <description><![CDATA[
+  Adds support for building native UI on Android via the <a href="https://developer.android.com/jetpack/compose">Jetpack Compose</a> toolkit.
+]]></description>
+  <vendor url="http://www.android.com">Android, JetBrains</vendor>
 
   <depends>org.jetbrains.android</depends>
   <depends>org.jetbrains.kotlin</depends>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableCallChecker"/>
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableDeclarationChecker"/>
-    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.ComposeDiagnosticSuppressor"/>
+    <!-- TODO(b/293653361): Move these to plugin.k1.xml and register the K2 versions in plugin.k2.xml -->
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
+    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
     <highlighterExtension implementation="com.android.tools.compose.ComposableHighlighterExtension"/>
   </extensions>
 
@@ -35,9 +36,12 @@
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.compose.code.ComposeStateReadAnnotator"/>
 
     <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposableHighlighterExtensionColorSchemeDarcula.xml"/>
+    <additionalTextAttributes scheme="Default" file="colorschemes/ComposeStateReadAnnotatorColorSchemeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposeStateReadAnnotatorColorSchemeDarcula.xml"/>
 
     <colorSettingsPage implementation="com.android.tools.compose.ComposeColorSettingsPage"/>
 
@@ -80,7 +84,7 @@
 
     <completion.contributor language="kotlin"
                             id="ComposeAlignmentCompletionContributor"
-                            implementationClass="com.android.tools.compose.code.completion.ComposeImplementationsCompletionContributor"
+                            implementationClass="com.android.tools.compose.code.completion.ComposePositioningCompletionContributor"
                             order="first, before KotlinCompletionContributor"/>
 
     <completion.contributor language="kotlin"
@@ -94,6 +98,11 @@
     <weigher key="completion"
              implementationClass="com.android.tools.compose.code.completion.ComposeCompletionWeigher"
              id="android.compose"
+             order="first"/>
+
+    <weigher key="completion"
+             implementationClass="com.android.tools.compose.code.completion.ComposePositioningCompletionWeigher"
+             id="ComposePositioningCompletionWeigher"
              order="first"/>
 
     <weigher key="proximity"
@@ -111,6 +120,8 @@
     <debugger.kotlinStackFrameValueContributor implementation="com.android.tools.compose.debug.recomposition.ComposeValueContributor"/>
     <debuggerClassFilterProvider implementation="com.android.tools.compose.debug.ComposeDebuggerClassesFilterProvider"/>
     <xdebugger.settings implementation="com.android.tools.compose.debug.ComposeDebuggerSettings"/>
+    <xdebugger.breakpointType implementation="com.android.tools.compose.debug.ComposeFunctionBreakpointType"/>
+    <debugger.javaBreakpointHandlerFactory implementation="com.android.tools.compose.debug.ComposeFunctionBreakpointHandlerFactory"/>
     <debugger.compoundRendererProvider id="SnapshotMutableStateImplRenderer"
                                        implementation="com.android.tools.compose.debug.render.SnapshotMutableStateImplRendererProvider"
                                        order="first"/>
@@ -141,7 +152,7 @@
 
     <registryKey key="androidx.compose.debugger.recomposition.node"
                  description="Add a node to the debugger view of a composable function that describes why the function is being recomposed"
-                 defaultValue="false"
+                 defaultValue="true"
                  restartRequired="false"/>
 
     <overrideImplementsAnnotationsFilter id="ComposeOverrideImplementsAnnotationsFilter"
@@ -150,10 +161,11 @@
     <codeInsight.lineMarkerProvider language="kotlin"
                                     implementationClass="com.android.tools.compose.code.ComposeLineMarkerProviderDescriptor" />
 
+    <usageGroupingRuleProvider implementation="com.android.tools.compose.ComposeUsageGroupingRuleProvider" />
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension"/>
+    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
@@ -163,7 +175,7 @@
 
   <actions>
     <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup">
-      <add-to-group group-id="StreamingToolbarSecondary" anchor="first"/>
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
     </action>
   </actions>
 

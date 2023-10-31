@@ -16,10 +16,11 @@
 package com.android.tools.idea.actions
 
 /**
- * List all the Action Ids for Android Designer Tools.
- * The registered Actions in designer/src/META-INF/designer.xml should use the Ids listed in this class.
+ * List all the Action Ids for Android Designer Tools. The registered Actions in
+ * designer/src/META-INF/designer.xml should use the Ids listed in this class.
  *
- * The action system doesn't allow ID duplications, so all the below Group and Action Ids should have "Android.Designer." prefix.
+ * The action system doesn't allow ID duplications, so all the below Group and Action Ids should
+ * have "Android.Designer." prefix.
  */
 @Suppress("unused") // values are mapped to META-INF/designer.xml
 object DesignerActions {
@@ -31,25 +32,25 @@ object DesignerActions {
   const val GROUP_LAYOUT_EDITOR = "$PREFIX.LayoutEditorActions"
   const val GROUP_NAV_EDITOR = "$PREFIX.NavEditorActions"
 
-  //<editor-fold desc="Common Actions">
+  // <editor-fold desc="Common Actions">
   const val ACTION_FORCE_REFRESH_PREVIEW = "$PREFIX.ForceRefreshPreview"
   const val ACTION_TOGGLE_ISSUE_PANEL = "$PREFIX.IssueNotificationAction"
   const val ACTION_RUN_LAYOUT_SCANNER = "$PREFIX.LayoutScannerAction"
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Layout Editor Actions">
+  // <editor-fold desc="Layout Editor Actions">
   const val ACTION_SET_LAYOUT_QUALIFIER = "$PREFIX.SwitchLayoutQualifier"
   const val ACTION_SWITCH_DESIGN_MODE = "$PREFIX.SwitchDesignMode"
   const val ACTION_TOGGLE_DEVICE_ORIENTATION = "$PREFIX.ToggleDeviceOrientation"
   const val ACTION_TOGGLE_DEVICE_NIGHT_MODE = "$PREFIX.ToggleDeviceNightMode"
   const val ACTION_NEXT_DEVICE = "$PREFIX.NextDevice"
   const val ACTION_PREVIOUS_DEVICE = "$PREFIX.PreviousDevice"
-  //</editor-fold>
+  // </editor-fold>
 
-  //<editor-fold desc="Navigation Editor Actions">
+  // <editor-fold desc="Navigation Editor Actions">
   const val ACTION_ASSIGN_START_DESTINATION = "$PREFIX.AssignStartDestination"
   const val ACTION_ADD_DEEP_LINK = "$PREFIX.AddDeepLink"
   const val ACTION_ADD_ACTION = "$PREFIX.AddAction"
   const val ACTION_AUTO_ARRANGE = "$PREFIX.AutoArrange"
-  //</editor-fold>
+  // </editor-fold>
 }

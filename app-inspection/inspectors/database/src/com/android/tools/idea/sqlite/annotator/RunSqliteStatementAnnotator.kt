@@ -44,15 +44,16 @@ private const val ROOM_ENTITY_ARCH: String = "android.arch.persistence.room.Enti
 
 /**
  * Shows an icon in the gutter when a SQLite statement is recognized. e.g. Room @Query annotations.
- * Annotator that adds a run action to instances of SQL language in the editor, so that they can be
- * executed in the Sqlite Inspector.
  */
 internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   override fun getId(): String = "RunSqliteStatement"
   override fun getName(): String = message("gutter.name.run.sqlite.statement")
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
-  override fun collectSlowLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
+  override fun collectSlowLineMarkers(
+    elements: List<PsiElement>,
+    result: MutableCollection<in LineMarkerInfo<*>>
+  ) {
     val first = elements.firstOrNull() ?: return
     val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
 
@@ -67,19 +68,26 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     }
   }
 
-  private fun collectRunMarkers(injectedLanguageManager: InjectedLanguageManager,
-                                element: PsiElement,
-                                result: MutableCollection<in LineMarkerInfo<*>>) {
+  private fun collectRunMarkers(
+    injectedLanguageManager: InjectedLanguageManager,
+    element: PsiElement,
+    result: MutableCollection<in LineMarkerInfo<*>>
+  ) {
     if (element.children.isNotEmpty()) return // not leaf element
 
-    val targetElement = if (element is PsiLanguageInjectionHost) element else element.parent as? PsiLanguageInjectionHost
+    val targetElement =
+      if (element is PsiLanguageInjectionHost) element
+      else element.parent as? PsiLanguageInjectionHost
     if (targetElement == null) return
 
-    val injectedPsiFile = injectedLanguageManager.getInjectedPsiFiles(targetElement)
-                            .orEmpty()
-                            .map { it.first }
-                            .filter { it.language == AndroidSqlLanguage.INSTANCE }
-                            .firstOrNull { it.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == null } ?: return
+    val injectedPsiFile =
+      injectedLanguageManager
+        .getInjectedPsiFiles(targetElement)
+        .orEmpty()
+        .map { it.first }
+        .filter { it.language == AndroidSqlLanguage.INSTANCE }
+        .firstOrNull { it.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == null }
+        ?: return
 
     val injectionHost = InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
 
@@ -91,15 +99,17 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     if (targetElement != element && targetElement.firstChild != element) return
 
     // it is much easier to always show icon and fallback to warning balloon if no database
-    result.add(LineMarkerInfo(
-      element,
-      element.textRange,
-      StudioIcons.DatabaseInspector.NEW_QUERY,
-      { message("marker.run.sqlite.statement") },
-      getNavHandler(SmartPointerManager.createPointer(injectionHost)),
-      Alignment.CENTER,
-      { message("marker.run.sqlite.statement") }
-    ))
+    result.add(
+      LineMarkerInfo(
+        element,
+        element.textRange,
+        StudioIcons.DatabaseInspector.NEW_QUERY,
+        { message("marker.run.sqlite.statement") },
+        getNavHandler(SmartPointerManager.createPointer(injectionHost)),
+        Alignment.CENTER,
+        { message("marker.run.sqlite.statement") }
+      )
+    )
   }
 
   private fun getNavHandler(pointer: SmartPsiElementPointer<PsiLanguageInjectionHost>): GutterIconNavigationHandler<PsiElement> {
@@ -117,8 +127,15 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         return@GutterIconNavigationHandler
       }
 
-      val action = RunSqliteStatementGutterIconAction(element.project, targetElement, DatabaseInspectorViewsFactoryImpl.getInstance())
-      action.actionPerformed(AnActionEvent.createFromAnAction(action, event, "", DataContext.EMPTY_CONTEXT))
+      val action =
+        RunSqliteStatementGutterIconAction(
+          element.project,
+          targetElement,
+          DatabaseInspectorViewsFactoryImpl.getInstance()
+        )
+      action.actionPerformed(
+        AnActionEvent.createFromAnAction(action, event, "", DataContext.EMPTY_CONTEXT)
+      )
     }
   }
 }

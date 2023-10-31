@@ -157,7 +157,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   val isShuttingDown
     get() = emulatorState.get() != EmulatorState.RUNNING
 
-  private var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub
+  var emulatorControllerStub: EmulatorControllerGrpc.EmulatorControllerStub
     get() {
       return emulatorControllerStubInternal ?: throwNotYetConnected()
     }
@@ -165,7 +165,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       emulatorControllerStubInternal = stub
     }
 
-  private var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub
+  var snapshotServiceStub: SnapshotServiceGrpc.SnapshotServiceStub
     get() {
       return snapshotServiceStubInternal ?: throwNotYetConnected()
     }
@@ -173,7 +173,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
       snapshotServiceStubInternal = stub
     }
 
-  private var uiControllerStub: UiControllerGrpc.UiControllerStub
+  var uiControllerStub: UiControllerGrpc.UiControllerStub
     get() {
       return uiControllerStubInternal ?: throwNotYetConnected()
     }
@@ -480,7 +480,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   /**
    * Sets a virtual machine state.
    */
-  private fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
+  fun setVmState(vmState: VmRunState, streamObserver: StreamObserver<Empty> = getEmptyObserver()) {
     if (EMBEDDED_EMULATOR_TRACE_GRPC_CALLS.get()) {
       LOG.info("setVmState(${shortDebugString(vmState)})")
     }

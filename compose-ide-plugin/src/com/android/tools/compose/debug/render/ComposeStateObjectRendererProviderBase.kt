@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.debug.render
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.ui.tree.render.ChildrenRenderer
 import com.intellij.debugger.ui.tree.render.CompoundRendererProvider
 import com.intellij.debugger.ui.tree.render.ValueLabelRenderer
@@ -41,9 +40,7 @@ sealed class ComposeStateObjectRendererProviderBase(private val fqcn: String) : 
     return rendererName
   }
 
-  override fun isEnabled(): Boolean {
-    return StudioFlags.COMPOSE_STATE_OBJECT_CUSTOM_RENDERER.get()
-  }
+  override fun isEnabled() = true
 
   override fun getIsApplicableChecker(): Function<Type?, CompletableFuture<Boolean>> {
     return Function { type: Type? ->

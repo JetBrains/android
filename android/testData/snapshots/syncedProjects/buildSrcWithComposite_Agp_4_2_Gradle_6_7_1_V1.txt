@@ -960,7 +960,7 @@ PROJECT                       : BuildSrcWithComposite
     MODULE                        : BuildSrcWithComposite.buildSrc.lib1
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : BuildSrcWithComposite:buildSrc:lib1
+        LinkedProjectId               : BuildSrcWithComposite::lib1
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -988,7 +988,7 @@ PROJECT                       : BuildSrcWithComposite
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : BuildSrcWithComposite:buildSrc:lib1:main
+        LinkedProjectId               : BuildSrcWithComposite::lib1:main
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1015,7 +1015,7 @@ PROJECT                       : BuildSrcWithComposite
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : BuildSrcWithComposite:buildSrc:lib1:test
+        LinkedProjectId               : BuildSrcWithComposite::lib1:test
         LinkedProjectPath             : <PROJECT>/buildSrc/lib1
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1042,7 +1042,7 @@ PROJECT                       : BuildSrcWithComposite
     MODULE                        : BuildSrcWithComposite.buildSrc.lib2
         ExternalModuleGroup           : buildSrc
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : BuildSrcWithComposite:buildSrc:lib2
+        LinkedProjectId               : BuildSrcWithComposite::lib2
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1070,7 +1070,7 @@ PROJECT                       : BuildSrcWithComposite
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : BuildSrcWithComposite:buildSrc:lib2:main
+        LinkedProjectId               : BuildSrcWithComposite::lib2:main
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1096,7 +1096,7 @@ PROJECT                       : BuildSrcWithComposite
         ExternalModuleGroup           : buildSrc
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : unspecified
-        LinkedProjectId               : BuildSrcWithComposite:buildSrc:lib2:test
+        LinkedProjectId               : BuildSrcWithComposite::lib2:test
         LinkedProjectPath             : <PROJECT>/buildSrc/lib2
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1263,7 +1263,7 @@ PROJECT                       : BuildSrcWithComposite
     MODULE                        : android-included
         ExternalModuleGroup           : com.test.composite1
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : android-included
+        LinkedProjectId               : :android-included
         LinkedProjectPath             : <PROJECT>/android-included
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1292,7 +1292,7 @@ PROJECT                       : BuildSrcWithComposite
             androidTest                   : android-included.app.androidTest
         ExternalModuleGroup           : com.test.android-included
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : android-included:app
+        LinkedProjectId               : :android-included:app
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1370,7 +1370,7 @@ PROJECT                       : BuildSrcWithComposite
             unitTest                      : android-included.app.unitTest
             androidTest                   : android-included.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : android-included:app:androidTest
+        LinkedProjectId               : :android-included:app:androidTest
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1602,7 +1602,7 @@ PROJECT                       : BuildSrcWithComposite
             unitTest                      : android-included.app.unitTest
             androidTest                   : android-included.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : android-included:app:main
+        LinkedProjectId               : :android-included:app:main
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -1797,7 +1797,7 @@ PROJECT                       : BuildSrcWithComposite
             unitTest                      : android-included.app.unitTest
             androidTest                   : android-included.app.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : android-included:app:unitTest
+        LinkedProjectId               : :android-included:app:unitTest
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2010,7 +2010,7 @@ PROJECT                       : BuildSrcWithComposite
             androidTest                   : android-included.lib.androidTest
         ExternalModuleGroup           : com.test.android-included.lib
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : android-included:lib
+        LinkedProjectId               : :android-included:lib
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2080,7 +2080,7 @@ PROJECT                       : BuildSrcWithComposite
             unitTest                      : android-included.lib.unitTest
             androidTest                   : android-included.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : android-included:lib:androidTest
+        LinkedProjectId               : :android-included:lib:androidTest
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2248,7 +2248,7 @@ PROJECT                       : BuildSrcWithComposite
             unitTest                      : android-included.lib.unitTest
             androidTest                   : android-included.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : android-included:lib:main
+        LinkedProjectId               : :android-included:lib:main
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2407,7 +2407,7 @@ PROJECT                       : BuildSrcWithComposite
             unitTest                      : android-included.lib.unitTest
             androidTest                   : android-included.lib.androidTest
         ExternalModuleType            : sourceSet
-        LinkedProjectId               : android-included:lib:unitTest
+        LinkedProjectId               : :android-included:lib:unitTest
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2551,7 +2551,7 @@ PROJECT                       : BuildSrcWithComposite
     MODULE                        : java-included
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : java-included
+        LinkedProjectId               : :java-included
         LinkedProjectPath             : <PROJECT>/java-included
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2579,7 +2579,7 @@ PROJECT                       : BuildSrcWithComposite
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : java-included:main
+        LinkedProjectId               : :java-included:main
         LinkedProjectPath             : <PROJECT>/java-included
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
@@ -2606,7 +2606,7 @@ PROJECT                       : BuildSrcWithComposite
         ExternalModuleGroup           : com.test.java.included
         ExternalModuleType            : sourceSet
         ExternalModuleVersion         : 1.0
-        LinkedProjectId               : java-included:test
+        LinkedProjectId               : :java-included:test
         LinkedProjectPath             : <PROJECT>/java-included
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION

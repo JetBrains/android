@@ -41,8 +41,10 @@ android {
     }
 
     composeOptions {
-      kotlinCompilerExtensionVersion = "+"
-      kotlinCompilerVersion = "+"
+      // This version needs to be kept compatible with the Kotlin version specified in ComposeRenderTestBase.DEFAULT_KOTLIN_VERSION,
+      // currently set at 1.8.10.
+      // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin for compatibility table.
+      kotlinCompilerExtensionVersion = "1.5.1"
     }
 
     compileOptions {

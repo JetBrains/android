@@ -24,7 +24,7 @@ class R8DiagnosticHandler(private val logger: LiveEditLogger) : DiagnosticsHandl
   override fun error(error: Diagnostic?) {
     super.error(error)
     error?.let {
-      logger.log(it.diagnosticMessage)
+      logger.log("${it.diagnosticMessage} ${Exception("R8DiagnosticHandler error").stackTraceToString()}")
       desugarFailure(it.diagnosticMessage)
     }
   }

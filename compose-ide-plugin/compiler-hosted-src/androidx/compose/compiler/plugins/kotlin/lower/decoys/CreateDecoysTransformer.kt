@@ -168,12 +168,14 @@ class CreateDecoysTransformer(
         }
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrFunction.decoyImplementationName(): Name {
         return dexSafeName(
             Name.identifier(name.asString() + IMPLEMENTATION_FUNCTION_SUFFIX)
         )
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun IrFunction.copyWithName(
         newName: Name,
         factory: (IrFunctionBuilder.() -> Unit) -> IrFunction = context.irFactory::buildFun

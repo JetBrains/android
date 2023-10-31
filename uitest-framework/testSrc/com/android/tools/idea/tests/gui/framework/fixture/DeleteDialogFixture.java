@@ -18,12 +18,11 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.JCheckBoxFixture;
 import org.jetbrains.annotations.NotNull;
+import javax.swing.*;
 
 public class DeleteDialogFixture extends IdeaDialogFixture<SafeDeleteDialog> {
 

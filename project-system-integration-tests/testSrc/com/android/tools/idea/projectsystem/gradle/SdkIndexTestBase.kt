@@ -96,14 +96,14 @@ open class SdkIndexTestBase {
     }
   }
 
-  protected fun verifyPsdIssues(numErrors: Int) {
+  protected fun verifyPsdIssues(numWarnings: Int) {
     val summaryRegex = ".*PsAnalyzerDaemon - Issues recreated: (.*)$"
     // The test project uses the following libraries:
     //  - com.startapp:inapp-sdk: 3.9.1 error (blocking critical)
-    //  - com.stripe:stripe-android:9.3.2 error (if policy issues are enabled)
+    //  - com.stripe:stripe-android:9.3.2 error (if policy issues are enabled, not blocking)
     //  - com.mopub:mopub-sdk:4.16.0 warning (outdated)
     //  - com.snowplowanalytics:snowplow-android-tracker:1.4.1 info (critical, but not blocking)
-    val expectedSummary = "$numErrors errors, 1 warnings, 1 information, 0 updates, 0 other"
+    val expectedSummary = "1 errors, $numWarnings warnings, 1 information, 0 updates, 0 other"
     val foundSummary: String
     try {
       val matcher = system.installation.ideaLog.waitForMatchingLine(summaryRegex, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)

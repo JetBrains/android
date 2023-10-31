@@ -16,10 +16,10 @@
 package org.jetbrains.android.augment
 
 import com.android.SdkConstants
+import com.android.resources.getFieldNameByResourceName
 import com.android.tools.idea.model.MergedManifestModificationTracker
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
-import com.android.tools.idea.res.getFieldNameByResourceName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.ModulePointerManager
@@ -103,7 +103,7 @@ sealed class ManifestInnerClass(
       CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, MergedManifestModificationTracker.getInstance(myFacet.module))
     }
     else {
-      CachedValueProvider.Result.create(
+      CachedValueProvider.Result.create<Array<PsiField>>(
         doGetFields().map { (name, value) ->
           ManifestLightField(
             name,

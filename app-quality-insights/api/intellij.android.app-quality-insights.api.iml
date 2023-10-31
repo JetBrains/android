@@ -26,5 +26,8 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="library" name="gradle-shared-proto" level="project" />
+    <orderEntry type="library" name="google-api-client" level="project" />
   </component>
 </module>

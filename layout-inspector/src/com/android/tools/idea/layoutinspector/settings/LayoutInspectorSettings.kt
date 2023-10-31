@@ -33,14 +33,25 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
   }
 
   // TODO Replace with a regular variable once the flags are removed.
-  private val autoConnectSetting = FlagControlledSetting(true) {
-    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
-  }
+  private val autoConnectSetting =
+    FlagControlledSetting(true) {
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get()
+    }
+
+  private val embeddedLayoutInspectorSetting =
+    FlagControlledSetting(false) {
+      StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    }
 
   // Property needs to have public setters and getters in order to be persisted.
   var autoConnectEnabled: Boolean
     get() = autoConnectSetting.get()
     set(value) = autoConnectSetting.set(value)
+
+  // Property needs to have public setters and getters in order to be persisted.
+  var embeddedLayoutInspectorEnabled: Boolean
+    get() = embeddedLayoutInspectorSetting.get()
+    set(value) = embeddedLayoutInspectorSetting.set(value)
 
   override fun getState() = this
 
@@ -48,10 +59,10 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
 }
 
 /**
- * A setting that is also controlled by the state of a flag.
- * The setting is enabled only if it is both enabled in settings and in the flag.
+ * A setting that is also controlled by the state of a flag. The setting is enabled only if it is
+ * both enabled in settings and in the flag.
  */
-class FlagControlledSetting(private val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
+class FlagControlledSetting(val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
   private var isEnabled = defaultValue
 
   fun set(value: Boolean) {

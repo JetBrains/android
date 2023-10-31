@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestCase;
-import kotlin.reflect.KType;
-import org.mockito.Mock;
-
-import java.util.Arrays;
-import java.util.List;
-
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.application.PathManager.getJarPathForClass;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.testFramework.PlatformTestCase;
+import java.util.Arrays;
+import java.util.List;
+import kotlin.reflect.KType;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.common.GradleInitScripts.ContentCreator}.

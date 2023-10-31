@@ -28,8 +28,7 @@ class MotionSelectionTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val motionRule = MotionAttributeRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
 
   @Test
   fun testComponentForCustomAttributeCompletionsFromConstraint() {
@@ -73,4 +72,3 @@ class MotionSelectionTest {
     assertThat(component?.id).isEqualTo("widget")
   }
 }
-

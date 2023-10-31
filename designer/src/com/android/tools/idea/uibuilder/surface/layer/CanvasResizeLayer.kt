@@ -25,18 +25,24 @@ import java.awt.Rectangle
 /**
  * Layer to buildDisplayList the canvas resizing cue in the bottom-right corner of the screen view.
  */
-class CanvasResizeLayer(private val screenView: ScreenView, private val repaint: () -> Unit) : Layer() {
+class CanvasResizeLayer(private val screenView: ScreenView, private val repaint: () -> Unit) :
+  Layer() {
   private var isHovering = false
 
   /**
-   * Sets the state of this layer according to the mouse hovering at point (x, y).
-   * Returns whether that required any modification to the state of the layer.
+   * Sets the state of this layer according to the mouse hovering at point (x, y). Returns whether
+   * that required any modification to the state of the layer.
    */
   override fun onHover(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
     val oldHovering = isHovering
     val size = screenView.scaledContentSize
-    val resizeZone = Rectangle(screenView.x + size.width, screenView.y + size.height, NlConstants.RESIZING_HOVERING_SIZE,
-                               NlConstants.RESIZING_HOVERING_SIZE)
+    val resizeZone =
+      Rectangle(
+        screenView.x + size.width,
+        screenView.y + size.height,
+        NlConstants.RESIZING_HOVERING_SIZE,
+        NlConstants.RESIZING_HOVERING_SIZE
+      )
     isHovering = resizeZone.contains(x, y)
     if (isHovering != oldHovering) {
       repaint()
@@ -49,11 +55,20 @@ class CanvasResizeLayer(private val screenView: ScreenView, private val repaint:
     val y = screenView.y
     val graphics = g2d.create() as Graphics2D
     graphics.stroke = NlConstants.SOLID_STROKE
-    graphics.color = if (isHovering) NlConstants.RESIZING_CORNER_COLOR else NlConstants.RESIZING_CUE_COLOR
-    graphics.drawLine(x + size.width + NlConstants.BOUNDS_RECT_DELTA, y + size.height + 4, x + size.width + 4,
-                      y + size.height + NlConstants.BOUNDS_RECT_DELTA)
-    graphics.drawLine(x + size.width + NlConstants.BOUNDS_RECT_DELTA, y + size.height + 12, x + size.width + 12,
-                      y + size.height + NlConstants.BOUNDS_RECT_DELTA)
+    graphics.color =
+      if (isHovering) NlConstants.RESIZING_CORNER_COLOR else NlConstants.RESIZING_CUE_COLOR
+    graphics.drawLine(
+      x + size.width + NlConstants.BOUNDS_RECT_DELTA,
+      y + size.height + 4,
+      x + size.width + 4,
+      y + size.height + NlConstants.BOUNDS_RECT_DELTA
+    )
+    graphics.drawLine(
+      x + size.width + NlConstants.BOUNDS_RECT_DELTA,
+      y + size.height + 12,
+      x + size.width + 12,
+      y + size.height + NlConstants.BOUNDS_RECT_DELTA
+    )
     graphics.dispose()
   }
 

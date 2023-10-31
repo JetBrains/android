@@ -1,8 +1,16 @@
 package com.android.tools.idea.uibuilder.options
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.observable.properties.AtomicBooleanProperty
+import com.intellij.openapi.observable.util.not
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -11,12 +19,15 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.labelTable
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
+import com.intellij.util.messages.Topic
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.VisibleForTesting
@@ -26,16 +37,32 @@ import javax.swing.JList
 import javax.swing.JSlider
 
 private const val CONFIGURABLE_ID = "nele.options"
-private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerActionsBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
+private val DISPLAY_NAME =
+  if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerActionsBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
 
 @Nls @VisibleForTesting val LABEL_TRACK_PAD = AndroidDesignerActionsBundle.message("title.track.pad")
-@Nls @VisibleForTesting val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = AndroidDesignerActionsBundle.message("label.zooming.sensitivity")
+@Nls @VisibleForTesting
+ val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = AndroidDesignerActionsBundle.message("label.zooming.sensitivity")
 
-private val MAGNIFY_SUPPORTED = SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
+private val MAGNIFY_SUPPORTED =
+  SystemInfo.isMac && Registry.`is`("actionSystem.mouseGesturesEnabled", true)
 
 class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
-  private class EditorModeCellRenderer : SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
+  fun interface Listener {
+
+    companion object {
+      val TOPIC: Topic<Listener> = Topic(Listener::class.java, Topic.BroadcastDirection.TO_CHILDREN)
+    }
+
+    fun onOptionsChanged()
+  }
+
+  private fun fireOptionsChanged() =
+    ApplicationManager.getApplication().messageBus.syncPublisher(Listener.TOPIC).onOptionsChanged()
+
+  private class EditorModeCellRenderer :
+    SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
     override fun customize(
       list: JList<out AndroidEditorSettings.EditorMode>,
       value: AndroidEditorSettings.EditorMode?,
@@ -56,6 +83,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   private var magnifySensitivity: JSlider? = null
 
   private val state = AndroidEditorSettings.getInstance().globalState
+  private val fastPreviewState = FastPreviewConfiguration.getInstance()
 
   override fun getId() = CONFIGURABLE_ID
 
@@ -64,91 +92,160 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   }
 
   override fun createPanel(): DialogPanel {
-    // The bazel test //tools/adt/idea/searchable-options:searchable_options_test compares the created option list with a static xml file,
-    // which doesn't include the options added at runtime.
-    // We disable magnify support in headless environment to make this bazel test passes on all platform. In thee meanwhile, we use the unit
-    // tests in NlOptionConfigurableSearchableOptionContributorTest to cover the magnify options created at runtime.
+    // The bazel test //tools/adt/idea/searchable-options:searchable_options_test compares the
+    // created option list with a static xml file, which doesn't include the options added at
+    // runtime. We disable magnify support in headless environment to make this bazel test passes
+    // on all platforms. Meanwhile, we use the NlOptionConfigurableSearchableOptionContributorTest
+    // unit tests to cover the magnify options created at runtime.
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
-      row {
-        checkBox(AndroidDesignerActionsBundle.message("checkbox.show.lint.icons.on.design.surface"))
-          .bindSelected(state::isShowLint, state::setShowLint)
-      }
       group(AndroidDesignerActionsBundle.message("title.default.editor.mode")) {
-        row(AndroidDesignerActionsBundle.message("combobox.drawables")) {
-          preferredDrawablesEditorMode = editorModeComboBox().component
-        }
+        row(AndroidDesignerActionsBundle.message("combobox.drawables")) { preferredDrawablesEditorMode = editorModeComboBox().component }
         row(AndroidDesignerActionsBundle.message("combobox.other.resources")) {
           preferredEditorMode = editorModeComboBox().component
         }
         row(AndroidDesignerActionsBundle.message("combobox.compose.files")) {
           editorModeComboBox()
-            .bindItem({ state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
-                      state::setPreferredComposableEditorMode)
+            .bindItem(
+              { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              state::setPreferredComposableEditorMode
+            )
         }
         row(AndroidDesignerActionsBundle.message("combobox.other.kotlin.files")) {
           editorModeComboBox()
-            .bindItem({ state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
-                      state::setPreferredKotlinEditorMode)
+            .bindItem(
+              { state.preferredKotlinEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
+              state::setPreferredKotlinEditorMode
+            )
         }
       }
       if (showMagnify) {
         val percentageValue = doubleToPercentageValue(state.magnifySensitivity)
         group(LABEL_TRACK_PAD) {
           row(LABEL_MAGNIFY_ZOOMING_SENSITIVITY) {
-            val minSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MIN_MAGNIFY_SENSITIVITY)
-            val defaultSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.DEFAULT_MAGNIFY_SENSITIVITY)
-            val maxSensitivityPercentage = doubleToPercentageValue(AndroidEditorSettings.MAX_MAGNIFY_SENSITIVITY)
-            magnifySensitivity = slider(minSensitivityPercentage, maxSensitivityPercentage, 0, (maxSensitivityPercentage - minSensitivityPercentage) / 4)
-              .labelTable(mapOf(
-                minSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.slow")),
-                defaultSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.default")),
-                maxSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.fast"))
-              )).applyToComponent {
-                value = percentageValue
-              }.component
+            val minSensitivityPercentage =
+              doubleToPercentageValue(AndroidEditorSettings.MIN_MAGNIFY_SENSITIVITY)
+            val defaultSensitivityPercentage =
+              doubleToPercentageValue(AndroidEditorSettings.DEFAULT_MAGNIFY_SENSITIVITY)
+            val maxSensitivityPercentage =
+              doubleToPercentageValue(AndroidEditorSettings.MAX_MAGNIFY_SENSITIVITY)
+            magnifySensitivity =
+              slider(
+                  minSensitivityPercentage,
+                  maxSensitivityPercentage,
+                  0,
+                  (maxSensitivityPercentage - minSensitivityPercentage) / 4
+                )
+                .labelTable(
+                  mapOf(
+                    minSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.slow")),
+                    defaultSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.default")),
+                    maxSensitivityPercentage to JLabel(AndroidDesignerActionsBundle.message("label.fast"))
+                  )
+                )
+                .applyToComponent { value = percentageValue }
+                .component
+          }
+        }
+      }
+
+      val essentialsModeObservable = createEssentialsModeObservable()
+      group("Compose Preview") {
+        if (StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.get()) {
+          buttonsGroup("Resource Usage:") {
+            row {
+                comment(
+                  "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
+                    "resource usage will be overridden to Essentials."
+                )
+              }
+              .visibleIf(essentialsModeObservable)
+
+            lateinit var defaultModeRadioButton: Cell<JBRadioButton>
+            row {
+                defaultModeRadioButton =
+                  radioButton("Default").bindSelected({
+                    !state.isComposePreviewEssentialsModeEnabled && !EssentialsMode.isEnabled()
+                  }) {
+                    state.isComposePreviewEssentialsModeEnabled = !it
+                  }
+              }
+              .enabledIf(essentialsModeObservable.not())
+            indent {
+                row {
+                  checkBox("Enable live updates")
+                    .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
+                    .enabledIf(defaultModeRadioButton.selected)
+                }
+              }
+              .enabledIf(essentialsModeObservable.not())
+            row {
+                val essentialsModeHint =
+                  "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
+                    "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews#essentials\">Learn more</a>"
+
+                radioButton("Essentials").comment(essentialsModeHint).bindSelected({
+                  state.isComposePreviewEssentialsModeEnabled || EssentialsMode.isEnabled()
+                }) {
+                  state.isComposePreviewEssentialsModeEnabled = it
+                }
+              }
+              .enabledIf(essentialsModeObservable.not())
+          }
+        } else {
+          row {
+            checkBox("Enable live updates").bindSelected(fastPreviewState::isEnabled) {
+              fastPreviewState.isEnabled = it
+            }
           }
         }
       }
     }
   }
 
+  private fun createEssentialsModeObservable(): AtomicBooleanProperty {
+    val essentialsModeEnabled = AtomicBooleanProperty(EssentialsMode.isEnabled())
+    val essentialsModeMessagingService = service<EssentialsModeMessenger>()
+    ApplicationManager.getApplication()
+      .messageBus
+      .connect(disposable!!)
+      .subscribe(
+        essentialsModeMessagingService.TOPIC,
+        EssentialsModeMessenger.Listener { essentialsModeEnabled.set(EssentialsMode.isEnabled()) }
+      )
+    return essentialsModeEnabled
+  }
+
   override fun isModified(): Boolean {
     val magnifySensitivityValue = magnifySensitivity?.value
-    return super<BoundConfigurable>.isModified()
-      || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
-      || preferredEditorMode.selectedItem != state.preferredEditorMode
-      || (magnifySensitivityValue != null && magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
+    return super<BoundConfigurable>.isModified() ||
+      preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode ||
+      preferredEditorMode.selectedItem != state.preferredEditorMode ||
+      (magnifySensitivityValue != null &&
+        magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
   }
 
   @Throws(ConfigurationException::class)
   override fun apply() {
     super.apply()
-    state.preferredDrawableEditorMode = preferredDrawablesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
+    state.preferredDrawableEditorMode =
+      preferredDrawablesEditorMode.selectedItem as AndroidEditorSettings.EditorMode
     state.preferredEditorMode = preferredEditorMode.selectedItem as AndroidEditorSettings.EditorMode
-    magnifySensitivity?.let {
-      state.magnifySensitivity = percentageValueToDouble(it.value)
-    }
+    magnifySensitivity?.let { state.magnifySensitivity = percentageValueToDouble(it.value) }
+    fireOptionsChanged()
   }
 
   override fun reset() {
     super<BoundConfigurable>.reset()
 
-    // Handle the case where preferredDrawableEditorMode and preferredEditorMode were not set for the first time yet.
+    // Handle the case where preferredDrawableEditorMode and preferredEditorMode were not set for
+    // the first time yet.
     if (state.preferredDrawableEditorMode == null && state.preferredEditorMode == null) {
-      if (state.isPreferXmlEditor) {
-        // Preserve the user preference if they had set the old "Prefer XML editor" option.
-        preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.CODE
-        preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.CODE
-      }
-      else {
-        // Otherwise default drawables to SPLIT and other resource types to DESIGN
-        preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
-        preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.DESIGN
-      }
-    }
-    else {
+      // Default drawables to SPLIT and other resource types to DESIGN
+      preferredDrawablesEditorMode.selectedItem = AndroidEditorSettings.EditorMode.SPLIT
+      preferredEditorMode.selectedItem = AndroidEditorSettings.EditorMode.DESIGN
+    } else {
       preferredDrawablesEditorMode.selectedItem = state.preferredDrawableEditorMode
       preferredEditorMode.selectedItem = state.preferredEditorMode
     }
@@ -158,25 +255,33 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
 }
 
 /**
- * Helper function to convert percentage value to double. For example, when [percentage] is 22, the return value is 0.22
+ * Helper function to convert percentage value to double. For example, when [percentage] is 22, the
+ * return value is 0.22
  */
 private fun percentageValueToDouble(percentage: Int): Double = percentage * 0.01
 /**
- * Helper function to convert a double value to percentage value. For example, when [double] is 0.44, the return value is 44.
+ * Helper function to convert a double value to percentage value. For example, when [double] is
+ * 0.44, the return value is 44.
  */
 private fun doubleToPercentageValue(double: Double): Int = (double * 100).toInt()
 
 /**
- * The magnify configurations is added conditionally, we cannot use the static xml files to define the options.
- * Thus, we add the corresponding options at runtime here.
+ * The magnify configurations is added conditionally, we cannot use the static xml files to define
+ * the options. Thus, we add the corresponding options at runtime here.
  */
 class NlOptionConfigurableSearchableOptionContributor : SearchableOptionContributor() {
 
   override fun processOptions(processor: SearchableOptionProcessor) {
     if (MAGNIFY_SUPPORTED) {
       processor.addOptions("track pad", null, LABEL_TRACK_PAD, CONFIGURABLE_ID, DISPLAY_NAME, false)
-      processor.addOptions("magnify pinch zooming sensitivity", null,
-                           LABEL_MAGNIFY_ZOOMING_SENSITIVITY, CONFIGURABLE_ID, DISPLAY_NAME, false)
+      processor.addOptions(
+        "magnify pinch zooming sensitivity",
+        null,
+        LABEL_MAGNIFY_ZOOMING_SENSITIVITY,
+        CONFIGURABLE_ID,
+        DISPLAY_NAME,
+        false
+      )
     }
   }
 }

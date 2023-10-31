@@ -18,7 +18,7 @@ package com.android.tools.idea.logcat.filters
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
 import com.android.tools.idea.logcat.filters.LogcatFilterField.IMPLICIT_LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
@@ -43,6 +43,8 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.time.Clock
 import kotlin.test.fail
 
@@ -67,35 +69,43 @@ private val invalidAges = listOf(
   "99999999999999999999999999999999999999999999999s", // Triggers a NumberFormatException
 )
 
-private val fakePackageNamesProvider = FakePackageNamesProvider()
-
 /**
  * Tests for [LogcatFilterParser]
  */
 @RunsInEdt
-class LogcatFilterParserTest {
+@RunWith(Parameterized::class)
+class LogcatFilterParserTest(private val matchCase: Boolean) {
+  companion object {
+
+    @JvmStatic
+    @Parameterized.Parameters
+    fun getMatchCase() = listOf(true, false)
+  }
+
   private val projectRule = ProjectRule()
-  private val project by lazy(projectRule::project)
+  private val project get() = projectRule.project
 
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
+  private val fakeProjectApplicationIdsProvider by lazy { FakeProjectApplicationIdsProvider(project) }
+
   @Test
   fun parse_emptyFilter() {
-    assertThat(logcatFilterParser().parse("")).isNull()
+    assertThat(logcatFilterParser().parse("", matchCase)).isNull()
   }
 
   @Test
   fun parse_blankFilter() {
     val filter = " \t"
-    assertThat(logcatFilterParser().parse(filter)).isEqualTo(StringFilter(" \t", IMPLICIT_LINE, filter.asRange()))
+    assertThat(logcatFilterParser().parse(filter, matchCase)).isEqualTo(StringFilter(" \t", IMPLICIT_LINE, matchCase, filter.asRange()))
   }
 
   @Test
   fun parse_stringKey() {
     for ((key, field) in keys) {
-      assertThat(logcatFilterParser().parse("$key: Foo")).isEqualTo(StringFilter("Foo", field, "$key: Foo".asRange()))
-      assertThat(logcatFilterParser().parse("$key:Foo")).isEqualTo(StringFilter("Foo", field, "$key:Foo".asRange()))
+      assertThat(logcatFilterParser().parse("$key: Foo", matchCase)).isEqualTo(StringFilter("Foo", field, matchCase, "$key: Foo".asRange()))
+      assertThat(logcatFilterParser().parse("$key:Foo", matchCase)).isEqualTo(StringFilter("Foo", field, matchCase, "$key:Foo".asRange()))
     }
   }
 
@@ -110,16 +120,16 @@ class LogcatFilterParserTest {
         $key:\"foobar\"
         $key:foo\\bar
       """.trimIndent()
-      val filter = logcatFilterParser().parse(filterString)
+      val filter = logcatFilterParser().parse(filterString, matchCase)
 
       assertThat(filter).isEqualTo(
         AndLogcatFilter(
-          StringFilter("foo bar", field, filterString.rangeOf("$key:foo\\ bar")),
-          StringFilter("foobar", field, filterString.rangeOf("$key:'foobar'")),
-          StringFilter("'foobar'", field, filterString.rangeOf("$key:\\'foobar\\'")),
-          StringFilter("foobar", field, filterString.rangeOf("$key:\"foobar\"")),
-          StringFilter(""""foobar"""", field, filterString.rangeOf("$key:\\\"foobar\\\"")),
-          StringFilter("""foo\bar""", field, filterString.rangeOf("$key:foo\\\\bar")),
+          StringFilter("foo bar", field, matchCase, filterString.rangeOf("$key:foo\\ bar")),
+          StringFilter("foobar", field, matchCase, filterString.rangeOf("$key:'foobar'")),
+          StringFilter("'foobar'", field, matchCase, filterString.rangeOf("$key:\\'foobar\\'")),
+          StringFilter("foobar", field, matchCase, filterString.rangeOf("$key:\"foobar\"")),
+          StringFilter(""""foobar"""", field, matchCase, filterString.rangeOf("$key:\\\"foobar\\\"")),
+          StringFilter("""foo\bar""", field, matchCase, filterString.rangeOf("$key:foo\\\\bar")),
         )
       )
     }
@@ -128,58 +138,70 @@ class LogcatFilterParserTest {
   @Test
   fun parse_negatedStringKey() {
     for ((key, field) in keys) {
-      assertThat(logcatFilterParser().parse("-$key: Foo")).isEqualTo(NegatedStringFilter("Foo", field, "-$key: Foo".asRange()))
-      assertThat(logcatFilterParser().parse("-$key:Foo")).isEqualTo(NegatedStringFilter("Foo", field, "-$key:Foo".asRange()))
+      assertThat(logcatFilterParser().parse("-$key: Foo", matchCase))
+        .isEqualTo(NegatedStringFilter("Foo", field, matchCase, "-$key: Foo".asRange()))
+      assertThat(logcatFilterParser().parse("-$key:Foo", matchCase))
+        .isEqualTo(NegatedStringFilter("Foo", field, matchCase, "-$key:Foo".asRange()))
     }
   }
 
   @Test
   fun parse_regexKey() {
     for ((key, field) in keys) {
-      assertThat(logcatFilterParser().parse("$key~: Foo")).isEqualTo(RegexFilter("Foo", field, "$key~: Foo".asRange()))
-      assertThat(logcatFilterParser().parse("$key~:Foo")).isEqualTo(RegexFilter("Foo", field, "$key~:Foo".asRange()))
+      assertThat(logcatFilterParser().parse("$key~: Foo", matchCase))
+        .isEqualTo(RegexFilter("Foo", field, matchCase, "$key~: Foo".asRange()))
+      assertThat(logcatFilterParser().parse("$key~:Foo", matchCase))
+        .isEqualTo(RegexFilter("Foo", field, matchCase, "$key~:Foo".asRange()))
     }
   }
 
   @Test
   fun parse_negatedRegexKey() {
     for ((key, field) in keys) {
-      assertThat(logcatFilterParser().parse("-$key~: Foo")).isEqualTo(NegatedRegexFilter("Foo", field, "-$key~: Foo".asRange()))
-      assertThat(logcatFilterParser().parse("-$key~:Foo")).isEqualTo(NegatedRegexFilter("Foo", field, "-$key~:Foo".asRange()))
+      assertThat(logcatFilterParser().parse("-$key~: Foo", matchCase)).isEqualTo(
+        NegatedRegexFilter("Foo", field, matchCase, "-$key~: Foo".asRange()))
+      assertThat(logcatFilterParser().parse("-$key~:Foo", matchCase)).isEqualTo(
+        NegatedRegexFilter("Foo", field, matchCase, "-$key~:Foo".asRange()))
     }
   }
 
   @Test
   fun parse_invalidRegex() {
-    assertThat(logcatFilterParser().parse("""tag~:\""")).isEqualTo(StringFilter("""tag~:\""", IMPLICIT_LINE, """tag~:\""".asRange()))
+    assertThat(logcatFilterParser().parse("""tag~:\""", matchCase)).isEqualTo(
+      StringFilter("""tag~:\""", IMPLICIT_LINE, matchCase, """tag~:\""".asRange()))
   }
 
   @Test
   fun parse_invalidNegatedRegex() {
-    assertThat(logcatFilterParser().parse("""-tag~:\""")).isEqualTo(StringFilter("""-tag~:\""", IMPLICIT_LINE, """-tag~:\""".asRange()))
+    assertThat(logcatFilterParser().parse("""-tag~:\""", matchCase)).isEqualTo(
+      StringFilter("""-tag~:\""", IMPLICIT_LINE, matchCase, """-tag~:\""".asRange()))
   }
 
   @Test
   fun parse_exactKey() {
     for ((key, field) in keys) {
-      assertThat(logcatFilterParser().parse("$key=: Foo")).isEqualTo(ExactStringFilter("Foo", field, "$key=: Foo".asRange()))
-      assertThat(logcatFilterParser().parse("$key=:Foo")).isEqualTo(ExactStringFilter("Foo", field, "$key=:Foo".asRange()))
+      assertThat(logcatFilterParser().parse("$key=: Foo", matchCase)).isEqualTo(
+        ExactStringFilter("Foo", field, matchCase, "$key=: Foo".asRange()))
+      assertThat(logcatFilterParser().parse("$key=:Foo", matchCase)).isEqualTo(
+        ExactStringFilter("Foo", field, matchCase, "$key=:Foo".asRange()))
     }
   }
 
   @Test
   fun parse_negatedExactKey() {
     for ((key, field) in keys) {
-      assertThat(logcatFilterParser().parse("-$key=: Foo")).isEqualTo(NegatedExactStringFilter("Foo", field, "-$key=: Foo".asRange()))
-      assertThat(logcatFilterParser().parse("-$key=:Foo")).isEqualTo(NegatedExactStringFilter("Foo", field, "-$key=:Foo".asRange()))
+      assertThat(logcatFilterParser().parse("-$key=: Foo", matchCase)).isEqualTo(
+        NegatedExactStringFilter("Foo", field, matchCase, "-$key=: Foo".asRange()))
+      assertThat(logcatFilterParser().parse("-$key=:Foo", matchCase)).isEqualTo(
+        NegatedExactStringFilter("Foo", field, matchCase, "-$key=:Foo".asRange()))
     }
   }
 
   @Test
   fun parse_levelKeys() {
     for (logLevel in LogLevel.values()) {
-      assertThat(logcatFilterParser().parse("level: $logLevel")).isEqualTo(LevelFilter(logLevel, "level: $logLevel".asRange()))
-      assertThat(logcatFilterParser().parse("level:$logLevel")).isEqualTo(LevelFilter(logLevel, "level:$logLevel".asRange()))
+      assertThat(logcatFilterParser().parse("level: $logLevel", matchCase)).isEqualTo(LevelFilter(logLevel, "level: $logLevel".asRange()))
+      assertThat(logcatFilterParser().parse("level:$logLevel", matchCase)).isEqualTo(LevelFilter(logLevel, "level:$logLevel".asRange()))
     }
   }
 
@@ -187,15 +209,16 @@ class LogcatFilterParserTest {
   fun parse_levelKeys_invalidLevel() {
     val query = "level: Invalid"
 
-    assertThat(logcatFilterParser().parse(query) as StringFilter).isEqualTo(StringFilter(query, IMPLICIT_LINE, query.asRange()))
+    assertThat(logcatFilterParser().parse(query, matchCase) as StringFilter).isEqualTo(
+      StringFilter(query, IMPLICIT_LINE, matchCase, query.asRange()))
   }
 
   @Test
   fun parse_age() {
     for (key in ageValues) {
       val clock = Clock.systemUTC()
-      assertThat(logcatFilterParser(clock = clock).parse("age: $key")).isEqualTo(AgeFilter(key, clock, "age: $key".asRange()))
-      assertThat(logcatFilterParser(clock = clock).parse("age:$key")).isEqualTo(AgeFilter(key, clock, "age:$key".asRange()))
+      assertThat(logcatFilterParser(clock = clock).parse("age: $key", matchCase)).isEqualTo(AgeFilter(key, clock, "age: $key".asRange()))
+      assertThat(logcatFilterParser(clock = clock).parse("age:$key", matchCase)).isEqualTo(AgeFilter(key, clock, "age:$key".asRange()))
     }
   }
 
@@ -204,7 +227,7 @@ class LogcatFilterParserTest {
     for (age in invalidAges) {
       val query = "age: $age"
 
-      assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE, query.asRange()))
+      assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(StringFilter(query, IMPLICIT_LINE, matchCase, query.asRange()))
     }
   }
 
@@ -229,13 +252,13 @@ class LogcatFilterParserTest {
   @Test
   fun parse_isCrash() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    assertThat(logcatFilterParser().parse("is:crash")).isEqualTo(CrashFilter("is:crash".asRange()))
+    assertThat(logcatFilterParser().parse("is:crash", matchCase)).isEqualTo(CrashFilter("is:crash".asRange()))
   }
 
   @Test
   fun parse_isFirebase() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    val filter = logcatFilterParser().parse("is:firebase") as? RegexFilter ?: fail("Expected a RegexFilter")
+    val filter = logcatFilterParser().parse("is:firebase", matchCase) as? RegexFilter ?: fail("Expected a RegexFilter")
 
     assertThat(filter.field).isEqualTo(TAG)
     // No need to test all the tags, just test a single tag and make sure we don't match substrings
@@ -246,15 +269,15 @@ class LogcatFilterParserTest {
   @Test
   fun parse_isStacktrace() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
-    assertThat(logcatFilterParser().parse("is:stacktrace")).isEqualTo(StackTraceFilter("is:stacktrace".asRange()))
+    assertThat(logcatFilterParser().parse("is:stacktrace", matchCase)).isEqualTo(StackTraceFilter("is:stacktrace".asRange()))
   }
 
   @Test
   fun parse_is_invalid() {
     val query = "if:foo"
 
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(
-      StringFilter(query, IMPLICIT_LINE, query.rangeOf("if:foo"))
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(
+      StringFilter(query, IMPLICIT_LINE, matchCase, query.rangeOf("if:foo"))
     )
   }
 
@@ -263,13 +286,13 @@ class LogcatFilterParserTest {
 
     val query = "level:INFO foo1    bar1   tag:bar2 foo2  package:foobar"
     assertThat(
-      logcatFilterParser(joinConsecutiveTopLevelValue = true).parse(query)).isEqualTo(
+      logcatFilterParser(joinConsecutiveTopLevelValue = true).parse(query, matchCase)).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO, query.rangeOf("level:INFO")),
-        StringFilter("foo1    bar1", IMPLICIT_LINE, query.rangeOf("foo1    bar1")),
-        StringFilter("bar2", TAG, query.rangeOf("tag:bar2")),
-        StringFilter("foo2", IMPLICIT_LINE, query.rangeOf("foo2")),
-        StringFilter("foobar", APP, query.rangeOf("package:foobar")),
+        StringFilter("foo1    bar1", IMPLICIT_LINE, matchCase, query.rangeOf("foo1    bar1")),
+        StringFilter("bar2", TAG, matchCase, query.rangeOf("tag:bar2")),
+        StringFilter("foo2", IMPLICIT_LINE, matchCase, query.rangeOf("foo2")),
+        StringFilter("foobar", APP, matchCase, query.rangeOf("package:foobar")),
       )
     )
   }
@@ -278,15 +301,15 @@ class LogcatFilterParserTest {
   fun parse_topLevelExpressions_joinConsecutiveTopLevelValue_false() {
 
     val query = "level:INFO foo1    bar1   tag:bar2 foo2  package:foobar"
-    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = false).parse(query))
+    assertThat(logcatFilterParser(joinConsecutiveTopLevelValue = false).parse(query, matchCase))
       .isEqualTo(
         AndLogcatFilter(
           LevelFilter(INFO, query.rangeOf("level:INFO")),
-          StringFilter("foo1", IMPLICIT_LINE, query.rangeOf("foo1")),
-          StringFilter("bar1", IMPLICIT_LINE, query.rangeOf("bar1")),
-          StringFilter("bar2", TAG, query.rangeOf("tag:bar2")),
-          StringFilter("foo2", IMPLICIT_LINE, query.rangeOf("foo2")),
-          StringFilter("foobar", APP, query.rangeOf("package:foobar")),
+          StringFilter("foo1", IMPLICIT_LINE, matchCase, query.rangeOf("foo1")),
+          StringFilter("bar1", IMPLICIT_LINE, matchCase, query.rangeOf("bar1")),
+          StringFilter("bar2", TAG, matchCase, query.rangeOf("tag:bar2")),
+          StringFilter("foo2", IMPLICIT_LINE, matchCase, query.rangeOf("foo2")),
+          StringFilter("foobar", APP, matchCase, query.rangeOf("package:foobar")),
         )
       )
   }
@@ -296,19 +319,19 @@ class LogcatFilterParserTest {
     val parser = logcatFilterParser(topLevelSameKeyTreatment = OR)
 
     val query = "-tag:ignore1 foo tag:tag1 -tag~:ignore2 bar level:WARN tag~:tag2 tag=:tag3 -tag=:ignore3"
-    assertThat(parser.parse(query)).isEqualTo(
+    assertThat(parser.parse(query, matchCase)).isEqualTo(
       AndLogcatFilter(
-        NegatedStringFilter("ignore1", TAG, query.rangeOf("-tag:ignore1")),
-        StringFilter("foo", IMPLICIT_LINE, query.rangeOf("foo")),
+        NegatedStringFilter("ignore1", TAG, matchCase, query.rangeOf("-tag:ignore1")),
+        StringFilter("foo", IMPLICIT_LINE, matchCase, query.rangeOf("foo")),
         OrLogcatFilter(
-          StringFilter("tag1", TAG, query.rangeOf("tag:tag1")),
-          RegexFilter("tag2", TAG, query.rangeOf("tag~:tag2")),
-          ExactStringFilter("tag3", TAG,query.rangeOf("tag=:tag3")),
+          StringFilter("tag1", TAG, matchCase, query.rangeOf("tag:tag1")),
+          RegexFilter("tag2", TAG, matchCase, query.rangeOf("tag~:tag2")),
+          ExactStringFilter("tag3", TAG, matchCase, query.rangeOf("tag=:tag3")),
         ),
-        NegatedRegexFilter("ignore2", TAG, query.rangeOf("-tag~:ignore2")),
-        StringFilter("bar", IMPLICIT_LINE, query.rangeOf("bar")),
+        NegatedRegexFilter("ignore2", TAG, matchCase, query.rangeOf("-tag~:ignore2")),
+        StringFilter("bar", IMPLICIT_LINE, matchCase, query.rangeOf("bar")),
         LevelFilter(WARN, query.rangeOf("level:WARN")),
-        NegatedExactStringFilter("ignore3", TAG, query.rangeOf("-tag=:ignore3")),
+        NegatedExactStringFilter("ignore3", TAG, matchCase, query.rangeOf("-tag=:ignore3")),
       )
     )
   }
@@ -316,11 +339,11 @@ class LogcatFilterParserTest {
   @Test
   fun parse_and() {
     val query = "tag: bar & foo & package: foobar"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(
       AndLogcatFilter(
-        StringFilter("bar", TAG, query.rangeOf("tag: bar")),
-        StringFilter("foo", IMPLICIT_LINE, query.rangeOf("foo")),
-        StringFilter("foobar", APP, query.rangeOf("package: foobar")),
+        StringFilter("bar", TAG, matchCase, query.rangeOf("tag: bar")),
+        StringFilter("foo", IMPLICIT_LINE, matchCase, query.rangeOf("foo")),
+        StringFilter("foobar", APP, matchCase, query.rangeOf("package: foobar")),
       )
     )
   }
@@ -328,11 +351,11 @@ class LogcatFilterParserTest {
   @Test
   fun parse_or() {
     val query = "tag: bar | foo | package: foobar"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(
       OrLogcatFilter(
-        StringFilter("bar", TAG, query.rangeOf("tag: bar")),
-        StringFilter("foo", IMPLICIT_LINE, query.rangeOf("foo")),
-        StringFilter("foobar", APP, query.rangeOf("package: foobar")),
+        StringFilter("bar", TAG, matchCase, query.rangeOf("tag: bar")),
+        StringFilter("foo", IMPLICIT_LINE, matchCase, query.rangeOf("foo")),
+        StringFilter("foobar", APP, matchCase, query.rangeOf("package: foobar")),
       )
     )
   }
@@ -340,15 +363,15 @@ class LogcatFilterParserTest {
   @Test
   fun parse_operatorPrecedence() {
     val query = "f1 & f2 | f3 & f4"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(
       OrLogcatFilter(
         AndLogcatFilter(
-          StringFilter("f1", IMPLICIT_LINE, query.rangeOf("f1")),
-          StringFilter("f2", IMPLICIT_LINE, query.rangeOf("f2")),
+          StringFilter("f1", IMPLICIT_LINE, matchCase, query.rangeOf("f1")),
+          StringFilter("f2", IMPLICIT_LINE, matchCase, query.rangeOf("f2")),
         ),
         AndLogcatFilter(
-          StringFilter("f3", IMPLICIT_LINE, query.rangeOf("f3")),
-          StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")),
+          StringFilter("f3", IMPLICIT_LINE, matchCase, query.rangeOf("f3")),
+          StringFilter("f4", IMPLICIT_LINE, matchCase, query.rangeOf("f4")),
         ),
       )
     )
@@ -357,14 +380,14 @@ class LogcatFilterParserTest {
   @Test
   fun parse_parens() {
     val query = "f1 & (tag: foo | tag: 'bar') & f4"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(
       AndLogcatFilter(
-        StringFilter("f1", IMPLICIT_LINE, query.rangeOf("f1")),
+        StringFilter("f1", IMPLICIT_LINE, matchCase, query.rangeOf("f1")),
         OrLogcatFilter(
-          StringFilter("foo", TAG, query.rangeOf("tag: foo")),
-          StringFilter("bar", TAG, query.rangeOf("tag: 'bar'")),
+          StringFilter("foo", TAG, matchCase, query.rangeOf("tag: foo")),
+          StringFilter("bar", TAG, matchCase, query.rangeOf("tag: 'bar'")),
         ),
-        StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")),
+        StringFilter("f4", IMPLICIT_LINE, matchCase, query.rangeOf("f4")),
       )
     )
   }
@@ -372,30 +395,31 @@ class LogcatFilterParserTest {
   @Test
   fun parse_emptyParens() {
     val query = "f1 & () & f4"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(
       AndLogcatFilter(
-        StringFilter("f1", IMPLICIT_LINE, query.rangeOf("f1")),
+        StringFilter("f1", IMPLICIT_LINE, matchCase, query.rangeOf("f1")),
         EmptyFilter,
-        StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")),
+        StringFilter("f4", IMPLICIT_LINE, matchCase, query.rangeOf("f4")),
       )
     )
   }
 
   @Test
   fun parse_appFilter() {
-    assertThat(logcatFilterParser().parse("package:mine")).isEqualTo(ProjectAppFilter(fakePackageNamesProvider, "package:mine".asRange()))
+    assertThat(logcatFilterParser().parse("package:mine", matchCase)).isEqualTo(
+      ProjectAppFilter(fakeProjectApplicationIdsProvider, "package:mine".asRange()))
   }
 
   @Test
   fun parse_appFilter_nonAndroidProject() {
-    assertThat(logcatFilterParser(androidProjectDetector = FakeAndroidProjectDetector(false)).parse("package:mine"))
-      .isEqualTo(StringFilter("mine", APP, "package:mine".asRange()))
+    assertThat(logcatFilterParser(androidProjectDetector = FakeAndroidProjectDetector(false)).parse("package:mine", matchCase))
+      .isEqualTo(StringFilter("mine", APP, matchCase, "package:mine".asRange()))
   }
 
   @Test
   fun parse_psiError() {
     val query = "key: 'foo"
-    assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE, query.asRange()))
+    assertThat(logcatFilterParser().parse(query, matchCase)).isEqualTo(StringFilter(query, IMPLICIT_LINE, matchCase, query.asRange()))
   }
 
   @Test
@@ -403,7 +427,7 @@ class LogcatFilterParserTest {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
     val query = "tag:foo tag:bar -package:foo line~:foo -message~:bar age:2m level:INFO package:mine foo is:crash is:stacktrace"
 
-    assertThat(logcatFilterParser().getUsageTrackingEvent(query)?.build()).isEqualTo(
+    assertThat(logcatFilterParser().getUsageTrackingEvent(query, matchCase)?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
         .setTagTerms(TermVariants.newBuilder().setCount(2))
         .setPackageTerms(TermVariants.newBuilder().setCountNegated(1))
@@ -420,7 +444,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_operators() {
-    assertThat(logcatFilterParser().getUsageTrackingEvent("(foo | bar) & (for | boo)")?.build()).isEqualTo(
+    assertThat(logcatFilterParser().getUsageTrackingEvent("(foo | bar) & (for | boo)", matchCase)?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
         .setImplicitLineTerms(4)
         .setAndOperators(1)
@@ -431,7 +455,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_error() {
-    assertThat(logcatFilterParser().getUsageTrackingEvent("level:foo")?.build()).isEqualTo(
+    assertThat(logcatFilterParser().getUsageTrackingEvent("level:foo", matchCase)?.build()).isEqualTo(
       LogcatFilterEvent.newBuilder()
         .setContainsErrors(true)
         .build())
@@ -439,19 +463,19 @@ class LogcatFilterParserTest {
 
   @Test
   fun getUsageTrackingEvent_emptyFilter() {
-    assertThat(logcatFilterParser().getUsageTrackingEvent("")?.build()).isEqualTo(LogcatFilterEvent.getDefaultInstance())
+    assertThat(logcatFilterParser().getUsageTrackingEvent("", matchCase)?.build()).isEqualTo(LogcatFilterEvent.getDefaultInstance())
   }
 
   @Test
   fun parse_name() {
     val query = "level:INFO tag:bar package:foo name:Name"
-    val filter = logcatFilterParser().parse(query)
+    val filter = logcatFilterParser().parse(query, matchCase)
 
     assertThat(filter).isEqualTo(
       AndLogcatFilter(
         LevelFilter(INFO, query.rangeOf("level:INFO")),
-        StringFilter("bar", TAG, query.rangeOf("tag:bar")),
-        StringFilter("foo", APP, query.rangeOf("package:foo")),
+        StringFilter("bar", TAG, matchCase, query.rangeOf("tag:bar")),
+        StringFilter("foo", APP, matchCase, query.rangeOf("package:foo")),
         NameFilter("Name", query.rangeOf("name:Name")),
       )
     )
@@ -460,12 +484,12 @@ class LogcatFilterParserTest {
   @Test
   fun parse_name_quoted() {
     val query = """name:'Name1' name:"Name2""""
-    val filter = logcatFilterParser().parse(query)
+    val filter = logcatFilterParser().parse(query, matchCase)
 
     assertThat(filter).isEqualTo(
       AndLogcatFilter(
         NameFilter("Name1", query.rangeOf("name:'Name1'")),
-        NameFilter("Name2",  query.rangeOf("name:\"Name2\"")),
+        NameFilter("Name2", query.rangeOf("name:\"Name2\"")),
       )
     )
   }
@@ -504,28 +528,28 @@ class LogcatFilterParserTest {
   fun findFilterForOffset() {
     val query = "(f1 | f2) & (f3 | f4)"
 
-    val filter = logcatFilterParser().parse(query)
+    val filter = logcatFilterParser().parse(query, matchCase)
 
     assertThat(filter?.findFilterForOffset(0)).isEqualTo(null)
-    assertThat(filter?.findFilterForOffset(1)).isEqualTo(StringFilter("f1", IMPLICIT_LINE, query.rangeOf("f1")))
-    assertThat(filter?.findFilterForOffset(2)).isEqualTo(StringFilter("f1", IMPLICIT_LINE, query.rangeOf("f1")))
+    assertThat(filter?.findFilterForOffset(1)).isEqualTo(StringFilter("f1", IMPLICIT_LINE, matchCase, query.rangeOf("f1")))
+    assertThat(filter?.findFilterForOffset(2)).isEqualTo(StringFilter("f1", IMPLICIT_LINE, matchCase, query.rangeOf("f1")))
     assertThat(filter?.findFilterForOffset(3)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(4)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(5)).isEqualTo(null)
-    assertThat(filter?.findFilterForOffset(6)).isEqualTo(StringFilter("f2", IMPLICIT_LINE, query.rangeOf("f2")))
-    assertThat(filter?.findFilterForOffset(7)).isEqualTo(StringFilter("f2", IMPLICIT_LINE, query.rangeOf("f2")))
+    assertThat(filter?.findFilterForOffset(6)).isEqualTo(StringFilter("f2", IMPLICIT_LINE, matchCase, query.rangeOf("f2")))
+    assertThat(filter?.findFilterForOffset(7)).isEqualTo(StringFilter("f2", IMPLICIT_LINE, matchCase, query.rangeOf("f2")))
     assertThat(filter?.findFilterForOffset(8)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(9)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(10)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(11)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(12)).isEqualTo(null)
-    assertThat(filter?.findFilterForOffset(13)).isEqualTo(StringFilter("f3", IMPLICIT_LINE, query.rangeOf("f3")))
-    assertThat(filter?.findFilterForOffset(14)).isEqualTo(StringFilter("f3", IMPLICIT_LINE, query.rangeOf("f3")))
+    assertThat(filter?.findFilterForOffset(13)).isEqualTo(StringFilter("f3", IMPLICIT_LINE, matchCase, query.rangeOf("f3")))
+    assertThat(filter?.findFilterForOffset(14)).isEqualTo(StringFilter("f3", IMPLICIT_LINE, matchCase, query.rangeOf("f3")))
     assertThat(filter?.findFilterForOffset(15)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(16)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(17)).isEqualTo(null)
-    assertThat(filter?.findFilterForOffset(18)).isEqualTo(StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")))
-    assertThat(filter?.findFilterForOffset(19)).isEqualTo(StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")))
+    assertThat(filter?.findFilterForOffset(18)).isEqualTo(StringFilter("f4", IMPLICIT_LINE, matchCase, query.rangeOf("f4")))
+    assertThat(filter?.findFilterForOffset(19)).isEqualTo(StringFilter("f4", IMPLICIT_LINE, matchCase, query.rangeOf("f4")))
     assertThat(filter?.findFilterForOffset(200)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(21)).isEqualTo(null)
     assertThat(filter?.findFilterForOffset(22)).isEqualTo(null)
@@ -540,7 +564,7 @@ class LogcatFilterParserTest {
     clock: Clock = Clock.systemUTC(),
   ) = LogcatFilterParser(
     project,
-    fakePackageNamesProvider,
+    fakeProjectApplicationIdsProvider,
     androidProjectDetector,
     joinConsecutiveTopLevelValue,
     topLevelSameKeyTreatment,

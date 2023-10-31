@@ -25,10 +25,12 @@ import javax.swing.tree.DefaultTreeSelectionModel
 import javax.swing.tree.TreePath
 
 /**
- * A [DefaultTreeSelectionModel] where a selection is treated as a list of nodes rather than tree paths.
+ * A [DefaultTreeSelectionModel] where a selection is treated as a list of nodes rather than tree
+ * paths.
  */
 class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentTreeSelectionModel {
-  private val selectionListeners: MutableList<(List<Any>) -> Unit> = ContainerUtil.createConcurrentList()
+  private val selectionListeners: MutableList<(List<Any>) -> Unit> =
+    ContainerUtil.createConcurrentList()
   private val autoScrollListeners: MutableList<() -> Unit> = ContainerUtil.createConcurrentList()
   private var isUpdating = false
 
@@ -54,21 +56,25 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
 
           // Then set the selection in the table
           table.selectionModel.clearSelection()
-          paths.map { table.tree.getRowForPath(it) }.forEach { table.selectionModel.addSelectionInterval(it, it) }
+          paths
+            .map { table.tree.getRowForPath(it) }
+            .forEach { table.selectionModel.addSelectionInterval(it, it) }
           fireAutoScroll()
         }
       }
     }
 
   fun keepSelectionDuring(operation: () -> Unit) {
-    val oldSelection = table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }
+    val oldSelection =
+      table.selectionModel.selectedIndices.map { table.getValueAt(it, 0) }.filterNotNull()
     update(operation)
 
     // Tricky:
     // When the operation is initiated from a data update on the TreeTableImpl, there are several
     // operations that are executed with invokeLater (i.e. sent to the UI thread for execution).
     // We want to restore the selection after all these tasks have completed. By using invokeLater
-    // the restore will be added to the UI queue after the subtasks thus giving us the wanted result.
+    // the restore will be added to the UI queue after the subtasks thus giving us the wanted
+    // result.
     invokeLater { currentSelection = oldSelection }
   }
 
@@ -81,9 +87,9 @@ class TreeTableSelectionModelImpl(private val table: TreeTableImpl) : ComponentT
     isUpdating = true
     try {
       operation()
-    }
-    finally {
-      // Guard for recursive update calls. Here: isUpdating should remain false until all invocations of update are done.
+    } finally {
+      // Guard for recursive update calls. Here: isUpdating should remain false until all
+      // invocations of update are done.
       isUpdating = wasUpdating
     }
   }

@@ -18,13 +18,13 @@ package com.android.tools.compose
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.idea.base.projectStructure.scope.KotlinSourceFilterScope
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.idea.kdoc.IdeKDocLinkResolutionService
 import org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.stubindex.KotlinClassShortNameIndex
 import org.jetbrains.kotlin.idea.stubindex.KotlinFunctionShortNameIndex
-import org.jetbrains.kotlin.idea.base.projectStructure.scope.KotlinSourceFilterScope
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode

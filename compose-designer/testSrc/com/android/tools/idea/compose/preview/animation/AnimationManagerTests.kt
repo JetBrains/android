@@ -25,16 +25,16 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.util.ui.UIUtil
+import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JSlider
-import kotlin.test.assertEquals
-import org.junit.Assert
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 @RunWith(Parameterized::class)
 class AnimationManagerTests(private val animationType: ComposeAnimationType) : InspectorTests() {

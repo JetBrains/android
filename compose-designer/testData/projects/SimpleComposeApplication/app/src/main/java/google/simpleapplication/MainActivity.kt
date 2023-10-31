@@ -65,3 +65,12 @@ fun NavigatablePreview() {
 fun OnlyATextNavigation() {
   Text("Only a text")
 }
+
+@Preview
+@Composable
+fun MyPreviewWithInline() {
+    MyInline {
+        Text("Only a text")
+        Text("Only a text")
+    }
+}

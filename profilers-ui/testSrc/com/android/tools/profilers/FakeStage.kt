@@ -18,7 +18,9 @@ package com.android.tools.profilers
 import com.android.tools.adtui.model.StreamingTimeline
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 
-internal class FakeStage(profilers: StudioProfilers) : Stage<StreamingTimeline>(profilers) {
+internal class FakeStage(profilers: StudioProfilers,
+                         private val confirmExitMessage: String? = null,
+                         private val isInteractingWithTimeline: Boolean = true) : Stage<StreamingTimeline>(profilers) {
   override fun enter() {}
 
   override fun exit() {}
@@ -28,4 +30,8 @@ internal class FakeStage(profilers: StudioProfilers) : Stage<StreamingTimeline>(
   override fun getTimeline(): StreamingTimeline {
     return studioProfilers.timeline
   }
+
+  override fun getConfirmExitMessage(): String? = confirmExitMessage
+
+  override fun isInteractingWithTimeline(): Boolean = isInteractingWithTimeline
 }

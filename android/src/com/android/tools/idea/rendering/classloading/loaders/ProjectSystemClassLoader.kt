@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.tools.idea.flags.StudioFlags
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.uipreview.ClassModificationTimestamp
 import org.jetbrains.android.uipreview.INTERNAL_PACKAGE
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.IOException
 import java.net.URI
 import java.net.URLEncoder
@@ -40,20 +37,10 @@ private fun String.isSystemPrefix(): Boolean = startsWith("java.") ||
  * A [DelegatingClassLoader.Loader] that loads the classes from a given IntelliJ [Module].
  * It relies on the given [findClassVirtualFileImpl] to find the [VirtualFile] mapping to a given FQCN.
  */
-class ProjectSystemClassLoader(
-  jarLoaderCache: Cache<String, EntryCache>,
+class ProjectSystemClassLoader @JvmOverloads constructor(
+  private val jarManager: JarManager = JarManager.withCache(),
   private val findClassVirtualFileImpl: (String) -> VirtualFile?
 ) : DelegatingClassLoader.Loader {
-
-  constructor(findClassVirtualFileImpl: (String) -> VirtualFile?)
-    : this(CacheBuilder.newBuilder()
-             .softValues()
-             .weigher { _: String, value: EntryCache -> value.weight() }
-             .maximumWeight(StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get().toLong())
-             .build<String, EntryCache>(), findClassVirtualFileImpl)
-
-  @VisibleForTesting val jarManager = JarManager(prefetchAllFiles = true, jarFileCache = jarLoaderCache)
-
   /**
    * Map that contains the mapping from the class FQCN to the [VirtualFile] that contains the `.class` contents and the
    * [ClassModificationTimestamp] representing the loading timestamp.

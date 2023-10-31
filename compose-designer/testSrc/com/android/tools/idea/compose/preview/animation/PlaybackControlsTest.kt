@@ -27,12 +27,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndGet
-import java.awt.Dimension
-import javax.swing.JSlider
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
+import javax.swing.JSlider
 
 class PlaybackControlsTest {
 
@@ -70,7 +70,12 @@ class PlaybackControlsTest {
   @Test
   fun `create toolbar and each component is visible`() = invokeAndWaitIfNeeded {
     val playbackControl =
-      PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
+      PlaybackControls(
+        clockControl = SliderClockControl(JSlider()),
+        NoopAnimationTracker,
+        surface,
+        parentDisposable
+      )
     val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
     val ui =
       FakeUi(toolbar).apply {
@@ -86,7 +91,12 @@ class PlaybackControlsTest {
   @Test
   fun `create toolbar with extra action and each component is visible`() = invokeAndWaitIfNeeded {
     val playbackControl =
-      PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
+      PlaybackControls(
+        clockControl = SliderClockControl(JSlider()),
+        NoopAnimationTracker,
+        surface,
+        parentDisposable
+      )
     val toolbar =
       playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
     val ui =

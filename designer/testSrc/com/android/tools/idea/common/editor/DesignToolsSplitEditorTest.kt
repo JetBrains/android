@@ -36,9 +36,9 @@ import javax.swing.JComponent
 
 class DesignToolsSplitEditorTest : AndroidTestCase() {
 
-  private lateinit var splitEditor : DesignToolsSplitEditor
-  private lateinit var textEditor : TextEditor
-  private lateinit var designerEditor : DesignerEditor
+  private lateinit var splitEditor: DesignToolsSplitEditor
+  private lateinit var textEditor: TextEditor
+  private lateinit var designerEditor: DesignerEditor
   private var showDefaultGutterPopupValue = false
 
   override fun setUp() {
@@ -49,7 +49,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     designerEditor = mock(DesignerEditor::class.java)
     whenever(designerEditor.component).thenReturn(panel)
 
-    val textEditorComponent = object: JComponent() {}
+    val textEditorComponent = object : JComponent() {}
     textEditor = mock(TextEditor::class.java)
     whenever(textEditor.component).thenReturn(textEditorComponent)
     whenever(textEditor.file).thenReturn(mock(VirtualFile::class.java))
@@ -64,22 +64,26 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
       showDefaultGutterPopupValue = (it.arguments[0] as? Boolean) ?: false
       Unit
     }
-    val component = object: JComponent() {}
-    splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
-      // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
-      // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
-      // TextEditorWithPreview which fails with a NullPointerException in testing environment. This test, however, has a value
-      // because we test that registerModeNavigationShortcuts does the right thing.
-      // TODO(b/146150328)
-      private var registeredShortcuts = false
-      override fun getComponent(): JComponent {
-        if (!registeredShortcuts) {
-          registeredShortcuts = true
-          registerModeNavigationShortcuts(component)
+    val component = object : JComponent() {}
+    splitEditor =
+      object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
+        // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior
+        // in SplitEditor is incorrect
+        // and should be fixed. However, we can not use the original getComponent method since it
+        // calls getComponent of
+        // TextEditorWithPreview which fails with a NullPointerException in testing environment.
+        // This test, however, has a value
+        // because we test that registerModeNavigationShortcuts does the right thing.
+        // TODO(b/146150328)
+        private var registeredShortcuts = false
+        override fun getComponent(): JComponent {
+          if (!registeredShortcuts) {
+            registeredShortcuts = true
+            registerModeNavigationShortcuts(component)
+          }
+          return component
         }
-        return component
       }
-    }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
   }
 
@@ -97,17 +101,21 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
 
     triggerExplicitly = true
     splitEditor.selectTextMode(triggerExplicitly)
-    // We don't track mode selection when it's redundant, i.e trying to select the mode that is already selected
+    // We don't track mode selection when it's redundant, i.e trying to select the mode that is
+    // already selected
     assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isNull()
 
     splitEditor.selectDesignMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
 
     splitEditor.selectSplitMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
 
     splitEditor.selectTextMode(triggerExplicitly)
-    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent).isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
+    assertThat(CommonUsageTracker.NOP_TRACKER.lastTrackedEvent)
+      .isEqualTo(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
   }
 
   fun testModeChange() {
@@ -117,7 +125,8 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     assertTrue(showDefaultGutterPopupValue)
 
     triggerExplicitly = false
-    // We change mode even when users don't trigger it explicitly, e.g. when jumping to XML definition
+    // We change mode even when users don't trigger it explicitly, e.g. when jumping to XML
+    // definition
     splitEditor.selectDesignMode(triggerExplicitly)
     assertThat(splitEditor.isDesignMode()).isTrue()
     assertFalse(showDefaultGutterPopupValue)
@@ -133,7 +142,9 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   }
 
   fun testKeyboardShortcuts() {
-    val modifiers = (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or InputEvent.SHIFT_DOWN_MASK
+    val modifiers =
+      (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or
+        InputEvent.SHIFT_DOWN_MASK
     val focusManager = mock(KeyboardFocusManager::class.java)
     val component = splitEditor.component
     whenever(focusManager.focusOwner).thenReturn(component)
@@ -141,23 +152,36 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     val dispatcher = IdeKeyEventDispatcher(null)
 
     splitEditor.selectSplitMode(true)
-    // The circular sequence is ... Code <-> Split <-> Design <-> Code <-> Split <-> Design <-> Code ...
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    // The circular sequence is ... Code <-> Split <-> Design <-> Code <-> Split <-> Design <-> Code
+    // ...
+    dispatcher.dispatchKeyEvent(
+      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT)
+    )
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    dispatcher.dispatchKeyEvent(
+      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT)
+    )
     assertThat(splitEditor.isDesignMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT))
+    dispatcher.dispatchKeyEvent(
+      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_LEFT)
+    )
     assertThat(splitEditor.isSplitMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    dispatcher.dispatchKeyEvent(
+      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT)
+    )
     assertThat(splitEditor.isDesignMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    dispatcher.dispatchKeyEvent(
+      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT)
+    )
     assertThat(splitEditor.isTextMode()).isTrue()
 
-    dispatcher.dispatchKeyEvent(KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT))
+    dispatcher.dispatchKeyEvent(
+      KeyEvent(splitEditor.component, KeyEvent.KEY_PRESSED, 0, modifiers, KeyEvent.VK_RIGHT)
+    )
     assertThat(splitEditor.isSplitMode()).isTrue()
   }
 }

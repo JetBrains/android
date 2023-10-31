@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -33,7 +32,6 @@ import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.Extracti
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorConfiguration
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionGeneratorOptions
 import org.jetbrains.kotlin.idea.refactoring.introduce.extractionEngine.ExtractionResult
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,13 +47,7 @@ class ComposableFunctionExtractableAnalyserTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
-    StudioFlags.COMPOSE_FUNCTION_EXTRACTION.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_FUNCTION_EXTRACTION.clearOverride()
+    myFixture.stubComposableAnnotation()
   }
 
   private val helper = object : ExtractionEngineHelper(EXTRACT_FUNCTION) {

@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -126,7 +127,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
@@ -144,23 +144,24 @@ iml_module(
 maven_repository(
     name = "test_deps",
     artifacts = [
-        "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
         "@maven//:com.android.support.design_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
-        "@maven//:com.google.android.material.material_1.4.0",
+        "@maven//:com.google.android.material.material_1.8.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
-        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
@@ -182,17 +183,7 @@ iml_module(
     ],
 )
 
-layout_editor_data = select({
-    "@platforms//os:linux": [
-        "//tools/adt/idea/studio:android-studio.linux.zip",
-    ],
-    "@platforms//os:macos": [
-        "//tools/adt/idea/studio:android-studio.mac.zip",
-    ],
-    "@platforms//os:windows": [
-        "//tools/adt/idea/studio:android-studio.win.zip",
-    ],
-}) + [
+layout_editor_data = [
     ":layout_preview_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//prebuilts/studio/sdk:emulator",
@@ -211,15 +202,15 @@ maven_repository(
         "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.2.0",
         "@maven//:com.google.android.material.material_1.5.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.20-Beta",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.20-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 
-iml_test(
+iml_studio_test(
     name = "LayoutEditorPreviewTest",
     timeout = "long",
     data = layout_editor_data,
@@ -235,7 +226,7 @@ iml_test(
     test_class = "com.android.tools.idea.designer.LayoutEditorPreviewTest",
 )
 
-iml_test(
+iml_studio_test(
     name = "VisualLintTest",
     timeout = "long",
     data = layout_editor_data,

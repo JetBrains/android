@@ -20,7 +20,7 @@ import java.io.File
 import java.io.Serializable
 
 data class IdeBuildImpl(
-  override val buildName: String,
+  override val buildPath: String,
   override val buildId: File
 ) : IdeBuild, Serializable
 

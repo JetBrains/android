@@ -38,10 +38,8 @@ import javax.swing.BorderFactory
 import javax.swing.Icon
 import javax.swing.JButton
 
-/**
- * Button that paints views visibility using StudioIcons.
- */
-class NlVisibilityButton: JButton() {
+/** Button that paints views visibility using StudioIcons. */
+class NlVisibilityButton : JButton() {
 
   companion object {
     private const val PADDING_X = 1
@@ -57,9 +55,9 @@ class NlVisibilityButton: JButton() {
   var isClicked = false
   var isHovered = false
   var normalIcon: Icon = EmptyIcon.ICON_16
-  private var hoveredIcon: Icon = EmptyIcon.ICON_16
-  private var clickedIcon: Icon = EmptyIcon.ICON_16
-  private var updateBgWhenHovered = false
+  var hoveredIcon: Icon = EmptyIcon.ICON_16
+  var clickedIcon: Icon = EmptyIcon.ICON_16
+  var updateBgWhenHovered = false
 
   init {
     background = secondaryPanelBackground
@@ -114,17 +112,23 @@ class NlVisibilityButton: JButton() {
       g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE)
       g2.color = bgColor
       val arc = DarculaUIUtil.BUTTON_ARC.float
-      g2.fill(RoundRectangle2D.Float(rect.x.toFloat(), rect.y.toFloat(), rect.width.toFloat(), rect.height.toFloat(), arc, arc))
-    }
-    finally {
+      g2.fill(
+        RoundRectangle2D.Float(
+          rect.x.toFloat(),
+          rect.y.toFloat(),
+          rect.width.toFloat(),
+          rect.height.toFloat(),
+          arc,
+          arc
+        )
+      )
+    } finally {
       g2.dispose()
     }
   }
 }
 
-/**
- * Presentation for the [NlVisibilityButton]
- */
+/** Presentation for the [NlVisibilityButton] */
 class ButtonPresentation {
 
   // The visibility this item represents. null if it represents
@@ -132,9 +136,9 @@ class ButtonPresentation {
   var visibility: Visibility? = null
   // True if this item represents Tools attribute.
   // False if it represents android attribute.
-  private var isToolsAttr: Boolean = false
+  var isToolsAttr: Boolean = false
   // True if visibility.none should hide icon. False otherwise.
-  private var hideNone: Boolean = false
+  var hideNone: Boolean = false
 
   var model: NlVisibilityModel? = null
   // Normal Icon
@@ -178,25 +182,25 @@ class ButtonPresentation {
         hint = "Visibility not set"
       }
       Visibility.VISIBLE -> {
-        icon = if (isToolsAttr)
-          StudioIcons.LayoutEditor.Properties.VISIBLE_TOOLS_ATTRIBUTE else
-          StudioIcons.LayoutEditor.Properties.VISIBLE
+        icon =
+          if (isToolsAttr) StudioIcons.LayoutEditor.Properties.VISIBLE_TOOLS_ATTRIBUTE
+          else StudioIcons.LayoutEditor.Properties.VISIBLE
         hoverIcon = icon
         clickIcon = icon
         hint = "visible"
       }
       Visibility.INVISIBLE -> {
-        icon = if (isToolsAttr)
-          StudioIcons.LayoutEditor.Properties.INVISIBLE_TOOLS_ATTRIBUTE else
-          StudioIcons.LayoutEditor.Properties.INVISIBLE
+        icon =
+          if (isToolsAttr) StudioIcons.LayoutEditor.Properties.INVISIBLE_TOOLS_ATTRIBUTE
+          else StudioIcons.LayoutEditor.Properties.INVISIBLE
         hoverIcon = icon
         clickIcon = icon
         hint = "invisible"
       }
       Visibility.GONE -> {
-        icon = if (isToolsAttr)
-          StudioIcons.LayoutEditor.Properties.GONE_TOOLS_ATTRIBUTE else
-          StudioIcons.LayoutEditor.Properties.GONE
+        icon =
+          if (isToolsAttr) StudioIcons.LayoutEditor.Properties.GONE_TOOLS_ATTRIBUTE
+          else StudioIcons.LayoutEditor.Properties.GONE
         hoverIcon = icon
         clickIcon = icon
         hint = "gone"
@@ -208,11 +212,10 @@ class ButtonPresentation {
 
 /**
  * Apply alpha to the existing icon.
+ *
  * @param alpha [0.0:1.0] where 0 is fully transparent.
  */
-class AlphaIcon(
-  private val studioIcon: Icon,
-  var alpha: Float = 1.0f) : Icon, RetrievableIcon {
+class AlphaIcon(private val studioIcon: Icon, var alpha: Float = 1.0f) : Icon, RetrievableIcon {
 
   override fun getIconHeight(): Int {
     return studioIcon.iconHeight
@@ -223,7 +226,9 @@ class AlphaIcon(
   }
 
   override fun paintIcon(c: Component?, g: Graphics?, x: Int, y: Int) {
-    if (g == null) { return }
+    if (g == null) {
+      return
+    }
     val g = g.create() as Graphics2D
     try {
       g.composite = AlphaComposite.SrcOver.derive(alpha)
@@ -235,5 +240,6 @@ class AlphaIcon(
 
   override fun retrieveIcon(): Icon = studioIcon
 
-  override fun replaceBy(replacer: IconReplacer): Icon = AlphaIcon(replacer.replaceIcon(studioIcon), alpha)
+  override fun replaceBy(replacer: IconReplacer): Icon =
+    AlphaIcon(replacer.replaceIcon(studioIcon), alpha)
 }

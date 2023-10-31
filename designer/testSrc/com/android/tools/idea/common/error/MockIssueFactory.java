@@ -29,7 +29,6 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;

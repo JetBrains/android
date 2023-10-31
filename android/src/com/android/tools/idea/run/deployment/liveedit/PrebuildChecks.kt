@@ -58,7 +58,8 @@ internal fun checkIwiAvailable() {
 }
 
 internal fun checkSupportedFiles(file: PsiFile) {
-  if (file.virtualFile.path.contains("buildSrc")) {
+  val virtualFile = file.virtualFile ?: return // Extremely unlikely, but possible.
+  if (virtualFile.path.contains("buildSrc")) {
     throw unsupportedBuildSrcChange(file.virtualFile.path)
   }
 }

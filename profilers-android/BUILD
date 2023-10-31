@@ -10,8 +10,8 @@ iml_module(
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.profilers.ProfilersAndroidTestSuite",
     test_data = [
-        "//tools/adt/idea/profilers:test_data",
         "//prebuilts/tools/common/trace-processor-daemon",
+        "//tools/adt/idea/profilers:test_data",
     ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
@@ -50,9 +50,12 @@ iml_module(
         "//tools/adt/idea/inspectors-common/ui:intellij.android.inspectors-common.ui[module]",
         "//tools/adt/idea/inspectors-common/api:intellij.android.inspectors-common.api[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/codenavigation[module]",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 

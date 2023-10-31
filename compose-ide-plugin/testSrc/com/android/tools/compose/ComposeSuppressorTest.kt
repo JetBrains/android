@@ -33,7 +33,7 @@ class ComposeSuppressorTest : JavaCodeInsightFixtureTestCase() {
     } else {
       enableInspections(K1FunctionNameInspection::class.java)
     }
-    stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
+    stubComposableAnnotation()
 
     val file = addFileToProject(
       "src/com/example/views.kt",

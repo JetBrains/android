@@ -47,6 +47,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.treeStructure.Tree
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.MouseEvent
@@ -57,9 +60,6 @@ import javax.swing.AbstractButton
 import javax.swing.JPopupMenu
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 
 private const val EXPORT_TO_FILE_ENABLED_DEFAULT = true
 private const val TABLE_ACTION_PANEL_COMPONENT_NAME = "table-actions-panel"

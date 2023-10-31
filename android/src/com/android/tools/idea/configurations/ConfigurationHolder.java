@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations;
 
+import com.android.tools.configurations.Configuration;
 import org.jetbrains.annotations.Nullable;
 
 /**

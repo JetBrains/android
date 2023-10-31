@@ -18,21 +18,14 @@ package com.android.tools.idea.execution.common.processhandler;
 
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.execution.common.AndroidSessionInfo;
-import com.android.tools.idea.execution.common.AppRunConfiguration;
-import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.DebugProcessListener;
-import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.OutputStream;
-import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * Additionally, restore the connection between Client and DDMLib if we detach from the process".
  * See {@link AndroidRemoteDebugProcessHandler#detachProcessImpl()}
  */
-final public class AndroidRemoteDebugProcessHandler extends DeviceAwareProcessHandler implements SwappableProcessHandler {
+final public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements DeviceAwareProcessHandler {
 
   private final Project myProject;
   private final Client myClient;
@@ -62,7 +55,7 @@ final public class AndroidRemoteDebugProcessHandler extends DeviceAwareProcessHa
     myClient = client;
     myDetachIsDefault = detachIsDefault;
 
-    putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this);
+    putCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY, this);
   }
 
 
@@ -130,44 +123,8 @@ final public class AndroidRemoteDebugProcessHandler extends DeviceAwareProcessHa
   }
 
   @Override
-  public boolean isSilentlyDestroyOnClose() {
-    return super.isSilentlyDestroyOnClose();
-  }
-
-  @Override
   public OutputStream getProcessInput() {
     return null;
-  }
-
-  @Nullable
-  @Override
-  public Executor getExecutor() {
-    AndroidSessionInfo sessionInfo = getUserData(AndroidSessionInfo.KEY);
-    if (sessionInfo == null) {
-      return null;
-    }
-
-    return sessionInfo.getExecutor();
-  }
-
-  @Override
-  public boolean isRunningWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget) {
-    boolean sameRunningApp = runConfiguration instanceof AppRunConfiguration &&
-                             Objects.equals(myClient.getClientData().getPackageName(), ((AppRunConfiguration)runConfiguration).getAppId());
-    if (!sameRunningApp) {
-      return false;
-    }
-
-    if (executionTarget instanceof AndroidExecutionTarget) {
-      IDevice device = myClient.getDevice();
-
-      // The reference equality is intentional. We will only ever have a single IDevice instance for a device while it's connected. The
-      // IntelliJ Platform expects a different IDevice when you disconnect and reconnect a device. If we used the equals method (based on
-      // the serial number, say), a reconnected device would be the same and that would violate platform expectations.
-      return ((AndroidExecutionTarget)executionTarget).getRunningDevices().stream().anyMatch(d -> d == device);
-    }
-
-    return false;
   }
 
   public boolean isPackageRunning(@Nullable IDevice device, @NotNull String packageName) {

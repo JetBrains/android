@@ -22,10 +22,10 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.getAppThemeName
-import com.android.tools.idea.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.LocalResourceRepository
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil.trimStart
 

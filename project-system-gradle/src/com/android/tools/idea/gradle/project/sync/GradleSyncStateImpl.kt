@@ -20,7 +20,6 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_LOCATION_WARNING_NOTIFICATION_GROUP
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
@@ -244,7 +243,7 @@ class GradleSyncStateHolder(private val project: Project)  {
     LOG.info(message)
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED, rootProjectPath)
-    syncFinished(LastSyncState.SUCCEEDED)
+    syncFinished(LastSyncState.SUCCEEDED, rootProjectPath)
     syncPublisher { syncSucceeded(project, rootProjectPath) }
   }
 
@@ -275,7 +274,7 @@ class GradleSyncStateHolder(private val project: Project)  {
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
-    syncFinished(LastSyncState.FAILED)
+    syncFinished(LastSyncState.FAILED, rootProjectPath)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
 
@@ -294,7 +293,7 @@ class GradleSyncStateHolder(private val project: Project)  {
       state.get { stateBeforeSyncStarted.takeUnless { it == LastSyncState.UNKNOWN } ?: LastSyncState.FAILED }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED, rootProjectPath)
-    syncFinished(newStateAfterCancellation)
+    syncFinished(newStateAfterCancellation, rootProjectPath)
     syncPublisher { syncCancelled(project, rootProjectPath) }
   }
 
@@ -327,11 +326,14 @@ class GradleSyncStateHolder(private val project: Project)  {
     }
 
     PropertiesComponent.getInstance(project).setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
+  }
 
-    // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
-    if (newState != LastSyncState.SKIPPED) {
-      ApplicationManager.getApplication().invokeLater { warnIfNotJdkHome() }
-    }
+  private fun syncFinished(
+    newState: LastSyncState,
+    rootProjectPath: @SystemIndependent String
+  ) {
+    syncFinished(newState)
+    ApplicationManager.getApplication().invokeLater { warnIfNotJdkHome(rootProjectPath) }
   }
 
   fun recordGradleVersion(gradleVersion: GradleVersion) {
@@ -341,7 +343,7 @@ class GradleSyncStateHolder(private val project: Project)  {
   }
 
   @UiThread
-  private fun warnIfNotJdkHome() {
+  private fun warnIfNotJdkHome(rootProjectPath: @SystemIndependent String?) {
     if (project.isDisposed) return
     if (!IdeInfo.getInstance().isAndroidStudio) return
     if (!NotificationsConfigurationImpl.getSettings(JDK_LOCATION_WARNING_NOTIFICATION_GROUP.displayId).isShouldLog) return
@@ -349,20 +351,17 @@ class GradleSyncStateHolder(private val project: Project)  {
     // Using the IdeSdks requires us to be on the dispatch thread
     ThreadingAssertions.assertEventDispatchThread()
 
-    val gradleInstallation = (GradleInstallationManager.getInstance() as AndroidStudioGradleInstallationManager)
-    if (gradleInstallation.isUsingJavaHomeJdk(project)) {
-      return
-    }
+    if (IdeSdks.getInstance().isUsingJavaHomeJdk(project)) return
     val hyperlinkUrl = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url")
     val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(hyperlinkUrl, "More info..."))
-    val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
+    val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project, rootProjectPath)
     if (selectJdkHyperlink != null) quickFixes += selectJdkHyperlink
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     val message = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message",
       project.name,
-      gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
-      IdeSdks.getJdkFromJavaHome() ?: "Undefined"
+      GradleInstallationManager.getInstance().getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
+      IdeSdks.getInstance().jdkFromJavaHome ?: "Undefined"
     )
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
@@ -527,7 +526,6 @@ class GradleSyncStateHolder(private val project: Project)  {
       if (!GradleSyncStateHolder.getInstance(project)
           .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, rootProjectPath = workingDir)
       ) {
-        stopTrackingTask(project, id)
         return
       }
       project.getService(SyncViewManager::class.java).addListener(this, disposable)

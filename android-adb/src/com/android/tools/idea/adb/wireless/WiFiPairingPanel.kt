@@ -56,7 +56,7 @@ internal class WiFiPairingPanel(private val parentDisposable: Disposable, privat
 
   val pairingCodePanel by lazy {
     PairingCodeTabPanel(
-      Consumer { service -> pairingCodePairInvoked(service) })
+      Consumer<MdnsService> { service -> pairingCodePairInvoked(service) })
   }
 
   var isLoading: Boolean

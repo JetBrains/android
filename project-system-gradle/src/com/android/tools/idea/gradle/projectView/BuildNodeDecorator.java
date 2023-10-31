@@ -30,9 +30,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.packageDependencies.ui.PackageDependenciesNode;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
 import java.io.File;
 

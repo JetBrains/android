@@ -825,7 +825,7 @@ class ComposableCallCheckerTest {
           @Composable fun Foo() {}
 
           @Composable fun App() {
-              val <warning descr="[UNUSED_VARIABLE] Variable 'x' is never used">x</warning> = object {
+              val x = object {
                 val <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">a</error> get() = <error descr="[COMPOSABLE_INVOCATION] @Composable invocations can only happen from the context of a @Composable function">remember</error> { mutableStateOf(2) }
                 val c @Composable get() = remember { mutableStateOf(4) }
                 fun <error descr="[COMPOSABLE_EXPECTED] Functions which invoke @Composable functions must be marked with the @Composable annotation">foo</error>() {
@@ -1053,8 +1053,8 @@ class ComposableCallCheckerTest {
     import androidx.compose.runtime.*
     fun notC() { }
     @Composable fun C() { }
-    @Composable fun C1(<warning descr="[UNUSED_PARAMETER] Parameter 'a' is never used">a</warning>: Int) { }
-    @Composable fun C2(<warning descr="[UNUSED_PARAMETER] Parameter 'a' is never used">a</warning>: Int, lambdaC: @Composable () -> Unit) { 
+    @Composable fun C1(a: Int) { }
+    @Composable fun C2(a: Int, lambdaC: @Composable () -> Unit) {
       lambdaC()
     }
     @Composable <warning descr="[NOTHING_TO_INLINE] Expected performance impact from inlining is insignificant. Inlining works best for functions with parameters of functional types">inline</warning> fun InlineC() {}
@@ -1095,16 +1095,18 @@ class ComposableCallCheckerTest {
         .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" })
   }
 
-  private fun doTest(expectedText: String,
-                     verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null): Unit = androidProject.fixture.run {
+  private fun doTest(
+    expectedText: String,
+    verifyHighlights: ((List<Pair<HighlightInfo, Int>>) -> Unit)? = null
+  ): Unit = androidProject.fixture.run {
     stubComposeRuntime()
     stubKotlinStdlib()
 
     val file = addFileToProject(
       "src/com/example/test.kt",
       """
+      $suppressAnnotation
       package com.example
-
       $expectedText
       """.trimIndent()
     )

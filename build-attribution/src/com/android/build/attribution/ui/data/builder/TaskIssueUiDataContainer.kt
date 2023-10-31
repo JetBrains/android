@@ -98,7 +98,7 @@ class TaskIssueUiDataContainer(
    * [pluginData] is a plugin object from gradle build analysers.
    */
   fun pluginIssueGroups(pluginData: PluginData): List<TaskIssuesGroup> = issuesByPlugin
-    .getOrDefault(pluginData, emptyList())
+    .getOrDefault(pluginData, emptyList<TaskIssueUiData>())
     .groupBy { it.type }
     .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
     .sortedBy { it.type.ordinal }

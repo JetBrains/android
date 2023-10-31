@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResol
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenSettingsQuickFix
 import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
@@ -35,7 +35,6 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -55,15 +54,26 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
     val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
     val tooNewMatcher = AgpVersionTooNew.PATTERN.matcher(message)
+
+    fun reportFailure(failure: AndroidStudioEvent.GradleSyncFailure) =
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, failure)
+
     val (matcher, userMessage, url) = when {
-      tooOldMatcher.find() -> Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
-      incompatiblePreviewMatcher.find() -> Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
-      tooNewMatcher.find() -> Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
+      tooOldMatcher.find() -> {
+        reportFailure(AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
+        Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
+      }
+      incompatiblePreviewMatcher.find() -> {
+        reportFailure(AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE)
+        Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
+      }
+      tooNewMatcher.find() -> {
+        reportFailure(AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW)
+        Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
+      }
       else -> return null
     }
     val version = AgpVersion.tryParse(matcher.group(1)) ?: return null
-
-    logMetrics(issueData.projectPath)
 
     val buildIssueComposer = BuildIssueComposer(userMessage)
 
@@ -104,12 +114,6 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     }.composeBuildIssue()
   }
 
-  private fun logMetrics(issueDataProjectPath: String) {
-    invokeLater {
-      updateUsageTracker(issueDataProjectPath, AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
-    }
-  }
-
   override fun consumeBuildOutputFailureMessage(
     message: String,
     failureCause: String,
@@ -134,7 +138,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
  * Hyperlink that triggers the showing of the AGP Upgrade Assistant dialog, letting the user
  * upgrade their Android Gradle plugin and Gradle versions.
  */
-class AgpUpgradeQuickFix(private val currentAgpVersion: AgpVersion) : DescribedBuildIssueQuickFix {
+class AgpUpgradeQuickFix(val currentAgpVersion: AgpVersion) : DescribedBuildIssueQuickFix {
   override val id: String = "android.gradle.plugin.forced.update"
   override val description: String = "Upgrade to a supported version"
 

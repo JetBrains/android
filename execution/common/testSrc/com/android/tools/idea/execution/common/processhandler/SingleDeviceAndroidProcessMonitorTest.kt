@@ -193,7 +193,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     monitor.close()
 
     assertThat(capturedCurrentState).isEqualTo(PROCESS_FINISHED)
-    verify(mockDevice, times(2)).forceStop(TARGET_APP_NAME)
+    verify(mockDevice, times(1)).forceStop(TARGET_APP_NAME)
   }
 
   @Test
@@ -257,7 +257,7 @@ class SingleDeviceAndroidProcessMonitorTest {
     })
 
     assertThat(isListenerReplacedAndDetached).isTrue()
-    verify(mockDevice, times(2)).forceStop(TARGET_APP_NAME)
+    verify(mockDevice, times(1)).forceStop(TARGET_APP_NAME)
   }
 
   private fun createMockClient(pid: Int): Client {

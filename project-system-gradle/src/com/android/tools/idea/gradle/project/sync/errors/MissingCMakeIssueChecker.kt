@@ -21,7 +21,7 @@ import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallCmakeQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetCmakeDirQuickFix
 import com.android.tools.idea.gradle.util.LocalProperties
@@ -122,7 +122,7 @@ open class MissingCMakeIssueChecker : GradleIssueChecker {
          BuildIssueComposer(message)
       }
       message.startsWith(FAILED_TO_FIND_CMAKE) || message.startsWith(UNABLE_TO_GET_CMAKE_VERSION) -> {
-        updateUsageTracker(issueData.projectPath, GradleSyncFailure.MISSING_CMAKE)
+        SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.MISSING_CMAKE)
         BuildIssueComposer("Failed to find CMake.")
       }
       else -> return null

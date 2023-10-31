@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
+import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.filters.Filter
@@ -41,7 +43,12 @@ class EditorHyperlinkDetectorTest {
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  val rule = RuleChain(
+    projectRule,
+    logcatEditorRule,
+    ApplicationServiceRule(IssueExplainer::class.java, TestIssueExplainer),
+    EdtRule()
+  )
 
   private val project get() = projectRule.project
   private val editor get() = logcatEditorRule.editor
@@ -51,14 +58,33 @@ class EditorHyperlinkDetectorTest {
    * wraps a set of filters provided by the IDEA.
    */
   @Test
-  fun usesCorrectFilters() {
+  fun usesCorrectFilters_withoutStudioBot() {
+    TestIssueExplainer.available = false
     val expectedFilters =
       ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
 
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
     val filter = hyperlinkDetector.filter.delegate as CompositeFilter
-    assertThat(filter.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
+    assertThat(filter.filters.map { it::class })
+      .containsExactlyElementsIn(expectedFilters.map { it::class } + SimpleFileLinkFilter::class)
+  }
+
+  /**
+   * Tests that we are using the correct filter as provided by ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that
+   * wraps a set of filters provided by the IDEA.
+   */
+  @Test
+  fun usesCorrectFilters_withStudioBot() {
+    TestIssueExplainer.available = true
+    val expectedFilters =
+      ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
+
+    val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
+
+    val filter = hyperlinkDetector.filter.delegate as CompositeFilter
+    assertThat(filter.filters.map { it::class })
+      .containsExactlyElementsIn(expectedFilters.map { it::class } + SimpleFileLinkFilter::class + StudioBotFilter::class)
   }
 
   /**
@@ -118,5 +144,10 @@ class EditorHyperlinkDetectorTest {
     private class Info : HyperlinkInfo {
       override fun navigate(project: Project) {}
     }
+  }
+
+  private object TestIssueExplainer : IssueExplainer() {
+    var available = true
+    override fun isAvailable(): Boolean = available
   }
 }

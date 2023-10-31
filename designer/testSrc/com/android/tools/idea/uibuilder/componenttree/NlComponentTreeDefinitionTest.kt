@@ -24,6 +24,8 @@ import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
@@ -50,6 +52,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
@@ -59,6 +62,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
@@ -70,6 +74,7 @@ import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import java.awt.Rectangle
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
@@ -86,15 +91,17 @@ class NlComponentTreeDefinitionTest {
   private val treeRule = FlagRule(StudioFlags.NELE_NEW_COMPONENT_TREE, true)
   private val projectRule = AndroidProjectRule.withSdk()
   private val popupRule = JBPopupRule()
+  private val fileOpenRule = FileOpenCaptureRule(projectRule)
   private var testDataPath: Path = Path.of("")
 
   @get:Rule
-  val ruleChain = RuleChain
-    .outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
-    .around(projectRule)
-    .around(treeRule)
-    .around(popupRule)
-    .around(EdtRule())!!
+  val ruleChain =
+    RuleChain.outerRule(IconLoaderRule()) // Must be before AndroidProjectRule
+      .around(projectRule)
+      .around(treeRule)
+      .around(popupRule)
+      .around(fileOpenRule)
+      .around(EdtRule())!!
 
   @Before
   fun before() {
@@ -135,7 +142,9 @@ class NlComponentTreeDefinitionTest {
     val content = createToolContent()
     val model = createFlowModel()
     val table = attach(content, model)
-    assertThat(dumpTree(table.tree)).isEqualTo("""
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
     <android.support.constraint.ConstraintLayout>
       <TextView>
       <Button>
@@ -149,18 +158,24 @@ class NlComponentTreeDefinitionTest {
       <include>
       <LinearLayout>
         <CheckBox>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     // Change the model by adding another TextView to the ConstraintLayout
     val constraint = model.components.first()
-    val newTag = XmlElementFactory.getInstance(model.project).createTagFromText("<TextView android.text=\"Hello\"/>")
+    val newTag =
+      XmlElementFactory.getInstance(model.project)
+        .createTagFromText("<TextView android.text=\"Hello\"/>")
     constraint.addChild(NlComponent(model, newTag))
 
     // Notify the component tree
     model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS)
     UIUtil.dispatchAllInvocationEvents()
 
-    assertThat(dumpTree(table.tree)).isEqualTo("""
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
     <android.support.constraint.ConstraintLayout>
       <TextView>
       <Button>
@@ -175,7 +190,9 @@ class NlComponentTreeDefinitionTest {
       <LinearLayout>
         <CheckBox>
       <TextView>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @RunsInEdt
@@ -187,7 +204,8 @@ class NlComponentTreeDefinitionTest {
     val model = createFlowModel()
     val table = attach(content, model)
     val rowWithInclude = 10
-    assertThat((table.getValueAt(rowWithInclude, 0) as? NlComponent)?.tagName).isEqualTo(SdkConstants.TAG_INCLUDE)
+    assertThat((table.getValueAt(rowWithInclude, 0) as? NlComponent)?.tagName)
+      .isEqualTo(SdkConstants.TAG_INCLUDE)
     val bounds = table.getCellRect(rowWithInclude, 0, true) // <include>
     val ui = FakeUi(table)
     ui.mouse.doubleClick(bounds.centerX.toInt(), bounds.centerY.toInt())
@@ -196,7 +214,8 @@ class NlComponentTreeDefinitionTest {
     // Activating an include component should open the associated layout file: other.xml
     val v1 = ArgumentCaptor.forClass(VirtualFile::class.java)
     val v2 = ArgumentCaptor.forClass(VirtualFile::class.java)
-    verify(LayoutNavigationManager.getInstance(projectRule.project)).pushFile(v1.capture(), v2.capture())
+    verify(LayoutNavigationManager.getInstance(projectRule.project))
+      .pushFile(v1.capture(), v2.capture())
     assertThat(v1.value.path).endsWith("some_layout.xml")
     assertThat(v2.value.path).endsWith("other.xml")
   }
@@ -219,6 +238,25 @@ class NlComponentTreeDefinitionTest {
     assertThat(selection.first().tagName).isEqualTo(SdkConstants.BUTTON)
   }
 
+  @Test
+  fun testGotoDeclarationFromKeyboard() {
+    runInEdtAndWait {
+      val content = createToolContent()
+      val model = createFlowModel()
+      val table = attach(content, model)
+      val textView = model.find("a")!!
+      model.surface.selectionModel.setSelection(listOf(textView))
+      val ui = FakeUi(table)
+      val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
+      focusManager.focusOwner = table
+
+      ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_B)
+      ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
+    }
+    fileOpenRule.checkEditor("some_layout.xml", 6, "<TextView")
+  }
+
   @RunsInEdt
   @Test
   fun testComponentToComponentDnD() {
@@ -239,7 +277,9 @@ class NlComponentTreeDefinitionTest {
     UIUtil.dispatchAllInvocationEvents()
 
     TreeUtil.expandAll(table.tree)
-    assertThat(dumpTree(table.tree)).isEqualTo("""
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
     <android.support.constraint.ConstraintLayout>
       <Button>
       <Switch>
@@ -252,7 +292,9 @@ class NlComponentTreeDefinitionTest {
       <LinearLayout>
         <CheckBox>
         <TextView>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @RunsInEdt
@@ -269,11 +311,20 @@ class NlComponentTreeDefinitionTest {
     assertThat(data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)).isTrue()
     assertThat(tableModel.canInsert(flow, data)).isTrue()
 
-    // Move the CheckBox from the linear layout to the Flow before the b reference (the CheckBox itself should move to the ConstraintLayout)
-    tableModel.insert(flow, data, before = referenceB, isMove = true, draggedFromTree = listOf(checkBox))
+    // Move the CheckBox from the linear layout to the Flow before the b reference (the CheckBox
+    // itself should move to the ConstraintLayout)
+    tableModel.insert(
+      flow,
+      data,
+      before = referenceB,
+      isMove = true,
+      draggedFromTree = listOf(checkBox)
+    )
     UIUtil.dispatchAllInvocationEvents()
 
-    assertThat(dumpTree(table.tree)).isEqualTo("""
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
     <android.support.constraint.ConstraintLayout>
       <TextView>
       <CheckBox>
@@ -288,7 +339,9 @@ class NlComponentTreeDefinitionTest {
         @id/linear
       <include>
       <LinearLayout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @RunsInEdt
@@ -306,10 +359,18 @@ class NlComponentTreeDefinitionTest {
     assertThat(tableModel.canInsert(flow, data)).isTrue()
 
     // Move the TextView from the Flow before the c reference
-    tableModel.insert(flow, data, before = referenceC, isMove = true, draggedFromTree = listOf(textView))
+    tableModel.insert(
+      flow,
+      data,
+      before = referenceC,
+      isMove = true,
+      draggedFromTree = listOf(textView)
+    )
     UIUtil.dispatchAllInvocationEvents()
 
-    assertThat(dumpTree(table.tree)).isEqualTo("""
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
     <android.support.constraint.ConstraintLayout>
       <Button>
       <TextView>
@@ -323,7 +384,9 @@ class NlComponentTreeDefinitionTest {
       <include>
       <LinearLayout>
         <CheckBox>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @RunsInEdt
@@ -345,7 +408,9 @@ class NlComponentTreeDefinitionTest {
     UIUtil.dispatchAllInvocationEvents()
     Thread.sleep(2000L)
 
-    assertThat(dumpTree(table.tree)).isEqualTo("""
+    assertThat(dumpTree(table.tree))
+      .isEqualTo(
+        """
     <android.support.constraint.ConstraintLayout>
       <TextView>
       <Button>
@@ -359,7 +424,9 @@ class NlComponentTreeDefinitionTest {
       <include>
       <LinearLayout>
         <CheckBox>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @RunsInEdt
@@ -371,18 +438,20 @@ class NlComponentTreeDefinitionTest {
     val surface = model.surface
     val textView = model.find("a")!!
     val issues = surface.issueModel
-    val provider = object : IssueProvider() {
-      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-        issueListBuilder.add(TestIssue("Problem", source = IssueSource.fromNlComponent(textView)))
+    val provider =
+      object : IssueProvider() {
+        override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+          issueListBuilder.add(TestIssue("Problem", source = IssueSource.fromNlComponent(textView)))
+        }
       }
-    }
     issues.addIssueProvider(provider)
     issues.updateErrorsList()
     val table = attach(content, model)
     val ui = FakeUi(table)
     val rect = table.getCellRect(1, 1, false)
     ui.mouse.moveTo(rect.midX, rect.midY)
-    assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
+    assertThat(table.getToolTipText(rect.midX, rect.midY))
+      .isEqualTo("<html>Problem<br>Click the badge for detail.</html>")
     ui.mouse.click(rect.midX, rect.midY)
     verify(issueService).showIssueForComponent(surface, true, textView, true)
   }
@@ -413,7 +482,8 @@ class NlComponentTreeDefinitionTest {
       balloon.click(androidButton)
       assertThat(textView.getAttribute(ANDROID_URI, ATTR_VISIBILITY)).isEqualTo(expectedValue)
       checkPaint(androidButton, "android_${expectedValue ?: "clear"}_set.png")
-      assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
+      assertThat(table.getToolTipText(rect.midX, rect.midY))
+        .isEqualTo(expectedValue ?: "Visibility not set")
     }
     for (index in listOf(1, 2, 3, 0)) {
       val toolsButton = toolsButtons[index]
@@ -425,7 +495,8 @@ class NlComponentTreeDefinitionTest {
       balloon.click(toolsButton)
       assertThat(textView.getAttribute(TOOLS_URI, ATTR_VISIBILITY)).isEqualTo(expectedValue)
       checkPaint(toolsButton, "tools_${expectedValue ?: "clear"}_set.png")
-      assertThat(table.getToolTipText(rect.midX, rect.midY)).isEqualTo(expectedValue ?: "Visibility not set")
+      assertThat(table.getToolTipText(rect.midX, rect.midY))
+        .isEqualTo(expectedValue ?: "Visibility not set")
     }
   }
 
@@ -439,8 +510,20 @@ class NlComponentTreeDefinitionTest {
     ui!!.mouse.moveTo(rect.midX, rect.midY)
   }
 
-  private fun TreeTableImpl.getToolTipText(x: Int, y: Int): String? = getToolTipText(
-    MouseEvent(this, MouseEvent.MOUSE_MOVED, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()), 0, x, y, 0, false, MouseEvent.BUTTON1))
+  private fun TreeTableImpl.getToolTipText(x: Int, y: Int): String? =
+    getToolTipText(
+      MouseEvent(
+        this,
+        MouseEvent.MOUSE_MOVED,
+        TimeUnit.NANOSECONDS.toMillis(System.nanoTime()),
+        0,
+        x,
+        y,
+        0,
+        false,
+        MouseEvent.BUTTON1
+      )
+    )
 
   private fun checkPaint(aButton: JBLabel, expected: String) {
     @Suppress("UndesirableClassUsage")
@@ -450,7 +533,6 @@ class NlComponentTreeDefinitionTest {
     graphics.dispose()
     ImageDiffUtil.assertImageSimilar(testDataPath.resolve(expected), image, DIFF_THRESHOLD)
   }
-
 
   private fun dumpTree(tree: JTree): String {
     val builder = StringBuilder()
@@ -470,60 +552,94 @@ class NlComponentTreeDefinitionTest {
   private fun createFlowModel(): SyncNlModel {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     return NlModelBuilderUtil.model(
-      facet, projectRule.fixture, SdkConstants.FD_RES_LAYOUT, "some_layout.xml",
-      component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(
-          component(SdkConstants.TEXT_VIEW)
-            .withBounds(50, 100, 100, 100)
-            .id("@+id/a")
-            .width("100dp")
-            .height("100dp"),
-          component(SdkConstants.BUTTON)
-            .withBounds(50, 200, 100, 100)
-            .id("@+id/b")
-            .width("100dp")
-            .height("100dp"),
-          component(SdkConstants.SWITCH)
-            .withBounds(50, 300, 100, 100)
-            .id("@+id/c")
-            .width("100dp")
-            .height("100dp"),
-          component(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.defaultName())
-            .withBounds(50, 100, 100, 500)
-            .id("@+id/flow")
-            .viewObjectClassName(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER.defaultName())
-            .withAttribute(SdkConstants.ATTR_ORIENTATION, "vertical")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS, "a,b,c,include,linear"),
-          component(SdkConstants.VIEW_INCLUDE)
-            .id("@+id/include")
-            .withAttribute("layout", "@layout/other"),
-          component(SdkConstants.LINEAR_LAYOUT)
-            .withBounds(0, 500, 1000, 500)
-            .id("@+id/linear")
-            .matchParentWidth()
-            .height("500dp")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
-            .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF, "parent")
-            .children(
-              component(SdkConstants.CHECK_BOX)
-                .withBounds(0, 500, 100, 100)
-                .id("@+id/d")
-                .width("100dp")
-                .height("100dp"),
-            )
-        ))
-      .build().also {
+        facet,
+        projectRule.fixture,
+        SdkConstants.FD_RES_LAYOUT,
+        "some_layout.xml",
+        component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+          .children(
+            component(SdkConstants.TEXT_VIEW)
+              .withBounds(50, 100, 100, 100)
+              .id("@+id/a")
+              .width("100dp")
+              .height("100dp"),
+            component(SdkConstants.BUTTON)
+              .withBounds(50, 200, 100, 100)
+              .id("@+id/b")
+              .width("100dp")
+              .height("100dp"),
+            component(SdkConstants.SWITCH)
+              .withBounds(50, 300, 100, 100)
+              .id("@+id/c")
+              .width("100dp")
+              .height("100dp"),
+            component(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW.defaultName())
+              .withBounds(50, 100, 100, 500)
+              .id("@+id/flow")
+              .viewObjectClassName(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER.defaultName())
+              .withAttribute(SdkConstants.ATTR_ORIENTATION, "vertical")
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+                "parent"
+              )
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+                "parent"
+              )
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+                "parent"
+              )
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.CONSTRAINT_REFERENCED_IDS,
+                "a,b,c,include,linear"
+              ),
+            component(SdkConstants.VIEW_INCLUDE)
+              .id("@+id/include")
+              .withAttribute("layout", "@layout/other"),
+            component(SdkConstants.LINEAR_LAYOUT)
+              .withBounds(0, 500, 1000, 500)
+              .id("@+id/linear")
+              .matchParentWidth()
+              .height("500dp")
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.ATTR_LAYOUT_START_TO_START_OF,
+                "parent"
+              )
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.ATTR_LAYOUT_END_TO_END_OF,
+                "parent"
+              )
+              .withAttribute(
+                SdkConstants.AUTO_URI,
+                SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF,
+                "parent"
+              )
+              .children(
+                component(SdkConstants.CHECK_BOX)
+                  .withBounds(0, 500, 100, 100)
+                  .id("@+id/d")
+                  .width("100dp")
+                  .height("100dp"),
+              )
+          )
+      )
+      .build()
+      .also {
         val manager = it.surface.sceneManager as? SyncLayoutlibSceneManager
         manager?.ignoreRenderRequests = true
         manager?.ignoreModelUpdateRequests = true
-        val issueModel = IssueModel.createForTesting(projectRule.testRootDisposable, projectRule.project)
+        val issueModel =
+          IssueModel.createForTesting(projectRule.testRootDisposable, projectRule.project)
         whenever(it.surface.issueModel).thenReturn(issueModel)
       }
   }
@@ -542,7 +658,14 @@ class NlComponentTreeDefinitionTest {
   }
 
   private fun createToolContent(): ToolContent<DesignSurface<*>> {
-    val definition = NlComponentTreeDefinition(projectRule.project, Side.LEFT, Split.TOP, AutoHide.DOCKED, isPassThroughQueue = true)
+    val definition =
+      NlComponentTreeDefinition(
+        projectRule.project,
+        Side.LEFT,
+        Split.TOP,
+        AutoHide.DOCKED,
+        isPassThroughQueue = true
+      )
     return definition.factory.apply(projectRule.testRootDisposable)
   }
 

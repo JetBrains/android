@@ -22,11 +22,12 @@ import java.awt.Rectangle
 import javax.swing.JPanel
 import javax.swing.event.ChangeListener
 
-class TestDesignSurfaceViewport(override val viewSize: Dimension,
-                                override val viewRect: Rectangle,
-                                override val viewportComponent: Component = JPanel(),
-                                override val viewComponent: Component = JPanel(),)
-  : DesignSurfaceViewport {
+class TestDesignSurfaceViewport(
+  override val viewSize: Dimension,
+  override val viewRect: Rectangle,
+  override val viewportComponent: Component = JPanel(),
+  override val viewComponent: Component = JPanel(),
+) : DesignSurfaceViewport {
 
   override var viewPosition: Point
     get() = Point(viewRect.x, viewRect.y)

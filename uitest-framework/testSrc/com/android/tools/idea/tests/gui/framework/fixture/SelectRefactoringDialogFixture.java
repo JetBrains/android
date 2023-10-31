@@ -19,12 +19,12 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Ref;
-import javax.swing.JDialog;
-import javax.swing.JRadioButton;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 public class SelectRefactoringDialogFixture extends IdeaDialogFixture<DialogWrapper> {
 

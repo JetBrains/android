@@ -17,20 +17,28 @@
 package com.android.gmdcodecompletion.completions
 
 import com.android.SdkConstants
-import com.android.gmdcodecompletion.CurrentPsiElement
-import com.android.gmdcodecompletion.DevicePropertyName
+import com.android.gmdcodecompletion.ConfigurationParameterName
+import com.android.gmdcodecompletion.ConfigurationParameterName.DIRECTORIES_TO_PULL
+import com.android.gmdcodecompletion.ConfigurationParameterName.EXTRA_DEVICE_FILES
 import com.android.gmdcodecompletion.GmdDeviceCatalog
-import com.android.gmdcodecompletion.completions.lookupelementprovider.BaseLookupElementProvider
-import com.android.gmdcodecompletion.completions.lookupelementprovider.FtlLookupElementProvider
-import com.android.gmdcodecompletion.completions.lookupelementprovider.ManagedVirtualLookupElementProvider
+import com.android.gmdcodecompletion.MIN_SUPPORTED_GMD_API_LEVEL
+import com.android.gmdcodecompletion.PsiElementLevel
 import com.android.gmdcodecompletion.completions.GmdDeviceDefinitionPatternMatchingProvider.getMinAndTargetSdk
 import com.android.gmdcodecompletion.completions.GmdDeviceDefinitionPatternMatchingProvider.getSiblingPropertyMap
+import com.android.gmdcodecompletion.completions.lookupelementprovider.BaseLookupElementProvider
+import com.android.gmdcodecompletion.completions.lookupelementprovider.FtlLookupElementProvider
+import com.android.gmdcodecompletion.completions.lookupelementprovider.FtlTestOptionsLookupElementProvider
+import com.android.gmdcodecompletion.completions.lookupelementprovider.ManagedVirtualLookupElementProvider
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalog
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogService
+import com.android.gmdcodecompletion.getGradlePropertyValue
+import com.android.gmdcodecompletion.getQualifiedNameList
 import com.android.gmdcodecompletion.isFtlPluginEnabled
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogService
 import com.android.gmdcodecompletion.superParent
+import com.android.gmdcodecompletion.superParentAsGrMethodCall
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -79,30 +87,58 @@ class GmdCodeCompletionContributor : CompletionContributor() {
     // Add code completion for FTl device definition
     extend(CompletionType.BASIC, ftlDevicePropertyPattern, object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-        if (!isFtlPluginEnabled(parameters.position.project)) return
-        addGmdCompletions(parameters, customSorter, FtlDeviceCatalogService.getInstance().state.myDeviceCatalog, result)
+        if (!isFtlPluginEnabled(parameters.position.project, arrayOf(parameters.position.module ?: return))) return
+        addDeviceDefinitionCompletions(parameters, customSorter, FtlDeviceCatalogService.getInstance().state.myDeviceCatalog, result)
       }
     })
 
     // Add code completion for managed virtual device definition
     extend(CompletionType.BASIC, managedVirtualDevicePropertyPattern, object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) =
-        addGmdCompletions(parameters, customSorter, ManagedVirtualDeviceCatalogService.getInstance().state.myDeviceCatalog, result)
+        addDeviceDefinitionCompletions(parameters, customSorter, ManagedVirtualDeviceCatalogService.getInstance().state.myDeviceCatalog,
+                                       result)
+    })
+
+    // Add code completion for FTl test options
+    extend(CompletionType.BASIC, ftlTestOptionsPattern, object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+        if (!isFtlPluginEnabled(parameters.position.project, arrayOf(parameters.position.module ?: return))) return
+        ProgressManager.checkCanceled()
+        val currentPosition = parameters.position
+        val configurationParameterName: ConfigurationParameterName? = getCompletionParameterName(currentPosition)
+        if (configurationParameterName != null) {
+          addSimpleValueSuggestion(configurationParameterName, currentPosition, FtlTestOptionsLookupElementProvider, result)
+        }
+        else if (currentPosition.language == GroovyLanguage) {
+          val leafContainer = currentPosition.superParentAsGrMethodCall()
+                              ?: currentPosition.superParentAsGrMethodCall(3) ?: return
+          val qualifiedReferenceName = leafContainer.getQualifiedNameList()?.get(0) ?: return
+          val interfaceIndex = ConfigurationType.FTL_TEST_OPTIONS.getMatchingInterfaceIndex(qualifiedReferenceName)
+          if (interfaceIndex == -1) return
+          addCompletionParameterNameSuggestion(currentPosition, ConfigurationType.FTL_TEST_OPTIONS, result, interfaceIndex)
+        }
+      }
     })
   }
 
-  private fun getDevicePropertyName(position: PsiElement): DevicePropertyName? {
+  // Provides custom and default GmdDevicePropertyInsertHandler for completion parameter names
+  private val myParameterNameHandlers: Map<ConfigurationParameterName, GmdDevicePropertyInsertHandler> = mapOf(
+    EXTRA_DEVICE_FILES to GmdDevicePropertyInsertHandler(InsertType.CUSTOM_SUFFIX, "[] = ", 1),
+    DIRECTORIES_TO_PULL to GmdDevicePropertyInsertHandler(InsertType.CUSTOM_SUFFIX, ".addAll()", 8),
+  ).withDefault { GmdDevicePropertyInsertHandler(InsertType.CUSTOM_SUFFIX, " = ", 3) }
+
+  private fun getCompletionParameterName(position: PsiElement): ConfigurationParameterName? {
     return when (position.language) {
       GroovyLanguage -> {
-        val devicePropertyName = (position.superParent() as? GrAssignmentExpression)?.lValue?.text ?: (position.superParent(
+        val parameterName = (position.superParent() as? GrAssignmentExpression)?.lValue?.text ?: (position.superParent(
           3) as? GrAssignmentExpression)?.lValue?.text ?: return null
-        DevicePropertyName.fromOrNull(devicePropertyName)
+        ConfigurationParameterName.fromOrNull(parameterName)
       }
 
       KotlinLanguage.INSTANCE -> {
         val devicePropertyName = (position.superParent() as? KtBinaryExpression)?.left?.text ?: (position.superParent(
           3) as? KtBinaryExpression)?.left?.text ?: return null
-        DevicePropertyName.fromOrNull(devicePropertyName)
+        ConfigurationParameterName.fromOrNull(devicePropertyName)
       }
 
       else -> {
@@ -113,78 +149,89 @@ class GmdCodeCompletionContributor : CompletionContributor() {
   }
 
   // Add code completion for either FTL or managed virtual device based on type of deviceCatalog
-  private fun addGmdCompletions(parameters: CompletionParameters, sorter: CompletionSorter,
-                                deviceCatalog: GmdDeviceCatalog, result: CompletionResultSet) {
+  private fun addDeviceDefinitionCompletions(parameters: CompletionParameters, sorter: CompletionSorter,
+                                             deviceCatalog: GmdDeviceCatalog, result: CompletionResultSet) {
     ProgressManager.checkCanceled()
     // GMD definition is only available if Gradle build file is inside a module
     parameters.position.module ?: return
     if (deviceCatalog.isEmpty()) return
 
-    var currentPosition = parameters.position
-    val devicePropertyName: DevicePropertyName? = getDevicePropertyName(currentPosition)
+    val currentPosition = parameters.position
+    val configurationParameterName: ConfigurationParameterName? = getCompletionParameterName(currentPosition)
 
-    val deviceType =
+    val configurationType =
       when (deviceCatalog) {
-        is FtlDeviceCatalog -> DeviceType.FTL
-        is ManagedVirtualDeviceCatalog -> DeviceType.MANAGED_VIRTUAL
+        is FtlDeviceCatalog -> ConfigurationType.FTL
+        is ManagedVirtualDeviceCatalog -> ConfigurationType.MANAGED_VIRTUAL
         else -> {
           LOGGER.warn("${deviceCatalog.javaClass} is not supported. It should be one of FtlDeviceCatalog or ManagedVirtualDeviceCatalog")
           return
         }
       }
 
-    if (devicePropertyName != null) {
-      val lookupElementProvider = if (deviceType == DeviceType.FTL) FtlLookupElementProvider else ManagedVirtualLookupElementProvider
-      addDeviceParameterSuggestion(devicePropertyName, currentPosition, deviceCatalog, sorter, lookupElementProvider, result)
+    if (configurationParameterName != null) {
+      val lookupElementProvider = if (configurationType == ConfigurationType.FTL) FtlLookupElementProvider else ManagedVirtualLookupElementProvider
+      addDeviceParameterSuggestion(configurationParameterName, currentPosition, deviceCatalog, sorter, lookupElementProvider, result)
     }
     else if (currentPosition.language == GroovyLanguage) {
       // Groovy need code completion for device property name. Kotlin already has this function
-      addDevicePropertyNameSuggestion(currentPosition, deviceType, result)
+      addCompletionParameterNameSuggestion(currentPosition, configurationType, result)
     }
   }
 
-  private fun addDevicePropertyNameSuggestion(position: PsiElement,
-                                              deviceType: DeviceType,
-                                              result: CompletionResultSet) {
-    val existingProperties = getSiblingPropertyMap(position, CurrentPsiElement.DEVICE_PROPERTY_NAME)
-    val filterLogic: (DevicePropertyName) -> Boolean = {
-      if (deviceType == DeviceType.FTL) {
-        !existingProperties.contains(it)
-      }
-      else {
-        !existingProperties.contains(it) &&
-        !(it == DevicePropertyName.API_PREVIEW && existingProperties.contains(DevicePropertyName.API_LEVEL)) &&
-        !(it == DevicePropertyName.API_LEVEL && existingProperties.contains(DevicePropertyName.API_PREVIEW))
-      }
-    }
-    result.caseInsensitive().addAllElements(deviceType.availableDeviceProperties.mapNotNull {
-      if (filterLogic(it)) {
-        GmdCodeCompletionLookupElement(myValue = "${it.propertyName} = ")
+  private fun addCompletionParameterNameSuggestion(position: PsiElement,
+                                                   configurationType: ConfigurationType,
+                                                   result: CompletionResultSet,
+                                                   containerIndex: Int = 0) {
+    val existingProperties = getSiblingPropertyMap(position, PsiElementLevel.DEVICE_PROPERTY_NAME)
+    result.caseInsensitive().addAllElements(configurationType.availableContainers[containerIndex].availableConfigurations.mapNotNull {
+      if (!existingProperties.contains(it) && (configurationType != ConfigurationType.MANAGED_VIRTUAL ||
+                                               (!(it == ConfigurationParameterName.API_PREVIEW && existingProperties.contains(
+                                                 ConfigurationParameterName.API_LEVEL)) &&
+                                                !(it == ConfigurationParameterName.API_LEVEL && existingProperties.contains(
+                                                  ConfigurationParameterName.API_PREVIEW))))) {
+        GmdCodeCompletionLookupElement(myValue = it.propertyName,
+                                       myInsertHandler = myParameterNameHandlers.getValue(it))
       }
       else null
     })
   }
 
-  private fun addDeviceParameterSuggestion(devicePropertyName: DevicePropertyName,
+  private fun addDeviceParameterSuggestion(configurationParameterName: ConfigurationParameterName,
                                            position: PsiElement,
                                            deviceCatalog: GmdDeviceCatalog,
                                            sorter: CompletionSorter,
                                            lookupElementProvider: BaseLookupElementProvider,
                                            result: CompletionResultSet) {
-    if (getSiblingPropertyMap(position, CurrentPsiElement.DEVICE_PROPERTY_VALUE)[devicePropertyName] != null) return
 
-    val deviceProperties = getSiblingPropertyMap(position, CurrentPsiElement.DEVICE_PROPERTY_VALUE)
+    val deviceProperties = getSiblingPropertyMap(position, PsiElementLevel.COMPLETION_PROPERTY_VALUE)
     val minAndTargetApiLevel = getMinAndTargetSdk(position.androidFacet)
-
-    if (deviceProperties[devicePropertyName] != null) return
-    val suggestions = lookupElementProvider.generateDevicePropertyValueSuggestionList(devicePropertyName,
+    // check if project has the support old API flag for local GMD. This affects minimum supported API level
+    if (deviceCatalog is ManagedVirtualDeviceCatalog &&
+        !getGradlePropertyValue(ProjectBuildModel.get(position.project),
+                                "android.experimental.testOptions.managedDevices.allowOldApiLevelDevices")) {
+      minAndTargetApiLevel.minSdk = maxOf(MIN_SUPPORTED_GMD_API_LEVEL, minAndTargetApiLevel.minSdk)
+    }
+    if (deviceProperties[configurationParameterName] != null) return
+    val suggestions = lookupElementProvider.generateDevicePropertyValueSuggestionList(configurationParameterName,
                                                                                       deviceProperties,
                                                                                       minAndTargetApiLevel,
                                                                                       deviceCatalog)
     result.caseInsensitive().apply {
-      if (devicePropertyName.needCustomComparable) this.withRelevanceSorter(sorter).addAllElements(suggestions)
+      if (configurationParameterName.needCustomComparable) this.withRelevanceSorter(sorter).addAllElements(suggestions)
       else this.addAllElements(suggestions)
     }
+  }
+
+  private fun addSimpleValueSuggestion(configurationParameterName: ConfigurationParameterName,
+                                       position: PsiElement,
+                                       lookupElementProvider: BaseLookupElementProvider,
+                                       result: CompletionResultSet) {
+    val deviceProperties = getSiblingPropertyMap(position, PsiElementLevel.COMPLETION_PROPERTY_VALUE)
+    if (deviceProperties[configurationParameterName] != null) return
+
+    val suggestions = lookupElementProvider.generateSimpleValueSuggestionList(configurationParameterName, deviceProperties)
+    result.caseInsensitive().addAllElements(suggestions)
   }
 }
 
@@ -198,40 +245,44 @@ class EnableAutoPopupInStringLiteralForGmdCodeCompletion : CompletionConfidence(
   }
 }
 
-private val insideDevicePropertyGroovyGradleFilePattern: (DeviceType) -> PsiElementPattern.Capture<GrExpression> = { deviceType ->
+private val insideDevicePropertyGroovyGradleFilePattern: (ConfigurationType) -> PsiElementPattern.Capture<GrExpression> = { propertyType ->
   PlatformPatterns.psiElement(GrExpression::class.java).with(object : PatternCondition<GrExpression>(null) {
     override fun accepts(grExpression: GrExpression, context: ProcessingContext?): Boolean =
-      GmdDeviceDefinitionPatternMatchingProvider.matchesDevicePropertyGroovyPattern(deviceType, grExpression)
+      GmdDeviceDefinitionPatternMatchingProvider.matchesDevicePropertyGroovyPattern(propertyType, grExpression)
   })
 }
 
-private val insideDevicePropertyKotlinGradleFilePattern: (DeviceType) -> PsiElementPattern.Capture<KtExpression> = { deviceType ->
+private val insideDevicePropertyKotlinGradleFilePattern: (ConfigurationType) -> PsiElementPattern.Capture<KtExpression> = { propertyType ->
   PlatformPatterns.psiElement(KtExpression::class.java).with(object : PatternCondition<KtExpression>(null) {
     override fun accepts(ktExpression: KtExpression, context: ProcessingContext?): Boolean =
-      GmdDeviceDefinitionPatternMatchingProvider.matchesDevicePropertyKotlinPattern(deviceType, ktExpression)
+      GmdDeviceDefinitionPatternMatchingProvider.matchesDevicePropertyKotlinPattern(propertyType, ktExpression)
   })
 }
 
-private val groovyGmdDevicePropertyPattern: (DeviceType) -> PsiElementPattern.Capture<PsiElement> = { deviceType ->
+private val groovyGmdDevicePropertyPattern: (ConfigurationType) -> PsiElementPattern.Capture<PsiElement> = { propertyType ->
   PlatformPatterns.psiElement().withLanguage(GroovyLanguage).inFile(
     PlatformPatterns.psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE)))
-    .inside(insideDevicePropertyGroovyGradleFilePattern(deviceType))
+    .inside(insideDevicePropertyGroovyGradleFilePattern(propertyType))
 }
 
-private val kotlinGmdDevicePropertyPattern: (DeviceType) -> PsiElementPattern.Capture<PsiElement> = { deviceType ->
+private val kotlinGmdDevicePropertyPattern: (ConfigurationType) -> PsiElementPattern.Capture<PsiElement> = { deviceType ->
   PlatformPatterns.psiElement().withLanguage(KotlinLanguage.INSTANCE).inFile(
     PlatformPatterns.psiFile().withName(StandardPatterns.string().endsWith(SdkConstants.EXT_GRADLE_KTS)))
     .inside(insideDevicePropertyKotlinGradleFilePattern(deviceType))
 }
 
 private val ftlDevicePropertyPattern = PlatformPatterns.psiElement().andOr(
-  groovyGmdDevicePropertyPattern(DeviceType.FTL),
-  kotlinGmdDevicePropertyPattern(DeviceType.FTL),
+  groovyGmdDevicePropertyPattern(ConfigurationType.FTL),
+  kotlinGmdDevicePropertyPattern(ConfigurationType.FTL),
+)
+
+private val ftlTestOptionsPattern = PlatformPatterns.psiElement().andOr(
+  groovyGmdDevicePropertyPattern(ConfigurationType.FTL_TEST_OPTIONS),
 )
 
 private val managedVirtualDevicePropertyPattern = PlatformPatterns.psiElement().andOr(
-  groovyGmdDevicePropertyPattern(DeviceType.MANAGED_VIRTUAL),
-  kotlinGmdDevicePropertyPattern(DeviceType.MANAGED_VIRTUAL),
+  groovyGmdDevicePropertyPattern(ConfigurationType.MANAGED_VIRTUAL),
+  kotlinGmdDevicePropertyPattern(ConfigurationType.MANAGED_VIRTUAL),
 )
 
 /**

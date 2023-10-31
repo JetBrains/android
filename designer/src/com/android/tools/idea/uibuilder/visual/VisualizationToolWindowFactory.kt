@@ -34,12 +34,13 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 
 /**
- * [ToolWindowFactory] for the Layout Validation Tool. The tool is registered in designer.xml and the initialization is controlled by IJ's
- * framework.
+ * [ToolWindowFactory] for the Layout Validation Tool. The tool is registered in designer.xml and
+ * the initialization is controlled by IJ's framework.
  */
 class VisualizationToolWindowFactory : ToolWindowFactory {
 
@@ -55,14 +56,21 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
 
     @JvmStatic
     fun getVisualizationContent(project: Project): VisualizationContent? {
-      val component = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)?.contentManager?.component ?: return null
-      return DataManager.getInstance().getDataContext(component).getData(VisualizationContent.VISUALIZATION_CONTENT)
+      val component =
+        ToolWindowManager.getInstance(project)
+          .getToolWindow(TOOL_WINDOW_ID)
+          ?.contentManager
+          ?.component
+          ?: return null
+      return DataManager.getInstance()
+        .getDataContext(component)
+        .getData(VisualizationContent.VISUALIZATION_CONTENT)
     }
 
     /**
-     * Open the validation tool and set the [ConfigurationSet].
-     * If validation tool is open already, then this function changes the [ConfigurationSet].
-     * If visualization tool is not activated (user cannot find the tab in the side toolbar), then this function does nothing.
+     * Open the validation tool and set the [ConfigurationSet]. If validation tool is open already,
+     * then this function changes the [ConfigurationSet]. If visualization tool is not activated
+     * (user cannot find the tab in the side toolbar), then this function does nothing.
      */
     fun openAndSetConfigurationSet(project: Project, config: ConfigurationSet) {
       val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
@@ -79,26 +87,40 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
 
   override fun init(toolWindow: ToolWindow) {
     val project = (toolWindow as ToolWindowEx).project
-    project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
-      object : FileEditorManagerListener {
-        override fun fileOpened(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow, file)
+    project.messageBus
+      .connect(toolWindow.disposable)
+      .subscribe(
+        FileEditorManagerListener.FILE_EDITOR_MANAGER,
+        object : FileEditorManagerListener {
+          override fun fileOpened(source: FileEditorManager, file: VirtualFile) =
+            updateAvailable(toolWindow, file)
 
-        override fun fileClosed(source: FileEditorManager, file: VirtualFile) = updateAvailable(toolWindow, null)
+          override fun fileClosed(source: FileEditorManager, file: VirtualFile) =
+            updateAvailable(toolWindow, null)
 
-        override fun selectionChanged(event: FileEditorManagerEvent) = updateAvailable(toolWindow, event.newFile)
-      }
-    )
-    // The file editor may be opened before the listener is registered. But we cannot change the availability in this init() function.
+          override fun selectionChanged(event: FileEditorManagerEvent) =
+            updateAvailable(toolWindow, event.newFile)
+        }
+      )
+    // The file editor may be opened before the listener is registered. But we cannot change the
+    // availability in this init() function.
     // Add a oneshot listener to update the availability after the registration is completed.
     val connect = project.messageBus.connect(toolWindow.disposable)
-    connect.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
-      override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
-        if (ids.contains(TOOL_WINDOW_ID)) {
-          toolWindow.isAvailable = hasSelectedLayoutFile(project)
-          connect.disconnect()
+    connect.subscribe(
+      ToolWindowManagerListener.TOPIC,
+      object : ToolWindowManagerListener {
+        override fun toolWindowsRegistered(
+          ids: MutableList<String>,
+          toolWindowManager: ToolWindowManager
+        ) {
+          if (ids.contains(TOOL_WINDOW_ID)) {
+            connect.disconnect()
+            val hasSelectedLayoutFile = hasSelectedLayoutFile(project)
+            UIUtil.invokeLaterIfNeeded { toolWindow.isAvailable = hasSelectedLayoutFile }
+          }
         }
       }
-    })
+    )
   }
 
   override fun shouldBeAvailable(project: Project): Boolean {
@@ -106,52 +128,73 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
   }
 
   private fun hasSelectedLayoutFile(project: Project): Boolean {
-    return FileEditorManager.getInstance(project).selectedEditors.any { getFolderType(it.file) == ResourceFolderType.LAYOUT }
+    return FileEditorManager.getInstance(project).selectedEditors.any {
+      getFolderType(it.file) == ResourceFolderType.LAYOUT
+    }
   }
 
-  /**
-   * Show Layout Validation Tool Tab when current editor is Layout editor, or hide otherwise.
-   */
+  /** Show Layout Validation Tool Tab when current editor is Layout editor, or hide otherwise. */
   private fun updateAvailable(toolWindow: ToolWindow, file: VirtualFile?) {
     toolWindow.isAvailable = file?.let { getFolderType(it) == ResourceFolderType.LAYOUT } ?: false
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val handler = AsyncVisualizationEditorChangeHandler(toolWindow.disposable,
-                                                        SyncVisualizationEditorChangeHandler(VisualizationFormProvider))
+    val handler =
+      AsyncVisualizationEditorChangeHandler(
+        toolWindow.disposable,
+        SyncVisualizationEditorChangeHandler(VisualizationFormProvider)
+      )
 
     toolWindow.isAutoHide = false
-    project.messageBus.connect(toolWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER,
-                                                                MyFileEditorManagerListener(project, toolWindow, handler))
+    project.messageBus
+      .connect(toolWindow.disposable)
+      .subscribe(
+        FileEditorManagerListener.FILE_EDITOR_MANAGER,
+        MyFileEditorManagerListener(project, toolWindow, handler)
+      )
     // Process editor change task to have initial status.
-    handler.onFileEditorChange(FileEditorManager.getInstance(project).selectedEditor, project, toolWindow)
+    handler.onFileEditorChange(
+      FileEditorManager.getInstance(project).selectedEditor,
+      project,
+      toolWindow
+    )
   }
 }
 
 /**
- * Wrapped a [VisualizationEditorChangeHandler] with [MergingUpdateQueue] to make it run asynchronously.
+ * Wrapped a [VisualizationEditorChangeHandler] with [MergingUpdateQueue] to make it run
+ * asynchronously.
  */
-private class AsyncVisualizationEditorChangeHandler(parentDisposable: Disposable, private val delegator: VisualizationEditorChangeHandler)
-  : VisualizationEditorChangeHandler by delegator {
+private class AsyncVisualizationEditorChangeHandler(
+  parentDisposable: Disposable,
+  private val delegator: VisualizationEditorChangeHandler
+) : VisualizationEditorChangeHandler by delegator {
 
   private val toolWindowUpdateQueue: MergingUpdateQueue by lazy {
     MergingUpdateQueue("android.layout.visual", 100, true, null, parentDisposable)
   }
 
-  override fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow) {
+  override fun onFileEditorChange(
+    newEditor: FileEditor?,
+    project: Project,
+    toolWindow: ToolWindow
+  ) {
     toolWindowUpdateQueue.cancelAllUpdates()
-    toolWindowUpdateQueue.queue(object : Update("update") {
-      override fun run() {
-        delegator.onFileEditorChange(newEditor, project, toolWindow)
+    toolWindowUpdateQueue.queue(
+      object : Update("update") {
+        override fun run() {
+          delegator.onFileEditorChange(newEditor, project, toolWindow)
+        }
       }
-    })
+    )
   }
 }
 
-private class MyFileEditorManagerListener(private val project: Project,
-                                          private val toolWindow: ToolWindow,
-                                          private val visualizationEditorChangeHandler: VisualizationEditorChangeHandler)
-  : FileEditorManagerListener {
+private class MyFileEditorManagerListener(
+  private val project: Project,
+  private val toolWindow: ToolWindow,
+  private val visualizationEditorChangeHandler: VisualizationEditorChangeHandler
+) : FileEditorManagerListener {
   override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
     if (!file.isValid) {
       return
@@ -187,10 +230,13 @@ private class MyFileEditorManagerListener(private val project: Project,
    * Find an active editor for the specified file, or just the first active editor if file is null.
    */
   private fun getActiveLayoutEditor(file: PsiFile?): FileEditor? {
-    return ApplicationManager.getApplication().runReadAction(Computable {
-      FileEditorManager.getInstance(project).selectedEditors.firstOrNull { editor: FileEditor ->
-        editor.file?.let { editorFile -> editorFile == file } ?: false
-      }
-    })
+    return ApplicationManager.getApplication()
+      .runReadAction(
+        Computable {
+          FileEditorManager.getInstance(project).selectedEditors.firstOrNull { editor: FileEditor ->
+            editor.file?.let { editorFile -> editorFile == file } ?: false
+          }
+        }
+      )
   }
 }

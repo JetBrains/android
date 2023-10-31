@@ -15,32 +15,31 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import static com.android.repository.Revision.parseRevision;
+import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
+import static com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueCheckerKt.doesAndroidGradlePluginPackageBuildTools;
+
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.gradle.model.IdeSyncIssue;
 import com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueChecker;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersionHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.android.repository.Revision.parseRevision;
-import static com.android.sdklib.repository.meta.DetailsTypes.getBuildToolsPath;
-import static com.android.tools.idea.gradle.project.sync.errors.SdkBuildToolsTooLowIssueCheckerKt.doesAndroidGradlePluginPackageBuildTools;
 
 class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
@@ -61,11 +60,12 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
       return ImmutableList.of();
     }
 
-    return getQuickFixHyperlinks(minimumVersion, affectedModules, buildFileMap);
+    return getQuickFixHyperlinks(project, minimumVersion, affectedModules, buildFileMap);
   }
 
   @NotNull
-  public List<SyncIssueNotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
+  public List<SyncIssueNotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project,
+                                                                    @NotNull String minimumVersion,
                                                                     @NotNull List<Module> affectedModules,
                                                                     @NotNull Map<Module, VirtualFile> buildFileMap) {
     List<SyncIssueNotificationHyperlink> hyperlinks = new ArrayList<>();
@@ -86,15 +86,15 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
 
     List<VirtualFile> buildFiles =
-      affectedModules.stream().map(m -> buildFileMap.get(m)).filter(Objects::nonNull).collect(Collectors.toList());
+      affectedModules.stream().map(buildFileMap::get).filter(Objects::nonNull).collect(Collectors.toList());
 
     if (!buildToolInstalled) {
       hyperlinks
-        .add(new InstallBuildToolsHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+        .add(new InstallBuildToolsHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(project)));
     }
     else if (!buildFiles.isEmpty()) {
       hyperlinks
-        .add(new FixBuildToolsVersionHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+        .add(new FixBuildToolsVersionHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(project)));
     }
 
     return hyperlinks;

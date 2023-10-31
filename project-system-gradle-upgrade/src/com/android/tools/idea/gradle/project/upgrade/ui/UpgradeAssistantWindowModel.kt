@@ -19,7 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -40,7 +40,6 @@ import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeS
 import com.android.tools.idea.gradle.project.upgrade.isCleanEnoughProject
 import com.android.tools.idea.gradle.project.upgrade.trackProcessorUsage
 import com.android.tools.idea.gradle.project.upgrade.versionsAreIncompatible
-import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.ui.GradleJdkListPathPresenter
 import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -87,10 +86,10 @@ class UpgradeAssistantWindowModel(
   val project: Project,
   val currentVersionProvider: () -> AgpVersion?,
   var recommended: AgpVersion? = null,
-  val knownVersionsRequester: () -> Set<AgpVersion> = { IdeGoogleMavenRepository.getAgpVersions() }
+  val latestKnownVersion : AgpVersion = AgpVersions.latestKnown,
+  val newProjectVersion : AgpVersion = AgpVersions.newProject,
+  val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() }
 ) : GradleSyncListener, Disposable {
-
-  val latestKnownVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 
   var current: AgpVersion? = currentVersionProvider()
     private set
@@ -98,7 +97,7 @@ class UpgradeAssistantWindowModel(
   val selectedVersion: AgpVersion?
     get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
-  private var beforeUpgradeFilesStateLabel: Label? = null
+  var beforeUpgradeFilesStateLabel: Label? = null
 
   val uiState = ObjectValueProperty<UIState>(UIState.Loading)
   val uiRefreshNotificationTimestamp = ObjectValueProperty<Long>(0L)
@@ -214,6 +213,12 @@ class UpgradeAssistantWindowModel(
       override val statusMessage = StatusMessage(Severity.WARNING, "Project uses Gradle Version Catalogs.")
       override val runTooltip = "This project uses Gradle Version Catalogs in its build definition.  Some AGP Upgrade Assistant " +
                                 "functionality may not work as expected."
+    }
+    object VersionSelectionInProgress : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NO_RUN
+      override val layoutState = LayoutState.LOADING
+      override val runTooltip = "Press enter to commit selected version for upgrade."
+
     }
     class InvalidVersionError(
       override val statusMessage: StatusMessage
@@ -363,7 +368,12 @@ class UpgradeAssistantWindowModel(
     }
   }
 
-  fun newVersionSet(newVersionString: String) {
+  fun versionComboTextChanged() {
+    uiState.set(UIState.VersionSelectionInProgress)
+  }
+
+  fun newVersionCommit(newVersionString: String) {
+    if (uiState.get() != UIState.VersionSelectionInProgress) return
     val status = editingValidation(newVersionString)
     _selectedVersion = if (status.first == EditingErrorCategory.ERROR) {
       uiState.set(UIState.InvalidVersionError(StatusMessage(Severity.ERROR, status.second)))
@@ -375,9 +385,9 @@ class UpgradeAssistantWindowModel(
     refresh()
   }
 
-  fun suggestedVersionsList(gMavenVersions: Set<AgpVersion>): List<AgpVersion> = gMavenVersions
-    // Make sure the current (if known), recommended, and latest known versions are present, whether published or not
-    .union(listOfNotNull(current, recommended, latestKnownVersion))
+  fun suggestedVersionsList(avaliableVersions: Set<AgpVersion>): List<AgpVersion> = avaliableVersions
+    // Make sure the current (if known), recommended and new project versions are present, whether published or not
+    .union(listOfNotNull(current, recommended, newProjectVersion)).asSequence()
     // Keep only versions that are later than or equal to current
     .filter { current?.let { current -> it >= current } ?: false }
     // Keep only versions that are no later than the latest version we support

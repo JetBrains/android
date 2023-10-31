@@ -169,7 +169,7 @@ class PsIssueCollectionTest {
     val issueB = PsGeneralIssue("b", TestPath.EMPTY_PATH, PROJECT_ANALYSIS, WARNING)
     issueCollection.add(issueA)
     issueCollection.add(issueB)
-    val issues = issueCollection.findIssues(null, Comparator.comparing { it.text })
+    val issues = issueCollection.findIssues(null, Comparator.comparing<PsIssue, String> { it.text })
     assertThat(issues).containsExactly(issueA, issueB)
   }
 
@@ -185,7 +185,7 @@ class PsIssueCollectionTest {
     issueCollection.add(issueC)
     issueCollection.add(issueA)
     val issues = issueCollection.findIssues(TestPath.EMPTY_PATH,
-                                              Comparator.comparing { it.text })
+                                              Comparator.comparing<PsIssue, String> { it.text })
     assertThat(issues).containsExactly(issueA, issueB, issueC, issueD).inOrder()
   }
 

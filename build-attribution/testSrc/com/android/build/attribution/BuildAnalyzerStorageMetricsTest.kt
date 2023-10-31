@@ -26,8 +26,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.util.toIoFile
-import com.intellij.openapi.project.guessProjectDir
 import org.junit.After
 import org.junit.Ignore
 import org.junit.Rule

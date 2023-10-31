@@ -24,13 +24,17 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.dom.FileDescriptionUtils
 
-/**
- * Type of file that can be previewed in split editor or Layout Editor preview window.
- */
+/** Type of file that can be previewed in split editor or Layout Editor preview window. */
 abstract class DrawableFileType(private val allowedRootTags: Set<String>) : DesignerEditorFileType {
 
   override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file, ResourceFolderType.DRAWABLE, allowedRootTags)
+    file is XmlFile &&
+      FileDescriptionUtils.isResourceOfTypeWithRootTag(
+        file,
+        ResourceFolderType.DRAWABLE,
+        allowedRootTags
+      )
 
-  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups = DrawableActionGroups(surface)
+  override fun getToolbarActionGroups(surface: DesignSurface<*>): ToolbarActionGroups =
+    DrawableActionGroups(surface)
 }

@@ -29,15 +29,17 @@ import com.android.tools.property.panel.api.InspectorPanel
 import com.android.tools.property.panel.api.PropertiesTable
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
-/**
- * An [InspectorBuilder] for the [ATTR_ID] attribute shown on top in the Nele inspector.
- */
-class IdInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) : InspectorBuilder<NlPropertyItem> {
+/** An [InspectorBuilder] for the [ATTR_ID] attribute shown on top in the Nele inspector. */
+class IdInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) :
+  InspectorBuilder<NlPropertyItem> {
   private val menuTags = listOf(TAG_GROUP, TAG_ITEM, TAG_MENU)
   private val navTags = listOf(TAG_DEEP_LINK, TAG_ARGUMENT)
   private val hiddenTags = PreferenceUtils.VALUES.union(menuTags).union(navTags)
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     val property = properties.getOrNull(ANDROID_URI, ATTR_ID) ?: return
     if (!isApplicable(property)) return
 

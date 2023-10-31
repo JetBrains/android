@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.ExpandAction
 import com.android.tools.idea.ui.resourcemanager.actions.RefreshDesignAssetAction
@@ -730,6 +729,7 @@ class ResourceExplorerListView(
       val toolbar = ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
         layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
       }
+      toolbar.targetComponent = this@apply
 
       add(headerNameLabel, BorderLayout.WEST)
       add(toolbar.component, BorderLayout.EAST)
@@ -809,7 +809,7 @@ class ResourceExplorerListView(
   /**
    * Button to scale down the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.General.ZoomOut), DumbAware {
+  private inner class ZoomMinus : AnAction("Zoom Out", "Decrease thumbnail size", AllIcons.Graph.ZoomOut), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = max(MIN_CELL_WIDTH, (previewSize * 0.9).roundToInt())
@@ -827,7 +827,7 @@ class ResourceExplorerListView(
   /**
    * Button to scale up the icons. It is only enabled in grid mode.
    */
-  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.General.ZoomIn), DumbAware {
+  private inner class ZoomPlus : AnAction("Zoom In", "Increase thumbnail size", AllIcons.Graph.ZoomIn), DumbAware {
 
     override fun actionPerformed(e: AnActionEvent) {
       previewSize = min(MAX_CELL_WIDTH, (previewSize * 1.1).roundToInt())

@@ -15,31 +15,61 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager;
+import com.android.tools.adtui.workbench.AttachedToolWindow.AttachedToolWindowPanel;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.testFramework.DisposableRule;
+import com.intellij.testFramework.ProjectRule;
+import com.intellij.ui.ExperimentalUI;
+import java.awt.Component;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import sun.awt.AWTAccessor;
 
 @RunWith(JUnit4.class)
 public class WorkBenchManagerTest {
-  private WorkBench myWorkBench1, myWorkBench2, myWorkBench3, myWorkBench4, myWorkBench5;
-
+  private boolean initialUI = false;
+  private WorkBench<?> myWorkBench1, myWorkBench2, myWorkBench3, myWorkBench4, myWorkBench5;
   private WorkBenchManager myManager;
+  private FakeKeyboardFocusManager myFocusManager;
+  private final ProjectRule projectRule = new ProjectRule();
+  private final DisposableRule disposableRule = new DisposableRule();
+
+  @Rule
+  public RuleChain chain = RuleChain.outerRule(projectRule).around(disposableRule);
 
   @Before
   public void before() {
+    initialUI = ExperimentalUI.isNewUI();
+    Registry.get("ide.experimental.ui").setValue(true);
+    myFocusManager = new FakeKeyboardFocusManager(disposableRule.getDisposable());
     myManager = new WorkBenchManager();
+    Disposer.register(disposableRule.getDisposable(), myManager);
     myWorkBench1 = createWorkBench("A");
     myWorkBench2 = createWorkBench("A");
     myWorkBench3 = createWorkBench("A");
     myWorkBench4 = createWorkBench("B");
     myWorkBench5 = createWorkBench("B");
+  }
+
+  @After
+  public void after() {
+    Registry.get("ide.experimental.ui").setValue(initialUI);
   }
 
   @Test
@@ -80,10 +110,61 @@ public class WorkBenchManagerTest {
     verify(myWorkBench5).updateModel();
   }
 
-  private WorkBench createWorkBench(@NotNull String name) {
-    WorkBench workBench = mock(WorkBench.class);
+  @Test
+  public void testToolWindowIsActivated() {
+    Pair<AttachedToolWindow<?>, Component> toolWindowPair1 = createToolWindowUnder(myWorkBench1);
+
+    myFocusManager.setFocusOwner(toolWindowPair1.second);
+    verify(toolWindowPair1.first).setActive(true);
+    assertThat(myManager.getActiveToolWindow()).isEqualTo(toolWindowPair1.first);
+  }
+
+  @Test
+  public void testOneToolWindowIsDeactivatedWhenAnotherIsActivated() {
+    Pair<AttachedToolWindow<?>, Component> toolWindowPair1 = createToolWindowUnder(myWorkBench1);
+    Pair<AttachedToolWindow<?>, Component> toolWindowPair2 = createToolWindowUnder(myWorkBench2);
+
+    myFocusManager.setFocusOwner(toolWindowPair1.second);
+    myFocusManager.setFocusOwner(toolWindowPair2.second);
+    verify(toolWindowPair1.first).setActive(false);
+    verify(toolWindowPair2.first).setActive(true);
+    assertThat(myManager.getActiveToolWindow()).isEqualTo(toolWindowPair2.first);
+  }
+
+  @Test
+  public void testToolWindowIsDeactivatedWhenAnUnrelatedComponentGainsFocus() {
+    Pair<AttachedToolWindow<?>, Component> toolWindowPair1 = createToolWindowUnder(myWorkBench1);
+    Component unrelatedComponent = new JPanel();
+
+    myFocusManager.setFocusOwner(toolWindowPair1.second);
+    myFocusManager.setFocusOwner(unrelatedComponent);
+    verify(toolWindowPair1.first).setActive(false);
+    assertThat(myManager.getActiveToolWindow()).isNull();
+  }
+
+  @Test
+  public void testToolWindowIsDeactivatedWhenWorkBenchIsClosed() {
+    Pair<AttachedToolWindow<?>, Component> toolWindowPair1 = createToolWindowUnder(myWorkBench1);
+
+    myFocusManager.setFocusOwner(toolWindowPair1.second);
+    myManager.unregister(myWorkBench1);
+    verify(toolWindowPair1.first).setActive(false);
+    assertThat(myManager.getActiveToolWindow()).isNull();
+  }
+
+  private WorkBench<?> createWorkBench(@NotNull String name) {
+    WorkBench<?> workBench = mock(WorkBench.class);
     when(workBench.getName()).thenReturn(name);
     myManager.register(workBench);
     return workBench;
+  }
+
+  private Pair<AttachedToolWindow<?>, Component> createToolWindowUnder(@NotNull WorkBench<?> workbench) {
+    Component component = new JPanel();
+    AttachedToolWindow<?> toolWindow = mock(AttachedToolWindow.class);
+    AttachedToolWindowPanel panel = new AttachedToolWindowPanel(toolWindow);
+    panel.add(component);
+    AWTAccessor.getComponentAccessor().setParent(panel, workbench);
+    return Pair.pair(toolWindow, component);
   }
 }

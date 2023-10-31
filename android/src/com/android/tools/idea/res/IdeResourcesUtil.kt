@@ -1001,9 +1001,6 @@ private fun RenderResources.resolveNullableResValue(res: ResourceValue?): Resour
   return resolveResValue(res)
 }
 
-fun buildResourceId(packageId: Byte, typeId: Byte, entryId: Short) =
-  (packageId.toInt() shl 24) or (typeId.toInt() shl 16) or (entryId.toInt() and 0xffff)
-
 /**
  * Returns the names of [ResourceItem]s with the given namespace, type and visibility in the repository.
  *
@@ -2223,19 +2220,6 @@ private fun getTemplateName(resourceType: String, valuesResourceFile: Boolean, r
     AndroidFileTemplateProvider.NAVIGATION_RESOURCE_FILE_TEMPLATE
   }
   else AndroidFileTemplateProvider.RESOURCE_FILE_TEMPLATE
-}
-
-fun getFieldNameByResourceName(styleName: String): String {
-  var i = 0
-  val n = styleName.length
-  while (i < n) {
-    val c = styleName[i]
-    if (c == '.' || c == '-' || c == ':') {
-      return styleName.replace('.', '_').replace('-', '_').replace(':', '_')
-    }
-    i++
-  }
-  return styleName
 }
 
 /**

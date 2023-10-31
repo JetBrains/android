@@ -51,13 +51,12 @@
                         id="Layout Validation"
                         anchor="right"
                         icon="StudioIcons.Shell.ToolWindows.MULTI_PREVIEW"
-                        canCloseContents="false"/>
+                        canCloseContents="false" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.handlers.ViewHandlerManager" headlessImplementation="" />
     <projectService serviceImplementation="com.android.tools.idea.uibuilder.editor.LayoutNavigationManager" />
 
     <projectService serviceInterface="com.android.tools.idea.common.error.DesignerCommonIssuePanelModelProvider"
                     serviceImplementation="com.android.tools.idea.common.error.AsyncDesignerCommonIssuePanelModelProvider"/>
-    <projectService serviceImplementation="com.android.tools.idea.common.error.IssuePanelService"/>
     <postStartupActivity implementation="com.android.tools.idea.common.error.IssuePanelStartupActivity"/>
   </extensions>
 
@@ -202,8 +201,11 @@
     <action id="Android.CreateSampleDataDirectory" class="com.android.tools.idea.actions.CreateSampleDataDirectory">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="Android.CreateResourceDirectory"/>
     </action>
-    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true">
+      <synonym key="action.StoreDefaultLayout.synonym" />
+    </action>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="PasteWithNewIds" class="com.android.tools.idea.common.actions.PasteWithNewIds"/>
 
     <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
         <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>
@@ -222,34 +224,34 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom nav" shortName="BottomNav" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom nav" shortName="BottomNav" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom app bar" shortName="BottomAppBar" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom app bar" shortName="BottomAppBar" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Overlap" shortName="Overlap" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Overlap" shortName="Overlap" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Long text" shortName="LongText" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Long text" shortName="LongText" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Accessibility" shortName="AccessibilityTestFramework" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Accessibility" shortName="AccessibilityTestFramework" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Locale text" shortName="LocaleText" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Locale text" shortName="LocaleText" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Button size" shortName="ButtonSize" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Button size" shortName="ButtonSize" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Text field size" shortName="TextFieldSize" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Text field size" shortName="TextFieldSize" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection"/>
-    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPathKey="android.inspections.group.path.lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection"/>
   </extensions>

@@ -73,7 +73,7 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   private fun getAgentPath(): Path {
     return when  {
       !IdeInfo.getInstance().isAndroidStudio -> {
-        Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/223.0.1.0/plugins/android")
+        Paths.get(PathManager.getSystemPath(), "android/android-plugin-resources/231.0.1.4/plugins/android")
           .resolve(AGENT_RESOURCE_PROD)
       }
       StudioPathManager.isRunningFromSources() -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)

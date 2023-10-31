@@ -18,8 +18,8 @@ package com.android.tools.idea.layoutinspector.metrics
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
+import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
-import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -65,19 +64,25 @@ class LegacyInspectorMetricsTest {
       windowIdsRetrievedLock.countDown()
       windowIds
     }
-    val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
+    val client =
+      LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector)
+        as LegacyClient
     client.launchMonitor =
-      InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats, scheduler)
+      InspectorClientLaunchMonitor(
+        projectRule.project,
+        inspector.notificationModel,
+        ListenerCollection.createWithDirectExecutor(),
+        client.stats,
+        scheduler
+      )
     client
   }
 
   private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
 
-  @get:Rule
-  val usageTrackerRule = MetricsTrackerRule()
+  @get:Rule val usageTrackerRule = MetricsTrackerRule()
 
   @Before
   fun setUp() {
@@ -95,7 +100,8 @@ class LegacyInspectorMetricsTest {
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial))
+    assertThat(deviceInfo.anonymizedSerialNumber)
+      .isEqualTo(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial))
     assertThat(deviceInfo.model).isEqualTo(LEGACY_DEVICE.model)
     assertThat(deviceInfo.manufacturer).isEqualTo(LEGACY_DEVICE.manufacturer)
     assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
@@ -105,13 +111,16 @@ class LegacyInspectorMetricsTest {
 
     studioEvent = usages[1].studioEvent
     assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
-    assertThat(studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
-    assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+    assertThat(studioEvent.dynamicLayoutInspectorEvent.type)
+      .isEqualTo(DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+    assertThat(studioEvent.projectId)
+      .isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
 
     studioEvent = usages[2].studioEvent
     inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
     assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
-    assertThat(studioEvent.projectId).isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
+    assertThat(studioEvent.projectId)
+      .isEqualTo(AnonymizerUtil.anonymizeUtf8(inspectorRule.project.basePath!!))
     assertThat(inspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
     assertThat(inspectorEvent.session.attach.clientType).isEqualTo(LEGACY_CLIENT)
     assertThat(inspectorEvent.session.attach.success).isTrue()
@@ -128,17 +137,19 @@ class LegacyInspectorMetricsTest {
 
     // Launch monitor will set a banner
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
-    val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    assertThat(banner.notifications.single().message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+    val notificationModel = inspectorRule.notificationModel
+    assertThat(notificationModel.notifications.single().message)
+      .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
 
     // User disconnects:
-    banner.notifications.single().actions.last().actionPerformed(mock())
+    notificationModel.notifications.single().actions.last().invoke(mock())
     connectThread.join()
     val usages = waitFor3Events()
     var studioEvent = usages[0].studioEvent
 
     val deviceInfo = studioEvent.deviceInfo
-    assertThat(deviceInfo.anonymizedSerialNumber).isEqualTo(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial))
+    assertThat(deviceInfo.anonymizedSerialNumber)
+      .isEqualTo(AnonymizerUtil.anonymizeUtf8(LEGACY_DEVICE.serial))
     assertThat(deviceInfo.model).isEqualTo(LEGACY_DEVICE.model)
     assertThat(deviceInfo.manufacturer).isEqualTo(LEGACY_DEVICE.manufacturer)
     assertThat(deviceInfo.deviceType).isEqualTo(DeviceInfo.DeviceType.LOCAL_PHYSICAL)
@@ -149,25 +160,31 @@ class LegacyInspectorMetricsTest {
     studioEvent = usages[1].studioEvent
     inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
     assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
-    assertThat(studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
+    assertThat(studioEvent.dynamicLayoutInspectorEvent.type)
+      .isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
     assertThat(inspectorEvent.errorInfo.attachErrorState).isEqualTo(AttachErrorState.ADB_PING)
     assertThat(inspectorEvent.errorInfo.attachErrorCode).isEqualTo(AttachErrorCode.CONNECT_TIMEOUT)
 
     studioEvent = usages[2].studioEvent
     inspectorEvent = studioEvent.dynamicLayoutInspectorEvent
     assertThat(studioEvent.deviceInfo).isEqualTo(deviceInfo)
-    assertThat(studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
+    assertThat(studioEvent.dynamicLayoutInspectorEvent.type)
+      .isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
     assertThat(inspectorEvent.session.attach.clientType).isEqualTo(LEGACY_CLIENT)
     assertThat(inspectorEvent.session.attach.success).isFalse()
-    assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState).isEqualTo(AttachErrorState.ADB_PING)
-    assertThat(inspectorEvent.session.attach.errorInfo.attachErrorCode).isEqualTo(AttachErrorCode.CONNECT_TIMEOUT)
+    assertThat(inspectorEvent.session.attach.errorInfo.attachErrorState)
+      .isEqualTo(AttachErrorState.ADB_PING)
+    assertThat(inspectorEvent.session.attach.errorInfo.attachErrorCode)
+      .isEqualTo(AttachErrorCode.CONNECT_TIMEOUT)
   }
 
   private fun waitFor3Events(): List<LoggedUsage> {
     var usages: List<LoggedUsage> = emptyList()
     waitForCondition(10, TimeUnit.SECONDS) {
-      usages = usageTrackerRule.testTracker.usages
-        .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
+      usages =
+        usageTrackerRule.testTracker.usages.filter {
+          it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+        }
       usages.size >= 3
     }
     return usages

@@ -16,166 +16,58 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_BORDER_COLOR
-import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_FILL_COLOR
-import com.android.tools.adtui.stdui.StandardColors.ERROR_BUBBLE_TEXT_COLOR
 import com.android.tools.property.panel.api.PropertyItem
-import com.google.common.annotations.VisibleForTesting
-import com.google.common.html.HtmlEscapers
-import com.intellij.ide.IdeTooltip
-import com.intellij.ide.IdeTooltipManager
-import com.intellij.ui.components.JBLabel
+import com.intellij.ide.HelpTooltip
 import com.intellij.util.text.nullize
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import com.intellij.xml.CommonXmlStrings.HTML_END
-import com.intellij.xml.CommonXmlStrings.HTML_START
-import icons.StudioIcons
-import java.awt.BorderLayout
-import java.awt.Color
-import java.awt.Point
-import java.awt.event.MouseEvent
-import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.SwingConstants
 
-private const val ICON_SPACING = 6
-private const val MAX_WIDTH = 600
-private const val TIP_WIDTH_START = "<div WIDTH=$MAX_WIDTH>"
-private const val TIP_WIDTH_END = "</div>"
+/** Implementation of custom tool tips for displaying errors and warnings. */
+object PropertyTooltip {
 
-/**
- * Implementation of custom tool tips for displaying errors and warnings.
- *
- * This implementation only works when running in the IDE, since we are using
- * the IJ IdeTooltipManager.
- */
-class PropertyTooltip(val component: JComponent, point: Point) : IdeTooltip(component, point, TooltipComponent()) {
-  @VisibleForTesting
-  internal val tip = tipComponent as TooltipComponent
-
-  override fun onHidden() {
-    // Remove references to this custom tool tip
-    val manager = IdeTooltipManager.getInstance()
-    manager.setCustomTooltip(component, null)
+  fun setToolTip(component: JComponent, text: String?) {
+    if (text == null) {
+      hideTooltip(component)
+    } else {
+      createTooltipWithContent(component, text)
+    }
   }
 
-  companion object {
+  fun setToolTip(component: JComponent, property: PropertyItem?, forValue: Boolean, text: String) {
+    if (property == null) {
+      hideTooltip(component)
+    } else {
+      createToolTip(component, property, forValue, text)
+    }
+  }
 
-    fun setToolTip(component: JComponent, event: MouseEvent, text: String?): String? {
-      val manager = IdeTooltipManager.getInstance()
-      if (text == null) {
-        manager.hideCurrent(event)
-      }
-      else {
-        val tooltip = createTooltipWithContent(component, event.point, text, null, null, null, null)
-        manager.setCustomTooltip(component, tooltip)
-      }
-      return null
+  private fun createToolTip(
+    component: JComponent,
+    property: PropertyItem,
+    forValue: Boolean,
+    currentText: String
+  ) {
+    if (!forValue) {
+      val text = property.tooltipForName.nullize()
+      setToolTip(component, text)
+      return
     }
 
-    fun setToolTip(component: JComponent, event: MouseEvent, property: PropertyItem?, forValue: Boolean, text: String): String? {
-      val manager = IdeTooltipManager.getInstance()
-      if (property == null) {
-        manager.hideCurrent(event)
-      }
-      else {
-        val tooltip = createToolTip(component, event.point, property, forValue, text)
-        manager.setCustomTooltip(component, tooltip)
-      }
-      return null
-    }
-
-    private fun createToolTip(component: JComponent,
-                              point: Point,
-                              property: PropertyItem,
-                              forValue: Boolean,
-                              currentText: String): PropertyTooltip? {
-      if (!forValue) {
-        val text = property.tooltipForName.nullize() ?: return null
-        return createTooltipWithContent(component, point, text)
-      }
-
-      val validation = property.editingSupport.validation(currentText)
+    val validation = property.editingSupport.validation(currentText)
+    val (title, text) =
       when (validation.first) {
-        EditingErrorCategory.ERROR ->
-          return createTooltipWithContent(component, point, validation.second, StudioIcons.Common.ERROR_INLINE,
-                                          ERROR_BUBBLE_BORDER_COLOR, ERROR_BUBBLE_TEXT_COLOR, ERROR_BUBBLE_FILL_COLOR)
-        EditingErrorCategory.WARNING ->
-          return createTooltipWithContent(component, point, validation.second, StudioIcons.Common.WARNING_INLINE)
-        else -> {
-          val text = property.tooltipForValue.nullize() ?: return null
-          return createTooltipWithContent(component, point, text, null, null, null, null)
-        }
+        EditingErrorCategory.ERROR -> Pair("Error", validation.second)
+        EditingErrorCategory.WARNING -> Pair("Warning", validation.second)
+        else -> property.tooltipForValue.nullize()?.let { Pair(null, it) }
+            ?: return hideTooltip(component)
       }
-    }
-
-    private fun createTooltipWithContent(component: JComponent,
-                                         point: Point,
-                                         text: String,
-                                         icon: Icon? = null,
-                                         border: Color? = null,
-                                         foreground: Color? = null,
-                                         background: Color? = null): PropertyTooltip {
-      val tooltip = PropertyTooltip(component, point)
-      tooltip.tip.icon = icon
-      tooltip.tip.text = text
-      tooltip.borderColor = border
-      tooltip.textBackground = background
-      tooltip.textForeground = foreground
-
-      // Make the popup display faster if there is an error or warning,
-      // use the normal delay if this is just information.
-      tooltip.setHighlighterType(icon != null)
-      return tooltip
-    }
-  }
-}
-
-@VisibleForTesting
-internal class TooltipComponent: JPanel(BorderLayout()) {
-  private val iconLabel = JBLabel()
-  private val textLabel = JBLabel()
-
-  var icon: Icon?
-    get() = iconLabel.icon
-    set(value) {
-      iconLabel.icon = value
-      iconLabel.isVisible = (value != null)
-    }
-
-  var text: String
-    get() = textLabel.text
-    set(value) {
-      textLabel.text = formatText(value)
-    }
-
-  init {
-    background = UIUtil.TRANSPARENT_COLOR
-    textLabel.border = JBUI.Borders.empty()
-    textLabel.background = UIUtil.TRANSPARENT_COLOR
-    textLabel.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    iconLabel.border = JBUI.Borders.emptyRight(ICON_SPACING)
-    iconLabel.verticalAlignment = SwingConstants.TOP
-    add(iconLabel, BorderLayout.WEST)
-    add(textLabel, BorderLayout.CENTER)
+    createTooltipWithContent(component, text, title)
   }
 
-  private fun formatText(value: String): String {
-    val content: String
-    if (value.startsWith(HTML_START) && value.endsWith(HTML_END)) {
-      content = value.removePrefix(HTML_START).removeSuffix(HTML_END)
-    }
-    else {
-      content = HtmlEscapers.htmlEscaper().escape(value)
-    }
-    var widthStart = ""
-    var widthEnd = ""
-    if (textLabel.getFontMetrics(textLabel.font).stringWidth(content) > MAX_WIDTH) {
-      widthStart = TIP_WIDTH_START
-      widthEnd = TIP_WIDTH_END
-    }
-    return "$HTML_START$widthStart$content$widthEnd$HTML_END"
+  private fun hideTooltip(component: JComponent) {
+    HelpTooltip.dispose(component)
+  }
+
+  private fun createTooltipWithContent(component: JComponent, text: String, title: String? = null) {
+    HelpTooltip().setTitle(title).setDescription(text).installOn(component)
   }
 }

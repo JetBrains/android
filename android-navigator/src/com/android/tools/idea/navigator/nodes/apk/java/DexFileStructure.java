@@ -20,6 +20,10 @@ import static com.google.common.util.concurrent.MoreExecutors.listeningDecorator
 import static com.intellij.debugger.impl.DebuggerUtilsEx.signatureToName;
 
 import com.android.tools.idea.apk.debugging.ApkPackage;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedClassDef;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -38,10 +42,6 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedClassDef;
-import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
-import com.android.tools.smali.dexlib2.dexbacked.reference.DexBackedMethodReference;
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 
 class DexFileStructure {
   // All dex files represented by this node.

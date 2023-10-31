@@ -19,7 +19,6 @@ import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystem
-import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystemService
 import com.android.tools.idea.testing.runDispatching
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtilRt
@@ -41,7 +40,6 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var taskExecutor: FutureCallbackExecutor
 
-  private lateinit var mockDeviceFileSystemService: MockDeviceFileSystemService
   private lateinit var mockDeviceFileSystem: MockDeviceFileSystem
   private lateinit var rootEntry: MockDeviceFileEntry
   private lateinit var emptyDirEntry: MockDeviceFileEntry
@@ -64,8 +62,7 @@ class DeviceExplorerFileManagerImplTest : AndroidTestCase() {
     val downloadPath = FileUtil.createTempDirectory("fileManagerTest", "", true)
     myDeviceExplorerFileManager = DeviceExplorerFileManagerImpl(project) { downloadPath.toPath() }
 
-    mockDeviceFileSystemService = MockDeviceFileSystemService(project, edtExecutor, taskExecutor)
-    mockDeviceFileSystem = mockDeviceFileSystemService.addDevice("fileSystem")
+    mockDeviceFileSystem = MockDeviceFileSystem(FutureCallbackExecutor(edtExecutor), "fileSystem")
     rootEntry = mockDeviceFileSystem.root
 
     emptyDirEntry = rootEntry.addDirectory("empty")

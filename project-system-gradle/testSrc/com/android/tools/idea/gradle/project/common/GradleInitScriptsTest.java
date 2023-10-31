@@ -23,11 +23,13 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.mockito.Mock;
 
@@ -63,12 +65,33 @@ public class GradleInitScriptsTest extends PlatformTestCase {
     }
   }
 
-  public void testAddLocalMavenRepoInitScriptCommandLineArgTo() throws IOException {
-    String content = "Test";
-    when(myContentCreator.createLocalMavenRepoInitScriptContent(any())).thenReturn(content);
+  private void setupCreateLocalMavenRepoInitScriptContent() {
+    when(myContentCreator.createLocalMavenRepoInitScriptContent(any())).thenAnswer(mock -> {
+      if(mock.getArgument(0).equals(Collections.emptyList())) return null; else return "Test";
+    });
+  }
 
+  public void testRepoInjectionDisabled() {
+    setupCreateLocalMavenRepoInitScriptContent();
     List<String> args = new ArrayList<>();
-    myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
+    try {
+      StudioFlags.INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT.override(false);
+      myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
+    } finally {
+      StudioFlags.INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT.clearOverride();
+    }
+    assertThat(args).isEmpty();
+  }
+
+  public void testAddLocalMavenRepoInitScriptCommandLineArgTo() throws IOException {
+    setupCreateLocalMavenRepoInitScriptContent();
+    List<String> args = new ArrayList<>();
+    try {
+      StudioFlags.INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT.override(true);
+      myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
+    } finally {
+      StudioFlags.INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT.clearOverride();
+    }
     assertThat(args).hasSize(2);
 
     assertEquals("--init-script", args.get(0));
@@ -80,7 +103,7 @@ public class GradleInitScriptsTest extends PlatformTestCase {
     assertEquals("sync.local.repo.gradle", myInitScriptPath.getName());
 
     String actual = loadFile(myInitScriptPath);
-    assertEquals(content, actual);
+    assertEquals("Test", actual);
   }
 
   public void testAddLocalMavenRepoInitScriptCommandLineArgToWhenFailedToCreateContent() {

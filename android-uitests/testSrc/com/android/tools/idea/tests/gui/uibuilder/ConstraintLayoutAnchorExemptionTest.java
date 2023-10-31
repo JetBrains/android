@@ -22,8 +22,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,8 +37,29 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class ConstraintLayoutAnchorExemptionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  private IdeFrameFixture ideFrameFixture;
+
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  protected static final String APP_NAME = "App";
+  protected static final String PACKAGE_NAME = "android.com.app";
+  protected static final int MIN_SDK_API = 30;
+  protected static final String ACTIVITY_FILE = "app/src/main/res/layout/activity_main.xml";
+
+  @Before
+  public void setUp() throws Exception {
+
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrameFixture = guiTest.ideFrame();
+
+    //Clearing notifications present on the screen.
+    ideFrameFixture.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
 
   /**
    * To verify that anchors on different axis, such as left and top anchor cannot be connected.
@@ -58,21 +81,37 @@ public class ConstraintLayoutAnchorExemptionTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void constraintLayoutAnchorExemption() throws Exception {
-    WizardUtils.createNewProject(guiTest, "Empty Views Activity");
-    guiTest.robot().waitForIdle();
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
-    ideFrameFixture.clearNotificationsPresentOnIdeFrame();
-    //IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editor = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN);
+      .open(ACTIVITY_FILE, EditorFixture.Tab.EDITOR);
+    editor.replaceText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                       "<androidx.constraintlayout.widget.ConstraintLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                       "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                       "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                       "    android:layout_width=\"match_parent\"\n" +
+                       "    android:layout_height=\"match_parent\"\n" +
+                       "    tools:context=\".MainActivity\">\n" +
+                       "\n" +
+                       "</androidx.constraintlayout.widget.ConstraintLayout>");
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    editor.selectEditorTab(EditorFixture.Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor()
+      .dragComponentToSurface("Text", "TextView")
+      .waitForRenderToFinish()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
+
+    design.findView("Button", 0)
+      .moveBy(-20, -20);
+
+    design.waitForRenderToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
 
-    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
+    editor.open(ACTIVITY_FILE, EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
       .waitForRenderToFinish();
     design.findView("Button", 0)

@@ -17,12 +17,13 @@
 
 package com.android.tools.idea.testing
 
-import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.res.LocalResourceRepository
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.LocalResourceRepository
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -41,6 +42,7 @@ import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler
 import com.intellij.testFramework.EditorTestUtil
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -53,6 +55,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
+import org.junit.runner.Description
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
@@ -263,3 +266,14 @@ fun CodeInsightTestFixture.addFileToProjectAndInvalidate(relativePath: String, f
   addFileToProject(relativePath, fileText).also {
     it.invalidateDocumentCache()
   }
+
+@Suppress("UnstableApiUsage")
+val ProjectRule.disposable: Disposable
+  get() = project.earlyDisposable
+
+/** A shorter version of [Description.getDisplayName], suitable as a file name. */
+val Description.shortDisplayName: String get() {
+  val className = testClass.simpleName
+  val methodName = methodName?.substringBefore('[') // Truncate parameterized tests.
+  return if (methodName != null) "${className}.${methodName}" else className
+}

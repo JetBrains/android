@@ -21,6 +21,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/analytics[module]",
     ],
 )
 
@@ -37,6 +38,7 @@ iml_module(
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/testData",
     ],
+    test_friends = ["//tools/adt/idea/debuggers:intellij.android.debuggers"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

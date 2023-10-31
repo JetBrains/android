@@ -17,9 +17,10 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
-import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.intellij.openapi.components.ComponentManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -67,17 +68,16 @@ class GradleModuleHierarchyProvider(private val project: Project) {
 
   private fun buildMap(): Map<ComponentManager, List<Module>> {
     val moduleManager = ModuleManager.getInstance(project)
-
     fun moduleHierarchyId(module: Module): List<String>? {
       if (!isExternalSystemAwareModule(GRADLE_SYSTEM_ID, module)) return null
-      return module.getGradleProjectPath()?.let { gradleProjectPath ->
-        listOf(gradleProjectPath.buildRoot, ":") +
-          gradleProjectPath.path.split(":").filter { it.isNotEmpty() } +
-          listOfNotNull((gradleProjectPath as? GradleSourceSetProjectPath)?.sourceSet?.sourceSetName)
-      }
+      val gradleIdentityPath = module.getGradleIdentityPath() ?: return null
+      val sourceSetName = (module.getGradleProjectPath() as? GradleSourceSetProjectPath)?.sourceSet?.sourceSetName
+      val externalRootPath = ExternalSystemApiUtil.getExternalRootProjectPath(module) ?: return null
+      return listOf(externalRootPath, ":") + gradleIdentityPath.split(":").filter { it.isNotEmpty() } + listOfNotNull(sourceSetName)
     }
 
-    val modules = moduleManager.modules
+    // We exclude any source set modules as these are not to be displayed to the user and are not in the Gradle structure
+    val modules = moduleManager.modules.filter { !it.isLinkedAndroidModule() || it.isHolderModule() }
     val projectRootHierarchyId = emptyList<String>()
     val hierarchyIdToSubmodulesMap = mutableMapOf<List<String>, MutableList<Module>>()
     val hierarchyIdToModuleMap = mutableMapOf<List<String>, Module>()
@@ -90,22 +90,12 @@ class GradleModuleHierarchyProvider(private val project: Project) {
     hierarchyIdToSubmodulesMap[projectRootHierarchyId] = mutableListOf()
 
     for (module in modules) {
-      // We exclude any source set modules as these are not to be displayed to the user and are not in the Gradle structure
-      if (module.isLinkedAndroidModule() && module.getHolderModule() !== module) continue
-
       val hierarchyId = moduleHierarchyId(module) ?: continue
 
       var parent = hierarchyId
       while (parent.isNotEmpty()) {
         parent = parent.dropLast(1)
         // Eventually we either find an existing parent or it becomes "", which is always present.
-        // NOTE: This even works when there are gaps in the parents chain which can happen if a qualified module names consists of
-        //       components whose names may contain dots ".".  For example, the following Gradle project hierarchy
-        //       :
-        //           :libs
-        //               :libs:just.a.library
-        // will produce "project_name.libs.just.a.library" as a qualified name which will result in the following hierarchyId
-        //        ==> [ "project_name", "libs", "just", "a", "library"].
         val submodules = hierarchyIdToSubmodulesMap[parent]
         if (submodules != null) {
           // We found the closest existing parent module. Add the module to its collection of submodules.

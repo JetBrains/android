@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -26,21 +25,22 @@ import com.intellij.util.ui.JBUI
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Polygon
+import javax.swing.JComponent
 import javax.swing.JSlider
 
 /** [ActionToolbarImpl] with enabled navigation. */
-open class DefaultToolbarImpl(surface: DesignSurface<*>, place: String, actions: List<AnAction>) :
+open class DefaultToolbarImpl(rootComponent: JComponent, place: String, actions: List<AnAction>) :
   ActionToolbarImpl(place, DefaultActionGroup(actions), true) {
   init {
-    targetComponent = surface
+    targetComponent = rootComponent
     ActionToolbarUtil.makeToolbarNavigable(this)
     layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
     setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
 }
 
-internal class SingleButtonToolbar(surface: DesignSurface<*>, place: String, action: AnAction) :
-  DefaultToolbarImpl(surface, place, listOf(action)) {
+internal class SingleButtonToolbar(rootComponent: JComponent, place: String, action: AnAction) :
+  DefaultToolbarImpl(rootComponent, place, listOf(action)) {
   // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default.
   // Set the preferred size of the
   // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a
@@ -91,7 +91,7 @@ object InspectorPainter {
 
   /** Thumb displayed in animation timeline. */
   object Thumb {
-    private val THUMB_COLOR = JBColor(0x4A81FF, 0xB4D7FF)
+    private val THUMB_COLOR = JBUI.CurrentTheme.EditorTabs.underlineColor()
 
     /** Half width of the shape used as the handle of the timeline scrubber. */
     private const val HANDLE_HALF_WIDTH = 5

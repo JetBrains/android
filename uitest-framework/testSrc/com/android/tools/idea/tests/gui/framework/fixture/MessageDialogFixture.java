@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.google.common.base.Strings.nullToEmpty;
-
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.messages.MessageDialog;
 import com.intellij.openapi.util.Ref;
-import javax.swing.JDialog;
-import javax.swing.JTextPane;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+
+import static com.google.common.base.Strings.nullToEmpty;
 
 class MessageDialogFixture extends IdeaDialogFixture<DialogWrapper> implements MessagesFixture.Delegate {
   @NotNull

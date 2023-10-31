@@ -40,7 +40,10 @@ class PTableModelTest {
 
   @Test
   fun testExpandCollapse() {
-    val model = PTableModelImpl(createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2"))))
+    val model =
+      PTableModelImpl(
+        createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")))
+      )
     val listener = addModelListener(model)
 
     // last node should be collapsed
@@ -69,7 +72,10 @@ class PTableModelTest {
 
   @Test
   fun testToggle() {
-    val model = PTableModelImpl(createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2"))))
+    val model =
+      PTableModelImpl(
+        createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")))
+      )
     val listener = addModelListener(model)
 
     // last node should be collapsed
@@ -88,10 +94,23 @@ class PTableModelTest {
 
   @Test
   fun testUpdate() {
-    val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
+    val tableModel =
+      createModel(
+        Item("item1"),
+        Item("item2"),
+        Group("item3", Item("child1"), Item("child2")),
+        Item("item4")
+      )
     val model = PTableModelImpl(tableModel)
     model.expand(2)
-    tableModel.updateTo(true, Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item4"), Item("item5"))
+    tableModel.updateTo(
+      true,
+      Item("item1"),
+      Item("itemX"),
+      Group("item3", Item("child1"), Item("child2")),
+      Item("item4"),
+      Item("item5")
+    )
 
     assertThat(model.rowCount).isEqualTo(7)
     assertThat(model.getValueAt(0, 0).name).isEqualTo("item1")
@@ -105,10 +124,29 @@ class PTableModelTest {
 
   @Test
   fun testUpdateMovesActiveItem() {
-    val tableModel = createModel(Item("item1"), Item("item2"), Group("item3", Item("child1"), Item("child2")), Item("item4"))
-    val table = PTableImpl(tableModel, null, DefaultPTableCellRendererProvider(), EmptyPTableCellEditorProvider())
+    val tableModel =
+      createModel(
+        Item("item1"),
+        Item("item2"),
+        Group("item3", Item("child1"), Item("child2")),
+        Item("item4")
+      )
+    val table =
+      PTableImpl(
+        tableModel,
+        null,
+        DefaultPTableCellRendererProvider(),
+        EmptyPTableCellEditorProvider()
+      )
     val item = table.item(3)
-    tableModel.updateTo(true, Item("item1"), Item("itemX"), Group("item3", Item("child1"), Item("child2")), Item("item5"), Item("item4"))
+    tableModel.updateTo(
+      true,
+      Item("item1"),
+      Item("itemX"),
+      Group("item3", Item("child1"), Item("child2")),
+      Item("item5"),
+      Item("item4")
+    )
     val rowIndex = tableModel.items.indexOf(item)
     assertThat(rowIndex).isEqualTo(4)
   }

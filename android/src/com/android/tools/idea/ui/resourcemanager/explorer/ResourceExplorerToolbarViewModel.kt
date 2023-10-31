@@ -212,7 +212,7 @@ class ResourceExplorerToolbarViewModel(
    */
   override fun getDirectories(): Array<PsiDirectory> =
     SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.mapNotNull {
-      runReadAction {
+      runReadAction<PsiDirectory?> {
         PsiManager.getInstance(facet.module.project).findDirectory(it)
       }
     }.toTypedArray()

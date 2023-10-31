@@ -18,16 +18,17 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.scene.Scene
-import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.android.tools.idea.uibuilder.surface.TestSceneView
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.testFramework.assertInstanceOf
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.awt.Point
 import java.awt.event.KeyEvent
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-private class TestInteractableSurface(private val sceneView: SceneView? = null) : InteractableScenesSurface {
+private class TestInteractableSurface(private val sceneView: SceneView? = null) :
+  InteractableScenesSurface {
   var zoomCounter = 0
   var hoverCounter = 0
   override fun zoom(type: ZoomType): Boolean {
@@ -40,7 +41,9 @@ private class TestInteractableSurface(private val sceneView: SceneView? = null) 
   override fun canZoomToFit() = true
   override fun canZoomToActual() = true
 
-  override fun onHover(x: Int, y: Int) { hoverCounter++ }
+  override fun onHover(x: Int, y: Int) {
+    hoverCounter++
+  }
 
   override var isPanning = false
   override val isPannable = true
@@ -60,7 +63,9 @@ class LayoutlibInteractionHandlerTest {
   @Test
   fun testStartPanningWhenPressingSpace() {
     val handler = LayoutlibInteractionHandler(TestInteractableSurface())
-    val spaceKeyEvent = KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, DesignSurfaceShortcut.PAN.keyCode.toChar()).build()
+    val spaceKeyEvent =
+      KeyEventBuilder(DesignSurfaceShortcut.PAN.keyCode, DesignSurfaceShortcut.PAN.keyCode.toChar())
+        .build()
     val interaction = handler.keyPressedWithoutInteraction(spaceKeyEvent)
     assertInstanceOf<PanInteraction>(interaction)
   }

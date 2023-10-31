@@ -16,9 +16,8 @@
 package com.android.tools.idea.compose.preview.designinfo
 
 import com.android.ide.common.gradle.Version
-import com.android.tools.idea.flags.StudioFlags
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.project.getLastSyncTimestamp
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
@@ -46,8 +45,6 @@ fun hasDesignInfoProviders(module: Module): Boolean {
 }
 
 private fun findDesignInfoProviders(moduleToSearch: Module): Boolean {
-  if (!StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get()) return false
-
   val gradleCoordinate =
     moduleToSearch
       .getModuleSystem()

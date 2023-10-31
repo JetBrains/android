@@ -32,7 +32,7 @@ import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.android.tools.idea.uibuilder.handlers.IncludeHandler
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
-import com.android.tools.idea.uibuilder.model.viewHandler
+import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.property.support.PICK_A_RESOURCE
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.lint.detector.api.Category
@@ -43,21 +43,18 @@ import java.util.EnumSet
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-/**
- * Lint integrator for issues created by ATF (Accessibility Testing Framework)
- */
+/** Lint integrator for issues created by ATF (Accessibility Testing Framework) */
 class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
   @VisibleForTesting
-  val issueProvider: IssueProvider = object : IssueProvider() {
-    override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
-      issues.forEach {
-        issueListBuilder.add(it)
+  val issueProvider: IssueProvider =
+    object : IssueProvider() {
+      override fun collectIssues(issueListBuilder: ImmutableCollection.Builder<Issue>) {
+        issues.forEach { issueListBuilder.add(it) }
       }
     }
-  }
 
-  /**  Returns the list of accessibility issues created by ATF. */
+  /** Returns the list of accessibility issues created by ATF. */
   val issues = HashSet<Issue>()
 
   init {
@@ -75,14 +72,15 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
   }
 
   /**
-   * Creates a single issue/lint that matches given parameters. Must call [populateLints]
-   * in order for issues to be visible.
+   * Creates a single issue/lint that matches given parameters. Must call [populateLints] in order
+   * for issues to be visible.
    */
   fun createIssue(
     result: ValidatorData.Issue,
     component: NlComponent,
     model: NlModel,
-    eventListener: NlAtfIssue.EventListener? = null) {
+    eventListener: NlAtfIssue.EventListener? = null
+  ) {
     component.getAttribute(TOOLS_URI, ATTR_IGNORE)?.let {
       if (it.contains(result.mSourceClass) || it.contains(ATTR_IGNORE_A11Y_LINTS)) {
         return
@@ -102,9 +100,8 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
   }
 }
 
-/**  Issue created for <include> */
-class NlATFIncludeIssue(
-  private val include: NlComponent) : Issue() {
+/** Issue created for <include> */
+class NlATFIncludeIssue(private val include: NlComponent) : Issue() {
   override val summary: String
     get() = "Included layout may contain accessibility issues."
   override val description: String
@@ -118,37 +115,43 @@ class NlATFIncludeIssue(
 
   override val fixes: Stream<Fix>
     get() {
-      val goto = Fix("Open the layout", "Open the include layout.") {
-        include.viewHandler?.let { handler ->
-          if (handler is IncludeHandler) {
-            IncludeHandler.openIncludedLayout(include)
-          }
+      val goto =
+        Fix("Open the layout", "Open the include layout.") {
+          include
+            .getViewHandler {}
+            ?.let { handler ->
+              if (handler is IncludeHandler) {
+                IncludeHandler.openIncludedLayout(include)
+              }
+            }
         }
-      }
       return Stream.of(goto)
     }
 
   override val suppresses: Stream<Suppress>
     get() {
-      val ignore = Suppress("Suppress", "Suppress this check if it is false positive.") {
-        val attr = include.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
-          if (it.isNullOrEmpty()) ATTR_IGNORE_A11Y_LINTS else "$it,$ATTR_IGNORE_A11Y_LINTS"
+      val ignore =
+        Suppress("Suppress", "Suppress this check if it is false positive.") {
+          val attr =
+            include.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
+              if (it.isNullOrEmpty()) ATTR_IGNORE_A11Y_LINTS else "$it,$ATTR_IGNORE_A11Y_LINTS"
+            }
+          NlWriteCommandActionUtil.run(include, "Suppress A11Y lints") {
+            // Set attr automatically refreshes the surface.
+            include.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+          }
         }
-        NlWriteCommandActionUtil.run(include, "Suppress A11Y lints") {
-          // Set attr automatically refreshes the surface.
-          include.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
-        }
-      }
       return Stream.of(ignore)
     }
 }
 
-/**  Issue created by [ValidatorData.Issue] */
+/** Issue created by [ValidatorData.Issue] */
 open class NlAtfIssue(
   val result: ValidatorData.Issue,
   issueSource: IssueSource,
   private val model: NlModel,
-  private val eventListener: EventListener? = null) : Issue() {
+  private val eventListener: EventListener? = null
+) : Issue() {
 
   /** Event listeners for the ATF issue */
   interface EventListener {
@@ -191,7 +194,6 @@ open class NlAtfIssue(
         }
       }
 
-
   override val description: String
     get() {
       if (result.mHelpfulUrl.isNullOrEmpty()) {
@@ -218,10 +220,11 @@ open class NlAtfIssue(
       val source = this.source
       if (source is NlAttributesHolder) {
         result.mFix?.let {
-          val fix = Fix("Fix", it.description) {
-            applyFixWrapper(it)
-            eventListener?.onApplyFixButtonClicked(result)
-          }
+          val fix =
+            Fix("Fix", it.description) {
+              applyFixWrapper(it)
+              eventListener?.onApplyFixButtonClicked(result)
+            }
           return Stream.of(fix)
         }
       }
@@ -234,14 +237,16 @@ open class NlAtfIssue(
       if (source !is NlAttributesHolder) {
         return Stream.empty()
       }
-      val ignore = Suppress("Suppress", "Suppress this check if it is false positive.") {
-        val attr = source.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
-          if (it.isNullOrEmpty()) result.mSourceClass else "$it,${result.mSourceClass}"
+      val ignore =
+        Suppress("Suppress", "Suppress this check if it is false positive.") {
+          val attr =
+            source.getAttribute(TOOLS_URI, ATTR_IGNORE).let {
+              if (it.isNullOrEmpty()) result.mSourceClass else "$it,${result.mSourceClass}"
+            }
+          // Set attr automatically refreshes the surface.
+          source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
+          eventListener?.onIgnoreButtonClicked(result)
         }
-        // Set attr automatically refreshes the surface.
-        source.setAttribute(TOOLS_URI, ATTR_IGNORE, attr)
-        eventListener?.onIgnoreButtonClicked(result)
-      }
       return Stream.of(ignore)
     }
 
@@ -256,37 +261,36 @@ open class NlAtfIssue(
   /** Returns the source class from [ValidatorData.Issue]. Used for metrics */
   val srcClass: String = result.mSourceClass
 
-  /**
-   * For compound fixes, all fixes should be gathered into one single undoable action.
-   */
+  /** For compound fixes, all fixes should be gathered into one single undoable action. */
   private fun applyFixWrapper(fix: ValidatorData.Fix) {
     val source = source
     if (fix is ValidatorData.SetViewAttributeFix && fix.mSuggestedValue.isEmpty()) {
       // If the suggested value is an empty string, let the user pick a string
       // resource as the suggested value
       applySetViewAttributeFixWithEmptySuggestedValue(model, fix.mViewAttribute)
-    }
-    else if (source is NlComponentIssueSource) {
+    } else if (source is NlComponentIssueSource) {
       applyFixImpl(fix, source)
     }
   }
 
-  /**
-   * Let the user to pick a new string resource as the suggested value.
-   */
+  /** Let the user to pick a new string resource as the suggested value. */
   private fun applySetViewAttributeFixWithEmptySuggestedValue(
-    model: NlModel, viewAttribute: ValidatorData.ViewAttribute) {
+    model: NlModel,
+    viewAttribute: ValidatorData.ViewAttribute
+  ) {
     val source = source
-    val dialog: ResourcePickerDialog = createResourcePickerDialog(
-      dialogTitle = PICK_A_RESOURCE,
-      currentValue = null,
-      facet = model.facet,
-      resourceTypes = EnumSet.of(ResourceType.STRING),
-      defaultResourceType = null,
-      showColorStateLists = false,
-      showSampleData = false,
-      showThemeAttributes = false,
-      file = null)
+    val dialog: ResourcePickerDialog =
+      createResourcePickerDialog(
+        dialogTitle = PICK_A_RESOURCE,
+        currentValue = null,
+        facet = model.facet,
+        resourceTypes = EnumSet.of(ResourceType.STRING),
+        defaultResourceType = null,
+        showColorStateLists = false,
+        showSampleData = false,
+        showThemeAttributes = false,
+        file = null
+      )
     if (dialog.showAndGet() && (source is NlComponentIssueSource)) {
       val resourceName = dialog.resourceName ?: return
       source.setAttribute(viewAttribute.mNamespaceUri, viewAttribute.mAttributeName, resourceName)
@@ -297,19 +301,14 @@ open class NlAtfIssue(
   fun applyFixImpl(fix: ValidatorData.Fix, source: NlAttributesHolder) {
     when (fix) {
       is ValidatorData.RemoveViewAttributeFix ->
-        source.removeAttribute(fix.mViewAttribute.mNamespaceUri,
-                               fix.mViewAttribute.mAttributeName)
-
+        source.removeAttribute(fix.mViewAttribute.mNamespaceUri, fix.mViewAttribute.mAttributeName)
       is ValidatorData.SetViewAttributeFix ->
-        source.setAttribute(fix.mViewAttribute.mNamespaceUri,
-                            fix.mViewAttribute.mAttributeName,
-                            fix.mSuggestedValue)
-
-      is ValidatorData.CompoundFix ->
-        fix.mFixes.forEach {
-          applyFixImpl(it, source)
-        }
-
+        source.setAttribute(
+          fix.mViewAttribute.mNamespaceUri,
+          fix.mViewAttribute.mAttributeName,
+          fix.mSuggestedValue
+        )
+      is ValidatorData.CompoundFix -> fix.mFixes.forEach { applyFixImpl(it, source) }
       else -> {
         // Do not apply the fix
       }

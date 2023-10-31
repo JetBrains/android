@@ -255,7 +255,7 @@ class ResourceExplorerListViewModelImpl(
   override fun getResourceConfigurationMap(resourceAssetSet: ResourceAssetSet): CompletableFuture<Map<String, String>> {
     if (resourceAssetSet.assets.size == 1) {
       // Don't use these values if it only contains one configuration entry.
-      return completedFuture(emptyMap())
+      return completedFuture(emptyMap<String, String>())
     }
     return resourceExplorerSupplyAsync {
       return@resourceExplorerSupplyAsync resourceAssetSet.assets.map { asset ->
@@ -290,7 +290,7 @@ class ResourceExplorerListViewModelImpl(
  * thread for long-running operations.
  */
 private fun <T>resourceExplorerSupplyAsync(runnable: () -> T): CompletableFuture<T> =
-  supplyAsync(Supplier {
+  supplyAsync<T>(Supplier<T> {
     runnable()
   }, AppExecutorUtil.getAppExecutorService())
 
@@ -333,7 +333,7 @@ private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
       if (psiElement.virtualFile.name.endsWith(SdkConstants.DOT_9PNG, true)) {
         "9-Patch"
       } else {
-        psiElement.virtualFile.extension?.toUpperCase(Locale.US) ?: ""
+        psiElement.virtualFile.extension?.uppercase(Locale.US) ?: ""
       }
     }
     // Fallback for unsupported types in Drawables and Mip Maps

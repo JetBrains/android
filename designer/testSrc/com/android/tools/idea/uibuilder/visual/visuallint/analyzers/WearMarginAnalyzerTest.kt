@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.Assert
 import org.intellij.lang.annotations.Language
@@ -29,7 +29,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@Language("XML") private const val LAYOUT =
+@Language("XML")
+private const val LAYOUT =
   """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -79,8 +80,7 @@ import org.junit.Test
 
 class WearMarginAnalyzerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setup() {
@@ -89,17 +89,24 @@ class WearMarginAnalyzerTest {
 
   @After
   fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
   }
 
   @Test
   fun testAnalyzeModelWithSmallRound() {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
-    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_small_round")
+    val configuration =
+      RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_small_round")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.project,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file,
+        configuration
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -107,11 +114,19 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(3, issues.size)
-        Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[1].message)
-        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[2].message)
-      }
-      catch (ex: java.lang.Exception) {
+        Assert.assertEquals(
+          "The view image_view <ImageView> is too close to the side of the device",
+          issues[0].message
+        )
+        Assert.assertEquals(
+          "The view textview3 <TextView> is too close to the side of the device",
+          issues[1].message
+        )
+        Assert.assertEquals(
+          "The view textview1 <TextView> is too close to the side of the device",
+          issues[2].message
+        )
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -120,9 +135,18 @@ class WearMarginAnalyzerTest {
   @Test
   fun testAnalyzeModelWithLargeRound() {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
-    val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_large_round")
+    val configuration =
+      RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_large_round")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.project,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file,
+        configuration
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -130,12 +154,23 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(4, issues.size)
-        Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view textview4 <TextView> is too close to the side of the device", issues[1].message)
-        Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[2].message)
-        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[3].message)
-      }
-      catch (ex: java.lang.Exception) {
+        Assert.assertEquals(
+          "The view image_view <ImageView> is too close to the side of the device",
+          issues[0].message
+        )
+        Assert.assertEquals(
+          "The view textview4 <TextView> is too close to the side of the device",
+          issues[1].message
+        )
+        Assert.assertEquals(
+          "The view textview3 <TextView> is too close to the side of the device",
+          issues[2].message
+        )
+        Assert.assertEquals(
+          "The view textview1 <TextView> is too close to the side of the device",
+          issues[3].message
+        )
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -146,7 +181,15 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_rect")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.project,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file,
+        configuration
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -154,11 +197,19 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(3, issues.size)
-        Assert.assertEquals("The view image_view <ImageView> is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view textview3 <TextView> is too close to the side of the device", issues[1].message)
-        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[2].message)
-      }
-      catch (ex: java.lang.Exception) {
+        Assert.assertEquals(
+          "The view image_view <ImageView> is too close to the side of the device",
+          issues[0].message
+        )
+        Assert.assertEquals(
+          "The view textview3 <TextView> is too close to the side of the device",
+          issues[1].message
+        )
+        Assert.assertEquals(
+          "The view textview1 <TextView> is too close to the side of the device",
+          issues[2].message
+        )
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }
@@ -169,7 +220,15 @@ class WearMarginAnalyzerTest {
     val file = projectRule.fixture.addFileToProject("res/layout/layout.xml", LAYOUT).virtualFile
     val configuration = RenderTestUtil.getConfiguration(projectRule.module, file, "wearos_square")
     val facet = AndroidFacet.getInstance(projectRule.module)!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, file, configuration)
+    val nlModel =
+      SyncNlModel.create(
+        projectRule.project,
+        NlComponentRegistrar,
+        null,
+        facet,
+        file,
+        configuration
+      )
 
     RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
       task.setDecorations(false)
@@ -177,10 +236,15 @@ class WearMarginAnalyzerTest {
         val result = task.render().get()
         val issues = WearMarginAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(2, issues.size)
-        Assert.assertEquals("The view textview2 <TextView> is too close to the side of the device", issues[0].message)
-        Assert.assertEquals("The view textview1 <TextView> is too close to the side of the device", issues[1].message)
-      }
-      catch (ex: java.lang.Exception) {
+        Assert.assertEquals(
+          "The view textview2 <TextView> is too close to the side of the device",
+          issues[0].message
+        )
+        Assert.assertEquals(
+          "The view textview1 <TextView> is too close to the side of the device",
+          issues[1].message
+        )
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }

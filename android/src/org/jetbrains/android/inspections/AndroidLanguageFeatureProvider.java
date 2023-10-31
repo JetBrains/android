@@ -2,8 +2,8 @@
 package org.jetbrains.android.inspections;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.module.AndroidModuleInfo;
 import com.intellij.pom.java.JavaFeature;
 import com.intellij.pom.java.LanguageFeatureProvider;
 import com.intellij.psi.PsiFile;

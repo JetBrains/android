@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.Assert
 import org.intellij.lang.annotations.Language
@@ -31,8 +31,7 @@ import org.junit.Test
 
 class BoundsAnalyzerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setup() {
@@ -41,14 +40,13 @@ class BoundsAnalyzerTest {
 
   @After
   fun tearDown() {
-    ApplicationManager.getApplication().invokeAndWait {
-      RenderTestUtil.afterRenderTestCase()
-    }
+    ApplicationManager.getApplication().invokeAndWait { RenderTestUtil.afterRenderTestCase() }
   }
 
   @Test
   fun testAnalyzeModelWithError() {
-    @Language("XML") val content =
+    @Language("XML")
+    val content =
       """<AbsoluteLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -84,9 +82,11 @@ class BoundsAnalyzerTest {
         val issues = BoundsAnalyzer.findIssues(result, nlModel)
         Assert.assertEquals(2, issues.size)
         Assert.assertEquals("<TextView> is partially hidden in layout", issues[0].message)
-        Assert.assertEquals("image_view <ImageView> is partially hidden in layout", issues[1].message)
-      }
-      catch (ex: java.lang.Exception) {
+        Assert.assertEquals(
+          "image_view <ImageView> is partially hidden in layout",
+          issues[1].message
+        )
+      } catch (ex: java.lang.Exception) {
         throw RuntimeException(ex)
       }
     }

@@ -16,14 +16,17 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
+import com.android.tools.adtui.categorytable.CategoryTableDemo.Device
 import com.android.tools.adtui.categorytable.Column.SizeConstraint
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.ui.components.JBScrollPane
 import java.awt.Dimension
+import java.awt.event.MouseEvent
 import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
 
 object CategoryTableDemo {
@@ -41,38 +44,32 @@ object CategoryTableDemo {
   val columns = listOf(Name, Api, Status, Type, Actions)
 }
 
-val DEVICE_DATA_KEY = DataKey.create<CategoryTableDemo.Device>("DEVICE")
+val DEVICE_DATA_KEY = DataKey.create<Device>("DEVICE")
 
 val Name =
-  LabelColumn<CategoryTableDemo.Device>(
+  LabelColumn<Device>(
     "Name",
     SizeConstraint(min = 200, preferred = 400),
     stringAttribute(isGroupable = false) { it.name }
   )
-val Api =
-  LabelColumn<CategoryTableDemo.Device>(
-    "Api",
-    SizeConstraint(min = 20, max = 80),
-    stringAttribute { it.api }
-  )
+val Api = LabelColumn<Device>("Api", SizeConstraint(min = 20, max = 80), stringAttribute { it.api })
 val Type =
-  LabelColumn<CategoryTableDemo.Device>(
-    "Type",
-    SizeConstraint(min = 20, max = 80),
-    stringAttribute { it.type }
-  )
+  LabelColumn<Device>("Type", SizeConstraint(min = 20, max = 80), stringAttribute { it.type })
 val Status =
-  LabelColumn<CategoryTableDemo.Device>(
-    "Status",
-    SizeConstraint(min = 20, max = 80),
-    stringAttribute { it.status }
-  )
+  object :
+    LabelColumn<Device>(
+      "Status",
+      SizeConstraint(min = 20, max = 80),
+      stringAttribute { it.status }
+    ) {
+    override val visibleWhenGrouped = true
+  }
 
-object Actions : Column<CategoryTableDemo.Device, Unit, JPanel> {
+object Actions : Column<Device, Unit, JPanel> {
   override val name = "Actions"
   override val attribute = Attribute.Unit
 
-  override fun createUi(rowValue: CategoryTableDemo.Device): JPanel =
+  override fun createUi(rowValue: Device): JPanel =
     JPanel().apply {
       isOpaque = false
       add(
@@ -87,29 +84,64 @@ object Actions : Column<CategoryTableDemo.Device, Unit, JPanel> {
       )
     }
 
-  override fun updateValue(rowValue: CategoryTableDemo.Device, component: JPanel, value: Unit) {}
+  override fun updateValue(rowValue: Device, component: JPanel, value: Unit) {}
 
   override val widthConstraint = SizeConstraint.exactly(150)
 }
 
-// Add / remove rows
-// Categories
+object DemoCategoryRowMouseClickListener : DefaultCategoryRowMouseClickListener<Device>() {
+  override fun categoryRowClicked(
+    e: MouseEvent,
+    table: CategoryTable<Device>,
+    path: CategoryList<Device>
+  ) {
+    when {
+      SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
+        table.columns
+          .find { it.attribute == path.last().attribute }
+          ?.let { table.removeGrouping(it) }
+      else -> super.categoryRowClicked(e, table, path)
+    }
+  }
+}
+
+object DemoCategoryTableHeaderClickListener : DefaultCategoryTableHeaderClickListener<Device>() {
+  override fun columnHeaderClicked(
+    e: MouseEvent,
+    table: CategoryTable<Device>,
+    column: Column<Device, *, *>
+  ) {
+    when {
+      SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
+        if (column.attribute.isGroupable) {
+          table.addGrouping(column)
+        }
+      else -> super.columnHeaderClicked(e, table, column)
+    }
+  }
+}
 
 fun main(args: Array<String>) {
   val frame = JFrame()
   frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
-  val table = CategoryTable(CategoryTableDemo.columns)
 
-  CategoryTableDemo.devices.forEach(table::addRow)
+  val table =
+    CategoryTable(CategoryTableDemo.columns).apply {
+      categoryRowMouseClickListener = DemoCategoryRowMouseClickListener
+      categoryTableHeaderClickListener = DemoCategoryTableHeaderClickListener
+    }
+
+  CategoryTableDemo.devices.forEach(table::addOrUpdateRow)
+
   val scroll = JBScrollPane()
   frame.contentPane = scroll
   table.addToScrollPane(scroll)
 
-  table.addGrouping(Status.attribute)
-  table.addGrouping(Api.attribute)
-  table.addGrouping(Type.attribute)
-  table.removeGrouping(Api.attribute)
-  table.removeGrouping(Type.attribute)
+  table.addGrouping(Status)
+  table.addGrouping(Api)
+  table.addGrouping(Type)
+  table.removeGrouping(Api)
+  table.removeGrouping(Type)
 
   frame.preferredSize = Dimension(600, 800)
   frame.pack()

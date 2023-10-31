@@ -1,14 +1,36 @@
-CompositeBuildMap             : IdeCompositeBuildMapImpl
-    - builds                      : <ROOT> (IdeBuildImpl)
-        buildName                     : :
-    gradleSupportsDirectTaskInvocation      : true
+MODULE                        : project
+    ExternalModuleGroup           :
+    ExternalModuleVersion         : unspecified
+    LinkedProjectId               : project
+    LinkedProjectPath             : <ROOT>
+    RootProjectPath               : <ROOT>
+    COMPILER_MODULE_EXTENSION
+        compilerSourceOutputPath      : file://<ROOT>/build/classes/production/project [-]
+        compilerTestOutputPath        : file://<ROOT>/build/classes/test/project [-]
+        isCompilerPathInherited       : true
+        isExcludeOutput               : true
+    ModuleFile                    : <ROOT>/.idea/modules/project.iml [-]
+    ModuleTypeName                : JAVA_MODULE
+    CONENT_ENTRY                  : file://<ROOT>
+        EXCLUDE_FOLDER                : file://<ROOT>/.gradle
+        EXCLUDE_FOLDER                : file://<ROOT>/build [-]
+    JDK                           : <NAME_CUT> JavaSDK
+    *isInherited                  : true
+    ORDER_ENTRY                   : <Module source>
+    BUILD_TASKS
+        TEST_COMPILE_MODE             : All
+        TEST_COMPILE_MODE             : Android tests
+        TEST_COMPILE_MODE             : Unit tests
+        TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
     - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
         artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
         artifactAddress               : junit:junit:4.12@jar
+        component                     : junit:junit:4.12
     - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
@@ -20,6 +42,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test.espresso:espresso-core:3.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jars/classes.jar
+        component                     : com.android.support.test.espresso:espresso-core:3.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.0.2/jni [-]
@@ -38,6 +61,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test:runner:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jars/classes.jar
+        component                     : com.android.support.test:runner:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.0.2/jni [-]
@@ -56,6 +80,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:appcompat-v7:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jars/classes.jar
+        component                     : com.android.support:appcompat-v7:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-v7-28.0.0/jni [-]
@@ -74,6 +99,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-fragment:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-fragment:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jni [-]
@@ -92,6 +118,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:animated-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:animated-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/animated-vector-drawable-28.0.0/jni [-]
@@ -110,6 +137,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-ui:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jni [-]
@@ -128,6 +156,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-core-utils:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jni [-]
@@ -146,6 +175,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-vector-drawable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-vector-drawable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-vector-drawable-28.0.0/jni [-]
@@ -164,6 +194,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:loader:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+        component                     : com.android.support:loader:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jni [-]
@@ -182,6 +213,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:viewpager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+        component                     : com.android.support:viewpager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jni [-]
@@ -200,6 +232,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:coordinatorlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jni [-]
@@ -218,6 +251,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:drawerlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jni [-]
@@ -236,6 +270,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:slidingpanelayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jni [-]
@@ -254,6 +289,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:customview:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+        component                     : com.android.support:customview:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jni [-]
@@ -272,6 +308,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+        component                     : com.android.support:swiperefreshlayout:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jni [-]
@@ -290,6 +327,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+        component                     : com.android.support:asynclayoutinflater:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jni [-]
@@ -308,6 +346,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:support-compat:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+        component                     : com.android.support:support-compat:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jni [-]
@@ -326,6 +365,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+        component                     : com.android.support:versionedparcelable:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jni [-]
@@ -344,6 +384,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+        component                     : com.android.support:cursoradapter:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jni [-]
@@ -362,6 +403,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
@@ -380,6 +422,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:documentfile:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+        component                     : com.android.support:documentfile:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jni [-]
@@ -398,6 +441,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+        component                     : com.android.support:localbroadcastmanager:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jni [-]
@@ -416,6 +460,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:print:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+        component                     : com.android.support:print:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/annotations.zip
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jni [-]
@@ -434,6 +479,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:viewmodel:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jni [-]
@@ -452,6 +498,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test:monitor:1.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jars/classes.jar
+        component                     : com.android.support.test:monitor:1.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.0.2/jni [-]
@@ -470,6 +517,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jni [-]
@@ -488,6 +536,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+        component                     : android.arch.lifecycle:livedata-core:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jni [-]
@@ -506,6 +555,7 @@ LIBRARY_TABLE
         artifactAddress               : android.arch.core:runtime:1.1.1@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        component                     : android.arch.core:runtime:1.1.1
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
@@ -524,6 +574,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support:interpolator:28.0.0@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+        component                     : com.android.support:interpolator:28.0.0
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jni [-]
@@ -542,6 +593,7 @@ LIBRARY_TABLE
         artifactAddress               : com.android.support.test.espresso:espresso-idling-resource:3.0.2@aar
         assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/assets [-]
         - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jars/classes.jar
+        component                     : com.android.support.test.espresso:espresso-idling-resource:3.0.2
         externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/annotations.zip [-]
         folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2
         jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.0.2/jni [-]
@@ -557,44 +609,58 @@ LIBRARY_TABLE
     - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
+        component                     : org.hamcrest:hamcrest-integration:1.3
     - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
         artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+        component                     : org.hamcrest:hamcrest-library:1.3
     - library                     : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
         artifactAddress               : com.android.support:collections:28.0.0@jar
+        component                     : com.android.support:collections:28.0.0
     - library                     : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
+        component                     : android.arch.lifecycle:common:1.1.1
     - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
         artifactAddress               : android.arch.core:common:1.1.1@jar
+        component                     : android.arch.core:common:1.1.1
     - library                     : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
         artifactAddress               : com.android.support:support-annotations:28.0.0@jar
+        component                     : com.android.support:support-annotations:28.0.0
     - library                     : net.sf.kxml:kxml2:2.3.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar
         artifactAddress               : net.sf.kxml:kxml2:2.3.0@jar
+        component                     : net.sf.kxml:kxml2:2.3.0
     - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
         artifactAddress               : com.squareup:javawriter:2.1.1@jar
+        component                     : com.squareup:javawriter:2.1.1
     - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
         artifactAddress               : javax.inject:javax.inject:1@jar
+        component                     : javax.inject:javax.inject:1
     - library                     : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
         artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
         artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
+        component                     : com.google.code.findbugs:jsr305:2.0.1
     - library                     : <ROOT>::app (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app
         sourceSet                     : MAIN
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
+        path                          : : [-]
+        identityPath                  : : [-]
         name                          : project
         qName                         : project
         version                       : unspecified
         childProjects
             app                           : :app (DefaultExternalProject)
+                path                          : :app [-]
+                identityPath                  : :app [-]
                 name                          : app
                 qName                         : :app
                 group                         : project
@@ -750,6 +816,8 @@ MODULE                        : project
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             benchmark                     : :benchmark (DefaultExternalProject)
+                path                          : :benchmark [-]
+                identityPath                  : :benchmark [-]
                 name                          : benchmark
                 qName                         : :benchmark
                 group                         : project
@@ -793,6 +861,8 @@ MODULE                        : project
                     testedApks                    : <empty>
                     wearApp                       : <empty>
             test                          : :test (DefaultExternalProject)
+                path                          : :test [-]
+                identityPath                  : :test [-]
                 name                          : test
                 qName                         : :test
                 group                         : project
@@ -830,6 +900,8 @@ MODULE                        : project
                     testedApks                    : <empty>
                     wearApp                       : <empty>
             test2                         : :test2 (DefaultExternalProject)
+                path                          : :test2 [-]
+                identityPath                  : :test2 [-]
                 name                          : test2
                 qName                         : :test2
                 group                         : project
@@ -892,7 +964,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -937,6 +1008,7 @@ MODULE                        : project.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app
         testApplicationId             : com.example.android.app.test
@@ -1315,7 +1387,6 @@ MODULE                        : project.benchmark
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :benchmark
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1359,6 +1430,7 @@ MODULE                        : project.benchmark
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : benchmark
         applicationId                 : com.example.android.benchmark
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
@@ -1597,7 +1669,6 @@ MODULE                        : project.test
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1641,6 +1712,7 @@ MODULE                        : project.test
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.app.testmodule
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
@@ -1860,7 +1932,6 @@ MODULE                        : project.test2
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test2
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1904,6 +1975,7 @@ MODULE                        : project.test2
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
+        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : com.example.android.test2
     BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar

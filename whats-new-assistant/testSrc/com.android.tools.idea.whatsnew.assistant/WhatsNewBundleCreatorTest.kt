@@ -49,7 +49,7 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
     whenever(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenAnswer(Answer {
+      .thenAnswer(Answer<InputStream> {
         URL("file:" + resourceFile.path).openStream()
       })
 
@@ -149,7 +149,7 @@ class WhatsNewBundleCreatorTest : AndroidTestCase() {
   @Test
   fun testDownloadTimeout() {
     val mockConnectionOpener = mock(WhatsNewConnectionOpener::class.java)
-    whenever(mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull(), ArgumentMatchers.anyInt())).thenThrow(TimeoutException())
+    whenever(mockConnectionOpener.openConnection(ArgumentMatchers.isNotNull<URL>(), ArgumentMatchers.anyInt())).thenThrow(TimeoutException())
 
     // Expected bundle file is defaultresource-3.3.0.xml
     val bundleCreator = WhatsNewBundleCreator(mockUrlProvider, studioRevision, mockConnectionOpener, true)

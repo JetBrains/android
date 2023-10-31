@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.structure.dialog.logUsagePsdAction
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -95,7 +94,7 @@ class ProductFlavorsPanel(
 
   override fun getCreateActions(): List<AnAction> {
     return listOf(
-        object : DumbAwareAction("Add Flavor Dimension", "", AllIcons.General.Add) {
+        object : DumbAwareAction("Add Flavor Dimension", "", IconUtil.addIcon) {
           override fun actionPerformed(e: AnActionEvent) {
             val newName =
                 Messages.showInputDialog(
@@ -113,7 +112,7 @@ class ProductFlavorsPanel(
             }
           }
         },
-        object : DumbAwareAction("Add Product Flavor", "", AllIcons.General.Add) {
+        object : DumbAwareAction("Add Product Flavor", "", IconUtil.addIcon) {
           override fun actionPerformed(e: AnActionEvent) {
             val currentDimension = when (val selectedObject = selectedConfigurable) {
               is FlavorDimensionConfigurable -> selectedObject.flavorDimension.name

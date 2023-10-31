@@ -18,44 +18,30 @@ package com.android.tools.property.panel.api
 import com.android.tools.property.ptable.PTableItem
 import com.android.tools.property.ptable.PTableModel
 
-/**
- * The model of a table in an inspector.
- */
-interface TableLineModel: InspectorLineModel {
+/** The model of a table in an inspector. */
+interface TableLineModel : InspectorLineModel {
 
-  /**
-   * The table model for the table embedded in this inspector line.
-   */
+  /** The table model for the table embedded in this inspector line. */
   val tableModel: PTableModel
 
-  /**
-   * The item currently selected in the table.
-   */
+  /** The item currently selected in the table. */
   val selectedItem: PTableItem?
 
-  /**
-   * Returns the visible item count taking filtering into account.
-   */
+  /** Returns the visible item count taking filtering into account. */
   val itemCount: Int
 
-  /**
-   * Request focus in a specified item.
-   */
+  /** Request focus in a specified item. */
   fun requestFocus(item: PTableItem)
 
-  /**
-   * Request focus in item with best filter match.
-   */
+  /** Request focus in item with best filter match. */
   fun requestFocusInBestMatch()
 
   /**
    * Add an item to the table.
    *
-   * The added item will be placed in its natural order among the
-   * existing items. If the added item implements [NewPropertyItem]
-   * it will be placed at the bottom the table.
-   * Adding an already existing item is a noop and will return the
-   * instance of the existing item in the table.
+   * The added item will be placed in its natural order among the existing items. If the added item
+   * implements [NewPropertyItem] it will be placed at the bottom the table. Adding an already
+   * existing item is a noop and will return the instance of the existing item in the table.
    *
    * The returned item is the current item after the operation.
    */
@@ -63,15 +49,11 @@ interface TableLineModel: InspectorLineModel {
     return tableModel.addItem(item)
   }
 
-  /**
-   * Remove the currently selected item and select the next item in the table.
-   */
+  /** Remove the currently selected item and select the next item in the table. */
   fun removeItem(item: PTableItem) {
     tableModel.removeItem(item)
   }
 
-  /**
-   * Stop editing the current cell.
-   */
+  /** Stop editing the current cell. */
   fun stopEditing()
 }

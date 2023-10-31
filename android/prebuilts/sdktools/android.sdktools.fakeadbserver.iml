@@ -9,34 +9,38 @@
     <orderEntry type="library" name="libapp-processes-proto" level="project" />
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-fakeadbserver" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.fakeadbserver:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.fakeadbserver:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver/223.0.1.0/studio.android.sdktools.fakeadbserver-223.0.1.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver/231.0.1.4/studio.android.sdktools.fakeadbserver-231.0.1.4.jar">
               <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver/223.0.1.0/studio.android.sdktools.fakeadbserver-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver/231.0.1.4/studio.android.sdktools.fakeadbserver-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver/231.0.1.4/studio.android.sdktools.fakeadbserver-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-fakeadbserver-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.fakeadbserver_test:223.0.1.0">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.fakeadbserver_test:231.0.1.4">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver_test/223.0.1.0/studio.android.sdktools.fakeadbserver_test-223.0.1.0.jar">
-              <sha256sum>4e9e00041a5c05c76f1830103317a0d111a4f65ac37124dab140e49e8053fd0a</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver_test/231.0.1.4/studio.android.sdktools.fakeadbserver_test-231.0.1.4.jar">
+              <sha256sum>cf694816d1041cc52cd6a3a7f6adcae82d19e1aa22b4fc4446ce938d3f7afb42</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver_test/223.0.1.0/studio.android.sdktools.fakeadbserver_test-223.0.1.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver_test/231.0.1.4/studio.android.sdktools.fakeadbserver_test-231.0.1.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.fakeadbserver_test/231.0.1.4/studio.android.sdktools.fakeadbserver_test-231.0.1.4-sources.jar!/" />
+        </SOURCES>
       </library>
     </orderEntry>
   </component>

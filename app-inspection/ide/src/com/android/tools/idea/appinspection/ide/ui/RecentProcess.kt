@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
-import com.android.ddmlib.IDevice
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -23,10 +22,10 @@ import com.intellij.openapi.util.Key
 /**
  * Information about an Android process that was recently started from Studio.
  *
- * @param device the device the process was started on.
+ * @param deviceSerialNumber the serial number of the device the process was started on.
  * @param packageName the package name of the application.
  */
-class RecentProcess(val device: IDevice, val packageName: String) {
+class RecentProcess(val deviceSerialNumber: String, val packageName: String) {
   companion object {
     private val RECENT_PROCESS_KEY = Key.create<RecentProcess>("AppInspection.Recent.Process")
 
@@ -39,5 +38,5 @@ class RecentProcess(val device: IDevice, val packageName: String) {
   }
 
   fun matches(process: ProcessDescriptor): Boolean =
-    process.device.serial == device.serialNumber && process.name == packageName
+    process.device.serial == deviceSerialNumber && process.name == packageName
 }

@@ -81,14 +81,14 @@ public class OpenExistingProjectTest {
       .openTheMostRecentProject(guiTest);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    //Checking for code errors.
-    ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
-      .clickAnalyze();
+    ideFrame.invokeMenuPath("Code", "Inspect Code...");
+    InspectCodeDialogFixture inspectCodeDialog = InspectCodeDialogFixture.find(ideFrame);
+    inspectCodeDialog.clickAnalyze();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     List<String> errors = ideFrame.getEditor().getHighlights(HighlightSeverity.ERROR);
     assertThat(errors).hasSize(0);
 
-    //Rebuilding the project.
+    //Rebuilding the project.x
     BuildStatus rebuildStatus = ideFrame.invokeRebuildProject();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 

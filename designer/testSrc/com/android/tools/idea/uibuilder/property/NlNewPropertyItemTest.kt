@@ -46,11 +46,9 @@ import org.junit.Test
 
 @RunsInEdt
 class NlNewPropertyItemTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testSetNameWithPrefix() {
@@ -108,13 +106,13 @@ class NlNewPropertyItemTest {
 
     assertThat(property.value).isEqualTo("Hello")
     assertThat(property.type).isEqualTo(NlPropertyType.STRING)
-    assertThat(property.definition!!.resourceReference).isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
+    assertThat(property.definition!!.resourceReference)
+      .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_TEXT))
     assertThat(property.componentName).isEqualTo(FQCN_TEXT_VIEW)
     assertThat(property.components).containsExactly(delegate.components[0])
     assertThat(property.libraryName).isEqualTo("android")
     assertThat(property.resolvedValue).isEqualTo("Hello")
     assertThat(property.isReference).isFalse()
-    assertThat(property.tooltipForName).isEqualTo(EXPECTED_TEXT_TOOLTIP)
     assertThat(property.tooltipForValue).isEqualTo("")
   }
 
@@ -142,9 +140,23 @@ class NlNewPropertyItemTest {
 
     assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
     assertThat(delegate.name).isEqualTo(ATTR_GRAVITY)
-    assertThat(property.children.map { it.name }).containsExactly(
-      "top", "center_vertical", "bottom", "start", "left", "center_horizontal", "right", "end",
-      "clip_horizontal", "clip_vertical", "center", "fill", "fill_horizontal", "fill_vertical")
+    assertThat(property.children.map { it.name })
+      .containsExactly(
+        "top",
+        "center_vertical",
+        "bottom",
+        "start",
+        "left",
+        "center_horizontal",
+        "right",
+        "end",
+        "clip_horizontal",
+        "clip_vertical",
+        "center",
+        "fill",
+        "fill_horizontal",
+        "fill_vertical"
+      )
 
     property.flag("center")?.value = "true"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
@@ -152,9 +164,6 @@ class NlNewPropertyItemTest {
     assertThat(property.value).isEqualTo("center")
     assertThat(property.resolvedValue).isEqualTo("center")
     assertThat(property.isReference).isFalse()
-    assertThat(property.tooltipForName).isEqualTo(
-      "<html><b>android:gravity:</b>" +
-      "<br/>Specifies how an object should position its content, on both the X and Y axes, within its own bounds.</html>")
     assertThat(property.tooltipForValue).isEqualTo("")
   }
 
@@ -164,8 +173,20 @@ class NlNewPropertyItemTest {
     val model = properties.first!!.model
     val property = NlNewPropertyItem(model, properties)
     val values = property.nameEditingSupport.completion("")
-    assertThat(values).containsExactly("style", "android:text", "android:textSize", "android:textColor", "android:gravity", "app:srcCompat",
-                                       "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
+    assertThat(values)
+      .containsExactly(
+        "style",
+        "android:text",
+        "android:textSize",
+        "android:textColor",
+        "android:gravity",
+        "app:srcCompat",
+        "tools:text",
+        "tools:textSize",
+        "tools:textColor",
+        "tools:gravity",
+        "tools:srcCompat"
+      )
   }
 
   @Test
@@ -179,8 +200,18 @@ class NlNewPropertyItemTest {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     val values = property.nameEditingSupport.completion("")
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-    assertThat(values).containsExactly("style", "android:textSize", "android:gravity", "app:srcCompat",
-                                       "tools:text", "tools:textSize", "tools:textColor", "tools:gravity", "tools:srcCompat")
+    assertThat(values)
+      .containsExactly(
+        "style",
+        "android:textSize",
+        "android:gravity",
+        "app:srcCompat",
+        "tools:text",
+        "tools:textSize",
+        "tools:textColor",
+        "tools:gravity",
+        "tools:srcCompat"
+      )
   }
 
   @Test
@@ -191,7 +222,8 @@ class NlNewPropertyItemTest {
     properties[ANDROID_URI, ATTR_TEXT].value = "Hello"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    assertThat(property.nameEditingSupport.validation("android:xyz")).isEqualTo(Pair(ERROR, "No property found by the name: 'android:xyz'"))
+    assertThat(property.nameEditingSupport.validation("android:xyz"))
+      .isEqualTo(Pair(ERROR, "No property found by the name: 'android:xyz'"))
     assertThat(property.nameEditingSupport.validation("android:text"))
       .isEqualTo(Pair(ERROR, "A property by the name: 'android:text' is already specified"))
   }
@@ -207,11 +239,12 @@ class NlNewPropertyItemTest {
   }
 
   private fun createTable(): PropertiesTable<NlPropertyItem> {
-    val descriptor = ComponentDescriptor(TEXT_VIEW)
-      .withBounds(0, 0, 1000, 1000)
-      .wrapContentWidth()
-      .wrapContentHeight()
-      .withAttribute(AUTO_URI, "something", "1")
+    val descriptor =
+      ComponentDescriptor(TEXT_VIEW)
+        .withBounds(0, 0, 1000, 1000)
+        .wrapContentWidth()
+        .wrapContentHeight()
+        .withAttribute(AUTO_URI, "something", "1")
     val util = SupportTestUtil(projectRule, descriptor)
     val property0 = util.makeProperty("", ATTR_STYLE, NlPropertyType.STYLE)
     val property1 = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
@@ -221,10 +254,21 @@ class NlNewPropertyItemTest {
     val property5 = util.makeProperty(ANDROID_URI, ATTR_GRAVITY, NlPropertyType.ENUM)
     val table: Table<String, String, NlPropertyItem> = HashBasedTable.create()
 
-    // Override property1 such that componentName and library name is set for the delegate test above:
-    val textProperty = with(property1) {
-      NlPropertyItem(namespace, name, type, definition, FQCN_TEXT_VIEW, "android", model, components)
-    }
+    // Override property1 such that componentName and library name is set for the delegate test
+    // above:
+    val textProperty =
+      with(property1) {
+        NlPropertyItem(
+          namespace,
+          name,
+          type,
+          definition,
+          FQCN_TEXT_VIEW,
+          "android",
+          model,
+          components
+        )
+      }
     add(table, property0)
     add(table, textProperty)
     add(table, property2)

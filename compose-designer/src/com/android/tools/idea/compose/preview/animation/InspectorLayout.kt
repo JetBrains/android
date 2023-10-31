@@ -51,7 +51,7 @@ object InspectorLayout {
   }
 
   /** Size of the outline padding. */
-  private const val OUTLINE_PADDING = 1
+  const val OUTLINE_PADDING = 1
 
   fun outlinePaddingScaled() = JBUI.scale(OUTLINE_PADDING)
 

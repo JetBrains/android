@@ -17,6 +17,8 @@ package com.android.tools.idea.common.error
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -27,49 +29,66 @@ import com.android.tools.idea.uibuilder.visual.TestVisualizationContentProvider
 import com.android.tools.idea.uibuilder.visual.VisualizationTestToolWindowManager
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
+import com.android.utils.HtmlBuilder
+import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
+import org.mockito.Mockito.mock
 import kotlin.test.assertNotNull
 
 class VisualLintIssueNodeTest {
-  @JvmField
-  @Rule
-  val rule = AndroidProjectRule.withSdk().onEdt()
+  @JvmField @Rule val rule = AndroidProjectRule.withSdk().onEdt()
 
   @RunsInEdt
   @Test
   fun testNavigatable() {
-    val model = NlModelBuilderUtil.model(
-      rule.projectRule,
-      "layout",
-      "layout.xml",
-      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
+    val model =
+      NlModelBuilderUtil.model(
+          rule.projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(
+              ComponentDescriptor(SdkConstants.TEXT_VIEW)
+                .width("100dp")
+                .height("20dp")
+                .children(
+                  ComponentDescriptor(SdkConstants.TEXT_VIEW)
                     .width("100dp")
                     .height("20dp")
-                    .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
-                                .width("100dp")
-                                .height("20dp")
-                                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "-10dp"))
+                    .withAttribute(
+                      SdkConstants.ANDROID_URI,
+                      SdkConstants.ATTR_LAYOUT_MARGIN,
+                      "-10dp"
+                    )
+                )
+            )
         )
-    ).build()
+        .build()
 
-    val issue = createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model.components.first().children)
+    val issue =
+      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
 
-    // This navigation should open Validation Tool and set configuration set to ConfigurationSet.WindowSizeDevices
-    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
+    // This navigation should open Validation Tool and set configuration set to
+    // ConfigurationSet.WindowSizeDevices
+    val toolManager =
+      VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
     rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    val toolWindow =
+      ToolWindowManager.getInstance(rule.project)
+        .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
     TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
     toolWindow.isAvailable = true
 
@@ -84,21 +103,28 @@ class VisualLintIssueNodeTest {
   @Test
   fun testNotNavigateToComponentWhenSuppressed() {
     val errorType = VisualLintErrorType.BOUNDS
-    val model = NlModelBuilderUtil.model(
-      rule.projectRule,
-      "layout",
-      "layout.xml",
-      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
-                    .width("100dp")
-                    .height("20dp")
-                    .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "-10dp")
-                    .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
+    val model =
+      NlModelBuilderUtil.model(
+          rule.projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(
+              ComponentDescriptor(SdkConstants.TEXT_VIEW)
+                .width("100dp")
+                .height("20dp")
+                .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN, "-10dp")
+                .withAttribute(
+                  SdkConstants.TOOLS_URI,
+                  SdkConstants.ATTR_IGNORE,
+                  errorType.ignoredAttributeValue
+                )
+            )
         )
-    ).build()
+        .build()
 
     val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
@@ -109,29 +135,37 @@ class VisualLintIssueNodeTest {
   @Test
   fun testNavigatableForWear() {
     val configurationManager = ConfigurationManager.getOrCreateInstance(rule.projectRule.module)
-    val model = NlModelBuilderUtil.model(
-      rule.projectRule,
-      "layout",
-      "layout.xml",
-      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
-                    .width("100dp")
-                    .height("20dp")
+    val model =
+      NlModelBuilderUtil.model(
+          rule.projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(ComponentDescriptor(SdkConstants.TEXT_VIEW).width("100dp").height("20dp"))
         )
-    ).setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect")).build()
+        .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
+        .build()
 
-    val issue = createTestVisualLintRenderIssue(VisualLintErrorType.WEAR_MARGIN, model.components.first().children)
+    val issue =
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.WEAR_MARGIN,
+        model.components.first().children
+      )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     val navigation = node.getNavigatable()
     assertNotNull(navigation)
 
-    // This navigation should open Validation Tool and set configuration set to ConfigurationSet.WearDevices
-    val toolManager = VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
+    // This navigation should open Validation Tool and set configuration set to
+    // ConfigurationSet.WearDevices
+    val toolManager =
+      VisualizationTestToolWindowManager(rule.project, rule.fixture.testRootDisposable)
     rule.projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    val toolWindow = ToolWindowManager.getInstance(rule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
+    val toolWindow =
+      ToolWindowManager.getInstance(rule.project)
+        .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)!!
     TestVisualizationContentProvider.createVisualizationForm(rule.project, toolWindow)
     toolWindow.isAvailable = true
 
@@ -147,23 +181,54 @@ class VisualLintIssueNodeTest {
   fun testNotNavigateToComponentWhenSuppressedForWear() {
     val configurationManager = ConfigurationManager.getOrCreateInstance(rule.projectRule.module)
     val errorType = VisualLintErrorType.WEAR_MARGIN
-    val model = NlModelBuilderUtil.model(
-      rule.projectRule,
-      "layout",
-      "layout.xml",
-      ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
-        .withBounds(0, 0, 1000, 1000)
-        .matchParentWidth()
-        .matchParentHeight()
-        .children(ComponentDescriptor(SdkConstants.TEXT_VIEW)
-                    .width("100dp")
-                    .height("20dp")
-                    .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE, errorType.ignoredAttributeValue)
+    val model =
+      NlModelBuilderUtil.model(
+          rule.projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.FRAME_LAYOUT)
+            .withBounds(0, 0, 1000, 1000)
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(
+              ComponentDescriptor(SdkConstants.TEXT_VIEW)
+                .width("100dp")
+                .height("20dp")
+                .withAttribute(
+                  SdkConstants.TOOLS_URI,
+                  SdkConstants.ATTR_IGNORE,
+                  errorType.ignoredAttributeValue
+                )
+            )
         )
-    ).setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect")).build()
+        .setDevice(RenderTestUtil.findDeviceById(configurationManager, "wearos_rect"))
+        .build()
 
     val issue = createTestVisualLintRenderIssue(errorType, model.components.first().children)
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
+  }
+
+  @RunsInEdt
+  @Test
+  fun testForCompose() {
+    val file = rule.fixture.createFile("Compose.kt", "Compose file")
+    val model = mock(NlModel::class.java)
+    val navigatable = OpenFileDescriptor(rule.project, file)
+    val component = NlComponent(model, 651L).apply { setNavigatable(navigatable) }
+    val issue =
+      VisualLintRenderIssue.builder()
+        .summary("")
+        .severity(HighlightSeverity.WARNING)
+        .contentDescriptionProvider { HtmlBuilder() }
+        .model(model)
+        .components(mutableListOf(component))
+        .type(VisualLintErrorType.BOUNDS)
+        .build()
+    val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
+    assertEquals(1, node.getChildren().size)
+    val child = node.getChildren()[0]
+    assertInstanceOf<NavigatableFileNode>(child)
+    assertEquals(navigatable, child.getNavigatable())
   }
 }

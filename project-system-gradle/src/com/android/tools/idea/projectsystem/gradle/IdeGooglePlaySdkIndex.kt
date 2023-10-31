@@ -16,8 +16,8 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex.Companion.GOOGLE_PLAY_SDK_INDEX_KEY
@@ -59,7 +59,12 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   override fun logNonCompliant(groupId: String, artifactId: String, versionString: String, file: File?) {
     super.logNonCompliant(groupId, artifactId, versionString, file)
     val isBlocking = hasLibraryBlockingIssues(groupId, artifactId, versionString)
-    logger.warn(generatePolicyMessage(groupId, artifactId, versionString))
+    val warnMsg =
+      if (isBlocking)
+        generateBlockingPolicyMessage(groupId, artifactId, versionString)
+      else
+        generatePolicyMessage(groupId, artifactId, versionString)
+    logger.warn(warnMsg)
     logTrackerEventForLibraryVersion(groupId, artifactId, versionString, isBlocking, file, SDK_INDEX_LIBRARY_IS_NON_COMPLIANT)
   }
 
@@ -127,9 +132,6 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
    */
   fun initializeAndSetFlags() {
     initialize()
-    showCriticalIssues = StudioFlags.SHOW_SDK_INDEX_CRITICAL_ISSUES.get()
-    showMessages = StudioFlags.SHOW_SDK_INDEX_MESSAGES.get()
-    showLinks = StudioFlags.INCLUDE_LINKS_TO_SDK_INDEX.get()
     showPolicyIssues = StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get()
   }
 

@@ -31,7 +31,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -67,6 +66,7 @@ fun executeShellCommand(device: IDevice, command: String, receiver: IShellOutput
  * Coroutine-based wrapper around DDMLib's [IDevice.executeShellCommand], returning a Flow of shell output,
  * like that produced by [AdbDeviceServices.shell].
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 fun <T> executeShellCommand(device: IDevice, command: String, shellCollector: ShellCollector<T>): Flow<T> =
   flow {
     shellCollector.start(this)

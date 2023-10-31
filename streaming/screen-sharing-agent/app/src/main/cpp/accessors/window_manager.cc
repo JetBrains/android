@@ -36,7 +36,6 @@ WindowManager::WindowManager(Jni jni)
     : window_manager_(ServiceManager::GetServiceAsInterface(jni, "window", "android/view/IWindowManager")),
       rotation_(),
       rotation_watchers_(new set<RotationWatcher*>()) {
-  Log::V("%s:%d", __FILE__, __LINE__);
   JClass window_manager_class(window_manager_.GetClass());
   // The getDefaultDisplayRotation method was called getRotation before API 26.
   // See https://android.googlesource.com/platform/frameworks/base/+/5406e7ade87c33f70c83a283781dcc48fb67cdb9%5E%21/#F2.
@@ -61,7 +60,6 @@ WindowManager::WindowManager(Jni jni)
 
 WindowManager::~WindowManager() {
   Jni jni = Jvm::GetJni();
-  Log::V("%s:%d", __FILE__, __LINE__);
   JClass window_manager_class(window_manager_.GetClass(jni));
   jmethodID remove_rotation_watcher_method =
       window_manager_class.GetMethod("removeRotationWatcher", "(Landroid/view/IRotationWatcher;)V");
@@ -81,12 +79,13 @@ int WindowManager::GetDefaultDisplayRotation(Jni jni) {
 }
 
 void WindowManager::FreezeRotation(Jni jni, int32_t rotation) {
-  WindowManager& instance = GetInstance(jni);
   Log::D("WindowManager::FreezeRotation: setting display orientation to %d", rotation);
+  WindowManager& instance = GetInstance(jni);
   instance.window_manager_.CallVoidMethod(jni, instance.freeze_rotation_method_, rotation);
 }
 
 void WindowManager::ThawRotation(Jni jni) {
+  Log::D("WindowManager::ThawRotation");
   WindowManager& instance = GetInstance(jni);
   instance.window_manager_.CallVoidMethod(jni, instance.thaw_rotation_method_);
 }

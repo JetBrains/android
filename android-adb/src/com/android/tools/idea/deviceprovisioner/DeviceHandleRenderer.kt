@@ -17,7 +17,6 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.android.adblib.DeviceState
 import com.android.adblib.deviceInfo
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.getFullReleaseName
 import com.intellij.ui.ColoredListCellRenderer

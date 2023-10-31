@@ -15,19 +15,20 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
+
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateNewLibraryModuleWithDefaultsTest {

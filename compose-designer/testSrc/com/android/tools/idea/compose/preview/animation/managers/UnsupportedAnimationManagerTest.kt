@@ -19,10 +19,10 @@ import com.android.tools.idea.compose.preview.animation.LabelCard
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.timeline.UnsupportedLabel
 import com.intellij.testFramework.assertInstanceOf
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 class UnsupportedAnimationManagerTest {
 

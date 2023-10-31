@@ -20,22 +20,29 @@ import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager
-import com.intellij.util.ui.JBInsets
 import com.android.tools.idea.uibuilder.surface.layout.layout
+import com.intellij.util.ui.JBInsets
 
-private class ForcedDirectoryLayoutManager(@SwingCoordinate private val horizontalPadding: Int,
-                                           @SwingCoordinate private val verticalPadding: Int,
-                                           @SwingCoordinate private val horizontalViewDelta: Int,
-                                           @SwingCoordinate private val verticalViewDelta: Int,
-                                           startBorderAlignment: Alignment,
-                                           private val forceVertical: Boolean) : SingleDirectionLayoutManager(horizontalPadding,
-                                                                                                              verticalPadding,
-                                                                                                              horizontalViewDelta,
-                                                                                                              verticalViewDelta,
-                                                                                                              startBorderAlignment) {
-  override fun isVertical(content: Collection<PositionableContent>,
-                          @SwingCoordinate availableWidth: Int,
-                          @SwingCoordinate availableHeight: Int): Boolean = forceVertical
+private class ForcedDirectoryLayoutManager(
+  @SwingCoordinate private val horizontalPadding: Int,
+  @SwingCoordinate private val verticalPadding: Int,
+  @SwingCoordinate private val horizontalViewDelta: Int,
+  @SwingCoordinate private val verticalViewDelta: Int,
+  startBorderAlignment: Alignment,
+  private val forceVertical: Boolean
+) :
+  SingleDirectionLayoutManager(
+    horizontalPadding,
+    verticalPadding,
+    horizontalViewDelta,
+    verticalViewDelta,
+    startBorderAlignment
+  ) {
+  override fun isVertical(
+    content: Collection<PositionableContent>,
+    @SwingCoordinate availableWidth: Int,
+    @SwingCoordinate availableHeight: Int
+  ): Boolean = forceVertical
 }
 
 class SingleDirectionLayoutManagerTest : LayoutTestCase() {
@@ -145,11 +152,14 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
   fun testFitIntoScaleWithoutPaddingsVertically() {
     val manager = SingleDirectionLayoutManager(0, 0, 0, 0)
 
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 500)
@@ -180,11 +190,14 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
   fun testFitIntoScaleWithoutPaddingsHorizontally() {
     val manager = SingleDirectionLayoutManager(0, 0, 0, 0)
 
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val scale = manager.getFitIntoScale(contents, 500, 100)
@@ -219,11 +232,14 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val screenDeltaY = 30
     val manager = SingleDirectionLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY)
 
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val scale = manager.getFitIntoScale(contents, 1000, 100)
@@ -258,11 +274,14 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val screenDeltaY = 30
     val manager = SingleDirectionLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY)
 
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 1000)
@@ -293,12 +312,13 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
   fun testZoomToFitValueIsIndependentOfContentScale() {
     val manager = SingleDirectionLayoutManager(0, 0, 0, 0)
 
-    val contents = List(4) {
-      TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
-        val value = (10 * scale).toInt()
-        JBInsets(value, value, value, value)
+    val contents =
+      List(4) {
+        TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
+          val value = (10 * scale).toInt()
+          JBInsets(value, value, value, value)
+        }
       }
-    }
 
     val width = 1000
     val height = 1000
@@ -320,29 +340,55 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val paddingY = 20
     val screenDeltaX = 30
     val screenDeltaY = 30
-    val sceneViews = listOf(
-      TestPositionableContent(width = 50, height = 200),
-      TestPositionableContent(width = 100, height = 150))
+    val sceneViews =
+      listOf(
+        TestPositionableContent(width = 50, height = 200),
+        TestPositionableContent(width = 100, height = 150)
+      )
 
     val maxWidth = sceneViews.map { it.width }.maxOrNull()!!
     val minX = (availableWidth / 2) - (maxWidth / 2)
 
     SingleDirectionLayoutManager.Alignment.START.also { alignment ->
-      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, true)
+      val manager =
+        ForcedDirectoryLayoutManager(
+          paddingX,
+          paddingY,
+          screenDeltaX,
+          screenDeltaY,
+          alignment,
+          true
+        )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(minX, sceneViews[0].x)
       assertEquals(minX, sceneViews[1].x)
     }
 
     SingleDirectionLayoutManager.Alignment.CENTER.also { alignment ->
-      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, true)
+      val manager =
+        ForcedDirectoryLayoutManager(
+          paddingX,
+          paddingY,
+          screenDeltaX,
+          screenDeltaY,
+          alignment,
+          true
+        )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals((availableWidth / 2) - (sceneViews[0].width / 2), sceneViews[0].x)
       assertEquals((availableWidth / 2) - (sceneViews[1].width / 2), sceneViews[1].x)
     }
 
     SingleDirectionLayoutManager.Alignment.END.also { alignment ->
-      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, true)
+      val manager =
+        ForcedDirectoryLayoutManager(
+          paddingX,
+          paddingY,
+          screenDeltaX,
+          screenDeltaY,
+          alignment,
+          true
+        )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(availableWidth - sceneViews[0].width, sceneViews[0].x)
       assertEquals(availableWidth - sceneViews[1].width, sceneViews[1].x)
@@ -356,29 +402,55 @@ class SingleDirectionLayoutManagerTest : LayoutTestCase() {
     val paddingY = 20
     val screenDeltaX = 30
     val screenDeltaY = 30
-    val sceneViews = listOf(
-      TestPositionableContent(width = 50, height = 200),
-      TestPositionableContent(width = 100, height = 150))
+    val sceneViews =
+      listOf(
+        TestPositionableContent(width = 50, height = 200),
+        TestPositionableContent(width = 100, height = 150)
+      )
 
     val maxHeight = sceneViews.map { it.height }.maxOrNull()!!
     val minY = (availableHeight / 2) - (maxHeight / 2)
 
     SingleDirectionLayoutManager.Alignment.START.also { alignment ->
-      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, false)
+      val manager =
+        ForcedDirectoryLayoutManager(
+          paddingX,
+          paddingY,
+          screenDeltaX,
+          screenDeltaY,
+          alignment,
+          false
+        )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(minY, sceneViews[0].y)
       assertEquals(minY, sceneViews[1].y)
     }
 
     SingleDirectionLayoutManager.Alignment.CENTER.also { alignment ->
-      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, false)
+      val manager =
+        ForcedDirectoryLayoutManager(
+          paddingX,
+          paddingY,
+          screenDeltaX,
+          screenDeltaY,
+          alignment,
+          false
+        )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals((availableHeight / 2) - (sceneViews[0].height / 2), sceneViews[0].y)
       assertEquals((availableHeight / 2) - (sceneViews[1].height / 2), sceneViews[1].y)
     }
 
     SingleDirectionLayoutManager.Alignment.END.also { alignment ->
-      val manager = ForcedDirectoryLayoutManager(paddingX, paddingY, screenDeltaX, screenDeltaY, alignment, false)
+      val manager =
+        ForcedDirectoryLayoutManager(
+          paddingX,
+          paddingY,
+          screenDeltaX,
+          screenDeltaY,
+          alignment,
+          false
+        )
       manager.layout(sceneViews, availableWidth, availableHeight, false)
       assertEquals(availableHeight - sceneViews[0].height, sceneViews[0].y)
       assertEquals(availableHeight - sceneViews[1].height, sceneViews[1].y)

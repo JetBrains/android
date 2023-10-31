@@ -32,6 +32,7 @@ import org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY
 import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNull.nullValue
 import org.junit.Assert.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Assume.assumeThat
 import org.junit.Rule
 import org.junit.Test
@@ -299,11 +300,7 @@ class PsProjectImplTest {
           ?.first { it.compactNotation().startsWith("com.android.tools.build:gradle:") }!!
       // Remove it and make sure the property can still be configured.
       project.parsedModel.projectBuildModel?.buildscript()?.dependencies()?.remove(existingAgpDependency)
-      project.androidGradlePluginVersion = "1.23".asParsed()
-      project.applyChanges()
-
-      project = PsProjectImpl(ideProject)
-      assertThat(project.androidGradlePluginVersion, equalTo("1.23".asParsed()))
+      assertThrows(UnsupportedOperationException::class.java) { project.androidGradlePluginVersion = "1.23".asParsed() }
     }
   }
 
@@ -317,7 +314,7 @@ class PsProjectImplTest {
         // Change file: to https: to workaround GradleWrapper not making changes to a local distribution.
         val wrapper = GradleWrapper.find(project.ideProject)!!
         val properties = wrapper.properties
-        val property = properties.getProperty(DISTRIBUTION_URL_PROPERTY).orEmpty()
+        val property = wrapper.distributionUrl.orEmpty()
         properties.setProperty(DISTRIBUTION_URL_PROPERTY, property.replace("file:", "https:"))
         savePropertiesToFile(properties, wrapper.propertiesFilePath, null)
       }

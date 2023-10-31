@@ -24,6 +24,7 @@ import static org.jetbrains.plugins.gradle.util.GradleConstants.INIT_SCRIPT_CMD_
 import com.android.ide.common.repository.GoogleMavenRepositoryKt;
 import com.android.ide.gradle.model.GradlePluginModel;
 import com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;
@@ -36,6 +37,7 @@ import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -75,13 +77,7 @@ public class GradleInitScripts {
 
   @Nullable
   private File createLocalMavenRepoInitScriptFile() {
-    List<String> repoPaths = myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
-      .map(File::getPath).collect(Collectors.toCollection(ArrayList::new));
-
-    if (!GoogleMavenRepositoryKt.DEFAULT_GMAVEN_URL.equals(GoogleMavenRepositoryKt.GMAVEN_BASE_URL)) {
-      repoPaths.add(GoogleMavenRepositoryKt.GMAVEN_BASE_URL);
-    }
-
+    List<String> repoPaths = getRepoPaths();
     String content = myContentCreator.createLocalMavenRepoInitScriptContent(repoPaths);
     if (content != null) {
       String fileName = "sync.local.repo";
@@ -94,6 +90,19 @@ public class GradleInitScripts {
       }
     }
     return null;
+  }
+
+  private List<String> getRepoPaths() {
+    if (!StudioFlags.INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT.get()) {
+      return Collections.emptyList();
+    }
+    List<String> repoPaths = myEmbeddedDistributionPaths.findAndroidStudioLocalMavenRepoPaths().stream()
+      .map(File::getPath).collect(Collectors.toCollection(ArrayList::new));
+
+    if (!GoogleMavenRepositoryKt.DEFAULT_GMAVEN_URL.equals(GoogleMavenRepositoryKt.GMAVEN_BASE_URL)) {
+      repoPaths.add(GoogleMavenRepositoryKt.GMAVEN_BASE_URL);
+    }
+    return repoPaths;
   }
 
   public void addAndroidStudioToolingPluginInitScriptCommandLineArg(@NotNull List<String> allArgs) {

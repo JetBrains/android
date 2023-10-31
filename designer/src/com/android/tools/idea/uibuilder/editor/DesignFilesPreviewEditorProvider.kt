@@ -30,22 +30,23 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-val DESIGNER_PREVIEW_FILE_TYPES = listOf(AdaptiveIconFileType,
-                                         StateListFileType,
-                                         AnimationListFileType,
-                                         AnimatedStateListFileType,
-                                         AnimatedStateListTempFileType,
-                                         AnimatedVectorFileType,
-                                         FontFileType,
-                                         ZoomableDrawableFileType)
+val DESIGNER_PREVIEW_FILE_TYPES =
+  listOf(
+    AdaptiveIconFileType,
+    StateListFileType,
+    AnimationListFileType,
+    AnimatedStateListFileType,
+    AnimatedStateListTempFileType,
+    AnimatedVectorFileType,
+    FontFileType,
+    ZoomableDrawableFileType
+  )
 
-/**
- * Register and accepts types supported by [DesignFilesPreviewEditor].
- */
-class DesignFilesPreviewEditorProvider : DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES)
-{
+/** Register and accepts types supported by [DesignFilesPreviewEditor]. */
+class DesignFilesPreviewEditorProvider : DesignerEditorProvider(DESIGNER_PREVIEW_FILE_TYPES) {
 
-  override fun createDesignEditor(project: Project, file: VirtualFile) = DesignFilesPreviewEditor(file, project)
+  override fun createDesignEditor(project: Project, file: VirtualFile) =
+    DesignFilesPreviewEditor(file, project)
 
   override fun getEditorTypeId() = DESIGN_FILES_PREVIEW_EDITOR_ID
 

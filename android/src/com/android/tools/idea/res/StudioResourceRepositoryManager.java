@@ -24,15 +24,18 @@ import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.resources.aar.AarResourceRepository;
-import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.concurrency.AndroidIoManager;
+import com.android.tools.idea.AndroidProjectModelUtils;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.idea.res.SampleDataResourceRepository.SampleDataRepositoryManager;
+import com.android.tools.res.LocalResourceRepository;
+import com.android.tools.res.LocalResourceRepository.EmptyRepository;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.tools.res.ResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -55,7 +58,6 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -64,9 +66,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -488,30 +488,6 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
     }
 
     return AndroidTargetData.get(androidPlatform.getSdkData(), androidPlatform.getTarget()).getFrameworkResources(languages);
-  }
-
-  /**
-   * If namespacing is disabled, the namespace parameter is ignored and the method returns a list containing
-   * the single resource repository returned by {@link #getAppResources()}. Otherwise the method returns
-   * a list of module, library, or sample data resource repositories for the given namespace. Usually the returned
-   * list will contain at most two resource repositories, one for a module and another for its user-defined sample
-   * data. More repositories may be returned only when there is a package name collision between modules or
-   * libraries.
-   *
-   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
-   * or block waiting for a read action lock.
-   *
-   * @param namespace the namespace to return resource repositories for
-   * @return the repositories for the given namespace
-   */
-  @Slow
-  @NotNull
-  public List<ResourceRepository> getAppResourcesForNamespace(@NotNull ResourceNamespace namespace) {
-    AppResourceRepository appRepository = (AppResourceRepository)getAppResources();
-    if (myNamespacing == ResourceNamespacing.DISABLED) {
-      return ImmutableList.of(appRepository);
-    }
-    return ImmutableList.copyOf(appRepository.getRepositoriesForNamespace(namespace));
   }
 
   @SuppressWarnings("Duplicates") // No way to refactor this without something like Variable Handles.

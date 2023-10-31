@@ -29,9 +29,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
-
-import kotlin.test.assertTrue
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @RunWith(GuiTestRemoteRunner::class)
 class BuildAnalyzerTest {
@@ -66,7 +65,7 @@ class BuildAnalyzerTest {
 
     ideFrame.buildToolWindow.also { buildToolWindow ->
       buildToolWindow.activate()
-      guiTest.robot().waitForIdle()
+      guiTest.waitForAllBackgroundTasksToBeCompleted()
 
       buildToolWindow.gradleSyncEventTree.also { tree ->
         assertEquals("Download info", tree.valueAt(1))

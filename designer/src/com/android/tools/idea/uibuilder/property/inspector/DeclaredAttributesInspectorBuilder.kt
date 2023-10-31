@@ -43,8 +43,8 @@ private const val ADD_PROPERTY_ACTION_TITLE = "Add attribute"
 private const val DELETE_ROW_ACTION_TITLE = "Remove selected attribute"
 
 /**
- * Comparator that is sorting [PTableItem] in Android sorting order.
- * This implies layout attributes first and layout_width before layout_height.
+ * Comparator that is sorting [PTableItem] in Android sorting order. This implies layout attributes
+ * first and layout_width before layout_height.
  */
 val androidSortOrder: Comparator<PTableItem> = AttributeComparator { it.name }
 
@@ -53,26 +53,45 @@ class DeclaredAttributesInspectorBuilder(
   enumSupportProvider: EnumSupportProvider<NlPropertyItem>
 ) : InspectorBuilder<NlPropertyItem> {
 
-  private val newPropertyInstance = NlNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
-  private val nameControlTypeProvider = SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
+  private val newPropertyInstance =
+    NlNewPropertyItem(model, PropertiesTable.emptyTable(), { it.rawValue == null }, {})
+  private val nameControlTypeProvider =
+    SimpleControlTypeProvider<NlNewPropertyItem>(ControlType.TEXT_EDITOR)
   private val nameEditorProvider = EditorProvider.createForNames<NlNewPropertyItem>()
   private val controlTypeProvider = NlTwoStateBooleanControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-  private val tableUIProvider = TableUIProvider(nameControlTypeProvider, nameEditorProvider, controlTypeProvider, editorProvider)
+  private val tableUIProvider =
+    TableUIProvider(
+      nameControlTypeProvider,
+      nameEditorProvider,
+      controlTypeProvider,
+      editorProvider
+    )
   private val insertOp = ::insertNewItem
 
-  override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+  override fun attachToInspector(
+    inspector: InspectorPanel,
+    properties: PropertiesTable<NlPropertyItem>
+  ) {
     if (properties.isEmpty || !InspectorSection.DECLARED.visible) {
       return
     }
     newPropertyInstance.properties = properties
     newPropertyInstance.name = ""
-    val declaredTableModel = FilteredPTableModel(model, { it.rawValue != null }, insertOp, { it.value = null }, androidSortOrder)
+    val declaredTableModel =
+      FilteredPTableModel(
+        model,
+        { it.rawValue != null },
+        insertOp,
+        { it.value = null },
+        androidSortOrder
+      )
     val addNewRow = AddNewRowAction(newPropertyInstance)
     val deleteRowAction = DeleteRowAction()
     val actions = listOf(addNewRow, deleteRowAction)
     val titleModel = inspector.addExpandableTitle(InspectorSection.DECLARED.title, false, actions)
-    val tableLineModel = inspector.addTable(declaredTableModel, false, tableUIProvider, actions, titleModel)
+    val tableLineModel =
+      inspector.addTable(declaredTableModel, false, tableUIProvider, actions, titleModel)
     inspector.addComponent(EmptyTablePanel(addNewRow, tableLineModel), titleModel)
     addNewRow.titleModel = titleModel
     addNewRow.lineModel = tableLineModel
@@ -89,9 +108,8 @@ class DeclaredAttributesInspectorBuilder(
     return newPropertyInstance
   }
 
-  private class AddNewRowAction(
-    val newProperty: NlNewPropertyItem
-  ) : AnAction(ADD_PROPERTY_ACTION_TITLE, ADD_PROPERTY_ACTION_TITLE, AllIcons.General.Add) {
+  private class AddNewRowAction(val newProperty: NlNewPropertyItem) :
+    AnAction(ADD_PROPERTY_ACTION_TITLE, ADD_PROPERTY_ACTION_TITLE, AllIcons.General.Add) {
 
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
@@ -104,7 +122,8 @@ class DeclaredAttributesInspectorBuilder(
     }
   }
 
-  private class DeleteRowAction: AnAction(DELETE_ROW_ACTION_TITLE, DELETE_ROW_ACTION_TITLE, AllIcons.General.Remove) {
+  private class DeleteRowAction :
+    AnAction(DELETE_ROW_ACTION_TITLE, DELETE_ROW_ACTION_TITLE, AllIcons.General.Remove) {
     var titleModel: InspectorLineModel? = null
     var lineModel: TableLineModel? = null
 

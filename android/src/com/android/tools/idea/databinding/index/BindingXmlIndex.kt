@@ -35,6 +35,7 @@ import com.intellij.util.indexing.ID
 import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
 import com.intellij.util.indexing.SingleEntryIndexer
 import com.intellij.util.io.DataExternalizer
+import com.intellij.util.io.DataInputOutputUtil
 import com.intellij.util.io.DataInputOutputUtil.readINT
 import com.intellij.util.io.DataInputOutputUtil.writeINT
 import com.intellij.util.io.IOUtil
@@ -98,12 +99,12 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
         writeINT(out, value.layoutType.ordinal)
         IOUtil.writeUTF(out, value.rootTag)
         writeINT(out, if (value.viewBindingIgnore) 1 else 0)
-        IOUtil.writeUTF(out, value.customBindingName ?: "")
+        writeNullableUTF(out, value.customBindingName)
 
         writeINT(out, value.imports.size)
         for (import in value.imports) {
           IOUtil.writeUTF(out, import.type)
-          IOUtil.writeUTF(out, import.alias ?: "")
+          writeNullableUTF(out, import.alias)
         }
 
         writeINT(out, value.variables.size)
@@ -116,32 +117,42 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
         for (viewId in value.viewIds) {
           IOUtil.writeUTF(out, viewId.id)
           IOUtil.writeUTF(out, viewId.viewName)
-          IOUtil.writeUTF(out, viewId.layoutName ?: "")
-          IOUtil.writeUTF(out, viewId.typeOverride ?: "")
+          writeNullableUTF(out, viewId.layoutName)
+          writeNullableUTF(out, viewId.typeOverride)
         }
       }
 
-      override fun read(`in`: DataInput): BindingXmlData {
-        val layoutType = BindingLayoutType.values()[readINT(`in`)]
-        val rootTag = IOUtil.readUTF(`in`)
-        val viewBindingIgnore = readINT(`in`) == 1
-        val customBindingName = IOUtil.readUTF(`in`).ifEmpty { null }
+      override fun read(input: DataInput): BindingXmlData {
+        val layoutType = BindingLayoutType.values()[readINT(input)]
+        val rootTag = IOUtil.readUTF(input)
+        val viewBindingIgnore = readINT(input) == 1
+        val customBindingName = readNullableUTF(input)
 
         val imports = mutableListOf<ImportData>()
-        for (i in 0 until readINT(`in`)) {
-          imports.add(ImportData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`).ifEmpty { null }))
+        for (i in 0 until readINT(input)) {
+          imports.add(ImportData(IOUtil.readUTF(input), readNullableUTF(input)))
         }
         val variables = mutableListOf<VariableData>()
-        for (i in 0 until readINT(`in`)) {
-          variables.add(VariableData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`)))
+        for (i in 0 until readINT(input)) {
+          variables.add(VariableData(IOUtil.readUTF(input), IOUtil.readUTF(input)))
         }
 
         val viewIds = mutableListOf<ViewIdData>()
-        for (i in 1..readINT(`in`)) {
-          viewIds.add(ViewIdData(IOUtil.readUTF(`in`), IOUtil.readUTF(`in`),
-                                 IOUtil.readUTF(`in`).ifEmpty { null }, IOUtil.readUTF(`in`).ifEmpty { null }))
+        for (i in 1..readINT(input)) {
+          viewIds.add(ViewIdData(IOUtil.readUTF(input),
+                                 IOUtil.readUTF(input),
+                                 readNullableUTF(input),
+                                 readNullableUTF(input)))
         }
         return BindingXmlData(layoutType, rootTag, viewBindingIgnore, customBindingName, imports, variables, viewIds)
+      }
+
+      private fun readNullableUTF(input: DataInput): String? {
+        return DataInputOutputUtil.readNullable(input) { IOUtil.readUTF(input) }
+      }
+
+      private fun writeNullableUTF(out: DataOutput, value: String?) {
+        DataInputOutputUtil.writeNullable(out, value) { IOUtil.writeUTF(out, it) }
       }
     }
   }
@@ -293,11 +304,12 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
     }
   }
 
-  override fun getVersion() = 10
+  override fun getVersion() = 11
 }
 
 private const val COMMENT_START = "<!--"
 private const val COMMENT_END = "-->"
+
 /**
  * Reader that attempts to escape known codes (e.g. "&lt;") on the fly as it reads.
  *
@@ -309,7 +321,7 @@ private const val COMMENT_END = "-->"
  * We also skip over comments ourselves, as NanoXml seems to trip up if it hits a comment that
  * has an unescaped & inside it.
  */
-private class EscapingXmlReader(text: CharSequence): Reader() {
+private class EscapingXmlReader(text: CharSequence) : Reader() {
   /**
    * State associated with the input text.
    *
@@ -318,7 +330,10 @@ private class EscapingXmlReader(text: CharSequence): Reader() {
   private class InputState(val text: CharSequence) {
     var srcIndex = 0
     fun read(): Char = text[srcIndex++]
-    fun skip(numChars: Int = 1) { srcIndex += numChars }
+    fun skip(numChars: Int = 1) {
+      srcIndex += numChars
+    }
+
     fun beforeEnd() = srcIndex < text.length
     fun atEnd() = srcIndex >= text.length
   }
@@ -402,7 +417,8 @@ private class EscapingXmlReader(text: CharSequence): Reader() {
     buffer.clear()
     do {
       buffer.append(state.read())
-    } while (state.beforeEnd() && !isMatch(terminal))
+    }
+    while (state.beforeEnd() && !isMatch(terminal))
     if (state.beforeEnd()) {
       state.skip(terminal.length) // Consume `terminal`
     }
@@ -413,7 +429,7 @@ private class EscapingXmlReader(text: CharSequence): Reader() {
    */
   private fun isMatch(target: String): Boolean {
     return (state.srcIndex + target.length <= state.text.length
-        && target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
+            && target.indices.all { i -> target[i] == state.text[state.srcIndex + i] })
   }
 
   private fun skipIfMatch(target: String): Boolean {

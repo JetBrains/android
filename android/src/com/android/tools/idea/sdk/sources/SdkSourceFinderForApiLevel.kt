@@ -87,7 +87,7 @@ internal class SdkSourceFinderForApiLevel(val project: Project, private val apiL
       JavaFileType.INSTANCE -> {
         // When the compilation SDK sources are present, they are indexed and the incoming PsiFile is a JavaFileType that refers to them.
         // The relative path for the same file in target SDK sources can be directly determined.
-        val sourceRoot = ProjectFileIndex.getInstance(project).getSourceRootForFile(file.virtualFile)
+        val sourceRoot = runReadAction { ProjectFileIndex.getInstance(project).getSourceRootForFile(file.virtualFile) }
         if (sourceRoot == null) {
           thisLogger().debug("Could not determine source root for file: " + file.virtualFile.path)
           null

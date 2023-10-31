@@ -61,9 +61,7 @@ object CommonLintUserDataHandler {
     val atfIssues = getOrCreateNew(ATF_ISSUES, file)
 
     ApplicationManager.getApplication().runReadAction {
-      issues.forEach {
-        atfIssues.add(CommonProblemsPanelIssue(it))
-      }
+      issues.forEach { atfIssues.add(CommonProblemsPanelIssue(it)) }
     }
 
     getLatch(ATF_ISSUES_LATCH, file).countDown()
@@ -74,12 +72,9 @@ object CommonLintUserDataHandler {
     val visualLintIssues = getOrCreateNew(VISUAL_LINT_ISSUES, file)
 
     ApplicationManager.getApplication().runReadAction {
-      issueProvider.getIssues().forEach {
-        visualLintIssues.add(CommonProblemsPanelIssue(it))
-      }
+      issueProvider.getIssues().forEach { visualLintIssues.add(CommonProblemsPanelIssue(it)) }
     }
 
     getLatch(VISUAL_LINT_ISSUES_LATCH, file).countDown()
   }
-
 }

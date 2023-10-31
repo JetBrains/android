@@ -21,8 +21,8 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
 import com.android.tools.idea.gradle.repositories.search.RepositorySearchFactory
-import com.android.tools.idea.gradle.repositories.search.SearchQuery
 import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
 import com.android.tools.idea.gradle.repositories.search.getResultSafely
 import com.android.tools.idea.gradle.structure.model.PsLibraryKey
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -103,7 +103,7 @@ class PsLibraryUpdateCheckerDaemon(
       if (isStopped) return@search
       // If we passed this point, it means that [dispose] has not yet begun to cancel requests and it won't until we release the lock.
       requests.map { key ->
-        val future = searcher.search(SearchRequest(SearchQuery(key.group, key.name), 1, 0))
+        val future = searcher.search(SearchRequest(SingleModuleSearchQuery(key.group, key.name), 1, 0))
         runningSearches.add(future)
         key to future
       }

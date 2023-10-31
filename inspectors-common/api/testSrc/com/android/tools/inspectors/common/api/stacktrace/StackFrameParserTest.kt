@@ -75,4 +75,84 @@ class StackFrameParserTest {
       assertThat(methodName).isEqualTo("call")
     }
   }
+
+  @Test
+  fun parsesStack() {
+    val locations = StackFrameParser.parseStack(listOf(
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:274)",
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)",
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:init)",  // invalid line number, but valid code location
+      "com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask.doInBackground(ImageWorker.java:312)",
+      "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)",
+    ).joinToString("\n"))
+
+    assertThat(locations).containsExactly(
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageFetcher").apply {
+        setMethodName("downloadUrlToStream")
+        setFileName("ImageFetcher.java")
+        setLineNumber(273)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageFetcher").apply {
+        setMethodName("downloadUrlToStream")
+        setFileName("ImageFetcher.java")
+        setLineNumber(CodeLocation.INVALID_LINE_NUMBER)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageFetcher").apply {
+        setMethodName("downloadUrlToStream")
+        setFileName("ImageFetcher.java")
+        setLineNumber(CodeLocation.INVALID_LINE_NUMBER)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask").apply {
+        setMethodName("doInBackground")
+        setFileName("ImageWorker.java")
+        setLineNumber(311)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.AsyncTask$2").apply {
+        setMethodName("call")
+        setFileName("AsyncTask.java")
+        setLineNumber(312)
+      }.build(),
+    )
+  }
+
+  @Test
+  fun parsesStackIgnoresInvalidLines() {
+    val locations = StackFrameParser.parseStack(listOf(
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream()",  // invalid code location - should be ignored
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)",
+      "com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java:init)",  // invalid line number, but valid code location
+      "com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask.doInBackground(ImageWorker.java:312)",
+      "com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:313)",
+    ).joinToString("\n"))
+
+    assertThat(locations).containsExactly(
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageFetcher").apply {
+        setMethodName("downloadUrlToStream")
+        setFileName("ImageFetcher.java")
+        setLineNumber(CodeLocation.INVALID_LINE_NUMBER)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageFetcher").apply {
+        setMethodName("downloadUrlToStream")
+        setFileName("ImageFetcher.java")
+        setLineNumber(CodeLocation.INVALID_LINE_NUMBER)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.ImageWorker\$BitmapWorkerTask").apply {
+        setMethodName("doInBackground")
+        setFileName("ImageWorker.java")
+        setLineNumber(311)
+      }.build(),
+
+      CodeLocation.Builder("com.example.android.displayingbitmaps.util.AsyncTask$2").apply {
+        setMethodName("call")
+        setFileName("AsyncTask.java")
+        setLineNumber(312)
+      }.build(),
+    )
+  }
 }

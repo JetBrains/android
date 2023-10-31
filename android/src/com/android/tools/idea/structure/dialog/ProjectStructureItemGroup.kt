@@ -18,5 +18,5 @@ package com.android.tools.idea.structure.dialog
 import com.intellij.openapi.options.Configurable
 
 data class ProjectStructureItemGroup(val groupName: String, val items: List<Configurable>) {
-  constructor(groupName: String, vararg items: Configurable) : this(groupName, items.toList())
+  constructor(groupName: String, vararg items: Configurable) : this(groupName, items.toList()) {}
 }

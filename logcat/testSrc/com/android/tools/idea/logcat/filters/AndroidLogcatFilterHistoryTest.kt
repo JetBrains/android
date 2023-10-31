@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.tools.idea.logcat.FakePackageNamesProvider
+import com.android.tools.idea.logcat.FakeProjectApplicationIdsProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -34,7 +34,8 @@ class AndroidLogcatFilterHistoryTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
-  private val logcatFilterParser by lazy { LogcatFilterParser(projectRule.project, FakePackageNamesProvider()) }
+  private val project get() = projectRule.project
+  private val logcatFilterParser by lazy { LogcatFilterParser(projectRule.project, FakeProjectApplicationIdsProvider(project)) }
 
   @Test
   fun add_maxNonFavoriteItems() {

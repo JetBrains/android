@@ -16,7 +16,6 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbSession
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

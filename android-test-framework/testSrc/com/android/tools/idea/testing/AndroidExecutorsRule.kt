@@ -17,8 +17,8 @@ package com.android.tools.idea.testing
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.common.AutoCloseDisposable
-import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.concurrency.AndroidIoManager
+import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.StudioIoManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState

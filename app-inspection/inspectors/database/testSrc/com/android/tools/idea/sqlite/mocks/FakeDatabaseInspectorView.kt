@@ -21,10 +21,9 @@ import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView.Listener
 import com.android.tools.idea.sqlite.ui.mainView.SchemaDiffOperation
 import com.android.tools.idea.sqlite.ui.mainView.ViewDatabase
-import java.util.ArrayList
+import org.mockito.Mockito.mock
 import javax.swing.Icon
 import javax.swing.JComponent
-import org.mockito.Mockito.mock
 
 open class FakeDatabaseInspectorView : DatabaseInspectorView {
   val viewListeners = ArrayList<Listener>()

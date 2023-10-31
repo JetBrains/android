@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture.EditorAction;
@@ -28,10 +24,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFi
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.awt.Point;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.fest.swing.fixture.JListFixture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +31,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.awt.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.junit.Assert.*;
 
 @RunWith(GuiTestRemoteRunner.class)
 public final class MenuTest {

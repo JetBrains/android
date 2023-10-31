@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.model
 import java.io.File
 
 interface IdeBuild {
-  val buildName: String
+  /** Gradle identity path of this build e.g. ":" or ":included" or ":included:nested". */
+  val buildPath: String
+  /** Root of the Gradle build (could be root of included build). */
   val buildId: File
 }

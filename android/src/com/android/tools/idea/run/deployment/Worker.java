@@ -30,7 +30,7 @@ final class Worker<V> {
   private V myResult;
 
   @NotNull
-  Optional<V> perform(@NotNull AsyncSupplier<V> task) {
+  synchronized Optional<V> perform(@NotNull AsyncSupplier<V> task) {
     if (myResultFuture == null) {
       myResultFuture = task.get();
     }
@@ -45,6 +45,7 @@ final class Worker<V> {
     }
 
     try {
+      // noinspection BlockingMethodInNonBlockingContext At this point myResultFuture.isDone() is true so myResultFuture.get() can't block
       myResult = myResultFuture.get();
       assert myResult != null;
 

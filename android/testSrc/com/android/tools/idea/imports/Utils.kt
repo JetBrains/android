@@ -33,15 +33,15 @@ import java.util.concurrent.TimeUnit
 /**
  * Testing infrastructure.
  */
-internal fun performWithoutSync(projectRule: AndroidGradleProjectRule, action: AndroidMavenImportIntentionAction, element: PsiElement) {
+fun performWithoutSync(projectRule: AndroidGradleProjectRule, action: AndroidMavenImportIntentionAction, element: PsiElement) {
   action.perform(projectRule.project, projectRule.fixture.editor, element, false)
 }
 
-internal fun PreparedTestProject.Context.performWithoutSync(action: AndroidMavenImportIntentionAction, element: PsiElement) {
+fun PreparedTestProject.Context.performWithoutSync(action: AndroidMavenImportIntentionAction, element: PsiElement) {
   action.perform(project, fixture.editor, element, false)
 }
 
-internal fun performAndWaitForSyncEnd(
+fun performAndWaitForSyncEnd(
   projectRule: AndroidGradleProjectRule,
   invoke: () -> Unit,
 ) {
@@ -60,7 +60,7 @@ internal fun performAndWaitForSyncEnd(
   assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
-internal fun PreparedTestProject.Context.performAndWaitForSyncEnd(
+fun PreparedTestProject.Context.performAndWaitForSyncEnd(
   invoke: () -> Unit,
 ) {
   val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
@@ -77,18 +77,18 @@ internal fun PreparedTestProject.Context.performAndWaitForSyncEnd(
   assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
-internal fun checkBuildGradle(project: Project, check: (String) -> Boolean): Boolean {
+fun checkBuildGradle(project: Project, check: (String) -> Boolean): Boolean {
   val buildGradle = project.guessProjectDir()!!.findFileByRelativePath("app/build.gradle")
   val buildGradlePsi = PsiManager.getInstance(project).findFile(buildGradle!!)
 
   return check(buildGradlePsi!!.text)
 }
 
-internal fun assertBuildGradle(project: Project, check: (String) -> Boolean) {
+fun assertBuildGradle(project: Project, check: (String) -> Boolean) {
   assertThat(checkBuildGradle(project, check)).isEqualTo(true)
 }
 
-internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
+val fakeMavenClassRegistryManager: MavenClassRegistryManager
   get() {
     val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
     whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
@@ -151,6 +151,11 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "fqcns": [
                   "androidx.camera.core.ExtendableBuilder",
                   "androidx.camera.core.ImageCapture"
+                ],
+                "ktlfns": [
+                  {
+                    "fqn": "androidx.camera.core.FileFacadeKt.cameraCoreTopLevelFunction"
+                  }
                 ]
               },
               {

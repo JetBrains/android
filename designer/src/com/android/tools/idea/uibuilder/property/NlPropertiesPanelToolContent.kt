@@ -25,9 +25,11 @@ import com.android.tools.idea.uibuilder.property.inspector.neleDesignPropertySec
 import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
@@ -43,13 +45,19 @@ fun getPropertiesToolContent(component: Component?): NlPropertiesPanelToolConten
 private const val UPDATE_QUEUE_NAME = "propertysheet"
 private const val UPDATE_DELAY_MILLI_SECONDS = 250
 
-/**
- * Create the models and views for the properties tool content.
- */
-class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable)
-  : JPanel(BorderLayout()), ToolContent<DesignSurface<*>> {
-  private val queue = MergingUpdateQueue(
-    UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null, Alarm.ThreadToUse.SWING_THREAD)
+/** Create the models and views for the properties tool content. */
+class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disposable) :
+  JPanel(BorderLayout()), ToolContent<DesignSurface<*>> {
+  private val queue =
+    MergingUpdateQueue(
+      UPDATE_QUEUE_NAME,
+      UPDATE_DELAY_MILLI_SECONDS,
+      true,
+      null,
+      parentDisposable,
+      null,
+      Alarm.ThreadToUse.SWING_THREAD
+    )
   private val componentModel = NlPropertiesModel(this, facet, queue)
   private val componentView = NlPropertiesView(componentModel)
   private val motionModel = MotionLayoutAttributesModel(this, facet, queue)
@@ -57,6 +65,8 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
   private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
+  private val documentationTarget =
+    NlPropertyDocumentationTarget(componentModel) { properties.selectedItem }
   private var toolWindow: ToolWindowCallback? = null
 
   init {
@@ -64,8 +74,15 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
-    registerAnActionKey({ showResolvedValueAction }, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
-                        WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+    DataManager.registerDataProvider(properties.component) { dataId ->
+      if (DOCUMENTATION_TARGETS.`is`(dataId)) listOf(documentationTarget) else null
+    }
+    registerAnActionKey(
+      { showResolvedValueAction },
+      ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke,
+      "toggleResolvedValues",
+      WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
+    )
   }
 
   override fun setToolContext(toolContext: DesignSurface<*>?) {
@@ -89,19 +106,24 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
 
   override fun getFilterKeyListener() = filterKeyListener
 
-  override fun getGearActions(): List<AnAction> =
-    neleDesignPropertySections.map { it.action }
+  override fun getGearActions(): List<AnAction> = neleDesignPropertySections.map { it.action }
 
   fun firePropertiesGenerated() = componentModel.firePropertiesGenerated()
 
   val isInspectorSectionsActive
     get() = !componentModel.properties.isEmpty
 
-  private fun createFilterKeyListener() = object : KeyAdapter() {
-    override fun keyPressed(event: KeyEvent) {
-      if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
-        event.consume()
+  private fun createFilterKeyListener() =
+    object : KeyAdapter() {
+      override fun keyPressed(event: KeyEvent) {
+        if (
+          properties.filter.isNotEmpty() &&
+            event.keyCode == KeyEvent.VK_ENTER &&
+            event.modifiers == 0 &&
+            properties.enterInFilter()
+        ) {
+          event.consume()
+        }
       }
     }
-  }
 }

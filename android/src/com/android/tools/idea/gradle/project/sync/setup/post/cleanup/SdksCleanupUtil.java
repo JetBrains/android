@@ -25,6 +25,7 @@ import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -39,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

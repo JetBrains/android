@@ -30,15 +30,13 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
-import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.util.application.executeCommand
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
 class VisualLintSuppressTaskTest {
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory().onEdt()
 
   @RunsInEdt
   @Test
@@ -57,8 +55,10 @@ class VisualLintSuppressTaskTest {
     VisualLintSuppressTask(BoundsAnalyzer.type, model.components).run()
 
     val editor = FileEditorManager.getInstance(rule.project).selectedEditor
-    assertEquals("Undo Suppress: ${BoundsAnalyzer.type.toSuppressActionDescription()}",
-                 UndoManager.getInstance(rule.project).getUndoActionNameAndDescription(editor).second)
+    assertEquals(
+      "Undo Suppress: ${BoundsAnalyzer.type.toSuppressActionDescription()}",
+      UndoManager.getInstance(rule.project).getUndoActionNameAndDescription(editor).second
+    )
   }
 
   @RunsInEdt
@@ -84,9 +84,11 @@ class VisualLintSuppressTaskTest {
     val model = createModel("test.xml")
     runWriteAction {
       rule.project.executeCommand("") {
-        model.components.first().startAttributeTransaction().apply {
-          setAttribute(TOOLS_URI, ATTR_IGNORE, type.ignoredAttributeValue)
-        }.commit()
+        model.components
+          .first()
+          .startAttributeTransaction()
+          .apply { setAttribute(TOOLS_URI, ATTR_IGNORE, type.ignoredAttributeValue) }
+          .commit()
       }
     }
     VisualLintSuppressTask(type, model.components).run()
@@ -112,11 +114,15 @@ class VisualLintSuppressTaskTest {
   }
 
   private fun createModel(fileName: String): NlModel {
-    return model(rule.projectRule, SdkConstants.FD_RES_LAYOUT, fileName,
-                 ComponentDescriptor(LINEAR_LAYOUT)
-                   .withBounds(0, 0, 1000, 1000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-    ).build()
+    return model(
+        rule.projectRule,
+        SdkConstants.FD_RES_LAYOUT,
+        fileName,
+        ComponentDescriptor(LINEAR_LAYOUT)
+          .withBounds(0, 0, 1000, 1000)
+          .matchParentWidth()
+          .matchParentHeight()
+      )
+      .build()
   }
 }

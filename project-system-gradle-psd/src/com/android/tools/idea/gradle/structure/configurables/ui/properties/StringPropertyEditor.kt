@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.properties
 
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorValidator
 import com.android.tools.idea.gradle.structure.model.meta.Annotated
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyContext
 import com.android.tools.idea.gradle.structure.model.meta.ModelPropertyCore
-import com.android.tools.idea.gradle.structure.model.meta.ModelSimpleProperty
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.ValueAnnotation
 import com.android.tools.idea.gradle.structure.model.meta.getText
@@ -29,7 +29,6 @@ import com.intellij.ui.components.JBTextField
 import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
-import javax.swing.JComponent
 import javax.swing.table.TableCellEditor
 
 /**
@@ -42,6 +41,7 @@ class StringPropertyEditor<ModelPropertyT : ModelPropertyCore<String>>(
   propertyContext: ModelPropertyContext<String>,
   private val extensions: List<EditorExtensionAction<String, ModelPropertyT>>,
   cellEditor: TableCellEditor? = null,
+  private val validator: PropertyEditorValidator? = null,
   private val logValueEdited: () -> Unit = {}
 ) :
   PropertyEditorBase<ModelPropertyT, String>(property, propertyContext, null),
@@ -95,13 +95,17 @@ class StringPropertyEditor<ModelPropertyT : ModelPropertyCore<String>>(
       text = property.getParsedValue().value.getText(formatter)
       lastValueSet = text
       isEditable = true
+
+      validator?.installValidation(this)
+      validator?.validate(this) // validate default (empty value)
+
       addFocusLostListener{
         if (!disposed) updateProperty()
       }
     }
   }
 
-  override val component: JComponent = textField
+  override val component: JBTextField = textField
 
   override val statusComponent: SimpleColoredComponent = SimpleColoredComponent()
 
@@ -138,7 +142,7 @@ class StringPropertyEditor<ModelPropertyT : ModelPropertyCore<String>>(
     cellEditor: TableCellEditor?,
     isPropertyContext: Boolean
   ): ModelPropertyEditor<String> =
-    stringVariablePropertyEditor(property, propertyContext, extensions, isPropertyContext, cellEditor)
+    stringVariablePropertyEditor(property, propertyContext, extensions, isPropertyContext, cellEditor, validator)
 
   override fun addFocusListener(listener: FocusListener) {
     textField.addFocusListener(listener)
@@ -151,6 +155,7 @@ fun <ModelPropertyT : ModelPropertyCore<String>> stringVariablePropertyEditor(
   extensions: Collection<EditorExtensionAction<String, ModelPropertyT>>,
   isPropertyContext: Boolean,
   cellEditor: TableCellEditor?,
+  validator: PropertyEditorValidator?,
   logValueEdited: () -> Unit = { /* no usage tracking */ }
 ): StringPropertyEditor<ModelPropertyT> =
   StringPropertyEditor(
@@ -158,4 +163,5 @@ fun <ModelPropertyT : ModelPropertyCore<String>> stringVariablePropertyEditor(
     boundPropertyContext,
     extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
     cellEditor,
+    validator,
     logValueEdited)

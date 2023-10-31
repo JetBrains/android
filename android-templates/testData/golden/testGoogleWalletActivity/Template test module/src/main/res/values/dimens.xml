@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="padding_small">5dp</dimen>
+    <dimen name="margin_large">10dp</dimen>
+    <dimen name="margin_xlarge">30dp</dimen>
+
+    <dimen name="wallet_button_height">48dp</dimen>
+</resources>

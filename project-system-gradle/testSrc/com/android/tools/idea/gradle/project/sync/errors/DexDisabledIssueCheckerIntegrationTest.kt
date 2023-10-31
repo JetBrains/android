@@ -29,8 +29,8 @@ import com.intellij.testFramework.replaceService
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker.Companion.getKnownIssuesCheckList
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.any
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 

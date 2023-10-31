@@ -78,29 +78,30 @@ class RelativePlaceholderTest : SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("relative.xml",
-                 component(SdkConstants.LINEAR_LAYOUT)
-                   .withBounds(0, 0, 1000, 1000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.RELATIVE_LAYOUT)
-                       .withBounds(0, 0, 500, 500)
-                       .id("@id/relative")
-                       .matchParentWidth()
-                       .matchParentHeight()
-                       .children(
-                         component(SdkConstants.TEXT_VIEW)
-                           .withBounds(0, 0, 200, 200)
-                           .width("100dp")
-                           .height("100dp")
-                       ),
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(500, 0, 200, 200)
-                       .id("@id/textView")
-                       .width("100dp")
-                       .height("100dp")
-                   )
+    return model(
+      "relative.xml",
+      component(SdkConstants.LINEAR_LAYOUT)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.RELATIVE_LAYOUT)
+            .withBounds(0, 0, 500, 500)
+            .id("@id/relative")
+            .matchParentWidth()
+            .matchParentHeight()
+            .children(
+              component(SdkConstants.TEXT_VIEW)
+                .withBounds(0, 0, 200, 200)
+                .width("100dp")
+                .height("100dp")
+            ),
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(500, 0, 200, 200)
+            .id("@id/textView")
+            .width("100dp")
+            .height("100dp")
+        )
     )
   }
 }

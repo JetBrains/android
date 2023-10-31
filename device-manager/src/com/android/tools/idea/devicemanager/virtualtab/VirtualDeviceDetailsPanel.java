@@ -18,13 +18,12 @@ package com.android.tools.idea.devicemanager.virtualtab;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.tools.adtui.device.ScreenDiagram;
 import com.android.tools.idea.devicemanager.DetailsPanel;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerFutureCallback;
 import com.android.tools.idea.devicemanager.InfoSection;
 import com.android.tools.idea.devicemanager.PairedDevicesPanel;
-import com.android.tools.idea.devicemanager.ScreenDiagram;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
@@ -89,13 +88,11 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
     initScreenDiagram();
     initPropertiesSection();
 
-    InfoSection.newPairedDeviceSection(device, manager).ifPresent(myInfoSections::add);
-
     if (myPropertiesSection != null) {
       myInfoSections.add(myPropertiesSection);
     }
 
-    if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get() && device.isPairable()) {
+    if (device.isPairable()) {
       myPairedDevicesPanel = new PairedDevicesPanel(device.getKey(), this, builder.getProject());
     }
 
@@ -142,7 +139,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   private void initScreenDiagram() {
     FutureCallback<Device> callback = new DeviceManagerFutureCallback<>(VirtualDeviceDetailsPanel.class, device -> {
       if (device.getDp() != null) {
-        myScreenDiagram = new ScreenDiagram(device);
+        myScreenDiagram = new ScreenDiagram(device.getDp().getWidth(), device.getDp().getHeight());
         setInfoSectionPanelLayout();
       }
     });

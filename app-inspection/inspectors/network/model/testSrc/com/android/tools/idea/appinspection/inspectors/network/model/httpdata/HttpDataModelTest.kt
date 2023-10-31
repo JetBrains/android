@@ -21,12 +21,12 @@ import com.android.tools.idea.appinspection.inspectors.network.model.analytics.S
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
 import studio.network.inspection.NetworkInspectorProtocol.HttpConnectionEvent
+import java.util.concurrent.TimeUnit
 
 private const val CONNECTION_ID = 1L
 

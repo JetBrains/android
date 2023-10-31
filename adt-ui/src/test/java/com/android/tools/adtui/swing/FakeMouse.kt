@@ -121,8 +121,12 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
 
   fun release() {
     val cursor = this.cursor ?: throw IllegalStateException("Mouse not pressed. Call press before releasing.")
-    dispatchMouseEvent(MouseEvent.MOUSE_RELEASED, cursor.x, cursor.y, cursor.button, 1, false)
     this.cursor = null
+    val point = fakeUi.targetMouseEvent(cursor.x, cursor.y) ?: return
+    // The DOWN_MASK bit for released button should be 0 for MOUSE_RELEASED events.
+    val modifiers = cursor.button.mask and
+        (InputEvent.BUTTON1_DOWN_MASK or InputEvent.BUTTON2_DOWN_MASK or InputEvent.BUTTON3_DOWN_MASK).inv()
+    dispatchMouseEvent(point, MouseEvent.MOUSE_RELEASED, modifiers, cursor.button.code, 1, false)
   }
 
   /**

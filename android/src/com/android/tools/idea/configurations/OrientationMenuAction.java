@@ -23,6 +23,8 @@ import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationProjectState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -130,7 +132,8 @@ public class OrientationMenuAction extends DropDownAction {
       configuration.setDeviceState(myState);
       if (!HardwareConfigHelper.isWear(configuration.getDevice())) {
         // Save the last orientation if device is not a wear device.
-        ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
+        ConfigurationProjectState projectState =
+          configuration.getSettings().getConfigModule().getConfigurationStateManager().getProjectState();
         projectState.setNonWearDeviceLastSelectedStateName(myState.getName(), myState.isDefaultState());
       }
     }

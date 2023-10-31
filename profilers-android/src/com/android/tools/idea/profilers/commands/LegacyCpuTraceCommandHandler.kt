@@ -17,18 +17,18 @@ package com.android.tools.idea.profilers.commands
 
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.profilers.LegacyCpuProfilingHandler
 import com.android.tools.idea.profilers.LegacyCpuTraceRecord
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
-import com.intellij.openapi.diagnostic.Logger
-import com.android.tools.idea.io.grpc.StatusRuntimeException
-import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 

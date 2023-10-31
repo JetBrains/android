@@ -40,26 +40,26 @@ namespace {
 int CreateAndConnectSocket(const string& socket_name) {
   int socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (socket_fd < 0) {
-    Log::Fatal("Failed to create a socket");
+    Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Failed to create a socket");
   }
   sockaddr_un address = { AF_UNIX, "" };
   // An abstract socket address is distinguished by a null byte in front of the socket name
   // and doesn't need a null terminator. See https://man7.org/linux/man-pages/man7/unix.7.html.
   if (socket_name.size() > sizeof(address.sun_path) - 2) {
-    Log::Fatal("Socket name \"%s\" is too long", socket_name.c_str());
+    Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Socket name \"%s\" is too long", socket_name.c_str());
   }
   strncpy(address.sun_path + 1, socket_name.c_str(), sizeof(address.sun_path) - 2);
   int len = sizeof(sa_family_t) + 1 + socket_name.size();
   int ret = connect(socket_fd, (const struct sockaddr*) &address, len);
   if (ret < 0) {
     close(socket_fd);
-    Log::Fatal("Failed to connect to socket \"%s\" - %s", socket_name.c_str(), strerror(errno));
+    Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Failed to connect to socket \"%s\" - %s", socket_name.c_str(), strerror(errno));
   }
   return socket_fd;
 }
 
 [[noreturn]] void InvalidCommandLineArgument(const string& arg) {
-  Log::Fatal("Invalid command line argument: \"%s\"", arg.c_str());
+  Log::Fatal(INVALID_COMMAND_LINE, "Invalid command line argument: \"%s\"", arg.c_str());
 }
 
 void sighup_handler(int signal_number) {
@@ -68,7 +68,7 @@ void sighup_handler(int signal_number) {
 
 }  // namespace
 
-Agent::Agent(const vector<string>& args) {
+void Agent::Initialize(const vector<string>& args) {
   for (int i = 1; i < args.size(); i++) {
     const string& arg = args[i];
     if (arg.rfind("--socket=", 0) == 0) {
@@ -126,9 +126,9 @@ Agent::Agent(const vector<string>& args) {
   api_level_ = android_get_device_api_level();
 }
 
-Agent::~Agent() = default;
+void Agent::Run(const vector<string>& args) {
+  Initialize(args);
 
-void Agent::Run() {
   struct sigaction action = { .sa_handler = sighup_handler };
   int res = sigaction(SIGHUP, &action, nullptr);
   if (res < 0) {
@@ -147,12 +147,16 @@ void Agent::Run() {
 }
 
 void Agent::SetVideoOrientation(int32_t orientation) {
-  display_streamer_->SetVideoOrientation(orientation);
+  if (display_streamer_ != nullptr) {
+    display_streamer_->SetVideoOrientation(orientation);
+  }
 }
 
 void Agent::SetMaxVideoResolution(Size max_video_resolution) {
   max_video_resolution_ = max_video_resolution;
-  display_streamer_->SetMaxVideoResolution(max_video_resolution);
+  if (display_streamer_ != nullptr) {
+    display_streamer_->SetMaxVideoResolution(max_video_resolution);
+  }
 }
 
 DisplayInfo Agent::GetDisplayInfo() {

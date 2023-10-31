@@ -22,9 +22,9 @@ import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import org.junit.Assert.assertEquals
 import org.junit.Test
+import kotlin.test.assertNotNull
 
 class PropertyCurveTest {
 

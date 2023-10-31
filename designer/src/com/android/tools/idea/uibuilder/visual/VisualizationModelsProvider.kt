@@ -23,13 +23,15 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * [VisualizationForm] uses this interface to create [NlModel]s.
- * Implement this interface to custom the [NlModel] creation logic.
+ * [VisualizationForm] uses this interface to create [NlModel]s. Implement this interface to custom
+ * the [NlModel] creation logic.
  */
 interface VisualizationModelsProvider {
-  /**
-   * The actions shown in ActionBar for this models provider.
-   */
+  /** The actions shown in ActionBar for this models provider. */
   fun createActions(file: PsiFile, facet: AndroidFacet): ActionGroup = DefaultActionGroup()
-  fun createNlModels(parentDisposable: Disposable, file: PsiFile, facet: AndroidFacet): List<NlModel>
+  fun createNlModels(
+    parentDisposable: Disposable,
+    file: PsiFile,
+    facet: AndroidFacet
+  ): List<NlModel>
 }

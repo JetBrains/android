@@ -14,42 +14,90 @@
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.flags" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adb.testUtil" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="ffmpeg-platform" level="project" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="fastutil-min" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="module" module-name="intellij.platform.util.jdom" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.base" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.platform.ide" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.concurrency" scope="TEST" />
+    <orderEntry type="module-library">
+      <library name="ffmpeg" type="repository">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg:6.0-1.5.9">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar">
+              <sha256sum>38c437218569f861fd43f15aa810b3eb9af4bdb02a7003f54c4d454590378079</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg/6.0-1.5.9/ffmpeg-6.0-1.5.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="ffmpeg-javacpp" type="repository">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:javacpp:1.5.9">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1.5.9/javacpp-1.5.9.jar">
+              <sha256sum>1f85780cda084ba11fe0611558397d02486154777226eedee640d2867ce4231d</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/javacpp/1.5.9/javacpp-1.5.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" scope="TEST">
+      <library name="ffmpeg-platform" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.streaming.ffmpeg-bundle:ffmpeg-platform:6.0-1.5.9">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-platform/6.0-1.5.9/ffmpeg-platform-6.0-1.5.9.jar">
+              <sha256sum>c9d3c0e9802900b9a84142bd666a014ea929e44cf42c5a9b82f24a0858f20957</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/streaming/ffmpeg-bundle/ffmpeg-platform/6.0-1.5.9/ffmpeg-platform-6.0-1.5.9.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.streaming" />
 </module>

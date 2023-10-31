@@ -37,7 +37,8 @@ open class AppInsightsDropDownAction<T>(
   icon: Icon?,
   private val flow: StateFlow<Selection<T>>,
   private val getIconForValue: ((T) -> Icon?)?,
-  private val onSelect: (T) -> Unit
+  private val onSelect: (T) -> Unit,
+  private val getDisplayTitle: (T?) -> String = { it.toString() }
 ) : DropDownAction(text, description, icon) {
   override fun updateActions(context: DataContext): Boolean {
     removeAll()
@@ -49,7 +50,7 @@ open class AppInsightsDropDownAction<T>(
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.text = flow.value.selected.toString()
+    e.presentation.setText(getDisplayTitle(flow.value.selected), false)
   }
 
   override fun displayTextInToolbar() = true

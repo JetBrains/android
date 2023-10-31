@@ -21,7 +21,6 @@ import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_70
 import com.android.tools.idea.testing.ModelVersion
 import com.google.common.truth.Truth.assertThat
 import com.google.protobuf.TextFormat
@@ -82,16 +81,6 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_SETUP_STARTED
               |  USER_REQUESTED_PARALLEL""".trim()
             )
-            if (agpVersion == AGP_70) {
-              appendLine(
-                """
-              |GRADLE_SYNC_ISSUES
-              |  USER_REQUESTED_PARALLEL
-              |  STUDIO_REQUESTD_$expectedMode
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
-              |    OPEN_FILE_HYPERLINK""".trim()
-              )
-            }
             appendLine(
               """
               |GRADLE_SYNC_ENDED
@@ -121,16 +110,6 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_SETUP_STARTED
               |  USER_REQUESTED_SEQUENTIAL""".trim()
             )
-            if (agpVersion == AGP_70) {
-              appendLine(
-                """
-              |GRADLE_SYNC_ISSUES
-              |  USER_REQUESTED_SEQUENTIAL
-              |  STUDIO_REQUESTD_SEQUENTIAL
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
-              |    OPEN_FILE_HYPERLINK""".trim()
-              )
-            }
             appendLine(
               """
               |GRADLE_SYNC_ENDED

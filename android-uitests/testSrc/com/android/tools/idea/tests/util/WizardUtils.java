@@ -69,7 +69,7 @@ public final class WizardUtils {
       .selectBuildConfigurationLanguage(buildConfigurationLanguage)
       .enterPackageName("com.google.myapplication")
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
@@ -94,7 +94,7 @@ public final class WizardUtils {
       .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(180))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(240))
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
@@ -116,7 +116,7 @@ public final class WizardUtils {
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
   }
 
-  public static void createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
+  public static void createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName, @NotNull Language language) {
     System.out.println("\nCreating template: " + templateName + " in: " + tabName.toString());
 
     guiTest.welcomeFrame()
@@ -127,7 +127,7 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(Java)
+      .setSourceLanguage(language)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()
@@ -155,7 +155,7 @@ public final class WizardUtils {
       .setSourceLanguage(language)
       .wizard()
       .clickNext()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)

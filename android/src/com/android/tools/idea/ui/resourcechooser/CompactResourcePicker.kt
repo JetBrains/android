@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
-import com.android.tools.idea.configurations.Configuration
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createResourcePickerDialog
@@ -214,7 +214,7 @@ class CompactResourcePicker(
     val action = BrowseAction(facet, resourceType, contextFile, sources.contains(ResourcePickerSources.THEME_ATTR),
                               selectedResourceCallback, resourcePickerDialogOpenedCallback)
     add(ActionButtonWithText(action,
-                             action.templatePresentation,
+                             action.templatePresentation.clone(),
                              "",
                              JBUI.size(60, 0)).apply {
       foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED

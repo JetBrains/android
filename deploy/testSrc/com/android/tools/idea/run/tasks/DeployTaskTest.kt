@@ -36,10 +36,10 @@ import com.intellij.ui.IdeUICustomization
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mock
 import org.mockito.Mockito.any
 import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times

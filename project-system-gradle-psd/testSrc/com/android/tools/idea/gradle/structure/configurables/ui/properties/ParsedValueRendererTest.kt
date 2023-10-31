@@ -121,11 +121,11 @@ class ParsedValueRendererTest {
       ParsedValue.NotSet.testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
       equalTo(""))
     assertThat(
-      ParsedValue.NotSet.testRenderWith(
+      ParsedValue.NotSet.testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor<Int>(ParsedValue.NotSet, "Null"))), Any::testToString, null)),
       equalTo("<comment>(Null)"))
     assertThat(
-      ParsedValue.NotSet.testRenderWith(
+      ParsedValue.NotSet.testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, 1)),
       equalTo("<i><comment>1@ (One)")
     )
@@ -138,11 +138,11 @@ class ParsedValueRendererTest {
         buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
       equalTo("<error>(error)"))
     assertThat(
-      ParsedValue.NotSet.annotateWithError("error").testRenderWith(
+      ParsedValue.NotSet.annotateWithError("error").testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor<Int>(ParsedValue.NotSet, "Null"))), Any::testToString, null)),
       equalTo("<w><comment>(Null)</w><error> (error)"))
     assertThat(
-      ParsedValue.NotSet.annotateWithError("error").testRenderWith(
+      ParsedValue.NotSet.annotateWithError("error").testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, 1)),
       equalTo("<i><w><comment>1@ (One)</i></w><error> (error)")
     )
@@ -151,9 +151,9 @@ class ParsedValueRendererTest {
   @Test
   fun testRenderParsedValue_setValue() {
     val one = ParsedValue.Set.Parsed(1, DslText.Literal)
-    assertThat(one.testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)), equalTo("1@"))
+    assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)), equalTo("1@"))
     assertThat(
-      one.testRenderWith(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
+      one.testRenderWith<Int>(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
       equalTo("1@ <comment>(One)"))
   }
 
@@ -161,10 +161,10 @@ class ParsedValueRendererTest {
   fun testRenderParsedValue_setValue_annotated() {
     val one = ParsedValue.Set.Parsed(1, DslText.Literal)
     assertThat(
-      one.annotateWithError("error").testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
+      one.annotateWithError("error").testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
       equalTo("<w>1@</w><error> (error)"))
     assertThat(
-      one.annotateWithError("error").testRenderWith(
+      one.annotateWithError("error").testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
       equalTo("<w>1@ <comment>(One)</w><error> (error)"))
   }
@@ -173,7 +173,7 @@ class ParsedValueRendererTest {
   fun testRenderParsedValue_setEmptyValue() {
     val one = ParsedValue.Set.Parsed("", DslText.Literal)
     assertThat(
-      testRender { one.renderTo(this, Any::toString, buildKnownValueRenderers(emptyKnownValues(), Any::toString, null)) },
+      testRender { one.renderTo(this, Any::toString, buildKnownValueRenderers<String>(emptyKnownValues(), Any::toString, null)) },
       equalTo(""))
     assertThat(
       testRender {
@@ -186,29 +186,29 @@ class ParsedValueRendererTest {
   @Test
   fun testRenderParsedValue_setValueWitLiteral() {
     val one = ParsedValue.Set.Parsed(1, DslText.Literal)
-    assertThat(one.testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)), equalTo("1@"))
+    assertThat(one.testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)), equalTo("1@"))
     assertThat(
-      one.testRenderWith(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
+      one.testRenderWith<Int>(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
       equalTo("1@ <comment>(One)"))
   }
 
   @Test
   fun testRenderParsedValue_setReference() {
     val var1 = ParsedValue.Set.Parsed(1, DslText.Reference("var1"))
-    assertThat(var1.testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
+    assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
                equalTo("<var>\$var1<comment> : 1@"))
     assertThat(
-      var1.testRenderWith(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
+      var1.testRenderWith<Int>(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
       equalTo("<var>\$var1<comment> : 1@ (One)"))
   }
 
   @Test
   fun testRenderParsedValue_setReference_annotated() {
     val var1 = ParsedValue.Set.Parsed(1, DslText.Reference("var1")).annotateWithError("error")
-    assertThat(var1.testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
+    assertThat(var1.testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
                equalTo("<w><var>\$var1<comment> : 1@</w><error> (error)"))
     assertThat(
-      var1.testRenderWith(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
+      var1.testRenderWith<Int>(buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor(1, "One"))), Any::testToString, null)),
       equalTo("<w><var>\$var1<comment> : 1@ (One)</w><error> (error)"))
   }
 
@@ -216,7 +216,7 @@ class ParsedValueRendererTest {
   fun testRenderParsedValue_setReferenceToEmpty() {
     val var1 = ParsedValue.Set.Parsed("", DslText.Reference("var1"))
     assertThat(
-      testRender { var1.renderTo(this, Any::toString, buildKnownValueRenderers(emptyKnownValues(), Any::toString, null)) },
+      testRender { var1.renderTo(this, Any::toString, buildKnownValueRenderers<String>(emptyKnownValues(), Any::toString, null)) },
       equalTo("<var>\$var1"))
   }
 
@@ -224,9 +224,9 @@ class ParsedValueRendererTest {
   fun testRenderParsedValue_setInterpolatedString() {
     val interpolated = ParsedValue.Set.Parsed("a nd b", DslText.InterpolatedString("\$var1 and \$var2"))
     // TODO(b/77618752): Variable references should be highlighted separately.
-    assertThat(interpolated.testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
+    assertThat(interpolated.testRenderWith<String>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
                equalTo("<var>\"\$var1 and \$var2\"<comment> : \"a nd b@\""))
-    assertThat(interpolated.testRenderWith(
+    assertThat(interpolated.testRenderWith<String>(
       buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor("a and b", "does not matter"))), Any::testToString, null)),
                equalTo("<var>\"\$var1 and \$var2\"<comment> : \"a nd b@\""))
   }
@@ -235,7 +235,7 @@ class ParsedValueRendererTest {
   fun testRenderParsedValue_setInterpolatedString_annotated() {
     val interpolated = ParsedValue.Set.Parsed("a nd b", DslText.InterpolatedString("\$var1 and \$var2")).annotateWithError("error")
     // TODO(b/77618752): Variable references should be highlighted separately.
-    assertThat(interpolated.testRenderWith(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
+    assertThat(interpolated.testRenderWith<String>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
                equalTo("<w><var>\"\$var1 and \$var2\"<comment> : \"a nd b@\"</w><error> (error)"))
   }
 

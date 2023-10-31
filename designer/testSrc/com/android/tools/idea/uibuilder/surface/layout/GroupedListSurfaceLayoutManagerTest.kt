@@ -18,23 +18,25 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.util.ui.JBInsets
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.awt.Dimension
-import kotlin.test.assertNotEquals
 
 class GroupedListSurfaceLayoutManagerTest {
 
   @Test
   fun testLayoutVertically() {
-    val manager = GroupedListSurfaceLayoutManager(0,  { 0 }) { contents ->
-      listOf(contents.toList())
-    }
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { 0 }) { contents -> listOf(contents.toList()) }
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val width = 1000
@@ -111,14 +113,18 @@ class GroupedListSurfaceLayoutManagerTest {
 
   @Test
   fun testLayoutMultipleContentSizes() {
-    val manager = GroupedListSurfaceLayoutManager(0, { 0 }) { contents ->
-      listOf(contents.take(3), contents.drop(3))
-    }
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 200, 100),
-                          TestPositionableContent(0, 0, 300, 200),
-                          TestPositionableContent(0, 0, 400, 100),
-                          TestPositionableContent(0, 0, 200, 200))
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { 0 }) { contents ->
+        listOf(contents.take(3), contents.drop(3))
+      }
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 200, 100),
+        TestPositionableContent(0, 0, 300, 200),
+        TestPositionableContent(0, 0, 400, 100),
+        TestPositionableContent(0, 0, 200, 200)
+      )
 
     run {
       val width = 1000
@@ -193,19 +199,22 @@ class GroupedListSurfaceLayoutManagerTest {
     }
   }
 
-
   @Test
   fun testPaddingAndMargin() {
     val canvasTopPadding = 10
     val framePadding = 20
-    val manager = GroupedListSurfaceLayoutManager(canvasTopPadding, { framePadding }) { contents ->
-      listOf(contents.toList())
-    }
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val manager =
+      GroupedListSurfaceLayoutManager(canvasTopPadding, { framePadding }) { contents ->
+        listOf(contents.toList())
+      }
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val width = 1000
@@ -283,13 +292,17 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testAdaptiveFramePadding() {
     val framePadding = 50
-    val manager = GroupedListSurfaceLayoutManager(0, { (it * framePadding).toInt() }) { contents ->
-      listOf(contents.toList())
-    }
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100, scale = 0.5),
-                          TestPositionableContent(0, 0, 100, 100, scale = 1.0),
-                          TestPositionableContent(0, 0, 100, 100, scale = 1.0),
-                          TestPositionableContent(0, 0, 100, 100, scale = 2.0))
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { (it * framePadding).toInt() }) { contents ->
+        listOf(contents.toList())
+      }
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100, scale = 0.5),
+        TestPositionableContent(0, 0, 100, 100, scale = 1.0),
+        TestPositionableContent(0, 0, 100, 100, scale = 1.0),
+        TestPositionableContent(0, 0, 100, 100, scale = 2.0)
+      )
 
     val width = 500
     val height = 500
@@ -309,15 +322,18 @@ class GroupedListSurfaceLayoutManagerTest {
   @Test
   fun testScaleDoNotEffectPreferredSize() {
     val framePadding = 50
-    val manager = GroupedListSurfaceLayoutManager(0, { (it * framePadding).toInt() }) { contents ->
-      listOf(contents.toList())
-    }
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { (it * framePadding).toInt() }) { contents ->
+        listOf(contents.toList())
+      }
 
     val contentProvider: (scale: Double) -> List<PositionableContent> = {
-      listOf(TestPositionableContent(0, 0, 100, 100, scale = it),
-             TestPositionableContent(0, 0, 100, 100, scale = it),
-             TestPositionableContent(0, 0, 100, 100, scale = it),
-             TestPositionableContent(0, 0, 100, 100, scale = it))
+      listOf(
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+        TestPositionableContent(0, 0, 100, 100, scale = it),
+        TestPositionableContent(0, 0, 100, 100, scale = it)
+      )
     }
 
     val contents1 = contentProvider(1.0)
@@ -348,53 +364,57 @@ class GroupedListSurfaceLayoutManagerTest {
 
   @Test
   fun testFitIntoScaleWithoutPaddings() {
-    val manager = GroupedListSurfaceLayoutManager(0, { 0 }) { contents ->
-      listOf(contents.toList())
-    }
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { 0 }) { contents -> listOf(contents.toList()) }
 
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 500)
-      assertEquals(1.0, scale)
+      assertEquals(1.0, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 400, 1000)
-      assertEquals(2.0, scale)
+      assertEquals(2.0, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 200, 4000)
-      assertEquals(2.0, scale)
+      assertEquals(2.0, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 50, 1000)
-      assertEquals(0.5, scale)
+      assertEquals(0.5, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 50)
-      assertEquals(0.1, scale)
+      assertEquals(0.1, scale, 0.0)
     }
   }
 
   @Test
   fun testFitIntoScaleWithPaddings() {
-    val manager = GroupedListSurfaceLayoutManager(0, { 10 }) { contents ->
-      listOf(contents.toList())
-    }
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { 10 }) { contents -> listOf(contents.toList()) }
 
-    val contents = listOf(TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100),
-                          TestPositionableContent(0, 0, 100, 100))
+    val contents =
+      listOf(
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100),
+        TestPositionableContent(0, 0, 100, 100)
+      )
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 1000)
@@ -424,16 +444,18 @@ class GroupedListSurfaceLayoutManagerTest {
 
   @Test
   fun testZoomToFitValueIsIndependentOfContentScale() {
-    val manager = GroupedListSurfaceLayoutManager(0, { (it * 20).toInt() }) { contents ->
-      listOf(contents.toList())
-    }
-
-    val contents = List(4) {
-      TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
-        val value = (10 * scale).toInt()
-        JBInsets(value, value, value, value)
+    val manager =
+      GroupedListSurfaceLayoutManager(0, { (it * 20).toInt() }) { contents ->
+        listOf(contents.toList())
       }
-    }
+
+    val contents =
+      List(4) {
+        TestPositionableContent(0, 0, 100, 100, 1.0) { scale ->
+          val value = (10 * scale).toInt()
+          JBInsets(value, value, value, value)
+        }
+      }
 
     val width = 1000
     val height = 1000

@@ -43,23 +43,20 @@ import org.junit.Test
 import java.util.concurrent.Executors
 
 class ViewNodeCacheTest {
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val cleaner = MockitoCleanerRule()
+  @get:Rule val cleaner = MockitoCleanerRule()
 
   companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
+    @JvmField @ClassRule val rule = ApplicationRule()
   }
 
   @Before
   fun init() {
     val executors: AndroidExecutors = mock()
     whenever(executors.workerThreadExecutor).thenReturn(Executors.newSingleThreadExecutor())
-    ApplicationManager.getApplication().registerServiceInstance(AndroidExecutors::class.java, executors, disposableRule.disposable)
+    ApplicationManager.getApplication()
+      .registerServiceInstance(AndroidExecutors::class.java, executors, disposableRule.disposable)
   }
 
   @Test
@@ -73,9 +70,10 @@ class ViewNodeCacheTest {
       }
     }
     assertThat(model[VIEW1]).isNotNull()
-    val cache = object : ViewNodeCache<Int>(model) {
-      override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): Int = 7
-    }
+    val cache =
+      object : ViewNodeCache<Int>(model) {
+        override suspend fun fetchDataFor(root: ViewNode, node: ViewNode): Int = 7
+      }
     cache.allowFetching = true
     var stop = false
     var modelLoops = 0
@@ -83,13 +81,13 @@ class ViewNodeCacheTest {
 
     val modelRunnable: () -> Unit = {
       assertThat(model[VIEW1]).isNotNull()
-        while (!stop) {
-          update(model, cache, window2(), listOf(ROOT, ROOT2))
-          update(model, cache, window2(), listOf(ROOT2))
-          update(model, cache, window1(), listOf(ROOT, ROOT2))
-          update(model, cache, window1(), listOf(ROOT))
-          modelLoops++
-        }
+      while (!stop) {
+        update(model, cache, window2(), listOf(ROOT, ROOT2))
+        update(model, cache, window2(), listOf(ROOT2))
+        update(model, cache, window1(), listOf(ROOT, ROOT2))
+        update(model, cache, window1(), listOf(ROOT))
+        modelLoops++
+      }
     }
 
     val lookupRunnable: () -> Unit = {
@@ -103,9 +101,7 @@ class ViewNodeCacheTest {
     }
 
     var exception: Throwable? = null
-    val handler = Thread.UncaughtExceptionHandler { _, ex ->
-      exception = ex
-    }
+    val handler = Thread.UncaughtExceptionHandler { _, ex -> exception = ex }
     val t1 = Thread(modelRunnable)
     val t2 = Thread(lookupRunnable)
     t1.uncaughtExceptionHandler = handler
@@ -134,7 +130,12 @@ class ViewNodeCacheTest {
       view(VIEW4, 8, 6, 4, 2, qualifiedName = "v4Type")
     }
 
-  private fun update(model: InspectorModel, cache: ViewNodeCache<*>, window: AndroidWindow, allIds: List<Long>) {
+  private fun update(
+    model: InspectorModel,
+    cache: ViewNodeCache<*>,
+    window: AndroidWindow,
+    allIds: List<Long>
+  ) {
     model.update(window, allIds, 0)
     cache.retain(allIds)
   }

@@ -18,7 +18,10 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.configurations.Configuration;
+import com.android.tools.configurations.ConfigurationSettings;
+import com.android.tools.layoutlib.AndroidTargets;
+import com.android.tools.module.AndroidModuleInfo;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -111,7 +114,7 @@ public class TargetMenuAction extends DropDownAction {
     assert configuration != null;
 
     IAndroidTarget currentTarget = configuration.getTarget();
-    IAndroidTarget highestTarget = configuration.getConfigurationManager().getHighestApiTarget();
+    IAndroidTarget highestTarget = configuration.getSettings().getHighestApiTarget();
     assert highestTarget != null;
 
     List<SetTargetAction> actions = new ArrayList<>();
@@ -134,7 +137,7 @@ public class TargetMenuAction extends DropDownAction {
     assert configuration != null;
 
     IAndroidTarget current = configuration.getTarget();
-    IAndroidTarget[] targets = configuration.getConfigurationManager().getTargets();
+    IAndroidTarget[] targets = configuration.getSettings().getTargets();
 
     List<SetTargetAction> actions = new ArrayList<>();
 
@@ -143,7 +146,7 @@ public class TargetMenuAction extends DropDownAction {
 
     for (int i = targets.length - 1; i >= 0; i--) {
       IAndroidTarget target = targets[i];
-      if (!ConfigurationManager.isLayoutLibTarget(target)) {
+      if (!AndroidTargets.isLayoutLibTarget(target)) {
         continue;
       }
 
@@ -198,14 +201,14 @@ public class TargetMenuAction extends DropDownAction {
       return true;
     }
 
-    add(new TogglePickBestAction(configuration.getConfigurationManager()));
+    ConfigurationSettings settings = configuration.getSettings();
+    add(new TogglePickBestAction(settings));
     addSeparator();
 
-    ConfigurationManager manager = configuration.getConfigurationManager();
-    boolean isPickBest = manager.getStateManager().getProjectState().isPickTarget();
+    boolean isPickBest = settings.getConfigModule().getConfigurationStateManager().getProjectState().isPickTarget();
 
     List<SetTargetAction> actions;
-    if (myUseCompatibilityTarget && manager.getHighestApiTarget() != null) {
+    if (myUseCompatibilityTarget && settings.getHighestApiTarget() != null) {
       actions = getCompatibilitySetTargetActions(isPickBest);
     }
     else {
@@ -257,26 +260,26 @@ public class TargetMenuAction extends DropDownAction {
   }
 
   private static class TogglePickBestAction extends AnAction implements Toggleable {
-    private final ConfigurationManager myManager;
+    private final ConfigurationSettings mySettings;
 
-    TogglePickBestAction(ConfigurationManager manager) {
+    TogglePickBestAction(ConfigurationSettings settings) {
       super("Automatically Pick Best");
-      myManager = manager;
+      mySettings = settings;
 
-      if (manager.getStateManager().getProjectState().isPickTarget()) {
+      if (settings.getConfigModule().getConfigurationStateManager().getProjectState().isPickTarget()) {
         getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, true);
       }
     }
 
     private boolean isSelected() {
-      return myManager.getStateManager().getProjectState().isPickTarget();
+      return mySettings.getConfigModule().getConfigurationStateManager().getProjectState().isPickTarget();
     }
 
     private void setSelected(boolean state) {
-      myManager.getStateManager().getProjectState().setPickTarget(state);
+      mySettings.getConfigModule().getConfigurationStateManager().getProjectState().setPickTarget(state);
       if (state) {
         // Make sure we have the best target: force recompute on next getTarget()
-        myManager.setTarget(null);
+        mySettings.setTarget(null);
       }
     }
 
@@ -320,7 +323,7 @@ public class TargetMenuAction extends DropDownAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
       Configuration config = myRenderContext.getConfiguration();
       if (config != null) {
-        config.getConfigurationManager().getStateManager().getProjectState().setPickTarget(false);
+        config.getSettings().getConfigModule().getConfigurationStateManager().getProjectState().setPickTarget(false);
       }
       super.actionPerformed(e);
     }
@@ -339,7 +342,7 @@ public class TargetMenuAction extends DropDownAction {
       // Also set the project-wide rendering target, since targets (and locales) are project wide
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
-        configuration.getConfigurationManager().setTarget(myTarget);
+        configuration.getSettings().setTarget(myTarget);
       }
     }
   }

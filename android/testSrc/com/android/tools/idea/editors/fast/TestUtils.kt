@@ -41,7 +41,7 @@ fun Path.toFileNameSet(): Set<String> {
   return generatedFilesSet
 }
 
-internal fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE,
+fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE,
                                                                          buildStatus: ProjectSystemBuildManager.BuildStatus) {
   getBuildListenerForTest().buildStarted(buildMode)
   getBuildListenerForTest().buildCompleted(
@@ -49,6 +49,6 @@ internal fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildM
 }
 
 
-internal fun ProjectBuildStatusManagerForTests.simulateResourcesChange() {
+fun ProjectBuildStatusManagerForTests.simulateResourcesChange() {
   getResourcesListenerForTest().resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.RESOURCE_EDIT))
 }

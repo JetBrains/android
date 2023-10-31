@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.fast
 
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
@@ -59,12 +58,15 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.NON_KOTLIN,
     LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION,
     LiveEditUpdateException.Error.INTERNAL_ERROR,
+    LiveEditUpdateException.Error.INTERNAL_ERROR_NO_BINDING_CONTEXT,
     LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,
     LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_RECOVERABLE,
     LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
     LiveEditUpdateException.Error.UNSUPPORTED_BUILD_SRC_CHANGE,
     LiveEditUpdateException.Error.UNSUPPORTED_TEST_SRC_CHANGE,
     LiveEditUpdateException.Error.UNABLE_TO_DESUGAR,
+    LiveEditUpdateException.Error.UNSUPPORTED_BUILD_LIBRARY_DESUGAR,
+    LiveEditUpdateException.Error.BAD_MIN_API,
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 
@@ -144,8 +146,6 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
  * to compile fragments of code in-process similar to how Live Edit does for the emulator.
  *
- * [useInlineAnalysis] should return the value of the Live Edit inline analysis setting.
- *
  * [isKotlinPluginBundled] is a method that returns if the available Kotlin Plugin is the version bundled with Android Studio. This
  * is used to diagnose problems and inform users when there is a failure that might have been caused by the user updating the Kotlin
  * Plugin.
@@ -155,21 +155,18 @@ fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
 class EmbeddedCompilerClientImpl private constructor(
   private val project: Project,
   private val log: Logger,
-  private val useInlineAnalysis: () -> Boolean,
   private val isKotlinPluginBundled: () -> Boolean,
   private val beforeCompilationStarts: () -> Unit) : CompilerDaemonClient {
 
   constructor(project: Project, log: Logger):
-    this(project, log, { LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis }, ::isKotlinPluginBundled, {})
+    this(project, log, ::isKotlinPluginBundled, {})
 
   @TestOnly
   constructor(project: Project,
               log: Logger,
-              useInlineAnalysis: Boolean,
               isKotlinPluginBundled: Boolean = true,
               beforeCompilationStarts: () -> Unit = {}) :
     this(project, log,
-         useInlineAnalysis = { useInlineAnalysis },
          isKotlinPluginBundled = { isKotlinPluginBundled },
          beforeCompilationStarts = beforeCompilationStarts)
 
@@ -214,7 +211,7 @@ class EmbeddedCompilerClientImpl private constructor(
             throw NonRetriableException(e)
           }
 
-          if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE || !useInlineAnalysis()) {
+          if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
             log.debug("backCodeGen exception ", e)
             throw e
           }
