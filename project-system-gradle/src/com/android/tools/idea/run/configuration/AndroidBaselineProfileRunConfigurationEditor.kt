@@ -29,21 +29,24 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.RowLayout
-import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.bind
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.BorderLayout
 import java.awt.Dimension
-import kotlin.reflect.KMutableProperty0
 
-class AndroidBaselineProfileRunConfigurationEditor(private val project: Project, private val configuration: AndroidBaselineProfileRunConfiguration) : SettingsEditor<AndroidBaselineProfileRunConfiguration>() {
+class AndroidBaselineProfileRunConfigurationEditor(
+  private val project: Project,
+  private val configuration: AndroidBaselineProfileRunConfiguration
+) : SettingsEditor<AndroidBaselineProfileRunConfiguration>() {
+
   private val modulesComboBox = ModulesComboBox()
+  private var generateAllVariants: Boolean = configuration.generateAllVariants
 
   private val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
     override fun isModuleAccepted(module: Module?): Boolean {
@@ -65,8 +68,6 @@ class AndroidBaselineProfileRunConfigurationEditor(private val project: Project,
       }
     }
   }
-
-  private val generateForAllVariantsCheckbox = JBCheckBox("Generate baseline profile for all variants")
 
   init {
     Disposer.register(project, this)
@@ -92,24 +93,21 @@ class AndroidBaselineProfileRunConfigurationEditor(private val project: Project,
       }.queue()
     }
   }
+
   override fun resetEditorFrom(runConfiguration: AndroidBaselineProfileRunConfiguration) {
     moduleSelector.reset(runConfiguration)
-    generateForAllVariantsCheckbox.isSelected = runConfiguration.generateAllVariants
+    generateAllVariants = runConfiguration.generateAllVariants
     (component as DialogPanel).reset()
   }
 
   override fun applyEditorTo(runConfiguration: AndroidBaselineProfileRunConfiguration) {
     (component as DialogPanel).apply()
     moduleSelector.applyTo(runConfiguration)
-    runConfiguration.generateAllVariants = generateForAllVariantsCheckbox.isSelected
+    runConfiguration.generateAllVariants = generateAllVariants
   }
 
   override fun createEditor() = panel {
-    getModuleChooser()
-    getCheckbox(configuration::generateAllVariants)
-  }
 
-  fun Panel.getModuleChooser() {
     row {
       label(AndroidBundle.message("android.run.configuration.module.label"))
       cell(modulesComboBox)
@@ -118,13 +116,22 @@ class AndroidBaselineProfileRunConfigurationEditor(private val project: Project,
           maximumSize = Dimension(400, maximumSize.height)
         }
     }.layout(RowLayout.LABEL_ALIGNED)
-  }
 
-  fun Panel.getCheckbox(property: KMutableProperty0<Boolean>) {
-    group("Generation Options", indent = true) {
-      row {
-        cell(generateForAllVariantsCheckbox).bindSelected(property).align(AlignX.FILL)
-      }.layout(RowLayout.LABEL_ALIGNED)
+    group(message("android.baseline.profile.run.configuration.group.variants.title"), indent = true) {
+      buttonsGroup {
+        row {
+          radioButton(
+            message("android.baseline.profile.run.configuration.group.variants.current"),
+            value = false
+          ).align(AlignX.FILL)
+        }.layout(RowLayout.LABEL_ALIGNED)
+        row {
+          radioButton(
+            message("android.baseline.profile.run.configuration.group.variants.allvariants"),
+            value = true
+          ).align(AlignX.FILL)
+        }.layout(RowLayout.LABEL_ALIGNED)
+      }.bind(::generateAllVariants)
     }
   }
 }
