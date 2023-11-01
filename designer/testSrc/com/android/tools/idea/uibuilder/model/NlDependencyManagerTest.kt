@@ -64,9 +64,10 @@ open class NlDependencyManagerTest : LayoutTestCase() {
   }
 
   fun testIdentifiesMissingDependency() {
-    TestCase.assertFalse(
-      NlDependencyManager.getInstance()
-        .isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet)
+    TestCase.assertNull(
+      projectSystem
+        .getModuleSystem(myFacet.module)
+        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")),
     )
   }
 
@@ -76,9 +77,10 @@ open class NlDependencyManagerTest : LayoutTestCase() {
       myFacet.module,
       GradleVersion(1, 1)
     )
-    TestCase.assertTrue(
-      NlDependencyManager.getInstance()
-        .isModuleDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFacet)
+    TestCase.assertNotNull(
+      projectSystem
+        .getModuleSystem(myFacet.module)
+        .getRegisteredDependency(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")),
     )
   }
 

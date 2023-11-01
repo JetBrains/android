@@ -23,7 +23,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.util.addDependenciesWithUiConfirmation
-import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.userWantsToAdd
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
@@ -105,10 +104,6 @@ class NlDependencyManager private constructor() {
     }
     return true
   }
-
-  /** Returns true if the current module depends on the specified library. */
-  fun isModuleDependency(artifact: GoogleMavenArtifactId, facet: AndroidFacet): Boolean =
-    facet.module.dependsOn(artifact)
 
   /**
    * Returns the [Version] of the library with specified [artifactId] that the current module
