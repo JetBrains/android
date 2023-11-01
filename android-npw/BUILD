@@ -105,6 +105,11 @@ iml_module(
     test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+    ],
+    # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",

@@ -45,11 +45,6 @@ iml_module(
     visibility = ["//visibility:public"],
     exports = ["//tools/adt/idea/build-common:intellij.android.buildCommon"],
     # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
-        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
-    ],
-    # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
@@ -105,7 +100,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:perfetto-proto",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
-        "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/adt/idea/dagger:intellij.android.dagger[module]",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
@@ -624,6 +618,11 @@ iml_module(
     test_tags = [],
     test_timeout = "long",
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    runtime_deps = [
+        "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
