@@ -234,6 +234,12 @@ fun HttpData.getUrlName(): String {
   return name.decodeUrl()
 }
 
+fun HttpData.getUrlPath() = runCatching { URI.create(url)?.path }.getOrNull() ?: "Unknown"
+
+fun HttpData.getUrlHost() = runCatching { URI.create(url)?.host }.getOrNull() ?: "Unknown"
+
+fun HttpData.getUrlScheme() = runCatching { URI.create(url)?.scheme }.getOrNull() ?: "Unknown"
+
 fun HttpData.getMimeType() = responseHeader.contentType.mimeType.split("/").last()
 
 private fun String.lastComponent() = trimEnd('/').substringAfterLast('/')

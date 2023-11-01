@@ -58,7 +58,7 @@ class ConnectionsView(
 
   init {
     connectionsTable =
-      TimelineTable.create(tableModel, model.timeline, TIMELINE.toDisplayString(), true)
+      TimelineTable.create(tableModel, model.timeline, TIMELINE.displayString, true)
     customizeConnectionsTable()
     ConfigColumnTableAspect.apply(connectionsTable, NetworkInspectorViewState.getInstance().columns)
     createTooltip()

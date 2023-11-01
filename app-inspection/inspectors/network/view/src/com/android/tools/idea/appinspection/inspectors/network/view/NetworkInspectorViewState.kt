@@ -42,10 +42,25 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
   override fun getState(): NetworkInspectorViewState {
     // Early version had the name as the `Column` enum name. New versions uses a common API that
     // needs the display string.
-    if (columns.first().name.last().isUpperCase()) {
+    if (columns.find { it.name == "NAME" } != null) {
       // One time conversion from enum `name` to `displayString`. This is possible because at the
       // time this code is written, the enum values all have `displayString == capitalized name`
       columns.forEach { it.name = StringUtil.capitalize(it.name.lowercase()) }
+    }
+    val configNames = columns.mapTo(HashSet()) { it.name }
+    val enumNames = ConnectionColumn.values().mapTo(HashSet()) { it.displayString }
+
+    if (configNames != enumNames) {
+      ConnectionColumn.values().forEachIndexed { i, value ->
+        if (!configNames.contains(value.displayString)) {
+          if (i < configNames.size) {
+            columns.add(i, value.toColumnInfo())
+          } else {
+            columns.add(value.toColumnInfo())
+          }
+        }
+      }
+      columns.removeAll { it.name !in enumNames }
     }
     return this
   }
@@ -55,4 +70,4 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
   }
 }
 
-private fun ConnectionColumn.toColumnInfo() = ColumnInfo(toDisplayString(), widthRatio, visible)
+private fun ConnectionColumn.toColumnInfo() = ColumnInfo(displayString, widthRatio, visible)

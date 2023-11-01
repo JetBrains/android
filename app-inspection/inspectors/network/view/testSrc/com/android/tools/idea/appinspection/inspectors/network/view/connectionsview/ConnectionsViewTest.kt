@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.network.view
+package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
@@ -29,10 +29,10 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseFields
-import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn
-import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionsView
+import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
+import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.protobuf.ByteString
-import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -58,17 +58,6 @@ private val FAKE_DATA =
     createHttpData(3, 8, 13, ByteString.copyFromUtf8("1234")),
     createHttpData(4, 21, 34, ByteString.copyFromUtf8("123"))
       .copy(responseFields = fakeResponseFields(4, "bmp"))
-  )
-
-private fun createHttpData(id: Long, startS: Long, endS: Long, responsePayload: ByteString) =
-  createFakeHttpData(
-    id,
-    TimeUnit.SECONDS.toMicros(startS),
-    TimeUnit.SECONDS.toMicros(startS),
-    TimeUnit.SECONDS.toMicros(endS),
-    TimeUnit.SECONDS.toMicros(endS),
-    TimeUnit.SECONDS.toMicros(endS),
-    responsePayload = responsePayload
   )
 
 @RunsInEdt
@@ -140,49 +129,52 @@ class ConnectionsViewTest {
   @Test
   fun logicToExtractColumnValuesFromDataWorks() {
     val data = FAKE_DATA[2] // Request: id = 3, time = 8->13
-    assertThat(data.id).isEqualTo(3)
+    Truth.assertThat(data.id).isEqualTo(3)
 
     // ID is set as the URL name, e.g. example.com/{id}, by TestHttpData
-    assertThat(ConnectionColumn.NAME.getValueFrom(data)).isEqualTo(data.id.toString())
-    assertThat(ConnectionColumn.SIZE.getValueFrom(data)).isEqualTo(4)
-    assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
-    assertThat(ConnectionColumn.STATUS.getValueFrom(data)).isEqualTo(FAKE_RESPONSE_CODE)
-    assertThat(ConnectionColumn.TIME.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    assertThat(ConnectionColumn.TIMELINE.getValueFrom(data)).isEqualTo(TimeUnit.SECONDS.toMicros(8))
+    Truth.assertThat(ConnectionColumn.NAME.getValueFrom(data)).isEqualTo(data.id.toString())
+    Truth.assertThat(ConnectionColumn.SIZE.getValueFrom(data)).isEqualTo(4)
+    Truth.assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    Truth.assertThat(ConnectionColumn.STATUS.getValueFrom(data)).isEqualTo(FAKE_RESPONSE_CODE)
+    Truth.assertThat(ConnectionColumn.TIME.getValueFrom(data))
+      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    Truth.assertThat(ConnectionColumn.TIMELINE.getValueFrom(data))
+      .isEqualTo(TimeUnit.SECONDS.toMicros(8))
   }
 
   @Test
   fun mimeTypeContainingMultipleComponentsIsTruncated() {
     val data = FAKE_DATA[0] // Request: id = 1
-    assertThat(data.id).isEqualTo(1)
-    assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
-    assertThat(FAKE_CONTENT_TYPE).isNotEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    Truth.assertThat(data.id).isEqualTo(1)
+    Truth.assertThat(FAKE_CONTENT_TYPE).endsWith(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    Truth.assertThat(FAKE_CONTENT_TYPE)
+      .isNotEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
   }
 
   @Test
   fun simpleMimeTypeIsCorrectlyDisplayed() {
     val data = FAKE_DATA[3] // Request: id = 4
-    assertThat(data.id).isEqualTo(4)
-    assertThat("bmp").isEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
+    Truth.assertThat(data.id).isEqualTo(4)
+    Truth.assertThat("bmp").isEqualTo(ConnectionColumn.TYPE.getValueFrom(data) as String)
   }
 
   @Test
   fun dataRangeControlsVisibleConnections() {
     val view = inspectorView.connectionsView
     val table = getConnectionsTable(view)
-    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
+    Truth.assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
       .isEqualTo(model.timeline.dataRange)
-    assertThat(table.rowCount).isEqualTo(4)
+    Truth.assertThat(table.rowCount).isEqualTo(4)
     // When a range is selected, table should only show connections within.
     model.timeline.selectionRange.set(
       TimeUnit.SECONDS.toMicros(3).toDouble(),
       TimeUnit.SECONDS.toMicros(10).toDouble()
     )
-    assertThat(table.rowCount).isEqualTo(2)
+    Truth.assertThat(table.rowCount).isEqualTo(2)
     // Once selection is cleared, table goes back to showing everything.
     model.timeline.selectionRange.set(0.0, -1.0)
-    assertThat(table.rowCount).isEqualTo(4)
-    assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
+    Truth.assertThat(table.rowCount).isEqualTo(4)
+    Truth.assertThat((table.getCellRenderer(0, 5) as TimelineTable.CellRenderer).activeRange)
       .isEqualTo(model.timeline.dataRange)
   }
 
@@ -205,7 +197,7 @@ class ConnectionsViewTest {
     }
     model.timeline.selectionRange.set(0.0, TimeUnit.SECONDS.toMicros(100).toDouble())
     latchSelected.await()
-    assertThat(selectedRow).isEqualTo(arbitraryIndex)
+    Truth.assertThat(selectedRow).isEqualTo(arbitraryIndex)
   }
 
   @Test
@@ -220,14 +212,14 @@ class ConnectionsViewTest {
     table.rowSorter.toggleSortOrder(ConnectionColumn.TIME.ordinal)
 
     // After reverse sorting, data should be backwards
-    assertThat(table.rowCount).isEqualTo(4)
-    assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
-    assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
-    assertThat(table.convertRowIndexToView(2)).isEqualTo(1)
-    assertThat(table.convertRowIndexToView(3)).isEqualTo(0)
+    Truth.assertThat(table.rowCount).isEqualTo(4)
+    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
+    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
+    Truth.assertThat(table.convertRowIndexToView(2)).isEqualTo(1)
+    Truth.assertThat(table.convertRowIndexToView(3)).isEqualTo(0)
 
     model.timeline.selectionRange.set(0.0, 0.0)
-    assertThat(table.rowCount).isEqualTo(0)
+    Truth.assertThat(table.rowCount).isEqualTo(0)
 
     // Include middle two requests: 3->5 (time = 2), and 8->13 (time=5)
     // This should still be shown in reverse sorted over
@@ -235,9 +227,9 @@ class ConnectionsViewTest {
       TimeUnit.SECONDS.toMicros(3).toDouble(),
       TimeUnit.SECONDS.toMicros(10).toDouble()
     )
-    assertThat(table.rowCount).isEqualTo(2)
-    assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
-    assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
+    Truth.assertThat(table.rowCount).isEqualTo(2)
+    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(1)
+    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(0)
   }
 
   @Test
@@ -249,33 +241,46 @@ class ConnectionsViewTest {
     // Size should be sorted by raw size as opposed to alphabetically.
     // Toggle once for ascending, twice for descending
     table.rowSorter.toggleSortOrder(ConnectionColumn.SIZE.ordinal)
-    assertThat(table.convertRowIndexToView(0)).isEqualTo(0)
-    assertThat(table.convertRowIndexToView(1)).isEqualTo(1)
-    assertThat(table.convertRowIndexToView(2)).isEqualTo(3)
-    assertThat(table.convertRowIndexToView(3)).isEqualTo(2)
+    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(0)
+    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(1)
+    Truth.assertThat(table.convertRowIndexToView(2)).isEqualTo(3)
+    Truth.assertThat(table.convertRowIndexToView(3)).isEqualTo(2)
 
     table.rowSorter.toggleSortOrder(ConnectionColumn.SIZE.ordinal)
-    assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
-    assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
-    assertThat(table.convertRowIndexToView(2)).isEqualTo(0)
-    assertThat(table.convertRowIndexToView(3)).isEqualTo(1)
+    Truth.assertThat(table.convertRowIndexToView(0)).isEqualTo(3)
+    Truth.assertThat(table.convertRowIndexToView(1)).isEqualTo(2)
+    Truth.assertThat(table.convertRowIndexToView(2)).isEqualTo(0)
+    Truth.assertThat(table.convertRowIndexToView(3)).isEqualTo(1)
   }
 
   @Test
   fun testTableRowHighlight() {
     model.timeline.selectionRange.set(0.0, TimeUnit.SECONDS.toMicros(100).toDouble())
     val view = inspectorView.connectionsView
-    val timelineColumn = ConnectionColumn.TIMELINE.ordinal
     val table = getConnectionsTable(view)
+    val columns = table.columnModel.columns.asSequence()
+    val timelineColumn =
+      columns.indexOfFirst { it.headerValue == ConnectionColumn.TIMELINE.displayString }
     val backgroundColor = Color.YELLOW
     val selectionColor = Color.BLUE
     table.background = backgroundColor
     table.selectionBackground = selectionColor
     val renderer = table.getCellRenderer(1, timelineColumn)
-    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
+    Truth.assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
       .isEqualTo(backgroundColor)
     table.setRowSelectionInterval(1, 1)
-    assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
+    Truth.assertThat(table.prepareRenderer(renderer, 1, timelineColumn).background)
       .isEqualTo(selectionColor)
   }
 }
+
+private fun createHttpData(id: Long, startS: Long, endS: Long, responsePayload: ByteString) =
+  createFakeHttpData(
+    id,
+    TimeUnit.SECONDS.toMicros(startS),
+    TimeUnit.SECONDS.toMicros(startS),
+    TimeUnit.SECONDS.toMicros(endS),
+    TimeUnit.SECONDS.toMicros(endS),
+    TimeUnit.SECONDS.toMicros(endS),
+    responsePayload = responsePayload
+  )
