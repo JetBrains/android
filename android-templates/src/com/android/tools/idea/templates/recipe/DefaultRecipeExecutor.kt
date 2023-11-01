@@ -22,7 +22,6 @@ import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper
@@ -55,7 +54,6 @@ import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySp
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
@@ -121,23 +119,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
       else -> null
     }
-  }
-
-  override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
-    val buildModel =
-      if (moduleDir != null) {
-        projectBuildModel?.getModuleBuildModel(moduleDir)
-      }
-      else {
-        moduleGradleBuildModel
-      } ?: return false
-
-    if (buildModel.getDependencyConfiguration(mavenCoordinate) != null) {
-      return true
-    }
-
-    return GradleCoordinate.parseCoordinateString(mavenCoordinate)
-      ?.let { gradleCoordinate -> context.module?.getModuleSystem()?.getRegisteredDependency(gradleCoordinate) } != null
   }
 
   /**
