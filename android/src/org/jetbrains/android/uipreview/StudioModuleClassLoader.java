@@ -281,8 +281,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
    * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
    * the result of this call until a PSI modification happens.
    */
-  @VisibleForTesting
-  boolean isUserCodeUpToDateNonCached() { return myImpl.isUserCodeUpToDate(); }
+  private boolean isUserCodeUpToDateNonCached() { return myImpl.isUserCodeUpToDate(); }
 
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns

@@ -211,10 +211,10 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     Files.copy(packageDir.resolve("AClass.class"), overlayDir1.resolve("com/google/example/AClass.class"));
     loader.loadClass("com.google.example.AClass");
 
-    assertTrue(loader.isUserCodeUpToDateNonCached());
+    assertTrue(loader.isUserCodeUpToDate());
     // New overlay will make the code out-of-date
     ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayDir2);
-    assertFalse(loader.isUserCodeUpToDateNonCached());
+    assertFalse(loader.isUserCodeUpToDate());
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }
 
