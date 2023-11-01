@@ -202,7 +202,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     myParentAtConstruction = parent;
     myImpl = loader;
     myModuleReference = new WeakReference<>(renderContext.getModule());
-    Disposer.register(renderContext.getModule(), new WeakReferenceDisposableWrapper(this::dispose));
+    Module module = renderContext.getModule();
+    if (module != null) {
+      Disposer.tryRegister(module, new WeakReferenceDisposableWrapper(this::dispose));
+    }
     // Extracting the provider into a variable to avoid the lambda capturing a reference to renderContext
     myPsiFileProvider = renderContext.getFileProvider();
     myDiagnostics = diagnostics;
@@ -326,7 +329,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @Nullable
   public ModuleRenderContext getModuleContext() {
     Module module = getModule();
-    return module == null ? null : StudioModuleRenderContext.forFile(() -> module, myPsiFileProvider);
+    return module == null ? null : StudioModuleRenderContext.forFile(module, myPsiFileProvider);
   }
 
   /**

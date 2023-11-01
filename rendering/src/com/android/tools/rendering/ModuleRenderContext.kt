@@ -30,7 +30,7 @@ interface ModuleRenderContext {
 
   val isDisposed: Boolean
 
-  val module: Module
+  val module: Module?
 
   /**
    * Creates [CachingClassLoaderLoader] for the classes of this context that might change in time.

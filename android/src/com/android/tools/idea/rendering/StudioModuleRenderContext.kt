@@ -18,7 +18,6 @@ package com.android.tools.idea.rendering
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.rendering.ModuleRenderContext
-import com.android.tools.rendering.api.IdeaModuleProvider
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiFile
@@ -30,18 +29,17 @@ import java.util.function.Supplier
 
 /**
  * Studio specific implementation of [ModuleRenderContext].
- *
- * This should be a short living object since it retains a strong reference to a [Module].
  */
 open class StudioModuleRenderContext protected constructor(
-  private val moduleProvider: IdeaModuleProvider,
+  module: Module,
   override val fileProvider: Supplier<PsiFile?>
 ) : ModuleRenderContext {
+  private val moduleWeakRef = WeakReference(module)
   override val isDisposed: Boolean
-    get() = module.isDisposed
+    get() = module?.isDisposed ?: true
 
-  override val module: Module
-    get() = moduleProvider.getIdeaModule()
+  override val module: Module?
+    get() = moduleWeakRef.get()
   override fun createInjectableClassLoaderLoader(): ProjectSystemClassLoader {
     val moduleRef = WeakReference(module)
     val psiFile = fileProvider.get()
@@ -59,19 +57,19 @@ open class StudioModuleRenderContext protected constructor(
 
   companion object {
     @JvmStatic
-    fun forFile(module: IdeaModuleProvider, fileProvider: Supplier<PsiFile?>) =
+    fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) =
       StudioModuleRenderContext(module, fileProvider)
 
     /** Always use one of the methods that can provide a file, only use this for testing. */
     @TestOnly
     @JvmStatic
-    fun forModule(module: Module) = StudioModuleRenderContext({ module }) { null }
+    fun forModule(module: Module) = StudioModuleRenderContext(module) { null }
 
     @JvmStatic
     fun forFile(file: PsiFile): ModuleRenderContext {
       val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
       val module = runReadAction { file.module!! }
-      return forFile({ module }) { runReadAction { filePointer.element } }
+      return forFile(module) { runReadAction { filePointer.element } }
     }
   }
 }

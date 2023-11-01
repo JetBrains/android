@@ -109,7 +109,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = facet.module.name
   override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module)
   override fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): ModuleRenderContext {
-    return StudioModuleRenderContext.forFile(this) {
+    return StudioModuleRenderContext.forFile(facet.module) {
       weakRenderTask.get()?.xmlFile?.get()
     }
   }

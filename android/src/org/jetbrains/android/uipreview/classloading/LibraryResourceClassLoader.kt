@@ -108,13 +108,13 @@ private fun isResourceClassName(className: String): Boolean = RESOURCE_CLASS_NAM
  */
 class LibraryResourceClassLoader(
   parent: ClassLoader?,
-  module: Module,
+  module: Module?,
   private val childLoader: DelegatingClassLoader.Loader
 ) : ClassLoader(parent) {
   private val moduleRef = WeakReference(module)
 
   init {
-    registerResources(module)
+    moduleRef.get()?.let { registerResources(it) }
   }
 
   private fun findResourceClass(name: String): Class<*> {

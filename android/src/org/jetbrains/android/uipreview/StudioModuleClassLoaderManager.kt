@@ -272,8 +272,8 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                          additionalProjectTransformation: ClassTransform,
                          additionalNonProjectTransformation: ClassTransform,
                          onNewModuleClassLoader: Runnable): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
-    val module: Module = moduleRenderContext.module
-    var moduleClassLoader = module.getUserData(PRELOADER)?.getClassLoader()
+    val module: Module? = moduleRenderContext.module
+    var moduleClassLoader = module?.getUserData(PRELOADER)?.getClassLoader()
     val combinedProjectTransformations: ClassTransform by lazy {
       combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     }
@@ -296,19 +296,19 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
 
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
-      moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
+      moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
       if (LOG.isDebugEnabled) {
-        LOG.debug { "Loading new class loader for module ${anonymize(AndroidFacetRenderModelModule(module.androidFacet!!))}" }
+        LOG.debug { "Loading new class loader for module ${module?.androidFacet?.let { anonymize(AndroidFacetRenderModelModule(it)) }}" }
       }
       val preloadedClassLoader: StudioModuleClassLoader? =
-        moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+        moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
           parent, combinedProjectTransformations, combinedNonProjectTransformations)
       moduleClassLoader = preloadedClassLoader ?: StudioModuleClassLoader(parent,
                                                                           moduleRenderContext,
                                                                           combinedProjectTransformations,
                                                                           combinedNonProjectTransformations,
                                                                           createDiagnostics())
-      module.putUserData(PRELOADER, Preloader(moduleClassLoader))
+      module?.putUserData(PRELOADER, Preloader(moduleClassLoader))
       onNewModuleClassLoader.run()
     }
 
@@ -334,12 +334,12 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager<StudioModuleClas
                           additionalProjectTransformation: ClassTransform,
                           additionalNonProjectTransformation: ClassTransform): ModuleClassLoaderManager.Reference<StudioModuleClassLoader> {
     // Make sure the helper service is initialized
-    moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
+    moduleRenderContext.module?.project?.getService(ModuleClassLoaderProjectHelperService::class.java)
 
     val combinedProjectTransformations = combine(PROJECT_DEFAULT_TRANSFORMS, additionalProjectTransformation)
     val combinedNonProjectTransformations = combine(NON_PROJECT_CLASSES_DEFAULT_TRANSFORMS, additionalNonProjectTransformation)
     val preloadedClassLoader: StudioModuleClassLoader? =
-      moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
+      moduleRenderContext.module?.getOrCreateHatchery()?.requestClassLoader(
         parent, combinedProjectTransformations, combinedNonProjectTransformations)
     return (preloadedClassLoader ?: StudioModuleClassLoader(parent, moduleRenderContext,
                                                             combinedProjectTransformations,
