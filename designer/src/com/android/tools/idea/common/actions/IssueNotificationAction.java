@@ -20,23 +20,18 @@ import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.error.Issue;
 import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanelService;
-import com.android.tools.idea.common.error.IssuePanelServiceKt;
-import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
 import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue;
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.IconUtil;
 import icons.StudioIcons;
 import java.util.List;
@@ -107,17 +102,12 @@ public class IssueNotificationAction extends ToggleAction {
 
   @Override
   public void setSelected(@NotNull AnActionEvent e, boolean state) {
-    DesignSurface<?> surface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
-    if (surface == null) {
+    Project project = e.getProject();
+    if (project == null) {
       return;
     }
-    IssuePanelServiceKt.setIssuePanelVisibility(surface, state, () -> {
-      Project project = e.getData(PlatformDataKeys.PROJECT);
-      if (project != null) {
-        IssuePanelService.getInstance(project).focusIssuePanelIfVisible();
-      }
-    });
-
+    IssuePanelService issuePanelService = IssuePanelService.getInstance(project);
+    issuePanelService.setSharedIssuePanelVisibility(state, issuePanelService::focusIssuePanelIfVisible);
   }
 
   @Override

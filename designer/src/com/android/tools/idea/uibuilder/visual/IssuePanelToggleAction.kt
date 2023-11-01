@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.trackLayoutValidationToggleIssuePanel
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,11 +34,9 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) :
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    // Do not track as Layout Editor event.
-    surface.setIssuePanelVisibilityNoTracking(state) {
-      e.getData(PlatformDataKeys.PROJECT)?.let { project ->
-        IssuePanelService.getInstance(project).focusIssuePanelIfVisible()
-      }
+    val issuePanelService = e.project?.let { IssuePanelService.getInstance(it) } ?: return
+    issuePanelService.setSharedIssuePanelVisibility(state) {
+      issuePanelService.focusIssuePanelIfVisible()
       // Track as Layout Validation Too event.
       trackLayoutValidationToggleIssuePanel(surface, state)
     }

@@ -627,35 +627,6 @@ class IssuePanelService(private val project: Project) {
 }
 
 /**
- * Helper function to set the issue panel in [DesignSurface] without tracking it into the layout
- * editor metrics.
- *
- * @param show whether to show or hide the issue panel.
- * @param onAfterSettingVisibility optional task to execute after the visibility of issue panel is
- *   changed.
- */
-fun DesignSurface<*>.setIssuePanelVisibilityNoTracking(
-  show: Boolean,
-  onAfterSettingVisibility: Runnable? = null
-) {
-  IssuePanelService.getInstance(project)
-    .setSharedIssuePanelVisibility(show, onAfterSettingVisibility)
-}
-
-/**
- * Helper function to set the issue panel in [DesignSurface].
- *
- * @param show whether to show or hide the issue panel.
- * @param runnable optional task to execute after the visibility of issue panel is changed.
- *
- * TODO(b/300646581): Revisit this function to see if we can remove the DesignSurface dependency.
- */
-fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, runnable: Runnable? = null) {
-  analyticsManager.trackShowIssuePanel()
-  setIssuePanelVisibilityNoTracking(show, runnable)
-}
-
-/**
  * This should be same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName]
  * for consistency.
  */
