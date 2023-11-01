@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
-import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_MAIN;
+import static com.android.tools.idea.gradle.model.IdeVariantUtilKt.ARTIFACT_NAME_MAIN;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.makeAutoIndexingOnCopy;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static java.util.Collections.emptyList;
