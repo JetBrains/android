@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.runningdevices.SPLITTER_KEY
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
@@ -47,6 +48,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -239,7 +241,9 @@ data class SelectedTabState(
           LeftVerticalSplitAction(::updateUi),
           SwapLeftVerticalSplitAction(::updateUi),
           RightVerticalSplitAction(::updateUi),
-          SwapRightVerticalSplitAction(::updateUi)
+          SwapRightVerticalSplitAction(::updateUi),
+          Separator.create(),
+          DimensionUnitAction
         )
       )
     )

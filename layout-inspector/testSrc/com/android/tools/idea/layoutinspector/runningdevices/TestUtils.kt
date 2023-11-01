@@ -18,9 +18,18 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.HorizontalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.LeftVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.RightVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapHorizontalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapLeftVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapRightVerticalSplitAction
+import com.android.tools.idea.layoutinspector.runningdevices.actions.SwapVerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepInspectAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.UiConfig
+import com.android.tools.idea.layoutinspector.runningdevices.actions.VerticalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.ui.LayoutInspectorRenderer
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.RootPanel
@@ -266,6 +275,18 @@ private fun verifyToolbar(container: Container) {
   assertThat(toolbar.actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
   assertThat(toolbar.actions.filterIsInstance<ToggleDeepInspectAction>()).hasSize(1)
   assertThat(toolbar.actions.filterIsInstance<GearAction>()).hasSize(1)
+
+  val gearAction = toolbar.actions.filterIsInstance<GearAction>().first()
+  assertThat(gearAction.actions.toList()).hasSize(10)
+  assertThat(gearAction.actions.filterIsInstance<VerticalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<SwapVerticalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<HorizontalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<SwapHorizontalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<LeftVerticalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<SwapLeftVerticalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<RightVerticalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<SwapRightVerticalSplitAction>()).hasSize(1)
+  assertThat(gearAction.actions.filterIsInstance<DimensionUnitAction>()).hasSize(1)
 
   assertThat(container.allChildren().filter { it.name == "LayoutInspectorToolbarTitleLabel" })
     .hasSize(1)
