@@ -1502,11 +1502,26 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               // However, we only need to do this scan if the change appears to be related to ids; this can
               // only happen if the attribute value is changed.
               PsiElement parent = event.getParent();
-              PsiElement child = event.getChild();
-              if (parent instanceof XmlText || child instanceof XmlText || parent instanceof XmlComment || child instanceof XmlComment) {
+              PsiElement child = event.getChild();  // Same as event.getNewChild() for a childReplaced event.
+              if (parent instanceof XmlText || child instanceof XmlText || parent instanceof XmlComment) {
+                return;
+              }
+              PsiElement oldChild = event.getOldChild();
+              if (child instanceof XmlComment && oldChild instanceof XmlComment) {
+                // Checking for child to be a comment is not sufficient, because the old child may
+                // have been an XmlElement with an ID that's been removed. This can happen is the
+                // user selects an XML tag and uses an action to comment out the whole thing.
+                // Only if both the old and new child are comments can a scan be skipped.
                 return;
               }
               if (parent instanceof XmlElement && child instanceof XmlElement) {
+                if (child instanceof XmlComment || oldChild instanceof XmlComment) {
+                  // We know from the check above that not both of these children are comments; so
+                  // the child has either been commented or uncommented. Since the non-comment
+                  // element may include IDs, schedule a rescan.
+                  scheduleScan(virtualFile, folderType);
+                  return;
+                }
                 if (event.getOldChild() == event.getNewChild()) {
                   // We're not getting accurate PSI information: we have to do a full file scan.
                   scheduleScan(virtualFile, folderType);
@@ -1516,7 +1531,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   assert parent instanceof XmlAttribute : parent;
                   XmlAttribute attribute = (XmlAttribute)parent;
 
-                  PsiElement oldChild = event.getOldChild();
                   PsiElement newChild = event.getNewChild();
                   if (oldChild instanceof XmlAttributeValue && newChild instanceof XmlAttributeValue) {
                     String oldText = ((XmlAttributeValue)oldChild).getValue().trim();

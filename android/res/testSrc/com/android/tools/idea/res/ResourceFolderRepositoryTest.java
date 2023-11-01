@@ -1449,6 +1449,47 @@ public class ResourceFolderRepositoryTest {
     assertThat(repository.getFileRescans()).isEqualTo(rescans);
   }
 
+  @Test
+  public void commentAndUncommentTag() throws Exception {
+    // Regression test for https://issuetracker.google.com/302262716.
+    VirtualFile file1 = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    PsiFile psiFile1 = PsiManager.getInstance(myProject).findFile(file1);
+    assertThat(psiFile1).isNotNull();
+    myFixture.configureFromExistingVirtualFile(file1);
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.ID, "noteArea")).isTrue();
+
+    // Locate the `noteArea` ID, and then find and select its surrounding tag.
+    String documentText = myFixture.getEditor().getDocument().getText();
+    int idIndex = documentText.indexOf("android:id=\"@+id/noteArea\"");
+    assertThat(idIndex).isAtLeast(0);
+    int startTagIndex = documentText.substring(0, idIndex).lastIndexOf("<LinearLayout");
+    assertThat(startTagIndex).isAtLeast(0);
+    int endTagIndex = documentText.indexOf("</LinearLayout>", idIndex);
+    assertThat(endTagIndex).isAtLeast(0);
+    myFixture.getEditor().getSelectionModel().setSelection(
+      startTagIndex,
+      endTagIndex + "</LinearLayout>".length());
+
+    // Comment out the `noteArea` tag.
+    myFixture.performEditorAction(IdeActions.ACTION_COMMENT_BLOCK);
+    commitAndWaitForUpdates(repository);
+
+    // The repository should no longer have the `noteArea` id.
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.ID, "noteArea")).isFalse();
+
+    // Select and uncomment out the `noteArea` tag.
+    myFixture.getEditor().getSelectionModel().setSelection(
+      startTagIndex,
+      endTagIndex + "</LinearLayout>".length() + "<!---->".length());
+    myFixture.performEditorAction(IdeActions.ACTION_COMMENT_BLOCK);
+    commitAndWaitForUpdates(repository);
+
+    // The `noteArea` id should be back again.
+    assertThat(repository.hasResources(RES_AUTO, ResourceType.ID, "noteArea")).isTrue();
+  }
+
 
   @Test
   public void editIdFromDrawable() throws Exception {
