@@ -15,28 +15,17 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
+import org.jetbrains.kotlin.psi.KtFile
 
-interface IrClassCache {
-  operator fun get(name: String): IrClass?
-  operator fun contains(name: String): Boolean
+interface ApkClassProvider {
+  fun getClass(ktFile: KtFile, className: String): IrClass?
 }
 
-class MutableIrClassCache : IrClassCache {
-  private val cache = mutableMapOf<String, IrClass>()
-
-  override operator fun get(name: String): IrClass? = cache[name]
-  override fun contains(name: String) = name in cache
-
-  fun update(clazz: IrClass) {
-    cache[clazz.name] = clazz
-  }
-
-  fun update(classes: List<IrClass>) {
-    classes.forEach { update(it) }
-  }
-
-  fun clear() {
-    cache.clear()
+class DefaultApkClassProvider : ApkClassProvider {
+  override fun getClass(ktFile: KtFile, className: String): IrClass? {
+    val classContent = ktFile.getModuleSystem()?.getClassFileFinderForSourceFile(ktFile.originalFile.virtualFile)?.findClassFile(className)
+    return classContent?.let { IrClass(it.content) }
   }
 }

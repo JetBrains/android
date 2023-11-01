@@ -29,6 +29,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.analytics.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiDocumentManager;
@@ -184,7 +185,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private final LiveEditCompiler compiler;
 
-  private final PrecompileManager precompileManager;
+  private final PsiValidator psiValidator;
 
   // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
   private final double LE_LOG_FRACTION = 0.1;
@@ -204,11 +205,9 @@ public class LiveEditProjectMonitor implements Disposable {
 
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
-    this.compiler = new LiveEditCompiler(project, irClassCache);
+    this.compiler = new LiveEditCompiler(project, irClassCache, new DefaultApkClassProvider());
     this.adbEventsListener = liveEditService.getAdbEventsListener();
-
-    Precompiler precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
-    this.precompileManager = new PrecompileManager(project, precompiler, LOGGER);
+    this.psiValidator = new PsiValidator();
 
     Disposer.register(liveEditService, this);
     project.getMessageBus().connect(this)
@@ -315,7 +314,6 @@ public class LiveEditProjectMonitor implements Disposable {
    * @return true if multi-deploy is detected, false otherwise (this will be removed once multi-deploy is supported)
    */
   public boolean notifyExecution(@NotNull Collection<IDevice> devices) {
-    mainThreadExecutor.submit(precompileManager::reset);
     Set<IDevice> newDevices = new HashSet<>(devices);
     newDevices.removeIf(d -> !supportLiveEdits(d));
     Ref<Boolean> multiDeploy = new Ref<>(false);
@@ -386,15 +384,14 @@ public class LiveEditProjectMonitor implements Disposable {
   // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
   public void beforeFileChanged(KtFile ktFile) {
     if (shouldLiveEdit()) {
-      precompileManager.copyForPrecompile(ktFile);
+      psiValidator.beforeChanges(ktFile);
     }
   }
 
   // Called when a Kotlin file is modified. Only called on the class-differ code path.
   public void fileChanged(KtFile ktFile) {
     if (shouldLiveEdit()) {
-      updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
-      precompileManager.getPrecompileTask(ktFile, new CompileCallbacks()).submit(mainThreadExecutor);
+      scheduleCompile(ktFile);
     }
   }
 
@@ -403,27 +400,6 @@ public class LiveEditProjectMonitor implements Disposable {
            StringUtil.isNotEmpty(applicationId) &&
            !liveEditDevices.isUnrecoverable() &&
            !liveEditDevices.isDisabled();
-  }
-
-  // Callbacks for after a pre-compile completes; handles errors, updates the IR cache if needed, and schedules the Live Edit. Only used on
-  // the class-differ code path.
-  private class CompileCallbacks implements PrecompileCallbacks {
-    @Override
-    public void onPrecompileSuccess(@NotNull KtFile ktFile, @NotNull List<IrClass> irClasses) {
-      irClassCache.update(irClasses);
-      scheduleCompile(ktFile);
-    }
-
-    @Override
-    public void onPrecompileSkip(@NotNull KtFile ktFile) {
-      scheduleCompile(ktFile);
-    }
-
-    @Override
-    public void onPrecompileError(@NotNull KtFile ktFile, @NotNull String message, @Nullable Throwable throwable) {
-      String errorMessage = throwable == null ? message : String.format("%s: %s", message, throwable);
-      updateEditableStatus(LiveEditStatus.createRerunnableErrorStatus(errorMessage));
-    }
   }
 
   private void scheduleCompile(KtFile ktFile) {
@@ -519,7 +495,7 @@ public class LiveEditProjectMonitor implements Disposable {
         .collect(Collectors.toList());
 
       Set<Integer> minApis = getDevicesApiLevels();
-      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), minApis);
+      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), minApis, psiValidator);
       if (compiled.isEmpty()) {
         return false;
       }

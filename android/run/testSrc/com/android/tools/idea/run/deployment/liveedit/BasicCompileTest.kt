@@ -225,7 +225,7 @@ class BasicCompileTest {
       fail("Expected exception due to modified constructor")
     } catch (e: LiveEditUpdateException) {
       assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
-      assertContains(e.details, "MyClass()")
+      assertContains(e.details, "MyClass")
     }
   }
 

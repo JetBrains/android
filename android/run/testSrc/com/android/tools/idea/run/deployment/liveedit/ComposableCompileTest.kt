@@ -213,22 +213,27 @@ class ComposableCompileTest {
 
   @Test
   fun sendAllThenOnlyChanges() {
-    val cache = initialCache(mapOf(
-      "ComposeSimple.kt" to """
-        import androidx.compose.runtime.Composable
-        @Composable fun composableFun() {
-          val a = { }
-        }
-        @Composable fun composableFun2() {
-          val a = { }
-        }
-        @Composable fun composableFun3() {
-          val a = { }
-        }
-        @Composable fun composableFun4() {
-          val a = { }
-        }"""))
-    val compiler = LiveEditCompiler(projectRule.project, cache)
+    val file0 = """
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() {
+        val a = { }
+      }
+      @Composable fun composableFun2() {
+        val a = { }
+      }
+      @Composable fun composableFun3() {
+        val a = { }
+      }
+      @Composable fun composableFun4() {
+        val a = { }
+      }"""
+
+    val cache = MutableIrClassCache()
+    val apk = projectRule.compileIr(file0, "ComposeSimple.kt").associateBy { it.name }
+    val compiler = LiveEditCompiler(projectRule.project, cache, object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String) = apk[className]
+    })
+
     val file1 = projectRule.fixture.configureByText("ComposeSimple.kt", """
       import androidx.compose.runtime.Composable
       @Composable fun composableFun() {
@@ -243,6 +248,15 @@ class ComposableCompileTest {
       @Composable fun composableFun4() {
         val a = { }
       }""")
+
+    // First LE should send all classes, regardless of what has changed.
+    val output = compile(listOf(LiveEditCompilerInput(file1, file1 as KtFile)), compiler)
+    assertEquals(9, output.classes.size)
+    assertEquals(1, output.classesMap.size)
+    assertEquals(8, output.supportClassesMap.size)
+    assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
+
+    cache.update(output.irClasses)
 
     val file2 = projectRule.fixture.configureByText("ComposeSimple.kt", """
       import androidx.compose.runtime.Composable
@@ -259,18 +273,11 @@ class ComposableCompileTest {
         val a = { }
       }""")
 
-    // First LE should send all classes, regardless of what has changed.
-    val output = compile(listOf(LiveEditCompilerInput(file1, file1 as KtFile)), compiler)
-    assertEquals(9, output.classes.size)
-    assertEquals(1, output.classesMap.size)
-    assertEquals(8, output.supportClassesMap.size)
-    assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
-
     // Subsequent LE operations should resume sending only changed classes.
     val output2 = compile(listOf(LiveEditCompilerInput(file2, file2 as KtFile)), compiler)
-    assertEquals(2, output2.classes.size)
+    assertEquals(1, output2.classes.size)
     assertEquals(0, output2.classesMap.size)
-    assertEquals(2, output2.supportClassesMap.size)
+    assertEquals(1, output2.supportClassesMap.size)
   }
 
   private val modifierCode = """
@@ -297,11 +304,11 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionBodyTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val cache = initialCache(mapOf(fileName to """
+    val file0 = """
       $modifierCode
       fun foo() {
         Modifier.background(Color.Red).size(100.dp).padding(20.dp)
-      }"""))
+      }""".trimIndent()
 
     val file = projectRule.fixture.configureByText(fileName ,"""
       $modifierCode
@@ -309,7 +316,13 @@ class ComposableCompileTest {
         Modifier.background(Color.Red).size(100.dp)
       }""")
 
-    val output = compile(file, cache)
+    val apk = projectRule.compileIr(file0, fileName).associateBy { it.name }
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String): IrClass? {
+        return apk[className]
+      }
+    })
+    val output = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
     // Before the fix, invalid code will be generated and this will lead to a class
@@ -322,15 +335,23 @@ class ComposableCompileTest {
   fun incrementalAnalysisFunctionExpressionBodyTest() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val cache = initialCache(mapOf(fileName to """
+    val file0 = """
       $modifierCode
-      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)"""))
+      fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp).padding(20.dp)
+    """.trimIndent()
 
     val file = projectRule.fixture.configureByText(fileName ,"""
       $modifierCode
       fun foo(): Modifier = Modifier.background(Color.Red).size(100.dp)""")
 
-    val output = compile(file, cache)
+
+    val apk = projectRule.compileIr(file0, fileName).associateBy { it.name }
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String): IrClass? {
+        return apk[className]
+      }
+    })
+    val output = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
     // Before the fix, invalid code will be generated and this will lead to a class
@@ -366,7 +387,7 @@ class ComposableCompileTest {
   fun incrementalAnalysisPropertyGetter() {
     val fileName = "Test.kt"
     val className = "TestKt"
-    val cache = initialCache(mapOf(fileName to """
+    val file0 = """
       $modifierCode
       class A {
         val y: Modifier
@@ -375,7 +396,7 @@ class ComposableCompileTest {
       fun bar(): Int {
         A().y
         return 42
-      }"""))
+      }""".trimIndent()
 
     val file = projectRule.fixture.configureByText(fileName ,"""
       $modifierCode
@@ -388,7 +409,13 @@ class ComposableCompileTest {
         return 42
       }""")
 
-    val output = compile(file, cache)
+    val apk = projectRule.compileIr(file0, fileName).associateBy { it.name }
+    val compiler = LiveEditCompiler(projectRule.project, MutableIrClassCache(), object: ApkClassProvider {
+      override fun getClass(ktFile: KtFile, className: String): IrClass? {
+        return apk[className]
+      }
+    })
+    val output = compile(listOf(LiveEditCompilerInput(file, file as KtFile)), compiler)
     Assert.assertTrue(output.classesMap[className]!!.isNotEmpty())
     val klass = loadClass(output, className)
     assertEquals(42, invokeStatic("bar", klass))
