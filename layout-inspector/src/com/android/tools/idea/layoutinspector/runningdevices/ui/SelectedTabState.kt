@@ -45,6 +45,7 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.createEmbeddedLayoutIns
 import com.android.tools.idea.streaming.core.DeviceId
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.DataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -60,6 +61,8 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 private const val WORKBENCH_NAME = "Layout Inspector"
+private const val UI_CONFIGURATION_KEY =
+  "com.android.tools.idea.layoutinspector.runningdevices.ui.uiconfigkey"
 
 /**
  * Represents the state of the selected tab.
@@ -95,12 +98,15 @@ data class SelectedTabState(
     )
 ) : Disposable {
 
-  // TODO(b/304590546): restore config from previos session
   private var uiConfig = UiConfig.HORIZONTAL
   private var wrapLogic: WrapLogic? = null
 
   init {
     Disposer.register(tabComponents, this)
+
+    // Try to restore UI config
+    val uiConfigString = PropertiesComponent.getInstance().getValue(UI_CONFIGURATION_KEY)
+    uiConfig = uiConfigString?.let { UiConfig.valueOf(uiConfigString) } ?: UiConfig.HORIZONTAL
   }
 
   @TestOnly
@@ -124,6 +130,8 @@ data class SelectedTabState(
 
   /** Wrap the RD tab by injecting Embedded Layout Inspector UI. */
   private fun wrapUi(uiConfig: UiConfig) {
+    PropertiesComponent.getInstance().setValue(UI_CONFIGURATION_KEY, uiConfig.name)
+
     wrapLogic =
       WrapLogic(this, tabComponents.tabContentPanel, tabComponents.tabContentPanelContainer)
 

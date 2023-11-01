@@ -128,6 +128,61 @@ class SelectedTabStateTest {
     testConfiguration(UiConfig.RIGHT_VERTICAL_SWAP)
   }
 
+  @Test
+  @RunsInEdt
+  fun testUiConfigIsRestored() {
+    val container = JPanel()
+    val content = JPanel()
+    container.add(content)
+    val emulatorView = displayViewRule.newEmulatorView()
+
+    val tabsComponents1 =
+      TabComponents(displayViewRule.disposable, content, container, emulatorView)
+    val selectedTabState1 =
+      SelectedTabState(
+        displayViewRule.project,
+        DeviceId.ofPhysicalDevice("tab"),
+        tabsComponents1,
+        layoutInspector
+      )
+
+    selectedTabState1.enableLayoutInspector(UiConfig.VERTICAL)
+
+    verifyUiInjected(
+      UiConfig.VERTICAL,
+      tabsComponents1.tabContentPanel,
+      tabsComponents1.tabContentPanelContainer,
+      emulatorView
+    )
+
+    Disposer.dispose(tabsComponents1)
+
+    verifyUiRemoved(
+      tabsComponents1.tabContentPanel,
+      tabsComponents1.tabContentPanelContainer,
+      emulatorView
+    )
+
+    val tabsComponents2 =
+      TabComponents(displayViewRule.disposable, content, container, emulatorView)
+    val selectedTabState2 =
+      SelectedTabState(
+        displayViewRule.project,
+        DeviceId.ofPhysicalDevice("tab"),
+        tabsComponents2,
+        layoutInspector
+      )
+
+    selectedTabState2.enableLayoutInspector()
+
+    verifyUiInjected(
+      UiConfig.VERTICAL,
+      tabsComponents2.tabContentPanel,
+      tabsComponents2.tabContentPanelContainer,
+      emulatorView
+    )
+  }
+
   private fun testConfiguration(uiConfig: UiConfig) {
     val container = JPanel()
     val content = JPanel()
