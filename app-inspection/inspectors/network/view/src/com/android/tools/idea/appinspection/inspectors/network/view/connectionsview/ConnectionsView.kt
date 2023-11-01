@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,47 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.inspectors.network.view
+package com.android.tools.idea.appinspection.inspectors.network.view.connectionsview
 
 import com.android.tools.adtui.TooltipComponent
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.AspectObserver
-import com.android.tools.adtui.model.Timeline
-import com.android.tools.adtui.model.formatter.NumberFormatter
-import com.android.tools.adtui.stdui.BorderlessTableCellRenderer
 import com.android.tools.adtui.stdui.TimelineTable
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.android.tools.adtui.table.ConfigColumnTableAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorAspect
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.NAME
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.SIZE
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.STATUS
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TIME
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TIMELINE
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TYPE
+import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState
+import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.TIMELINE
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.ROW_HEIGHT_PADDING
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_BORDER
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.TOOLTIP_TEXT
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerEnterKeyAction
-import com.intellij.openapi.util.text.StringUtil
-import java.awt.Component
 import java.awt.KeyboardFocusManager
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JTable
 import javax.swing.JTextPane
 import javax.swing.ListSelectionModel
 import javax.swing.event.ListSelectionEvent
-import javax.swing.event.TableModelEvent
-import javax.swing.event.TableModelListener
-import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
 
 /**
@@ -85,12 +70,9 @@ class ConnectionsView(
   private fun customizeConnectionsTable() {
     connectionsTable.autoCreateRowSorter = true
 
-    setRenderer(NAME, BorderlessTableCellRenderer())
-    setRenderer(SIZE, SizeRenderer())
-    setRenderer(TYPE, BorderlessTableCellRenderer())
-    setRenderer(STATUS, StatusRenderer())
-    setRenderer(TIME, TimeRenderer())
-    setRenderer(TIMELINE, TimelineRenderer(connectionsTable, model.timeline))
+    ConnectionColumn.values().forEach {
+      setRenderer(it, it.getCellRenderer(connectionsTable, model))
+    }
 
     connectionsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     connectionsTable.addMouseListener(
@@ -175,97 +157,6 @@ class ConnectionsView(
       }
     } else {
       connectionsTable.clearSelection()
-    }
-  }
-
-  private class ConnectionsTableModel(selectionRangeDataFetcher: SelectionRangeDataFetcher) :
-    AbstractTableModel() {
-    private lateinit var dataList: List<HttpData>
-
-    init {
-      selectionRangeDataFetcher.addOnChangedListener { httpDataList ->
-        dataList = httpDataList
-        fireTableDataChanged()
-      }
-    }
-
-    override fun getRowCount() = dataList.size
-
-    override fun getColumnCount() = ConnectionColumn.values().size
-
-    override fun getColumnName(column: Int) = ConnectionColumn.values()[column].toDisplayString()
-
-    override fun getValueAt(rowIndex: Int, columnIndex: Int) =
-      ConnectionColumn.values()[columnIndex].getValueFrom(dataList[rowIndex])
-
-    override fun getColumnClass(columnIndex: Int) = ConnectionColumn.values()[columnIndex].type
-
-    fun getHttpData(rowIndex: Int) = dataList[rowIndex]
-  }
-
-  private class SizeRenderer : BorderlessTableCellRenderer() {
-    init {
-      horizontalAlignment = RIGHT
-    }
-
-    override fun setValue(value: Any) {
-      val bytes = value as Int
-      text = if (bytes >= 0) NumberFormatter.formatFileSize(bytes.toLong()) else ""
-    }
-  }
-
-  private class StatusRenderer : BorderlessTableCellRenderer() {
-    override fun setValue(value: Any) {
-      val status = value as Int
-      text = if (status > -1) status.toString() else ""
-    }
-  }
-
-  private class TimeRenderer : BorderlessTableCellRenderer() {
-    init {
-      horizontalAlignment = RIGHT
-    }
-
-    override fun setValue(value: Any) {
-      val durationUs = value as Long
-      text =
-        if (durationUs >= 0) {
-          val durationMs = TimeUnit.MICROSECONDS.toMillis(durationUs)
-          StringUtil.formatDuration(durationMs)
-        } else {
-          ""
-        }
-    }
-  }
-
-  private class TimelineRenderer(private val table: JTable, timeline: Timeline) :
-    TimelineTable.CellRenderer(timeline, true), TableModelListener {
-    /**
-     * Keep in sync 1:1 with [ConnectionsTableModel.dataList]. When the table asks for the chart to
-     * render, it will be converted from model index to view index.
-     */
-    private val connectionsCharts = mutableListOf<ConnectionsStateChart>()
-
-    init {
-      table.model.addTableModelListener(this)
-      tableChanged(TableModelEvent(table.model))
-    }
-
-    override fun getTableCellRendererComponent(isSelected: Boolean, row: Int): Component {
-      val chart = connectionsCharts[table.convertRowIndexToModel(row)]
-      chart.colors.setColorIndex(if (isSelected) 1 else 0)
-      chart.component.border = TimelineTable.GridBorder(table)
-      return chart.component
-    }
-
-    override fun tableChanged(e: TableModelEvent) {
-      connectionsCharts.clear()
-      val model = table.model as ConnectionsTableModel
-      for (i in 0 until model.rowCount) {
-        val chart = ConnectionsStateChart(model.getHttpData(i), activeRange)
-        chart.setHeightGap(0.3f)
-        connectionsCharts.add(chart)
-      }
     }
   }
 }

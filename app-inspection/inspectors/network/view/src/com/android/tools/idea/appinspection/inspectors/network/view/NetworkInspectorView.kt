@@ -51,6 +51,7 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkTrafficTooltipModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataListener
+import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionsView
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.DEFAULT_STAGE_BACKGROUND
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.H3_FONT

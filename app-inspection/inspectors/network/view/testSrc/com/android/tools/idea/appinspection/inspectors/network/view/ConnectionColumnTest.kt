@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.view
 
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.NAME
+import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn.NAME
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 

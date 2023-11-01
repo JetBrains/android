@@ -234,6 +234,8 @@ fun HttpData.getUrlName(): String {
   return name.decodeUrl()
 }
 
+fun HttpData.getMimeType() = responseHeader.contentType.mimeType.split("/").last()
+
 private fun String.lastComponent() = trimEnd('/').substringAfterLast('/')
 
 /**

@@ -29,6 +29,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.createFakeHttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.fakeResponseFields
+import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn
+import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionsView
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors

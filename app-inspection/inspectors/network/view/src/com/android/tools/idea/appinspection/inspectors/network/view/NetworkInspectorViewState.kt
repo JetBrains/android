@@ -16,12 +16,7 @@
 package com.android.tools.idea.appinspection.inspectors.network.view
 
 import com.android.tools.adtui.table.ConfigColumnTableAspect.ColumnInfo
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.NAME
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.SIZE
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.STATUS
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TIME
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TIMELINE
-import com.android.tools.idea.appinspection.inspectors.network.view.ConnectionColumn.TYPE
+import com.android.tools.idea.appinspection.inspectors.network.view.connectionsview.ConnectionColumn
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -37,14 +32,7 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
 
   @XCollection(style = v2)
   var columns: MutableList<ColumnInfo> =
-    mutableListOf(
-      NAME.toColumnInfo(),
-      SIZE.toColumnInfo(),
-      TYPE.toColumnInfo(),
-      STATUS.toColumnInfo(),
-      TIME.toColumnInfo(),
-      TIMELINE.toColumnInfo(),
-    )
+    ConnectionColumn.values().map { it.toColumnInfo() }.toMutableList()
 
   companion object {
     fun getInstance(): NetworkInspectorViewState =
@@ -67,5 +55,4 @@ internal class NetworkInspectorViewState : PersistentStateComponent<NetworkInspe
   }
 }
 
-private fun ConnectionColumn.toColumnInfo() =
-  ColumnInfo(toDisplayString(), widthRatio, visible = true)
+private fun ConnectionColumn.toColumnInfo() = ColumnInfo(toDisplayString(), widthRatio, visible)
