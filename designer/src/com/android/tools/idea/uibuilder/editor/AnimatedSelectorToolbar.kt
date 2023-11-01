@@ -302,8 +302,7 @@ class AnimatedSelectorModel(
     val psiXmlFile = file.toPsiFile(project) as XmlFile
     psiXmlFile.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
 
-    return NlModel.builder(facet, file, config)
-      .withParentDisposable(parentDisposable)
+    return NlModel.builder(parentDisposable, facet, file, config)
       .withComponentRegistrar(componentRegistrar)
       .withModelUpdater(EmptyModelUpdater)
       .withXmlProvider { _, _ -> psiXmlFile }

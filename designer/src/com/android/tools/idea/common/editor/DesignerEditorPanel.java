@@ -77,7 +77,6 @@ import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * Assembles a designer editor from various components.
@@ -496,8 +495,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) -> {
       Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet.getModule()));
-      NlModel model = NlModel.builder(facet, file, configuration)
-        .withParentDisposable(disposable)
+      NlModel model = NlModel.builder(disposable, facet, file, configuration)
         .withComponentRegistrar(componentRegistrar)
         .build();
       model.setModelDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.

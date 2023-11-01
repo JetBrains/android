@@ -40,7 +40,7 @@ public class SyncNlModel extends NlModel {
   private DesignSurface<? extends SceneManager> mySurface; // for testing purposes
 
   @NotNull
-  public static SyncNlModel create(@Nullable Disposable parent,
+  public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
@@ -52,7 +52,7 @@ public class SyncNlModel extends NlModel {
   }
 
   @NotNull
-  public static SyncNlModel create(@Nullable Disposable parent,
+  public static SyncNlModel create(@NotNull Disposable parent,
                                    @NotNull Consumer<NlComponent> componentRegistrar,
                                    @Nullable String tooltip,
                                    @NotNull AndroidFacet facet,
@@ -61,7 +61,7 @@ public class SyncNlModel extends NlModel {
     return new SyncNlModel(parent, componentRegistrar, tooltip, facet, file, configuration);
   }
 
-  private SyncNlModel(@Nullable Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
+  private SyncNlModel(@NotNull Disposable parent, @NotNull Consumer<NlComponent> componentRegistrar,
                       @Nullable String tooltip, @NotNull AndroidFacet facet, @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
     super(parent, tooltip, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);

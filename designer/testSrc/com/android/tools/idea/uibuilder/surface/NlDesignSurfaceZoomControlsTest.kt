@@ -113,8 +113,12 @@ class NlDesignSurfaceZoomControlsTest {
     }
 
     val model =
-      NlModel.builder(facet, layout.virtualFile, configuration)
-        .withParentDisposable(androidProjectRule.testRootDisposable)
+      NlModel.builder(
+          androidProjectRule.testRootDisposable,
+          facet,
+          layout.virtualFile,
+          configuration
+        )
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
 

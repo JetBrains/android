@@ -85,7 +85,7 @@ class AtfAnalyzerTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
       SyncNlModel.create(
-        projectRule.project,
+        projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         null,
         facet,

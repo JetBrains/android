@@ -162,8 +162,11 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   private String myGroupId = null;
 
   @NotNull
-  public static NlModelBuilder builder(@NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    return new NlModelBuilder(facet, file, configuration);
+  public static NlModelBuilder builder(@NotNull Disposable parent,
+                                       @NotNull AndroidFacet facet,
+                                       @NotNull VirtualFile file,
+                                       @NotNull Configuration configuration) {
+    return new NlModelBuilder(parent, facet, file, configuration);
   }
 
   /**
@@ -171,7 +174,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   @Slow
   @NotNull
-  static NlModel create(@Nullable Disposable parent,
+  static NlModel create(@NotNull Disposable parent,
                         @Nullable String modelTooltip,
                         @NotNull AndroidFacet facet,
                         @NotNull VirtualFile file,
@@ -184,7 +187,7 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @VisibleForTesting
-  protected NlModel(@Nullable Disposable parent,
+  protected NlModel(@NotNull Disposable parent,
                     @Nullable String modelTooltip,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,

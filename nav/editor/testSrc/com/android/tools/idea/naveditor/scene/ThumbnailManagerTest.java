@@ -70,8 +70,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
-      .withParentDisposable(getMyRootDisposable())
+    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+                                      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
@@ -130,8 +130,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
-      .withParentDisposable(getMyRootDisposable())
+    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+                                      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     Configuration configuration = model.getConfiguration();
@@ -179,8 +179,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
-      .withParentDisposable(getMyRootDisposable())
+    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+                                      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     RefinableImage imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
@@ -203,8 +203,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(myFacet, virtualFile, ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
-      .withParentDisposable(getMyRootDisposable())
+    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+                                      ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
     Image image =

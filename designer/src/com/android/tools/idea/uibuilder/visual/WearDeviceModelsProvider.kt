@@ -88,8 +88,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
         if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
       val model =
-        NlModel.builder(facet, virtualFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, virtualFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

@@ -137,8 +137,7 @@ class CustomModelsProvider(
 
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(
-      NlModel.builder(facet, currentFile, currentFileConfig)
-        .withParentDisposable(parentDisposable)
+      NlModel.builder(parentDisposable, facet, currentFile, currentFileConfig)
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
         .apply { modelDisplayName = "Default (Current File)" }
@@ -159,8 +158,7 @@ class CustomModelsProvider(
         ) ?: currentFile
 
       val model =
-        NlModel.builder(facet, betterFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, betterFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)

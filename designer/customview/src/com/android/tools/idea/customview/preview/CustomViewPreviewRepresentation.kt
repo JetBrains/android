@@ -381,8 +381,7 @@ class CustomViewPreviewRepresentation(
             CustomViewLightVirtualFile("custom_preview.xml", fileContent) { psiFile.virtualFile }
           val config =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          NlModel.builder(facet, customPreviewXml, config)
-            .withParentDisposable(this@CustomViewPreviewRepresentation)
+          NlModel.builder(this@CustomViewPreviewRepresentation, facet, customPreviewXml, config)
             .withXmlProvider(
               BiFunction { project, _ ->
                 AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile

@@ -330,7 +330,7 @@ class VisualLintAnalysisTest {
     files.forEach { file ->
       val nlModel =
         SyncNlModel.create(
-          projectRule.project,
+          projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
           null,
           facet,

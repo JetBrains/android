@@ -99,8 +99,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.builder(facet, betterFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, betterFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

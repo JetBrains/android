@@ -246,8 +246,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           Configuration.create(configurationManager, FolderConfiguration.createDefault())
         newModel =
           withContext(AndroidDispatchers.workerThread) {
-            NlModel.builder(facet, file, configuration)
-              .withParentDisposable(parentDisposable)
+            NlModel.builder(parentDisposable, facet, file, configuration)
               .withComponentRegistrar(NlComponentRegistrar)
               .withXmlProvider { project, virtualFile ->
                 NlModelBuilder.getDefaultFile(project, virtualFile).also {

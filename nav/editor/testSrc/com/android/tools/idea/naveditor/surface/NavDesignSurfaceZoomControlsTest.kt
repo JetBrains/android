@@ -203,8 +203,7 @@ class NavDesignSurfaceZoomControlsTest {
 
     surface.activate()
 
-    val model = NlModel.builder(facet, navGraph.virtualFile, configuration)
-      .withParentDisposable(androidProjectRule.testRootDisposable)
+    val model = NlModel.builder(androidProjectRule.testRootDisposable, facet, navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
