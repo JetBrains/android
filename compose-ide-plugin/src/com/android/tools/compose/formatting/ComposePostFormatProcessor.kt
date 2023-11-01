@@ -101,7 +101,7 @@ private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
  * Splits KtDotQualifiedExpression it one call per line.
  */
 internal fun wrapModifierChain(element: KtDotQualifiedExpression, settings: CodeStyleSettings) {
-  CodeStyle.doWithTemporarySettings(
+  CodeStyle.runWithLocalSettings(
     element.project,
     settings
   ) { tempSettings: CodeStyleSettings ->
