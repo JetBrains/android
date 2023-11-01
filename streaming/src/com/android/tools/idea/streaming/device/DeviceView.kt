@@ -250,7 +250,7 @@ internal class DeviceView(
     try {
       deviceClient.addAgentTerminationListener(agentTerminationListener)
       if (displayId == PRIMARY_DISPLAY_ID) {
-        deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true)
+        deviceClient.establishAgentConnection(maxOutputSize, initialDisplayOrientation, startVideoStream = true, project)
       }
       else {
         deviceClient.waitUntilConnected()
@@ -259,7 +259,7 @@ internal class DeviceView(
           disconnected(initialDisplayOrientation, null)
           return
         }
-        deviceClient.startVideoStream(displayId, maxOutputSize)
+        deviceClient.startVideoStream(project, displayId, maxOutputSize)
       }
 
       deviceClient.videoDecoder?.addFrameListener(displayId, frameListener)
@@ -281,11 +281,10 @@ internal class DeviceView(
   }
 
   private fun updateVideoSize() {
-    val deviceController = deviceClient.deviceController ?: return
     val maxSize = physicalSize
     if (maxVideoSize != maxSize) {
       maxVideoSize = maxSize
-      deviceController.sendControlMessage(SetMaxVideoResolutionMessage(displayId, maxSize))
+      deviceClient.setMaxVideoResolution(project, displayId, maxSize)
     }
   }
 
@@ -357,7 +356,7 @@ internal class DeviceView(
 
   override fun dispose() {
     deviceClient.videoDecoder?.removeFrameListener(displayId, frameListener)
-    deviceClient.stopVideoStream(displayId)
+    deviceClient.stopVideoStream(project, displayId)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     disposed = true
   }

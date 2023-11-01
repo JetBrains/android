@@ -1057,8 +1057,10 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceViewWithoutWaitingForAgent(width: Int, height: Int, screenScale: Double) {
-    val deviceClient =
-        DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
+    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    Disposer.register(testRootDisposable) {
+      deviceClient.decrementReferenceCount()
+    }
     // DeviceView has to be disposed before DeviceClient.
     val disposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, disposable)

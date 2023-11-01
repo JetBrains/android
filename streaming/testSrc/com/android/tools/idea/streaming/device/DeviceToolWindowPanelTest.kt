@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
@@ -379,9 +380,11 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun createToolWindowPanel(): DeviceToolWindowPanel {
-    val deviceClient =
-        DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
-    val panel = DeviceToolWindowPanel(testRootDisposable, project, deviceClient)
+    val deviceClient = DeviceClient(device.serialNumber, device.configuration, device.deviceState.cpuAbi)
+    Disposer.register(testRootDisposable) {
+      deviceClient.decrementReferenceCount()
+    }
+    val panel = DeviceToolWindowPanel(testRootDisposable, project, device.handle, deviceClient)
     panel.size = Dimension(280, 300)
     panel.zoomToolbarVisible = true
     return panel
