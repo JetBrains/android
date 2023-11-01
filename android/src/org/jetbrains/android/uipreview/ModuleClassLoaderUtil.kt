@@ -17,8 +17,6 @@
 package org.jetbrains.android.uipreview
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite
-import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.classloading.PseudoClass
@@ -34,8 +32,10 @@ import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapter
 import com.android.tools.rendering.classloading.ClassBinaryCache
 import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
+import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite
 import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -45,6 +45,9 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
@@ -336,7 +339,24 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
    */
-  fun isUserCodeUpToDate() = !hasLoadedAnyUserCode || (projectSystemLoader.isUpToDate() && isOverlayUpToDate())
+  fun isUserCodeUpToDate(module: Module?): Boolean {
+    return if (module == null) true
+    // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
+    else CachedValuesManager.getManager(module.project).getCachedValue(this) {
+      CachedValueProvider.Result.create(
+        isUserCodeUpToDateNonCached(),
+        PsiModificationTracker.MODIFICATION_COUNT,
+        ModuleClassLoaderOverlays.getInstance(module)
+      )
+    }
+  }
+
+  /**
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
+   * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
+   * the result of this call until a PSI modification happens.
+   */
+  private fun isUserCodeUpToDateNonCached() = !hasLoadedAnyUserCode || (projectSystemLoader.isUpToDate() && isOverlayUpToDate())
 }
 
 private val ModuleClassLoaderImpl.hasLoadedAnyUserCode: Boolean

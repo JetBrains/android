@@ -36,9 +36,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -56,7 +53,6 @@ import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.classloading.LibraryResourceClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Render class loader responsible for loading classes in custom views and local and library classes
@@ -277,25 +273,12 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   }
 
   /**
-   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
-   * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
-   * the result of this call until a PSI modification happens.
-   */
-  private boolean isUserCodeUpToDateNonCached() { return myImpl.isUserCodeUpToDate(); }
-
-  /**
    * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader. Always returns
    * false if there has not been any PSI changes.
    */
   @Override
   public boolean isUserCodeUpToDate() {
-    Module module = getModule();
-    if (module == null) return true;
-    // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
-    return CachedValuesManager.getManager(module.getProject()).getCachedValue(myImpl, () ->
-      CachedValueProvider.Result.create(isUserCodeUpToDateNonCached(),
-                                        PsiModificationTracker.MODIFICATION_COUNT,
-                                        ModuleClassLoaderOverlays.getInstance(module)));
+    return myImpl.isUserCodeUpToDate(getModule());
   }
 
   @Override
