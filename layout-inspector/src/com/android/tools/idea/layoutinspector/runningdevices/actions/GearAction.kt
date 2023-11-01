@@ -61,6 +61,7 @@ enum class UiConfig {
 }
 
 /** Split the UI vertically. */
+// TODO(b/307787934) all the icons in these actions are temporary. Replace once they are ready.
 class VerticalSplitAction(private val updateUi: (UiConfig) -> Unit) :
   AnAction(LayoutInspectorBundle.message("split.vertical"), "", AllIcons.Actions.SplitVertically) {
   override fun actionPerformed(e: AnActionEvent) {
