@@ -32,8 +32,9 @@ internal constructor(
       presentation.setEnabledAndVisible(false)
       return
     }
-    val empty = devicesService(project).devicesIfLoaded().map { it.isEmpty() }.orElse(true)
-    presentation.setEnabledAndVisible(!empty)
+    presentation.setEnabledAndVisible(
+      devicesService(project).loadedDevicesOrNull()?.isNotEmpty() ?: false
+    )
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

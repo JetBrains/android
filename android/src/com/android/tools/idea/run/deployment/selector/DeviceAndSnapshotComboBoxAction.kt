@@ -39,7 +39,6 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Font
 import java.beans.PropertyChangeEvent
-import java.util.Optional
 import java.util.function.IntUnaryOperator
 import javax.swing.GroupLayout
 import javax.swing.JComponent
@@ -53,9 +52,6 @@ internal constructor(
   private val executionTargetService: (Project) -> ExecutionTargetService = Project::service,
   private val runManager: (Project) -> RunManager = RunManager.Companion::getInstance,
 ) : ComboBoxAction() {
-
-  internal fun getDevices(project: Project): Optional<List<Device>> =
-    devicesService(project).devicesIfLoaded()
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     return createCustomComponent(presentation) { JBUI.scale(it) }
@@ -129,7 +125,9 @@ internal constructor(
     context: DataContext
   ): DefaultActionGroup {
     val project = context.getData(CommonDataKeys.PROJECT)!!
-    return createDeviceSelectorActionGroup(getDevices(project).orElseThrow { AssertionError() })
+    return createDeviceSelectorActionGroup(
+      devicesService(project).loadedDevicesOrNull() ?: throw IllegalStateException()
+    )
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -164,8 +162,7 @@ internal constructor(
       return
     }
 
-    val optionalDevices = getDevices(project)
-    if (optionalDevices.isEmpty) {
+    if (devicesService(project).devices.firstValue() is LoadingState.Loading) {
       presentation.setEnabled(false)
       presentation.text = "Loading Devices..."
       return

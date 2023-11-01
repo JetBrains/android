@@ -60,7 +60,7 @@ internal class DeviceAndSnapshotComboBoxExecutionTarget(
   }
 
   private fun devices(): List<Device> {
-    return devicesService.devicesIfLoaded().orElse(emptyList()).filter { it.id in ids }
+    return devicesService.loadedDevicesOrNull()?.filter { it.id in ids } ?: emptyList()
   }
 
   override fun getId(): String {

@@ -36,7 +36,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import java.util.Optional
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineName
@@ -188,8 +187,8 @@ constructor(
   /** A flow that only contains the list of devices when it is ready. */
   val loadedDevices: Flow<List<Device>> = devices.mapNotNull { it.value }
 
-  fun devicesIfLoaded(): Optional<List<Device>> {
-    return Optional.ofNullable(devices.firstValue().value)
+  fun loadedDevicesOrNull(): List<Device>? {
+    return devices.firstValue().value
   }
 }
 
