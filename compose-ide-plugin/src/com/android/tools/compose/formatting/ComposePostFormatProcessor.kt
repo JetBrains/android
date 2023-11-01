@@ -119,7 +119,7 @@ private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
 
 /** Splits KtDotQualifiedExpression it one call per line. */
 internal fun wrapModifierChain(element: KtDotQualifiedExpression, settings: CodeStyleSettings) {
-  CodeStyle.doWithTemporarySettings(element.project, settings) { tempSettings: CodeStyleSettings ->
+  CodeStyle.runWithLocalSettings(element.project, settings) { tempSettings: CodeStyleSettings ->
     tempSettings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS
     tempSettings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN = true
     CodeFormatterFacade(tempSettings, element.language).processElement(element.node)
