@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys.CONTEXT_COMPONENT
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
@@ -74,20 +75,22 @@ class VisualizationActionManager(
             JBColor.background(),
           ),
         ) {
+        private val issueListener =
+          object : IssueListener {
+            override fun onIssueSelected(issue: Issue?) {
+              isVisible =
+                (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
+                  sceneView.sceneManager.model,
+                ) ?: false
+            }
+          }
+
         init {
           isOpaque = true
           background = Color.ORANGE
           isVisible = false
-          sceneView.surface.addIssueListener(
-            object : IssueListener {
-              override fun onIssueSelected(issue: Issue?) {
-                isVisible =
-                  (issue as? VisualLintHighlightingIssue)?.shouldHighlight(
-                    sceneView.sceneManager.model,
-                  ) ?: false
-              }
-            },
-          )
+          sceneView.surface.addIssueListener(issueListener)
+          Disposer.register(sceneView) { sceneView.surface.removeIssueListener(issueListener) }
         }
 
         override fun isVisible(): Boolean {

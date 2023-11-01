@@ -125,6 +125,8 @@ public class ScreenViewLayerTest {
     when(screenView.getResult()).thenReturn(firstResult, otherResults);
 
     Disposer.register(myDisposable, screenView.getSurface());
+    Disposer.register(myDisposable, sceneManager);
+    Disposer.register(sceneManager, screenView);
 
     return screenView;
   }

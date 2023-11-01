@@ -51,7 +51,7 @@ class TestSceneManager(
   surface: DesignSurface<*>,
   sceneComponentProvider: SceneComponentHierarchyProvider? = null
 ) : SceneManager(model, surface, sceneComponentProvider, null) {
-  override fun doCreateSceneView(): SceneView = TestSceneView(100, 100)
+  override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
   override fun getSceneScalingFactor(): Float = 1f
 

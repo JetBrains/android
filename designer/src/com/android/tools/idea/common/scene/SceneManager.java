@@ -124,7 +124,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    */
   protected void createSceneView() {
     if (mySceneView != null) {
-      mySceneView.dispose();
+      Disposer.dispose(mySceneView);
     }
     mySceneView = doCreateSceneView();
   }
@@ -164,9 +164,6 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
   @Override
   public void dispose() {
     deactivate(this);
-    for (SceneView sceneView : getSceneViews()) {
-      sceneView.dispose();
-    }
   }
 
   /**

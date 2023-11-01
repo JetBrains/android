@@ -39,20 +39,20 @@ open class WarningLayer(
 ) : Layer() {
 
   protected var componentsToHighlight: List<NlComponent> = emptyList()
+  private val issueListener =
+    object : IssueListener {
+      override fun onIssueSelected(issue: Issue?) {
+        componentsToHighlight =
+          (issue?.source as? VisualLintIssueProvider.VisualLintIssueSource)
+            ?.components
+            ?.filter { it.model == screenView.sceneManager.model }
+            ?.toList() ?: emptyList()
+        screenView.surface.repaint()
+      }
+    }
 
   init {
-    screenView.surface.addIssueListener(
-      object : IssueListener {
-        override fun onIssueSelected(issue: Issue?) {
-          componentsToHighlight =
-            (issue?.source as? VisualLintIssueProvider.VisualLintIssueSource)
-              ?.components
-              ?.filter { it.model == screenView.sceneManager.model }
-              ?.toList() ?: emptyList()
-          screenView.surface.repaint()
-        }
-      }
-    )
+    screenView.surface.addIssueListener(issueListener)
   }
 
   override fun paint(gc: Graphics2D) {
@@ -96,4 +96,9 @@ open class WarningLayer(
 
   override val isVisible: Boolean
     get() = componentsToHighlight.isNotEmpty() && shouldDisplay()
+
+  override fun dispose() {
+    screenView.surface.removeIssueListener(issueListener)
+    super.dispose()
+  }
 }

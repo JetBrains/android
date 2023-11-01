@@ -25,6 +25,7 @@ import com.android.tools.adtui.common.border
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.common.error.IssueListener
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
@@ -146,6 +147,7 @@ class VisualizationForm(
   val component: JComponent = myRoot
 
   private val visualLintHandler: VisualizationFormVisualLintHandler
+  private val issueListener: IssueListener
 
   init {
     Disposer.register(parentDisposable, this)
@@ -183,7 +185,7 @@ class VisualizationForm(
         .build()
     surface.setSceneViewAlignment(DesignSurface.SceneViewAlignment.LEFT)
     surface.addPanZoomListener(this)
-    surface.addIssueListener(DesignSurfaceIssueListenerImpl(surface))
+    issueListener = DesignSurfaceIssueListenerImpl(surface).apply { surface.addIssueListener(this) }
     updateScreenMode()
     surface.name = VISUALIZATION_DESIGN_SURFACE_NAME
     myWorkBench = WorkBench(project, "Visualization", null, this)
@@ -298,6 +300,7 @@ class VisualizationForm(
       unregisterResourceNotification(file)
     }
     removeAndDisposeModels(surface.models)
+    surface.removeIssueListener(issueListener)
   }
 
   private fun removeAndDisposeModels(models: List<NlModel>) {

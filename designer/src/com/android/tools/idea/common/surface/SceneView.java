@@ -31,6 +31,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.JBInsets;
 import java.awt.Dimension;
@@ -47,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * View of a {@link Scene} used in a {@link DesignSurface}.
  */
-public abstract class SceneView {
+public abstract class SceneView implements Disposable {
   /**
    * Policy for determining the {@link Shape} of a {@link SceneView}.
    */
@@ -114,6 +115,7 @@ public abstract class SceneView {
     mySurface = surface;
     myManager = manager;
     myShapePolicy = shapePolicy;
+    Disposer.register(manager, this);
   }
 
   @NotNull
@@ -131,6 +133,7 @@ public abstract class SceneView {
     synchronized (myLayersCacheLock) {
       if (myLayersCache == null) {
         myLayersCache = createLayers();
+        myLayersCache.forEach(layer -> Disposer.register(this, layer));
       }
       return myLayersCache;
     }
@@ -319,14 +322,8 @@ public abstract class SceneView {
     return isVisible();
   }
 
-  public void dispose() {
-    synchronized (myLayersCacheLock) {
-      if (myLayersCache != null) {
-        // TODO(b/148936113)
-        myLayersCache.forEach(Disposer::dispose);
-      }
-    }
-  }
+  @Override
+  public void dispose() {}
 
   /**
    * Called by the {@link DesignSurface} on mouse hover. The coordinates might be outside of the boundaries of this {@link SceneView}
