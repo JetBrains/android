@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * options.
  */
 internal class SnapshotActionGroup(
-  val device: Device,
+  val device: DeploymentTargetDevice,
 ) : ActionGroup() {
   init {
     isPopup = true

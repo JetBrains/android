@@ -30,16 +30,16 @@ import kotlinx.coroutines.test.runTest
  */
 internal class DevicesSelectedServiceTestFixture(project: Project, testScope: TestScope) :
   Fixture(project, testScope) {
-  private val _devicesFlow = MutableStateFlow<List<Device>>(emptyList())
+  private val _devicesFlow = MutableStateFlow<List<DeploymentTargetDevice>>(emptyList())
 
-  var devices: List<Device>
+  var devices: List<DeploymentTargetDevice>
     get() = _devicesFlow.value
     set(value) {
       _devicesFlow.value = value
       testScope.advanceUntilIdle()
     }
 
-  override val devicesService: DevicesService
+  override val devicesService: DeploymentTargetDevicesService
     get() = throw UnsupportedOperationException()
 
   @OptIn(ExperimentalStdlibApi::class)

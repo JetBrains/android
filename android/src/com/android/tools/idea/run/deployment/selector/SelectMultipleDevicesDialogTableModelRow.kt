@@ -18,7 +18,7 @@ package com.android.tools.idea.run.deployment.selector
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.SimpleTextAttributes
 
-internal class SelectMultipleDevicesDialogTableModelRow(val target: Target) {
+internal class SelectMultipleDevicesDialogTableModelRow(val target: DeploymentTarget) {
   var isSelected = false
 
   val deviceCellText: String

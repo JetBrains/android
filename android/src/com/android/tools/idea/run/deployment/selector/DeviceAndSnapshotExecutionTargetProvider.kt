@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project
 class DeviceAndSnapshotExecutionTargetProvider
 internal constructor(
   private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
-  private val devicesService: (Project) -> DevicesService = Project::service,
+  private val devicesService: (Project) -> DeploymentTargetDevicesService = Project::service,
 ) : ExecutionTargetProvider() {
   override fun getTargets(
     project: Project,

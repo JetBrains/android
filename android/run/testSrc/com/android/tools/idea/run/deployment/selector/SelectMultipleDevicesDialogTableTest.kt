@@ -30,7 +30,7 @@ class SelectMultipleDevicesDialogTableTest {
 
     table.setSelected(true, 0)
 
-    assertThat(table.selectedTargets).containsExactly(Target(device, DefaultBoot))
+    assertThat(table.selectedTargets).containsExactly(DeploymentTarget(device, DefaultBoot))
   }
 
   @Test
@@ -38,7 +38,7 @@ class SelectMultipleDevicesDialogTableTest {
     val device = createDevice("Pixel 8")
     table.setModel(SelectMultipleDevicesDialogTableModel(listOf(device)))
 
-    table.selectedTargets = listOf(Target(device, DefaultBoot))
+    table.selectedTargets = listOf(DeploymentTarget(device, DefaultBoot))
 
     assertThat(table.isSelected(0)).isTrue()
   }

@@ -61,8 +61,8 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
   val launchCompatibilityCheckerFlow = MutableSharedFlow<LaunchCompatibilityChecker>(replay = 1)
   val clock = TestClock()
 
-  open val devicesService: DevicesService by lazy {
-    DevicesService(
+  open val devicesService: DeploymentTargetDevicesService by lazy {
+    DeploymentTargetDevicesService(
         scope,
         devicesFlow,
         templatesFlow,
@@ -70,7 +70,13 @@ internal open class Fixture(val project: Project, val testScope: TestScope) {
         ddmlibDeviceLookupFlow,
         launchCompatibilityCheckerFlow
       )
-      .also { project.replaceService(DevicesService::class.java, it, scope.scopeDisposable()) }
+      .also {
+        project.replaceService(
+          DeploymentTargetDevicesService::class.java,
+          it,
+          scope.scopeDisposable()
+        )
+      }
   }
 
   suspend fun sendLaunchCompatibility() {

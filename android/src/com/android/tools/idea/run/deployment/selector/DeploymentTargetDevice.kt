@@ -44,7 +44,7 @@ import kotlinx.datetime.Instant
  * whenever any of its inputs changes (e.g. changing the run configuration from a Wear app to a
  * mobile app affects the launch compatibility).
  */
-internal class Device(
+internal class DeploymentTargetDevice(
   val androidDevice: DeviceProvisionerAndroidDevice,
   val connectionTime: Instant?,
   val snapshots: List<Snapshot>,
@@ -55,12 +55,12 @@ internal class Device(
       androidDevice: DeviceProvisionerAndroidDevice,
       connectionTime: Instant?,
       launchCompatibilityChecker: LaunchCompatibilityChecker,
-    ): Device {
+    ): DeploymentTargetDevice {
       val snapshots =
         (androidDevice as? DeviceHandleAndroidDevice)?.deviceHandle?.bootSnapshotAction?.snapshots()
           ?: emptyList()
 
-      return Device(
+      return DeploymentTargetDevice(
         androidDevice,
         connectionTime,
         snapshots,
@@ -108,19 +108,19 @@ internal class Device(
   val disambiguator: String?
     get() = androidDevice.properties.disambiguator
 
-  val defaultTarget: Target
-    get() = Target(this, DefaultBoot)
+  val defaultTarget: DeploymentTarget
+    get() = DeploymentTarget(this, DefaultBoot)
 
-  val targets: List<Target>
+  val targets: List<DeploymentTarget>
     get() = buildList {
       // All devices have a DefaultTarget, even those that can't be booted; boot is a no-op then.
-      add(Target(this@Device, DefaultBoot))
+      add(DeploymentTarget(this@DeploymentTargetDevice, DefaultBoot))
       // If there are no snapshots, omit cold boot for simplicity
       if (snapshots.isNotEmpty()) {
         if ((androidDevice as? DeviceHandleAndroidDevice)?.deviceHandle?.coldBootAction != null) {
-          add(Target(this@Device, ColdBoot))
+          add(DeploymentTarget(this@DeploymentTargetDevice, ColdBoot))
         }
-        addAll(snapshots.map { Target(this@Device, BootSnapshot(it)) })
+        addAll(snapshots.map { DeploymentTarget(this@DeploymentTargetDevice, BootSnapshot(it)) })
       }
     }
 
@@ -141,14 +141,16 @@ internal class Device(
  * Given the full set of devices that are present, returns a unique name for this device by adding
  * its disambiguator if there is a different device with the same name.
  */
-internal fun Device.disambiguatedName(
-  otherDevices: List<Device> = emptyList(),
+internal fun DeploymentTargetDevice.disambiguatedName(
+  otherDevices: List<DeploymentTargetDevice> = emptyList(),
 ): String =
   if (disambiguator != null && otherDevices.any { it.id != id && it.name == name }) {
     "$name [$disambiguator]"
   } else name
 
 internal object DeviceComparator :
-  Comparator<Device> by (compareBy<Device> { it.launchCompatibility.state }
+  Comparator<DeploymentTargetDevice> by (compareBy<DeploymentTargetDevice> {
+      it.launchCompatibility.state
+    }
     .thenByDescending(nullsFirst()) { it.connectionTime }
     .thenBy(Collator.getInstance()) { it.name })

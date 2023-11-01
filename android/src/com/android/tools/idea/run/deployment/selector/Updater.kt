@@ -54,7 +54,7 @@ internal class Updater(
    * @param device the device selected by the user
    * @param target responsible for the boot option text if it's appropriate to display it
    */
-  private fun Target.displayText(): String {
+  private fun DeploymentTarget.displayText(): String {
     val disambiguatedName = device.disambiguatedName(devicesAndTargets.allDevices)
     return when {
       bootOption is BootSnapshot -> "$disambiguatedName - ${bootOption.text}}"

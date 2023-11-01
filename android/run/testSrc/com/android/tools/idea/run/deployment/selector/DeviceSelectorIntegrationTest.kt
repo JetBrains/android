@@ -48,8 +48,8 @@ class DeviceSelectorIntegrationTest {
   @Before
   fun setUp() {
     project.replaceService(
-      DevicesService::class.java,
-      DevicesService(
+      DeploymentTargetDevicesService::class.java,
+      DeploymentTargetDevicesService(
         deviceProvisionerRule.deviceProvisioner.scope,
         deviceProvisionerRule.deviceProvisioner.devices,
         deviceProvisionerRule.deviceProvisioner.templates,

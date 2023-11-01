@@ -34,7 +34,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
-class DevicesServiceTest {
+class DeploymentTargetDevicesServiceTest {
   companion object {
     fun runTestWithFixture(test: suspend Fixture.() -> Unit) {
       runTest {
@@ -56,7 +56,7 @@ class DevicesServiceTest {
     val launchCompatibilityCheckerFlow = MutableSharedFlow<LaunchCompatibilityChecker>(replay = 1)
 
     internal val devicesService =
-      DevicesService(
+      DeploymentTargetDevicesService(
         scope,
         devicesFlow,
         templatesFlow,
@@ -76,7 +76,7 @@ class DevicesServiceTest {
 
     sendLaunchCompatibility()
 
-    assertThat(devicesService.loadedDevices.first()).isEqualTo(emptyList<Device>())
+    assertThat(devicesService.loadedDevices.first()).isEqualTo(emptyList<DeploymentTargetDevice>())
   }
 
   @Test

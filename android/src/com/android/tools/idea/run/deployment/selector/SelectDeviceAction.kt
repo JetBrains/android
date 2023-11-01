@@ -25,7 +25,7 @@ import com.intellij.openapi.components.service
  */
 class SelectDeviceAction
 internal constructor(
-  internal val device: Device,
+  internal val device: DeploymentTargetDevice,
 ) : AnAction() {
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation

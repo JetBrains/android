@@ -139,11 +139,11 @@ internal fun createDevice(
   name: String,
   scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   disambiguator: String? = null,
-  sourceTemplate: Device? = null,
+  sourceTemplate: DeploymentTargetDevice? = null,
   connectionTime: Instant? = null,
   launchCompatibility: LaunchCompatibility = LaunchCompatibility.YES,
   hasSnapshots: Boolean = false,
-): Device {
+): DeploymentTargetDevice {
   val handle =
     FakeDeviceHandle(
       scope.createChildScope(),
@@ -156,7 +156,7 @@ internal fun createDevice(
       }
     )
   val device =
-    Device(
+    DeploymentTargetDevice(
       DeviceHandleAndroidDevice(
         MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),
         handle,
@@ -175,10 +175,10 @@ internal fun createTemplate(
   scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
   connectionTime: Instant? = null,
   launchCompatibility: LaunchCompatibility = LaunchCompatibility.YES,
-): Device {
+): DeploymentTargetDevice {
   val handle = FakeDeviceTemplate(DeviceId("Test", true, id))
   val device =
-    Device(
+    DeploymentTargetDevice(
       DeviceTemplateAndroidDevice(
         scope,
         MockitoKt.mock<DeviceProvisionerAndroidDevice.DdmlibDeviceLookup>(),

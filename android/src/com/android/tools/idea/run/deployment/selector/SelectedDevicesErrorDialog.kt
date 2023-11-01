@@ -40,8 +40,10 @@ import org.jetbrains.android.util.AndroidBundle.message
  * during the current session.
  */
 internal class SelectedDevicesErrorDialog
-internal constructor(private val project: Project, private val devices: Iterable<Device>) :
-  DialogWrapper(project) {
+internal constructor(
+  private val project: Project,
+  private val devices: Iterable<DeploymentTargetDevice>
+) : DialogWrapper(project) {
   companion object {
     @JvmField
     internal val DO_NOT_SHOW_WARNING_ON_DEPLOYMENT =

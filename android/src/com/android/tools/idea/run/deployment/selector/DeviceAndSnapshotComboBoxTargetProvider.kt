@@ -30,7 +30,8 @@ import com.intellij.openapi.ui.DialogWrapper
 class DeviceAndSnapshotComboBoxTargetProvider
 internal constructor(
   private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
-  private val newSelectedDevicesErrorDialog: (Project, Iterable<Device>) -> DialogWrapper =
+  private val newSelectedDevicesErrorDialog:
+    (Project, Iterable<DeploymentTargetDevice>) -> DialogWrapper =
     ::SelectedDevicesErrorDialog,
   private val newDeviceAndSnapshotComboBoxTarget: () -> DeployTarget = {
     DeviceAndSnapshotComboBoxTarget()
@@ -75,7 +76,7 @@ internal constructor(
       project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT) != true
   }
 
-  private fun selectedDevicesWithError(project: Project): List<Device> {
+  private fun selectedDevicesWithError(project: Project): List<DeploymentTargetDevice> {
     return devicesSelectedService(project).getSelectedTargets().mapNotNull {
       it.device.takeIf { it.launchCompatibility.state != LaunchCompatibility.State.OK }
     }

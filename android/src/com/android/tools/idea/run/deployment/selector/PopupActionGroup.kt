@@ -38,7 +38,9 @@ internal fun createActionGroup(vararg sections: ActionGroupSection): DefaultActi
     }
   }
 
-internal fun createDeviceSelectorActionGroup(devices: List<Device>): DefaultActionGroup {
+internal fun createDeviceSelectorActionGroup(
+  devices: List<DeploymentTargetDevice>
+): DefaultActionGroup {
   val actionManager = ActionManager.getInstance()
   return createActionGroup(
     ActionGroupSection(

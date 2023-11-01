@@ -24,7 +24,7 @@ import java.util.Objects
  * A deployment target for an app, binding a Device with a BootOption. A user actually selects these
  * (and not devices) with the combobox or the Select Multiple Devices dialog.
  */
-internal class Target(val device: Device, val bootOption: BootOption) {
+internal class DeploymentTarget(val device: DeploymentTargetDevice, val bootOption: BootOption) {
 
   val deviceId: DeviceId
     get() = device.id
@@ -45,7 +45,7 @@ internal class Target(val device: Device, val bootOption: BootOption) {
     get() = TargetId(deviceId, templateId, bootOption)
 
   override fun equals(other: Any?) =
-    other is Target && id == other.id && bootOption == other.bootOption
+    other is DeploymentTarget && id == other.id && bootOption == other.bootOption
 
   override fun hashCode(): Int {
     return Objects.hash(id, bootOption)

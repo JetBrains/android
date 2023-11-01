@@ -63,11 +63,11 @@ import kotlinx.datetime.Instant
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * A service that produces the [Device] objects used by the target selection dropdown, by joining
- * the current set of devices and device templates from the [DeviceProvisioner] with their
- * [LaunchCompatibility] state and connection time.
+ * A service that produces the [DeploymentTargetDevice] objects used by the target selection
+ * dropdown, by joining the current set of devices and device templates from the [DeviceProvisioner]
+ * with their [LaunchCompatibility] state and connection time.
  */
-internal class DevicesService
+internal class DeploymentTargetDevicesService
 @NonInjectable
 @VisibleForTesting
 constructor(
@@ -90,7 +90,9 @@ constructor(
   )
 
   companion object {
-    @JvmStatic fun getInstance(project: Project): DevicesService = project.service<DevicesService>()
+    @JvmStatic
+    fun getInstance(project: Project): DeploymentTargetDevicesService =
+      project.service<DeploymentTargetDevicesService>()
   }
 
   val coroutineScope =
@@ -103,8 +105,8 @@ constructor(
   private fun deviceHandleFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
     launchCompatibilityChecker: LaunchCompatibilityChecker
-  ): Flow<List<Device>> = channelFlow {
-    val handles = ConcurrentHashMap<DeviceHandle, Device>()
+  ): Flow<List<DeploymentTargetDevice>> = channelFlow {
+    val handles = ConcurrentHashMap<DeviceHandle, DeploymentTargetDevice>()
     // Immediately send empty list, since if the actual list is empty, there will be no Add,
     // and we don't want to be stuck in the Loading state.
     send(emptyList())
@@ -125,7 +127,7 @@ constructor(
                     null
                   }
                 handles[handle] =
-                  Device.create(
+                  DeploymentTargetDevice.create(
                     DeviceHandleAndroidDevice(ddmlibDeviceLookup, handle, state),
                     connectionTime,
                     launchCompatibilityChecker
@@ -146,14 +148,14 @@ constructor(
   private fun deviceTemplateFlow(
     ddmlibDeviceLookup: DdmlibDeviceLookup,
     launchCompatibilityChecker: LaunchCompatibilityChecker
-  ): Flow<List<Device>> = flow {
-    val templateDevices = mutableMapOf<DeviceTemplate, Device>()
+  ): Flow<List<DeploymentTargetDevice>> = flow {
+    val templateDevices = mutableMapOf<DeviceTemplate, DeploymentTargetDevice>()
     templatesFlow.collect { templates ->
       templateDevices.keys.retainAll(templates)
       for (template in templates) {
         if (!templateDevices.containsKey(template)) {
           templateDevices[template] =
-            Device.create(
+            DeploymentTargetDevice.create(
               DeviceTemplateAndroidDevice(coroutineScope, ddmlibDeviceLookup, template),
               null,
               launchCompatibilityChecker
@@ -164,7 +166,7 @@ constructor(
     }
   }
 
-  val devices: StateFlow<LoadingState<List<Device>>> =
+  val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =
     adbFlow
       .flatMapLatest { ddmlibDeviceLookup ->
         if (ddmlibDeviceLookup == null) {
@@ -185,9 +187,9 @@ constructor(
       .stateIn(coroutineScope, SharingStarted.Lazily, LoadingState.Loading)
 
   /** A flow that only contains the list of devices when it is ready. */
-  val loadedDevices: Flow<List<Device>> = devices.mapNotNull { it.value }
+  val loadedDevices: Flow<List<DeploymentTargetDevice>> = devices.mapNotNull { it.value }
 
-  fun loadedDevicesOrNull(): List<Device>? {
+  fun loadedDevicesOrNull(): List<DeploymentTargetDevice>? {
     return devices.firstValue().value
   }
 }

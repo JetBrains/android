@@ -47,7 +47,7 @@ import org.jetbrains.android.util.AndroidUtils
 
 class DeviceAndSnapshotComboBoxAction
 internal constructor(
-  private val devicesService: (Project) -> DevicesService = Project::service,
+  private val devicesService: (Project) -> DeploymentTargetDevicesService = Project::service,
   private val devicesSelectedService: (Project) -> DevicesSelectedService = Project::service,
   private val executionTargetService: (Project) -> ExecutionTargetService = Project::service,
   private val runManager: (Project) -> RunManager = RunManager.Companion::getInstance,
@@ -189,7 +189,7 @@ internal constructor(
     }
   }
 
-  private fun setActiveExecutionTarget(project: Project, targets: List<Target>) {
+  private fun setActiveExecutionTarget(project: Project, targets: List<DeploymentTarget>) {
     executionTargetService(project).activeTarget =
       DeviceAndSnapshotComboBoxExecutionTarget(targets, devicesService(project))
   }

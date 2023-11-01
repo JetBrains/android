@@ -46,7 +46,7 @@ class DevicesSelectedServiceTest {
   @Test
   fun updateSingleSelection() = runTestWithFixture {
     val device1 = createDevice("1")
-    val target1 = Target(device1, DefaultBoot)
+    val target1 = DeploymentTarget(device1, DefaultBoot)
 
     val state = selectedTargetStateService.getState(runConfiguration.configuration)
     selectedTargetStateService.updateState(
@@ -58,7 +58,7 @@ class DevicesSelectedServiceTest {
     )
 
     val device2 = createDevice("2", connectionTime = clock.now() - 5.seconds)
-    val target2 = Target(device2, DefaultBoot)
+    val target2 = DeploymentTarget(device2, DefaultBoot)
 
     devices = listOf(device1, device2)
 
@@ -78,9 +78,9 @@ class DevicesSelectedServiceTest {
     val device2 = createDevice("2")
     val device3 = createDevice("3")
 
-    val target1 = Target(device1, DefaultBoot)
-    val target2 = Target(device2, ColdBoot)
-    val target3 = Target(device3, ColdBoot)
+    val target1 = DeploymentTarget(device1, DefaultBoot)
+    val target2 = DeploymentTarget(device2, ColdBoot)
+    val target3 = DeploymentTarget(device3, ColdBoot)
 
     devices = listOf(device1, device2, device3)
 
@@ -128,8 +128,9 @@ class DevicesSelectedServiceTest {
 
     val device3 = createDevice("D3")
 
-    fun Device.targetId() = Target(this, DefaultBoot).id
-    fun Device.resolve(vararg devices: Device) = targetId().resolve(listOf(*devices))?.device
+    fun DeploymentTargetDevice.targetId() = DeploymentTarget(this, DefaultBoot).id
+    fun DeploymentTargetDevice.resolve(vararg devices: DeploymentTargetDevice) =
+      targetId().resolve(listOf(*devices))?.device
 
     // For each class of device, after the null cases, add items to the set of choices in order of
     // preference.

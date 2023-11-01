@@ -59,7 +59,7 @@ internal class DevicesSelectedService
 constructor(
   private val runConfigurationFlow: Flow<RunnerAndConfigurationSettings?>,
   private val selectedTargetStateService: SelectedTargetStateService,
-  private val devicesFlow: Flow<List<Device>>,
+  private val devicesFlow: Flow<List<DeploymentTargetDevice>>,
   private val clock: Clock,
   coroutineContext: CoroutineContext = EmptyCoroutineContext,
 ) : Disposable {
@@ -71,7 +71,7 @@ constructor(
   ) : this(
     runConfigurationFlow(project),
     project.service<SelectedTargetStateService>(),
-    project.service<DevicesService>().loadedDevices,
+    project.service<DeploymentTargetDevicesService>().loadedDevices,
     Clock.System
   )
 
@@ -121,11 +121,11 @@ constructor(
   }
 
   private fun updateState(
-    presentDevices: List<Device>,
+    presentDevices: List<DeploymentTargetDevice>,
     selectionState: SelectionState
   ): DevicesAndTargets {
     val presentDevices = presentDevices.sortedWith(DeviceComparator)
-    val selectedTargets: List<Target>
+    val selectedTargets: List<DeploymentTarget>
     when (selectionState.selectionMode) {
       SelectionMode.DROPDOWN -> {
         selectedTargets =
@@ -161,10 +161,10 @@ constructor(
    * to select.
    */
   private fun updateSingleSelection(
-    presentDevices: List<Device>,
+    presentDevices: List<DeploymentTargetDevice>,
     lastSelectedTargetId: TargetId?,
     selectionTime: Instant?
-  ): Target? {
+  ): DeploymentTarget? {
     val lastSelectedTarget = lastSelectedTargetId?.resolve(presentDevices)
     // This relies on presentDevices being sorted by connection time (see DeviceComparator)
     val latestConnectedDevice = presentDevices.firstOrNull()?.takeIf { it.connectionTime != null }
@@ -183,9 +183,9 @@ constructor(
         ?: presentDevices.firstOrNull()?.defaultTarget
   }
 
-  fun getSelectedTargets(): List<Target> = devicesAndTargets.selectedTargets
+  fun getSelectedTargets(): List<DeploymentTarget> = devicesAndTargets.selectedTargets
 
-  fun setTargetSelectedWithComboBox(targetSelectedWithComboBox: Target?) {
+  fun setTargetSelectedWithComboBox(targetSelectedWithComboBox: DeploymentTarget?) {
     updateSelectionState(
       selectionStateFlow.value.copy(
         selectionMode = SelectionMode.DROPDOWN,
@@ -197,14 +197,14 @@ constructor(
     )
   }
 
-  fun getTargetsSelectedWithDialog(): List<Target> {
+  fun getTargetsSelectedWithDialog(): List<DeploymentTarget> {
     return selectionStateFlow.value.dialogSelection.targets.mapNotNull {
       it.resolve(devicesAndTargets.allDevices)
     }
   }
 
   /** Updates the currently-persisted selected device state with the new set of selected targets. */
-  fun setTargetsSelectedWithDialog(targetsSelectedWithDialog: List<Target>) {
+  fun setTargetsSelectedWithDialog(targetsSelectedWithDialog: List<DeploymentTarget>) {
     updateSelectionState(
       selectionStateFlow.value.copy(
         // Update the dialog selection, but if nothing is selected in the dialog, set the mode to
@@ -225,9 +225,9 @@ constructor(
 }
 
 internal data class DevicesAndTargets(
-  val allDevices: List<Device>,
+  val allDevices: List<DeploymentTargetDevice>,
   val isMultipleSelectionMode: Boolean,
-  val selectedTargets: List<Target>
+  val selectedTargets: List<DeploymentTarget>
 )
 
 /**
@@ -243,7 +243,7 @@ internal data class DevicesAndTargets(
  * 2. Another active device that came from the same template
  * 3. The template that it came from
  */
-internal fun TargetId.resolve(devices: List<Device>): Target? {
+internal fun TargetId.resolve(devices: List<DeploymentTargetDevice>): DeploymentTarget? {
   val device =
     if (deviceId.isTemplate)
       devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId }
@@ -254,5 +254,5 @@ internal fun TargetId.resolve(devices: List<Device>): Target? {
           devices.firstOrNull { !it.id.isTemplate && it.templateId == templateId }
             ?: devices.firstOrNull { it.templateId == templateId }
         }
-  return device?.let { Target(it, bootOption) }
+  return device?.let { DeploymentTarget(it, bootOption) }
 }

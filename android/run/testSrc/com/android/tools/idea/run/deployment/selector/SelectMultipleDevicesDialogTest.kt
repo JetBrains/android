@@ -68,7 +68,7 @@ class SelectMultipleDevicesDialogTest {
     testScope.advanceUntilIdle()
 
     assertThat(devicesSelectedService.getTargetsSelectedWithDialog())
-      .containsExactly(Target(device, DefaultBoot))
+      .containsExactly(DeploymentTarget(device, DefaultBoot))
     assertThat(devicesSelectedService.devicesAndTargets.isMultipleSelectionMode).isTrue()
   }
 

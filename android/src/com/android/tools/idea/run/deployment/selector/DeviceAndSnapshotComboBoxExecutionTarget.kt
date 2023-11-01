@@ -32,12 +32,12 @@ import javax.swing.Icon
  * state of the run, debug, and stop (but *not* the apply changes) toolbar buttons.
  */
 internal class DeviceAndSnapshotComboBoxExecutionTarget(
-  targets: Collection<Target>,
-  private val devicesService: DevicesService,
+  targets: Collection<DeploymentTarget>,
+  private val devicesService: DeploymentTargetDevicesService,
   private val deploymentApplicationService: () -> DeploymentApplicationService =
     DeploymentApplicationService.Companion::instance
 ) : AndroidExecutionTarget() {
-  private val ids = targets.map(Target::deviceId).toSet()
+  private val ids = targets.map(DeploymentTarget::deviceId).toSet()
 
   override fun isApplicationRunningAsync(appPackage: String): ListenableFuture<Boolean> {
     return Futures.submit<Boolean>(
@@ -56,10 +56,12 @@ internal class DeviceAndSnapshotComboBoxExecutionTarget(
   }
 
   override fun getRunningDevices(): Collection<IDevice> {
-    return devices().filter(Device::isConnected).map { Futures.getUnchecked(it.ddmlibDeviceAsync) }
+    return devices().filter(DeploymentTargetDevice::isConnected).map {
+      Futures.getUnchecked(it.ddmlibDeviceAsync)
+    }
   }
 
-  private fun devices(): List<Device> {
+  private fun devices(): List<DeploymentTargetDevice> {
     return devicesService.loadedDevicesOrNull()?.filter { it.id in ids } ?: emptyList()
   }
 
