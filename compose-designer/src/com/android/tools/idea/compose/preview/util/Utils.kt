@@ -19,11 +19,14 @@ import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
 import javax.swing.JComponent
 
@@ -58,3 +61,12 @@ fun createToolbarWithNavigation(rootComponent: JComponent, place: String, action
     ActionToolbarUtil.makeToolbarNavigable(this)
     setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
   }
+
+/**
+ * Whether fast preview is available. In addition to checking its normal availability from
+ * [FastPreviewManager], we also verify that essentials mode is not enabled, because fast preview
+ * should not be available in this case.
+ */
+fun isFastPreviewAvailable(project: Project) =
+  FastPreviewManager.getInstance(project).isAvailable &&
+    !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled

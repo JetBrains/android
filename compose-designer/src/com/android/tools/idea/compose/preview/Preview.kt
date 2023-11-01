@@ -36,6 +36,7 @@ import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigatio
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.compose.preview.util.containsOffset
+import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -45,7 +46,6 @@ import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.CompilationResult
-import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_NOTIFY_REFRESH_TIME
@@ -794,15 +794,6 @@ class ComposePreviewRepresentation(
   @TestOnly
   fun hasBuildListenerSetupFinished() = previewBuildListenersManager.buildListenerSetupFinished
 
-  /**
-   * Whether fast preview is available. In addition to checking its normal availability from
-   * [FastPreviewManager], we also verify that essentials mode is not enabled, because fast preview
-   * should not be available in this case.
-   */
-  private fun isFastPreviewAvailable() =
-    FastPreviewManager.getInstance(project).isAvailable &&
-      !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-
   override fun onActivate() {
     lifecycleManager.activate()
     // Gallery mode should be updated only if Preview is active / in foreground.
@@ -842,7 +833,7 @@ class ComposePreviewRepresentation(
     }
 
     val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
-    if (isFastPreviewAvailable() && anyKtFilesOutOfDate) {
+    if (isFastPreviewAvailable(project) && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
       // the annotations have changed.

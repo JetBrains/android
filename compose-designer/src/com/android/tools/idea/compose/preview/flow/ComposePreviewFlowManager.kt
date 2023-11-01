@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.preview.PreviewGroup
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.previewElementFlowForFile
+import com.android.tools.idea.compose.preview.util.isFastPreviewAvailable
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.SyntaxErrorUpdate
@@ -29,7 +30,6 @@ import com.android.tools.idea.concurrency.syntaxErrorFlow
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.build.outOfDateKtFiles
-import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -37,7 +37,6 @@ import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import kotlinx.coroutines.CoroutineScope
@@ -355,9 +354,4 @@ internal class ComposePreviewFlowManager {
     launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
     launch(uiThread) { onVisibilityAndNotificationsUpdate() }
   }
-
-  // TODO(b/305011776): Extract this method to a utils file.
-  private fun isFastPreviewAvailable(project: Project) =
-    FastPreviewManager.getInstance(project).isAvailable &&
-      !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
 }
