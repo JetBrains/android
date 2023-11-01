@@ -420,7 +420,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) { }
+  public void buildAndLaunchAction(boolean profileableMode) { }
 
   @Nullable
   public Notification getNotification() {

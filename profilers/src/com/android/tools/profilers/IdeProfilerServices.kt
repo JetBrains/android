@@ -198,5 +198,5 @@ interface IdeProfilerServices {
   /**
    * If profileableMode is true, performs the ProfileProfileableAction, otherwise performs the ProfileDebuggableAction.
    */
-  fun buildAndLaunchAction(profileableMode: Boolean, component: JComponent)
+  fun buildAndLaunchAction(profileableMode: Boolean)
 }
