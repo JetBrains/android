@@ -43,16 +43,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import com.intellij.ui.layout.separatorAndComment
 import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
-
-private const val GMD_LINK = "https://d.android.com/r/studio-ui/testing/gradle-managed-devices"
 
 private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
   "android.hardware.type.automotive",
@@ -221,14 +221,9 @@ class ConfigureBaselineProfilesModuleStep(
     }
 
     row {
+      topGap(TopGap.MEDIUM)
       cell(useGmdCheck)
-      cell(
-        ContextHelpLabel.createWithLink(
-          null,
-          AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"),
-          "Learn more"
-        ) { BrowserUtil.browse(GMD_LINK) }
-      ).horizontalAlign(HorizontalAlign.LEFT)
+      rowComment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"))
     }
   }
 
