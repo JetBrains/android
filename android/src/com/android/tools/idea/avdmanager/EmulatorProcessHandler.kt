@@ -86,7 +86,9 @@ class EmulatorProcessHandler(
       if (ProcessOutputType.SYSTEM == outputType && isProcessTerminated) {
         val exitCode = exitCode
         if (exitCode != null && exitCode != 0) {
-          log.error("Emulator terminated with exit code $exitCode")
+          // Don't use error level because we don't want Studio crash reports for this; the emulator's
+          // crash reporter can provide better detail
+          log.warn("Emulator terminated with exit code $exitCode")
         }
       }
     }
@@ -116,7 +118,10 @@ class EmulatorProcessHandler(
         "VERBOSE" -> log.trace(message)
         "DEBUG" -> log.debug(message)
         "WARNING" -> log.warn(message)
-        "ERROR", "FATAL" -> log.error(message, null as Throwable?)
+        "ERROR", "FATAL" ->
+          // Don't use error level because we don't want Studio crash reports for this; there is no detail in the
+          // crash reports to make them actionable
+          log.warn(message, null as Throwable?)
         else -> log.info(message)
       }
     }
