@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.Side
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.properties.DimensionUnitAction
+import com.android.tools.idea.layoutinspector.properties.PROPERTIES_COMPONENT_NAME
 import com.android.tools.idea.layoutinspector.runningdevices.actions.GearAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.HorizontalSplitAction
 import com.android.tools.idea.layoutinspector.runningdevices.actions.LeftVerticalSplitAction
@@ -123,7 +124,7 @@ private fun WorkBench<LayoutInspector>.getTreePanel() =
   allChildren().filterIsInstance<RootPanel>().first()
 
 private fun WorkBench<LayoutInspector>.getAttributesPanel() =
-  allChildren().first { it.name == "Properties Component" }
+  allChildren().first { it.name == PROPERTIES_COMPONENT_NAME }
 
 fun verifyUiInjected(
   uiConfig: UiConfig,
