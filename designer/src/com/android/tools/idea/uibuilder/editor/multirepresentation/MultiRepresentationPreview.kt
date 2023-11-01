@@ -262,7 +262,7 @@ open class MultiRepresentationPreview(
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
     val file = readAction { psiFilePointer.element }
-    if (file == null || !file.isValid) return
+    if (file == null || !readAction { file.isValid }) return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
@@ -300,7 +300,7 @@ open class MultiRepresentationPreview(
       representations.putAll(newRepresentations)
     }
     toDispose.forEach { representation ->
-      invokeAndWaitIfNeeded { Disposer.dispose(representation) }
+      withContext(uiThread) { Disposer.dispose(representation) }
     }
 
     if (!hadAnyRepresentationsInitialized) {

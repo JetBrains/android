@@ -16,15 +16,17 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TestPreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileTypes.FileType
@@ -37,6 +39,7 @@ import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jdom.Element
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.Assert.assertEquals
@@ -97,22 +100,22 @@ class SourceCodeEditorProviderTest {
   }
 
   @Test
-  fun testCreatableForKotlinFile() {
+  fun testCreatableForKotlinFile(): Unit = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
 
-    val editor = invokeAndWaitIfNeeded { provider.createEditor(file.project, file.virtualFile) }
+    val editor = withContext(uiThread) { provider.createEditor(file.project, file.virtualFile) }
 
     TestCase.assertNotNull(editor)
 
-    invokeAndWaitIfNeeded { provider.disposeEditor(editor) }
+    withContext(uiThread) { provider.disposeEditor(editor) }
   }
 
   @Test
-  fun testStateSerialization() {
+  fun testStateSerialization(): Unit = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val representationWithState =
       object : TestPreviewRepresentation() {
-        override fun getState(): PreviewRepresentationState? =
+        override fun getState(): PreviewRepresentationState =
           mapOf("key1" to "value1", "key2" to "value2")
       }
     val serializationProvider =
@@ -123,18 +126,13 @@ class SourceCodeEditorProviderTest {
         )
       )
     val editor =
-      invokeAndWaitIfNeeded {
-        return@invokeAndWaitIfNeeded serializationProvider.createEditor(
-          file.project,
-          file.virtualFile
-        )
+      withContext(uiThread) {
+        return@withContext serializationProvider.createEditor(file.project, file.virtualFile)
       }
         as TextEditorWithMultiRepresentationPreview<*>
-    runBlocking {
-      // Wait for the initializations
-      editor.preview.onInit()
-    }
-    invokeAndWaitIfNeeded {
+    // Wait for the initializations
+    editor.preview.onInit()
+    withContext(uiThread) {
       // Editor are not selected in unit testing. Force the preview activation so it loads the
       // state.
       editor.preview.onActivate()
@@ -145,7 +143,7 @@ class SourceCodeEditorProviderTest {
           fixture.project,
           rootElement
         )
-        assertTrue(JDOMUtil.createOutputter("\n").outputString(rootElement).isNotBlank())
+        assertTrue(JDOMUtil.writeElement(rootElement, "\n").isNotBlank())
         val state =
           serializationProvider.readState(rootElement, fixture.project, file.virtualFile)
             as SourceCodeEditorWithMultiRepresentationPreviewState
@@ -172,16 +170,16 @@ class SourceCodeEditorProviderTest {
   }
 
   @Test
-  fun testDumbModeUpdatesRepresentation() {
+  fun testDumbModeUpdatesRepresentation(): Unit = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
     val representation = TestPreviewRepresentationProvider("Representation1", false)
     val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
     val editor =
-      invokeAndWaitIfNeeded { sourceCodeProvider.createEditor(file.project, file.virtualFile) }
+      withContext(uiThread) { sourceCodeProvider.createEditor(file.project, file.virtualFile) }
         .also { Disposer.register(fixture.testRootDisposable, it) }
     val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
 
-    runBlocking { preview.awaitForRepresentationsUpdated() }
+    preview.awaitForRepresentationsUpdated()
 
     assertThat(preview.representationNames).isEmpty()
     representation.isAccept = true
@@ -191,41 +189,43 @@ class SourceCodeEditorProviderTest {
     DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {}
     DumbService.getInstance(projectRule.project).waitForSmartMode()
 
-    runBlocking {
-      // The representations update can be scheduled at some point in the future after the smart
-      // mode switch so we wait for them to update.
-      delayUntilCondition(delayPerIterationMs = 250) {
-        preview.awaitForRepresentationsUpdated()
-        preview.representationNames.singleOrNull() == "Representation1"
-      }
+    // The representations update can be scheduled at some point in the future after the smart
+    // mode switch so we wait for them to update.
+    delayUntilCondition(delayPerIterationMs = 250) {
+      preview.representationNames.singleOrNull() == "Representation1"
     }
   }
 
   @Test
-  fun testUpdatesRepresentationWithProjectAlreadyInSmartMode() {
+  fun testUpdatesRepresentationWithProjectAlreadyInSmartMode(): Unit = runBlocking {
     val file = fixture.addFileToProject("src/Preview.kt", "")
-    val representation = TestPreviewRepresentationProvider("Representation1", false)
-    val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
-    val editor =
-      invokeAndWaitIfNeeded { sourceCodeProvider.createEditor(file.project, file.virtualFile) }
-        .also { Disposer.register(fixture.testRootDisposable, it) }
-    val preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
+    var preview: MultiRepresentationPreview? = null
+    // We run the initialization of the test in dumb mode to ensure that the right logic triggers
+    // in SourceCodeEditor after the project goes into smart mode.
+    DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {
+      val representation = TestPreviewRepresentationProvider("Representation1", true)
+      val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
+      ApplicationManager.getApplication().invokeAndWait {
+        val editor =
+          sourceCodeProvider.createEditor(file.project, file.virtualFile).also {
+            Disposer.register(fixture.testRootDisposable, it)
+          }
+        preview = (editor as TextEditorWithMultiRepresentationPreview<*>).preview
+      }
+      assertThat(preview!!.representationNames).isEmpty()
+      representation.isAccept = true
+    }
 
-    assertThat(preview.representationNames).isEmpty()
-    representation.isAccept = true
-    assertThat(preview.representationNames).isEmpty()
-
-    runBlocking {
-      // The representations update is scheduled right after [sourceCodeProvider.createEditor()] is
-      // called. In this case we don't need to wait for smart mode to finish
-      preview.awaitForRepresentationsUpdated()
-      preview.representationNames.singleOrNull() == "Representation1"
+    // Now the project will go into smart mode, and we wait to see if the representations update
+    // accordingly.
+    delayUntilCondition(delayPerIterationMs = 250) {
+      preview!!.representationNames.singleOrNull() == "Representation1"
     }
   }
 
   // Regression test for b/232045613
   @Test
-  fun testDoesNotAcceptFilesBecauseOfTheExtension() {
+  fun testDoesNotAcceptFilesBecauseOfTheExtension(): Unit = runBlocking {
     var type: FileType = KotlinFileType.INSTANCE
     val file =
       object : MockVirtualFile("Preview.kt") {
@@ -240,7 +240,7 @@ class SourceCodeEditorProviderTest {
 
   // Test navigation state change
   @Test
-  fun testNavigationMovesToSplitMode() {
+  fun testNavigationMovesToSplitMode(): Unit = runBlocking {
     var type: FileType = KotlinFileType.INSTANCE
     val file =
       object : MockVirtualFile("Preview.kt") {
